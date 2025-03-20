@@ -66,7 +66,7 @@ export class ReportesController extends BaseController {
         const resp = await fetch(this.ssrsURLAPI + "/CatalogItems", { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from((this.ssrsUser + ":" + this.ssrsPass)).toString('base64') } })
         if (resp.status != 200)
           throw new ClientException(`Error accediendo al sistema de reportes status ${resp.status}`)
-  
+        
         const data:any = await resp.json()
         const rep = data.value.find(x => x.Name.localeCompare(Reporte) === 0)
         if (!rep.Path)
@@ -82,11 +82,21 @@ export class ReportesController extends BaseController {
   
         const filtrosOk = {}
         for (const param of dataparam.value) {
-          const filtro = Object.entries(Filtros).find(x => x[0].localeCompare(param.Name, 'es', { sensitivity: 'base' }) === 0)
+          const filtro = Filtros.find(f => Object.keys(f).some(key => key.localeCompare(param.Name, 'es', { sensitivity: 'base' }) === 0));
           if (filtro)
-            filtrosOk[param.Name] = filtro[1]
+            filtrosOk[param.Name] = filtro[Object.keys(filtro)[0]];
         }
-  
+
+        //Codigo anterior que dejo de funcionar
+
+        //for (const param of dataparam.value) {
+          //const filtro = Object.entries(Filtros).find(x => x[0].localeCompare(param.Name, 'es', { sensitivity: 'base' }) === 0)
+          //console.log("filtro", filtro)
+          //if (filtro)
+            //console.log("filtro 1", filtro[1])
+            //filtrosOk[param.Name] = filtro[1]
+        //}
+
         const report = await fetch(this.ssrsURLAccess + rep.Path + "&" + new URLSearchParams(filtrosOk) + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
         if (report.status != 200)
           throw new ClientException(`Error accediendo al sistema de reportes status ${report.status}`)

@@ -28,6 +28,15 @@
                   nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
             }
             @if(selectedTab() === 'cursos') {
+              
+              <button nz-button nzType="default" (click)="openDrawerCursoforEdit()" [disabled]="!(CursoHabilitacionId()>0)" nz-tooltip
+                nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+              <button nz-button nzType="default" (click)="openDrawerCursoforConsult()" [disabled]="!(CursoHabilitacionId()>0)" nz-tooltip
+                nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
+                  nzTheme="outline"></span></button>
+              <button nz-button nzType="default" (click)="openDrawerCursoforNew()" nz-tooltip
+                nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+
               <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="CursoHabilitacionId() == 0"
             nz-tooltip nzTooltipTitle="{{ 'app.mas.detalles' | i18n }}"><span nz-icon nzType="menu-unfold"
             nzTheme="outline"></span></button>
@@ -72,6 +81,12 @@
       [(visible)]="visibleDrawer" 
       [PersonalId]="PersonalId()"
       [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
+
+      <!-- <app-estudios-drawer 
+      (OnRefreshCurso)="RefreshCurso.set(true)" 
+      [disabled]="disabled()" 
+      [(visible)]="visibleDrawerCurso" 
+      [CursoHabilitacionId]="CursoHabilitacionId()"></app-estudios-drawer> -->
 
       <app-curso-historial-drawer 
       [(visibleHistorial)]="visibleHistorial" 

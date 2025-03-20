@@ -32,6 +32,7 @@ export class EstudiosComponent {
   selectedTab = signal<string>('estudios');
   visibleHistorial = signal<boolean>(false);
   //curso historial
+  visibleDrawerCurso = signal<boolean>(false);
   CursoHabilitacionId = signal<number>(0);
   CentroCapacitacionSedeId = signal<number>(0);
   CursoHabilitacionDescripcion = signal<string>('');
@@ -77,22 +78,42 @@ export class EstudiosComponent {
     this.visibleDrawer.set(true);
   }
 
+
   openDrawerforConsult() {
    
     this.disabled.set(true);
     this.visibleDrawer.set(true);
   }
 
-  //async handleAddOrUpdate(){
-   //console.log('aca')
-   //this.RefreshEstudio.set(true)
-  //}
 
   openDrawerforNew() {
    
     this.disabled.set(false);
     this.PersonalEstudioId.set(0);
     this.visibleDrawer.set(true);
+  }
+
+
+  ////// Cursos
+
+  openDrawerCursoforNew() {
+   
+    this.disabled.set(false);
+    this.CursoHabilitacionId.set(0);
+    this.visibleDrawerCurso.set(true);
+  }
+
+  openDrawerCursoforConsult() {
+   
+    this.disabled.set(true);
+    this.visibleDrawerCurso.set(true);
+  }
+
+  
+  openDrawerCursoforEdit() {
+   
+    this.disabled.set(false);
+    this.visibleDrawerCurso.set(true);
   }
 
 

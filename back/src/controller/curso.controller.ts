@@ -240,10 +240,10 @@ export class CursoController extends BaseController {
     try {
       const cursos = await queryRunner.query(
         `SELECT 
-          ROW_NUMBER() OVER (ORDER BY cur.CursoHabilitacionId) as id
-        , cur.CursoHabilitacionId
+        ROW_NUMBER() OVER (ORDER BY cur.CursoHabilitacionId) as id
+        ,cur.CursoHabilitacionId
         , cur.CursoHabilitacionDescripcion
-        , cur.CursoHabilitacionCodigo
+        ,cur.CursoHabilitacionCodigo
         , cur.CursoHabilitacionCantidadHoras
         , cur.CursoHabilitacionInstructor
         , cur.CursoHabilitacionVigencia
@@ -259,11 +259,12 @@ export class CursoController extends BaseController {
         ,sede.CentroCapacitacionSedeId
         ,sede.CentroCapacitacionSedeDescripcion
 
-    FROM CursoHabilitacion cur
+        FROM CursoHabilitacion cur
 
-    LEFT JOIN ModalidadCurso modcur ON modcur.ModalidadCursoCodigo=cur.ModalidadCursoCodigo
-    LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId
-    LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
+        LEFT JOIN ModalidadCurso modcur ON modcur.ModalidadCursoCodigo=cur.ModalidadCursoCodigo
+        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId AND sede.CentroCapacitacionSedeId=cur.CursoHabilitacionCentroCapacitacionSedeId
+
+        LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=sede.CentroCapacitacionId
         WHERE ${filterSql} ${orderBy}`
       )
 
@@ -290,29 +291,31 @@ export class CursoController extends BaseController {
     try {
       const cursos = await queryRunner.query(
         `SELECT 
-          ROW_NUMBER() OVER (ORDER BY cur.CursoHabilitacionId) as id
-        , cur.CursoHabilitacionId
+           ROW_NUMBER() OVER (ORDER BY cur.CursoHabilitacionId) as id
+        ,cur.CursoHabilitacionId
         , cur.CursoHabilitacionDescripcion
-        , cur.CursoHabilitacionCodigo
+        ,cur.CursoHabilitacionCodigo
         , cur.CursoHabilitacionCantidadHoras
-        
+        , cur.CursoHabilitacionInstructor
         , cur.CursoHabilitacionVigencia
+        ,cencap.CentroCapacitacionRazonSocial
         ,sede.CentroCapacitacionSedeDescripcion
 
         ,modcur.ModalidadCursoCodigo
         ,modcur.ModalidadCursoModalidad
 
         ,cencap.CentroCapacitacionId
+
+
         ,sede.CentroCapacitacionSedeId
-        
-        ,cencap.CentroCapacitacionRazonSocial
-        , cur.CursoHabilitacionInstructor
 
-    FROM CursoHabilitacion cur
 
-    LEFT JOIN ModalidadCurso modcur ON modcur.ModalidadCursoCodigo=cur.ModalidadCursoCodigo
-    LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId
-    LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
+        FROM CursoHabilitacion cur
+
+        LEFT JOIN ModalidadCurso modcur ON modcur.ModalidadCursoCodigo=cur.ModalidadCursoCodigo
+        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId AND sede.CentroCapacitacionSedeId=cur.CursoHabilitacionCentroCapacitacionSedeId
+
+        LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=sede.CentroCapacitacionId
     WHERE cur.CursoHabilitacionId = ${CursoHabilitacionId} 
 
     `
