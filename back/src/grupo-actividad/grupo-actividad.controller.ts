@@ -791,8 +791,8 @@ export class GrupoActividadController extends BaseController {
                 const mismaPersona = await queryRunner.query(
                     `SELECT TOP 1 GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde, ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') GrupoActividadJerarquicoHastaMax, GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND GrupoActividadJerarquicoPersonalId=@3 ORDER BY GrupoActividadJerarquicoDesde DESC`,
                     [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo, GrupoActividadJerarquicoDesde, ApellidoNombrePersona.id])
-console.log('row',mismaPersona)            
-console.log('fechas',new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax), GrupoActividadJerarquicoDesde)                
+
+//console.log('fechas', new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax), GrupoActividadJerarquicoDesde)                
                 
                 if (mismaPersona.length > 0 && new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax) >= GrupoActividadJerarquicoDesde)
                     throw new ClientException(`Ya existe un registro con misma persona, tipo y grupo vigente hasta ${this.dateOutputFormat(mismaPersona[0].GrupoActividadJerarquicoHasta?new Date(mismaPersona[0].GrupoActividadJerarquicoHasta):null,' sin final')}`)
