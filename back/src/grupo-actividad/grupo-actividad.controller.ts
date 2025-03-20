@@ -715,11 +715,17 @@ export class GrupoActividadController extends BaseController {
                 const desdeOrig = new Date(orig.GrupoActividadJerarquicoDesde)
                 if (desdeOrig.getTime() != GrupoActividadJerarquicoDesde.getTime()) {
                     await this.checkDateDesde(desdeOrig, GrupoActividadJerarquicoDesde, queryRunner)
-
-                    const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadJerarquicoHasta) GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoPersonalId = @0 AND GrupoActividadId = @1`, [params.ApellidoNombrePersona.id, params.GrupoActividadId])
-                    const maxFecha = new Date(maxFechaRec[0].GrupoActividadJerarquicoHasta);
-                    if (GrupoActividadJerarquicoDesde <= maxFecha)
-                        throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
+                    if (params.GrupoActividadJerarquicoComo == 'J') {
+                        const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadJerarquicoHasta) GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo=@1`, [params.GrupoActividadId, params.GrupoActividadJerarquicoComo])
+                        const maxFecha = new Date(maxFechaRec[0].GrupoActividadJerarquicoHasta);
+                        if (GrupoActividadJerarquicoDesde <= maxFecha)
+                            throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
+                    } else { 
+                        const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadJerarquicoHasta) GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo=@1 AND GrupoActividadJerarquicoPersonalId=@2`, [params.GrupoActividadId, params.GrupoActividadJerarquicoComo, params.ApellidoNombrePersona.id])
+                        const maxFecha = new Date(maxFechaRec[0].GrupoActividadJerarquicoHasta);
+                        if (GrupoActividadJerarquicoDesde <= maxFecha)
+                            throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
+                    }
                 }
 
                 if (GrupoActividadJerarquicoHastaNew) {
@@ -734,7 +740,7 @@ export class GrupoActividadController extends BaseController {
                         WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`, [params.GrupoActividadDetalle.id, params.GrupoActividadJerarquicoComo]);
 
                     if (result.length > 0) {
-                        throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
+                        throw new ClientException(`El grupo actividad ya posee un jerarquico`)
                     }
                 }
 
@@ -761,27 +767,36 @@ export class GrupoActividadController extends BaseController {
                 if (GrupoActividadJerarquicoHastaNew)
                     await this.checkDateHasta(null, GrupoActividadJerarquicoHastaNew, queryRunner)
 
+                const jerarquico = await queryRunner.query(
+                    `SELECT GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde,GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND  ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') >= @2`,
+                    [GrupoActividadDetalle.id, 'J', GrupoActividadJerarquicoDesde]
+                );
+
                 if (GrupoActividadJerarquicoComo == 'J') {
-                    const jerarquico = await queryRunner.query(
-                        `SELECT GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND  ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') >= @2`,
-                        [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo, GrupoActividadJerarquicoDesde]
-                    );
                     if (jerarquico.length > 0) {
                         GrupoActividadJerarquicoHastaAnt = new Date(GrupoActividadJerarquicoDesde)
                         GrupoActividadJerarquicoHastaAnt.setDate(GrupoActividadJerarquicoHastaAnt.getDate() - 1)
                         GrupoActividadJerarquicoHastaAnt.setHours(0, 0, 0, 0)
 
                         await queryRunner.query(
-                            `UPDATE GrupoActividadJerarquico SET GrupoActividadJerarquicoHasta = @2 WHERE GrupoActividadJerarquicoId=@0 And GrupoActividadId = @1`,
+                            `UPDATE GrupoActividadJerarquico SET GrupoActividadJerarquicoHasta = @2 WHERE GrupoActividadJerarquicoId=@1 And GrupoActividadId = @0`,
                             [jerarquico[0].GrupoActividadId, jerarquico[0].GrupoActividadJerarquicoId, GrupoActividadJerarquicoHastaAnt])
                     }
+                } else {
+                    if (jerarquico.length > 0 && jerarquico[0].GrupoActividadJerarquicoPersonalId == params.ApellidoNombrePersona.id)
+                        throw new ClientException('La persona está asignada como Jerárquico en el Grupo de actividad')
                 }
+
+
                 const mismaPersona = await queryRunner.query(
                     `SELECT TOP 1 GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde, ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') GrupoActividadJerarquicoHastaMax, GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND GrupoActividadJerarquicoPersonalId=@3 ORDER BY GrupoActividadJerarquicoDesde DESC`,
                     [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo, GrupoActividadJerarquicoDesde, ApellidoNombrePersona.id])
+console.log('row',mismaPersona)            
+console.log('fechas',new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax), GrupoActividadJerarquicoDesde)                
+                
                 if (mismaPersona.length > 0 && new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax) >= GrupoActividadJerarquicoDesde)
-                    throw new ClientException(`Ya existe un registro con misma persona, tipo y grupo vigente hasta ${this.dateOutputFormat(new Date(mismaPersona[0].GrupoActividadJerarquicoHasta),' sin final')}`)
-
+                    throw new ClientException(`Ya existe un registro con misma persona, tipo y grupo vigente hasta ${this.dateOutputFormat(mismaPersona[0].GrupoActividadJerarquicoHasta?new Date(mismaPersona[0].GrupoActividadJerarquicoHasta):null,' sin final')}`)
+throw new ClientException('debug')
                 let day = new Date()
                 const time = this.getTimeString(day)
                 day.setHours(0, 0, 0, 0)
@@ -891,9 +906,9 @@ export class GrupoActividadController extends BaseController {
                 if (desdeOrig.getTime() != desdeNew.getTime()) {
                     await this.checkDateDesde(desdeOrig, desdeNew, queryRunner)
 
-                    const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadObjetivoHasta) GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0 AND GrupoActividadId = @1`, [params.ObjetivoId, params.GrupoActividadId])
+                    const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadObjetivoHasta) GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0`, [params.ObjetivoId])
                     const maxFecha = new Date(maxFechaRec[0].GrupoActividadObjetivoHasta);
-                    if (desdeNew <= maxFecha)
+                    if (maxFecha && desdeNew <= maxFecha)
                         throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
 
                 }
@@ -1032,11 +1047,11 @@ export class GrupoActividadController extends BaseController {
                 if (desdeOrig.getTime() != desdeNew.getTime()) {
                     await this.checkDateDesde(desdeOrig, desdeNew, queryRunner)
 
-                    const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadPersonalHasta) GrupoActividadPersonalHasta FROM GrupoActividadPersonal WHERE GrupoActividadPersonalPersonalId = @0 AND GrupoActividadId = @1`, [params.PersoanlId, params.GrupoActividadId])
-                    const maxFecha = new Date(maxFechaRec[0].GrupoActividadObjetivoHasta);
-                    if (desdeNew <= maxFecha)
+                    const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadPersonalHasta) GrupoActividadPersonalHasta FROM GrupoActividadPersonal WHERE GrupoActividadPersonalPersonalId = @0`, [params.PersonalId])
+                    const maxFecha = new Date(maxFechaRec[0].GrupoActividadPersonalHasta);
+                    if (maxFecha && desdeNew <= maxFecha) {
                         throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
-
+                    }
                 }
 
                 if (params.GrupoActividadPersonalHasta) {
@@ -1048,8 +1063,6 @@ export class GrupoActividadController extends BaseController {
                 }
 
                 //Validar si cambio el código
-                console.log('El código no existe - es update personal')
-
                 await this.validateFormPersonal(params, queryRunner)
 
                 await queryRunner.query(`
@@ -1139,7 +1152,6 @@ export class GrupoActividadController extends BaseController {
                 message = "Carga de nuevo Registro exitoso"
             }
 
-throw new ClientException('debug')
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
         } catch (error) {
