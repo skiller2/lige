@@ -2179,7 +2179,6 @@ console.log('infoDomicilio',infoDomicilio)
     let now:Date = new Date()
     const time = this.getTimeString(now)
     now.setHours(0, 0, 0, 0)
-    let GrupoActividadPersonalReasignado = 0
     
     //Obtengo el ultimo Grupo Actividad Personal
     let ultGrupoActividadPersonal = await queryRunner.query(`
@@ -2211,7 +2210,6 @@ console.log('infoDomicilio',infoDomicilio)
           WHERE GrupoActividadPersonalPersonalId IN (@0) AND GrupoActividadPersonalId IN (@1)`,
           [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, yesterday]
         )
-        GrupoActividadPersonalReasignado++
       }
 
       //Obtengo y actualizo el ultimo GrupoActividadPersonalId
@@ -2230,10 +2228,10 @@ console.log('infoDomicilio',infoDomicilio)
       //Crea un Grupo Actividad Personal nuevo
       await queryRunner.query(`
         INSERT INTO GrupoActividadPersonal ( 
-        GrupoActividadPersonalId, GrupoActividadId, GrupoActividadPersonalPersonalId, GrupoActividadPersonalDesde, GrupoActividadPersonalReasignado,
+        GrupoActividadPersonalId, GrupoActividadId, GrupoActividadPersonalPersonalId, GrupoActividadPersonalDesde,
         GrupoActividadPersonalPuesto, GrupoActividadPersonalUsuarioId, GrupoActividadPersonalDia, GrupoActividadPersonalTiempo
         ) VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8)
-        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, GrupoActividadPersonalReasignado, ip, usuarioId, now, time]
+        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, ip, usuarioId, now, time]
       )
       
     }
