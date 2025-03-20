@@ -16,15 +16,15 @@ import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-a
 import { EditorObjetivoComponent } from '../../shared/editor-objetivo/editor-objetivo.component';
 
 @Component({
-    selector: 'app-table-grupo-actividad-objetivos',
-    providers: [AngularUtilService],
-    imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        FiltroBuilderComponent
-    ],
-    templateUrl: './table-grupo-actividad-objetivos.component.html',
-    styleUrl: './table-grupo-actividad-objetivos.component.less'
+  selector: 'app-table-grupo-actividad-objetivos',
+  providers: [AngularUtilService],
+  imports: [
+    ...SHARED_IMPORTS,
+    CommonModule,
+    FiltroBuilderComponent
+  ],
+  templateUrl: './table-grupo-actividad-objetivos.component.html',
+  styleUrl: './table-grupo-actividad-objetivos.component.less'
 })
 export class TableGrupoActividadObjetivosComponent {
 
@@ -59,8 +59,8 @@ export class TableGrupoActividadObjetivosComponent {
   }
 
   columnsObjetivos$ = this.apiService.getCols('/api/grupo-actividad/colsobjetivos').pipe(
-    switchMap(async (cols) => {return { cols }}),
-    map((data:any) => {
+    switchMap(async (cols) => { return { cols } }),
+    map((data: any) => {
       let mapped = data.cols.map((col: Column) => {
         switch (col.id) {
           case 'GrupoActividadDetalle':
@@ -80,20 +80,20 @@ export class TableGrupoActividadObjetivosComponent {
             break
 
           case 'GrupoObjetivoDetalle':
-              col.formatter = Formatters['complexObject'],
-                col.exportWithFormatter = true,
-                col.editor = {
-                  model: CustomInputEditor,
-                  collection: [],
-                  params: {
-                    component: EditorObjetivoComponent,
-                  },
-                  alwaysSaveOnEnterKey: true,
+            col.formatter = Formatters['complexObject'],
+              col.exportWithFormatter = true,
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: EditorObjetivoComponent,
                 },
-                col.params = {
-                  complexFieldLabel: 'GrupoObjetivoDetalle.fullName',
-                }
-              break
+                alwaysSaveOnEnterKey: true,
+              },
+              col.params = {
+                complexFieldLabel: 'GrupoObjetivoDetalle.fullName',
+              }
+            break
 
           default:
             break;
@@ -116,8 +116,8 @@ export class TableGrupoActividadObjetivosComponent {
 
     const dateToday = new Date();
     this.startFilters = [
-     {field:'GrupoActividadObjetivoDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-     {field:'GrupoActividadObjetivoHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
+      { field: 'GrupoActividadObjetivoDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
+      { field: 'GrupoActividadObjetivoHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -142,12 +142,12 @@ export class TableGrupoActividadObjetivosComponent {
         if (!row.dbid)
           this.rowLocked = true
 
-        const response:any = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
+        const response: any = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
         row.GrupoActividadId = response.data.GrupoActividadId
         this.angularGridEditObjetivos.gridService.updateItemById(row.id, row)
 
 
-        if(response.data.PreviousDate){
+        if (response.data.PreviousDate) {
           this.listGrupoActividadObjetivos$.next('')
         }
 
@@ -164,7 +164,7 @@ export class TableGrupoActividadObjetivosComponent {
           this.angularGridEditObjetivos.gridService.updateItemById(row.id, item)
         } else {
           // marcar el row en rojo
- 
+
           this.angularGridEditObjetivos.slickGrid.setSelectedRows([]);
           this.angularGridEditObjetivos.slickGrid.render();
         }
@@ -225,7 +225,7 @@ export class TableGrupoActividadObjetivosComponent {
 
   }
 
-  
+
   gridDataObjetivos$ = this.listGrupoActividadObjetivos$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -286,7 +286,7 @@ export class TableGrupoActividadObjetivosComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-    if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadObjetivoHasta) < new Date()) 
+    if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadObjetivoHasta) < new Date())
       return false;
 
     if (column.id == 'GrupoActividadObjetivoDesde' || column.id == 'GrupoActividadObjetivoHasta')
