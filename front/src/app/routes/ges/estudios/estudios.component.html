@@ -5,7 +5,11 @@
           <ul nz-menu nzMode="horizontal" style="display: flex;">
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'listado']">{{ 'app.segurosList' | i18n }}</a>
+              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios')">{{ 'app.seguros.estudios' | i18n }}</a>
+            </li>
+            <li nz-menu-item nzMatchRouter>
+              <span nz-icon nzType=""></span>
+              <a [routerLink]="['/', 'ges', 'estudios', 'cursos']" (click)="selectedTab.set('cursos')">{{ 'app.seguros.cursos' | i18n }}</a>
             </li>
           </ul>
         </div>
@@ -13,6 +17,7 @@
         <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
           <nz-button-group style="text-align: right;">
       
+            @if(selectedTab() === 'estudios') {
          
                 <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
                   nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
@@ -21,7 +26,14 @@
                     nzTheme="outline"></span></button>
                 <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
                   nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-              </nz-button-group>
+            }
+            @if(selectedTab() === 'cursos') {
+              <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
+                  nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+            }
+          </nz-button-group>
+
+          
       
          
       
@@ -32,17 +44,26 @@
     
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
         <nz-tab>
-          <a nz-tab-link routerLink="/ges/estudios/listado">Listado </a>
+          <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
           <ng-template nz-tab>
             <div class="gridContainer container-fluid">
               
-                <app-table-estudios gridId="gridEdit1"  [RefreshEstudio]="RefreshEstudio()"  (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
+                <app-table-estudios [RefreshEstudio]="RefreshEstudio()"  (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
               
             </div>
           </ng-template>
         </nz-tab>
-      </nz-tabset>
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/estudios/cursos">{{ 'app.seguros.cursos' | i18n }} </a>
+          <ng-template nz-tab>
+            <div class="gridContainer container-fluid">
+              
+              <app-table-cursos [RefreshCurso]="RefreshCurso()"  (valueGridEvent)="actualizarValorDrawerCurso($event)"></app-table-cursos>  
 
+            </div>
+          </ng-template>
+        </nz-tab>
+      </nz-tabset>
 
       <app-estudios-drawer 
       (OnRefreshEstudio)="RefreshEstudio.set(true)" 

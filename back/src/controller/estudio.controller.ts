@@ -189,7 +189,7 @@ export class EstudioController extends BaseController {
           ,perest.PersonalEstudioId
           ,perest.PersonalId
           ,perest.TipoEstudioId
-          ,perest.PersonalEstudioTitulo
+          ,TRIM(perest.PersonalEstudioTitulo) as PersonalEstudioTitulo
           ,perest.PersonalEstudioOtorgado
           ,perest.PersonalEstudioHasta
           ,tipest.TipoEstudioDescripcion

@@ -6,6 +6,7 @@ import { SettingsService } from '@delon/theme';
 import { TableEstudiosComponent } from '../../../shared/table-estudios/table-estudios.component'
 import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudios-drawer.component';
 import { BehaviorSubject } from 'rxjs';
+import { TableCursoComponent } from '../../../shared/table-curso/table-curso.component'
 
 
 @Component({
@@ -13,7 +14,7 @@ import { BehaviorSubject } from 'rxjs';
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,]
+  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,TableCursoComponent]
 })
 export class EstudiosComponent {
 
@@ -26,8 +27,9 @@ export class EstudiosComponent {
   visibleDrawer = signal<boolean>(false);
   disabled = signal<boolean>(false);
   RefreshEstudio = signal<boolean>(false);
-
-  ListEstudios$ = new BehaviorSubject('')
+  RefreshCurso = signal<boolean>(false);
+  ListEstudios$ = new BehaviorSubject('');
+  selectedTab = signal<string>('estudios');
 
   constructor(private settingsService: SettingsService) {}
 
@@ -39,6 +41,15 @@ export class EstudiosComponent {
 
 
   actualizarValorDrawer(event: any) {
+    console.log('event', event)
+    this.visibleDrawer.set(false);
+    if (event.length > 0) {
+      this.PersonalId.set(event[0].PersonalId);
+      this.PersonalEstudioId.set(event[0].PersonalEstudioId);
+    }
+  }
+
+  actualizarValorDrawerCurso(event: any) {
     console.log('event', event)
     this.visibleDrawer.set(false);
     if (event.length > 0) {
