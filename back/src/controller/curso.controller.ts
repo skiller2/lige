@@ -314,9 +314,11 @@ export class CursoController extends BaseController {
     LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId
     LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
     WHERE cur.CursoHabilitacionId = ${CursoHabilitacionId} 
-    ${CentroCapacitacionSedeId ? `AND sede.CentroCapacitacionSedeId = ${CentroCapacitacionSedeId}` : ''}
+
     `
       )
+
+      //    ${CentroCapacitacionSedeId ? `AND sede.CentroCapacitacionSedeId = ${CentroCapacitacionSedeId}` : ''}
 
       this.jsonRes(
         {
