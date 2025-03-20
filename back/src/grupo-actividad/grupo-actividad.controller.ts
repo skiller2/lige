@@ -792,11 +792,10 @@ export class GrupoActividadController extends BaseController {
                     `SELECT TOP 1 GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde, ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') GrupoActividadJerarquicoHastaMax, GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND GrupoActividadJerarquicoPersonalId=@3 ORDER BY GrupoActividadJerarquicoDesde DESC`,
                     [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo, GrupoActividadJerarquicoDesde, ApellidoNombrePersona.id])
 
-//console.log('fechas', new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax), GrupoActividadJerarquicoDesde)                
                 
                 if (mismaPersona.length > 0 && new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax) >= GrupoActividadJerarquicoDesde)
                     throw new ClientException(`Ya existe un registro con misma persona, tipo y grupo vigente hasta ${this.dateOutputFormat(mismaPersona[0].GrupoActividadJerarquicoHasta?new Date(mismaPersona[0].GrupoActividadJerarquicoHasta):null,' sin final')}`)
-throw new ClientException('debug')
+
                 let day = new Date()
                 const time = this.getTimeString(day)
                 day.setHours(0, 0, 0, 0)
@@ -908,6 +907,10 @@ throw new ClientException('debug')
 
                     const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadObjetivoHasta) GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0`, [params.ObjetivoId])
                     const maxFecha = new Date(maxFechaRec[0].GrupoActividadObjetivoHasta);
+
+//                    console.log('fechas', new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax), GrupoActividadJerarquicoDesde)                
+                    
+
                     if (maxFecha && desdeNew <= maxFecha)
                         throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
 
@@ -942,6 +945,8 @@ throw new ClientException('debug')
                 ])
 
 
+                throw new ClientException('debug update')
+
                 dataResultado = { action: 'U', GrupoActividadId: params.GrupoActividadId }
                 message = "Actualizacion exitosa"
             } else {  //Es un nuevo registro
@@ -954,7 +959,9 @@ throw new ClientException('debug')
                     await this.checkDateHasta(null, GrupoActividadObjetivoHasta, queryRunner)
 
                 let resultQuery = await queryRunner.query(`
-                SELECT TOP 1 GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta, ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') GrupoActividadObjetivoHastaMax FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0 AND GrupoActividadObjetivoDesde <= @1 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
+                SELECT TOP 1 GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta, ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') GrupoActividadObjetivoHastaMax FROM GrupoActividadObjetivo 
+                WHERE GrupoActividadObjetivoObjetivoId = @0 -- AND GrupoActividadObjetivoDesde <= @1 
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
             `, [params.GrupoObjetivoDetalle.id, GrupoActividadObjetivoDesde])
 
                 if (resultQuery.length > 0) {
@@ -997,7 +1004,9 @@ throw new ClientException('debug')
                     SET GrupoActividadObjetivoUltNro = @0
                     WHERE GrupoActividadId =  @1`, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id])
 
-                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHastaAnt }
+                throw new ClientException('debug insert')
+            
+                dataResultado = { action: 'I', GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
             }
 
@@ -1099,7 +1108,7 @@ throw new ClientException('debug')
                 let resultQuery = await queryRunner.query(`
                 SELECT TOP 1 GrupoActividadPersonalId, GrupoActividadPersonalPersonalId, GrupoActividadId, GrupoActividadPersonalDesde, GrupoActividadPersonalHasta, ISNULL(GrupoActividadPersonalHasta,'9999-12-31') GrupoActividadPersonalHastaMax 
                   FROM GrupoActividadPersonal 
-                  WHERE GrupoActividadPersonalPersonalId = @0 AND GrupoActividadPersonalDesde < @1 
+                  WHERE GrupoActividadPersonalPersonalId = @0 -- AND GrupoActividadPersonalDesde < @1 
                   ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC`,
                     [params.ApellidoNombrePersona.id, GrupoActividadPersonalDesde])
 

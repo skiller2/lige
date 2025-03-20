@@ -143,7 +143,9 @@ export class TableGrupoActividadObjetivosComponent {
           this.rowLocked = true
 
         const response: any = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
+        console.log('obtengo',response.data,row)
         row.GrupoActividadId = response.data.GrupoActividadId
+        row.GrupoActividadObjetivoId = response.data.GrupoActividadObjetivoId
         this.angularGridEditObjetivos.gridService.updateItemById(row.id, row)
 
 
@@ -257,6 +259,7 @@ export class TableGrupoActividadObjetivosComponent {
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEditObjetivos.dataView.getItem(rowNumber);
+      console.log('item',item)
       let meta = {
         cssClasses: ''
       };
@@ -264,7 +267,7 @@ export class TableGrupoActividadObjetivosComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (
+      if ( !item ||
         item.GrupoActividadId == 0 ||
         item.GrupoActividadDetalle === "" ||
         item.GrupoObjetivoDetalle === "" ||
