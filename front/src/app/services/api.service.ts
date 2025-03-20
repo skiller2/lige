@@ -604,6 +604,17 @@ export class ApiService {
     
   }
 
+  getListCursosHistory(filters: any, anio: any, mes: any, CursoHabilitacionId:any, CentroCapacitacionSedeId:any) {
+
+    const parameter = { filters, anio, mes, CursoHabilitacionId, CentroCapacitacionSedeId }
+    return this.http.post<ResponseJSON<any>>('/api/curso/listHistory', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+    
+  }
+
   getListGrupoActividadGrupos(filters: any) {
     const parameter =  filters 
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listGrupos', parameter).pipe(

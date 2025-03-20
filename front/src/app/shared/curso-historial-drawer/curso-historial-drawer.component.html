@@ -1,0 +1,18 @@
+<nz-drawer [nzClosable]="true" [nzVisible]="visibleHistorial()" [nzOffsetX]="0" [nzPlacement]="placement"
+  [nzWidth]="900" [nzTitle]="'Curso: '  + CursoHabilitacionDescripcion()" (nzOnClose)="visibleHistorial.set(false)">
+  <form nz-form #objpendForm="ngForm">
+    <ng-container *nzDrawerContent >
+      @if (visibleHistorial()) {
+        
+        <div class=" gridContainer3 container-fluid" *ngIf="(columns$|async) as columnas">
+          <angular-slickgrid gridId="gridEdit3" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+        </div>
+      }
+    </ng-container>
+  </form>
+</nz-drawer> 
+
+

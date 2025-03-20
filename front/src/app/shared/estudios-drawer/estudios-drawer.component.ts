@@ -17,7 +17,6 @@ import  { FileUploadComponent } from "../../shared/file-upload/file-upload.compo
 import { log } from '@delon/util';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
-import { TableEstudiosComponent } from '../../shared/table-estudios/table-estudios.component'
 
 export interface Option {
   label: string;
@@ -29,7 +28,6 @@ export interface Option {
     imports: [SHARED_IMPORTS, 
       NzUploadModule, 
       NzAutocompleteModule,
-      TableEstudiosComponent,
       EstudioSearchComponent,
       CursoSearchComponent, 
       PersonalSearchComponent,

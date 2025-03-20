@@ -13,9 +13,16 @@ cursoRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['g
     cursoController.getCursosColumns(req, res, next);
 });
 
+cursoRouter.get("/colsHistory", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  cursoController.getCursosColumnsHistory(req, res, next);
+});
 
 cursoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
   cursoController.list(req, res, next)
+})
+
+cursoRouter.post('/listHistory', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+  cursoController.listHistory(req, res, next)
 })
 
 

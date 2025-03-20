@@ -7,14 +7,14 @@ import { TableEstudiosComponent } from '../../../shared/table-estudios/table-est
 import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudios-drawer.component';
 import { BehaviorSubject } from 'rxjs';
 import { TableCursoComponent } from '../../../shared/table-curso/table-curso.component'
-
+import { CursoHistorialDrawerComponent } from '../../../shared/curso-historial-drawer/curso-historial-drawer.component'
 
 @Component({
   selector: 'app-estudios',
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,TableCursoComponent]
+  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,TableCursoComponent,CursoHistorialDrawerComponent]
 })
 export class EstudiosComponent {
 
@@ -30,7 +30,11 @@ export class EstudiosComponent {
   RefreshCurso = signal<boolean>(false);
   ListEstudios$ = new BehaviorSubject('');
   selectedTab = signal<string>('estudios');
-
+  visibleHistorial = signal<boolean>(false);
+  //curso historial
+  CursoHabilitacionId = signal<number>(0);
+  CentroCapacitacionSedeId = signal<number>(0);
+  CursoHabilitacionDescripcion = signal<string>('');
   constructor(private settingsService: SettingsService) {}
 
   ngOnInit() {
@@ -49,12 +53,21 @@ export class EstudiosComponent {
     }
   }
 
+  openDrawerforConsultHistory(): void{
+
+
+    this.visibleHistorial.set(true)
+    
+       
+  }
+
   actualizarValorDrawerCurso(event: any) {
     console.log('event', event)
     this.visibleDrawer.set(false);
     if (event.length > 0) {
-      this.PersonalId.set(event[0].PersonalId);
-      this.PersonalEstudioId.set(event[0].PersonalEstudioId);
+      this.CursoHabilitacionId.set(event[0].CursoHabilitacionId);
+      this.CentroCapacitacionSedeId.set(event[0].CentroCapacitacionSedeId);
+      this.CursoHabilitacionDescripcion.set(event[0].CursoHabilitacionDescripcion);
     }
   }
 

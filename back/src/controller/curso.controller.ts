@@ -71,6 +71,106 @@ const columnsCursos:any[] = [
   },
 ]
 
+const columnsCursosHistory:any[] = [
+  {
+    id:'id', name:'Id', field:'id',
+    fieldName: "",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id: 'Codigo', name: 'Codigo', field: 'CursoHabilitacionCodigo',
+    fieldName: 'cur.CursoHabilitacionCodigo',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'Descripcion', name: 'Descripción', field: 'CursoHabilitacionDescripcion',
+    fieldName: 'cur.CursoHabilitacionDescripcion',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'CantidadHoras', 
+    name: 'Cantidad Horas', 
+    field: 'CursoHabilitacionCantidadHoras',
+    fieldName: 'cur.CursoHabilitacionCantidadHoras',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'VigenciaD', 
+    name: 'Vigencia (D)', 
+    field: 'CursoHabilitacionVigencia',
+    fieldName: 'cur.CursoHabilitacionVigencia',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'Modalidad', 
+    name: 'Modalidad', 
+    field: 'ModalidadCursoModalidad',
+    fieldName: 'modcur.ModalidadCursoModalidad',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'CentroCapacitacionRazonSocial', 
+    name: 'Centro de Capacitación', 
+    field: 'CentroCapacitacionRazonSocial',
+    fieldName: 'cencap.CentroCapacitacionRazonSocial',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'CentroCapacitacionSedeDescripcion', 
+    name: 'Sede de Capacitación', 
+    field: 'CentroCapacitacionSedeDescripcion',
+    fieldName: 'sede.CentroCapacitacionSedeDescripcion',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'CursoHabilitacionInstructor', 
+    name: 'Instructor', 
+    field: 'CursoHabilitacionInstructor',
+    fieldName: 'cur.CursoHabilitacionInstructor',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+
+]
+
+
 export class CursoController extends BaseController {
 
   search(req: any, res: Response, next: NextFunction) {
@@ -119,6 +219,10 @@ export class CursoController extends BaseController {
     return this.jsonRes(columnsCursos, res)
   }
 
+  async getCursosColumnsHistory(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsCursosHistory, res)
+  }
+
   async list(req: any, res: Response, next: NextFunction) {
 
 
@@ -161,6 +265,57 @@ export class CursoController extends BaseController {
     LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId
     LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
         WHERE ${filterSql} ${orderBy}`
+      )
+
+      this.jsonRes(
+        {
+          total: cursos.length,
+          list: cursos,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+
+  }
+
+  async listHistory(req: any, res: Response, next: NextFunction) {
+
+    const { CursoHabilitacionId, CentroCapacitacionSedeId } = req.body
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      const cursos = await queryRunner.query(
+        `SELECT 
+          ROW_NUMBER() OVER (ORDER BY cur.CursoHabilitacionId) as id
+        , cur.CursoHabilitacionId
+        , cur.CursoHabilitacionDescripcion
+        , cur.CursoHabilitacionCodigo
+        , cur.CursoHabilitacionCantidadHoras
+        
+        , cur.CursoHabilitacionVigencia
+        ,sede.CentroCapacitacionSedeDescripcion
+
+        ,modcur.ModalidadCursoCodigo
+        ,modcur.ModalidadCursoModalidad
+
+        ,cencap.CentroCapacitacionId
+        ,sede.CentroCapacitacionSedeId
+        
+        ,cencap.CentroCapacitacionRazonSocial
+        , cur.CursoHabilitacionInstructor
+
+    FROM CursoHabilitacion cur
+
+    LEFT JOIN ModalidadCurso modcur ON modcur.ModalidadCursoCodigo=cur.ModalidadCursoCodigo
+    LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId
+    LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
+    WHERE cur.CursoHabilitacionId = ${CursoHabilitacionId} 
+    ${CentroCapacitacionSedeId ? `AND sede.CentroCapacitacionSedeId = ${CentroCapacitacionSedeId}` : ''}
+    `
       )
 
       this.jsonRes(
