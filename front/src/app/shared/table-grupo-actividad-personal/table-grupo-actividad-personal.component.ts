@@ -143,6 +143,7 @@ export class TableGrupoActividadPersonalComponent {
 
         const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadPersonal(row))
         row.GrupoActividadId = response.data.GrupoActividadId
+        row.GrupoActividadPersonalId = response.data.GrupoActividadPersonalId
         this.angularGridEditPersonal.gridService.updateItemById(row.id, row)
 
 
@@ -263,7 +264,7 @@ export class TableGrupoActividadPersonalComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (
+      if (!item ||
         item.GrupoActividadId == 0 ||
         item.GrupoActividadDetalle === "" ||
         item.GrupoActividadPersonalDesde === "" ||
@@ -284,11 +285,9 @@ export class TableGrupoActividadPersonalComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-   
     if (item.GrupoActividadPersonalHasta && new Date(item.GrupoActividadPersonalHasta) < new Date()) 
       return false;
     
-
     if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
       return true
 
