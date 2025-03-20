@@ -515,7 +515,9 @@ export class ObjetivosController extends BaseController {
                 ObjetivoPersonalJerarquicoComision,
                 ObjetivoPersonalJerarquicoDesde,
                 ObjetivoPersonalJerarquicoHasta,
-                ObjetivoPersonalJerarquicoDescuentos FROM ObjetivoPersonalJerarquico
+                ObjetivoPersonalJerarquicoDescuentos,
+                ObjetivoPersonalJerarquicoSeDescuentaTelefono
+                FROM ObjetivoPersonalJerarquico
 
                 WHERE ObjetivoId = @0 AND ObjetivoPersonalJerarquicoDesde <= @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @1`,
             [ObjetivoId, new Date()])
@@ -999,7 +1001,7 @@ export class ObjetivosController extends BaseController {
         const coordinadoresActuales = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
         for (const old of coordinadoresActuales) {
             const nuevo = Coordinadores.find((r: any) => (r.PersonaId == old.PersonaId))
-            if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos) {
+            if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos || nuevo?.ObjetivoPersonalJerarquicoSeDescuentaTelefono != old.ObjetivoPersonalJerarquicoSeDescuentaTelefono) {
                 await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @2
                 WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
                     [old.PersonaId, ObjetivoId, fechaAyer, Fecha])
@@ -1009,8 +1011,8 @@ export class ObjetivosController extends BaseController {
                 if (nuevo?.PersonaId) {
                     await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
                         ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComision,
-                        ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5); `,
-                        [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
+                        ObjetivoPersonalJerarquicoDescuentos, ObjetivoPersonalJerarquicoSeDescuentaTelefono) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
+                        [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
                 }
             }
         }
@@ -1021,8 +1023,8 @@ export class ObjetivosController extends BaseController {
             if (!nuevo.PersonaId) continue
             await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
                 ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComision,
-                ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5); `,
-                [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
+                ObjetivoPersonalJerarquicoDescuentos, ObjetivoPersonalJerarquicoSeDescuentaTelefono) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
+                [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
         }
         return await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
     }
