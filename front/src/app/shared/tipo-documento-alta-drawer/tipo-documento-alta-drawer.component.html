@@ -60,7 +60,9 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
             <nz-form-control>
-              <app-file-upload formControlName="archivo" [cantMaxFiles]="1" ></app-file-upload>
+              <app-file-upload formControlName="archivo" [cantMaxFiles]="1"
+              [idForSearh]="this.docId()" [textForSearch]="this.doctipo_id()"
+              [tableForSearch]="'docgeneral'" [columnForSearch]="'doc_id'"></app-file-upload>
             </nz-form-control>
           </nz-form-item>
     
