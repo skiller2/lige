@@ -360,8 +360,8 @@ export class CursoController extends BaseController {
   }
 
   searchModalidadCurso(req: any, res: Response, next: NextFunction) {
-      const { fieldName, value } = req.body
-  
+      const { fieldName, value, CentroCapacitacionId } = req.body
+      console.log("---------------CentroCapacitacionId------------------",CentroCapacitacionId)
       let buscar = false;
       let query: string = `SELECT * FROM ModalidadCurso modcur
       WHERE`;

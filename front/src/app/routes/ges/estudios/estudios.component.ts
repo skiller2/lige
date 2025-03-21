@@ -34,7 +34,7 @@ export class EstudiosComponent {
   visibleHistorial = signal<boolean>(false);
   //curso historial
   visibleDrawerCurso = signal<boolean>(false);
-  CursoHabilitacionId = signal<number>(0);
+  CursoHabilitacionSelectedId = signal<number>(0);
   CentroCapacitacionSedeId = signal<number>(0);
   CursoHabilitacionDescripcion = signal<string>('');
   constructor(private settingsService: SettingsService) {}
@@ -67,7 +67,7 @@ export class EstudiosComponent {
     console.log('event', event)
     this.visibleDrawer.set(false);
     if (event.length > 0) {
-      this.CursoHabilitacionId.set(event[0].CursoHabilitacionId);
+      this.CursoHabilitacionSelectedId.set(event[0].CursoHabilitacionId);
       this.CentroCapacitacionSedeId.set(event[0].CentroCapacitacionSedeId);
       this.CursoHabilitacionDescripcion.set(event[0].CursoHabilitacionDescripcion);
     }
@@ -100,7 +100,7 @@ export class EstudiosComponent {
   openDrawerCursoforNew() {
    
     this.disabled.set(false);
-    this.CursoHabilitacionId.set(0);
+    this.CursoHabilitacionSelectedId.set(0);
     this.visibleDrawerCurso.set(true);
   }
 

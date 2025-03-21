@@ -1,0 +1,15 @@
+
+<nz-select #cur [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Centro Capacitación"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
+  <ng-container *ngFor="let option of $optionsArray | async">
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.CentroCapacitacionId"
+      nzLabel="{{ option.CentroCapacitacionRazonSocial }}" />
+  </ng-container>
+  <nz-option *ngIf="extendedOption.CentroCapacitacionId > 0" [nzValue]="extendedOption.CentroCapacitacionId"
+    [nzLabel]="extendedOption.CentroCapacitacionRazonSocial" />
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Cargando datos...
+  </nz-option>
+</nz-select>

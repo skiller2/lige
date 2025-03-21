@@ -10,6 +10,8 @@ import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
+import { CentroCapacitacionSedeSearchComponent } from '../centro-capacitacion-sede-search/centro-capacitacion-sede-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -28,7 +30,10 @@ export interface Option {
       NzUploadModule, 
       NzAutocompleteModule,
       CursoSearchComponent,
-      CommonModule],
+      CommonModule,
+      CentroCapacitacionSearchComponent,
+      CentroCapacitacionSedeSearchComponent
+    ],
     templateUrl: './cursos-drawer.component.html',
     styleUrl: './cursos-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -46,7 +51,7 @@ export class CursosDrawerComponent {
 
   private notification = inject(NzNotificationService)
 
-  CursoHabilitacionId = input.required<number>()
+  CursoHabilitacionSelectedId = input.required<number>()
   CursoHabilitacionIdForEdit = signal(0)
 
   PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
@@ -78,8 +83,8 @@ export class CursosDrawerComponent {
     CursoHabilitacionVigencia: 0,
     ModalidadCursoModalidad: "",
     CursoHabilitacionInstructor: "",
-    CentroCapacitacion: null,
-    CentroCapacitacionSede: null
+    CentroCapacitacionId: 0,
+    CentroCapacitacionSedeId: 0
   })
 
   constructor(
@@ -95,23 +100,22 @@ export class CursosDrawerComponent {
   cambios = computed(async () => {
     const visible = this.visible()
     //this.ngForm().form.reset()
-    this.ArchivosEstudioAdd = []
     if (visible) {
       //const per = this.selectedPeriod()
-      if (this.CursoHabilitacionId() > 0) {
-        let vals = await firstValueFrom(this.apiService.getListCursosHistory( { options: this.listOptions }, this.anio(), this.mes(), this.CursoHabilitacionId(),""))
+      if (this.CursoHabilitacionSelectedId() > 0) {
+        let vals = await firstValueFrom(this.apiService.getListCursosHistory( { options: this.listOptions }, this.anio(), this.mes(), this.CursoHabilitacionSelectedId(),""))
         console.log("vals 1",vals.list[0])
         //let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
 
-        this.CursoHabilitacionIdForEdit.set(this.CursoHabilitacionId())
+        this.CursoHabilitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
           vals.CursoHabilitacionCodigo = vals.list[0].CursoHabilitacionCodigo,
           vals.CursoHabilitacionId = vals.list[0].CursoHabilitacionId,
           vals.CursoHabilitacionCantidadHoras = vals.list[0].CursoHabilitacionCantidadHoras,
           vals.CursoHabilitacionVigencia = Number(vals.list[0].CursoHabilitacionVigencia),
           vals.ModalidadCursoModalidad = vals.list[0].ModalidadCursoModalidad,
           vals.CursoHabilitacionInstructor = vals.list[0].CursoHabilitacionInstructor,
-          vals.CentroCapacitacion = vals.list[0].CentroCapacitacion,
-          vals.CentroCapacitacionSede = vals.list[0].CentroCapacitacionSede
+          vals.CentroCapacitacionId = vals.list[0].CentroCapacitacionId,
+          vals.CentroCapacitacionSedeId = vals.list[0].CentroCapacitacionSedeId
 
           console.log("vals",vals)
      

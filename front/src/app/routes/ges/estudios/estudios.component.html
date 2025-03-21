@@ -5,7 +5,7 @@
           <ul nz-menu nzMode="horizontal" style="display: flex;">
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios'); this.CursoHabilitacionId.set(0)">{{ 'app.seguros.estudios' | i18n }}</a>
+              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.estudios' | i18n }}</a>
             </li>
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
@@ -29,15 +29,15 @@
             }
             @if(selectedTab() === 'cursos') {
               
-              <button nz-button nzType="default" (click)="openDrawerCursoforEdit()" [disabled]="!(CursoHabilitacionId()>0)" nz-tooltip
+              <button nz-button nzType="default" (click)="openDrawerCursoforEdit()" [disabled]="!(CursoHabilitacionSelectedId()>0)" nz-tooltip
                 nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-              <button nz-button nzType="default" (click)="openDrawerCursoforConsult()" [disabled]="!(CursoHabilitacionId()>0)" nz-tooltip
+              <button nz-button nzType="default" (click)="openDrawerCursoforConsult()" [disabled]="!(CursoHabilitacionSelectedId()>0)" nz-tooltip
                 nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
                   nzTheme="outline"></span></button>
               <button nz-button nzType="default" (click)="openDrawerCursoforNew()" nz-tooltip
                 nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
 
-              <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="CursoHabilitacionId() == 0"
+              <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="CursoHabilitacionSelectedId() == 0"
             nz-tooltip nzTooltipTitle="{{ 'app.mas.detalles' | i18n }}"><span nz-icon nzType="menu-unfold"
             nzTheme="outline"></span></button>
             }
@@ -86,11 +86,11 @@
       (onRefreshCurso)="RefreshCurso.set(true)" 
       [disabled]="disabled()" 
       [(visible)]="visibleDrawerCurso" 
-      [CursoHabilitacionId]="CursoHabilitacionId()"></app-cursos-drawer> 
+      [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer> 
 
       <app-curso-historial-drawer 
       [(visibleHistorial)]="visibleHistorial" 
-      [CursoHabilitacionId]="CursoHabilitacionId()"
+      [CursoHabilitacionId]="CursoHabilitacionSelectedId()"
       [CentroCapacitacionSedeId]="CentroCapacitacionSedeId()"
       [CursoHabilitacionDescripcion]="CursoHabilitacionDescripcion()"></app-curso-historial-drawer> 
 

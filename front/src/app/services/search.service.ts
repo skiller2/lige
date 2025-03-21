@@ -24,6 +24,8 @@ import { ResponseBySearchAdministrador, SearchAdmind } from 'src/app/shared/sche
 import { ResponseBySearchRubro, SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from 'src/app/shared/schemas/seguro.schemas';
 import { ResponseBySearchEstudio, SearchEstudio } from 'src/app/shared/schemas/estudios.schemas';
+import { ResponseBySearchCentroCapacitacionSede, SearchCentroCapacitacionSede } from 'src/app/shared/schemas/centro-capacitacion-sede.shemas';
+import { ResponseBySearchCentroCapacitacion, SearchCentroCapacitacion } from 'src/app/shared/schemas/centro-capacitacion.shemas';
 import { ResponseBySearchCurso, SearchCurso } from 'src/app/shared/schemas/cursos.schemas';
 import { ResponseBySearchInasistencia, SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
 import { ResponseBySearchSituacionRevista, SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
@@ -200,6 +202,14 @@ export class SearchService {
 
   getCursoFromName(fieldName: string, values: string): Observable<SearchCurso[]> {
     return this.getCursoSearch(fieldName, values)
+  }
+
+  getCentroCapacitacionFromName(fieldName: string, values: string): Observable<SearchCentroCapacitacion[]> {
+    return this.getCentroCapacitacionSearch(fieldName, values)
+  }
+
+  getCentroCapacitacionSedeFromName(fieldName: string, values: string): Observable<SearchCentroCapacitacionSede[]> {
+    return this.getCentroCapacitacionSedeSearch(fieldName, values)
   }
 
 
@@ -1572,6 +1582,54 @@ export class SearchService {
         })
       );
   }
+
+  // centro capacitacion
+
+   getCentroCapacitacionSearch(fieldName: string, values: string): Observable<SearchCentroCapacitacion[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchCentroCapacitacion>>('api/centro-capacitacion/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
+  // centro capacitacion sede
+
+  getCentroCapacitacionSedeSearch(fieldName: string, values: string): Observable<SearchCentroCapacitacionSede[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchCentroCapacitacionSede>>('api/centro-capacitacion/searchSede', {
+        fieldName: fieldName,
+        value: values
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
+
 
   getTipoDocumentoById(docId:number){
     if (!docId) return of([]);
