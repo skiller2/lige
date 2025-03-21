@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module"
-import { cursoController } from "../controller/controller.module"
+import { cursoController, estudioController } from "../controller/controller.module"
 
 export const cursoRouter = Router()
 
@@ -23,6 +23,10 @@ cursoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup([
 
 cursoRouter.post('/listHistory', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
   cursoController.listHistory(req, res, next)
+})
+
+cursoRouter.post('/searchModalidadCurso', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+  cursoController.searchModalidadCurso(req, res, next)
 })
 
 

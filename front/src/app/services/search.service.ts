@@ -27,6 +27,7 @@ import { ResponseBySearchEstudio, SearchEstudio } from 'src/app/shared/schemas/e
 import { ResponseBySearchCurso, SearchCurso } from 'src/app/shared/schemas/cursos.schemas';
 import { ResponseBySearchInasistencia, SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
 import { ResponseBySearchSituacionRevista, SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
+import { ResponseBySearchModalidadCurso, SearchModalidadCurso } from 'src/app/shared/schemas/modalidadCurso.schemas';
 import {
   Objetivo,
   ObjetivoInfo,
@@ -206,6 +207,10 @@ export class SearchService {
     return this.getEstudioSearch(fieldName, values)
   }
 
+  getModalidadCursoFromName(fieldName: string, values: string): Observable<SearchModalidadCurso[]> {
+    return this.getModalidadCursoSearch(fieldName, values)
+  }
+
 
   getSituacionRevistaFromName(fieldName: string, values: string): Observable<SearchSituacionRevista[]> {
     return this.getSituacionRevistaSearch(fieldName, values)
@@ -250,6 +255,29 @@ export class SearchService {
     }
     return this.http
       .post<ResponseJSON<ResponseBySearchEstudio>>('api/estudio/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
+  //Modalidad Curso
+
+  getModalidadCursoSearch(fieldName: string, values: string): Observable<SearchModalidadCurso[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchModalidadCurso>>('api/curso/searchModalidadCurso', {
         fieldName: fieldName,
         value: values,
       })
@@ -1237,6 +1265,7 @@ export class SearchService {
       })
     );
   }
+
 
   getDatosFacturacionByCliente(listClientes: any) {
     return this.http.post<ResponseJSON<any>>('/api/cliente/facturacion', listClientes).pipe(

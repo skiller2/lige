@@ -34,15 +34,26 @@ const columnsCursos:any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
+    searchHidden: true,
+  },
+  {
+    name: "Curso ",
+    type: "string",
+    id: "CursoHabilitacionId",
+    field: "CursoHabilitacionId",
+    fieldName: "cur.CursoHabilitacionId",
+    searchComponent: "inpurForCursoSearch",
+    sortable: true,
     searchHidden: false,
+    hidden: true, 
   },
   {
     id: 'CantidadHoras', 
     name: 'Cantidad Horas', 
     field: 'CursoHabilitacionCantidadHoras',
     fieldName: 'cur.CursoHabilitacionCantidadHoras',
-    type: 'number',
-    searchType: 'number',
+    type: 'varchar',
+    searchType: 'varchar',
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -67,7 +78,18 @@ const columnsCursos:any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
+    searchHidden: true,
+  },
+  {
+    name: "Modalidad",
+    type: "string",
+    id: "ModalidadCursoCodigo",
+    field: "ModalidadCursoCodigo",
+    fieldName: "modcur.ModalidadCursoCodigo",
+    searchComponent: "inpurForModalidadCursoSearch",
+    sortable: true,
     searchHidden: false,
+    hidden: true,  
   },
 ]
 
@@ -336,5 +358,47 @@ export class CursoController extends BaseController {
     }
 
   }
+
+  searchModalidadCurso(req: any, res: Response, next: NextFunction) {
+      const { fieldName, value } = req.body
+  
+      let buscar = false;
+      let query: string = `SELECT * FROM ModalidadCurso modcur
+      WHERE`;
+      switch (fieldName) {
+        case "ModalidadCursoModalidad":
+          const valueArray: Array<string> = value.split(/[\s,.]+/);
+          valueArray.forEach((element, index) => {
+            if (element.trim().length > 1) {
+              query += `(modcur.ModalidadCursoModalidad LIKE '%${element.trim()}%') AND  `;
+              buscar = true;
+            }
+          });
+          break;
+        case "ModalidadCursoCodigo":
+          if (value > 0) {
+            query += ` modcur.ModalidadCursoCodigo = '${value}' AND `;
+            buscar = true;
+          }
+          break;
+        default:
+          break;
+      }
+  
+      if (buscar == false) {
+        this.jsonRes({ recordsArray: [] }, res);
+        return;
+      }
+  
+      dataSource
+        .query((query += " 1=1"))
+        .then((records) => {
+          this.jsonRes({ recordsArray: records }, res);
+        })
+        .catch((error) => {
+          return next(error)
+        });
+    }
+  
 
 }
