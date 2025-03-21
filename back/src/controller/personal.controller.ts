@@ -797,9 +797,9 @@ cuit.PersonalCUITCUILCUIT,
 
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
-    const telefonoNum = telefono.TelefonoNro
     const ultnro = await queryRunner.query(`SELECT PersonalTelefonoUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro)?ultnro[0]?.PersonalTelefonoUltNro+1:1
+    const telefonoNum = telefono.TelefonoNro.split('').filter(char => !isNaN(Number(char)) && char !== ' ').join('')
 
     await queryRunner.query(`
       INSERT INTO PersonalTelefono (
