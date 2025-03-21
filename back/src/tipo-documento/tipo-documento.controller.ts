@@ -365,15 +365,15 @@ export class TipoDocumentoController extends BaseController {
           }
         }
         
-        if (!existsSync(newFilePath)) {
-          mkdirSync(newFilePath, { recursive: true })
-        }
-        newFilePath += `/${newFieldname}`
+        if (!existsSync(newFilePath)) mkdirSync(newFilePath, { recursive: true })
+
+        newFilePath += `${newFieldname}`
+        pathFile += `${newFieldname}`
         
         copyFileSync(tempFilePath, newFilePath)
         unlinkSync(tempFilePath);
       }
-      
+
       await queryRunner.query(`
         INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "path", "nombre_archivo", 
         "doctipo_id", "persona_id", "objetivo_id", "den_documento", "cliente_id", "fec_doc_ven",
@@ -551,13 +551,12 @@ export class TipoDocumentoController extends BaseController {
           }
         }
         
-        if (!existsSync(newFilePath)) {
-          mkdirSync(newFilePath, { recursive: true })
-        }
-        newFilePath += `/${newFieldname}`
+        if (!existsSync(newFilePath)) mkdirSync(newFilePath, { recursive: true })
 
-        if (existsSync(newFilePath))
-          unlinkSync(newFilePath);
+        newFilePath += `/${newFieldname}`
+        pathFile += `/${newFieldname}`
+        
+        if (existsSync(newFilePath)) unlinkSync(newFilePath);
 
         copyFileSync(tempFilePath, newFilePath)
         unlinkSync(tempFilePath);
