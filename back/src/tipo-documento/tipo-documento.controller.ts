@@ -348,11 +348,10 @@ export class TipoDocumentoController extends BaseController {
         const tempFolderPath = path.join(pathDocuments, 'temp');
         const tempFilePath = path.join(tempFolderPath, `${fieldname}.${type}`);
 
-        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
         pathFile = `${anio}/${doctipo[0].path_origen}`
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
-        let newFilePath = `${pathArchivos}/${pathFile}`
+        let newFilePath = `${pathDocuments}/${pathFile}`
 
         if (type == 'pdf') {
           const loadingTask = getDocument(tempFilePath);
@@ -535,11 +534,10 @@ export class TipoDocumentoController extends BaseController {
         const tempFolderPath = path.join(pathDocuments, 'temp');
         const tempFilePath = path.join(tempFolderPath, `${fieldname}.${type}`);
 
-        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
         pathFile = `${anio}/${doctipo[0].path_origen}`
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
-        let newFilePath = `${pathArchivos}/${pathFile}`
+        let newFilePath = `${pathDocuments}/${pathFile}`
 
         if (type == 'pdf') {
           const loadingTask = getDocument(tempFilePath);
