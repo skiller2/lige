@@ -22,6 +22,8 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { TipoDocumentoAltaDrawerComponent } from '../../../shared/tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
 import { TablePendientesDescargasComponent } from '../../../shared/table-pendientes-descargas/table-pendientes-descargas.component'
 import { TableHistorialDescargasComponent } from '../../../shared/table-historial-descargas/table-historial-descargas.component'
+import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
+
 
 type listOptionsT = {
   filtros: any[],
@@ -42,7 +44,8 @@ export class CustomDescargaComprobanteComponent {
     imports: [
         SHARED_IMPORTS, CommonModule, NzAffixModule,
         FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent,
-        TablePendientesDescargasComponent, TableHistorialDescargasComponent
+        TablePendientesDescargasComponent, TableHistorialDescargasComponent,
+        ReporteComponent
     ],
     styleUrls: ['./tipo-documento.component.less'],
     providers: [AngularUtilService]
