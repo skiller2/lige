@@ -43,10 +43,20 @@ export class AccesoBotController extends BaseController {
             id: "Nombre",
             field: "Nombre",
             fieldName: "per.PersonalApellidoNombre",
-            searchComponent: "inpurForPersonalSearch",
             searchType: "string",
-            searchHidden: false
+            searchHidden: true
         },
+        {
+            name: "Nombre ",
+            type: "number",
+            id: "PersonalId",
+            field: "PersonalId",
+            fieldName: "per.PersonalId",
+            searchComponent: "inpurForPersonalSearch",
+            hidden: false,
+            searchHidden: false,
+            sortable: true
+          },
         {
             name: "CUIT",
             type: "number",

@@ -8,13 +8,14 @@ import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudio
 import { BehaviorSubject } from 'rxjs';
 import { TableCursoComponent } from '../../../shared/table-curso/table-curso.component'
 import { CursoHistorialDrawerComponent } from '../../../shared/curso-historial-drawer/curso-historial-drawer.component'
+import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
 
 @Component({
   selector: 'app-estudios',
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,TableCursoComponent,CursoHistorialDrawerComponent]
+  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,TableCursoComponent,CursoHistorialDrawerComponent,CursosDrawerComponent]
 })
 export class EstudiosComponent {
 

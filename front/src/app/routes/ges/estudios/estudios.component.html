@@ -5,11 +5,11 @@
           <ul nz-menu nzMode="horizontal" style="display: flex;">
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios')">{{ 'app.seguros.estudios' | i18n }}</a>
+              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios'); this.CursoHabilitacionId.set(0)">{{ 'app.seguros.estudios' | i18n }}</a>
             </li>
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'cursos']" (click)="selectedTab.set('cursos')">{{ 'app.seguros.cursos' | i18n }}</a>
+              <a [routerLink]="['/', 'ges', 'estudios', 'cursos']" (click)="selectedTab.set('cursos'); this.PersonalId.set(0)">{{ 'app.seguros.cursos' | i18n }}</a>
             </li>
           </ul>
         </div>
@@ -82,11 +82,11 @@
       [PersonalId]="PersonalId()"
       [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
 
-      <!-- <app-estudios-drawer 
-      (OnRefreshCurso)="RefreshCurso.set(true)" 
+      <app-cursos-drawer 
+      (onRefreshCurso)="RefreshCurso.set(true)" 
       [disabled]="disabled()" 
       [(visible)]="visibleDrawerCurso" 
-      [CursoHabilitacionId]="CursoHabilitacionId()"></app-estudios-drawer> -->
+      [CursoHabilitacionId]="CursoHabilitacionId()"></app-cursos-drawer> 
 
       <app-curso-historial-drawer 
       [(visibleHistorial)]="visibleHistorial" 
