@@ -27,6 +27,7 @@ import { AdministradorSearchComponent } from "../../shared/administrador-search/
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
 import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
 import { CursoSearchComponent } from '../curso-search/curso-search.component';
+import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -46,7 +47,8 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, EstudioSearchComponent, CursoSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, EstudioSearchComponent, CursoSearchComponent,
+        ModalidadCursoSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],
@@ -406,10 +408,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = nivelEstudio[0].TipoEstudioDescripcion
     }
 
-    if (fieldObj.searchComponent == 'inpurForCursoSearch') {
+    if (fieldObj.searchComponent == 'inpurForModalidadCursoSearch') {
+      const modalidadCurso = await firstValueFrom(this.searchService.getModalidadCursoFromName('ModalidadCursoCodigo', value))
+      label = modalidadCurso[0].ModalidadCursoModalidad
+    }
+
+    /*if (fieldObj.searchComponent == 'inpurForCursoSearch') {
       const curso = await firstValueFrom(this.searchService.getCursoFromName('CursoHabilitacionId', value))
       label = curso[0].CursoHabilitacionDescripcion
-    }
+    }*/
     
 
     this.selections = { field: fieldObj, condition, operator, value, label, forced }
