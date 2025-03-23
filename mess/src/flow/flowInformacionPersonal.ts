@@ -3,57 +3,76 @@ import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
 import { chatBotController } from "../controller/controller.module";
 import { botServer } from "../index";
-import { reset } from "./flowIdle";
+import { reset, stop } from "./flowIdle";
 import { PersonalController } from "src/controller/personal.controller";
+import { flowLogin } from "./flowLogin";
 
 const delay = chatBotController.getDelay()
 const personalController = new PersonalController()
 const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
-    .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
-        await flowDynamic([{ body: `⏱️ Buscando información ...`, delay:delay*2 }])
+    .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
+        await flowDynamic([{ body: `⏱️ Buscando información ...`, delay: delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
 
-        const coordinadorgeneralrec: any[] = await PersonalController.getResponsablesListByPersonal(personalId)
-
-        const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() + ' desde ' + personalController.dateOutputFormat(coordinadorgeneralrec[0].Desde) : 'No asignado aún'
-
-        await flowDynamic([{ body: `Su coordinador de zona es ${coordinador}`, delay }])
-
-        if (coordinadorgeneralrec[0].PersonalId) {
-            const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
-            if (telrec[0])
-                await flowDynamic([{ body: `contacto del coordinador ${telrec[0].telefono}`, delay }])
-        }
-
-
+        const infoPersonal = await personalController.getPersonalQuery(ctx.from,personalId)
+        const PersonalNroLegajo = infoPersonal[0].PersonalNroLegajo
+        const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso)?new Date(infoPersonal[0].PersonalFechaIngreso):null
         //TODO Agregar fecha de ingreso y nro de asociado.
+
+        await flowDynamic(`Su número de socio: ${PersonalNroLegajo}`, {delay:delay * 3 })
+        await flowDynamic(`Su fecha de ingreso: ${personalController.dateOutputFormat(PersonalFechaIngreso)}`, {delay })
+        //await flowDynamic(`Su antigüedad: ${socioNro}`, { delay })
 
         const sitrevs: any[] = await PersonalController.getPersonalSitRevista(personalId, anio, mes)
         if (sitrevs.length > 0) {
             const sitrev = sitrevs[sitrevs.length - 1]
-            await flowDynamic([{ body: `Su situación de revista: ${sitrev.SituacionRevistaDescripcion.trim()} desde ${personalController.dateOutputFormat(sitrev.PersonalSituacionRevistaDesde)}`, delay }])
+            //await flowDynamic([{ body: `Su situación de revista: ${sitrev.SituacionRevistaDescripcion.trim()} desde ${personalController.dateOutputFormat(sitrev.PersonalSituacionRevistaDesde)}`, delay }])
+            await flowDynamic(`Su situación de revista actual: ${sitrev.SituacionRevistaDescripcion.trim()}`, { delay })
         } else {
-            await flowDynamic([{ body: `No posee situación de revista aún`, delay }])
+            await flowDynamic(`No posee situación de revista aún`, { delay })
         }
 
         const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
-        for (const cat of categs) {
-//            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
-            await flowDynamic([{ body: `Su categoría: ${cat.fullName.trim()}`, delay }])
+        const catstring: string[] = categs.map(c => c.fullName)
+
+        if (catstring.length) {
+            (catstring.length>1)? catstring.unshift('Su categoría actual es:'):catstring.unshift('Sus categorías actuales son:') 
+            await flowDynamic(catstring, { delay })
+        } else {
+            await flowDynamic('No posee categorías asignadas aún', { delay })
         }
 
-        await flowDynamic([{ body: `-------------------------------`, delay:delay*2 }])
+        //        for (const cat of categs) {
+        //            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
+        //            await flowDynamic([{ body: `${cat.fullName.trim()}`, delay }])
+        //        }
 
+        const coordinadorgeneralrec: any[] = await PersonalController.getResponsablesListByPersonal(personalId)
 
-        return gotoFlow(flowMenu)
-        //return gotoEnd()
-    }
+        //        const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() + ' desde ' + personalController.dateOutputFormat(coordinadorgeneralrec[0].Desde) : 'No asignado aún'
+        const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() : 'No asignado aún'
 
+        await flowDynamic(`Su coordinador de zona es: ${coordinador}`, { delay })
 
-    )
+        if (coordinadorgeneralrec[0].PersonalId) {
+            const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
+            if (telrec[0])
+                await flowDynamic(`Contacto del coordinador 📞 ${telrec[0].telefono}`, { delay })
+        }
+    })
+
+    .addAction(async (ctx, { flowDynamic,gotoFlow }) => {
+        await flowDynamic(['¿Alguna otra consulta?', '("Si" o "No")'], { delay: delay * 1.5 })
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+    })
+    .addAction({ capture: true }, async (ctx, { gotoFlow, state }): Promise<void> => {
+        const respuesta = ctx.body
+        return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
+    })
+
 
 export default flowInformacionPersonal

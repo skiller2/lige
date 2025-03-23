@@ -15,7 +15,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
-            const res = await personalController.getPersonalfromTelefonoQuery(telefono)
+            const res = await personalController.getPersonalQuery(telefono,0)
 
             if (res.length) {
                 if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
@@ -53,21 +53,19 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
             }
         })
 
-
 export const flowLogin = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
         await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
-        const res = await personalController.getPersonalfromTelefonoQuery(telefono)
+        const res = await personalController.getPersonalQuery(telefono,0)
 
         //force
         if (process.env.PERSONALID_TEST) {
             res.length = 0
             res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
         }
-        console.log('res',res)
         if (res.length) {
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })

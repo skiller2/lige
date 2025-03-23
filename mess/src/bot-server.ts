@@ -16,6 +16,7 @@ import flowMenu from "./flow/flowMenu";
 import flowRemoveTel from "./flow/flowRemoveTel";
 import { idleFlow } from "./flow/flowIdle";
 import flowInformacionPersonal from "./flow/flowInformacionPersonal";
+import flowInformacionEmpresa from "./flow/flowInformacionEmpresa";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -65,7 +66,7 @@ export class BotServer {
 
   public async init() {
 
-    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal,flowInformacionEmpresa])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database()
     this.globalTimeOutMs = 60000 * 5
