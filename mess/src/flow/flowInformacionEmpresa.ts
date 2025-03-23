@@ -32,7 +32,7 @@ Síndico: Omar Alberto Muñoz
     })
 
     .addAction(async (ctx, { flowDynamic,gotoFlow }) => {
-        await flowDynamic(['¿Alguna otra consulta?', '("Si" o "No")'], { delay: delay * 1.5})
+        await flowDynamic('¿Alguna otra consulta?\n("si" o "no")', { delay: delay * 3})
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
     .addAction({ capture: true }, async (ctx, { gotoFlow, state }): Promise<void> => {

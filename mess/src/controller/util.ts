@@ -1,15 +1,15 @@
 import { QueryRunner } from "typeorm";
 
 export class Utils {
-  static async getMovimientoId(queryRunner: QueryRunner) { 
+  static async getMovimientoId(queryRunner: QueryRunner) {
     const movimientomax = await queryRunner.query(`SELECT MAX(mov.movimiento_id) max_movimiento_id FROM lige.dbo.liqmamovimientos mov`)
     return (movimientomax[0].max_movimiento_id != undefined) ? movimientomax[0].max_movimiento_id : 0
   }
-  static async getImpoexpoId(queryRunner: QueryRunner) { 
+  static async getImpoexpoId(queryRunner: QueryRunner) {
     const impoexpomax = await queryRunner.query(`SELECT MAX(imp.impoexpo_id) max_impoexpo_id FROM lige.dbo.convalorimpoexpo imp`)
     return (impoexpomax[0].max_impoexpo_id != undefined) ? impoexpomax[0].max_impoexpo_id : 0
   }
-  
+
   static async getPeriodoId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes: number, usuario: any, ip: any) {
     let periodo_id = 0
     const periodo = await queryRunner.query(
@@ -28,6 +28,14 @@ export class Utils {
     } else
       periodo_id = periodo[0].periodo_id
     return periodo_id
+  }
+
+  static waitT = (ms: number) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(ms)
+      }, ms)
+    })
   }
 
 }

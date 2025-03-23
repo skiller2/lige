@@ -6,11 +6,12 @@ import { botServer } from "../index";
 import { reset, stop } from "./flowIdle";
 import { PersonalController } from "src/controller/personal.controller";
 import { flowLogin } from "./flowLogin";
+import { Utils } from "src/controller/util";
 
 const delay = chatBotController.getDelay()
 const personalController = new PersonalController()
 const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
+    .addAction(async (ctx, { provider, flowDynamic, state  }) => {
         await flowDynamic([{ body: `⏱️ Buscando información ...`, delay: delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
@@ -22,6 +23,8 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         const PersonalNroLegajo = infoPersonal[0].PersonalNroLegajo
         const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso)?new Date(infoPersonal[0].PersonalFechaIngreso):null
         //TODO Agregar fecha de ingreso y nro de asociado.
+        await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
+        await Utils.waitT(5000)
 
         await flowDynamic(`Su número de socio: ${PersonalNroLegajo}`, {delay:delay * 3 })
         await flowDynamic(`Su fecha de ingreso: ${personalController.dateOutputFormat(PersonalFechaIngreso)}`, {delay })
@@ -37,14 +40,20 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         }
 
         const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
-        const catstring: string[] = categs.map(c => c.fullName)
+        const catstring: string[] = categs.map(c => ' - '+c.fullName)
 
-        if (catstring.length) {
-            (catstring.length>1)? catstring.unshift('Su categoría actual es:'):catstring.unshift('Sus categorías actuales son:') 
-            await flowDynamic(catstring, { delay })
-        } else {
-            await flowDynamic('No posee categorías asignadas aún', { delay })
-        }
+        await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
+
+
+        if (catstring.length == 1)
+            catstring.unshift('Su categoría actual es:')
+        else if (catstring.length > 1)
+            catstring.unshift('Sus categorías actuales son:') 
+        else 
+            catstring.unshift('No posee categorías asignadas aún')
+
+        await flowDynamic(catstring.join('\n'), { delay:delay*2 })        
+        
 
         //        for (const cat of categs) {
         //            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
@@ -66,7 +75,7 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
     })
 
     .addAction(async (ctx, { flowDynamic,gotoFlow }) => {
-        await flowDynamic(['¿Alguna otra consulta?', '("Si" o "No")'], { delay: delay * 1.5 })
+        await flowDynamic(`¿Alguna otra consulta?\n("si" o "no")`, { delay: delay * 3 })
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
     .addAction({ capture: true }, async (ctx, { gotoFlow, state }): Promise<void> => {
