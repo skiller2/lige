@@ -843,8 +843,7 @@ export class GrupoActividadController extends BaseController {
                 message = "Carga de nuevo Registro exitoso"
             }
             await queryRunner.query(`DELETE GrupoActividadJerarquico  
-                WHERE GrupoActividadId = @0  AND GrupoActividadJerarquicoHasta IS NOT NULL AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`, [params.GrupoActividadDetalle.id]);
-
+                WHERE GrupoActividadJerarquicoPersonalId = @0  AND GrupoActividadJerarquicoHasta IS NOT NULL AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`, [params.ApellidoNombrePersona.id]);
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
         } catch (error) {
@@ -1007,7 +1006,7 @@ export class GrupoActividadController extends BaseController {
                 dataResultado = { action: 'I', GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
             }
-            await queryRunner.query(`DELETE GrupoActividadObjetivo WHERE GrupoActividadId = @0 AND GrupoActividadObjetivoHasta IS NOT NULL AND GrupoActividadObjetivoHasta < GrupoActividadObjetivoDesde `, [params.GrupoActividadId])
+            await queryRunner.query(`DELETE GrupoActividadObjetivo WHERE GrupoActividadObjetivoHasta IS NOT NULL AND GrupoActividadObjetivoHasta < GrupoActividadObjetivoDesde AND GrupoActividadObjetivoObjetivoId = @0`, [params.GrupoObjetivoDetalle.id])
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1152,7 +1151,7 @@ export class GrupoActividadController extends BaseController {
                 message = "Carga de nuevo Registro exitoso"
             }
 
-            await queryRunner.query(`DELETE GrupoActividadPersonal WHERE GrupoActividadId = @0 AND GrupoActividadPersonalHasta IS NOT NULL AND GrupoActividadPersonalHasta < GrupoActividadPersonalDesde`, [params.GrupoActividadId])
+            await queryRunner.query(`DELETE GrupoActividadPersonal WHERE GrupoActividadPersonalHasta IS NOT NULL AND GrupoActividadPersonalHasta < GrupoActividadPersonalDesde AND GrupoActividadPersonalPersonalId = @0`, [params.ApellidoNombrePersona.id])
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1314,10 +1313,10 @@ export class GrupoActividadController extends BaseController {
 
         if (params.GrupoActividadPersonalHasta && params.GrupoActividadPersonalDesde > params.GrupoActividadPersonalHasta) {
 
-            let GrupoActividadPersonalDesde = new Date(`${params.GrupoActividadPersonalDesde}T00:00:00`)
+            let GrupoActividadPersonalDesde = new Date(params.GrupoActividadPersonalDesde)
             GrupoActividadPersonalDesde.setHours(0, 0, 0, 0)
 
-            let GrupoActividadPersonalHasta = new Date(`${params.GrupoActividadPersonalHasta}T00:00:00`)
+            let GrupoActividadPersonalHasta = new Date(params.GrupoActividadPersonalHasta)
             GrupoActividadPersonalHasta.setHours(0, 0, 0, 0)
 
             if (GrupoActividadPersonalDesde > GrupoActividadPersonalHasta) {
