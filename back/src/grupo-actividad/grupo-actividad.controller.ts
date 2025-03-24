@@ -842,7 +842,8 @@ export class GrupoActividadController extends BaseController {
                 dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadJerarquicoId: GrupoActividadJerarquicoUltNro, PreviousDate: GrupoActividadJerarquicoHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
             }
-
+            await queryRunner.query(`DELETE GrupoActividadJerarquico  
+                WHERE GrupoActividadId = @0  AND GrupoActividadJerarquicoHasta IS NOT NULL AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`, [params.GrupoActividadDetalle.id]);
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1006,6 +1007,7 @@ export class GrupoActividadController extends BaseController {
                 dataResultado = { action: 'I', GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
             }
+            await queryRunner.query(`DELETE GrupoActividadObjetivo WHERE GrupoActividadId = @0 AND GrupoActividadObjetivoHasta IS NOT NULL AND GrupoActividadObjetivoHasta < GrupoActividadObjetivoDesde `, [params.GrupoActividadId])
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1149,6 +1151,8 @@ export class GrupoActividadController extends BaseController {
                 dataResultado = { action: 'I', GrupoActividadPersonalId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, PreviousDate: GrupoActividadPersonalHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
             }
+
+            await queryRunner.query(`DELETE GrupoActividadPersonal WHERE GrupoActividadId = @0 AND GrupoActividadPersonalHasta IS NOT NULL AND GrupoActividadPersonalHasta < GrupoActividadPersonalDesde`, [params.GrupoActividadId])
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
