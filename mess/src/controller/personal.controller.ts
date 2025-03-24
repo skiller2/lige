@@ -91,27 +91,27 @@ export class PersonalController extends BaseController {
       );
     }
   */
-  async getPersonalfromTelefonoQuery(telefono: string) {
+  async getPersonalQuery(telefono: string, PersonalId:number) {
     return await dataSource.query(
       `SELECT reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit, codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
-      sit.SituacionRevistaDescripcion
+      sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, per.PersonalFechaIngreso
       FROM lige.dbo.regtelefonopersonal reg
       LEFT JOIN Personal per ON per.PersonalId = reg.personal_id
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.personal_id AND cuit.PersonalCUITCUILId =( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = reg.personal_id)
-      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@1 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=CAST(@1 AS DATE) 
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@2 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=CAST(@2 AS DATE) 
       LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
 
 
-      WHERE reg.telefono = @0`,
-      [telefono, new Date()]
+      WHERE reg.telefono = @0 or reg.personal_id = @1`,
+      [telefono, PersonalId, new Date()]
     );
   }
   /*
     async getPersonalfromTelefono(req: any, res: Response, next: NextFunction) {
       const telefono = req.params.telefono;
       try {
-        const result = await this.getPersonalfromTelefonoQuery(telefono)
+        const result = await this.getPersonalQuery(telefono,0)
         return this.jsonRes(result, res);
       } catch (error) {
         return next(error)
