@@ -64,7 +64,6 @@ export class EstudiosComponent {
   }
 
   actualizarValorDrawerCurso(event: any) {
-    console.log('event', event)
     this.visibleDrawer.set(false);
     if (event.length > 0) {
       this.CursoHabilitacionSelectedId.set(event[0].CursoHabilitacionId);

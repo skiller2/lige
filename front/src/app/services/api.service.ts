@@ -1389,7 +1389,13 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
-
+  
+  setCursos( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/curso/setcurso`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+  
   setListCursos( filters:any){
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/curso/list', parameter).pipe(

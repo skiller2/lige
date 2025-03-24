@@ -208,8 +208,8 @@ export class SearchService {
     return this.getCentroCapacitacionSearch(fieldName, values)
   }
 
-  getCentroCapacitacionSedeFromName(fieldName: string, values: string): Observable<SearchCentroCapacitacionSede[]> {
-    return this.getCentroCapacitacionSedeSearch(fieldName, values)
+  getCentroCapacitacionSedeFromName(fieldName: string, values: string, CentroCapacitacionId: number): Observable<SearchCentroCapacitacionSede[]> {
+    return this.getCentroCapacitacionSedeSearch(fieldName, values, CentroCapacitacionId)
   }
 
 
@@ -1608,14 +1608,16 @@ export class SearchService {
 
   // centro capacitacion sede
 
-  getCentroCapacitacionSedeSearch(fieldName: string, values: string): Observable<SearchCentroCapacitacionSede[]> {
+  getCentroCapacitacionSedeSearch(fieldName: string, values: string, CentroCapacitacionId: number): Observable<SearchCentroCapacitacionSede[]> {
+
     if (!values || values == '') {
       return of([]);
     }
     return this.http
       .post<ResponseJSON<ResponseBySearchCentroCapacitacionSede>>('api/centro-capacitacion/searchSede', {
         fieldName: fieldName,
-        value: values
+        value: values,
+        CentroCapacitacionId: CentroCapacitacionId
       })
       .pipe(
         map(res => {

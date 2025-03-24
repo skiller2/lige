@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model } from '@angular/core'
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model, output } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -129,6 +129,7 @@ export class CentroCapacitacionSearchComponent implements ControlValueAccessor {
             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
+
             if (this.tmpInputVal!=this._selectedId)
               this.propagateChange(this._selectedId)
           }))

@@ -12,6 +12,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
 import { CentroCapacitacionSedeSearchComponent } from '../centro-capacitacion-sede-search/centro-capacitacion-sede-search.component';
+import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -29,10 +30,10 @@ export interface Option {
     imports: [SHARED_IMPORTS, 
       NzUploadModule, 
       NzAutocompleteModule,
-      CursoSearchComponent,
       CommonModule,
       CentroCapacitacionSearchComponent,
-      CentroCapacitacionSedeSearchComponent
+      CentroCapacitacionSedeSearchComponent,
+      ModalidadCursoSearchComponent
     ],
     templateUrl: './cursos-drawer.component.html',
     styleUrl: './cursos-drawer.component.less',
@@ -53,6 +54,9 @@ export class CursosDrawerComponent {
 
   CursoHabilitacionSelectedId = input.required<number>()
   CursoHabilitacionIdForEdit = signal(0)
+  
+  CentroCapacitacionIdSelected = signal(0)
+  CentroCapacitacionSedeIdSelected = signal(0)
 
   PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
 
@@ -79,12 +83,14 @@ export class CursosDrawerComponent {
   formCli = this.fb.group({
     CursoHabilitacionCodigo: "",
     CursoHabilitacionId: 0,
+    CursoHabilitacionDescripcion:"",
     CursoHabilitacionCantidadHoras: 0,
     CursoHabilitacionVigencia: 0,
-    ModalidadCursoModalidad: "",
+    ModalidadCursoCodigo: "",
     CursoHabilitacionInstructor: "",
     CentroCapacitacionId: 0,
-    CentroCapacitacionSedeId: 0
+    CentroCapacitacionSedeId: 0,
+    CursoHabilitacionIdForEdit: 0
   })
 
   constructor(
@@ -94,34 +100,36 @@ export class CursosDrawerComponent {
   async ngOnInit(): Promise<void> {
 
     this.CursoHabilitacionIdForEdit.set(0)
-
+    this.CentroCapacitacionIdSelected.set(0)
+    this.CentroCapacitacionSedeIdSelected.set(0)
   }
 
   cambios = computed(async () => {
     const visible = this.visible()
-    //this.ngForm().form.reset()
+ 
     if (visible) {
-      //const per = this.selectedPeriod()
       if (this.CursoHabilitacionSelectedId() > 0) {
         let vals = await firstValueFrom(this.apiService.getListCursosHistory( { options: this.listOptions }, this.anio(), this.mes(), this.CursoHabilitacionSelectedId(),""))
-        console.log("vals 1",vals.list[0])
-        //let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
-
-        this.CursoHabilitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
+       
+          this.CursoHabilitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
           vals.CursoHabilitacionCodigo = vals.list[0].CursoHabilitacionCodigo,
           vals.CursoHabilitacionId = vals.list[0].CursoHabilitacionId,
+          vals.CursoHabilitacionDescripcion = vals.list[0].CursoHabilitacionDescripcion,
           vals.CursoHabilitacionCantidadHoras = vals.list[0].CursoHabilitacionCantidadHoras,
           vals.CursoHabilitacionVigencia = Number(vals.list[0].CursoHabilitacionVigencia),
-          vals.ModalidadCursoModalidad = vals.list[0].ModalidadCursoModalidad,
+          vals.ModalidadCursoCodigo = vals.list[0].ModalidadCursoCodigo,
           vals.CursoHabilitacionInstructor = vals.list[0].CursoHabilitacionInstructor,
           vals.CentroCapacitacionId = vals.list[0].CentroCapacitacionId,
           vals.CentroCapacitacionSedeId = vals.list[0].CentroCapacitacionSedeId
 
-          console.log("vals",vals)
-     
-        this.formCli.patchValue(vals)
-        this.formCli.markAsUntouched()
-        this.formCli.markAsPristine()
+          //console.log("vals",vals)
+          
+          this.formCli.patchValue(vals)
+          this.formCli.markAsUntouched()
+          this.formCli.markAsPristine()
+
+          //this.CentroCapacitacionIdSelected.set(vals.list[0].CentroCapacitacionId)
+          this.CentroCapacitacionSedeIdSelected.set(vals.list[0].CentroCapacitacionSedeId)
 
         if (this.disabled()) {
           this.tituloDrawer.set(' Consultar Estudio ');
@@ -136,18 +144,38 @@ export class CursosDrawerComponent {
     return true
   })
 
+  onRefreshSede(event: any) {
+    this.CentroCapacitacionIdSelected.set(event.CentroCapacitacionId)
+    if (!this.disabled()) {
+      //  this.formCli.patchValue({
+      //  CentroCapacitacionSedeId: 0
+      //})
+    } 
+  }
+
   async save() {
 
     this.isSaving.set(true)
     let vals = this.formCli.value
     try {
 
-      //vals.CursoHabilitacionIdForEdit = this.CursoHabilitacionId()
+      vals.CursoHabilitacionIdForEdit = this.CursoHabilitacionSelectedId()
 
-      const res =  await firstValueFrom(this.apiService.setEstudio(vals))
+      const res =  await firstValueFrom(this.apiService.setCursos(vals))
+
+    if(res.data?.list[0]?.CursoHabilitacionId > 0){
+      this.CursoHabilitacionIdForEdit.set(res.data?.list[0]?.CursoHabilitacionId)
+      this.formCli.patchValue({
+          CursoHabilitacionId: res.data?.list[0]?.CursoHabilitacionId,
+          CursoHabilitacionIdForEdit: res.data?.list[0]?.CursoHabilitacionId
+        })
+
+        this.tituloDrawer.set('Editar Estudio');
+
+      }  
+      
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
-      //this.fileUploaded = false
       this.onRefreshCurso.emit()
       //this.formCli$.next("")
     } catch (error) {

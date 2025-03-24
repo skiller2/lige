@@ -1,6 +1,6 @@
 
 export interface SearchModalidadCurso {
-    ModalidadCursoCodigo: number,
+    ModalidadCursoCodigo: string,
     ModalidadCursoModalidad: string
 }
 

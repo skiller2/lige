@@ -44,7 +44,7 @@ export class ModalidadCursoSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
-  extendedOption = {  ModalidadCursoCodigo: 0, ModalidadCursoModalidad: "" }
+  extendedOption = {  ModalidadCursoCodigo: "", ModalidadCursoModalidad: "" }
   
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -150,7 +150,9 @@ export class ModalidadCursoSearchComponent implements ControlValueAccessor {
       this.searchService.getModalidadCursoFromName(Number(value) ? 'ModalidadCursoCodigo' : 'ModalidadCursoModalidad', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-          tap({ complete: () => this.$isOptionsLoading.next(false) })
+          tap({
+            complete: () => this.$isOptionsLoading.next(false)
+          })
         )
     )
   )
@@ -162,7 +164,7 @@ export class ModalidadCursoSearchComponent implements ControlValueAccessor {
   }
   
   search(value: string): void {
-    this.extendedOption = { ModalidadCursoCodigo: 0, ModalidadCursoModalidad: "" }
+    this.extendedOption = { ModalidadCursoCodigo: "", ModalidadCursoModalidad: "" }
     this.$searchChange.next(value)
   }
 

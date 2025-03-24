@@ -399,6 +399,141 @@ export class CursoController extends BaseController {
           return next(error)
         });
     }
-  
+
+
+    async setCurso(req: any, res: Response, next: NextFunction) {
+
+    let { 
+      CursoHabilitacionCodigo, CursoHabilitacionId,CursoHabilitacionDescripcion, CursoHabilitacionCantidadHoras, 
+      CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor, 
+      CentroCapacitacionId, CentroCapacitacionSedeId, CursoHabilitacionIdForEdit
+     } = req.body
+
+    console.log("req.body", req.body)
+    let result = []
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+
+    //throw new ClientException(`test.`)
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+
+      //await this.validateFormCursos(req.body)
+
+   
+      if(CursoHabilitacionIdForEdit > 0){
+        // is edit
+
+        await queryRunner.query(`
+          UPDATE CursoHabilitacion SET
+             CursoHabilitacionDescripcion = @0,
+             CursoHabilitacionCodigo = @1,
+             CursoHabilitacionCantidadHoras = @2,
+             CursoHabilitacionInstructor = @3,
+             CursoHabilitacionVigencia = @4,
+             ModalidadCursoCodigo = @5,
+             CursoHabilitacionCentroCapacitacionId = @6,
+             CursoHabilitacionCentroCapacitacionSedeId = @7
+          WHERE CursoHabilitacionId = @8
+        `, [
+             CursoHabilitacionDescripcion, 
+             CursoHabilitacionCodigo,
+             CursoHabilitacionCantidadHoras,
+             CursoHabilitacionInstructor,
+             CursoHabilitacionVigencia,
+             ModalidadCursoCodigo,
+             CentroCapacitacionId,
+             CentroCapacitacionSedeId,
+             CursoHabilitacionIdForEdit
+           ]);
+
+      }else{
+        // is new
+     console.log("estoy agregando")
+
+     const existCursoHabilitacion = await queryRunner.query(`SELECT * FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [ CursoHabilitacionCodigo])
+
+     if(existCursoHabilitacion.length > 0){
+      throw new ClientException(`El código ${CursoHabilitacionCodigo} ya existe.`)
+     }
+     
+      await queryRunner.query(`
+        INSERT INTO CursoHabilitacion (
+           CursoHabilitacionDescripcion,
+           CursoHabilitacionInactivo,
+           CursoHabilitacionCodigo,
+           CursoHabilitacionDescripcion2,
+           CursoHabilitacionCantidadHoras,
+           CursoHabilitacionInstructor,
+           CursoHabilitacionVigencia,
+           ModalidadCursoCodigo,
+           CursoHabilitacionCentroCapacitacionId,
+           CursoHabilitacionCentroCapacitacionSedeId
+        ) VALUES (
+           @0, @1, @2, @3, @4, @5, @6, @7, @8, @9
+        )`, [
+           CursoHabilitacionDescripcion, 
+           null, // CursoHabilitacionInactivo
+           CursoHabilitacionCodigo,
+           '-', // CursoHabilitacionDescripcion2
+           CursoHabilitacionCantidadHoras,
+           CursoHabilitacionInstructor,
+           CursoHabilitacionVigencia,
+           ModalidadCursoCodigo,
+           CentroCapacitacionId,
+           CentroCapacitacionSedeId
+         ]);
+
+        result = await queryRunner.query(`SELECT * FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [ CursoHabilitacionCodigo])
+        
+     
+      } 
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ list: result }, res, (CursoHabilitacionIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+
+  }
+
+  async validateFormCursos(req: any) {
+
+    const { CursoHabilitacionCodigo, CursoHabilitacionId,CursoHabilitacionDescripcion, CursoHabilitacionCantidadHoras, 
+      CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor, 
+      CentroCapacitacionId, CentroCapacitacionSedeId } = req
+
+    if (!CursoHabilitacionCodigo) {
+      throw new ClientException(`Debe completar el campo Código.`)
+    }
+    if (!CursoHabilitacionDescripcion) {
+      throw new ClientException(`Debe completar el Descripcion.`)
+    }
+    if (!CursoHabilitacionCantidadHoras || CursoHabilitacionCantidadHoras <= 0) {
+      throw new ClientException(`Debe completar el campo Cantidad de Horas y debe ser mayor a 0.`)
+    }
+    if (!CursoHabilitacionVigencia || CursoHabilitacionVigencia <= 0) {
+      throw new ClientException(`Debe completar el campo Vigencia.`)
+    }
+    if (!ModalidadCursoCodigo) {
+      throw new ClientException(`Debe completar el campo Modalidad.`)
+    }
+    if (!CursoHabilitacionInstructor) {
+      throw new ClientException(`Debe completar el campo Instructor.`)
+    }
+    if (!CentroCapacitacionId) {
+      throw new ClientException(`Debe completar el campo ID del Centro de Capacitación.`)
+    }
+    if (!CentroCapacitacionSedeId) {
+      throw new ClientException(`Debe completar el campo ID de la Sede del Centro de Capacitación.`)
+    }
+  }
+
 
 }

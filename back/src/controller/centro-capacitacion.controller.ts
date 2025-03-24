@@ -50,8 +50,9 @@ export class CentroCapacitacionController extends BaseController {
 
 
       searchSede(req: any, res: Response, next: NextFunction) {
-        const { fieldName, value } = req.body
-    
+        const { fieldName, value, CentroCapacitacionId } = req.body
+        console.log("req.body", req.body)
+        console.log("centro capacitacion id",CentroCapacitacionId)
         let buscar = false;
         let query: string = `   SELECT CentroCapacitacionSedeId, CentroCapacitacionId,CentroCapacitacionSedeDescripcion FROM CentroCapacitacionSede  WHERE `;
         switch (fieldName) {
@@ -72,6 +73,10 @@ export class CentroCapacitacionController extends BaseController {
             break;
           default:
             break;
+        }
+
+        if(CentroCapacitacionId > 0){
+          query += ` CentroCapacitacionId = '${CentroCapacitacionId}' AND `;
         }
     
         if (buscar == false) {

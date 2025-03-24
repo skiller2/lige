@@ -3,9 +3,9 @@
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.ModalidadCursoCodigo"
-      nzLabel="{{ option.ModalidadCursoModalidad }} ({{option.ModalidadCursoCodigo}})" />
+      nzLabel="{{ option.ModalidadCursoModalidad }} - ({{option.ModalidadCursoCodigo}})" />
   </ng-container>
-  <nz-option *ngIf="extendedOption.ModalidadCursoCodigo > 0" [nzValue]="extendedOption.ModalidadCursoCodigo"
+  <nz-option *ngIf="extendedOption.ModalidadCursoCodigo != ''" [nzValue]="extendedOption.ModalidadCursoCodigo"
     [nzLabel]="extendedOption.ModalidadCursoModalidad" />
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>

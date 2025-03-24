@@ -1,5 +1,5 @@
 
-import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model } from '@angular/core'
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, computed, signal,forwardRef, input, model } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -35,6 +35,13 @@ export class CentroCapacitacionSedeSearchComponent implements ControlValueAccess
   tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
+  conditional = computed(async () => {
+    
+    if (this.CentroCapacitacionId()) {
+      this.search(this.CentroCapacitacionSedeIdSelected().toString())
+    }
+  });
+
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("cur") cur!: NzSelectComponent
@@ -45,7 +52,8 @@ export class CentroCapacitacionSedeSearchComponent implements ControlValueAccess
   private _selectedId: string = ''
   _selected = ''
   extendedOption = { CentroCapacitacionSedeId: 0, CentroCapacitacionSedeDescripcion: '' }
-  
+  CentroCapacitacionId = input.required<number>()
+  CentroCapacitacionSedeIdSelected =  input.required<number>()
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
 
@@ -123,7 +131,7 @@ export class CentroCapacitacionSedeSearchComponent implements ControlValueAccess
 */
       firstValueFrom(
         this.searchService
-          .getCentroCapacitacionSedeFromName('CentroCapacitacionSedeId', this._selectedId)
+          .getCentroCapacitacionSedeFromName('CentroCapacitacionSedeId', this._selectedId, this.CentroCapacitacionId())
           .pipe(tap(res => {
             if (res[0]?.CentroCapacitacionSedeId)
             this.extendedOption = res[0]
@@ -147,10 +155,13 @@ export class CentroCapacitacionSedeSearchComponent implements ControlValueAccess
   $optionsArray: Observable<SearchCentroCapacitacionSede[]> = this.$searchChange.pipe(
     debounceTime(500),
     switchMap(value =>
-      this.searchService.getCentroCapacitacionSedeSearch(Number(value) ? 'CentroCapacitacionSedeId' : 'CentroCapacitacionSedeDescripcion', value)
+      this.searchService.getCentroCapacitacionSedeSearch(Number(value) ? 'CentroCapacitacionSedeId' : 'CentroCapacitacionSedeDescripcion', value, this.CentroCapacitacionId())
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-          tap({ complete: () => this.$isOptionsLoading.next(false) })
+          tap({
+            next: res => console.log('Search results:', res),
+            complete: () => this.$isOptionsLoading.next(false)
+          })
         )
     )
   )

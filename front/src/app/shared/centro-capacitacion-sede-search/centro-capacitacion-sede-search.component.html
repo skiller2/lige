@@ -1,4 +1,4 @@
-
+@if (conditional()|async) {}
 <nz-select #cur [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Centro Capacitación sede"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >

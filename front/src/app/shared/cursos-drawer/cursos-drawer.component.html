@@ -16,7 +16,7 @@
         <nz-form-label [nzSpan]="5">Descripción</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <app-curso-search formControlName="CursoHabilitacionId" ></app-curso-search>  
+            <input nz-input formControlName="CursoHabilitacionDescripcion" type="string"/>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -43,7 +43,8 @@
         <nz-form-label [nzSpan]="5">Modalidad</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <input nz-input formControlName="ModalidadCursoModalidad" />
+           <app-modalidad-curso-search  formControlName="ModalidadCursoCodigo"></app-modalidad-curso-search>
+           
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -61,7 +62,7 @@
         <nz-form-label [nzSpan]="5">Centro Capacitación</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <app-centro-capacitacion-search formControlName="CentroCapacitacionId" ></app-centro-capacitacion-search>
+            <app-centro-capacitacion-search formControlName="CentroCapacitacionId" (valueExtendedChange)="onRefreshSede($event)"></app-centro-capacitacion-search>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -70,7 +71,11 @@
         <nz-form-label [nzSpan]="5">Sede</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-          <app-centro-capacitacion-sede-search formControlName="CentroCapacitacionSedeId" ></app-centro-capacitacion-sede-search>
+          <app-centro-capacitacion-sede-search 
+          formControlName="CentroCapacitacionSedeId"
+          [CentroCapacitacionId]="CentroCapacitacionIdSelected() "
+          [CentroCapacitacionSedeIdSelected]="CentroCapacitacionSedeIdSelected()"></app-centro-capacitacion-sede-search>
+          <!-- <input nz-input formControlName="CentroCapacitacionSedeId" /> -->
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -78,18 +83,6 @@
       @if(this.formCli.enabled) {
         <nz-form-item class="btnCenter">
             <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
-
-            <!--@if (this.PersonalIdForEdit() > 0) {
-            
-            <button 
-            nz-popconfirm
-            nzPopconfirmTitle="Esta seguro que quiere eliminar este estudio?"
-            (nzOnConfirm)="deleteEstudio()"
-            nzPopconfirmPlacement="top"
-            nz-button 
-            nzType="primary"
-            nzDanger>Eliminar</button>
-          }  -->
         </nz-form-item>
       }
 

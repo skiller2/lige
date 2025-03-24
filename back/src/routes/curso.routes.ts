@@ -30,5 +30,9 @@ cursoRouter.post('/searchModalidadCurso', [authMiddleware.verifyToken, authMiddl
 })
 
 
+cursoRouter.post('/setcurso', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+  cursoController.setCurso(req, res, next)
+})
+
 
   
