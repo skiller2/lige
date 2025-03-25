@@ -118,7 +118,6 @@ export class TipoDocumentoAltaDrawerComponent {
   async save() {
     this.isLoading.set(true)
     const values = this.formTipoDocumento.value
-    // console.log(values);
     try {
       if (this.doc_id()) {
         await firstValueFrom(this.apiService.updateTipoDocumento(values))
@@ -150,8 +149,6 @@ export class TipoDocumentoAltaDrawerComponent {
         values[key] = infoDoc[key]
       }
       this.formTipoDocumento.reset(values)
-      console.log(this.formTipoDocumento.value);
-      
     }
     if (this.disabled()) this.formTipoDocumento.disable()
     else this.formTipoDocumento.enable()
