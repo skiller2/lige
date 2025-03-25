@@ -1,11 +1,11 @@
 <nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Grupo o Id"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Detalle o Codigo"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.GrupoActividadId"  [nzLabel]="option.fullName +' '+option.GrupoActividadId" />
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.GrupoActividadNumero"  [nzLabel]="option.GrupoActividadDetalle +' '+option.GrupoActividadNumero" />
   </ng-container>
-  <nz-option *ngIf="extendedOption.id >0 " [nzValue]="extendedOption.id"
-    [nzLabel]="extendedOption.fullName" />
+  <nz-option *ngIf="extendedOption.GrupoActividadNumero != '' " [nzValue]="extendedOption.GrupoActividadNumero"
+    [nzLabel]="extendedOption.GrupoActividadDetalle" />
 
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>

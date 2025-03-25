@@ -48,7 +48,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = signal('')
-  extendedOption = { id: 0, fullName: "" }
+  extendedOption = { GrupoActividadNumero: "", GrupoActividadDetalle: "" }
   selectedItem: any;
 
   private propagateTouched: () => void = noop
@@ -112,7 +112,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (this._selectedId == '' || this._selectedId == '0') {
-        this.extendedOption = { id: 0, fullName: "" }
+        this.extendedOption = { GrupoActividadNumero: "", GrupoActividadDetalle: "" }
         this.selectedItem = this.extendedOption
 
         this.valueExtendedEmitter.emit(this.extendedOption)
@@ -123,9 +123,9 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
       }
       firstValueFrom(
         this.searchService
-          .getGrupoActividad('GrupoActividadId', this._selectedId)
+          .getGrupoActividad('GrupoActividadNumero', this._selectedId)
           .pipe(tap(res => {
-            this.extendedOption = { id: res[0].GrupoActividadId, fullName: res[0].fullName }
+            this.extendedOption = { GrupoActividadNumero: res[0].GrupoActividadNumero, GrupoActividadDetalle: res[0].GrupoActividadDetalle }
             this.selectedItem = this.extendedOption
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
@@ -148,8 +148,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     $optionsArray: Observable<SearchGrup[]> = this.$searchChange.pipe(
       debounceTime(500),
       switchMap(value =>
-        this.searchService
-          .getGrupoActividad(Number(value) ? 'GrupoActividadId' : 'Detalle', value)
+        this.searchService 
+          .getGrupoActividad(Number(value) ? 'GrupoActividadNumero' : 'GrupoActividadDetalle', value)
           .pipe(
             doOnSubscribe(() => this.$isOptionsLoading.next(true)),
             tap({ complete: () => this.$isOptionsLoading.next(false) })
@@ -163,7 +163,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 }
 
   search(value: string): void {
-    this.extendedOption = { id: 0, fullName: "" }
+    this.extendedOption = { GrupoActividadNumero: "", GrupoActividadDetalle: "" }
     this.$searchChange.next(value)
   }
 

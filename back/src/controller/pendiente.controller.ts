@@ -14,21 +14,21 @@ export class PendienteController extends BaseController {
 
     let buscar = false;
     
-    let query: string = `SELECT GrupoActividadId AS GrupoActividadId ,GrupoActividadDetalle AS fullName from GrupoActividad
+    let query: string = `SELECT GrupoActividadNumero AS GrupoActividadNumero ,GrupoActividadDetalle AS GrupoActividadDetalle from GrupoActividad
     WHERE`;
     
     switch (fieldName) {
-      case "Detalle":
+      case "GrupoActividadDetalle":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += ` GrupoActividadDetalle LIKE '%${element.trim()}%' AND `;
+            query += ` GrupoActividadDetalle LIKE '%${element.trim()}%' OR GrupoActividadNumero LIKE '%${element.trim()}%') AND  `;
             buscar = true;
           }
         });
         break;
-      case "GrupoActividadId":
-          query += ` GrupoActividadId = '${String(value).trim()}' AND `;
+      case "GrupoActividadNumero":
+          query += ` GrupoActividadNumero = '${String(value).trim()}' AND `;
           buscar = true;
         break;
       
