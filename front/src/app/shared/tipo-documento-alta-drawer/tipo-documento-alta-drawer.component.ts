@@ -84,7 +84,7 @@ export class TipoDocumentoAltaDrawerComponent {
       if (this.archivoMimetype() == 'jpeg' || this.archivoMimetype() == 'jpg' || this.archivoMimetype() == 'png')
         return `api/file-upload/downloadFile/${this.docId()}/docgeneral/original`
       else if (this.archivoMimetype() == 'pdf')
-        return `api/file-upload/downloadFile/${this.docId()}/docgeneral/thumb`
+        return `api/file-upload/downloadFile/${this.docId()}/docgeneral/original`
       else
         return ''
     }
@@ -150,6 +150,8 @@ export class TipoDocumentoAltaDrawerComponent {
         values[key] = infoDoc[key]
       }
       this.formTipoDocumento.reset(values)
+      console.log(this.formTipoDocumento.value);
+      
     }
     if (this.disabled()) this.formTipoDocumento.disable()
     else this.formTipoDocumento.enable()

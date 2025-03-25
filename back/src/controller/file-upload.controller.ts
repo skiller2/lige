@@ -59,7 +59,7 @@ export class FileUploadController extends BaseController {
           break;
         case 'docgeneral':
           document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
-          finalurl = `${this.pathDocuments}/${document[0]["path"]}`
+          finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
           break;
         case 'temp':
