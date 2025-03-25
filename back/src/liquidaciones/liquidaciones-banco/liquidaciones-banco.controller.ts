@@ -501,7 +501,7 @@ export class LiquidacionesBancoController extends BaseController {
 
     try {
       const banco_id = Number(req.body.banco_id)
-      const pend = await queryRunner.query('SELECT * FROM lige.dbo.liqmvbanco WHERE banco_id = @0', [banco_id])
+      const pend = await queryRunner.query('SELECT banco_id FROM lige.dbo.liqmvbanco WHERE banco_id = @0', [banco_id])
 
       if (pend.length == 0)
         throw new ClientException('No hay archivo generado pendiente para el banco seleccionado')
@@ -670,7 +670,7 @@ export class LiquidacionesBancoController extends BaseController {
       if (!(Number(periodo_id) > 0))
         throw new ClientException('Período no localizado')
 
-      const movpend = await queryRunner.query('SELECT * FROM lige.dbo.liqmvbanco WHERE banco_id=@0', [BancoId])
+      const movpend = await queryRunner.query('SELECT banco_id FROM lige.dbo.liqmvbanco WHERE banco_id=@0', [BancoId])
       if (movpend.length > 0)
         throw new ClientException('Existen movimientos pendientes de aplicar para el banco seleccionado')
 

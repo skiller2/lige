@@ -313,7 +313,7 @@ ${orderBy}`, [fechaActual])
     async getTipoTelefono(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         try {
-            const tipoTelefono = await queryRunner.query(`SELECT * FROM TipoTelefono`)
+            const tipoTelefono = await queryRunner.query(`SELECT TipoTelefonoId, TipoTelefonoDescripcion FROM TipoTelefono`)
             return this.jsonRes(tipoTelefono, res);
         } catch (error) {
             return next(error)
@@ -797,14 +797,10 @@ ${orderBy}`, [fechaActual])
         const CUIT: number = form.ClienteFacturacionCUIT
         const idCliente: number = form.id
      
-        let valCuit = await queryRunner.query(`SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT])
-        console.log("valCuit ", valCuit)
+        let valCuit = await queryRunner.query(`SELECT ClienteId FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT])
 
-        if (valCuit.length > 0 && idCliente != valCuit[0].ClienteId) {
-            throw new ClientException(`El CUIT ingresado ya existe`);
-
-        }
-
+        if (valCuit.length > 0 && idCliente != valCuit[0].ClienteId) 
+            throw new ClientException(`El CUIT ingresado ya existe`)
 
         if (!form.ClienteFacturacionCUIT) {
             throw new ClientException(`Debe completar el campo CUIT.`)

@@ -351,11 +351,11 @@ export class TipoDocumentoController extends BaseController {
         pathFile = `${anio}/${doctipo[0].path_origen}`
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
-        let newFilePath = `${pathDocuments}/${pathFile}`
+        let newFilePath = path.join(pathDocuments, pathFile);
 
         if (type == 'pdf') {
           const loadingTask = getDocument(tempFilePath);
-          const document = await loadingTask.promise;
+          const document = await loadingTask.promise;//Error
           for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
             const page = await document.getPage(pagenum);
             const textContent = await page.getTextContent();
@@ -537,7 +537,7 @@ export class TipoDocumentoController extends BaseController {
         pathFile = `${anio}/${doctipo[0].path_origen}`
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
-        let newFilePath = `${pathDocuments}/${pathFile}`
+        let newFilePath = path.join(pathDocuments, pathFile);
 
         if (type == 'pdf') {
           const loadingTask = getDocument(tempFilePath);

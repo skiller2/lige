@@ -84,7 +84,7 @@ export class TipoDocumentoAltaDrawerComponent {
       if (this.archivoMimetype() == 'jpeg' || this.archivoMimetype() == 'jpg' || this.archivoMimetype() == 'png')
         return `api/file-upload/downloadFile/${this.docId()}/docgeneral/original`
       else if (this.archivoMimetype() == 'pdf')
-        return `api/file-upload/downloadFile/${this.docId()}/docgeneral/thumb`
+        return `api/file-upload/downloadFile/${this.docId()}/docgeneral/original`
       else
         return ''
     }
@@ -118,7 +118,6 @@ export class TipoDocumentoAltaDrawerComponent {
   async save() {
     this.isLoading.set(true)
     const values = this.formTipoDocumento.value
-    // console.log(values);
     try {
       if (this.doc_id()) {
         await firstValueFrom(this.apiService.updateTipoDocumento(values))
