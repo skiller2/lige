@@ -1374,7 +1374,7 @@ export class CargaLicenciaController extends BaseController {
 
   async validateDates(Fechadesde: Date, personalId: any, PersonalLicenciaId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
-      `SELECT * FROM PersonalLicencia lic WHERE 
+      `SELECT lic.PersonalId, lic.PersonalLicenciaId FROM PersonalLicencia lic WHERE 
         lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2 AND
         @1 >= lic.PersonalLicenciaDesde AND @1 < ISNULL(lic.PersonalLicenciaHasta,ISNULL(lic.PersonalLicenciaTermina , '9999-12-31')) 
         ` ,
