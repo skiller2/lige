@@ -663,7 +663,7 @@ export class CargaLicenciaController extends BaseController {
         if (PersonalIdForEdit != PersonalId)
           throw new ClientException(`No puede modificar la persona`)
 
-        let valueAplicaPeriodo = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 AND PersonalLicenciaId = @1`,
+        let valueAplicaPeriodo = await queryRunner.query(`select PersonalId, PersonalLicenciaId from PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 AND PersonalLicenciaId = @1`,
           [PersonalId, PersonalLicenciaId]
         )
 
@@ -943,7 +943,7 @@ export class CargaLicenciaController extends BaseController {
       await queryRunner.startTransaction();
 
 
-      const ds = await queryRunner.query(`SELECT * FROM  PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 and PersonalLicenciaId =@1`, [PersonalId, PersonalLicenciaId])
+      const ds = await queryRunner.query(`SELECT PersonalId,PersonalLicenciaId FROM  PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 and PersonalLicenciaId =@1`, [PersonalId, PersonalLicenciaId])
 
       if (ds.length > 0)
         throw new ClientException(`No puede eliminar porque tiene horas cargadas`)
@@ -1092,9 +1092,9 @@ export class CargaLicenciaController extends BaseController {
     if (PersonalLicenciaDiagnosticoMedicoDiagnostico == "") {
       await queryRunner.query(`DELETE FROM PersonalLicenciaDiagnosticoMedico WHERE personalId = @0 AND PersonalLicenciaId = @1`, [PersonalId, PersonalLicenciaId])
     } else {
-      let result = await queryRunner.query(`SELECT * FROM PersonalLicenciaDiagnosticoMedico WHERE personalId = @0 AND PersonalLicenciaId = @1`, [PersonalId, PersonalLicenciaId])
+      const resultExists = await queryRunner.query(`SELECT PersonalId,PersonalLicenciaId FROM PersonalLicenciaDiagnosticoMedico WHERE personalId = @0 AND PersonalLicenciaId = @1`, [PersonalId, PersonalLicenciaId])
 
-      if (result.length > 0) {
+      if (resultExists.length > 0) {
 
         await queryRunner.query(`UPDATE PersonalLicenciaDiagnosticoMedico SET PersonalLicenciaDiagnosticoMedicoDiagnostico = @0 WHERE PersonalId = @1 AND PersonalLicenciaId = @2`
           , [PersonalLicenciaDiagnosticoMedicoDiagnostico.trim(), PersonalId, PersonalLicenciaId])

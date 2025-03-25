@@ -338,7 +338,7 @@ export class AccesoBotController extends BaseController {
 
         try {
 
-            const result = await queryRunner.query(`SELECT * FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+            const result = await queryRunner.query(`SELECT PersonalCUITCUILCUIT FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
             if (result?.length < 1)
                 throw new ClientException(`El CUIT seleccionado no se encuentra registrado`)
 
@@ -704,7 +704,7 @@ export class AccesoBotController extends BaseController {
         const queryRunner = dataSource.createQueryRunner()  
         const fechaActual = new Date()
         try {
-            const existsTel = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personal_id]) 
+            const existsTel = await queryRunner.query(`SELECT personal_id FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personal_id]) 
             if (existsTel.length==0) throw new ClientException(`El personal no tiene un telefono registrado.`)
     
             await queryRunner

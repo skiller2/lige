@@ -230,7 +230,7 @@ export class EstudioController extends BaseController {
     const { fieldName, value } = req.body
 
     let buscar = false;
-    let query: string = `SELECT * FROM TipoEstudio tipest
+    let query: string = `SELECT TipoEstudioId, TipoEstudioDescripcion FROM TipoEstudio tipest
     WHERE`;
     switch (fieldName) {
       case "TipoEstudioDescripcion":
