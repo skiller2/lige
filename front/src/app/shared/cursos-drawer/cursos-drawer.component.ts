@@ -128,7 +128,7 @@ export class CursosDrawerComponent {
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
 
-          //this.CentroCapacitacionIdSelected.set(vals.list[0].CentroCapacitacionId)
+          this.CentroCapacitacionIdSelected.set(vals.list[0].CentroCapacitacionId)
           this.CentroCapacitacionSedeIdSelected.set(vals.list[0].CentroCapacitacionSedeId)
 
         if (this.disabled()) {
@@ -143,15 +143,6 @@ export class CursosDrawerComponent {
     }
     return true
   })
-
-  onRefreshSede(event: any) {
-    this.CentroCapacitacionIdSelected.set(event.CentroCapacitacionId)
-    if (!this.disabled()) {
-      //  this.formCli.patchValue({
-      //  CentroCapacitacionSedeId: 0
-      //})
-    } 
-  }
 
   async save() {
 

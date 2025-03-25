@@ -487,7 +487,7 @@ export class CursoController extends BaseController {
            CentroCapacitacionSedeId
          ]);
 
-        result = await queryRunner.query(`SELECT * FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [ CursoHabilitacionCodigo])
+        result = await queryRunner.query(`SELECT CursoHabilitacionId FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [ CursoHabilitacionCodigo])
         
      
       } 

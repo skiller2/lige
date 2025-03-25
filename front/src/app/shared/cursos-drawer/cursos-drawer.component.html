@@ -62,7 +62,10 @@
         <nz-form-label [nzSpan]="5">Centro Capacitación</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <app-centro-capacitacion-search formControlName="CentroCapacitacionId" (valueExtendedChange)="onRefreshSede($event)"></app-centro-capacitacion-search>
+            <app-centro-capacitacion-search 
+                formControlName="CentroCapacitacionId" 
+                (change)="formCli.patchValue({CentroCapacitacionSedeId: 0})"
+            ></app-centro-capacitacion-search>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -75,7 +78,7 @@
           formControlName="CentroCapacitacionSedeId"
           [CentroCapacitacionId]="CentroCapacitacionIdSelected() "
           [CentroCapacitacionSedeIdSelected]="CentroCapacitacionSedeIdSelected()"></app-centro-capacitacion-sede-search>
-          <!-- <input nz-input formControlName="CentroCapacitacionSedeId" /> -->
+          
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>

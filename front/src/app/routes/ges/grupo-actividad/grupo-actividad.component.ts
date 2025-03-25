@@ -31,4 +31,13 @@ import { TableGrupoActividadPersonalComponent } from '../../../shared/table-grup
 })
 export class GrupoActividadComponent {
 
+    constructor(private settingsService: SettingsService,private router: Router) {}
+
+    ngOnInit() {
+    
+      if (!this.router.url.includes('/grupos')) {
+        this.router.navigate(['/ges/grupo-actividad/grupos']); 
+      }
+    }
+
 }

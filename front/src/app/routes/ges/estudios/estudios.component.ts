@@ -1,4 +1,5 @@
 import { Component, ViewChild, computed, inject, model, signal } from '@angular/core';
+import { Router } from '@angular/router'; 
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -37,11 +38,16 @@ export class EstudiosComponent {
   CursoHabilitacionSelectedId = signal<number>(0);
   CentroCapacitacionSedeId = signal<number>(0);
   CursoHabilitacionDescripcion = signal<string>('');
-  constructor(private settingsService: SettingsService) {}
+
+  constructor(private settingsService: SettingsService,private router: Router) {}
 
   ngOnInit() {
   
     this.settingsService.setLayout('collapsed', true);
+
+    if (this.router.url.includes('/cursos')) {
+      this.router.navigate(['/ges/estudios/estudios']); 
+    }
   }
 
 
