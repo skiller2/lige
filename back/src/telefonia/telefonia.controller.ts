@@ -161,7 +161,7 @@ export class TelefoniaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const data = await queryRunner.query(`SELECT * FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`,
+      const data = await queryRunner.query(`SELECT path, nombre_archivo FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`,
         [impoexpoId]
       )
 
