@@ -649,7 +649,7 @@ cuit.PersonalCUITCUILCUIT,
     const res = await queryRunner.query(`
       SELECT TOP 1 PersonalSucursalPrincipalSucursalId
       FROM PersonalSucursalPrincipal
-      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC `,
+      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC, PersonalSucursalPrincipalSucursalId DESC `,
       [personaId]
     )
 
