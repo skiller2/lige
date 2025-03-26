@@ -1473,7 +1473,6 @@ console.log('infoDomicilio',infoDomicilio)
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
-      throw new ClientException('STOP')
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
