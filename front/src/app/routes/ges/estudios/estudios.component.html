@@ -11,6 +11,10 @@
               <span nz-icon nzType=""></span>
               <a [routerLink]="['/', 'ges', 'estudios', 'cursos']" (click)="selectedTab.set('cursos'); this.PersonalId.set(0)">{{ 'app.seguros.cursos' | i18n }}</a>
             </li>
+            <li nz-menu-item nzMatchRouter>
+              <span nz-icon nzType=""></span>
+              <a [routerLink]="['/', 'ges', 'estudios', 'instituciones']" (click)="selectedTab.set('instituciones'); this.PersonalId.set(0);this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.instituciones' | i18n }}</a>
+            </li>
           </ul>
         </div>
     
@@ -73,10 +77,21 @@
             </div>
           </ng-template>
         </nz-tab>
+
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/estudios/instituciones">{{ 'app.seguros.instituciones' | i18n }} </a>
+          <ng-template nz-tab>
+            <div class="gridContainer3 container-fluid">
+              
+              <!--<app-table-cursos [RefreshCurso]="RefreshCurso()"  (valueGridEvent)="actualizarValorDrawerCurso($event)"></app-table-cursos>-->
+
+            </div>
+          </ng-template>
+        </nz-tab>
       </nz-tabset>
 
       <app-estudios-drawer 
-      (OnRefreshEstudio)="RefreshEstudio.set(true)" 
+      (onRefreshEstudio)="RefreshEstudio.set(true)" 
       [disabled]="disabled()" 
       [(visible)]="visibleDrawer" 
       [PersonalId]="PersonalId()"

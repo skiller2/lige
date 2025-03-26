@@ -45,7 +45,7 @@ export class EstudiosComponent {
   
     this.settingsService.setLayout('collapsed', true);
 
-    if (this.router.url.includes('/cursos')) {
+    if (!this.router.url.includes('/cursos')) {
       this.router.navigate(['/ges/estudios/estudios']); 
     }
   }
