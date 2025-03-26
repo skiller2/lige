@@ -523,6 +523,16 @@ export class SearchService {
     );
   }
 
+  getInactivoBoolean(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/inactivoboolean_getOptions`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getTipo(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/tipo_getOptions`).pipe(
       map(res => res.data),

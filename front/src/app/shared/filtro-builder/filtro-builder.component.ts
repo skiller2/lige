@@ -28,6 +28,7 @@ import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.
 import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
 import { CursoSearchComponent } from '../curso-search/curso-search.component';
 import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
+import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -48,7 +49,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
         RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, EstudioSearchComponent, CursoSearchComponent,
-        ModalidadCursoSearchComponent
+        ModalidadCursoSearchComponent, CentroCapacitacionSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],
@@ -88,6 +89,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   $optionsSepaga = this.searchService.getSePaga();
   $optionsInactivo = this.searchService.getInactivo();
+  $optionsInactivoBoolean = this.searchService.getInactivoBoolean();
   $optionsGrupoActividad = this.searchService.getTipo();
 
   isFiltroBuilder = false;
@@ -341,6 +343,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
   selectedValueInactivo(val: any) {
+    if (val) {
+      this.selections.value = val
+      //this.valueExtended = { fullName: val.label }
+    }
+  }
+
+  selectedValueInactivoBoolean(val: any) {
     if (val) {
       this.selections.value = val
       //this.valueExtended = { fullName: val.label }

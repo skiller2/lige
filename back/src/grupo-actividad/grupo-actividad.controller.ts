@@ -11,6 +11,12 @@ const getOptions: any[] = [
     { label: 'Si', value: '0' },
 ]
 
+
+const getOptionsBoolean: any[] = [
+    { label: 'No', value: false },
+    { label: 'Si', value: true },
+]
+
 const getTipos: any[] = [
     { label: 'Jerarquico', value: 'J' },
     { label: 'Administrativo', value: 'A' },
@@ -347,6 +353,10 @@ export class GrupoActividadController extends BaseController {
 
     async getOptions(req, res) {
         this.jsonRes(getOptions, res);
+    }
+
+    async getOptionsBoolean(req, res) {
+        this.jsonRes(getOptionsBoolean, res);
     }
 
     async getTipos(req, res) {

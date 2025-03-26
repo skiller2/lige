@@ -92,6 +92,10 @@
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForRequirenteSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
+      <app-centro-capacitacion-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForCentroCapacitacionSearch'"
+        (keydown.enter)="handleInputConfirm()" />
+
         
 
       <nz-select ngModel nzAllowClear style="width:100%"
@@ -118,6 +122,15 @@
         nzPlaceHolder="Inactivo" nzShowSearch (ngModelChange)="selectedValueInactivo($event)"
         [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsInactivo | async">
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </ng-container>
+
+      </nz-select>
+
+      <nz-select ngModel nzAllowClear style="width:100%" *ngIf="selections.field.searchComponent=='inpurForInactivoBoolean'"
+        nzPlaceHolder="Activo" nzShowSearch (ngModelChange)="selectedValueInactivoBoolean($event)"
+        [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+        <ng-container *ngFor="let option of $optionsInactivoBoolean | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
 
