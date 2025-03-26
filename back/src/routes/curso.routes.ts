@@ -34,5 +34,9 @@ cursoRouter.post('/setcurso', [authMiddleware.verifyToken, authMiddleware.hasGro
   cursoController.setCurso(req, res, next)
 })
 
+cursoRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  cursoController.deleteCurso(req, res, next);
+});
+
 
   

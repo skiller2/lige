@@ -175,9 +175,9 @@ export class CursosDrawerComponent {
     this.isSaving.set(false)
   }
 
-  async deleteEstudio() {
+  async deleteCurso() {
      let vals = this.formCli.value
-    let res = await firstValueFrom(this.apiService.deleteEstudio(vals))
+    let res = await firstValueFrom(this.apiService.deleteCurso(vals))
     this.visible.set(false)
     this.onRefreshCurso.emit()
   }

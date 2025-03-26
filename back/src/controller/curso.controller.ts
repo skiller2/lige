@@ -536,4 +536,28 @@ export class CursoController extends BaseController {
   }
 
 
+  
+  async deleteCurso(req: any, res: Response, next: NextFunction) {
+    const { CursoHabilitacionId } = req.query
+    console.log("req.params", req.query)
+    const queryRunner = dataSource.createQueryRunner()
+   // throw new ClientException(`test`)
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      await queryRunner.query(`DELETE FROM CursoHabilitacion WHERE CursoHabilitacionId = @0 `, [CursoHabilitacionId])
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({}, res, 'Borrado Exitoso')
+  } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+  }
+
+    
+  }
+
+
 }
