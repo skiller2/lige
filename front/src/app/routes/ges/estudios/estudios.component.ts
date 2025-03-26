@@ -10,13 +10,14 @@ import { BehaviorSubject } from 'rxjs';
 import { TableCursoComponent } from '../../../shared/table-curso/table-curso.component'
 import { CursoHistorialDrawerComponent } from '../../../shared/curso-historial-drawer/curso-historial-drawer.component'
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
+import { TableInstitucionesComponent } from "../../../shared/table-instituciones/table-instituciones.component";
 
 @Component({
   selector: 'app-estudios',
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,TableCursoComponent,CursoHistorialDrawerComponent,CursosDrawerComponent]
+  imports: [...SHARED_IMPORTS, CommonModule, TableEstudiosComponent, EstudiosDrawerComponent, TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent]
 })
 export class EstudiosComponent {
 
@@ -30,6 +31,7 @@ export class EstudiosComponent {
   disabled = signal<boolean>(false);
   RefreshEstudio = signal<boolean>(false);
   RefreshCurso = signal<boolean>(false);
+  RefreshInstituciones = signal<boolean>(false);
   ListEstudios$ = new BehaviorSubject('');
   selectedTab = signal<string>('estudios');
   visibleHistorial = signal<boolean>(false);
@@ -70,11 +72,20 @@ export class EstudiosComponent {
   }
 
   actualizarValorDrawerCurso(event: any) {
-    this.visibleDrawer.set(false);
+    this.visibleDrawerCurso.set(false);
     if (event.length > 0) {
       this.CursoHabilitacionSelectedId.set(event[0].CursoHabilitacionId);
       this.CentroCapacitacionSedeId.set(event[0].CentroCapacitacionSedeId);
       this.CursoHabilitacionDescripcion.set(event[0].CursoHabilitacionDescripcion);
+    }
+  }
+
+  actualizarValorDrawerInstitucion(event: any) {
+    this.visibleDrawer.set(false);
+    if (event.length > 0) {
+      //this.CursoHabilitacionSelectedId.set(event[0].CursoHabilitacionId);
+      //this.CentroCapacitacionSedeId.set(event[0].CentroCapacitacionSedeId);
+      //this.CursoHabilitacionDescripcion.set(event[0].CursoHabilitacionDescripcion);
     }
   }
 

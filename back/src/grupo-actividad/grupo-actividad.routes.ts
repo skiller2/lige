@@ -21,6 +21,10 @@ grupoActividadRouter.get('/inactivo_getOptions', [authMiddleware.verifyToken, au
     grupoActividadController.getOptions(req, res)
 });
 
+grupoActividadRouter.get('/inactivoboolean_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    grupoActividadController.getOptionsBoolean(req, res)
+});
+
 grupoActividadRouter.delete('/grupo', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])],  (req, res, next) => {
     grupoActividadController.deleteGrupo(req, res, next)
 })

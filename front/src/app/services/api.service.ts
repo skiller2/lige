@@ -1394,6 +1394,14 @@ export class ApiService {
     );
   }
 
+  getListInstituciones(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/instituciones/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   setEstudio( values:any){
     return this.http.post<ResponseJSON<any>>(`/api/estudio/setestudio`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
