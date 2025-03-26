@@ -87,6 +87,10 @@ personalRouter.get('/bancos/options', authMiddleware.verifyToken, (req, res, nex
   personalController.getBancos(req, res, next)
 });
 
+personalRouter.get('/estado-civil/options', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getEstadoCivil(req, res, next)
+});
+
 personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getGridColumns(req, res, next)
 });
