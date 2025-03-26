@@ -791,6 +791,11 @@ export class GrupoActividadController extends BaseController {
                         await queryRunner.query(
                             `UPDATE GrupoActividadJerarquico SET GrupoActividadJerarquicoHasta = @2 WHERE GrupoActividadJerarquicoId=@1 And GrupoActividadId = @0`,
                             [jerarquico[0].GrupoActividadId, jerarquico[0].GrupoActividadJerarquicoId, GrupoActividadJerarquicoHastaAnt])
+
+                        await queryRunner.query(
+                            `DELETE GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId=@1 And GrupoActividadId = @0 AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`,
+                            [jerarquico[0].GrupoActividadId, jerarquico[0].GrupoActividadJerarquicoId, GrupoActividadJerarquicoHastaAnt])
+    
                     }
                 } else {
                     if (jerarquico.length > 0 && jerarquico[0].GrupoActividadJerarquicoPersonalId == params.ApellidoNombrePersona.id)

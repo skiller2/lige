@@ -100,14 +100,6 @@ export class TipoDocumentoComponent {
 
   listOptionsChange(options: any) {
     this.listOptions = options;
-
-    this.listOptions.filtros = this.listOptions.filtros.filter((fil: any) => {
-      return (fil.index != 'anio' && fil.index != 'mes') ? true : false
-    })
-
-    this.listOptions.filtros.push({ index: 'anio', operador: '=', condition: 'AND', valor: localStorage.getItem('anio') })
-    this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
-
     this.formChange$.next('')
   }
 

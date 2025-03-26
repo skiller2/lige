@@ -672,6 +672,10 @@ export class ApiService {
   }
 
   getTipoDocumentos(options: any) {
+    if (!options.filtros.length){
+      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro.`);
+      return of([]);
+    }
     const parameter = {options}
     return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(
       map((res: { data: any; }) => res.data),

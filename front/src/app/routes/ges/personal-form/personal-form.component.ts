@@ -45,7 +45,7 @@ export class PersonalFormComponent {
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
-    FechaIngreso:'', FechaNacimiento:'', NacionalidadId:0,
+    FechaIngreso:'', FechaNacimiento:'', NacionalidadId:0, EstadoCivilId:0,
     FotoId:0, Foto:[], docDorsoId:0, docDorso:[], docFrenteId: 0, docFrente:[],
     Calle:'', Nro:'', Piso:'', Dpto:'', //Domicilio
     CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
@@ -69,6 +69,7 @@ export class PersonalFormComponent {
   $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
+  $optionsEstadoCivil = this.searchService.getEstadoCivilOptions();
   
   fotoId():number {
     const value = this.formPer.value.FotoId

@@ -1655,4 +1655,14 @@ export class SearchService {
     );
   }
 
+  getEstadoCivilOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/estado-civil/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

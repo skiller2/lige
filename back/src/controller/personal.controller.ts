@@ -541,6 +541,7 @@ cuit.PersonalCUITCUILCUIT,
     FechaIngreso: Date,
     FechaNacimiento: Date,
     NacionalidadId: number,
+    EstadoCivilId: number,
     SucusalId: number,
     CUIT: number,
     LeyNro: number
@@ -562,14 +563,14 @@ cuit.PersonalCUITCUILCUIT,
       PersonalFechaIngreso,
       PersonalFechaNacimiento,
       PersonalNacionalidadId,
-      -- PersonalFotoId,
       PersonalSucursalIngresoSucursalId,
       PersonalSuActualSucursalPrincipalId,
       PersonalApellidoNombreDNILegajo,
       PersonalCUITCUILUltNro,
-      PersonalLeyNro
+      PersonalLeyNro,
+      EstadoCivilId
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12)
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -585,7 +586,8 @@ cuit.PersonalCUITCUILCUIT,
       SucusalId,
       ApellidoNombreDNILegajo,
       1,
-      LeyNro
+      LeyNro,
+      EstadoCivilId
     ])
     // console.log('newId:',newId);
     let PersonalId = newId[0].id
@@ -672,6 +674,7 @@ cuit.PersonalCUITCUILCUIT,
     let FechaNacimiento: Date = req.body.FechaNacimiento ? new Date(req.body.FechaNacimiento) : null
     const foto = req.body.Foto
     const NacionalidadId: number = req.body.NacionalidadId
+    const EstadoCivilId: number = req.body.EstadoCivilId
     const LeyNro: number = req.body.LeyNro
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
@@ -718,7 +721,7 @@ cuit.PersonalCUITCUILCUIT,
 
 
       const PersonalId = await this.addPersonalQuery(
-        queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, SucursalId, CUIT, LeyNro
+        queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, EstadoCivilId, SucursalId, CUIT, LeyNro
       )
 
       if (Number.isNaN(PersonalId)) {
@@ -1080,7 +1083,8 @@ cuit.PersonalCUITCUILCUIT,
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
-      PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro  
+      PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro,
+      EstadoCivilId 
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1097,6 +1101,7 @@ cuit.PersonalCUITCUILCUIT,
     let Nombre: string = infoPersonal.Nombre
     let Apellido: string = infoPersonal.Apellido
     const NacionalidadId: number = infoPersonal.NacionalidadId
+    const EstadoCivilId: number = infoPersonal.EstadoCivilId
     const NroLegajo: number = infoPersonal.NroLegajo
     const SucursalId: number = infoPersonal.SucursalId
     let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
@@ -1121,10 +1126,11 @@ cuit.PersonalCUITCUILCUIT,
       PersonalNacionalidadId = @7,
       PersonalSuActualSucursalPrincipalId = @8,
       PersonalApellidoNombreDNILegajo = @9,
-      PersonalLeyNro = @10
+      PersonalLeyNro = @10,
+      EstadoCivilId = @11
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
-      SucursalId, ApellidoNombreDNILegajo, LeyNro
+      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId
     ])
   }
 
@@ -1407,7 +1413,6 @@ console.log('infoDomicilio',infoDomicilio)
     const SucursalId = req.body.SucursalId
     const actas = req.body.actas
     const habilitacion = req.body.habilitacion
-    const LeyNro = req.body.LeyNro
     
     let now = new Date()
     now.setHours(0, 0, 0, 0)
@@ -1484,7 +1489,8 @@ console.log('infoDomicilio',infoDomicilio)
     let data = await queryRunner.query(`
       SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
       cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
-      per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId, TRIM(nac.NacionalidadDescripcion),
+      per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId,
+      TRIM(nac.NacionalidadDescripcion), per.EstadoCivilId,
       TRIM(dom.PersonalDomicilioDomCalle) Calle, TRIM(dom.PersonalDomicilioDomNro) Nro, TRIM(dom.PersonalDomicilioDomPiso) Piso,
       TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioCodigoPostal) CodigoPostal, dom.PersonalDomicilioPaisId PaisId,
       dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId,
@@ -2485,6 +2491,19 @@ console.log('infoDomicilio',infoDomicilio)
       PersonalHabilitacionNecesariaUltNro = @1
       WHERE PersonalId IN (@0)
       `, [personalId, PersonalHabilitacionNecesariaId])
+  }
+
+  async getEstadoCivil(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT EstadoCivilId AS value, EstadoCivilDescripcion AS label
+        FROM EstadoCivil
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
   }
 
 }
