@@ -649,10 +649,10 @@ cuit.PersonalCUITCUILCUIT,
     const res = await queryRunner.query(`
       SELECT TOP 1 PersonalSucursalPrincipalSucursalId
       FROM PersonalSucursalPrincipal
-      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC, PersonalSucursalPrincipalSucursalId DESC `,
+      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC, PersonalSucursalPrincipalId  DESC `,
       [personaId]
     )
-
+console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, PersonalSucursalPrincipalSucursalId)
     if (res.length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
@@ -1429,7 +1429,7 @@ console.log('infoDomicilio',infoDomicilio)
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
 
       await this.updateSucursalPrincipal(queryRunner,PersonalId,SucursalId)
-
+//throw new ClientException('DEBUG')
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
@@ -1441,7 +1441,6 @@ console.log('infoDomicilio',infoDomicilio)
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
 
 
-//      throw new ClientException('LLEGO')
 
 
 
@@ -1474,6 +1473,7 @@ console.log('infoDomicilio',infoDomicilio)
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
+      throw new ClientException('STOP')
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
