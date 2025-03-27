@@ -82,7 +82,12 @@ export class ObjetivosComponent {
         })
     )
 
+  
     async ngOnInit(){
+
+      if (!this.router.url.includes('/listado')) {
+        this.router.navigate(['/ges/objetivos/listado']); 
+      }
 
       this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 

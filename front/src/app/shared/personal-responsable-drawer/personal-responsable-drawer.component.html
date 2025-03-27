@@ -18,7 +18,7 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Desde</nz-form-label>
           <nz-form-control>
-            <nz-date-picker ngModel="date" [(ngModel)]="periodo" formControlName="Desde"></nz-date-picker>
+            <nz-date-picker  formControlName="Desde"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
   
@@ -33,7 +33,8 @@
         </form>
     </nz-card>
 
-    <nz-form-control *ngIf="$listaResponsablePer | async as listaResponsablePer ">
+    @if($listaResponsablePer | async; as listaResponsablePer){
+      <nz-form-control >
         <nz-table #responPer [nzData]="listaResponsablePer" nzSize="small" [nzPageSize]="100000000"
           [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
           <thead>
@@ -46,15 +47,20 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let data of responPer.data" class="">
-              <td>{{ data.Numero }}</td>
-              <td>{{ data.Detalle }}</td>
-              <td>{{ data.Supervisor }}</td>
-              <td>{{ data.Desde }}</td>
-              <td>{{ data.Hasta }}</td>
-            </tr>
+            @for (item of responPer.data; track item.id) {
+              <tr class="">
+                <td>{{ item.Numero }}</td>
+                <td>{{ item.Detalle }}</td>
+                <td>{{ item.Supervisor }}</td>
+                <td>{{ item.Desde }}</td>
+                <td>{{ item.Hasta }}</td>
+              </tr>
+              
+            }  
+
           </tbody>
         </nz-table>
     </nz-form-control>
+    }
   </ng-container>
 </nz-drawer>

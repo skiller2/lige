@@ -23,7 +23,6 @@ export class PersonalResponsableDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
     visibleResponsable = model<boolean>(false)
-    periodo = signal(new Date());
     placement: NzDrawerPlacement = 'left';
     isLoading = signal(false);
 
@@ -40,7 +39,8 @@ export class PersonalResponsableDrawerComponent {
 
     fb = inject(FormBuilder)
     formResponsable = this.fb.group({
-        GrupoActividadId:0, Desde:null
+        GrupoActividadId:0, 
+        Desde: new Date(),
     })
 
     $optionsResponsable = this.searchService.getGrupoActividadOptions();
@@ -66,7 +66,6 @@ export class PersonalResponsableDrawerComponent {
     );
 
     async ngOnInit(){
-        this.periodo.set(new Date())
 
         this.selectedPersonalIdChange$.next('');
     }
