@@ -413,14 +413,20 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
 
     if (fieldObj.searchComponent == 'inpurForNivelEstudioSearch') {
-      const nivelEstudio = await firstValueFrom(this.searchService.getEstudioFromName('TipoEstudioId', value))
-      label = nivelEstudio[0].TipoEstudioDescripcion
+      const res = await firstValueFrom(this.searchService.getEstudioFromName('TipoEstudioId', value))
+      label = res[0].TipoEstudioDescripcion
     }
 
     if (fieldObj.searchComponent == 'inpurForModalidadCursoSearch') {
-      const modalidadCurso = await firstValueFrom(this.searchService.getModalidadCursoFromName('ModalidadCursoCodigo', value))
-      label = modalidadCurso[0].ModalidadCursoModalidad
+      const res = await firstValueFrom(this.searchService.getModalidadCursoFromName('ModalidadCursoCodigo', value))
+      label = res[0].ModalidadCursoModalidad
     }
+
+    if (fieldObj.searchComponent == 'inpurForGrupoActividadSearch') {
+      const res = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', value))
+      label = res[0].GrupoActividadDetalle
+    }
+
 
     /*if (fieldObj.searchComponent == 'inpurForCursoSearch') {
       const curso = await firstValueFrom(this.searchService.getCursoFromName('CursoHabilitacionId', value))

@@ -67,7 +67,7 @@ const columnasGrilla: any[] = [
     id: "GrupoActividadId",
     field: "GrupoActividadId",
     fieldName: "ga.GrupoActividadId",
-    searchComponent: "inpurForGrupoPersonaSearch",
+    searchComponent: "inpurForGrupoActividadSearch",
     sortable: true,
     searchHidden: false,
     hidden: true,

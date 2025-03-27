@@ -69,7 +69,7 @@
         (keydown.enter)="handleInputConfirm()" />
 
       <app-grupo-actividad-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForGrupoPersonaSearch'"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForGrupoActividadSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
       <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"

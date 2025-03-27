@@ -428,9 +428,10 @@ export class AsistenciaController extends BaseController {
     FROM PersonalLicencia lic 
     JOIN Personal persona ON persona.PersonalId = lic.PersonalId
     JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
-    LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
+    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = persona.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = persona.PersonalId)
+ 
     LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
-    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(licimp.PersonalLicenciaAplicaPeriodoSucursalId,sucpri.PersonalSucursalPrincipalSucursalId),1)
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(licimp.PersonalLicenciaAplicaPeriodoSucursalId,sucper.PersonalSucursalPrincipalSucursalId),1)
     LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = licimp.PersonalLicenciaAplicaPeriodoSucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
