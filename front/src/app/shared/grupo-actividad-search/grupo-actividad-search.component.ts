@@ -47,7 +47,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = signal('')
-  extendedOption = { GrupoActividadId: 0, GrupoActividadNumero: "", GrupoActividadDetalle: "" }
+  extendedOption = { GrupoActividadId: 0, GrupoActividadNumero: "", GrupoActividadDetalle: "", fullName: "",id:0 }
   selectedItem: any;
 
   private propagateTouched: () => void = noop
@@ -111,7 +111,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (this._selectedId == '' || this._selectedId == '0') {
-        this.extendedOption = { GrupoActividadId: 0, GrupoActividadNumero: "", GrupoActividadDetalle: "" }
+        this.extendedOption = { GrupoActividadId: 0, GrupoActividadNumero: "", GrupoActividadDetalle: "", fullName:"",id:0 }
         this.selectedItem = this.extendedOption
 
         this.valueExtendedEmitter.emit(this.extendedOption)
@@ -124,7 +124,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
         this.searchService
           .getGrupoActividad('GrupoActividadId', this._selectedId)
           .pipe(tap(res => {
-            this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, GrupoActividadNumero: res[0].GrupoActividadNumero, GrupoActividadDetalle: res[0].GrupoActividadDetalle }
+            this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, GrupoActividadNumero: res[0].GrupoActividadNumero, GrupoActividadDetalle: res[0].GrupoActividadDetalle, fullName: res[0].GrupoActividadDetalle, id: res[0].GrupoActividadId}
             this.selectedItem = this.extendedOption
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
@@ -162,7 +162,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    this.extendedOption = { GrupoActividadId:0,GrupoActividadNumero: "", GrupoActividadDetalle: "" }
+    this.extendedOption = { GrupoActividadId:0,GrupoActividadNumero: "", GrupoActividadDetalle: "", fullName:'', id:0 }
     this.$searchChange.next(value)
   }
 
