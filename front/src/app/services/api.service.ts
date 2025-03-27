@@ -1060,6 +1060,12 @@ export class ApiService {
     )
   }
 
+  deleteCurso(vals: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/curso`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
   deleteCliente(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/clientes`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1383,6 +1389,14 @@ export class ApiService {
   getListEstudios(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/estudio/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  getListInstituciones(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/instituciones/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );

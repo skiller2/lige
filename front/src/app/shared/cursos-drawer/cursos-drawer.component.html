@@ -86,6 +86,19 @@
       @if(this.formCli.enabled) {
         <nz-form-item class="btnCenter">
             <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+
+            @if (this.CursoHabilitacionSelectedId() > 0) {
+            
+              <button 
+              nz-popconfirm
+              nzPopconfirmTitle="Esta seguro que quiere eliminar este Curso?"
+              (nzOnConfirm)="deleteCurso()"
+              nzPopconfirmPlacement="top"
+              nz-button 
+              nzType="primary"
+              nzDanger>Eliminar</button>
+            } 
+
         </nz-form-item>
       }
 

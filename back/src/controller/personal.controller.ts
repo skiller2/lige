@@ -306,7 +306,7 @@ export class PersonalController extends BaseController {
         LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
         LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.PersonalDomicilioLocalidadId AND loc.PaisId = dom.PersonalDomicilioPaisId AND loc.ProvinciaId = dom.PersonalDomicilioProvinciaId
         LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.PersonalDomicilioProvinciaId AND pro.PaisId = dom.PersonalDomicilioPaisId
-        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
         
         LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > grp.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
@@ -385,11 +385,11 @@ export class PersonalController extends BaseController {
     const { fieldName, value } = req.body;
 
     let buscar = false;
-    let query: string = `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName, ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1) SucursalId 
+    let query: string = `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName, ISNULL(sucper.PersonalSucursalPrincipalSucursalId,1) SucursalId 
     FROM dbo.Personal per 
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-    LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = per.PersonalId 
- 
+    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+
     WHERE`;
     switch (fieldName) {
       case "Nombre":
@@ -649,10 +649,10 @@ cuit.PersonalCUITCUILCUIT,
     const res = await queryRunner.query(`
       SELECT TOP 1 PersonalSucursalPrincipalSucursalId
       FROM PersonalSucursalPrincipal
-      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC `,
+      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC, PersonalSucursalPrincipalId  DESC `,
       [personaId]
     )
-
+console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, PersonalSucursalPrincipalSucursalId)
     if (res.length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
@@ -1429,7 +1429,7 @@ console.log('infoDomicilio',infoDomicilio)
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
 
       await this.updateSucursalPrincipal(queryRunner,PersonalId,SucursalId)
-
+//throw new ClientException('DEBUG')
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
@@ -1441,7 +1441,6 @@ console.log('infoDomicilio',infoDomicilio)
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
 
 
-//      throw new ClientException('LLEGO')
 
 
 
