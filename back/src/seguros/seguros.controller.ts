@@ -279,10 +279,12 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       const fec_desde = new Date(anio, mes - 1, 1)
       const fec_hasta = new Date(anio, mes - 1, 0)
 
-      const { fec_desde_max, fec_hasta_max } = (await queryRunner.query(`SELECT MAX(fec_desde) fec_desde_max, MAX(fec_hasta) fec_hasta_max FROM lige.dbo.seg_personal_seguro`))[0]
-     
+      const maxfechas = (await queryRunner.query(`SELECT MAX(fec_desde) fec_desde_max, MAX(fec_hasta) fec_hasta_max FROM lige.dbo.seg_personal_seguro`))[0]
+      const fec_desde_max = new Date(maxfechas.fec_desde_max)
+      const fec_hasta_max = new Date(maxfechas.fec_hasta_max)
+    
       if (fec_desde_max > fec_desde || fec_hasta_max > fec_hasta) {
-        throw new ClientException("El período seleccionado es menor al ya procesado", fec_desde_max,fec_hasta_max)
+        throw new ClientException("El período seleccionado es menor al ya procesado", { fec_desde_max, fec_hasta_max })
       }
       await queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=NULL, fec_hasta= NULL WHERE fec_hasta >= @0`,
         [fec_hasta])
@@ -290,10 +292,12 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       await queryRunner.query(`DELETE lige.dbo.seg_personal_seguro WHERE fec_desde >= @0`,
         [fec_desde])
 
-  
+//  throw new ClientException("stop")
       const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
 
       const personalEdesur = [...await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 798, anio, mes)]
+
+      const personalEnergiaArgentina = [...await this.getPersonalHorasByClientId(queryRunner, 866, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalHorasByClientId(queryRunner, 867, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 867, anio, mes)]
 
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
 
@@ -301,6 +305,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
       const personalEnSeguroVidCol = await this.getPersonalEnSeguro(queryRunner, 'VC', anio, mes)
+      const personalEnSeguroEnergiaArgentina = await this.getPersonalEnSeguro(queryRunner, 'APEA', anio, mes)
 
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
@@ -321,6 +326,20 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         }
         await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'En Edesur ' + row.detalle,stm_now, usuario, ip)
       }
+
+      for (const row of personalEnergiaArgentina) {
+        const rowEnSeguro = personalEnSeguroEnergiaArgentina.find(r => r.PersonalId == row.PersonalId)
+        if (rowEnSeguro) {
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, rowEnSeguro.cod_tip_seguro, row.detalle,stm_now, usuario, ip)
+        } else {
+          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APEA', row.detalle,stm_now, usuario, ip)
+        }
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'En EnergiaArgentina ' + row.detalle,stm_now, usuario, ip)
+      }
+
+
+
+
       //TODO: Falta sacer los de coto y edesur
 
       const personalEnSeguroGeneral = await this.getPersonalEnSeguro(queryRunner, 'APG', anio, mes)
@@ -338,8 +357,15 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         }
       }
 
+      for (const row of personalEnSeguroEnergiaArgentina) {
+        if (!personalEnergiaArgentina.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APEA', 'No esta mas en Energia Argentina',stm_now, usuario, ip)
+        }
+      }
+
       const personalEnSeguroCoto2 = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur2 = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
+      const personalEnSeguroEnergiaArgentna2 = await this.getPersonalEnSeguro(queryRunner, 'APEA', anio, mes)
 
       for (const row of personalSitRev) {
         if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) {
@@ -361,6 +387,9 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
         if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId))
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Edesur',stm_now, usuario, ip)
+
+        if (personalEnSeguroEnergiaArgentna2.find(r => r.PersonalId == row.PersonalId))
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Energia Argentina',stm_now, usuario, ip)
 
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
 
