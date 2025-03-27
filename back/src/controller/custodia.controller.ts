@@ -158,7 +158,7 @@ const columnsObjCustodia: any[] = [
         searchType: "number",
     },
     {
-        id: 'cant_km_exced', name: 'Km excentes', field: 'cant_km_exced',
+        id: 'cant_km_exced', name: 'Km excedentes', field: 'cant_km_exced',
         fieldName: "obj.cant_km_exced",
         sortable: true,
         type: 'float',

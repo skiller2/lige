@@ -14,8 +14,7 @@ export class PendienteController extends BaseController {
 
     let buscar = false;
     
-    let query: string = `SELECT GrupoActividadNumero AS GrupoActividadNumero ,GrupoActividadDetalle AS GrupoActividadDetalle from GrupoActividad
-    WHERE`;
+    let query: string = `SELECT GrupoActividadId, GrupoActividadNumero, GrupoActividadDetalle from GrupoActividad WHERE`
     
     switch (fieldName) {
       case "GrupoActividadDetalle":
@@ -31,7 +30,10 @@ export class PendienteController extends BaseController {
           query += ` GrupoActividadNumero = '${String(value).trim()}' AND `;
           buscar = true;
         break;
-      
+      case "GrupoActividadId":
+          query += ` GrupoActividadId = '${String(value).trim()}' AND `;
+          buscar = true;
+        break;
       default:
         break;
     }

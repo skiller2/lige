@@ -16,20 +16,19 @@ import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
-import { Injector, inject } from '@angular/core';
 
 @Component({
-    selector: 'app-grupo-actividad-search',
-    templateUrl: './grupo-actividad-search.component.html',
-    styleUrls: ['./grupo-actividad-search.component.less'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => GrupoActividadSearchComponent),
-            multi: true,
-        },
-    ],
-    imports: [...SHARED_IMPORTS, CommonModule]
+  selector: 'app-grupo-actividad-search',
+  templateUrl: './grupo-actividad-search.component.html',
+  styleUrls: ['./grupo-actividad-search.component.less'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => GrupoActividadSearchComponent),
+      multi: true,
+    },
+  ],
+  imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class GrupoActividadSearchComponent implements ControlValueAccessor {
@@ -48,7 +47,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = signal('')
-  extendedOption = { GrupoActividadNumero: "", GrupoActividadDetalle: "" }
+  extendedOption = { GrupoActividadId: 0, GrupoActividadNumero: "", GrupoActividadDetalle: "" }
   selectedItem: any;
 
   private propagateTouched: () => void = noop
@@ -112,7 +111,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (this._selectedId == '' || this._selectedId == '0') {
-        this.extendedOption = { GrupoActividadNumero: "", GrupoActividadDetalle: "" }
+        this.extendedOption = { GrupoActividadId: 0, GrupoActividadNumero: "", GrupoActividadDetalle: "" }
         this.selectedItem = this.extendedOption
 
         this.valueExtendedEmitter.emit(this.extendedOption)
@@ -123,9 +122,9 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
       }
       firstValueFrom(
         this.searchService
-          .getGrupoActividad('GrupoActividadNumero', this._selectedId)
+          .getGrupoActividad('GrupoActividadId', this._selectedId)
           .pipe(tap(res => {
-            this.extendedOption = { GrupoActividadNumero: res[0].GrupoActividadNumero, GrupoActividadDetalle: res[0].GrupoActividadDetalle }
+            this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, GrupoActividadNumero: res[0].GrupoActividadNumero, GrupoActividadDetalle: res[0].GrupoActividadDetalle }
             this.selectedItem = this.extendedOption
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
@@ -145,25 +144,25 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     }
   }
 
-    $optionsArray: Observable<SearchGrup[]> = this.$searchChange.pipe(
-      debounceTime(500),
-      switchMap(value =>
-        this.searchService 
-          .getGrupoActividad(Number(value) ? 'GrupoActividadNumero' : 'GrupoActividadDetalle', value)
-          .pipe(
-            doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-            tap({ complete: () => this.$isOptionsLoading.next(false) })
-          )
-      )
+  $optionsArray: Observable<SearchGrup[]> = this.$searchChange.pipe(
+    debounceTime(500),
+    switchMap(value =>
+      this.searchService
+        .getGrupoActividad(Number(value) ? 'GrupoActividadNumero' : 'GrupoActividadDetalle', value)
+        .pipe(
+          doOnSubscribe(() => this.$isOptionsLoading.next(true)),
+          tap({ complete: () => this.$isOptionsLoading.next(false) })
+        )
     )
+  )
 
   modelChange(val: string) {
     if (val == '') val = '0'
     this.selectedId = val
-}
+  }
 
   search(value: string): void {
-    this.extendedOption = { GrupoActividadNumero: "", GrupoActividadDetalle: "" }
+    this.extendedOption = { GrupoActividadId:0,GrupoActividadNumero: "", GrupoActividadDetalle: "" }
     this.$searchChange.next(value)
   }
 
