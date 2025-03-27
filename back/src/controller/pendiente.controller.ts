@@ -22,7 +22,7 @@ export class PendienteController extends BaseController {
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += ` GrupoActividadDetalle LIKE '%${element.trim()}%' OR GrupoActividadNumero LIKE '%${element.trim()}%') AND  `;
+            query += ` (GrupoActividadDetalle LIKE '%${element.trim()}%' OR GrupoActividadNumero LIKE '%${element.trim()}%') AND  `;
             buscar = true;
           }
         });
