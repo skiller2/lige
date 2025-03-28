@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response, query } from "express";
-import { mkdirSync, renameSync, existsSync} from "fs";
+import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -218,22 +218,23 @@ export class FileUploadController extends BaseController {
       //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
 
       if (!folder)
-        throw new ClientException(`Error subiendo archivo`)
 
-      console.log("file.tableForSearch", file.tableForSearch)
+      throw new ClientException(`Error subiendo archivo`)
       switch (file.tableForSearch) {
+
         case "DocumentoImagenEstudio":
-
-       
-
         const DocumentoImagenParametroId = 20 // CURSO
         const DocumentoImagenParametroDirectorioId = 1 // TEMP
 
         const DocumentoImagenEstudioId = await  queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
         const den_numero = DocumentoImagenEstudioId[0]['DocumentoImagenEstudioId'] + 1
         let nameFile = `${keyid}-${den_numero}-CERTEST.${file.originalname.split('.')[1]}`
-        newFilePath = `${dirtmpNew}/${nameFile}`;
-        this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
+
+        const DocumentoImagenEstudioRuta= await queryRunner.query('SELECT DocumentoImagenParametroDirectorioPath from DocumentoImagenParametroDirectorio WHERE DocumentoImagenParametroId = @0',[DocumentoImagenParametroId])
+        const finalUrl = `${process.env.PATH_ARCHIVOS}/${DocumentoImagenEstudioRuta[0]['DocumentoImagenParametroDirectorioPath'].replace(/\\/g, '/').replace(/\/$/, '')}`
+        
+        newFilePath = `${finalUrl}/${nameFile}`;
+        this.moveFile(`${file.fieldname}.pdf`, newFilePath, finalUrl);
 
           await this.setArchivosDocumentoImagenEstudio(
             queryRunner,
@@ -277,10 +278,11 @@ export class FileUploadController extends BaseController {
     // console.log("newFilePath ", newFilePath)
 
     if (!existsSync(dirtmp)) {
+      // Crea el directorio y todos los directorios padres necesarios de forma recursiva
       mkdirSync(dirtmp, { recursive: true });
     }
     try {
-      renameSync(originalFilePath, newFilePath);
+      copyFileSync(originalFilePath, newFilePath);
     } catch (error) {
       console.error('Error moviendo el archivo:', error);
     }

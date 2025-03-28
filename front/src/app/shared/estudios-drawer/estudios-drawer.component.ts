@@ -144,10 +144,11 @@ export class EstudiosDrawerComponent {
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
 
       const res =  await firstValueFrom(this.apiService.setEstudio(vals))
+      this.onRefreshEstudio.emit()
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
       //this.fileUploaded = false
-      this.onRefreshEstudio.emit()
+      
       //this.formCli$.next("")
     } catch (error) {
 
