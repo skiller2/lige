@@ -36,7 +36,7 @@ export class CentroCapacitacionSedeSearchComponent implements ControlValueAccess
   constructor(private searchService: SearchService) { }
 
   conditional = computed(async () => {
-    
+    console.log('this.CentroCapacitacionId() - busco', this.CentroCapacitacionId())
     if (this.CentroCapacitacionId()) {
       this.search(this.CentroCapacitacionSedeIdSelected().toString())
     }

@@ -33,6 +33,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../custom-search/custom-search';
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 
 type listOptionsT = {
   filtros: any[],
@@ -44,7 +45,7 @@ type listOptionsT = {
     selector: 'app-table-historial-contrato',
     imports: [SHARED_IMPORTS,
         CommonModule,
-        NzAffixModule
+        NzAffixModule,NzTabsModule
     ],
     providers: [AngularUtilService],
     templateUrl: './table-historial-contrato.component.html',
@@ -268,6 +269,27 @@ export class TableHistorialContratoComponent {
       filename: 'lista-historial-licencia',
       format: FileType.xlsx
     });
+  }
+
+   onTabChanged(selectedIndex: number): void {
+    setTimeout(() => {
+      switch (selectedIndex) {
+        case 0:
+          this.gridObj.resizeCanvas();
+          this.gridObj.autosizeColumns();
+          break;
+        case 1:
+          this.angularGridDomicilio.slickGrid.resizeCanvas();
+          this.angularGridDomicilio.slickGrid.autosizeColumns();
+          break;
+        case 2:
+            this.gridObjGrupoActividad.resizeCanvas();
+            this.gridObjGrupoActividad.autosizeColumns();
+          break;
+      }
+      window.dispatchEvent(new Event('resize'));
+
+    }, 100);
   }
 
  
