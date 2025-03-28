@@ -5,7 +5,7 @@
           <ul nz-menu nzMode="horizontal" style="display: flex;">
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.estudios' | i18n }}</a>
+              <a [routerLink]="['/', 'ges', 'estudios', 'estudio']" (click)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.estudios' | i18n }}</a>
             </li>
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
@@ -58,7 +58,7 @@
     
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
         <nz-tab>
-          <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
+          <a nz-tab-link routerLink="/ges/estudios/estudio">{{ 'app.seguros.estudios' | i18n }} </a>
           <ng-template nz-tab>
             <div class="gridContainer2 container-fluid">
               
@@ -102,6 +102,12 @@
       [disabled]="disabled()" 
       [(visible)]="visibleDrawerCurso" 
       [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer> 
+
+      <!-- <app-instituciones-drawer 
+      (onRefreshCurso)="RefreshCurso.set(true)" 
+      [disabled]="disabled()" 
+      [(visible)]="visibleDrawerCurso" 
+      [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-instituciones-drawer>  -->
 
       <app-curso-historial-drawer 
       [(visibleHistorial)]="visibleHistorial" 

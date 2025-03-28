@@ -26,7 +26,7 @@ export interface Option {
 }
 
 @Component({
-    selector: 'app-cursos-drawer',
+    selector: 'app-instituciones-drawer',
     imports: [SHARED_IMPORTS, 
       NzUploadModule, 
       NzAutocompleteModule,
@@ -35,17 +35,17 @@ export interface Option {
       CentroCapacitacionSedeSearchComponent,
       ModalidadCursoSearchComponent
     ],
-    templateUrl: './cursos-drawer.component.html',
-    styleUrl: './cursos-drawer.component.less',
+    templateUrl: './instituciones-drawer.component.html',
+    styleUrl: './instituciones-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 
 
-export class CursosDrawerComponent {
+export class InstitucionesDrawerComponent {
 
   ArchivosEstudioAdd: any[] = [];
-  tituloDrawer = signal<string>("Nuevo Curso")
+  tituloDrawer = signal<string>("Nueva Institución")
   disabled =  input<boolean>(false)
   RefreshCurso =  model<boolean>(false)
   private apiService = inject(ApiService)
@@ -132,10 +132,10 @@ export class CursosDrawerComponent {
           this.CentroCapacitacionSedeIdSelected.set(vals.list[0].CentroCapacitacionSedeId)
 
         if (this.disabled()) {
-          this.tituloDrawer.set(' Consultar Estudio ');
+          this.tituloDrawer.set(' Consultar Institución ');
           this.formCli.disable()
         } else {
-          this.tituloDrawer.set('Editar Estudio');
+          this.tituloDrawer.set('Editar Institución');
           this.formCli.enable()
 
         }
@@ -143,16 +143,6 @@ export class CursosDrawerComponent {
     }
     return true
   })
-
-  updateValues() {
-    
-    setTimeout(() => {
-
-    this.CentroCapacitacionIdSelected.set(this.formCli.value.CentroCapacitacionId || 0)
-    this.formCli.patchValue({CentroCapacitacionSedeId: 0})
-
-    }, 1000)
-  }
 
   async save() {
 
@@ -171,7 +161,7 @@ export class CursosDrawerComponent {
           CursoHabilitacionIdForEdit: res.data?.list[0]?.CursoHabilitacionId
         })
 
-        this.tituloDrawer.set('Editar Estudio');
+        this.tituloDrawer.set('Editar Institución');
 
       }  
       

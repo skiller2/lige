@@ -11,13 +11,15 @@ import { TableCursoComponent } from '../../../shared/table-curso/table-curso.com
 import { CursoHistorialDrawerComponent } from '../../../shared/curso-historial-drawer/curso-historial-drawer.component'
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
 import { TableInstitucionesComponent } from "../../../shared/table-instituciones/table-instituciones.component";
+import { InstitucionesDrawerComponent } from 'src/app/shared/instituciones-drawer/instituciones-drawer.component';
 
 @Component({
   selector: 'app-estudios',
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, TableEstudiosComponent, EstudiosDrawerComponent, TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent]
+  imports: [...SHARED_IMPORTS, CommonModule, TableEstudiosComponent, EstudiosDrawerComponent, 
+    TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent,InstitucionesDrawerComponent]
 })
 export class EstudiosComponent {
 
@@ -47,8 +49,8 @@ export class EstudiosComponent {
   
     this.settingsService.setLayout('collapsed', true);
 
-    if (!this.router.url.includes('/cursos')) {
-      this.router.navigate(['/ges/estudios/estudios']); 
+    if (!this.router.url.includes('/estudios/estudio')) {
+      this.router.navigate(['/ges/estudios/estudio']); 
     }
   }
 

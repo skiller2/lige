@@ -1,9 +1,9 @@
 <nz-card class="small-margin">
-    <form nz-form #objpendForm="ngForm">
-      <nz-tabset>
-        <nz-tab nzTitle="Contratos" [nzForceRender]="true"> 
+  
+      <nz-tabset (nzSelectedIndexChange)="onTabChanged($event)">
+        <nz-tab nzTitle="Contratos" [nzForceRender]="true" > 
           <ng-container>
-          <div class=" gridContainer1 container-fluid" *ngIf="(Contrato$|async) as columnas">
+          <div class="gridContainer1 container-fluid" *ngIf="(Contrato$|async) as columnas">
               <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
                 [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
                 (onAngularGridCreated)="angularGridReady($event)">
@@ -11,7 +11,6 @@
             </div>
       
          
-            
         </ng-container></nz-tab>
         <nz-tab nzTitle="Domicilio" [nzForceRender]="true" >
           <div class=" gridContainer2 container-fluid"*ngIf="(Domicilio$|async) as columnasDomicilio">
@@ -34,6 +33,6 @@
         </nz-tab>
       </nz-tabset>
      
-    </form>
+
   </nz-card>
 
