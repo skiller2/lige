@@ -1675,4 +1675,14 @@ export class SearchService {
     );
   }
 
+  getTipoDocumentoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/tipo-documento/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

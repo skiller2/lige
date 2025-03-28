@@ -36,12 +36,15 @@ export class PersonalFormComponent {
   optionsEstudioEstado = signal<any[]>([])
   optionsEstudioTipo = signal<any[]>([])
   optionsLugarHabilitacion = signal<any[]>([])
+  optionsTipoDocumento = signal<any[]>([])
   
   fb = inject(FormBuilder)
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null, DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
   objActa = { fecha: '', numero:null }
+  objBeneficiario = {PersonalSeguroBeneficiarioId: 0, Apellido:'', Nombre:'',
+    TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:''}
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
@@ -62,6 +65,7 @@ export class PersonalFormComponent {
     }),
     LeyNro:null,
     habilitacion: [],
+    beneficiarios:this.fb.array([this.fb.group({...this.objBeneficiario})]),
   }
   
   formPer = this.fb.group({ ...this.inputs })
@@ -112,6 +116,9 @@ export class PersonalFormComponent {
   familiares():FormArray {
     return this.formPer.get("familiares") as FormArray
   }
+  beneficiarios():FormArray {
+    return this.formPer.get("beneficiarios") as FormArray
+  }
 
   $selectedLocalidadIdChange = new BehaviorSubject('');
   $selectedProvinciaIdChange = new BehaviorSubject('');
@@ -120,16 +127,16 @@ export class PersonalFormComponent {
   $optionsPais = this.searchService.getPaises();
 
   $optionsProvincia = this.$selectedPaisIdChange.pipe(
-      debounceTime(500),
-      switchMap(() =>{
-          return this.searchService.getProvinciasByPais(this.paisId())
-      })
+    debounceTime(500),
+    switchMap(() =>{
+      return this.searchService.getProvinciasByPais(this.paisId())
+    })
   );
   $optionsLocalidad = this.$selectedProvinciaIdChange.pipe(
-      debounceTime(500),
-      switchMap(() =>{
-          return this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId())
-      })
+    debounceTime(500),
+    switchMap(() =>{
+      return this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId())
+    })
   );
   $optionsBarrio = this.$selectedLocalidadIdChange.pipe(
     debounceTime(500),
@@ -147,12 +154,14 @@ export class PersonalFormComponent {
     const optionsEstudioTipo = await firstValueFrom(this.searchService.getTipoEstudioOptions())
     const optionsParentesco = await firstValueFrom(this.searchService.getTipoParentescoOptions())
     const optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
+    const optionsTipoDocumento = await firstValueFrom(this.searchService.getTipoDocumentoOptions())
     
     this.optionsTelefonoTipo.set(optionsTelefonoTipo)
     this.optionsEstudioEstado.set(optionsEstudioEstado)
     this.optionsEstudioTipo.set(optionsEstudioTipo)
     this.optionsParentesco.set(optionsParentesco)
     this.optionsLugarHabilitacion.set(optionsLugarHabilitacion)
+    this.optionsTipoDocumento.set(optionsTipoDocumento)
   }
 
   async load() {
@@ -209,7 +218,6 @@ export class PersonalFormComponent {
       }else{
         const res = await firstValueFrom(this.apiService.addPersonal(values))
         this.personalId.set(res.data.PersonalId)
-
       }
 
       this.load()      
@@ -262,6 +270,11 @@ export class PersonalFormComponent {
     this.familiares().push(this.fb.group({...this.objFamiliar}))
   }
 
+  addBeneficiario(e?: MouseEvent): void {
+    e?.preventDefault();
+    this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
+  }
+
   removeTelefono(index: number, e: MouseEvent): void {
     e.preventDefault();
     if (this.telefonos().controls.length > 1 ) {
@@ -282,6 +295,14 @@ export class PersonalFormComponent {
     e.preventDefault();
     if (this.familiares().controls.length > 1 ) {
       this.familiares().removeAt(index)
+      this.formPer.markAsDirty()
+    }
+  }
+
+  removeBeneficiario(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    if (this.beneficiarios().controls.length > 1 ) {
+      this.beneficiarios().removeAt(index)
       this.formPer.markAsDirty()
     }
   }

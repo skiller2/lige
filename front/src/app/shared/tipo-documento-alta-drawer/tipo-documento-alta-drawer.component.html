@@ -78,12 +78,12 @@
       </div>
     </div>
 
-    <nz-form-item *ngIf="!docId()">
+    <nz-form-item *ngIf="!disabled()">
       <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
         <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formTipoDocumento.pristine">
           {{ 'app.btn.save' | i18n }}
         </button>
-        <button *ngIf="doc_id()" nzType="primary" nz-button (click)="resetForm()">
+        <button *ngIf="doc_id() && !docId()" nzType="primary" nz-button (click)="resetForm()">
           {{ 'app.btn.clear.form' | i18n }}
         </button>
       </nz-form-control>

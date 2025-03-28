@@ -79,6 +79,7 @@ export class TipoDocumentoComponent {
   // periodo = signal({anio:0, mes:0})
   docId = signal<number>(0)
   visibleAlta = model<boolean>(false)
+  visibleEdit = model<boolean>(false)
   visibleDetalle = model<boolean>(false)
   refresh = signal(0)
   
@@ -91,6 +92,7 @@ export class TipoDocumentoComponent {
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
   childDetalle = viewChild.required<TipoDocumentoAltaDrawerComponent>('detalle')
+  childEdit = viewChild.required<TipoDocumentoAltaDrawerComponent>('editor')
 
   conditional = computed(async () => {
     if (this.refresh()) {
@@ -201,6 +203,11 @@ export class TipoDocumentoComponent {
 
   openDrawerforAlta(): void{
     this.visibleAlta.set(true) 
+  }
+
+  openDrawerforEdit(): void{
+    this.childEdit().load()
+    this.visibleEdit.set(true)
   }
 
   openDrawerforDetalle(): void{

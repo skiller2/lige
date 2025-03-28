@@ -119,7 +119,7 @@ export class TipoDocumentoAltaDrawerComponent {
     this.isLoading.set(true)
     const values = this.formTipoDocumento.value
     try {
-      if (this.doc_id()) {
+      if (this.doc_id() || this.docId()) {
         await firstValueFrom(this.apiService.updateTipoDocumento(values))
       }else{
         const res = await firstValueFrom(this.apiService.addTipoDocumento(values))

@@ -2505,4 +2505,18 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
+  async getTipoDocumento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT TipoDocumentoId value, TipoDocumentoDescripcion label
+        FROM TipoDocumento
+      `)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

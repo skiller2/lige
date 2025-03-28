@@ -31,7 +31,7 @@ personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.h
   personalController.addPersonal(req, res, next);
 });
 
-personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, ], (req, res, next) => {
   personalController.updatePersonal(req, res, next);
 });
 
@@ -89,6 +89,10 @@ personalRouter.get('/bancos/options', authMiddleware.verifyToken, (req, res, nex
 
 personalRouter.get('/estado-civil/options', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getEstadoCivil(req, res, next)
+});
+
+personalRouter.get('/tipo-documento/options', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getTipoDocumento(req, res, next)
 });
 
 personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
