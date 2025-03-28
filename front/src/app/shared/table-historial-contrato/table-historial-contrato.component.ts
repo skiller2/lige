@@ -287,7 +287,9 @@ export class TableHistorialContratoComponent {
             this.gridObjGrupoActividad.autosizeColumns();
           break;
       }
-    }, 0);
+      window.dispatchEvent(new Event('resize'));
+
+    }, 100);
   }
 
  
