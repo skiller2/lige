@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output, effect,  } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
@@ -91,49 +91,55 @@ export class EstudiosDrawerComponent {
 
   constructor(
     private searchService: SearchService
-  ) { }
+    
+  ) { 
+
+    effect(async() => { const visible = this.visible()
+      //this.formCli.reset()
+      this.ArchivosEstudioAdd = []
+      if (visible) {
+        //const per = this.selectedPeriod()
+        if (this.PersonalEstudioId() > 0) {
+          let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
+  
+          this.PersonalIdForEdit.set(vals.PersonalId)
+          vals.personalEstudioId = vals.PersonalEstudioId
+          vals.PersonalId =  vals.PersonalId,
+          vals.TipoEstudioId = vals.TipoEstudioId,
+          vals.PersonalEstudioTitulo = vals.PersonalEstudioTitulo,
+          vals.CursoHabilitacionId = vals.PersonalEstudioCursoId,
+          vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
+       
+          this.formCli.patchValue(vals)
+          this.formCli.markAsUntouched()
+          this.formCli.markAsPristine()
+  
+          if (this.disabled()) {
+            this.tituloDrawer.set(' Consultar Estudio ');
+            this.formCli.disable()
+          } else {
+            this.tituloDrawer.set('Editar Estudio');
+            this.formCli.enable()
+  
+          }
+        }
+      }else{
+        this.formCli.reset()
+        this.formCli.enable()
+        this.PersonalIdForEdit.set(0);
+      }
+    });
+  }
 
   async ngOnInit(): Promise<void> {
 
     this.ArchivosEstudioAdd = []
     this.PersonalIdForEdit.set(0)
 
-    
   }
 
-  cambios = computed(async () => {
-    const visible = this.visible()
-    //this.ngForm().form.reset()
-    this.ArchivosEstudioAdd = []
-    if (visible) {
-      //const per = this.selectedPeriod()
-      if (this.PersonalEstudioId() > 0) {
-        let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
 
-        this.PersonalIdForEdit.set(vals.PersonalId)
-        vals.personalEstudioId = vals.PersonalEstudioId
-        vals.PersonalId =  vals.PersonalId,
-        vals.TipoEstudioId = vals.TipoEstudioId,
-        vals.PersonalEstudioTitulo = vals.PersonalEstudioTitulo,
-        vals.CursoHabilitacionId = vals.PersonalEstudioCursoId,
-        vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
-     
-        this.formCli.patchValue(vals)
-        this.formCli.markAsUntouched()
-        this.formCli.markAsPristine()
 
-        if (this.disabled()) {
-          this.tituloDrawer.set(' Consultar Estudio ');
-          this.formCli.disable()
-        } else {
-          this.tituloDrawer.set('Editar Estudio');
-          this.formCli.enable()
-
-        }
-      }
-    }
-    return true
-  })
 
   async save() {
 

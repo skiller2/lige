@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output, effect,  } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
@@ -95,17 +95,9 @@ export class CursosDrawerComponent {
 
   constructor(
     private searchService: SearchService
-  ) { }
-
-  async ngOnInit(): Promise<void> {
-
-    this.CursoHabilitacionIdForEdit.set(0)
-    this.CentroCapacitacionIdSelected.set(0)
-    this.CentroCapacitacionSedeIdSelected.set(0)
-  }
-
-  cambios = computed(async () => {
-    const visible = this.visible()
+  ) { 
+    effect(async() => {
+      const visible = this.visible()
  
     if (visible) {
       if (this.CursoHabilitacionSelectedId() > 0) {
@@ -139,10 +131,23 @@ export class CursosDrawerComponent {
           this.formCli.enable()
 
         }
+      }else{
+        this.formCli.reset()
+        this.formCli.enable()
+        this.CursoHabilitacionIdForEdit.set(0);
       }
     }
-    return true
-  })
+    });
+  }
+
+  async ngOnInit(): Promise<void> {
+
+    this.CursoHabilitacionIdForEdit.set(0)
+    this.CentroCapacitacionIdSelected.set(0)
+    this.CentroCapacitacionSedeIdSelected.set(0)
+  }
+
+ 
 
   updateValues() {
     
