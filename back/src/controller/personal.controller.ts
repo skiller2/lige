@@ -682,7 +682,8 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
     const estudios = req.body.estudios
     const familiares = req.body.familiares
     const actas = req.body.actas
-    const habilitacion: number[]= (req.body.habilitacion)?req.body.habilitacion:[] 
+    const habilitacion: number[]= (req.body.habilitacion)?req.body.habilitacion:[]
+    const beneficiarios = req.body.beneficiarios
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
@@ -761,15 +762,21 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
           await this.addPersonalEstudio(queryRunner, estudio, PersonalId)
         }
       }
+      if (errors.length) throw new ClientException(errors)
 
+      //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
       if (updatePersonalFamilia instanceof ClientException)
         throw updatePersonalFamilia
 
-      if (errors.length)
-        throw new ClientException(errors)
+      //Beneficiario
+      // const updatePersonalSeguroBeneficiario = await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios)
+      // if (updatePersonalSeguroBeneficiario instanceof ClientException)
+      //   throw updatePersonalFamilia
 
+      //Situacion de Revista
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
+
       //Habilitacion necesaria
       const usuarioId = await this.getUsuarioId(res,queryRunner)
 
@@ -889,7 +896,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
       TipoParentescoId,
       PersonalFamiliaVive
       )
-      VALUES (@0, @1, @2, @3, @4, @5, 6)`, [
+      VALUES (@0, @1, @2, @3, @4, @5, @6)`, [
         PersonalId, PersonalFamiliaId, Apellido, Nombre, 'N', TipoParentescoId, 1
     ])
     await queryRunner.query(`
