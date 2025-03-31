@@ -12,6 +12,7 @@ import { CursoHistorialDrawerComponent } from '../../../shared/curso-historial-d
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
 import { TableInstitucionesComponent } from "../../../shared/table-instituciones/table-instituciones.component";
 import { InstitucionesDrawerComponent } from 'src/app/shared/instituciones-drawer/instituciones-drawer.component';
+import { SedesDrawerComponent } from 'src/app/shared/sedes-drawer/sedes-drawer.component';
 
 @Component({
   selector: 'app-estudios',
@@ -19,7 +20,8 @@ import { InstitucionesDrawerComponent } from 'src/app/shared/instituciones-drawe
   styleUrls: ['./estudios.component.less'],
   standalone: true,
   imports: [...SHARED_IMPORTS, CommonModule, TableEstudiosComponent, EstudiosDrawerComponent, 
-    TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent]
+    TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent, 
+    InstitucionesDrawerComponent, SedesDrawerComponent]
 })
 export class EstudiosComponent {
 
@@ -42,6 +44,10 @@ export class EstudiosComponent {
   CursoHabilitacionSelectedId = signal<number>(0);
   CentroCapacitacionSedeId = signal<number>(0);
   CursoHabilitacionDescripcion = signal<string>('');
+  visibleDrawerInstituciones = signal<boolean>(false);
+  //instituciones
+  CentroCapacitacionId = signal<number>(0);
+  visibleDrawerSedes = signal<boolean>(false);
 
   constructor(private settingsService: SettingsService,private router: Router) {}
 
@@ -83,11 +89,9 @@ export class EstudiosComponent {
   }
 
   actualizarValorDrawerInstitucion(event: any) {
-    this.visibleDrawer.set(false);
+    this.visibleDrawerInstituciones.set(false);
     if (event.length > 0) {
-      //this.CursoHabilitacionSelectedId.set(event[0].CursoHabilitacionId);
-      //this.CentroCapacitacionSedeId.set(event[0].CentroCapacitacionSedeId);
-      //this.CursoHabilitacionDescripcion.set(event[0].CursoHabilitacionDescripcion);
+      this.CentroCapacitacionId.set(event[0].CentroCapacitacionId);
     }
   }
 
@@ -133,6 +137,34 @@ export class EstudiosComponent {
    
     this.disabled.set(false);
     this.visibleDrawerCurso.set(true);
+  }
+
+
+  ////// Instituciones
+
+  openDrawerInstitucionesforNew() {
+   
+    this.disabled.set(false);
+    this.CentroCapacitacionId.set(0);
+    this.visibleDrawerInstituciones.set(true);
+  }
+
+  openDrawerInstitucionesforSede() {
+   
+    this.disabled.set(false);
+    this.visibleDrawerSedes.set(true);
+  }
+
+  openDrawerInstitucionesforConsult() {
+   
+    this.disabled.set(true);
+    this.visibleDrawerInstituciones.set(true);
+  }
+  
+  openDrawerInstitucionesforEdit() {
+   
+    this.disabled.set(false);
+    this.visibleDrawerInstituciones.set(true);
   }
 
 

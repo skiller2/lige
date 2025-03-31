@@ -421,7 +421,7 @@ export class CursoController extends BaseController {
 
     try {
 
-      //await this.validateFormCursos(req.body)
+      await this.validateFormCursos(req.body)
 
    
       if(CursoHabilitacionIdForEdit > 0){

@@ -615,6 +615,17 @@ export class ApiService {
     
   }
 
+  getListInstitucionesHistory(filters: any, CentroCapacitacionId:any) {
+
+    const parameter = { filters, CentroCapacitacionId }
+    return this.http.post<ResponseJSON<any>>('/api/instituciones/listHistory', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+    
+  }
+
   getListGrupoActividadGrupos(filters: any) {
     const parameter =  filters 
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listGrupos', parameter).pipe(
@@ -1410,6 +1421,19 @@ export class ApiService {
   
   setCursos( values:any){
     return this.http.post<ResponseJSON<any>>(`/api/curso/setcurso`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  
+  setInstituciones( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/instituciones/setinstitucion`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  setInstitucionesSedes( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/instituciones/setsede`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }

@@ -5,14 +5,13 @@ import { FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { CursoSearchComponent } from '../curso-search/curso-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
-import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
 import { CentroCapacitacionSedeSearchComponent } from '../centro-capacitacion-sede-search/centro-capacitacion-sede-search.component';
-import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
+
+
 
 type listOptionsT = {
   filtros: any[],
@@ -26,23 +25,23 @@ export interface Option {
 }
 
 @Component({
-    selector: 'app-instituciones-drawer',
+    selector: 'app-sedes-drawer',
     imports: [SHARED_IMPORTS, 
       NzUploadModule, 
       NzAutocompleteModule,
-      CommonModule
+      CommonModule,
+      CentroCapacitacionSedeSearchComponent
     ],
-    templateUrl: './instituciones-drawer.component.html',
-    styleUrl: './instituciones-drawer.component.less',
+    templateUrl: './sedes-drawer.component.html',
+    styleUrl: './sedes-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 
 
-export class InstitucionesDrawerComponent {
+export class SedesDrawerComponent {
 
   ArchivosEstudioAdd: any[] = [];
-  tituloDrawer = signal<string>("Nueva Institución")
   disabled =  input<boolean>(false)
   RefreshCurso =  model<boolean>(false)
   private apiService = inject(ApiService)
@@ -50,7 +49,6 @@ export class InstitucionesDrawerComponent {
   private notification = inject(NzNotificationService)
 
   CentroCapacitacionId = input.required<number>()
-  CentroCapacitacionIdForEdit = signal<number>(0)
   PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
 
   options: any[] = [];
@@ -75,9 +73,7 @@ export class InstitucionesDrawerComponent {
   fb = inject(FormBuilder)
   formCli = this.fb.group({
     CentroCapacitacionId: 0,
-    CentroCapacitacionCuit: "",
-    CentroCapacitacionRazonSocial: "",
-    CentroCapacitacionInactivo: false
+    CentroCapacitacionSedeId:0
   })
 
   constructor(
@@ -92,12 +88,8 @@ export class InstitucionesDrawerComponent {
         let vals = await firstValueFrom(this.apiService.getListInstitucionesHistory( { options: this.listOptions }, this.CentroCapacitacionId()))
       
         console.log("vals",vals)
-
-        this.CentroCapacitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
         vals.CentroCapacitacionId = vals.list[0].CentroCapacitacionId,
-        vals.CentroCapacitacionCuit = vals.list[0].CentroCapacitacionCuit,
-        vals.CentroCapacitacionRazonSocial = vals.list[0].CentroCapacitacionRazonSocial,
-        vals.CentroCapacitacionInactivo = vals.list[0].CentroCapacitacionInactivo
+        vals.CentroCapacitacionSedeId = vals.list[0].CentroCapacitacionSedeId
       
           
         this.formCli.patchValue(vals)
@@ -106,10 +98,8 @@ export class InstitucionesDrawerComponent {
 
 
         if (this.disabled()) {
-          this.tituloDrawer.set(' Consultar Institución ');
           this.formCli.disable()
         } else {
-          this.tituloDrawer.set('Editar Institución');
           this.formCli.enable()
 
         }
@@ -120,30 +110,30 @@ export class InstitucionesDrawerComponent {
 
   async ngOnInit(): Promise<void> {
 
-    this.CentroCapacitacionIdForEdit.set(0)
+
   }
 
-  async save() {
+  async saveSede() {
 
     this.isSaving.set(true)
     let vals = this.formCli.value
     try {
 
       vals.CentroCapacitacionId = this.CentroCapacitacionId()
-
+      
       const res =  await firstValueFrom(this.apiService.setInstituciones(vals))
 
-      if(res.data?.list[0]?.CentroCapacitacionId > 0){
+      //if(res.data?.list[0]?.CentroCapacitacionId > 0){
         
-          this.CentroCapacitacionIdForEdit.set(res.data?.list[0]?.CentroCapacitacionId)
+       //   this.CentroCapacitacionIdForEdit.set(res.data?.list[0]?.CentroCapacitacionId)
 
-          this.formCli.patchValue({
-              CentroCapacitacionId: res.data?.list[0]?.CentroCapacitacionId,
-          })
+        //  this.formCli.patchValue({
+        //      CentroCapacitacionId: res.data?.list[0]?.CentroCapacitacionId,
+        //  })
 
-          this.tituloDrawer.set('Editar Institución');
+          
 
-      }  
+       // }  
       
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()

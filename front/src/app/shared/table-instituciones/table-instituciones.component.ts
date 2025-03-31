@@ -85,6 +85,7 @@ export class TableInstitucionesComponent {
   }
 
   cambios = computed(async () => {
+
     if (this.RefreshInstituciones()) {
       this.formChange$.next('');
     }
