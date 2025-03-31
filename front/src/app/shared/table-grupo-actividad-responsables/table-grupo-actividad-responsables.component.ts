@@ -229,7 +229,8 @@ export class TableGrupoActividadResponsablesComponent {
       }
     });
     const newId = highestId + incrementIdByHowMany;
-    let isfull = 0
+    const currentDate = new Date()
+    const firstDay =  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
     return {
       id: newId,
@@ -241,7 +242,7 @@ export class TableGrupoActividadResponsablesComponent {
       ApellidoNombrePersona: "",
       ApellidoNombrePersonaOld:"",
       GrupoActividadSucursalId: "",
-      GrupoActividadJerarquicoDesde: new Date(),
+      GrupoActividadJerarquicoDesde: firstDay,
       GrupoActividadJerarquicoHasta: null
 
     };

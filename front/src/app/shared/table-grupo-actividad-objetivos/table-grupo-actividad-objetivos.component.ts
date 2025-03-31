@@ -193,7 +193,8 @@ export class TableGrupoActividadObjetivosComponent {
       }
     });
     const newId = highestId + incrementIdByHowMany;
-    let isfull = 0
+    const currentDate = new Date()
+    const firstDay =  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
     return {
       id: newId,
@@ -202,7 +203,7 @@ export class TableGrupoActividadObjetivosComponent {
       GrupoActividadDetalleOld: "",
       GrupoObjetivoDetalle: "",
       GrupoObjetivoDetalleOld: "",
-      GrupoActividadObjetivoDesde: new Date(),
+      GrupoActividadObjetivoDesde: firstDay,
       GrupoActividadObjetivoHasta: null
 
     };

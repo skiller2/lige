@@ -19,7 +19,7 @@ import { InstitucionesDrawerComponent } from 'src/app/shared/instituciones-drawe
   styleUrls: ['./estudios.component.less'],
   standalone: true,
   imports: [...SHARED_IMPORTS, CommonModule, TableEstudiosComponent, EstudiosDrawerComponent, 
-    TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent,InstitucionesDrawerComponent]
+    TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent]
 })
 export class EstudiosComponent {
 
