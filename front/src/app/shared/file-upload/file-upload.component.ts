@@ -54,6 +54,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   cantFilesAnteriores = signal(0)
   cantMaxFiles = input(10)
   forceImg = input<boolean>(false)
+  previewFile = input<boolean>(true)
   isDisabled = signal(false)
 
   formChange$ = new BehaviorSubject('');

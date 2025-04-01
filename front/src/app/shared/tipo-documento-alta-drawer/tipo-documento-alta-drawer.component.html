@@ -62,7 +62,8 @@
             <nz-form-control>
               <app-file-upload formControlName="archivo" [cantMaxFiles]="1"
               [idForSearh]="this.docId()" [textForSearch]="this.doctipo_id()"
-              [tableForSearch]="'docgeneral'" [columnForSearch]="'doc_id'"></app-file-upload>
+              [tableForSearch]="'docgeneral'" [columnForSearch]="'doc_id'"
+              [previewFile]="false"></app-file-upload>
             </nz-form-control>
           </nz-form-item>
     
@@ -72,7 +73,7 @@
         <img nz-image class="image-content" [nzSrc]="archivo_fileUrl()" alt="" width="350px"/>
       </div>
       <div nz-col nzFlex="350px" class="app-foto-container" *ngIf="archivo_mimetype() == 'pdf'">
-        <ngx-extended-pdf-viewer [src]="archivo_fileUrl()" [height]="'auto'" [textLayer]="true" [showHandToolButton]="false"
+        <ngx-extended-pdf-viewer [src]="archivo_fileUrl()" [textLayer]="true" [showHandToolButton]="false"
           [filenameForDownload]="archivo_originalname()" [height]="'500px'">
         </ngx-extended-pdf-viewer>
       </div>
