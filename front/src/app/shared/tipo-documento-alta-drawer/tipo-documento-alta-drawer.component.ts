@@ -110,7 +110,7 @@ export class TipoDocumentoAltaDrawerComponent {
     this.optionsLabels.set(res)
 
     this.formTipoDocumento.get('archivo')?.valueChanges.subscribe((value:any) => {
-      if (value.length) this.drawerWidth.set('1000px')
+      if ((value && value.length) || (this.archivo_fileUrl() != '')) this.drawerWidth.set('1000px')
       else this.drawerWidth.set('600px')
     });
   }

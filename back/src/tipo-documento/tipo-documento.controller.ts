@@ -560,16 +560,25 @@ export class TipoDocumentoController extends BaseController {
 
         copyFileSync(tempFilePath, newFilePath)
         unlinkSync(tempFilePath);
-      }
 
-      await queryRunner.query(`
-        UPDATE lige.dbo.docgeneral
-        SET periodo = @1, fecha = @2, path = @3, nombre_archivo = @4, 
-        doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
-        aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
-        WHERE doc_id IN (@0)
-      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
-      den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
+        await queryRunner.query(`
+          UPDATE lige.dbo.docgeneral
+          SET periodo = @1, fecha = @2, path = @3, nombre_archivo = @4, 
+          doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
+          aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
+          WHERE doc_id IN (@0)
+        `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
+        den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
+      } else {
+        await queryRunner.query(`
+          UPDATE lige.dbo.docgeneral
+          SET periodo = @1, fecha = @2, doctipo_id = @3, persona_id = @4,
+          objetivo_id = @5, den_documento = @6, cliente_id = @7, fec_doc_ven = @8,
+          aud_usuario_mod = @9, aud_ip_mod = @10, aud_fecha_mod = @11
+          WHERE doc_id IN (@0)
+        `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, doctipo_id, persona_id, objetivo_id,
+        den_documento, cliente_id, fec_doc_ven, usuario, ip, now])
+      }
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
