@@ -48,6 +48,7 @@ export class EstudiosComponent {
   //instituciones
   CentroCapacitacionId = signal<number>(0);
   visibleDrawerSedes = signal<boolean>(false);
+  CentroCapacitacionName = signal<string>('');
 
   constructor(private settingsService: SettingsService,private router: Router) {}
 
@@ -92,6 +93,7 @@ export class EstudiosComponent {
     this.visibleDrawerInstituciones.set(false);
     if (event.length > 0) {
       this.CentroCapacitacionId.set(event[0].CentroCapacitacionId);
+      this.CentroCapacitacionName.set(event[0].CentroCapacitacionRazonSocial);
     }
   }
 

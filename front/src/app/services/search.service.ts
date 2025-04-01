@@ -1052,6 +1052,16 @@ export class SearchService {
 
   }
 
+  getListSedes(filters: any, CentroCapacitacionId: number) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/instituciones/listEdit', { options: parameter, CentroCapacitacionId }).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+
+  }
+
   getListAccessBot(filters: any) {
     return this.http
       .post<ResponseJSON<any>>(`api/acceso-bot/list`, filters)

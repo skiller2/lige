@@ -58,14 +58,37 @@ const listaColumnas: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false
+  }
+];
+
+const listaColumnasEdit: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
   },
   {
-    name: "Sede ID",
-    type: "number",
     id: "CentroCapacitacionSedeId",
+    name: "CentroCapacitacionSedeId",
     field: "CentroCapacitacionSedeId",
-    fieldName: "sede.CentroCapacitacionSedeId",
-    sortable: true,
+    fieldName: "CentroCapacitacionSedeId",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "CentroCapacitacionId",
+    name: "CentroCapacitacionId",
+    field: "CentroCapacitacionId",
+    fieldName: "CentroCapacitacionId",
+    type: "number",
+    sortable: false,
     hidden: true,
     searchHidden: true
   },
@@ -74,10 +97,11 @@ const listaColumnas: any[] = [
     type: "string",
     id: "CentroCapacitacionSedeDescripcion",
     field: "CentroCapacitacionSedeDescripcion",
-    fieldName: "sede.CentroCapacitacionSedeDescripcion",
+    fieldName: "CentroCapacitacionSedeDescripcion",
     sortable: true,
-    hidden: true,
-    searchHidden: true
+    hidden: false,
+    searchHidden: false
+  
   }
 ];
 
@@ -86,6 +110,10 @@ export class InstitucionesController extends BaseController {
 
   async getGridCols(req, res) {
     this.jsonRes(listaColumnas, res);
+  }
+
+  async getGridColsEdit(req, res) {
+    this.jsonRes(listaColumnasEdit, res);
   }
 
   async list(req: any, res: Response, next: NextFunction) {
@@ -107,12 +135,35 @@ export class InstitucionesController extends BaseController {
         ,cencap.CentroCapacitacionCuit
         ,cencap.CentroCapacitacionInactivo
 
-        ,sede.CentroCapacitacionSedeId
-        ,sede.CentroCapacitacionSedeDescripcion
-
         FROM CentroCapacitacion cencap
-        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
+     
         WHERE ${filterSql} ${orderBy}`
+      )
+
+      this.jsonRes(
+        {
+          total: instituciones.length,
+          list: instituciones,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+
+  }
+
+  async listEdit(req: any, res: Response, next: NextFunction) {
+
+  
+    const {CentroCapacitacionId} = req.body
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      const instituciones = await queryRunner.query(
+        `SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id ,CentroCapacitacionId, CentroCapacitacionSedeId, CentroCapacitacionSedeDescripcion FROM CentroCapacitacionSede
+        WHERE CentroCapacitacionId = ${CentroCapacitacionId}`
       )
 
       this.jsonRes(
@@ -140,18 +191,20 @@ export class InstitucionesController extends BaseController {
       const instituciones = await queryRunner.query(
         `SELECT 
           ROW_NUMBER() OVER (ORDER BY cencap.CentroCapacitacionId) as id,
-          cencap.CentroCapacitacionId
-
-        ,cencap.CentroCapacitacionRazonSocial
-        ,cencap.CentroCapacitacionCuit
-        ,cencap.CentroCapacitacionInactivo
-
-        ,sede.CentroCapacitacionSedeId
-        ,sede.CentroCapacitacionSedeDescripcion
-
+          cencap.CentroCapacitacionId,
+          cencap.CentroCapacitacionRazonSocial,
+          cencap.CentroCapacitacionCuit,
+          cencap.CentroCapacitacionInactivo,
+          sede.CentroCapacitacionSedeId,
+          sede.CentroCapacitacionSedeDescripcion
         FROM CentroCapacitacion cencap
-        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
-        WHERE cencap.CentroCapacitacionId = ${CentroCapacitacionId}`
+        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId = cencap.CentroCapacitacionId
+        WHERE cencap.CentroCapacitacionId = ${CentroCapacitacionId}
+        AND sede.CentroCapacitacionSedeId = (
+          SELECT MAX(CentroCapacitacionSedeId) 
+          FROM CentroCapacitacionSede 
+          WHERE CentroCapacitacionId = ${CentroCapacitacionId}
+        )`
       )
 
       this.jsonRes(
@@ -168,113 +221,67 @@ export class InstitucionesController extends BaseController {
 
   }
 
-  async setInstitucion(req: any, res: Response, next: NextFunction) {
+  async setSede(req: any, res: Response, next: NextFunction) {
 
-    let { CentroCapacitacionId, CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo,CentroCapacitacionIdForEdit } 
-    = req.body
-
-    console.log("req.body", req.body)
+  
+    const {CentroCapacitacionId, CentroCapacitacionSedeId, CentroCapacitacionSedeDescripcion} = req.body
     let result = []
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
-
-    //throw new ClientException(`test.`)
-    CentroCapacitacionInactivo = CentroCapacitacionInactivo ? CentroCapacitacionInactivo : false
-
-    console.log("CentroCapacitacionInactivo", CentroCapacitacionInactivo)
-
-    await this.validateFormInstituciones(CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo)
+    let isNewOrEdit = true
+    let maxSedeId = []
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
    
-      if(CentroCapacitacionId > 0){
+      if(CentroCapacitacionId > 0 && CentroCapacitacionSedeId > 0){
         // is edit
 
         await queryRunner.query(`
-          UPDATE CentroCapacitacion SET
-            CentroCapacitacionCuit = @0,
-            CentroCapacitacionRazonSocial = @1,
-            CentroCapacitacionInactivo = @2
-          WHERE CentroCapacitacionId = @3
-        `, [
-          CentroCapacitacionCuit,
-          CentroCapacitacionRazonSocial, 
-          CentroCapacitacionInactivo,
-          CentroCapacitacionId
-        ]);
+          UPDATE CentroCapacitacionSede 
+          SET CentroCapacitacionSedeDescripcion = @0
+          WHERE CentroCapacitacionId = @1 AND CentroCapacitacionSedeId = @2
+        `, [CentroCapacitacionSedeDescripcion.trim(), CentroCapacitacionId, CentroCapacitacionSedeId]);
+
+        isNewOrEdit = false
 
       }else{
         // is new
-      console.log("estoy agregando")
+        isNewOrEdit = true
 
+       maxSedeId = await queryRunner.query(`
+        SELECT ISNULL(MAX(CentroCapacitacionSedeId), 0) + 1 AS maxSedeId
+        FROM CentroCapacitacionSede
+        WHERE CentroCapacitacionId = @0
+      `, [CentroCapacitacionId]);
+ 
 
       await queryRunner.query(`
-        INSERT INTO CentroCapacitacion (
-          CentroCapacitacionCuit,
-          CentroCapacitacionRazonSocial,
-          CentroCapacitacionInactivo,
-          CentroCapacitacionSedeUltNro
-        ) VALUES (
-          @0, @1, @2, @3
-        )`, [
-          CentroCapacitacionCuit,
-          CentroCapacitacionRazonSocial, 
-          CentroCapacitacionInactivo,
-          null
-        ]);
+        INSERT INTO CentroCapacitacionSede 
+        (CentroCapacitacionSedeDescripcion, CentroCapacitacionId,CentroCapacitacionSedeId)
+        VALUES (@0, @1, @2)
+      `, [CentroCapacitacionSedeDescripcion.trim(), CentroCapacitacionId, maxSedeId?.length > 0 ? maxSedeId[0]?.maxSedeId : CentroCapacitacionSedeId]);
+
+
+      await queryRunner.query(`UPDATE CentroCapacitacion SET CentroCapacitacionSedeUltNro = @0 WHERE CentroCapacitacionId = @1`, [maxSedeId?.length > 0 ? maxSedeId[0]?.maxSedeId : CentroCapacitacionSedeId, CentroCapacitacionId]);
       
-        } 
+      } 
+
+      const value = CentroCapacitacionSedeId > 0 ? CentroCapacitacionSedeId :  maxSedeId[0]?.maxSedeId 
+
+      result = await queryRunner.query(`
+        SELECT * FROM CentroCapacitacionSede 
+       WHERE CentroCapacitacionId = @0 AND CentroCapacitacionSedeId = @1
+      `, [CentroCapacitacionId, value]);
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: result }, res, (CentroCapacitacionId > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: result[0] }, res, (!isNewOrEdit) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
       await queryRunner.rollbackTransaction()
       return next(error)
     } finally {
       await queryRunner.release()
     }
-
-  }
-
-  async setSede(req: any, res: Response, next: NextFunction) {
-
-    console.log("req.body", req.body)
-    let result = []
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
-
-    throw new ClientException(`test.`)
-    // const queryRunner = dataSource.createQueryRunner()
-    // await queryRunner.connect();
-    // await queryRunner.startTransaction();
-
-    // try {
-   
-    //   if( > 0){
-    //     // is edit
-
-    //     await queryRunner.query(``, []);
-
-    //   }else{
-    //     // is new
-    //   console.log("estoy agregando")
-
-
-    //   await queryRunner.query(``, [ ]);
-      
-    //     } 
-
-    //   await queryRunner.commitTransaction();
-    //   this.jsonRes({ list: result }, res, ( > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
-    // } catch (error) {
-    //   await queryRunner.rollbackTransaction()
-    //   return next(error)
-    // } finally {
-    //   await queryRunner.release()
-    // }
 
   }
 
@@ -289,6 +296,32 @@ export class InstitucionesController extends BaseController {
       throw new ClientException(`Debe completar el campo Razón Social.`)
     }
     
+  }
+
+  async deleteSede(req: any, res: Response, next: NextFunction) {
+
+    let CentroCapacitacionId = req.query[0]
+    let CentroCapacitacionSedeId = req.query[1]
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try {
+
+        if (CentroCapacitacionId ==0 && CentroCapacitacionSedeId == 0) {
+            throw new ClientException(`Error al borrar la sede.`)
+        }
+
+        await queryRunner.query(`DELETE FROM CentroCapacitacionSede 
+          WHERE CentroCapacitacionId = @0 AND CentroCapacitacionSedeId = @1`, [CentroCapacitacionId, CentroCapacitacionSedeId])
+
+        await queryRunner.commitTransaction()
+        return this.jsonRes("", res, "Borrado Exitoso")
+    } catch (error) {
+        await this.rollbackTransaction(queryRunner)
+        return next(error)
+    }
+    
+  
   }
 
 }

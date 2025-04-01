@@ -903,6 +903,14 @@ export class ApiService {
 
   }
 
+  onchangecellSede(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/instituciones/setSede', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+
+    )
+
+  }
+
 
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
@@ -1110,6 +1118,15 @@ export class ApiService {
 
   deleteGrupoActividadGrupo(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/grupo`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+
+  deleteSede(CentroCapacitacionId: any, CentroCapacitacionSedeId: any) {
+    let vals = [CentroCapacitacionId, CentroCapacitacionSedeId]
+    return this.http.delete<ResponseJSON<any>>(`/api/instituciones/deletesede`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 

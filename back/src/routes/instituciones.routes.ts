@@ -8,20 +8,28 @@ institucionesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.has
   institucionesController.getGridCols(req, res);
   });
 
+institucionesRouter.get("/colsEdit", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    institucionesController.getGridColsEdit(req, res);
+  });
+  
 institucionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
   institucionesController.list(req, res, next)
+  });
+
+institucionesRouter.post('/listEdit', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+  institucionesController.listEdit(req, res, next)
   });
 
 institucionesRouter.post('/listHistory', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
     institucionesController.listHistory(req, res, next)
 });
 
-institucionesRouter.post('/setinstitucion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
-  institucionesController.setInstitucion(req, res, next)
-})
-
 institucionesRouter.post('/setsede', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
   institucionesController.setSede(req, res, next)
+})
+
+institucionesRouter.delete('/deletesede', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+  institucionesController.deleteSede(req, res, next)
 })
   
 

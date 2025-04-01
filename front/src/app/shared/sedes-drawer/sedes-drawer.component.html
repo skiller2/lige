@@ -1,24 +1,28 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
-  [nzTitle]="'Sedes'" (nzOnClose)="visible.set(false)">
+  [nzTitle]="'Centro de Capacitación: ' + CentroCapacitacionName()" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
-    <nz-card nzType="inner" nzTitle="Agregar o modificar Sede del Centro de Capacitación">
-    <form [formGroup]="formCli">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Sede</nz-form-label>
-        <nz-form-control [nzSpan]="18">
-          <nz-input-group>
-          <app-centro-capacitacion-sede-search 
-          formControlName="CentroCapacitacionSedeId"
-          [CentroCapacitacionId]="CentroCapacitacionId() "
-          [CentroCapacitacionSedeIdSelected]="0"></app-centro-capacitacion-sede-search>
-          
-          </nz-input-group>
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item class="btnCenter">
-        <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="saveSede()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
-    </nz-form-item>
-    </form>
+    
+    <nz-card nzType="inner" nzTitle="Agregar o modificar Sedes">
+      <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
+        <nz-button-group style="text-align: right;">
+          <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+          </a>
+          <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <button nz-button nzType="default"  (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
+          </a>
+        </nz-button-group>
+      </div>
+      <div nz-tab *ngIf="(columnsSedes$|async) as columnas">
+       <div class="gridContainer container-fluid">
+        <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
+          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
+        </angular-slickgrid>
+      </div>
+    </div>
+    
+
     </nz-card>
     <!-- <p>Debug Valores: {{formCli.value | json }}</p>  -->
   </ng-container>
