@@ -776,6 +776,7 @@ export class GrupoActividadController extends BaseController {
                 message = "Actualizacion exitosa"
 
             } else {  //Es un nuevo registro
+                console.log('nuevo registro')
                 let GrupoActividadJerarquicoHastaAnt=null
                 GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
 
@@ -859,6 +860,8 @@ export class GrupoActividadController extends BaseController {
             }
             await queryRunner.query(`DELETE GrupoActividadJerarquico  
                 WHERE GrupoActividadJerarquicoPersonalId = @0  AND GrupoActividadJerarquicoHasta IS NOT NULL AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`, [params.ApellidoNombrePersona.id]);
+
+throw new ClientException(`test`)
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
         } catch (error) {

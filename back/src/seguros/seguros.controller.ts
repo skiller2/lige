@@ -368,7 +368,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       const personalEnSeguroEnergiaArgentna2 = await this.getPersonalEnSeguro(queryRunner, 'APEA', anio, mes)
 
       for (const row of personalSitRev) {
-        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) {
+        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEnergiaArgentna2.find(r => r.PersonalId == row.PersonalId)) {
           continue
         }
         const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
@@ -377,6 +377,9 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         } else {
           if ([7, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) && row.month_diff > 3)
             continue
+          if ([3,13,19,24].includes(row.SituacionRevistaId) )
+            continue
+          
           await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle,stm_now, usuario, ip)
         }
       }
@@ -397,7 +400,9 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)',stm_now, usuario, ip)
         } else {
           if ([7, 8, 29, 36, 30, 31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses',stm_now, usuario, ip)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
+          if ([3,13,19,24].includes(row.SituacionRevistaId) )
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' baja',stm_now, usuario, ip)
         }
       }
 
@@ -405,6 +410,9 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       for (const row of personalSitRev) {
         if ([7, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) && row.month_diff > 3)
           continue
+        if ([3,13,19,24].includes(row.SituacionRevistaId) )
+          continue
+
         const rowEnSeguro = personalEnSeguroVidCol.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'VC', row.detalle,stm_now, usuario, ip)
@@ -419,7 +427,10 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)',stm_now, usuario, ip)
         } else {
           if ([7, 8, 29, 36, 30, 31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses',stm_now, usuario, ip)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
+          if ([3,13,19,24].includes(row.SituacionRevistaId) )
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
+          
         }
       }
 
