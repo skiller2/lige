@@ -54,7 +54,7 @@ export class TipoDocumentoController extends BaseController {
     },
     {
       id: "objetivo", name: "Objetivo", field: "objetivo.fullname",
-      fieldName: "obj.objetivo_id",
+      fieldName: "obj.ObjetivoId",
       type: "string",
       formatter: 'complexObject',
       params: {
@@ -294,7 +294,7 @@ export class TipoDocumentoController extends BaseController {
 
   async addTipoDocumento(req: any, res: Response, next: NextFunction) {
     const doctipo_id:string = req.body.doctipo_id
-    const den_documento:number = req.body.den_documento
+    const den_documento:string = req.body.den_documento
     const persona_id:number = req.body.persona_id
     const cliente_id:number = req.body.cliente_id
     const objetivo_id:number = req.body.objetivo_id
@@ -338,6 +338,18 @@ export class TipoDocumentoController extends BaseController {
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo && archivo.length) {
+        if (den_documento && den_documento.length && den_documento.includes('/')) {
+          const options = await this.getTiposDocumentoQuery(queryRunner)
+          const find = options.find((obj:any)=> { return doctipo_id == obj.value})
+          let inputName = ''
+          if (find.des_den_documento) {
+            inputName = `${find.des_den_documento}`
+          } else {
+            inputName = `Denominacion de ${find.label}`
+          }
+          throw new ClientException(`${inputName} NO debe de tener '/'`)
+        }
+
         const type = archivo[0].mimetype.split('/')[1]
         const fieldname = archivo[0].fieldname
         const doctipo = await queryRunner.query(`
@@ -480,7 +492,7 @@ export class TipoDocumentoController extends BaseController {
   async updateTipoDocumento(req: any, res: Response, next: NextFunction) {
     const doc_id = req.body.doc_id
     const doctipo_id:string = req.body.doctipo_id
-    const den_documento:number = req.body.den_documento
+    const den_documento:string = req.body.den_documento
     const persona_id:number = req.body.persona_id
     const cliente_id:number = req.body.cliente_id
     const objetivo_id:number = req.body.objetivo_id
@@ -524,6 +536,17 @@ export class TipoDocumentoController extends BaseController {
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo && archivo.length) {
+        if (den_documento && den_documento.length && den_documento.includes('/')) {
+          const options = await this.getTiposDocumentoQuery(queryRunner)
+          const find = options.find((obj:any)=> { return doctipo_id == obj.value})
+          let inputName = ''
+          if (find.des_den_documento) {
+            inputName = `${find.des_den_documento}`
+          } else {
+            inputName = `Denominacion de ${find.label}`
+          }
+          throw new ClientException(`${inputName} NO debe de tener '/'`)
+        }
         const type = archivo[0].mimetype.split('/')[1]
         const fieldname = archivo[0].fieldname
         const doctipo = await queryRunner.query(`
@@ -592,7 +615,7 @@ export class TipoDocumentoController extends BaseController {
 
   private valsTipoDocumento(tipoDocumento:any) {
     const doctipo_id:string = tipoDocumento.doctipo_id
-    const den_documento:number = tipoDocumento.den_documento
+    const den_documento:string = tipoDocumento.den_documento
     const persona_id:number = tipoDocumento.persona_id
     const cliente_id:number = tipoDocumento.cliente_id
     const objetivo_id:number = tipoDocumento.objetivo_id
