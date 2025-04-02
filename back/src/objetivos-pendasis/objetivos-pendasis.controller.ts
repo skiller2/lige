@@ -73,8 +73,8 @@ const columnasGrilla: any[] = [
     hidden: true,
   },
   {
-     name: "Grupo Objetivo Número",
-     type: "number",
+     name: "Grupo Código",
+     type: "string",
      id: "GrupoActividadNumero",
      field: "GrupoActividadNumero",
      fieldName: "ga.GrupoActividadNumero",

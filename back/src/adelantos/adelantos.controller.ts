@@ -91,8 +91,8 @@ export class AdelantosController extends BaseController {
       hidden: false,
     },
     {
-      name: "Grupo Número",
-      type: "number",
+      name: "Grupo Código",
+      type: "string",
       id: "GrupoActividadNumero",
       field: "GrupoActividadNumero",
       fieldName: "g.GrupoActividadNumero",

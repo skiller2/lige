@@ -53,8 +53,8 @@ const listaColumnas: any[] = [
     hidden: false,
   },
   {
-    name: "Grupo Numero",
-    type: "number",
+    name: "Grupo Código",
+    type: "string",
     id: "GrupoActividadNumero",
     field: "GrupoActividadNumero",
     fieldName: "ga.GrupoActividadNumero",

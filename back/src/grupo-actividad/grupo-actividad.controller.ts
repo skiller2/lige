@@ -36,7 +36,7 @@ export class GrupoActividadController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Codigo",
+            name: "Código",
             type: "string",
             id: "GrupoActividadNumero",
             field: "GrupoActividadNumero",
@@ -45,7 +45,7 @@ export class GrupoActividadController extends BaseController {
         },
         {
             name: "NumeroOld",
-            type: "number",
+            type: "string",
             id: "GrupoActividadNumeroOld",
             field: "GrupoActividadNumeroOld",
             fieldName: "grup.GrupoActividadNumero",
@@ -789,11 +789,17 @@ export class GrupoActividadController extends BaseController {
                     await this.checkDateHasta(null, GrupoActividadJerarquicoHastaNew, queryRunner)
 
                 const jerarquico = await queryRunner.query(
-                    `SELECT GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde,GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND  ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') >= @2`,
+                    `SELECT TOP 1 GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde,GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  
+                    -- AND GrupoActividadJerarquicoDesde <= @2
+                    AND  ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') >= @2
+                    ORDER BY GrupoActividadJerarquicoDesde DESC`,
                     [GrupoActividadDetalle.id, 'J', GrupoActividadJerarquicoDesde]
                 );
+                if (jerarquico.length > 0 && new Date(jerarquico[0].GrupoActividadJerarquicoDesde) > new Date(GrupoActividadJerarquicoDesde))
+                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(jerarquico[0].GrupoActividadJerarquicoDesde)) }` )
 
                 if (GrupoActividadJerarquicoComo == 'J') {
+
                     if (jerarquico.length > 0) {
                         GrupoActividadJerarquicoHastaAnt = new Date(GrupoActividadJerarquicoDesde)
                         GrupoActividadJerarquicoHastaAnt.setDate(GrupoActividadJerarquicoHastaAnt.getDate() - 1)
@@ -857,11 +863,11 @@ export class GrupoActividadController extends BaseController {
 
                 dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadJerarquicoId: GrupoActividadJerarquicoUltNro, PreviousDate: GrupoActividadJerarquicoHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
+
             }
             await queryRunner.query(`DELETE GrupoActividadJerarquico  
                 WHERE GrupoActividadJerarquicoPersonalId = @0  AND GrupoActividadJerarquicoHasta IS NOT NULL AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`, [params.ApellidoNombrePersona.id]);
 
-throw new ClientException(`test`)
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
         } catch (error) {
@@ -979,6 +985,8 @@ throw new ClientException(`test`)
                 WHERE GrupoActividadObjetivoObjetivoId = @0 -- AND GrupoActividadObjetivoDesde <= @1 
                 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
             `, [params.GrupoObjetivoDetalle.id, GrupoActividadObjetivoDesde])
+                if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadObjetivoDesde) > GrupoActividadObjetivoDesde)
+                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadObjetivoDesde)) }` )
 
                 if (resultQuery.length > 0) {
                     if (GrupoActividadObjetivoDesde <= new Date(resultQuery[0].GrupoActividadObjetivoHastaMax)) {
@@ -1025,6 +1033,14 @@ throw new ClientException(`test`)
                 message = "Carga de nuevo Registro exitoso"
             }
             await queryRunner.query(`DELETE GrupoActividadObjetivo WHERE GrupoActividadObjetivoHasta IS NOT NULL AND GrupoActividadObjetivoHasta < GrupoActividadObjetivoDesde AND GrupoActividadObjetivoObjetivoId = @0`, [params.GrupoObjetivoDetalle.id])
+            //Double check
+            
+            const checkObjetivoGrupo = await queryRunner.query(`SELECT GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta, ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') GrupoActividadObjetivoHastaMax FROM GrupoActividadObjetivo 
+                WHERE GrupoActividadObjetivoObjetivoId = @0 
+                AND GrupoActividadObjetivoDesde <= @1 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') >= @1
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id,new Date()])
+            if (checkObjetivoGrupo.length>1)
+                throw new ClientException(`El objetivo se encuentra en mas de un gurpo` )
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1120,6 +1136,10 @@ throw new ClientException(`test`)
                   ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC`,
                     [params.ApellidoNombrePersona.id, GrupoActividadPersonalDesde])
 
+                if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadPersonalDesde) > GrupoActividadPersonalDesde)
+                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde)) }` )
+                    
+                
                 if (resultQuery.length > 0) {
                     if (GrupoActividadPersonalDesde <= new Date(resultQuery[0].GrupoActividadPersonalHastaMax)) {
                         if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id) 
