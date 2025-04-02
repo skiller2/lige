@@ -36,7 +36,7 @@ export class GrupoActividadController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Codigo",
+            name: "Código",
             type: "string",
             id: "GrupoActividadNumero",
             field: "GrupoActividadNumero",
@@ -45,7 +45,7 @@ export class GrupoActividadController extends BaseController {
         },
         {
             name: "NumeroOld",
-            type: "number",
+            type: "string",
             id: "GrupoActividadNumeroOld",
             field: "GrupoActividadNumeroOld",
             fieldName: "grup.GrupoActividadNumero",
@@ -792,7 +792,7 @@ export class GrupoActividadController extends BaseController {
                     `SELECT GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde,GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND  ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') >= @2`,
                     [GrupoActividadDetalle.id, 'J', GrupoActividadJerarquicoDesde]
                 );
-
+console.log('jerarquico',jerarquico)
                 if (GrupoActividadJerarquicoComo == 'J') {
                     if (jerarquico.length > 0) {
                         GrupoActividadJerarquicoHastaAnt = new Date(GrupoActividadJerarquicoDesde)
@@ -857,6 +857,8 @@ export class GrupoActividadController extends BaseController {
 
                 dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadJerarquicoId: GrupoActividadJerarquicoUltNro, PreviousDate: GrupoActividadJerarquicoHastaAnt }
                 message = "Carga de nuevo Registro exitoso"
+                throw new ClientException(`nuevo`)
+
             }
             await queryRunner.query(`DELETE GrupoActividadJerarquico  
                 WHERE GrupoActividadJerarquicoPersonalId = @0  AND GrupoActividadJerarquicoHasta IS NOT NULL AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`, [params.ApellidoNombrePersona.id]);
