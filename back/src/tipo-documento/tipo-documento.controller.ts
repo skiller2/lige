@@ -538,7 +538,7 @@ export class TipoDocumentoController extends BaseController {
       let detalle_documento = ''
       if (archivo && archivo.length) {
 
-        await FileUploadController.handlePDFUpload(0, '', '', '', archivo, usuario, ip)
+//        await FileUploadController.handlePDFUpload(0, '', '', '', archivo, usuario, ip)
 
 
 
