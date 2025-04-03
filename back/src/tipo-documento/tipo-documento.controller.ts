@@ -12,6 +12,7 @@ import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import * as path from 'path';
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 export class TipoDocumentoController extends BaseController {
 
@@ -298,9 +299,9 @@ export class TipoDocumentoController extends BaseController {
     const persona_id:number = req.body.persona_id
     const cliente_id:number = req.body.cliente_id
     const objetivo_id:number = req.body.objetivo_id
-    const fecha:Date = req.body.fecha? new Date(req.body.fecha) : req.body.fecha
-    const fec_doc_ven:Date = req.body.fec_doc_ven? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
-    const archivo:any[] = req.body.archivo
+    const fecha:Date = req.body.fecha? new Date(req.body.fecha) : null
+    const fec_doc_ven:Date = req.body.fec_doc_ven? new Date(req.body.fec_doc_ven) : null
+    const archivos:any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -311,92 +312,11 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      const doc_id = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-      const anio = fecha.getFullYear()
-      const mes = fecha.getMonth() + 1
-      let liqmaperiodo = await queryRunner.query(`
-        SELECT per.periodo_id, per.anio, per.mes
-        FROM lige.dbo.liqmaperiodo per
-        WHERE per.anio = @0 AND per.mes = @1
-      `, [anio, mes])
-      if (!liqmaperiodo.length) {
-        const periodomax = await queryRunner.query(`SELECT MAX(per.periodo_id) max_periodo_id FROM lige.dbo.liqmaperiodo per`)
-        let periodo_id = (periodomax[0].max_periodo_id != undefined) ? periodomax[0].max_periodo_id : 0
-        periodo_id++
-        liqmaperiodo = await queryRunner.query(`
-          INSERT INTO lige.dbo.liqmaperiodo (periodo_id, anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
-          aud_usuario_mod, aud_ip_mod, aud_fecha_mod, ind_recibos_generados)
-          VALUES (@0, @1, @2, 0, @3, @4, @5, @3, @4, @5, 0)
+        const doc_id = await FileUploadController.handlePDFUpload(persona_id, objetivo_id, cliente_id, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip)
 
-          SELECT per.periodo_id, per.anio, per.mes
-          FROM lige.dbo.liqmaperiodo per
-          WHERE per.anio = @1 AND per.mes = @2
-        `, [periodo_id, anio, mes, usuario, ip, now])
-      }
-      // const periodo_id = liqmaperiodo[0].periodo_id
-      let pathFile = ''
-      let newFieldname = ''
-      let detalle_documento = ''
-      if (archivo && archivo.length) {
-        if (den_documento && den_documento.length && den_documento.includes('/')) {
-          const options = await this.getTiposDocumentoQuery(queryRunner)
-          const find = options.find((obj:any)=> { return doctipo_id == obj.value})
-          let inputName = ''
-          if (find.des_den_documento) {
-            inputName = `${find.des_den_documento}`
-          } else {
-            inputName = `Denominacion de ${find.label}`
-          }
-          throw new ClientException(`${inputName} NO debe de tener '/'`)
-        }
-
-        const type = archivo[0].mimetype.split('/')[1]
-        const fieldname = archivo[0].fieldname
-        const doctipo = await queryRunner.query(`
-          SELECT path_origen FROM lige.dbo.doctipo WHERE doctipo_id = @0
-        `, [doctipo_id])
-        
-        const pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
-        const tempFolderPath = path.join(pathDocuments, 'temp');
-        const tempFilePath = path.join(tempFolderPath, `${fieldname}.${type}`);
-
-        pathFile = `${anio}/${doctipo[0].path_origen}`
-        newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
-
-        let newFilePath = path.join(pathDocuments, pathFile);
-
-        if (type == 'pdf') {
-          const loadingTask = getDocument(tempFilePath);
-          const document = await loadingTask.promise;//Error
-          for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
-            const page = await document.getPage(pagenum);
-            const textContent = await page.getTextContent();
-            textContent.items.forEach((item: TextItem) => {
-              detalle_documento+=item.str + ((item.hasEOL)?'\n':'')
-            });
-          }
-        }
-        
-        if (!existsSync(newFilePath)) mkdirSync(newFilePath, { recursive: true })
-
-        newFilePath += `${newFieldname}`
-        pathFile += `${newFieldname}`
-        
-        copyFileSync(tempFilePath, newFilePath)
-        unlinkSync(tempFilePath);
-      }
-
-      await queryRunner.query(`
-        INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "path", "nombre_archivo", 
-        "doctipo_id", "persona_id", "objetivo_id", "den_documento", "cliente_id", "fec_doc_ven",
-        "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod",
-        "detalle_documento")
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @11, @12, @13, @14)
-      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
-      den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
-      this.jsonRes({ doc_id:doc_id }, res, 'Carga Exitosa');
+      this.jsonRes({ doc_id }, res, 'Carga Exitosa');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
@@ -510,6 +430,8 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
+throw new ClientException('EN DESARROLLO')
+
       const anio = fecha.getFullYear()
       const mes = fecha.getMonth() + 1
       let liqmaperiodo = await queryRunner.query(`
@@ -536,6 +458,12 @@ export class TipoDocumentoController extends BaseController {
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo && archivo.length) {
+
+//        await FileUploadController.handlePDFUpload(persona_id, objetivo_id, cliente_id, archivo, usuario, ip)
+
+
+
+
         if (den_documento && den_documento.length && den_documento.includes('/')) {
           const options = await this.getTiposDocumentoQuery(queryRunner)
           const find = options.find((obj:any)=> { return doctipo_id == obj.value})

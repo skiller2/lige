@@ -136,13 +136,13 @@ export class AccesoBotComponent {
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
-      case 3: //INSERT
+      case 4: //INSERT
         this.childAlta().newRecord()
         break
-      case 2: //DETAIL
+      case 3: //DETAIL
         this.childDeta().viewRecord(true)
         break;
-      case 1: //EDIT
+      case 2: //EDIT
         this.childEdit().viewRecord(false)
         break;
         default:

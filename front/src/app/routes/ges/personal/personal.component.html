@@ -75,6 +75,7 @@
     </form> -->
 
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+    <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
       <ng-template nz-tab *ngIf="(columns$|async) as columnas">

@@ -274,13 +274,13 @@ export class CustodiaComponent {
     onTabsetChange(_event: any) {
         console.log("_event.index ", _event.index)
         switch (_event.index) {
-          case 1: //EDIT
+          case 2: //EDIT
             this.childDetalle().load()
             break;
-          case 2: //ALTA
+          case 3: //ALTA
             this.childAlta().reset()
             break;
-          case 3: //Editar
+          case 4: //Editar
             this.childEditar().load()
             break;
             default:

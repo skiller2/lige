@@ -884,10 +884,11 @@ export class CargaLicenciaController extends BaseController {
       //      throw new ClientException(`DEBUG ${PersonalSituacionRevistaHastaNuevo}`)
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
-      if (req.body.files?.length > 0) {
-        await FileUploadController.handlePDFUpload(PersonalId, 'Licencia', 'LIC', 'persona_id', req.body.files, usuario, ip)
+      if (req.body.files) {
+        for (const file of req.body.files) {
+          await FileUploadController.handlePDFUpload(PersonalId, 0, 0, new Date(), null, '', req.body.files, usuario, ip)
+        }
       }
-
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);

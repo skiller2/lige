@@ -31,26 +31,4 @@ export class DescuentosComponent {
     openDrawerforAltaDescuentos(){
       this.visibleAltaDesc.set(true)
     }
-
-    onTabsetChange(_event: any) {
-        console.log('_event: ', _event);
-        
-        switch (_event.index) {
-          case 0: //EDIT
-            // this.childTablePersonal().listDescuento('')
-            break;
-          case 1: //DETALLE
-            // this.childTableObjetivo().listDescuento('')
-            break
-          case 2: //EDIT
-            
-            break;
-          case 3: 
-            // this.childTablePrepaga().listDescuento('')
-            break;
-          default:
-            break;
-        }
-    }
-
 }
