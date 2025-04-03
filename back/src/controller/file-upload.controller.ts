@@ -210,7 +210,8 @@ export class FileUploadController extends BaseController {
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fechaActual.getFullYear(), fechaActual.getMonth(), usuario, ip);
 
     const dirtmpNew = `${process.env.PATH_DOCUMENTS}/${folder}/${keyid}`;
-
+console.log('Archivo',Archivo)
+throw new ClientException(`DEBUG`)
 
     for (const file of Archivo) {
 

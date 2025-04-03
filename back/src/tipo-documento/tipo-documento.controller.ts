@@ -12,6 +12,7 @@ import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import * as path from 'path';
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 export class TipoDocumentoController extends BaseController {
 
@@ -536,6 +537,12 @@ export class TipoDocumentoController extends BaseController {
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo && archivo.length) {
+
+        await FileUploadController.handlePDFUpload(0, '', '', '', archivo, usuario, ip)
+
+
+
+
         if (den_documento && den_documento.length && den_documento.includes('/')) {
           const options = await this.getTiposDocumentoQuery(queryRunner)
           const find = options.find((obj:any)=> { return doctipo_id == obj.value})
