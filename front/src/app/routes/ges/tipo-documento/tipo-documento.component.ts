@@ -216,10 +216,10 @@ export class TipoDocumentoComponent {
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
-      case 1: //HISTORIAL DESCARGAS
+      case 2: //HISTORIAL DESCARGAS
         this.childHistorialDescargas().list('')
         break;
-      case 2: //LISTA DE PENDIENTES
+      case 3: //LISTA DE PENDIENTES
         this.childListaPendientes().list('')
         break;
       default:

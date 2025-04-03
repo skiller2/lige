@@ -179,13 +179,13 @@ export class PersonalComponent {
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
-      case 3: //DETALLE
+      case 4: //DETALLE
         this.childPerDetalleDrawer().load()
         break
-      case 2: //EDIT
+      case 3: //EDIT
         this.childPerFormDrawer().load()
         break;
-      case 1: 
+      case 2: 
         break;
       default:
         break;
