@@ -61,7 +61,6 @@ export class TipoDocumentoComponent {
     public searchService:SearchService
   ) { }
   
-  selectedTabIndex = 0;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   columnDefinitions: Column[] = [];

@@ -65,9 +65,9 @@ export class LiquidacionesBancoComponent {
   gridOptions!: GridOption;
   gridOptionsAyuda!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
-  tabIndex = 0
   fechaDesdeCBU = signal(new Date())
   filesCBU = signal([])
+  tabIndex = signal(0)
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridAyuda!: AngularGridInstance;

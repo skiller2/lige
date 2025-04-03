@@ -2,152 +2,155 @@
 
   <nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="isVisible=false" nzTitle="Descarga Recibos">
     <div *nzModalContent>
-        <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción" [nzDropdownMatchSelectWidth]="false">
-          <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option>
-          <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option>
-          <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
-          <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
-          <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
-        </nz-select>
+      <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción"
+        [nzDropdownMatchSelectWidth]="false">
+        <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option>
+        <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option>
+        <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
+        <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
+        <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
+      </nz-select>
       @switch (selectedOption()) {
-        @case ("O") {
-          <app-objetivo-search [(ngModel)]="ObjetivoIdWithSearch"></app-objetivo-search>
-        }
-        @case ("C") {
-          <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
-        }
-        @case ("P") {
-          <app-personal-search [(ngModel)]="PersonalIdWithSearch" [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" ></app-personal-search>
-        }
-        @case ("S") {
-          <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
-           [nzDropdownMatchSelectWidth]="false" [(ngModel)]="SucursalIdWithSearch">
-          <ng-container *ngFor="let option of $optionsSucursales | async">
-            <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
-          </ng-container>
-          </nz-select>
-        }
+      @case ("O") {
+      <app-objetivo-search [(ngModel)]="ObjetivoIdWithSearch"></app-objetivo-search>
       }
-      
+      @case ("C") {
+      <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
+      }
+      @case ("P") {
+      <app-personal-search [(ngModel)]="PersonalIdWithSearch" [anio]="selectedPeriod.year"
+        [mes]="selectedPeriod.month"></app-personal-search>
+      }
+      @case ("S") {
+      <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
+        [nzDropdownMatchSelectWidth]="false" [(ngModel)]="SucursalIdWithSearch">
+        <ng-container *ngFor="let option of $optionsSucursales | async">
+          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+        </ng-container>
+      </nz-select>
+      }
+      }
+
       <label nz-checkbox [(ngModel)]="isWithDuplicado">Duplicados</label>
     </div>
     <div *nzModalFooter style="text-align: right;">
       <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
         [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isDuplicate': isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
-        httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="isVisible=false">Aceptar</a>
+        httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado"
+        (click)="isVisible=false">Aceptar</a>
     </div>
   </nz-modal>
 
 
   <form nz-form #liquidacionesForm="ngForm">
 
-      <div nz-col nzSpan="12">
-        <nz-form-control>
-          
-        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-          <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+    <div nz-col nzSpan="12">
+      <nz-form-control>
 
-          <button *ngIf="(gridDataInsert.length >= 2)" nz-popconfirm nzType="primary" class="btn-add"
-            nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
-            nz-button>
-            Confirmar nuevo registro
-          </button>
-        </nz-form-control>
-      </div>
+        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+
+        <button *ngIf="(gridDataInsert.length >= 2)" nz-popconfirm nzType="primary" class="btn-add"
+          nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
+          nz-button>
+          Confirmar nuevo registro
+        </button>
+      </nz-form-control>
+    </div>
 
 
     <div nz-row class="contentStyle">
       <div nz-col nzSpan="13" class="listStyle">
         <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
-      </li>
-
-      <li nz-submenu nzTitle="Acciones">
-        <ul style="width: auto !important">
-          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Custodias?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Custodia')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Custodias
-          </li>
-          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Asistencia?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Asistencia')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Asistencia
-          </li>
-          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Licencias?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Licencias')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Licencias
-          </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('ingresosCoordinadorDeCuenta')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
-          </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentoPorDeudaAnterior')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
-          </li>
-          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de descuentos?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentos')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
-          </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientoAcreditacionEnCuenta')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
-          </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientosAutomaticos')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
-          </li>
-          <ng-template #confirmReciboTpl>
-            <span>Generar recibos con fecha </span>
-            <nz-date-picker [(ngModel)]="fechaRecibo" [ngModelOptions]="{standalone: true}" />
-            <span>?</span>
-          </ng-template>
-          <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmReciboTpl" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
           </li>
 
-          <li *ngIf="PersonalIdForReceip > 0" nz-menu-item nz-popconfirm
-            nzPopconfirmTitle="Generar recibo de {{PersonalNameForReceip}}" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarReciboUnico')">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Generar recibo de {{PersonalNameForReceip}}
+          <li nz-submenu nzTitle="Acciones">
+            <ul style="width: auto !important">
+              <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Custodias?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Custodia')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Custodias
+              </li>
+              <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Asistencia?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Asistencia')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Asistencia
+              </li>
+              <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Licencias?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Licencias')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Licencias
+              </li>
+              <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('ingresosCoordinadorDeCuenta')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
+              </li>
+              <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentoPorDeudaAnterior')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
+              </li>
+              <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de descuentos?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentos')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
+              </li>
+              <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientoAcreditacionEnCuenta')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
+              </li>
+              <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientosAutomaticos')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
+              </li>
+              <ng-template #confirmReciboTpl>
+                <span>Generar recibos con fecha </span>
+                <nz-date-picker [(ngModel)]="fechaRecibo" [ngModelOptions]="{standalone: true}" />
+                <span>?</span>
+              </ng-template>
+              <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmReciboTpl" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
+              </li>
+
+              <li *ngIf="PersonalIdForReceip > 0" nz-menu-item nz-popconfirm
+                nzPopconfirmTitle="Generar recibo de {{PersonalNameForReceip}}" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarReciboUnico')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Generar recibo de {{PersonalNameForReceip}}
+              </li>
+            </ul>
           </li>
-        </ul>
-      </li>
 
-      <li nz-submenu nzTitle="Informes">
-        <ul style="width: auto !important">
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
-            httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
+          <li nz-submenu nzTitle="Informes">
+            <ul style="width: auto !important">
+              <li nz-menu-item app-down-file [httpMethod]="'POST'"
+                [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+                httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
+                <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
+              </li>
+
+              <li nz-menu-item (click)="exportGrid()">
+                <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
+              </li>
+              <li nz-menu-item (click)="showModal()">
+                <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibos</span>
+              </li>
+            </ul>
+
           </li>
 
-          <li nz-menu-item (click)="exportGrid()">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
+
+
+
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a>
           </li>
-          <li nz-menu-item (click)="showModal()">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibos</span>
+
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <!-- <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a> -->
+            <a [routerLink]="['/', 'ges', 'liquidaciones','importacion']">Importación</a>
           </li>
-        </ul>
-
-      </li>
-
-
-
-
-      <li nz-menu-item nzMatchRouter >
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a>
-      </li>
-
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <!-- <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a> -->
-        <a [routerLink]="['/', 'ges', 'liquidaciones','importacion']">Importación</a>
-      </li>
-      <!--
+          <!--
       <li nz-submenu nzTitle="Generacion de Recibos">
         <ul style="width: auto !important">
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
@@ -161,32 +164,36 @@
 
       </li>
     -->
-    </ul>
-  </div>
-</div>
+        </ul>
+      </div>
+    </div>
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidaciones/listado">Listado</a>
-        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-          <div class="gridContainer1 container-fluid">
-            <angular-slickgrid gridId="gridLiq" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
-              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-              (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)">
+        <ng-template nz-tab>
+          <div *ngIf="(columns$|async) as columnas">
+            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+            <div class="gridContainer1 container-fluid">
+              <angular-slickgrid gridId="gridLiq" [columnDefinitions]="columnas | colsFilter"
+                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReady($event)"
+                (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)">
 
 
-              >
+                >
 
-            </angular-slickgrid>
+              </angular-slickgrid>
+            </div>
+
+            <!-- <div>total: {{ gridDataLen }}</div> -->
           </div>
-
-          <!-- <div>total: {{ gridDataLen }}</div> -->
         </ng-template>
       </nz-tab>
       <nz-tab>
 
         <a nz-tab-link routerLink="/ges/liquidaciones/cargamanual">Carga Manual</a>
-        <ng-template nz-tab >
+        <ng-template nz-tab>
           <!-- <button nz-button nzType="primary" class="btn-add" data-test="add-new-item-top-btn" (click)="openCustomModal()" >Agregar nuevo registro</button>  -->
 
           <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
@@ -243,14 +250,9 @@
                   <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
                     <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
                       <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-                      <span nz-popconfirm
-                      nzPopconfirmTitle="Seguro que desea eliminar dichas importaciones?"
-                      (nzOnConfirm)="confirmDeleteImportacion(movimiento.id)"
-                      nzPopconfirmPlacement="top"
-                      nz-button 
-                      nzType="primary"
-                      nzDanger
-                      nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
+                      <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dichas importaciones?"
+                        (nzOnConfirm)="confirmDeleteImportacion(movimiento.id)" nzPopconfirmPlacement="top" nz-button
+                        nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
                       <a nz-icon nzType="download" nzHref="movimiento.path" target="_blank" nzTheme="outline"
                         class="download-color" app-down-file [httpMethod]="'POST'"
                         [httpBody]="{'documentId': movimiento.id}" httpUrl="api/liquidaciones/downloadImportacion"></a>

@@ -24,17 +24,17 @@
       <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:11,tabIndex}"
+            [httpBody]="{anio, mes, options: listOptions, BancoId:11,tabIndex:tabIndex()}"
             httpUrl="api/liquidaciones/download/banco/">
             <span nz-icon nzType="download"></span>Generar Banco ITAU
           </li>
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:4,tabIndex}"
+            [httpBody]="{anio, mes, options: listOptions, BancoId:4,tabIndex:tabIndex()}"
             httpUrl="api/liquidaciones/download/banco/">
             <span nz-icon nzType="download"></span> Generar Banco Patagonia
           </li>
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex}"
+            [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex:tabIndex()}"
             httpUrl="api/liquidaciones/download/banco/">
             <span nz-icon nzType="download"></span> Generar Banco Macro
           </li>
@@ -98,6 +98,7 @@
   </div>
 </div>
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
+      <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">

@@ -632,7 +632,7 @@ export class LiquidacionesBancoController extends BaseController {
       const periodo = getPeriodoFromRequest(req);
       let options: any = getOptionsFromRequest(req);
       const BancoId = Number(req.body.BancoId)
-      const tabIndex = Number(req.body.tabIndex) //0-banco 1-adelanto
+      const tabIndex = Number(req.body.tabIndex) //1-banco 2-adelanto
       const isTest = req.body.isTest
       let fileTest = isTest ? "-TEST" : ""
       const formattedMonth = String(periodo.month).padStart(2, "0");
@@ -648,10 +648,10 @@ export class LiquidacionesBancoController extends BaseController {
       options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
 
       switch (tabIndex) {
-        case 0:
+        case 1: //Banco
           banco = await this.getBancoSaldo(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
           break;
-        case 1:
+        case 2: //Adelanto
           banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
           break;
         default:

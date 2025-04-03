@@ -9,12 +9,12 @@
     </div>
 
     <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+      <li nz-menu-item nzSelected>
         <a [routerLink]="['/', 'ges', 'tipo_documento', 'list']">
           Documentos
         </a>
       </li>
-      <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+      <li nz-submenu nzTitle="Acciones" >
         <ul>
           <li nz-menu-item (click)="exportGrid()">
             <span nz-icon nzType="download"></span>XLS
@@ -46,8 +46,8 @@
     </nz-button-group>
   </div>
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="selectedTabIndex"
-    (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+    <nz-tab></nz-tab>
     <nz-tab [nzForceRender]="false">
       <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
       @if (conditional()|async) {}

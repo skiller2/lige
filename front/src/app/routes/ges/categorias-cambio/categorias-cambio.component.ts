@@ -64,7 +64,6 @@ export class CategoriasCambioComponent {
   constructor(public apiService: ApiService, private cdr: ChangeDetectorRef, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public containerService:ContainerService) { }
   anio = 0
   mes = 0
-  selectedTabIndex = 0;
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);

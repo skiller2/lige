@@ -2,15 +2,15 @@
   <form nz-form #cambiocatForm="ngForm">
     <ng-container >
       <ul nz-menu nzMode="horizontal">
-        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+        <li nz-menu-item routerLink="/get/cambio_categoria/pendientes"  >
           <span nz-icon nzType=""></span>
           Cambios Pendientes
         </li>
-        <li nz-menu-item (click)="selectedTabIndex = 1">
+        <li nz-menu-item routerLink="/get/cambio_categoria/listado">
           <span nz-icon nzType=""></span>
           Categorías
         </li>
-        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+        <li nz-submenu nzTitle="Acciones" >
           <ul>
             <li nz-menu-item (click)="exportGrid()">
               <span nz-icon nzType="download"></span>XLS
@@ -28,11 +28,10 @@
         nzMode="date"
         (ngModelChange)="onChange($event)" />
 
-      <nz-tabset
-        nzCentered
-        [(nzSelectedIndex)]="selectedTabIndex"
-        class="hide-ant-tabs-nav">
+      <nz-tabset nzCentered class="hide-ant-tabs-nav" nzLinkRouter>
+        <nz-tab></nz-tab>
         <nz-tab >
+          <a nz-tab-link routerLink="/get/cambio_categoria/pendientes">Cambios Pendientes</a>
           <ng-template nz-tab>
             <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
@@ -50,9 +49,6 @@
 
           </ng-template>
         </nz-tab>
-        <nz-tab>
-        </nz-tab>
-
       </nz-tabset>
     </ng-container>
   </form>

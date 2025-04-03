@@ -84,7 +84,6 @@ export class TableHorasLicenciaComponent {
   gridOptionsEdit!: GridOption;
   gridObjEdit!: SlickGrid;
   gridDataLen = 0
-  SelectedTabIndex = 0
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,

@@ -13,7 +13,6 @@ import { LoadingService } from '@delon/abc/loading';
 import { SearchService } from 'src/app/services/search.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ListaPermisocargaComponent } from '../../../shared/lista-permisocarga/lista-permisocarga.component'
 
 
@@ -39,7 +38,6 @@ export class PersonalObjetivoComponnet {
   ngForm = viewChild.required(NgForm);
   private apiService = inject(ApiService)
   PersonalId = model.required()
-  tabIndex = 0
   userId = 0
   ObjetivoId = 0
   addMoreGroup: boolean = false;

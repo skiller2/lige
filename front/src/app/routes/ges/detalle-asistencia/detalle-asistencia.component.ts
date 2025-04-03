@@ -58,7 +58,6 @@ export class DetalleAsistenciaComponent {
   //  selectedSucursalId = '';
   selectedObjetivoId = 0;
   selectedPersonalId = 0;
-  selectedTabIndex = 0;
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
   listaDescuentosPerTotalC = 0

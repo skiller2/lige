@@ -22,7 +22,6 @@ import { ApiService } from '../../../services/api.service';
     styleUrl: './carga-licencias.component.less'
 })
 export class CargaLicenciasComponent {
-  tabIndex = 0
   periodo = model(new Date())
   visibleDrawer: boolean = false
   visibleHistorial = model<boolean>(false)

@@ -88,7 +88,6 @@ export class TableHistorialContratoComponent {
   gridOptionsDomicilio!: GridOption
   gridOptionsGrupoActividad!: GridOption
   gridDataLen = 0
-  SelectedTabIndex = 0  
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,

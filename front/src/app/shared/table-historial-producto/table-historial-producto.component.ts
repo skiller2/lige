@@ -73,8 +73,7 @@ export class TableHistorialProductoComponent {
   gridObj!: SlickGrid;
   detailViewRowCount = 9
   gridOptions!: GridOption
-  gridDataLen = 0
-  SelectedTabIndex = 0  
+  gridDataLen = 0 
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
