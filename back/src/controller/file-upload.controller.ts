@@ -10,6 +10,7 @@ import { promisify } from 'util';
 import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { TextItem } from "pdfjs-dist/types/src/display/api";
 
 
 
@@ -18,8 +19,8 @@ const unlink = promisify(fs.unlink);
 
 
 export class FileUploadController extends BaseController {
-  pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
-  pathArchivos   = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+  pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
+  pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
   tempFolderPath = path.join(this.pathDocuments, 'temp');
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
@@ -29,7 +30,7 @@ export class FileUploadController extends BaseController {
     let finalurl = '', docname = ''
     let document = ''
     let deleteFile = false
- 
+
     try {
       if (documentId == '0')
         throw new ClientException(`Archivo no localizado`)
@@ -80,7 +81,7 @@ export class FileUploadController extends BaseController {
         docname = docname.replace('.pdf', '.png')
       }
 
-      if (finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'thumb') { 
+      if (finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'thumb') {
         finalurl = await this.pdfThumb(finalurl)
         deleteFile = true
         docname = docname.replace('.pdf', '.png')
@@ -197,90 +198,115 @@ export class FileUploadController extends BaseController {
   }
 
   static async handlePDFUpload(
-    keyid: number,
-    folder: string,
-    doctipo_id: string,
-    keyfield: string,
-    Archivo: any,
+    personal_id: number,
+    objetivo_id: number,
+    cliente_id: number,
+    fecha: Date,
+    fec_doc_ven: Date,
+    den_documento: string,
+    file: any,
     usuario: any,
     ip: any,
   ) {
     const queryRunner = dataSource.createQueryRunner();
     let fechaActual = new Date();
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fechaActual.getFullYear(), fechaActual.getMonth(), usuario, ip);
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth(), usuario, ip);
+    let detalle_documento = ''
+    const doctipo_id = file.doctipo_id
+    const tableForSearch = file.tableForSearch
+    if (!tableForSearch)
+      throw new ClientException(`No se especificó destino -tableForSearch-`)
+    if (!doctipo_id)
+      throw new ClientException(`No se especificó destino -doctipo_id-`)
 
-    const dirtmpNew = `${process.env.PATH_DOCUMENTS}/${folder}/${keyid}`;
-//console.log('Archivo',Archivo)
-//throw new ClientException(`DEBUG`)
-
-    for (const file of Archivo) {
-
-      let newFilePath = ''
-      //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
-
-      if (!folder)
-
+    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo WHERE tipo.doctipo_id = @0`, [doctipo_id])
+    if (!doctipo.length)
+      throw new ClientException(`Tipo de documento no existe`)
+    const folder = doctipo[0]['path_origen']
+    if (!folder)
       throw new ClientException(`Error subiendo archivo`)
-      switch (file.tableForSearch) {
 
-        case "DocumentoImagenEstudio":
+    let newFilePath = ''
+    //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
+
+    switch (file.tableForSearch) {
+
+      case "DocumentoImagenEstudio":
         const DocumentoImagenParametroId = 20 // CURSO
         const DocumentoImagenParametroDirectorioId = 1 // TEMP
 
-        const DocumentoImagenEstudioId = await  queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
+        const DocumentoImagenEstudioId = await queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
         const den_numero = DocumentoImagenEstudioId[0]['DocumentoImagenEstudioId'] + 1
-        let nameFile = `${keyid}-${den_numero}-CERTEST.${file.originalname.split('.')[1]}`
+        let nameFile = `${personal_id}-${den_numero}-CERTEST.${file.originalname.split('.')[1]}`
 
-        const DocumentoImagenEstudioRuta= await queryRunner.query('SELECT DocumentoImagenParametroDirectorioPath from DocumentoImagenParametroDirectorio WHERE DocumentoImagenParametroId = @0',[DocumentoImagenParametroId])
+        const DocumentoImagenEstudioRuta = await queryRunner.query('SELECT DocumentoImagenParametroDirectorioPath from DocumentoImagenParametroDirectorio WHERE DocumentoImagenParametroId = @0', [DocumentoImagenParametroId])
         const finalUrl = `${process.env.PATH_ARCHIVOS}/${DocumentoImagenEstudioRuta[0]['DocumentoImagenParametroDirectorioPath'].replace(/\\/g, '/').replace(/\/$/, '')}`
-        
-        newFilePath = `${finalUrl}/${nameFile}`;
-        this.moveFile(`${file.fieldname}.pdf`, newFilePath, finalUrl);
 
-          await this.setArchivosDocumentoImagenEstudio(
-            queryRunner,
-            keyid,
-            file.originalname.split('.')[1],
-            nameFile,
-            DocumentoImagenParametroId,
-            DocumentoImagenParametroDirectorioId
-          )
+        newFilePath = `${finalUrl}/${nameFile}`
+        this.moveFile(`${file.fieldname}.pdf`, newFilePath)
 
-        
-          break;
-        default:
-
+        await this.setArchivosDocumentoImagenEstudio(
+          queryRunner,
+          personal_id,
+          file.originalname.split('.')[1],
+          nameFile,
+          DocumentoImagenParametroId,
+          DocumentoImagenParametroDirectorioId
+        )
+        return 0
+        break;
+      default:
         let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
-         newFilePath = `${dirtmpNew}/${docgeneral}-${keyid}.pdf`;
+        newFilePath = `${process.env.PATH_DOCUMENTS}/${folder}/${docgeneral}-${personal_id + cliente_id + objetivo_id}.pdf`;
 
-          await this.setArchivos(
-            queryRunner,
-            Number(docgeneral),
-            periodo_id,
-            fechaActual,
-            keyfield,
-            keyid,
-            file.originalname,
-            newFilePath,
-            usuario,
-            ip,
-            fechaActual,
-            doctipo_id,
-            null
-          );
-          break;
-      }
+        const type = file.mimetype.split('/')[1]
+
+        if (type == 'pdf') {
+          const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.filename}`)
+          const document = await loadingTask.promise;//Error
+          for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+            const page = await document.getPage(pagenum);
+            const textContent = await page.getTextContent();
+            textContent.items.forEach((item: TextItem) => {
+              detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
+            });
+          }
+        }
+        this.moveFile(file.filename, newFilePath)
+
+        await this.setArchivos(
+          queryRunner,
+          Number(docgeneral),
+          periodo_id,
+          fecha,
+          fec_doc_ven,
+          personal_id,
+          objetivo_id,
+          cliente_id,
+          file.originalname,
+          newFilePath,
+          detalle_documento,
+          doctipo_id,
+          den_documento,
+          usuario,
+          ip,
+          fechaActual,
+        );
+        return docgeneral        
+        break;
     }
   }
 
-  static moveFile(filename: any, newFilePath: any, dirtmp: any) {
+  static moveFile(filename: any, newFilePath: any) {
     const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
     // console.log("originalFilePath ", originalFilePath)
     // console.log("newFilePath ", newFilePath)
 
-    if (!existsSync(dirtmp)) {
+     const filePath = path.dirname(newFilePath);
+
+    if (!existsSync(filePath)) {
       // Crea el directorio y todos los directorios padres necesarios de forma recursiva
-      mkdirSync(dirtmp, { recursive: true });
+      mkdirSync(filePath, { recursive: true });
     }
     try {
       copyFileSync(originalFilePath, newFilePath);
@@ -297,8 +323,8 @@ export class FileUploadController extends BaseController {
     DocumentoImagenEstudioBlobNombreArchivo: string,
     DocumentoImagenParametroId: number,
     DocumentoImagenParametroDirectorioId: number,
-   
-  ) { 
+
+  ) {
     return queryRunner.query(
       `INSERT INTO DocumentoImagenEstudio (
         "PersonalId",
@@ -318,59 +344,45 @@ export class FileUploadController extends BaseController {
       ]
     );
   }
-  
+
 
   static async setArchivos(
     queryRunner: any,
     doc_id: number,
     periodo: number,
     fecha: Date,
-    keyfield: string,
-    keyid: number,
+    fec_doc_ven: Date,
+    persona_id: number,
+    objetivo_id: number,
+    cliente_id: number,
     nombre_archivo: string,
     path: string,
+    detalle_documento: string,
+    doctipo_id: string,
+    den_documento: string,
     usuario: string,
     ip: string,
     audfecha: Date,
-    doctipo_id: string,
-    den_documento: number,
   ) {
 
-    let persona_id = 0, objetivo_id = 0, cliente_id = 0, personalId = 0
-    switch (keyfield) {
-      case "objetivo_id":
-        objetivo_id = keyid
-        break;
-      case "persona_id":
-        persona_id = keyid
-        break;
-      case "cliente_id":
-        cliente_id = keyid
-        break;
-      case "personalId":
-        personalId = keyid
-        break;
-      default:
-        break;
-    }
-
-
-
-    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "den_documento","cliente_id")
+    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral (doc_id, periodo, fecha, fec_doc_ven, persona_id, objetivo_id, cliente_id, path, nombre_archivo, doctipo_id, den_documento, detalle_documento,
+      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
         VALUES
-        (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14,@15);`,
+        (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14,@15,@16,@17)`,
       [
         doc_id,
         periodo,
         fecha,
+        fec_doc_ven,
         persona_id,
         objetivo_id,
+        cliente_id,
         path,
         nombre_archivo,
-        usuario, ip, fecha,
-        usuario, ip, audfecha,
-        doctipo_id, den_documento, cliente_id
-
+        doctipo_id,
+        den_documento,
+        detalle_documento,
+        usuario, ip, audfecha, usuario, ip, audfecha,
       ])
 
   }
@@ -520,9 +532,9 @@ export class FileUploadController extends BaseController {
     const pdfPage = await pdfDoc.getPage(1);
     const operatorList = await pdfPage.getOperatorList();
 
-//    console.log('operatorList',operatorList)
+    //    console.log('operatorList',operatorList)
 
-//    operatorList.fnArray.
+    //    operatorList.fnArray.
 
 
     const imgIndexArr = operatorList.fnArray.reduce((acc: number[], curr: any, index: number) => {
@@ -538,11 +550,11 @@ export class FileUploadController extends BaseController {
     let imgArgsFoto = []
     for (const imgIndex of imgIndexArr) {
       const imgArgs = operatorList.argsArray[imgIndex];
-      
+
       const resol = Number(imgArgs[1]) * Number(imgArgs[2])
       if (resol > maxresol) {
         maxresol = resol
-        imgArgsFoto = imgArgs 
+        imgArgsFoto = imgArgs
       }
     }
 
@@ -580,11 +592,11 @@ export class FileUploadController extends BaseController {
     const viewport = pdfPage.getViewport({ scale: 0.5 });
     const canvasFactory: any = pdfDoc.canvasFactory;
 
-//    viewport.width=viewport.width*2,
-//    viewport.height=viewport.height*2
+    //    viewport.width=viewport.width*2,
+    //    viewport.height=viewport.height*2
 
 
-//console.log('viewport',viewport)
+    //console.log('viewport',viewport)
 
     const canvasAndContext = canvasFactory.create(
       viewport.width,
@@ -601,7 +613,7 @@ export class FileUploadController extends BaseController {
 
     await renderTask.promise;
 
-  //  console.log('canvasAndContext',canvasAndContext)
+    //  console.log('canvasAndContext',canvasAndContext)
     let imageBuffer = await canvasAndContext.canvas.encode("png");
 
 
@@ -616,36 +628,36 @@ export class FileUploadController extends BaseController {
 
 
 
-/*
-    const operatorList = await pdfPage.getOperatorList();
-    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
-    const imgArgs = operatorList.argsArray[imgIndex];
-
-
-    const imgData: any = await new Promise((resolve, reject) => {
-      if (imgArgs[0].startsWith("g_"))
-        pdfPage.commonObjs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
-      else
-        pdfPage.objs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
-    })
-
-
-    const png = new PNG({ width: imgData.width, height: imgData.height })
-    for (let j = 0, k = 0, jj = imgData.width * imgData.height * 4; j < jj;) {
-      png.data[j++] = imgData.data[k++];
-      png.data[j++] = imgData.data[k++];
-      png.data[j++] = imgData.data[k++];
-      png.data[j++] = 255;
-    }
-
-    const outputFileName = this.getRandomTempFileName('.png');
-
-    return new Promise((resolve, reject) => {
-      png.on('end', () => { resolve(outputFileName) })
-      png.on('error', (error) => { reject(error); })
-      png.pack().pipe(fs.createWriteStream(outputFileName))
-    })
-*/
+    /*
+        const operatorList = await pdfPage.getOperatorList();
+        const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+        const imgArgs = operatorList.argsArray[imgIndex];
+    
+    
+        const imgData: any = await new Promise((resolve, reject) => {
+          if (imgArgs[0].startsWith("g_"))
+            pdfPage.commonObjs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+          else
+            pdfPage.objs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+        })
+    
+    
+        const png = new PNG({ width: imgData.width, height: imgData.height })
+        for (let j = 0, k = 0, jj = imgData.width * imgData.height * 4; j < jj;) {
+          png.data[j++] = imgData.data[k++];
+          png.data[j++] = imgData.data[k++];
+          png.data[j++] = imgData.data[k++];
+          png.data[j++] = 255;
+        }
+    
+        const outputFileName = this.getRandomTempFileName('.png');
+    
+        return new Promise((resolve, reject) => {
+          png.on('end', () => { resolve(outputFileName) })
+          png.on('error', (error) => { reject(error); })
+          png.pack().pipe(fs.createWriteStream(outputFileName))
+        })
+    */
     return 'C:/temp/test.png'
   }
 
