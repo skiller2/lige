@@ -5,7 +5,7 @@ import {
   Inject,
   LOCALE_ID,
   ViewChild,
-  inject,input,SimpleChanges,EventEmitter,Output,
+  inject, input, SimpleChanges, EventEmitter, Output,
   model
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
@@ -42,14 +42,14 @@ type listOptionsT = {
 }
 
 @Component({
-    selector: 'app-table-historial-contrato',
-    imports: [SHARED_IMPORTS,
-        CommonModule,
-        NzAffixModule,NzTabsModule
-    ],
-    providers: [AngularUtilService],
-    templateUrl: './table-historial-contrato.component.html',
-    styleUrl: './table-historial-contrato.component.less'
+  selector: 'app-table-historial-contrato',
+  imports: [SHARED_IMPORTS,
+    CommonModule,
+    NzAffixModule, NzTabsModule
+  ],
+  providers: [AngularUtilService],
+  templateUrl: './table-historial-contrato.component.html',
+  styleUrl: './table-historial-contrato.component.less'
 })
 export class TableHistorialContratoComponent {
 
@@ -58,12 +58,12 @@ export class TableHistorialContratoComponent {
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
-  @Output()valueGridEvent = new EventEmitter();
+  @Output() valueGridEvent = new EventEmitter();
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService: SearchService) { }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-  
+
 
 
   Contrato$ = this.apiService.getCols('/api/objetivos/colsHistoryContrato').pipe(map((cols) => {
@@ -93,7 +93,7 @@ export class TableHistorialContratoComponent {
     sort: null,
     extra: null,
   }
-  dataAngularGrid:any
+  dataAngularGrid: any
   /////
   angularGrid!: AngularGridInstance
   gridObj!: SlickGrid
@@ -101,14 +101,14 @@ export class TableHistorialContratoComponent {
   angularGridDomicilio!: AngularGridInstance
   gridObjGrupoActividad!: SlickGrid
   angularGridGrupoActividad!: AngularGridInstance
-  
 
- anio = input<number>();
- mes = input<number>();
+
+  anio = input<number>();
+  mes = input<number>();
 
   ngOnChanges(changes: SimpleChanges) {
-//    if ((changes['RefreshLicencia'] && changes['RefreshLicencia'].currentValue==true ) || changes['anio'] || changes['mes'] )
-//      this.formChange$.next("");
+    //    if ((changes['RefreshLicencia'] && changes['RefreshLicencia'].currentValue==true ) || changes['anio'] || changes['mes'] )
+    //      this.formChange$.next("");
   }
 
   listOptionsChange(options: any) {
@@ -124,9 +124,9 @@ export class TableHistorialContratoComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
-      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
+      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
       return this.apiService
-        .getListCargaContratoHistory({ options: this.listOptions }, this.anio(), this.mes(), this.ObjetivoId(), this.ClienteElementoDependienteId(), this.ClienteId() )
+        .getListCargaContratoHistory({ options: this.listOptions }, this.anio(), this.mes(), this.ObjetivoId(), this.ClienteElementoDependienteId(), this.ClienteId())
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
@@ -141,9 +141,9 @@ export class TableHistorialContratoComponent {
   gridDataDomiicilio$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
-      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
+      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
       return this.apiService
-        .getListCargaDomicilioHistory({ options: this.listOptions }, this.anio(), this.mes(), this.ObjetivoId(), this.ClienteElementoDependienteId(), this.ClienteId() )
+        .getListCargaDomicilioHistory({ options: this.listOptions }, this.anio(), this.mes(), this.ObjetivoId(), this.ClienteElementoDependienteId(), this.ClienteId())
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
@@ -159,9 +159,9 @@ export class TableHistorialContratoComponent {
   gridDataGrupoActividad$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
-      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
+      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
       return this.apiService
-        .getListCargaGrupoActividadHistory({ options: this.listOptions }, this.anio(), this.mes(), this.ObjetivoId(), this.ClienteElementoDependienteId(), this.ClienteId() )
+        .getListCargaGrupoActividadHistory({ options: this.listOptions }, this.anio(), this.mes(), this.ObjetivoId(), this.ClienteElementoDependienteId(), this.ClienteId())
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
@@ -178,7 +178,7 @@ export class TableHistorialContratoComponent {
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-   
+
     ///////
     this.gridOptionsDomicilio = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsDomicilio.enableRowDetailView = this.apiService.isMobile()
@@ -226,12 +226,12 @@ export class TableHistorialContratoComponent {
 
   }
 
-  
+
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     cellNode.replaceChildren(componentOutput.domElement)
-}
+  }
 
 
   formChanged(_event: any) {
@@ -240,7 +240,7 @@ export class TableHistorialContratoComponent {
 
   ngOnDestroy() {
   }
-  
+
 
   angularGridReady(angularGrid: any) {
 
@@ -255,11 +255,11 @@ export class TableHistorialContratoComponent {
       totalRecords(this.angularGrid)
       columnTotal('cantidad', this.angularGrid)
     })
-  
-  
+
+
   }
 
-  valueRowSelectes(value:number){
+  valueRowSelectes(value: number) {
     this.dataAngularGrid
   }
 
@@ -270,28 +270,11 @@ export class TableHistorialContratoComponent {
     });
   }
 
-   onTabChanged(selectedIndex: number): void {
-    setTimeout(() => {
-      switch (selectedIndex) {
-        case 0:
-          this.gridObj.resizeCanvas();
-          this.gridObj.autosizeColumns();
-          break;
-        case 1:
-          this.angularGridDomicilio.slickGrid.resizeCanvas();
-          this.angularGridDomicilio.slickGrid.autosizeColumns();
-          break;
-        case 2:
-            this.gridObjGrupoActividad.resizeCanvas();
-            this.gridObjGrupoActividad.autosizeColumns();
-          break;
-      }
-      window.dispatchEvent(new Event('resize'));
-
-    }, 100);
+  onTabChanged(selectedIndex: number): void {
+    window.dispatchEvent(new Event('resize'));
   }
 
- 
+
 }
- 
+
 
