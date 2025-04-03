@@ -4,10 +4,15 @@ import { centroCapacitacionController } from "../controller/controller.module"
 
 export const centroCapacitacionRouter = Router()
 
-centroCapacitacionRouter.post('/search', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+centroCapacitacionRouter.get('/search', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
     centroCapacitacionController.search(req, res, next)
   })
 
-centroCapacitacionRouter.post('/searchSede', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+centroCapacitacionRouter.get('/search/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    centroCapacitacionController.searchId(req, res, next)
+  })
+
+centroCapacitacionRouter.get('/searchSede', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
     centroCapacitacionController.searchSede(req, res, next)
   })
+

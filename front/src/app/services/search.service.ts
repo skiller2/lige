@@ -23,13 +23,8 @@ import { ResponseBySearchCliente, SearchClient } from 'src/app/shared/schemas/cl
 import { ResponseBySearchAdministrador, SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
 import { ResponseBySearchRubro, SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from 'src/app/shared/schemas/seguro.schemas';
-import { ResponseBySearchEstudio, SearchEstudio } from 'src/app/shared/schemas/estudios.schemas';
-import { ResponseBySearchCentroCapacitacionSede, SearchCentroCapacitacionSede } from 'src/app/shared/schemas/centro-capacitacion-sede.shemas';
-import { ResponseBySearchCentroCapacitacion, SearchCentroCapacitacion } from 'src/app/shared/schemas/centro-capacitacion.shemas';
-import { ResponseBySearchCurso, SearchCurso } from 'src/app/shared/schemas/cursos.schemas';
 import { ResponseBySearchInasistencia, SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
 import { ResponseBySearchSituacionRevista, SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
-import { ResponseBySearchModalidadCurso, SearchModalidadCurso } from 'src/app/shared/schemas/modalidadCurso.schemas';
 import {
   Objetivo,
   ObjetivoInfo,
@@ -200,28 +195,6 @@ export class SearchService {
     return this.getInasistenciaSearch(fieldName, values)
   }
 
-  getCursoFromName(fieldName: string, values: string): Observable<SearchCurso[]> {
-    return this.getCursoSearch(fieldName, values)
-  }
-
-  getCentroCapacitacionFromName(fieldName: string, values: string): Observable<SearchCentroCapacitacion[]> {
-    return this.getCentroCapacitacionSearch(fieldName, values)
-  }
-
-  getCentroCapacitacionSedeFromName(fieldName: string, values: string, CentroCapacitacionId: number): Observable<SearchCentroCapacitacionSede[]> {
-    return this.getCentroCapacitacionSedeSearch(fieldName, values, CentroCapacitacionId)
-  }
-
-
-  getEstudioFromName(fieldName: string, values: string): Observable<SearchEstudio[]> {
-    return this.getEstudioSearch(fieldName, values)
-  }
-
-  getModalidadCursoFromName(fieldName: string, values: string): Observable<SearchModalidadCurso[]> {
-    return this.getModalidadCursoSearch(fieldName, values)
-  }
-
-
   getSituacionRevistaFromName(fieldName: string, values: string): Observable<SearchSituacionRevista[]> {
     return this.getSituacionRevistaSearch(fieldName, values)
   }
@@ -258,50 +231,85 @@ export class SearchService {
 
   // estudios
 
-  
-  getEstudioSearch(fieldName: string, values: string): Observable<SearchEstudio[]> {
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchEstudio>>('api/estudio/search', {
-        fieldName: fieldName,
-        value: values,
+  //SearchEstudio
+  getEstudioSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/estudio/search`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
       })
-      .pipe(
-        map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+    );
+
   }
 
-  //Modalidad Curso
 
-  getModalidadCursoSearch(fieldName: string, values: string): Observable<SearchModalidadCurso[]> {
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchModalidadCurso>>('api/curso/searchModalidadCurso', {
-        fieldName: fieldName,
-        value: values,
+  getEstudioSearchId(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/estudio/searchId/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
       })
-      .pipe(
-        map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+    );
+
   }
+
+  //Curso
+
+  getCursoSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/curso/search`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
+
+  getCursoSearchId(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/curso/searchId/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
+  ///////
+
+
+
+
+
+  getModalidadCursoSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/curso/searchModalidadCurso`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
+
+  getModalidadCursoSearchId(id: string): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/curso/searchModalidadCursoId/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
+
 
 
   getSeguroSearch(fieldName: string, values: string): Observable<SearchSeguro[]> {
@@ -413,9 +421,9 @@ export class SearchService {
       apiKey: 'f5cdd3892a38432fbcd0edc786268446',
       limit: '5'
     });
-    console.log('getDireccion',direccion)
+    console.log('getDireccion', direccion)
     return new Observable<any[]>(observer => {
-      console.log('fetch','https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
+      console.log('fetch', 'https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
       fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
         .then(res => res.json())
         .then(data => {
@@ -1100,7 +1108,7 @@ export class SearchService {
       );
   }
 
-   getInfoFilterReport(title:string) {
+  getInfoFilterReport(title: string) {
     return this.http
       .get<ResponseJSON<any>>(`api/reportes/filterReport/${title}`)
       .pipe(
@@ -1581,79 +1589,51 @@ export class SearchService {
     );
   }
 
-  // cursos
-  getCursoSearch(fieldName: string, values: string): Observable<SearchCurso[]> {
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchCurso>>('api/curso/search', {
-        fieldName: fieldName,
-        value: values,
-      })
-      .pipe(
-        map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
-  }
 
   // centro capacitacion
 
-   getCentroCapacitacionSearch(fieldName: string, values: string): Observable<SearchCentroCapacitacion[]> {
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchCentroCapacitacion>>('api/centro-capacitacion/search', {
-        fieldName: fieldName,
-        value: values,
+  getCentroCapacitacionSearch(): Observable<any[]> {
+
+    return this.http.get<ResponseJSON<any>>(`api/centro-capacitacion/search`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
       })
-      .pipe(
-        map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+    );
+
+  }
+
+  getCentroCapacitacionSearchId(id: number): Observable<any[]> {
+
+    return this.http.get<ResponseJSON<any>>(`api/centro-capacitacion/search/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
   }
 
   // centro capacitacion sede
 
-  getCentroCapacitacionSedeSearch(fieldName: string, values: string, CentroCapacitacionId: number): Observable<SearchCentroCapacitacionSede[]> {
 
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchCentroCapacitacionSede>>('api/centro-capacitacion/searchSede', {
-        fieldName: fieldName,
-        value: values,
-        CentroCapacitacionId: CentroCapacitacionId
+  getCentroCapacitacionSedeSearch(): Observable<any[]> {
+
+    return this.http.get<ResponseJSON<any>>(`api/centro-capacitacion/searchSede`).pipe(
+      map(res => {
+        return res.data;
+      }),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
       })
-      .pipe(
-        map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+    );
+
   }
 
-
-
-  getTipoDocumentoById(docId:number){
+  getTipoDocumentoById(docId: number) {
     if (!docId) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/tipo-documento/get/${docId}`).pipe(
       map(res => res.data),
@@ -1666,7 +1646,7 @@ export class SearchService {
 
   getDescuentosByPersonalId(PersonalId: number, anio: number, mes: number): Observable<any> {
     if (!PersonalId && anio && mes) return of([]);
-    return this.http.get<ResponseJSON<PersonaObj>>(`/api/gestion-descuentos/personal`, {PersonalId, anio, mes}).pipe(
+    return this.http.get<ResponseJSON<PersonaObj>>(`/api/gestion-descuentos/personal`, { PersonalId, anio, mes }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

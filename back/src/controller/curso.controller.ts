@@ -195,45 +195,31 @@ const columnsCursosHistory:any[] = [
 
 export class CursoController extends BaseController {
 
-  search(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value } = req.body
+  async search(req: any, res: Response, next: NextFunction) {
 
-    let buscar = false;
-    let query: string = `SELECT CursoHabilitacionId,CursoHabilitacionDescripcion,CursoHabilitacionCodigo FROM CursoHabilitacion ch
-    WHERE`;
-    switch (fieldName) {
-      case "CursoHabilitacionDescripcion":
-        const valueArray: Array<string> = value.split(/[\s,.]+/);
-        valueArray.forEach((element, index) => {
-          if (element.trim().length > 1) {
-            query += `(ch.CursoHabilitacionDescripcion LIKE '%${element.trim()}%' OR ch.CursoHabilitacionCodigo LIKE '%${element.trim()}%') AND  `;
-            buscar = true;
-          }
-        });
-        break;
-      case "CursoHabilitacionId":
-        if (value > 0) {
-          query += ` ch.CursoHabilitacionId = '${value}' AND `;
-          buscar = true;
-        }
-        break;
-      default:
-        break;
-    }
-
-    if (buscar == false) {
-      this.jsonRes({ recordsArray: [] }, res);
-      return;
-    }
-
-    dataSource
-      .query((query += " 1=1"))
-      .then((records) => {
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+        const Curso = await queryRunner.query(`SELECT CursoHabilitacionId,CursoHabilitacionDescripcion FROM CursoHabilitacion`)
+        return this.jsonRes(Curso, res);
+    } catch (error) {
         return next(error)
-      });
+    } finally {
+
+    }
+  
+  }
+
+  async searchId(req: any, res: Response, next: NextFunction) {
+    const { id } = req.params
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+        const Curso = await queryRunner.query(`SELECT CursoHabilitacionId,CursoHabilitacionDescripcion FROM CursoHabilitacion WHERE CursoHabilitacionId = ${id}`)
+        return this.jsonRes(Curso, res);
+    } catch (error) {
+        return next(error)
+    } finally {
+
+    }
   }
 
 
@@ -359,45 +345,32 @@ export class CursoController extends BaseController {
 
   }
 
-  searchModalidadCurso(req: any, res: Response, next: NextFunction) {
-      const { fieldName, value, CentroCapacitacionId } = req.body
-      console.log("---------------CentroCapacitacionId------------------",CentroCapacitacionId)
-      let buscar = false;
-      let query: string = `SELECT * FROM ModalidadCurso modcur
-      WHERE`;
-      switch (fieldName) {
-        case "ModalidadCursoModalidad":
-          const valueArray: Array<string> = value.split(/[\s,.]+/);
-          valueArray.forEach((element, index) => {
-            if (element.trim().length > 1) {
-              query += `(modcur.ModalidadCursoModalidad LIKE '%${element.trim()}%') AND  `;
-              buscar = true;
-            }
-          });
-          break;
-        case "ModalidadCursoCodigo":
-          if (value > 0) {
-            query += ` modcur.ModalidadCursoCodigo = '${value}' AND `;
-            buscar = true;
-          }
-          break;
-        default:
-          break;
-      }
-  
-      if (buscar == false) {
-        this.jsonRes({ recordsArray: [] }, res);
-        return;
-      }
-  
-      dataSource
-        .query((query += " 1=1"))
-        .then((records) => {
-          this.jsonRes({ recordsArray: records }, res);
-        })
-        .catch((error) => {
+
+    async searchModalidadCurso(req: any, res: Response, next: NextFunction) {
+
+      const queryRunner = dataSource.createQueryRunner();
+      try {
+          const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso`)
+          return this.jsonRes(Curso, res);
+      } catch (error) {
           return next(error)
-        });
+      } finally {
+  
+      }
+    
+    }
+  
+    async searchModalidadCursoId(req: any, res: Response, next: NextFunction) {
+      const { id } = req.params
+      const queryRunner = dataSource.createQueryRunner();
+      try {
+          const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso WHERE ModalidadCursoCodigo = @0`,[id])
+          return this.jsonRes(Curso, res);
+      } catch (error) {
+          return next(error)
+      } finally {
+  
+      }
     }
 
 

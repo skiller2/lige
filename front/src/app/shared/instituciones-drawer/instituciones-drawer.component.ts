@@ -2,17 +2,14 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output, effect,  } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { CursoSearchComponent } from '../curso-search/curso-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
-import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
-import { CentroCapacitacionSedeSearchComponent } from '../centro-capacitacion-sede-search/centro-capacitacion-sede-search.component';
-import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
+
 
 type listOptionsT = {
   filtros: any[],

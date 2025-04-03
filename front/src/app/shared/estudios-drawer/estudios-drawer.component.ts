@@ -5,8 +5,6 @@ import { FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
-import { CursoSearchComponent } from '../curso-search/curso-search.component';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
@@ -25,8 +23,7 @@ export interface Option {
     imports: [SHARED_IMPORTS, 
       NzUploadModule, 
       NzAutocompleteModule,
-      EstudioSearchComponent,
-      CursoSearchComponent, 
+     // CursoSearchComponent, 
       PersonalSearchComponent,
       CommonModule, 
       FileUploadComponent],
@@ -38,29 +35,24 @@ export interface Option {
 
 
 export class EstudiosDrawerComponent {
-  //ngForm = viewChild.required(NgForm);
-  //visibleHistorial = model<boolean>(false)
 
-  //selectedPeriod = input.required<any>()
   ArchivosEstudioAdd: any[] = [];
   tituloDrawer = signal<string>("Nuevo Estudio")
   disabled =  input<boolean>(false)
   RefreshEstudio =  model<boolean>(false)
   private apiService = inject(ApiService)
-  //formChange$ = new BehaviorSubject('');
-  private notification = inject(NzNotificationService)
 
+  private notification = inject(NzNotificationService)
   PersonalId = input.required<number>()
   PersonalEstudioId = input.required<number>() 
   PersonalIdForEdit = signal(0)
 
   ArchivoIdForDelete = 0;
   PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
-  //selectedOption: string = "Indeterminado";
+
   options: any[] = [];
   files = model([]);
-  //fileUploaded = false;
- 
+
   currentDate = new Date()
   anio = signal(this.currentDate.getFullYear())
   mes = signal(this.currentDate.getMonth() + 1)
@@ -76,6 +68,8 @@ export class EstudiosDrawerComponent {
   uploading$ = new BehaviorSubject({loading:false,event:null});
   //uploadFileModel = viewChild.required(NgForm);
 
+  $optionsNivelEstudio = this.searchService.getEstudioSearch() 
+  $optionsCurso = this.searchService.getCursoSearch() 
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({
@@ -100,6 +94,7 @@ export class EstudiosDrawerComponent {
       if (visible) {
         //const per = this.selectedPeriod()
         if (this.PersonalEstudioId() > 0) {
+         
           let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
   
           this.PersonalIdForEdit.set(vals.PersonalId)
@@ -139,8 +134,6 @@ export class EstudiosDrawerComponent {
   }
 
 
-
-
   async save() {
 
     this.isSaving.set(true)
@@ -148,14 +141,10 @@ export class EstudiosDrawerComponent {
     try {
 
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
-
       const res =  await firstValueFrom(this.apiService.setEstudio(vals))
       this.onRefreshEstudio.emit()
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
-      //this.fileUploaded = false
-      
-      //this.formCli$.next("")
     } catch (error) {
 
     }

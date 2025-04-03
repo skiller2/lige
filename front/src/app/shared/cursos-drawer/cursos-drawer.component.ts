@@ -5,14 +5,11 @@ import { FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from '../../services/api.service';
-import { CursoSearchComponent } from '../curso-search/curso-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
-import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
-import { CentroCapacitacionSedeSearchComponent } from '../centro-capacitacion-sede-search/centro-capacitacion-sede-search.component';
-import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
+
 
 type listOptionsT = {
   filtros: any[],
@@ -31,9 +28,6 @@ export interface Option {
       NzUploadModule, 
       NzAutocompleteModule,
       CommonModule,
-      CentroCapacitacionSearchComponent,
-      CentroCapacitacionSedeSearchComponent,
-      ModalidadCursoSearchComponent
     ],
     templateUrl: './cursos-drawer.component.html',
     styleUrl: './cursos-drawer.component.less',
@@ -72,6 +66,10 @@ export class CursosDrawerComponent {
 
   onRefreshCurso = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
+
+  $optionsCentroCapacitacion = this.searchService.getCentroCapacitacionSearch()
+  $optionsCentroCapacitacionSede = this.searchService.getCentroCapacitacionSedeSearch()
+  $optionsModalidadCurso = this.searchService.getModalidadCursoSearch()
 
   listOptions: listOptionsT = {
     filtros: [],
@@ -120,8 +118,8 @@ export class CursosDrawerComponent {
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
 
-          this.CentroCapacitacionIdSelected.set(vals.list[0].CentroCapacitacionId)
-          this.CentroCapacitacionSedeIdSelected.set(vals.list[0].CentroCapacitacionSedeId)
+          //this.CentroCapacitacionIdSelected.set(vals.list[0].CentroCapacitacionId)
+          //this.CentroCapacitacionSedeIdSelected.set(vals.list[0].CentroCapacitacionSedeId)
 
         if (this.disabled()) {
           this.tituloDrawer.set(' Consultar Estudio ');

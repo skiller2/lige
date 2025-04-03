@@ -25,10 +25,6 @@ import { RequirenteSearchComponent } from '../requirente-search/requirente-searc
 import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
 import { AdministradorSearchComponent } from "../../shared/administrador-search/administrador-search.component"
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
-import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
-import { CursoSearchComponent } from '../curso-search/curso-search.component';
-import { ModalidadCursoSearchComponent } from '../modalidad-curso-search/modalidad-curso-search.component';
-import { CentroCapacitacionSearchComponent } from '../centro-capacitacion-search/centro-capacitacion-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -48,8 +44,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, EstudioSearchComponent, CursoSearchComponent,
-        ModalidadCursoSearchComponent, CentroCapacitacionSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],
@@ -80,6 +75,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
   $optionsProducto =  this.searchService.getTipoProducto();
   $optionsTipoDocumento = this.searchService.getTiposDocumentoOptions();
+  $optionsNivelEstudio = this.searchService.getEstudioSearch();
+  $optionsModalidadCurso = this.searchService.getModalidadCursoSearch();
 
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
@@ -91,7 +88,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsInactivo = this.searchService.getInactivo();
   $optionsInactivoBoolean = this.searchService.getInactivoBoolean();
   $optionsGrupoActividad = this.searchService.getTipo();
-
+  $optionsCurso = this.searchService.getCursoSearch();
+  $optionsCentroCapacitacion = this.searchService.getCentroCapacitacionSearch()
   isFiltroBuilder = false;
 
   listOfSelectedValue = [];
@@ -363,6 +361,42 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
+  async selectedValueNivelEstudio(val: any) {
+
+    if (val) {
+      this.selections.value = val
+      const res = await firstValueFrom(this.searchService.getEstudioSearchId(val))
+      this.selections.label = res[0].TipoEstudioDescripcion
+    }
+  }
+
+  async selectedValueCurso(val: any) {
+
+    if (val) {
+      this.selections.value = val
+      const res = await firstValueFrom(this.searchService.getCursoSearchId(val))
+      this.selections.label = res[0].CursoHabilitacionDescripcion
+    }
+  }
+
+  async selectedValueCentroCapacitacion(val: any) {
+
+    if (val) {
+      this.selections.value = val
+      const res = await firstValueFrom(this.searchService.getCentroCapacitacionSearchId(val))
+      this.selections.label = res[0].CentroCapacitacionRazonSocial
+    }
+  }
+
+  async selectedValueModalidadCurso(val: any) {
+
+    if (val) {
+      this.selections.value = val
+      const res = await firstValueFrom(this.searchService.getModalidadCursoSearchId(val))
+      this.selections.label = res[0].ModalidadCursoModalidad
+    }
+  }
+
   selectedValue(val: any) {
     if (val) {
       this.selections.value = val.value;
@@ -391,8 +425,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async addFilter(field: string, condition: string, operator: string, value: any, forced: boolean) {
+    
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
-
+    
     if (!fieldObj)
       return
     let label = ''
@@ -410,16 +445,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         result += `${situacion[0].SituacionRevistaDescripcion };`
       }
       label = result
-    }
-
-    if (fieldObj.searchComponent == 'inpurForNivelEstudioSearch') {
-      const res = await firstValueFrom(this.searchService.getEstudioFromName('TipoEstudioId', value))
-      label = res[0].TipoEstudioDescripcion
-    }
-
-    if (fieldObj.searchComponent == 'inpurForModalidadCursoSearch') {
-      const res = await firstValueFrom(this.searchService.getModalidadCursoFromName('ModalidadCursoCodigo', value))
-      label = res[0].ModalidadCursoModalidad
     }
 
     if (fieldObj.searchComponent == 'inpurForGrupoActividadSearch') {

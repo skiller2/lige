@@ -43,8 +43,14 @@
         <nz-form-label [nzSpan]="5">Modalidad</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <app-modalidad-curso-search  formControlName="ModalidadCursoCodigo"></app-modalidad-curso-search>
            
+           <nz-select  formControlName="ModalidadCursoCodigo" nzPlaceHolder="Modalidad Curso" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important"
+           (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})">
+             <ng-container *ngFor="let option of $optionsModalidadCurso | async " >
+               <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad" ></nz-option>
+             </ng-container>
+           </nz-select>
+
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -62,10 +68,14 @@
         <nz-form-label [nzSpan]="5">Centro Capacitación </nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <app-centro-capacitacion-search 
-                formControlName="CentroCapacitacionId" 
-                (change)="updateValues()"
-            ></app-centro-capacitacion-search>
+
+            <nz-select  formControlName="CentroCapacitacionId" nzPlaceHolder="Centro de Capacitación" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important"
+            (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})">
+              <ng-container *ngFor="let option of $optionsCentroCapacitacion | async " >
+                <nz-option [nzValue]="option.CentroCapacitacionId" [nzLabel]="option.CentroCapacitacionRazonSocial" ></nz-option>
+              </ng-container>
+            </nz-select>
+
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -74,10 +84,13 @@
         <nz-form-label [nzSpan]="5">Sede</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-          <app-centro-capacitacion-sede-search 
-          formControlName="CentroCapacitacionSedeId"
-          [CentroCapacitacionId]="CentroCapacitacionIdSelected() "
-          [CentroCapacitacionSedeIdSelected]="CentroCapacitacionSedeIdSelected()"></app-centro-capacitacion-sede-search>
+       
+          <nz-select  formControlName="CentroCapacitacionSedeId" nzPlaceHolder="Centro de Capacitación Sede" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important">
+            <ng-container *ngFor="let option of $optionsCentroCapacitacionSede | async " >
+              <nz-option *ngIf="option.CentroCapacitacionId == formCli.value.CentroCapacitacionId" [nzValue]="option.CentroCapacitacionSedeId" [nzLabel]="option.CentroCapacitacionSedeDescripcion" ></nz-option>
+            </ng-container>
+          </nz-select>
+          
           
           </nz-input-group>
         </nz-form-control>
