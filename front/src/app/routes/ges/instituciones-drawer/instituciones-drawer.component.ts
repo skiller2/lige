@@ -57,7 +57,6 @@ export class InstitucionesDrawerComponent {
       if (visible) {
         if (this.CentroCapacitacionId() > 0) {
           let vals = await firstValueFrom(this.apiService.getListInstitucionesHistory({ options: { filtros: [], sort: null, extra: null } }, this.CentroCapacitacionId()))
-          
           this.CentroCapacitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
           vals.CentroCapacitacionId = vals.list[0].CentroCapacitacionId
           vals.CentroCapacitacionCuit = vals.list[0].CentroCapacitacionCuit
@@ -86,7 +85,6 @@ export class InstitucionesDrawerComponent {
     try {
       vals.CentroCapacitacionId = this.CentroCapacitacionId()
       const res = await firstValueFrom(this.apiService.setInstituciones(vals))
-
       if(res.data?.list[0]?.CentroCapacitacionId > 0) {
         this.CentroCapacitacionIdForEdit.set(res.data?.list[0]?.CentroCapacitacionId)
         this.formCli.patchValue({

@@ -1,12 +1,12 @@
 import { Component, ViewChild, computed, inject, model, signal } from '@angular/core';
-import { Router } from '@angular/router'; 
+import { NavigationEnd, Router } from '@angular/router'; 
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { SettingsService } from '@delon/theme';
 import { TableEstudiosComponent } from '../table-estudios/table-estudios.component'
 import { EstudiosDrawerComponent } from '../estudios-drawer/estudios-drawer.component';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, filter } from 'rxjs';
 import { TableCursoComponent } from '../table-curso/table-curso.component'
 import { CursoHistorialDrawerComponent } from '../curso-historial-drawer/curso-historial-drawer.component'
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
@@ -54,7 +54,17 @@ export class EstudiosComponent {
 
   ngOnInit() {
   
-    this.settingsService.setLayout('collapsed', true);
+  this.settingsService.setLayout('collapsed', true);
+
+    if (this.router.url.includes('/estudios')) {
+      this.selectedTab.set('estudios');
+    } 
+    if (this.router.url.includes('/instituciones')) {
+      this.selectedTab.set('instituciones');
+    }
+    if (this.router.url.includes('/cursos')) {
+      this.selectedTab.set('cursos');
+    }
   }
 
 
@@ -97,6 +107,7 @@ export class EstudiosComponent {
    
     this.disabled.set(false);
     this.visibleDrawer.set(true);
+    this.RefreshEstudio.set(false)
   }
 
 
@@ -104,6 +115,7 @@ export class EstudiosComponent {
    
     this.disabled.set(true);
     this.visibleDrawer.set(true);
+    this.RefreshEstudio.set(false)
   }
 
 
@@ -112,6 +124,7 @@ export class EstudiosComponent {
     this.disabled.set(false);
     this.PersonalEstudioId.set(0);
     this.visibleDrawer.set(true);
+    this.RefreshEstudio.set(false)
   }
 
 
@@ -122,12 +135,14 @@ export class EstudiosComponent {
     this.disabled.set(false);
     this.CursoHabilitacionSelectedId.set(0);
     this.visibleDrawerCurso.set(true);
+    this.RefreshCurso.set(false)
   }
 
   openDrawerCursoforConsult() {
    
     this.disabled.set(true);
     this.visibleDrawerCurso.set(true);
+    this.RefreshCurso.set(false)
   }
 
   
@@ -135,6 +150,7 @@ export class EstudiosComponent {
    
     this.disabled.set(false);
     this.visibleDrawerCurso.set(true);
+    this.RefreshCurso.set(false)
   }
 
 
@@ -145,24 +161,28 @@ export class EstudiosComponent {
     this.disabled.set(false);
     this.CentroCapacitacionId.set(0);
     this.visibleDrawerInstituciones.set(true);
+    this.RefreshInstituciones.set(false)
   }
 
   openDrawerInstitucionesforSede() {
    
     this.disabled.set(false);
     this.visibleDrawerSedes.set(true);
+    this.RefreshInstituciones.set(false)
   }
 
   openDrawerInstitucionesforConsult() {
    
     this.disabled.set(true);
     this.visibleDrawerInstituciones.set(true);
+    this.RefreshInstituciones.set(false)
   }
   
   openDrawerInstitucionesforEdit() {
    
     this.disabled.set(false);
     this.visibleDrawerInstituciones.set(true);
+    this.RefreshInstituciones.set(false)
   }
 
 

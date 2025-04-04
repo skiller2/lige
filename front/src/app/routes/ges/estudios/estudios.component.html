@@ -30,15 +30,6 @@
                     nzTheme="outline"></span></button>
                 <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
                   nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-
-                  @defer (when visibleDrawer()) {
-                    <app-estudios-drawer 
-                    (onRefreshEstudio)="RefreshEstudio.set(true)" 
-                    [disabled]="disabled()" 
-                    [(visible)]="visibleDrawer" 
-                    [PersonalId]="PersonalId()"
-                    [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
-                  } 
             }
             @if(selectedTab() === 'cursos') {
               
@@ -80,7 +71,7 @@
         <nz-tab>
           <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
           <ng-template nz-tab>
-            <div class="gridContainer2 container-fluid">
+            <div class="container-fluid">
               
                 <app-table-estudios [RefreshEstudio]="RefreshEstudio()"  (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
               
@@ -90,7 +81,7 @@
         <nz-tab>
           <a nz-tab-link routerLink="/ges/estudios/cursos">{{ 'app.seguros.cursos' | i18n }} </a>
           <ng-template nz-tab>
-            <div class="gridContainer container-fluid">
+            <div class="container-fluid">
               
               <app-table-cursos [RefreshCurso]="RefreshCurso()"  (valueGridEvent)="actualizarValorDrawerCurso($event)"></app-table-cursos>  
 
@@ -101,7 +92,7 @@
         <nz-tab>
           <a nz-tab-link routerLink="/ges/estudios/instituciones">{{ 'app.seguros.instituciones' | i18n }} </a>
           <ng-template nz-tab>
-            <div class="gridContainer3 container-fluid">
+            <div class="container-fluid">
               
               <app-table-instituciones [RefreshInstituciones]="RefreshInstituciones()"  (valueGridEvent)="actualizarValorDrawerInstitucion($event)"></app-table-instituciones>
 
@@ -110,14 +101,27 @@
         </nz-tab>
       </nz-tabset>
 
-     
-   
+      @defer (when visibleDrawer()) {
 
-      <app-cursos-drawer 
-      (onRefreshCurso)="RefreshCurso.set(true)" 
-      [disabled]="disabled()" 
-      [(visible)]="visibleDrawerCurso" 
-      [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer> 
+        <app-estudios-drawer 
+        (onRefreshEstudio)="RefreshEstudio.set(true)" 
+        [disabled]="disabled()" 
+        [(visible)]="visibleDrawer" 
+        [PersonalId]="PersonalId()"
+        [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
+
+      } 
+   
+      @defer (when visibleDrawerCurso()) {
+
+        <app-cursos-drawer 
+        (onRefreshCurso)="RefreshCurso.set(true)" 
+        [disabled]="disabled()" 
+        [(visible)]="visibleDrawerCurso" 
+        [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer> 
+      } 
+
+      @defer (when visibleDrawerInstituciones()) {
 
       <app-instituciones-drawer 
       (onRefreshInstituciones)="RefreshInstituciones.set(true)" 
@@ -125,11 +129,19 @@
       [(visible)]="visibleDrawerInstituciones" 
       [CentroCapacitacionId]="CentroCapacitacionId()"></app-instituciones-drawer> 
 
+      } 
+
+      @defer (when visibleDrawerSedes()) {
+
       <app-sedes-drawer 
       (onRefreshInstituciones)="RefreshInstituciones.set(true)" 
       [(visible)]="visibleDrawerSedes" 
       [CentroCapacitacionId]="CentroCapacitacionId()"
       [CentroCapacitacionName]="CentroCapacitacionName()"></app-sedes-drawer> 
+
+      } 
+
+      @defer (when visibleHistorial()) {
 
       <app-curso-historial-drawer 
       [(visibleHistorial)]="visibleHistorial" 
@@ -137,6 +149,7 @@
       [CentroCapacitacionSedeId]="CentroCapacitacionSedeId()"
       [CursoHabilitacionDescripcion]="CursoHabilitacionDescripcion()"></app-curso-historial-drawer> 
 
+      } 
 
 </nz-card>
 

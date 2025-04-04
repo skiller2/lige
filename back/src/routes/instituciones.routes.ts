@@ -32,6 +32,9 @@ institucionesRouter.delete('/deletesede', [authMiddleware.verifyToken, authMiddl
   institucionesController.deleteSede(req, res, next)
 })
   
+institucionesRouter.post('/setinstitucion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+  institucionesController.setInstitucion(req, res, next)
+})
 
   
 
