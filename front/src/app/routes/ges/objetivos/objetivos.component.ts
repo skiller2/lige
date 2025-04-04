@@ -15,7 +15,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
-import { ObjetivoHistorialDrawerComponent } from '../../../shared/objetivo-historial-drawer/objetivo-historial-drawer.component'
+import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
 
 
 @Component({

@@ -4,14 +4,14 @@ import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { SettingsService } from '@delon/theme';
-import { TableEstudiosComponent } from '../../../shared/table-estudios/table-estudios.component'
-import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudios-drawer.component';
+import { TableEstudiosComponent } from '../table-estudios/table-estudios.component'
+import { EstudiosDrawerComponent } from '../estudios-drawer/estudios-drawer.component';
 import { BehaviorSubject } from 'rxjs';
-import { TableCursoComponent } from '../../../shared/table-curso/table-curso.component'
-import { CursoHistorialDrawerComponent } from '../../../shared/curso-historial-drawer/curso-historial-drawer.component'
+import { TableCursoComponent } from '../table-curso/table-curso.component'
+import { CursoHistorialDrawerComponent } from '../curso-historial-drawer/curso-historial-drawer.component'
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
-import { TableInstitucionesComponent } from "../../../shared/table-instituciones/table-instituciones.component";
-import { InstitucionesDrawerComponent } from 'src/app/shared/instituciones-drawer/instituciones-drawer.component';
+import { TableInstitucionesComponent } from "../table-instituciones/table-instituciones.component";
+import { InstitucionesDrawerComponent } from 'src/app/routes/ges/instituciones-drawer/instituciones-drawer.component';
 import { SedesDrawerComponent } from 'src/app/shared/sedes-drawer/sedes-drawer.component';
 
 @Component({

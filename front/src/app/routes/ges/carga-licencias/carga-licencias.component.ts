@@ -2,16 +2,16 @@ import { Component, SimpleChanges, ViewChild, computed, input, model, signal } f
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TableAbmLicenciaComponent } from '../../../shared/table-abm-licencia/table-abm-licencia.component'
-import { TableHorasLicenciaComponent } from '../../../shared/table-horas-licencia/table-horas-licencia.component'
+import { TableAbmLicenciaComponent } from '../table-abm-licencia/table-abm-licencia.component'
+import { TableHorasLicenciaComponent } from '../table-horas-licencia/table-horas-licencia.component'
 
 
 import {
   BehaviorSubject, firstValueFrom,
 } from 'rxjs';
 import { NgForm } from '@angular/forms';
-import { LicenciaDrawerComponent } from '../../../shared/licencia-drawer/licencia-drawer.component'
-import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-historial-drawer/licencia-historial-drawer.component'
+import { LicenciaDrawerComponent } from '../licencia-drawer/licencia-drawer.component'
+import { LicenciaHistorialDrawerComponent } from '../licencia-historial-drawer/licencia-historial-drawer.component'
 import { AngularGridInstance } from 'angular-slickgrid';
 import { ApiService } from '../../../services/api.service';
 

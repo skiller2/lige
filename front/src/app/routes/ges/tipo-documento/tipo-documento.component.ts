@@ -19,9 +19,9 @@ import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
-import { TipoDocumentoAltaDrawerComponent } from '../../../shared/tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
-import { TablePendientesDescargasComponent } from '../../../shared/table-pendientes-descargas/table-pendientes-descargas.component'
-import { TableHistorialDescargasComponent } from '../../../shared/table-historial-descargas/table-historial-descargas.component'
+import { TipoDocumentoAltaDrawerComponent } from '../tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
+import { TablePendientesDescargasComponent } from '../table-pendientes-descargas/table-pendientes-descargas.component'
+import { TableHistorialDescargasComponent } from '../table-historial-descargas/table-historial-descargas.component'
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
 
 

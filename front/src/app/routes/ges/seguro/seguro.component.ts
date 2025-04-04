@@ -2,7 +2,7 @@ import { Component, inject, input, signal, model, ViewChild, viewChild } from '@
 import { SHARED_IMPORTS, listOptionsT } from '@shared'
 import { NzIconModule } from 'ng-zorro-antd/icon'
 import { firstValueFrom } from 'rxjs'
-import { TableSeguroListComponent } from 'src/app/shared/table-seguros-list/table-seguros-list.component'
+import { TableSeguroListComponent } from 'src/app/routes/ges/table-seguros-list/table-seguros-list.component'
 import { ApiService } from 'src/app/services/api.service'
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm'
 import { NzMenuModule } from 'ng-zorro-antd/menu'

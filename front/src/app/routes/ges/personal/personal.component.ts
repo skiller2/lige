@@ -11,15 +11,15 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { PersonalFormComponent } from '../personal-form/personal-form.component';
-import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-historial-drawer/licencia-historial-drawer.component'
-import { PersonalObjetivoDrawerComponent } from '../../../shared/personal-objetivo-drawer/personal-objetivo-drawer.component'
-import { PersonalCustodiasDrawerComponent } from '../../../shared/personal-custodias-drawer/personal-custodias-drawer.component'
-import { PersonalDomicilioDrawerComponent } from '../../../shared/personal-domicilio-drawer/personal-domicilio-drawer.component'
-import { PersonalSituacionRevistaDrawerComponent } from '../../../shared/personal-situacionrevista-drawer/personal-situacionrevista-drawer.component'
-import { PersonalResponsableDrawerComponent } from '../../../shared/personal-responsable-drawer/personal-responsable-drawer.component'
-import { PersonalDocumentosDrawerComponent } from '../../../shared/personal-documentos-drawer/personal-documentos-drawer.component'
-import { PersonalCategoriaDrawerComponent } from '../../../shared/personal-categoria-drawer/personal-categoria-drawer.component'
-import { PersonalBancoDrawerComponent } from '../../../shared/personal-banco-drawer/personal-banco-drawer.component'
+import { LicenciaHistorialDrawerComponent } from '../licencia-historial-drawer/licencia-historial-drawer.component'
+import { PersonalObjetivoDrawerComponent } from '../personal-objetivo-drawer/personal-objetivo-drawer.component'
+import { PersonalCustodiasDrawerComponent } from '../personal-custodias-drawer/personal-custodias-drawer.component'
+import { PersonalDomicilioDrawerComponent } from '../personal-domicilio-drawer/personal-domicilio-drawer.component'
+import { PersonalSituacionRevistaDrawerComponent } from '../personal-situacionrevista-drawer/personal-situacionrevista-drawer.component'
+import { PersonalResponsableDrawerComponent } from '../personal-responsable-drawer/personal-responsable-drawer.component'
+import { PersonalDocumentosDrawerComponent } from '../personal-documentos-drawer/personal-documentos-drawer.component'
+import { PersonalCategoriaDrawerComponent } from '../personal-categoria-drawer/personal-categoria-drawer.component'
+import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component'
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { NzIconModule } from 'ng-zorro-antd/icon';
 

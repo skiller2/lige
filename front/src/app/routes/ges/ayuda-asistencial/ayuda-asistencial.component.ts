@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { AyudaAsistencialDrawerComponent } from "../../../shared/ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
+import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
 
 @Component({
     selector: 'app-ayuda-asistencial',
