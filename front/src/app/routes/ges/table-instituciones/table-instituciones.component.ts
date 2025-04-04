@@ -93,7 +93,7 @@ export class TableInstitucionesComponent {
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
-      '.gridContainer2',
+      '.gridContainerInst',
       this.detailViewRowCount,
       this.excelExportService,
       this.angularUtilService,

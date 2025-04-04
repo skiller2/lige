@@ -55,10 +55,6 @@ export class EstudiosComponent {
   ngOnInit() {
   
     this.settingsService.setLayout('collapsed', true);
-
-    if (!this.router.url.includes('/estudios/estudios')) {
-      this.router.navigate(['/ges/estudios/estudios']); 
-    }
   }
 
 

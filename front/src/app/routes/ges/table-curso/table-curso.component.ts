@@ -97,7 +97,7 @@ export class TableCursoComponent {
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
-      '.gridContainer2',
+      '.gridContainerCur',
       this.detailViewRowCount,
       this.excelExportService,
       this.angularUtilService,

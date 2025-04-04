@@ -30,6 +30,15 @@
                     nzTheme="outline"></span></button>
                 <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
                   nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+
+                  @defer (when visibleDrawer()) {
+                    <app-estudios-drawer 
+                    (onRefreshEstudio)="RefreshEstudio.set(true)" 
+                    [disabled]="disabled()" 
+                    [(visible)]="visibleDrawer" 
+                    [PersonalId]="PersonalId()"
+                    [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
+                  } 
             }
             @if(selectedTab() === 'cursos') {
               
@@ -61,11 +70,6 @@
 
             }
           </nz-button-group>
-
-          
-      
-         
-      
         </div>
     
       </div>
@@ -106,12 +110,8 @@
         </nz-tab>
       </nz-tabset>
 
-      <app-estudios-drawer 
-      (onRefreshEstudio)="RefreshEstudio.set(true)" 
-      [disabled]="disabled()" 
-      [(visible)]="visibleDrawer" 
-      [PersonalId]="PersonalId()"
-      [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
+     
+   
 
       <app-cursos-drawer 
       (onRefreshCurso)="RefreshCurso.set(true)" 

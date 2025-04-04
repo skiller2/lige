@@ -96,7 +96,7 @@ export class TableEstudiosComponent {
 
 
   private initializeGridOptions(): void {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1',
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainerEst',
       this.detailViewRowCount,
       this.excelExportService,
       this.angularUtilService,
