@@ -1,4 +1,4 @@
-<nz-card style="max-height: 150px; overflow: auto;">
+<nz-card style="max-height: 150px; overflow: auto; border:none !important;">
   @for (tag of localoptions.filtros; track tag) {
   @if (tag.tagName !="") {
   <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
