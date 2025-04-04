@@ -764,16 +764,22 @@ export class LiquidacionesBancoController extends BaseController {
         fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}${fileTest}.txt`
 
         let total = 0
-        console.log("registros ", banco)
+//        console.log("registros ", banco)
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
           const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
-
+          if (!row.PersonalCUITCUILCUIT)
+            throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
+          if (!row.PersonalBancoCBU)
+            throw new ClientException('Sin CBU para el personal ' + PersonalApellidoNombre)
+        
           file.write(format("%s\t%s\t%s\t%s\t%s\t%s\t%s\r\n",
             "",// legajo no es obligatorio
             row.PersonalCUITCUILCUIT.toString().substring(0, 11),
+
             PersonalApellidoNombre.toString(),
             "", // Se informa el cbu por lo que cuenta se queda en blanco
+            
             row.PersonalBancoCBU.toString(),
             row.importe.toFixed(2),
             "" // comprobante no es obligatorio
@@ -781,6 +787,7 @@ export class LiquidacionesBancoController extends BaseController {
 
           total += Math.trunc(row.importe * 100)
         }
+  //throw new ClientException('Termino bien')
         file.end()
         await once(file, 'finish')
 
