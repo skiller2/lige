@@ -23,7 +23,7 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzSpan]="5">Nivel de Estudio</nz-form-label>
         <nz-form-control >
-          <nz-select  formControlName="TipoEstudioId" nzPlaceHolder="Nivel de Estudio" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important">
+          <nz-select  formControlName="TipoEstudioId" nzPlaceHolder="Nivel de Estudio" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
             <ng-container *ngFor="let option of $optionsNivelEstudio | async " >
               <nz-option [nzValue]="option.TipoEstudioId" [nzLabel]="option.TipoEstudioDescripcion" ></nz-option>
             </ng-container>
@@ -63,7 +63,7 @@
 
       <nz-form-control>
         <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalId ?? 0" [cantMaxFiles]="1"
-          [textForSearch]="'CURSO'" [columnForSearch]="'personalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
+          [textForSearch]="'CURSO'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
       </nz-form-control>
 
       @if(this.formCli.enabled) {

@@ -63,7 +63,6 @@ export class EstudiosDrawerComponent {
 
   constructor(private searchService: SearchService) { 
     effect(async() => { 
-      console.log("fui a buscar todo.....Estudio DrWER");
       const visible = this.visible()
       this.ArchivosEstudioAdd = []
       if (visible) {

@@ -125,7 +125,6 @@ export class CursosDrawerComponent {
     try {
       vals.CursoHabilitacionIdForEdit = this.CursoHabilitacionSelectedId()
       const res = await firstValueFrom(this.apiService.setCursos(vals))
-
       if(res.data?.list[0]?.CursoHabilitacionId > 0){
         this.CursoHabilitacionIdForEdit.set(res.data?.list[0]?.CursoHabilitacionId)
         this.formCli.patchValue({

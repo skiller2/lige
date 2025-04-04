@@ -42,8 +42,7 @@
         <nz-form-label [nzSpan]="5">Modalidad</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <nz-select formControlName="ModalidadCursoCodigo" nzPlaceHolder="Modalidad Curso" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important"
-           (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})">
+           <nz-select formControlName="ModalidadCursoCodigo" nzPlaceHolder="Modalidad Curso" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
              <ng-container *ngFor="let option of $optionsModalidadCurso | async">
                <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
              </ng-container>
@@ -66,7 +65,7 @@
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
             <nz-select formControlName="CentroCapacitacionId" nzPlaceHolder="Centro de Capacitación" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important"
-            (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})">
+            (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})" nzShowSearch>
               <ng-container *ngFor="let option of $optionsCentroCapacitacion | async">
                 <nz-option [nzValue]="option.CentroCapacitacionId" [nzLabel]="option.CentroCapacitacionRazonSocial"></nz-option>
               </ng-container>
@@ -79,7 +78,7 @@
         <nz-form-label [nzSpan]="5">Sede</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <nz-select formControlName="CentroCapacitacionSedeId" nzPlaceHolder="Centro de Capacitación Sede" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important">
+            <nz-select formControlName="CentroCapacitacionSedeId" nzPlaceHolder="Centro de Capacitación Sede" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
               <ng-container *ngFor="let option of $optionsCentroCapacitacionSede | async">
                 <nz-option *ngIf="option.CentroCapacitacionId == formCli.value.CentroCapacitacionId" [nzValue]="option.CentroCapacitacionSedeId" [nzLabel]="option.CentroCapacitacionSedeDescripcion"></nz-option>
               </ng-container>

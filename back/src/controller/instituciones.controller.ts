@@ -191,20 +191,18 @@ export class InstitucionesController extends BaseController {
       const instituciones = await queryRunner.query(
         `SELECT 
           ROW_NUMBER() OVER (ORDER BY cencap.CentroCapacitacionId) as id,
-          cencap.CentroCapacitacionId,
-          cencap.CentroCapacitacionRazonSocial,
-          cencap.CentroCapacitacionCuit,
-          cencap.CentroCapacitacionInactivo,
-          sede.CentroCapacitacionSedeId,
-          sede.CentroCapacitacionSedeDescripcion
+          cencap.CentroCapacitacionId
+
+        ,cencap.CentroCapacitacionRazonSocial
+        ,cencap.CentroCapacitacionCuit
+        ,cencap.CentroCapacitacionInactivo
+
+        ,sede.CentroCapacitacionSedeId
+        ,sede.CentroCapacitacionSedeDescripcion
+
         FROM CentroCapacitacion cencap
-        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId = cencap.CentroCapacitacionId
-        WHERE cencap.CentroCapacitacionId = ${CentroCapacitacionId}
-        AND sede.CentroCapacitacionSedeId = (
-          SELECT MAX(CentroCapacitacionSedeId) 
-          FROM CentroCapacitacionSede 
-          WHERE CentroCapacitacionId = ${CentroCapacitacionId}
-        )`
+        LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cencap.CentroCapacitacionId
+        WHERE cencap.CentroCapacitacionId = ${CentroCapacitacionId}`
       )
 
       this.jsonRes(
@@ -324,4 +322,74 @@ export class InstitucionesController extends BaseController {
   
   }
 
+  async setInstitucion(req: any, res: Response, next: NextFunction) {
+
+    let { CentroCapacitacionId, CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo,CentroCapacitacionIdForEdit } 
+    = req.body
+
+    console.log("req.body", req.body)
+    let result = []
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+
+    //throw new ClientException(`test.`)
+    CentroCapacitacionInactivo = CentroCapacitacionInactivo ? CentroCapacitacionInactivo : false
+
+    console.log("CentroCapacitacionInactivo", CentroCapacitacionInactivo)
+
+    await this.validateFormInstituciones(CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo)
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+   
+      if(CentroCapacitacionId > 0){
+        // is edit
+
+        await queryRunner.query(`
+          UPDATE CentroCapacitacion SET
+            CentroCapacitacionCuit = @0,
+            CentroCapacitacionRazonSocial = @1,
+            CentroCapacitacionInactivo = @2
+          WHERE CentroCapacitacionId = @3
+        `, [
+          CentroCapacitacionCuit,
+          CentroCapacitacionRazonSocial, 
+          CentroCapacitacionInactivo,
+          CentroCapacitacionId
+        ]);
+
+      }else{
+        // is new
+      console.log("estoy agregando")
+
+
+      await queryRunner.query(`
+        INSERT INTO CentroCapacitacion (
+          CentroCapacitacionCuit,
+          CentroCapacitacionRazonSocial,
+          CentroCapacitacionInactivo,
+          CentroCapacitacionSedeUltNro
+        ) VALUES (
+          @0, @1, @2, @3
+        )`, [
+          CentroCapacitacionCuit,
+          CentroCapacitacionRazonSocial, 
+          CentroCapacitacionInactivo,
+          null
+        ]);
+      
+        } 
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ list: result }, res, (CentroCapacitacionId > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+
+  }
 }
