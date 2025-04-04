@@ -55,16 +55,6 @@ export class EstudiosComponent {
   ngOnInit() {
   
   this.settingsService.setLayout('collapsed', true);
-
-    if (this.router.url.includes('/estudios')) {
-      this.selectedTab.set('estudios');
-    } 
-    if (this.router.url.includes('/instituciones')) {
-      this.selectedTab.set('instituciones');
-    }
-    if (this.router.url.includes('/cursos')) {
-      this.selectedTab.set('cursos');
-    }
   }
 
 

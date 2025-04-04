@@ -368,7 +368,11 @@ export class EstudioController extends BaseController {
       console.log("req.body.files", req.body.files)
       
       if (req.body.files?.length > 0) {
-        await FileUploadController.handlePDFUpload(PersonalId, 'CURSO', '', 'personalId', req.body.files, usuario, ip)
+        // ahcer for para cada archivo
+        for (const file of req.body.files) {
+          console.log("file", file)
+          await FileUploadController.handlePDFUpload(PersonalId, 0,0, null, null, '', file, usuario, ip)
+        }
       }
   
 

@@ -68,7 +68,7 @@
     
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
         <nz-tab></nz-tab>
-        <nz-tab>
+        <nz-tab (nzSelect)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">
           <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
           <ng-template nz-tab>
             <div class="container-fluid">
@@ -78,7 +78,7 @@
             </div>
           </ng-template>
         </nz-tab>
-        <nz-tab>
+        <nz-tab (nzSelect)="selectedTab.set('cursos'); this.PersonalId.set(0)">
           <a nz-tab-link routerLink="/ges/estudios/cursos">{{ 'app.seguros.cursos' | i18n }} </a>
           <ng-template nz-tab>
             <div class="container-fluid">
@@ -89,7 +89,7 @@
           </ng-template>
         </nz-tab>
 
-        <nz-tab>
+        <nz-tab (nzSelect)="selectedTab.set('instituciones'); this.PersonalId.set(0);this.CursoHabilitacionSelectedId.set(0)">
           <a nz-tab-link routerLink="/ges/estudios/instituciones">{{ 'app.seguros.instituciones' | i18n }} </a>
           <ng-template nz-tab>
             <div class="container-fluid">
