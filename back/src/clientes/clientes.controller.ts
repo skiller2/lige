@@ -416,8 +416,7 @@ ${orderBy}`, [fechaActual])
 
 
             if (ObjCliente.files?.length > 0) {
-
-                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI', 'cliente_id', ObjCliente.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(0, 0,ClienteId,new Date(),null,'cli',  ObjCliente.files, usuario, ip)
             }
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
@@ -655,9 +654,8 @@ ${orderBy}`, [fechaActual])
 
 
             if (ObjCliente.files?.length > 0) {
-
-                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI', 'cliente_id', ObjCliente.files, usuario, ip)
-            }
+                await FileUploadController.handlePDFUpload(0, 0,ClienteId,new Date(),null,'cli',  ObjCliente.files, usuario, ip)
+           }
 
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Carga  de nuevo registro exitoso');
