@@ -41,7 +41,6 @@ export class AuthMiddleware {
       if (res.locals?.skipMiddleware) return next()
 
       let inGroup = false
-      console.log('req?.groups',req?.groups)
 
       if (req?.groups) {
         for (const rowgroup of req?.groups) {

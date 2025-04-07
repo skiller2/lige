@@ -4,7 +4,7 @@ import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "http";
-import { ClientException } from "./controller/baseController";
+import { ClientException, ClientWarning } from "./controller/baseController";
 
 import dotenv from "dotenv"
 
@@ -55,29 +55,39 @@ const errorResponder = (
   next: NextFunction) => {
   res.locals.stopTime = performance.now()
   let data = {}
-  let message:string[] = ["Error interno, avise al administrador del sistema"]
+  let message: string[] = ["Error interno, avise al administrador del sistema"]
   let status = 500
-  
+
   if (process.env.DEBUG) {
     console.error(error);
   }
 
-  if (error instanceof ClientException) {
+  if (error instanceof ClientWarning) { 
+    message = error.messageArr
+    status = 200
+    data = error.extended
+
+    if (process.env.DEBUG) {
+      console.warn('Client Warning:', error); 
+    }
+
+  } else if (error instanceof ClientException) {
     message = error.messageArr
     status = 409
     data = error.extended
+
   } else if (error instanceof QueryFailedError) {
     if (error.message.indexOf('Violation') > 0) {
       message = ['El registro ya existe']
       status = 409
     }
-    const error2:any=error
-    if (error2.number ==8152 ||  error.message.indexOf('data would be truncated') > 0) {
+    const error2: any = error
+    if (error2.number == 8152 || error.message.indexOf('data would be truncated') > 0) {
       message = ['Tamaño del dato muy largo']
       status = 409
     }
 
-    if (error2.number ==547 ||  error.message.indexOf('REFERENCE constraint') > 0) {
+    if (error2.number == 547 || error.message.indexOf('REFERENCE constraint') > 0) {
       message = ['No se puede eliminar el registro, tiene registros relacionados']
       status = 409
     }
@@ -123,14 +133,14 @@ export class WebServer {
   }
 
   public lateInit() {
-/*
-    this.app.use("*",function (req:Request, res:Response, next:NextFunction) {
-      console.log('pasa por aca')
-      res.locals.stopTime = performance.now()
-      res.json({ hola: 'hola' })
-      res.end()
-    });
-*/
+    /*
+        this.app.use("*",function (req:Request, res:Response, next:NextFunction) {
+          console.log('pasa por aca')
+          res.locals.stopTime = performance.now()
+          res.json({ hola: 'hola' })
+          res.end()
+        });
+    */
     this.app.use(errorResponder)
     this.app.set("pkg", { version, author, name, description });
 

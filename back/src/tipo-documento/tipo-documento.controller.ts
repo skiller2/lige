@@ -13,6 +13,10 @@ import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import * as path from 'path';
 import { FileUploadController } from "src/controller/file-upload.controller";
+import * as fs from 'fs';
+import { promisify } from 'util';
+
+const unlink = promisify(fs.unlink);
 
 export class TipoDocumentoController extends BaseController {
 
@@ -489,5 +493,42 @@ export class TipoDocumentoController extends BaseController {
       await queryRunner.release()
     }
   }
+
+  async deleteArchivo(req: Request, res: Response, next: NextFunction) {
+  
+      let deleteId = Number(req.query[0])
+      const queryRunner = dataSource.createQueryRunner();
+      try {
+  
+        const document = await dataSource.query(`
+          SELECT doc_id AS id, path, nombre_archivo AS name
+          FROM lige.dbo.docgeneral
+          WHERE doc_id = @0
+          `, [deleteId])
+        const finalurl = `${document[0]["path"]}`
+  
+        if (document.length > 0) {
+          if (!existsSync(finalurl)) {
+            console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+          } else {
+            await unlink(finalurl);
+          }
+          throw new ClientException('DEBUG')
+          await queryRunner.connect();
+          await queryRunner.startTransaction();
+  
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
+  
+          await queryRunner.commitTransaction();
+        }
+  
+        this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+  
+      } catch (error) {
+        await this.rollbackTransaction(queryRunner)
+        return next(error)
+      }
+  
+    }
 
 }

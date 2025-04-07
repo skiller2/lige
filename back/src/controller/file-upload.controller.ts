@@ -25,6 +25,25 @@ export class FileUploadController extends BaseController {
   pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
   tempFolderPath = path.join(this.pathDocuments, 'temp');
 
+  static async hashFile(filePath: string): Promise<string> {
+    try {
+      const hash = CryptoJS.algo.SHA256.create(); // Create a SHA256 hash instance
+      const stream = fs.createReadStream(filePath);
+  
+      // Process the file in chunks
+      for await (const chunk of stream) {
+        hash.update(CryptoJS.enc.Latin1.parse(chunk.toString('latin1')));
+      }
+  
+      // Finalize the hash
+      const finalHash = hash.finalize().toString(CryptoJS.enc.Hex);
+      return finalHash;
+    } catch (error) {
+      console.error('Error reading or hashing the file:', error);
+      throw error;
+    }
+  }
+
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = req.params.id;
     const filename = req.params.filename;
@@ -247,7 +266,7 @@ export class FileUploadController extends BaseController {
         const finalUrl = `${process.env.PATH_ARCHIVOS}/${DocumentoImagenEstudioRuta[0]['DocumentoImagenParametroDirectorioPath'].replace(/\\/g, '/').replace(/\/$/, '')}`
 
         newFilePath = `${finalUrl}/${nameFile}`
-        this.moveFile(`${file.fieldname}.pdf`, newFilePath)
+        this.copyTmpFile(`${file.fieldname}.pdf`, newFilePath)
 
         await this.setArchivosDocumentoImagenEstudio(
           queryRunner,
@@ -277,7 +296,7 @@ export class FileUploadController extends BaseController {
               });
             }
           }
-          this.moveFile(file.filename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
+          this.copyTmpFile(file.filename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           await this.setArchivos(
             queryRunner,
@@ -298,8 +317,9 @@ export class FileUploadController extends BaseController {
             fechaActual,
           );
         } else {
-//          CryptoJS.SHA256(file.filename).toString(CryptoJS.enc.Base64)
-//            if file.filename
+          console.log('file', file)
+          throw new ClientException(`stop`)
+//          const hash = await FileUploadController.hashFile(filePath: string)
           await queryRunner.query(`
             UPDATE lige.dbo.docgeneral
             SET periodo = @1, fecha = @2, 
@@ -315,12 +335,9 @@ export class FileUploadController extends BaseController {
     }
   }
 
-  static moveFile(filename: any, newFilePath: any) {
+  static copyTmpFile(filename: any, newFilePath: any) {
     const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
-    // console.log("originalFilePath ", originalFilePath)
-    // console.log("newFilePath ", newFilePath)
-
-     const filePath = path.dirname(newFilePath);
+    const filePath = path.dirname(newFilePath);
 
     if (!existsSync(filePath)) {
       // Crea el directorio y todos los directorios padres necesarios de forma recursiva

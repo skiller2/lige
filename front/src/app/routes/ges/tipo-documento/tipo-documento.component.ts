@@ -8,7 +8,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { combineLatest } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -90,6 +90,7 @@ export class TipoDocumentoComponent {
 
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
+  childAlta = viewChild.required<TipoDocumentoAltaDrawerComponent>('alta')
   childDetalle = viewChild.required<TipoDocumentoAltaDrawerComponent>('detalle')
   childEdit = viewChild.required<TipoDocumentoAltaDrawerComponent>('editor')
 
@@ -201,6 +202,7 @@ export class TipoDocumentoComponent {
   }
 
   openDrawerforAlta(): void{
+    this.childAlta().resetForm()
     this.visibleAlta.set(true) 
   }
 
@@ -224,6 +226,13 @@ export class TipoDocumentoComponent {
         break;
       default:
         break;
+    }
+  }
+
+  async deleteTipoDocumento(){
+    if (this.docId()) {
+      await firstValueFrom(this.apiService.deleteTipoDocumento(this.docId()))
+      this.formChange$.next('')
     }
   }
 

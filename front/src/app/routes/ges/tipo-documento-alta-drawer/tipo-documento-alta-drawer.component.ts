@@ -52,6 +52,8 @@ export class TipoDocumentoAltaDrawerComponent {
 
   $optionsTipos = this.searchService.getTiposDocumentoOptions();
 
+  childFileUpload = viewChild.required<FileUploadComponent>('fileUpload')
+
   doc_id():number {
     const value = this.formTipoDocumento.get("doc_id")?.value
     if (value) 
@@ -125,6 +127,8 @@ export class TipoDocumentoAltaDrawerComponent {
         const res = await firstValueFrom(this.apiService.addTipoDocumento(values))
         if (res.data.doc_id)
           this.formTipoDocumento.controls.doc_id.setValue(res.data.doc_id)
+        if (this.archivo_fileUrl().length)
+          this.childFileUpload().setDisabledState(true)
       }
       let ref = this.refresh()
       this.refresh.set(++ref)
@@ -143,7 +147,7 @@ export class TipoDocumentoAltaDrawerComponent {
       
       infoDoc.nombre_archivo? this.archivoOriginalname.set(infoDoc.nombre_archivo) : this.archivoOriginalname.set('')
       infoDoc.extension? this.archivoMimetype.set(infoDoc.extension) : this.archivoMimetype.set('')
-      
+
       let values:any = {...this.inputs}
       for (const key in values) {
         values[key] = infoDoc[key]
@@ -152,10 +156,15 @@ export class TipoDocumentoAltaDrawerComponent {
     }
     if (this.disabled()) this.formTipoDocumento.disable()
     else this.formTipoDocumento.enable()
+    if (this.archivo_fileUrl().length)
+      this.childFileUpload().setDisabledState(true)
   }
 
   resetForm(){
-    this.formTipoDocumento.reset()
+    const doc_id = this.doc_id()
+    this.formTipoDocumento.reset({doc_id:0, doctipo_id:'', den_documento:null, persona_id:0, cliente_id:0, objetivo_id:0,})
+    if (doc_id)
+      this.childFileUpload().setDisabledState(false)
   }
 
   selectLabel(val: any){
