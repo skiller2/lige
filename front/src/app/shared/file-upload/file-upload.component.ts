@@ -10,11 +10,12 @@ import { pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { HttpClient } from '@angular/common/http';
 import { NzImageModule } from 'ng-zorro-antd/image';
-
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-file-upload',
-    imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule],
+    imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule],
     templateUrl: './file-upload.component.html',
     styleUrl: './file-upload.component.less',
     providers: [
@@ -59,19 +60,31 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   formChange$ = new BehaviorSubject('');
 
+  selectedValue = null;
+  tipoSelected = signal<string>("")
+
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
       this.files.set([])
-      if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "") {
+      if (this.idForSearh() > 0 && this.textForSearch() != "" && !this.textForSearch().includes(',') && this.tableForSearch() != "") {
         return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch()).pipe(
           map((list: any) => {
             this.cantFilesAnteriores.set(list.length)
             return list
           }))
       } else {
-        this.cantFilesAnteriores.set(0)
-        return of([])
+        if(this.idForSearh() > 0 &&  this.tipoSelected() != "" && this.tableForSearch() != ""){
+          return this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
+            map((list: any) => {
+              this.cantFilesAnteriores.set(list.length)
+              return list
+            }))
+        }else{
+          this.cantFilesAnteriores.set(0)
+          return of([])
+        }
+       
       }
 
     })
@@ -79,9 +92,16 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh']|| changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
+
       this.formChange$.next('');
     }
   }
+
+  onChange(event: any) {
+    this.tipoSelected.set(event)
+    this.formChange$.next('');
+  }
+  
 
   async LoadArchivo(documentId: any, tableForSearch:string, filename:string) {
 

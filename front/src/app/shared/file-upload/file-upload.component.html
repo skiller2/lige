@@ -53,9 +53,20 @@
     }
   </nz-form-control>
 
-
 </nz-form-item>
+
+@if(textForSearch().includes(',')){
+    <nz-form-item style=" justify-content: center;">
+      <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione un tipo" [(ngModel)]="selectedValue" [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChange($event)">
+        @for (item of textForSearch().split(','); track item) {
+          <nz-option [nzLabel]="item.trim()" [nzValue]="item.trim()"></nz-option>
+        }
+      </nz-select>
+    </nz-form-item>
+  }
+
 @if(isDisabled()==false && cantFiles()){
+  
 <nz-form-item>
   <nz-form-control class="BtnUploadFile">
     <ng-container>
