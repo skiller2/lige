@@ -12,6 +12,7 @@ import { randomBytes } from "crypto";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { QueryRunner } from "typeorm";
+import * as CryptoJS from 'crypto-js';
 
 
 
@@ -296,7 +297,8 @@ export class FileUploadController extends BaseController {
             fechaActual,
           );
         } else {
-
+//          CryptoJS.SHA256(file.filename).toString(CryptoJS.enc.Base64)
+//            if file.filename
           await queryRunner.query(`
             UPDATE lige.dbo.docgeneral
             SET periodo = @1, fecha = @2, 
@@ -306,10 +308,6 @@ export class FileUploadController extends BaseController {
             WHERE doc_id = @0
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
-  
-
-          console.log('file', file)
-          throw new ClientException(`DEBUG Subiendo Archivo`)
         }
         return doc_id        
         break;
