@@ -641,7 +641,7 @@ export class GrupoActividadController extends BaseController {
                     WHERE GrupoActividadId = @0`, [params.GrupoActividadId, params.GrupoActividadNumero, params.GrupoActividadDetalle, params.GrupoActividadInactivo, params.GrupoActividadSucursalId])
 
                 dataResultado = { action: 'U' }
-                message = "Actualizacion exitosa"
+                message = "Actualización exitosa"
 
             } else {  //Es un nuevo registro
 
@@ -695,7 +695,7 @@ export class GrupoActividadController extends BaseController {
                 );
 
                 dataResultado = { action: 'I' }
-                message = "Carga de nuevo Registro exitoso"
+                message = "Carga exitosa del nuevo registro."
             }
 
             await queryRunner.commitTransaction()
@@ -773,7 +773,7 @@ export class GrupoActividadController extends BaseController {
                     ])
 
                 dataResultado = { action: 'U', GrupoActividadId: params.GrupoActividadId, GrupoActividadJerarquicoId: params.GrupoActividadJerarquicoId }
-                message = "Actualizacion exitosa"
+                message = "Actualización exitosa"
 
             } else {  //Es un nuevo registro
                 // console.log('nuevo registro')
@@ -862,7 +862,7 @@ export class GrupoActividadController extends BaseController {
 
 
                 dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadJerarquicoId: GrupoActividadJerarquicoUltNro, PreviousDate: GrupoActividadJerarquicoHastaAnt }
-                message = "Carga de nuevo Registro exitoso"
+                message = "Carga exitosa del nuevo registro."
 
             }
             await queryRunner.query(`DELETE GrupoActividadJerarquico  
@@ -970,7 +970,7 @@ export class GrupoActividadController extends BaseController {
                 ])
 
                 dataResultado = { action: 'U', GrupoActividadObjetivoId: params.GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadId }
-                message = "Actualizacion exitosa"
+                message = "Actualización exitosa"
             } else {  //Es un nuevo registro
                 let GrupoActividadObjetivoHastaAnt=null
                 await this.validateFormObjetivos(params, queryRunner)
@@ -1030,7 +1030,7 @@ export class GrupoActividadController extends BaseController {
 
             
                 dataResultado = { action: 'I', GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHastaAnt }
-                message = "Carga de nuevo Registro exitoso"
+                message = "Carga exitosa del nuevo registro."
             }
             await queryRunner.query(`DELETE GrupoActividadObjetivo WHERE GrupoActividadObjetivoHasta IS NOT NULL AND GrupoActividadObjetivoHasta < GrupoActividadObjetivoDesde AND GrupoActividadObjetivoObjetivoId = @0`, [params.GrupoObjetivoDetalle.id])
             //Double check
@@ -1186,7 +1186,7 @@ export class GrupoActividadController extends BaseController {
                     WHERE GrupoActividadId =  @1`, [GrupoActividadPersonalId, params.GrupoActividadDetalle.id])
 
                 dataResultado = { action: 'I', GrupoActividadPersonalId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, PreviousDate: GrupoActividadPersonalHastaAnt }
-                message = "Carga de nuevo Registro exitoso"
+                message = "Carga exitosa del nuevo registro."
             }
 
             await queryRunner.query(`DELETE GrupoActividadPersonal WHERE GrupoActividadPersonalHasta IS NOT NULL AND GrupoActividadPersonalHasta < GrupoActividadPersonalDesde AND GrupoActividadPersonalPersonalId = @0`, [params.ApellidoNombrePersona.id])
