@@ -62,6 +62,7 @@ export class FileUploadController extends BaseController {
           break;
         case 'docgeneral':
           document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
+          console.log('aver',this.pathDocuments,document[0]["path"])
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
           break;
@@ -261,7 +262,7 @@ export class FileUploadController extends BaseController {
       default:
         if (!doc_id) {
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
-          newFilePath = `${process.env.PATH_DOCUMENTS}/${folder}/${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`;
+          newFilePath = `/${folder}/${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`;
 
           const type = file.mimetype.split('/')[1]
 
@@ -276,7 +277,7 @@ export class FileUploadController extends BaseController {
               });
             }
           }
-          this.moveFile(file.filename, newFilePath)
+          this.moveFile(file.filename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           await this.setArchivos(
             queryRunner,
@@ -302,9 +303,9 @@ export class FileUploadController extends BaseController {
           await queryRunner.query(`
             UPDATE lige.dbo.docgeneral
             SET periodo = @1, fecha = @2, 
-            -- path = @3, nombre_archivo = @4, 
+            -- path = @3, nombre_archivo = @4, detalle_documento = @14
             doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
-            aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
+            aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, 
             WHERE doc_id = @0
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
