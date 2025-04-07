@@ -43,6 +43,8 @@
         nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       <button nz-button nzType="default" (click)="openDrawerforDetalle()" [disabled]="docId() == 0" nz-tooltip
         nzTooltipTitle="{{ 'app.detail' | i18n }}"><span nz-icon nzType="file" nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="deleteTipoDocumento()" [disabled]="docId() == 0" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
     </nz-button-group>
   </div>
 
@@ -81,7 +83,7 @@
   </nz-tabset>
 
 </nz-card>
-<app-tipo-documento-alta-drawer [(visible)]="visibleAlta" [(refresh)]="refresh"></app-tipo-documento-alta-drawer>
+<app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" [(refresh)]="refresh"></app-tipo-documento-alta-drawer>
 <app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId()
   [disabled]=true></app-tipo-documento-alta-drawer>
 <app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" [docId]=docId()

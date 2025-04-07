@@ -43,3 +43,7 @@ tipoDocumentoRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.has
 tipoDocumentoRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
   tipoDocumentoController.updateTipoDocumento(req, res, next)
 })
+
+tipoDocumentoRouter.delete('/delete', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
+  tipoDocumentoController.deleteArchivo(req, res, next)
+})
