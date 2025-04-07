@@ -624,7 +624,7 @@ export class GrupoActividadController extends BaseController {
 
             if (codigoExist.length > 0) { //Entro en update
                 //Validar si cambio el código
-                console.log(" voy a hacer update")
+                // console.log(" voy a hacer update")
 
                 await this.validateFormGrupo(params, queryRunner)
 
@@ -646,7 +646,7 @@ export class GrupoActividadController extends BaseController {
             } else {  //Es un nuevo registro
 
 
-                console.log('El código no existe - es nuevo')
+                // console.log('El código no existe - es nuevo')
                 await this.validateFormGrupo(params, queryRunner)
 
                 let validateGrupoActividadNumero = await queryRunner.query(`SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
@@ -776,7 +776,7 @@ export class GrupoActividadController extends BaseController {
                 message = "Actualizacion exitosa"
 
             } else {  //Es un nuevo registro
-                console.log('nuevo registro')
+                // console.log('nuevo registro')
                 let GrupoActividadJerarquicoHastaAnt=null
                 GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
 
@@ -1040,7 +1040,7 @@ export class GrupoActividadController extends BaseController {
                 AND GrupoActividadObjetivoDesde <= @1 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') >= @1
                 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id,new Date()])
             if (checkObjetivoGrupo.length>1)
-                throw new ClientException(`El objetivo se encuentra en mas de un gurpo` )
+                throw new ClientException(`El objetivo se encuentra en mas de un Grupo de Actividad` )
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1088,7 +1088,7 @@ export class GrupoActividadController extends BaseController {
                     const maxFecha = new Date(maxFechaRec[0].GrupoActividadPersonalHasta);
 
                     if (maxFecha && desdeNew <= maxFecha) {
-                        throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
+                        throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(maxFecha)}`)
                     }
                 }
                 if (GrupoActividadPersonalHasta) 
@@ -1117,7 +1117,7 @@ export class GrupoActividadController extends BaseController {
 
 
                 dataResultado = { action: 'U', GrupoActividadPersonalId:params.GrupoActividadPersonalId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalHasta, GrupoActividadPersonalDesde}
-                message = "Actualizacion exitosa"
+                message = "Actualización exitosa"
 
             } else {  //Es un nuevo registro
                 let GrupoActividadPersonalHastaAnt=null
@@ -1137,7 +1137,7 @@ export class GrupoActividadController extends BaseController {
                     [params.ApellidoNombrePersona.id, GrupoActividadPersonalDesde])
 
                 if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadPersonalDesde) > GrupoActividadPersonalDesde)
-                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde)) }` )
+                    throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde)) }` )
                     
                 
                 if (resultQuery.length > 0) {
@@ -1250,17 +1250,17 @@ export class GrupoActividadController extends BaseController {
 
 
         if (!params.GrupoActividadNumero) {
-            throw new ClientException(`Debe completar el campo Numero.`)
+            throw new ClientWarning(`Debe completar el campo Número.`)
         }
 
         if (!params.GrupoActividadDetalle && !params.PersonalId) {
-            throw new ClientException(`Debe completar el campo Detalle.`)
+            throw new ClientWarning(`Debe completar el campo Detalle.`)
         }
         if (!params.GrupoActividadInactivo) {
-            throw new ClientException(`Debe completar el campo Inactivo.`)
+            throw new ClientWarning(`Debe completar el campo Inactivo.`)
         }
         if (!params.GrupoActividadSucursalId) {
-            throw new ClientException(`Debe completar el campo Sucursal.`)
+            throw new ClientWarning(`Debe completar el campo Sucursal.`)
         }
 
 
@@ -1287,19 +1287,19 @@ export class GrupoActividadController extends BaseController {
 
 
             if (!params.GrupoActividadDetalle?.id) {
-                throw new ClientException(`Debe completar el campo Grupo Actividad.`)
+                throw new ClientWarning(`Debe completar el campo Grupo Actividad.`)
             }
             if (!params.GrupoActividadJerarquicoComo) {
-                throw new ClientException(`Debe completar el campo Tipo.`)
+                throw new ClientWarning(`Debe completar el campo Tipo.`)
             }
             if (!params.ApellidoNombrePersona) {
-                throw new ClientException(`Debe completar el campo Apellido Nombre.`)
+                throw new ClientWarning(`Debe completar el campo Apellido Nombre.`)
             }
 
         }
 
         if (!params.GrupoActividadJerarquicoDesde) {
-            throw new ClientException(`Debe completar el campo Desde.`)
+            throw new ClientWarning(`Debe completar el campo Desde.`)
         }
 
         if (params.GrupoActividadJerarquicoHasta && params.GrupoActividadJerarquicoDesde > params.GrupoActividadJerarquicoHasta) {
@@ -1313,10 +1313,10 @@ export class GrupoActividadController extends BaseController {
 
 
         if (!params.GrupoActividadDetalle?.id) {
-            throw new ClientException(`Debe completar el campo Grupo Actividad.`)
+            throw new ClientWarning(`Debe completar el campo Grupo Actividad.`)
         }
         if (!params.GrupoObjetivoDetalle?.id) {
-            throw new ClientException(`Debe completar el campo Objetivo.`)
+            throw new ClientWarning(`Debe completar el campo Objetivo.`)
         }
 
         if (params.GrupoActividadJerarquicoHasta && params.GrupoActividadJerarquicoDesde > params.GrupoActividadJerarquicoHasta) {
