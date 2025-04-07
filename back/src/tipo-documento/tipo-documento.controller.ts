@@ -73,7 +73,7 @@ export class TipoDocumentoController extends BaseController {
       type: 'string',
       formatter: 'complexObject',
       params: {
-          complexFieldLabel: 'cliente.fullname',
+        complexFieldLabel: 'cliente.fullname',
       },
       searchComponent: "inpurForClientSearch",
       searchType: "number",
@@ -154,7 +154,7 @@ export class TipoDocumentoController extends BaseController {
       fieldName: "des.telefono",
       sortable: true,
       hidden: false,
-      searchHidden:true,
+      searchHidden: true,
       maxWidth: 250,
     },
     {
@@ -212,7 +212,7 @@ export class TipoDocumentoController extends BaseController {
       fieldName: "tel.telefono",
       sortable: true,
       hidden: false,
-      searchHidden:true,
+      searchHidden: true,
       maxWidth: 250,
     }
   ];
@@ -277,11 +277,11 @@ export class TipoDocumentoController extends BaseController {
   }
 
   private async getTiposDocumentoQuery(queryRunner: any) {
-      return await queryRunner.query(`
+    return await queryRunner.query(`
           SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, des_den_documento
           FROM lige.dbo.doctipo tipo`)
-    }
-  
+  }
+
   async getTipos(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -294,14 +294,14 @@ export class TipoDocumentoController extends BaseController {
   }
 
   async addTipoDocumento(req: any, res: Response, next: NextFunction) {
-    const doctipo_id:string = req.body.doctipo_id
-    const den_documento:string = req.body.den_documento
-    const persona_id:number = req.body.persona_id
-    const cliente_id:number = req.body.cliente_id
-    const objetivo_id:number = req.body.objetivo_id
-    const fecha:Date = req.body.fecha? new Date(req.body.fecha) : null
-    const fec_doc_ven:Date = req.body.fec_doc_ven? new Date(req.body.fec_doc_ven) : null
-    const archivos:any[] = req.body.archivo
+    const doctipo_id: string = req.body.doctipo_id
+    const den_documento: string = req.body.den_documento
+    const persona_id: number = req.body.persona_id
+    const cliente_id: number = req.body.cliente_id
+    const objetivo_id: number = req.body.objetivo_id
+    const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : null
+    const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : null
+    const archivos: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -312,7 +312,7 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-        const doc_id = await FileUploadController.handlePDFUpload(persona_id, objetivo_id, cliente_id, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip)
+      const doc_id = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip)
 
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
@@ -325,7 +325,7 @@ export class TipoDocumentoController extends BaseController {
     }
   }
 
-  private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id:number) {
+  private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
       SELECT CONCAT(des.doc_id,'-',cuit.PersonalCUITCUILCUIT,'-',des.fecha_descarga) AS id, des.doc_id, des.fecha_descarga, des.telefono,
       per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -346,7 +346,7 @@ export class TipoDocumentoController extends BaseController {
     const doc_id = req.body.doc_id
     try {
       const PersonalDescarga = await this.getPersonalDescargaQuery(filterSql, orderBy, doc_id)
-      
+
       this.jsonRes(
         {
           length: PersonalDescarga.length,
@@ -364,7 +364,7 @@ export class TipoDocumentoController extends BaseController {
     this.jsonRes(this.listaPersonalDescarga, res);
   }
 
-  private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id:number) {
+  private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
       SELECT DISTINCT per.PersonalId AS id, tel.telefono,
       per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -411,26 +411,26 @@ export class TipoDocumentoController extends BaseController {
 
   async updateTipoDocumento(req: any, res: Response, next: NextFunction) {
     const doc_id = req.body.doc_id
-    const doctipo_id:string = req.body.doctipo_id
-    const den_documento:string = req.body.den_documento
-    const persona_id:number = req.body.persona_id
-    const cliente_id:number = req.body.cliente_id
-    const objetivo_id:number = req.body.objetivo_id
-    const fecha:Date = req.body.fecha? new Date(req.body.fecha) : req.body.fecha
-    const fec_doc_ven:Date = req.body.fec_doc_ven? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
-    const archivo:any[] = req.body.archivo
+    const doctipo_id: string = req.body.doctipo_id
+    const den_documento: string = req.body.den_documento
+    const persona_id: number = req.body.persona_id
+    const cliente_id: number = req.body.cliente_id
+    const objetivo_id: number = req.body.objetivo_id
+    const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : req.body.fecha
+    const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
+    const archivo: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
     try {
       await queryRunner.startTransaction()
-      
+
       const valsTipoDocumento = this.valsTipoDocumento(req.body)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-throw new ClientException('EN DESARROLLO')
+      throw new ClientException('EN DESARROLLO')
 
       const anio = fecha.getFullYear()
       const mes = fecha.getMonth() + 1
@@ -458,15 +458,14 @@ throw new ClientException('EN DESARROLLO')
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo && archivo.length) {
-
-//        await FileUploadController.handlePDFUpload(persona_id, objetivo_id, cliente_id, archivo, usuario, ip)
+        await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, archivo[0], usuario, ip)
 
 
 
 
         if (den_documento && den_documento.length && den_documento.includes('/')) {
           const options = await this.getTiposDocumentoQuery(queryRunner)
-          const find = options.find((obj:any)=> { return doctipo_id == obj.value})
+          const find = options.find((obj: any) => { return doctipo_id == obj.value })
           let inputName = ''
           if (find.des_den_documento) {
             inputName = `${find.des_den_documento}`
@@ -480,8 +479,8 @@ throw new ClientException('EN DESARROLLO')
         const doctipo = await queryRunner.query(`
           SELECT path_origen FROM lige.dbo.doctipo WHERE doctipo_id = @0
         `, [doctipo_id])
-        
-        const pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
+
+        const pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
         const tempFolderPath = path.join(pathDocuments, 'temp');
         const tempFilePath = path.join(tempFolderPath, `${fieldname}.${type}`);
 
@@ -497,16 +496,16 @@ throw new ClientException('EN DESARROLLO')
             const page = await document.getPage(pagenum);
             const textContent = await page.getTextContent();
             textContent.items.forEach((item: TextItem) => {
-              detalle_documento+=item.str + ((item.hasEOL)?'\n':'')
+              detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
             });
           }
         }
-        
+
         if (!existsSync(newFilePath)) mkdirSync(newFilePath, { recursive: true })
 
         newFilePath += `/${newFieldname}`
         pathFile += `/${newFieldname}`
-        
+
         if (existsSync(newFilePath)) unlinkSync(newFilePath);
 
         copyFileSync(tempFilePath, newFilePath)
@@ -518,8 +517,8 @@ throw new ClientException('EN DESARROLLO')
           doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
           aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
           WHERE doc_id IN (@0)
-        `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
-        den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
+        `, [doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
+          den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
       } else {
         await queryRunner.query(`
           UPDATE lige.dbo.docgeneral
@@ -527,8 +526,8 @@ throw new ClientException('EN DESARROLLO')
           objetivo_id = @5, den_documento = @6, cliente_id = @7, fec_doc_ven = @8,
           aud_usuario_mod = @9, aud_ip_mod = @10, aud_fecha_mod = @11
           WHERE doc_id IN (@0)
-        `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, doctipo_id, persona_id, objetivo_id,
-        den_documento, cliente_id, fec_doc_ven, usuario, ip, now])
+        `, [doc_id, liqmaperiodo[0].periodo_id, fecha, doctipo_id, persona_id, objetivo_id,
+          den_documento, cliente_id, fec_doc_ven, usuario, ip, now])
       }
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
@@ -541,20 +540,20 @@ throw new ClientException('EN DESARROLLO')
     }
   }
 
-  private valsTipoDocumento(tipoDocumento:any) {
-    const doctipo_id:string = tipoDocumento.doctipo_id
-    const den_documento:string = tipoDocumento.den_documento
-    const persona_id:number = tipoDocumento.persona_id
-    const cliente_id:number = tipoDocumento.cliente_id
-    const objetivo_id:number = tipoDocumento.objetivo_id
-    const fecha:Date = tipoDocumento.fecha? new Date(tipoDocumento.fecha) : tipoDocumento.fecha
-    const fec_doc_ven:Date = tipoDocumento.fec_doc_ven? new Date(tipoDocumento.fec_doc_ven) : tipoDocumento.fec_doc_ven
+  private valsTipoDocumento(tipoDocumento: any) {
+    const doctipo_id: string = tipoDocumento.doctipo_id
+    const den_documento: string = tipoDocumento.den_documento
+    const persona_id: number = tipoDocumento.persona_id
+    const cliente_id: number = tipoDocumento.cliente_id
+    const objetivo_id: number = tipoDocumento.objetivo_id
+    const fecha: Date = tipoDocumento.fecha ? new Date(tipoDocumento.fecha) : tipoDocumento.fecha
+    const fec_doc_ven: Date = tipoDocumento.fec_doc_ven ? new Date(tipoDocumento.fec_doc_ven) : tipoDocumento.fec_doc_ven
 
     let campos_vacios: any[] = []
 
     if (!doctipo_id) campos_vacios.push(`- Tipo de documento`)
     if (!den_documento) campos_vacios.push(`- Denominación de documento`)
-    if ((doctipo_id == 'LIC' || doctipo_id == 'REC' ) && !Number.isInteger(persona_id)) campos_vacios.push(`- Persona`)
+    if ((doctipo_id == 'LIC' || doctipo_id == 'REC') && !Number.isInteger(persona_id)) campos_vacios.push(`- Persona`)
     if (doctipo_id == 'CLI' && !Number.isInteger(cliente_id)) campos_vacios.push(`- Cliente`)
     if (doctipo_id == 'OBJ' && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
     if (!fecha) campos_vacios.push(`- Desde`)
@@ -567,7 +566,7 @@ throw new ClientException('EN DESARROLLO')
   }
 
   async getTipoDocumentoById(req: any, res: Response, next: NextFunction) {
-    const id:number = req.params.id;
+    const id: number = req.params.id;
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()

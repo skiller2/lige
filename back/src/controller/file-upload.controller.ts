@@ -197,10 +197,11 @@ export class FileUploadController extends BaseController {
     }
   }
 
-  static async handlePDFUpload(
+  static async handleDOCUpload(
     personal_id: number,
     objetivo_id: number,
     cliente_id: number,
+    doc_id:number,
     fecha: Date,
     fec_doc_ven: Date,
     den_documento: string,

@@ -968,7 +968,7 @@ export class ObjetivosController extends BaseController {
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
 
             if (Obj.files?.length > 0) {
-                await FileUploadController.handlePDFUpload(0, ObjetivoId,0,new Date(),null,'obj',  Obj.files, usuarioId, ip)
+                await FileUploadController.handleDOCUpload(0, ObjetivoId,0,0,new Date(),null,'obj',  Obj.files, usuarioId, ip)
             }
 
             if (Obj.ClienteId !== Obj.clienteOld) {
@@ -1328,7 +1328,7 @@ export class ObjetivosController extends BaseController {
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
 
             if (Obj.files?.length > 0) {
-                await FileUploadController.handlePDFUpload(0, ObjetivoId,0,new Date(),null,'obj',  Obj.files, usuarioId, ip)
+                await FileUploadController.handleDOCUpload(0, ObjetivoId,0,0,new Date(),null,'obj',  Obj.files, usuarioId, ip)
             }
 
             await queryRunner.commitTransaction()

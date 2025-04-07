@@ -371,7 +371,7 @@ export class EstudioController extends BaseController {
         // ahcer for para cada archivo
         for (const file of req.body.files) {
           console.log("file", file)
-          await FileUploadController.handlePDFUpload(PersonalId, 0,0, null, null, '', file, usuario, ip)
+          await FileUploadController.handleDOCUpload(PersonalId, 0,0, 0,null, null, '', file, usuario, ip)
         }
       }
   

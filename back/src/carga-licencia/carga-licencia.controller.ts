@@ -886,7 +886,7 @@ export class CargaLicenciaController extends BaseController {
 
       if (req.body.files) {
         for (const file of req.body.files) {
-          await FileUploadController.handlePDFUpload(PersonalId, 0, 0, new Date(), null, '', req.body.files, usuario, ip)
+          await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0,new Date(), null, '', req.body.files, usuario, ip)
         }
       }
 
