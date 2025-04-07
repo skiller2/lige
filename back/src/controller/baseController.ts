@@ -17,6 +17,30 @@ export class ClientException extends Error {
   }
 }
 
+export class ClientWarning extends Error {
+  messageArr: string[];
+
+  constructor(
+    message: string | string[], 
+    public extended: any = '', 
+    public code: number = 0
+  ) {
+    if (message instanceof Array) {
+      super(message.join(', '));
+      this.messageArr = message;
+    } else {
+      super(message);
+      this.messageArr = [message];
+    }
+    
+    this.name = "ClientWarning";
+    
+    if (extended) {
+      this.stack += "\nExtra: " + extended;
+    }
+  }
+}
+
 
 export class BaseController {
   /**

@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "../controller/baseController";
+import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
@@ -1342,10 +1342,10 @@ export class GrupoActividadController extends BaseController {
 
 
         if (!params.GrupoActividadDetalle?.id) {
-            throw new ClientException(`Debe completar el campo Grupo Actividad.`)
+            throw new ClientWarning(`Debe completar el campo Grupo Actividad.`)
         }
         if (!params.ApellidoNombrePersona?.id) {
-            throw new ClientException(`Debe completar el campo Apellido Nombre.`)
+            throw new ClientWarning(`Debe completar el campo Apellido Nombre.`)
         }
 
 
