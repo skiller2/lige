@@ -506,7 +506,7 @@ export class AccesoBotController extends BaseController {
                     VALUES ( @0,@1,@2,@3,@4)`, [PersonalId, typefile, nameFile, isFrente, 1])
 
 
-                    await FileUploadController.moveFile(file.filename, `${process.env.PATH_DNI}/${nameFile}`, process.env.PATH_DNI);
+                    await FileUploadController.copyTmpFile(file.filename, `${process.env.PATH_DNI}/${nameFile}`);
                 }
 
             } catch (error) {
