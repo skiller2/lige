@@ -886,7 +886,7 @@ export class CargaLicenciaController extends BaseController {
 
       if (req.body.files) {
         for (const file of req.body.files) {
-          await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0,new Date(), null, '', req.body.files, usuario, ip)
+          await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', req.body.files, usuario, ip, queryRunner)
         }
       }
 
@@ -962,7 +962,7 @@ export class CargaLicenciaController extends BaseController {
 
       const cierre = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
       const FechaCierre = new Date(cierre[0].FechaCierre);
-      if (FechaCierre >= recLicSit[0].PersonalLicenciaDesde) { 
+      if (FechaCierre >= recLicSit[0].PersonalLicenciaDesde) {
         throw new ClientException(`No puede eliminar ya que la fecha de la licencia es menor o igual a la fecha de cierre de liquidación`)
       }
 
@@ -978,10 +978,10 @@ export class CargaLicenciaController extends BaseController {
 
       if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10)
         throw new ClientException(`La situación revista anterior no puede ser "Licencia", avise al administrador`)
-      
+
       await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaSituacionId = @0, PersonalSituacionRevistaMotivo = NULL WHERE PersonalId = @1 AND PersonalSituacionRevistaId = @2`,
         [recLicSit[0].PersonalLicenciaSituacionRevistaId, PersonalId, recLicSit[0].PersonalSituacionRevistaId])
-    
+
       this.jsonRes({ list: [] }, res, `Licencia borrada con exito`);
       await queryRunner.commitTransaction();
 

@@ -11,6 +11,7 @@ import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
+import { QueryRunner } from "typeorm";
 
 
 
@@ -208,8 +209,8 @@ export class FileUploadController extends BaseController {
     file: any,
     usuario: any,
     ip: any,
+    queryRunner: QueryRunner
   ) {
-    const queryRunner = dataSource.createQueryRunner();
     let fechaActual = new Date();
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth(), usuario, ip);
     let detalle_documento = ''
@@ -257,43 +258,60 @@ export class FileUploadController extends BaseController {
         return 0
         break;
       default:
-        let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
-        newFilePath = `${process.env.PATH_DOCUMENTS}/${folder}/${docgeneral}-${personal_id + cliente_id + objetivo_id}.pdf`;
+        if (!doc_id) {
+          doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
+          newFilePath = `${process.env.PATH_DOCUMENTS}/${folder}/${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`;
 
-        const type = file.mimetype.split('/')[1]
+          const type = file.mimetype.split('/')[1]
 
-        if (type == 'pdf') {
-          const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.filename}`)
-          const document = await loadingTask.promise;//Error
-          for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
-            const page = await document.getPage(pagenum);
-            const textContent = await page.getTextContent();
-            textContent.items.forEach((item: TextItem) => {
-              detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
-            });
+          if (type == 'pdf') {
+            const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.filename}`)
+            const document = await loadingTask.promise;//Error
+            for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+              const page = await document.getPage(pagenum);
+              const textContent = await page.getTextContent();
+              textContent.items.forEach((item: TextItem) => {
+                detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
+              });
+            }
           }
-        }
-        this.moveFile(file.filename, newFilePath)
+          this.moveFile(file.filename, newFilePath)
 
-        await this.setArchivos(
-          queryRunner,
-          Number(docgeneral),
-          periodo_id,
-          fecha,
-          fec_doc_ven,
-          personal_id,
-          objetivo_id,
-          cliente_id,
-          file.originalname,
-          newFilePath,
-          detalle_documento,
-          doctipo_id,
-          den_documento,
-          usuario,
-          ip,
-          fechaActual,
-        );
-        return docgeneral        
+          await this.setArchivos(
+            queryRunner,
+            doc_id,
+            periodo_id,
+            fecha,
+            fec_doc_ven,
+            personal_id,
+            objetivo_id,
+            cliente_id,
+            file.originalname,
+            newFilePath,
+            detalle_documento,
+            doctipo_id,
+            den_documento,
+            usuario,
+            ip,
+            fechaActual,
+          );
+        } else {
+
+          await queryRunner.query(`
+            UPDATE lige.dbo.docgeneral
+            SET periodo = @1, fecha = @2, 
+            -- path = @3, nombre_archivo = @4, 
+            doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
+            aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
+            WHERE doc_id = @0
+          `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
+            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
+  
+
+          console.log('file', file)
+          throw new ClientException(`DEBUG Subiendo Archivo`)
+        }
+        return doc_id        
         break;
     }
   }

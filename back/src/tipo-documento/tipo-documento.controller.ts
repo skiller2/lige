@@ -312,7 +312,7 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      const doc_id = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip)
+      const doc_id = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner)
 
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
@@ -430,6 +430,9 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
+
+      await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, archivo[0], usuario, ip, queryRunner)
+
       throw new ClientException('EN DESARROLLO')
 
       const anio = fecha.getFullYear()
@@ -458,7 +461,6 @@ export class TipoDocumentoController extends BaseController {
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo && archivo.length) {
-        await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, archivo[0], usuario, ip)
 
 
 

@@ -416,7 +416,7 @@ ${orderBy}`, [fechaActual])
 
 
             if (ObjCliente.files?.length > 0) {
-                await FileUploadController.handleDOCUpload(0, 0,ClienteId,0,new Date(),null,'cli',  ObjCliente.files, usuario, ip)
+                await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', ObjCliente.files, usuario, ip, queryRunner)
             }
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
@@ -469,10 +469,10 @@ ${orderBy}`, [fechaActual])
         if (ContactoIds.length > 0) {
             await queryRunner.query(`DELETE e FROM ContactoEmail e
                 JOIN Contacto c ON c.ContactoId = e.ContactoId
-                WHERE c.ClienteId = @0 AND e.ContactoId NOT IN (${ContactoIds.join(',')}) `,[ClienteId])
+                WHERE c.ClienteId = @0 AND e.ContactoId NOT IN (${ContactoIds.join(',')}) `, [ClienteId])
             await queryRunner.query(`DELETE t FROM ContactoTelefono t 
                 JOIN Contacto c ON c.ContactoId = t.ContactoId
-                WHERE c.ClienteId = @0 AND t.ContactoId NOT IN (${ContactoIds.join(',')}) `,[ClienteId])
+                WHERE c.ClienteId = @0 AND t.ContactoId NOT IN (${ContactoIds.join(',')}) `, [ClienteId])
             await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0  AND ContactoId NOT IN (${ContactoIds.join(',')})`, [ClienteId]);
         }
 
@@ -654,8 +654,8 @@ ${orderBy}`, [fechaActual])
 
 
             if (ObjCliente.files?.length > 0) {
-                await FileUploadController.handleDOCUpload(0, 0,ClienteId,0,new Date(),null,'cli',  ObjCliente.files, usuario, ip)
-           }
+                await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', ObjCliente.files, usuario, ip, queryRunner)
+            }
 
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Carga  de nuevo registro exitoso');
@@ -794,10 +794,10 @@ ${orderBy}`, [fechaActual])
     async FormValidations(form: any, queryRunner: any) {
         const CUIT: number = form.ClienteFacturacionCUIT
         const idCliente: number = form.id
-     
+
         let valCuit = await queryRunner.query(`SELECT ClienteId FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT])
 
-        if (valCuit.length > 0 && idCliente != valCuit[0].ClienteId) 
+        if (valCuit.length > 0 && idCliente != valCuit[0].ClienteId)
             throw new ClientException(`El CUIT ingresado ya existe`)
 
         if (!form.ClienteFacturacionCUIT) {

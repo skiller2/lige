@@ -737,10 +737,10 @@ export class ObjetivosController extends BaseController {
 
                 const DesdeMax: Date = new Date(Math.max(GrupoActividadObjetivoHastaNueva.getTime(), ContratoFechaDesde.getTime(), FechaCierreNueva.getTime()))
                 if (DesdeMax < ContratoFechaHasta || !ContratoFechaHasta) {
-                    
+
                     const GrupoActividadObjetivoUltNro = await queryRunner.query(`SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId = @0`, [gao[0].GrupoActividadId])
                     const GrupoActividadObjetivoIdNew = GrupoActividadObjetivoUltNro[0].GrupoActividadObjetivoUltNro + 1;
-    
+
 
                     await queryRunner.query(`INSERT INTO GrupoActividadObjetivo (
                     GrupoActividadObjetivoId,
@@ -812,7 +812,7 @@ export class ObjetivosController extends BaseController {
 
         const now = new Date();
         const hora = this.getTimeString(now)
-         
+
         const cierre = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(cierre[0].FechaCierre);
 
@@ -825,7 +825,7 @@ export class ObjetivosController extends BaseController {
         const gao = await queryRunner.query(`
             SELECT gao.GrupoActividadObjetivoId, gao.GrupoActividadObjetivoObjetivoId, gao.GrupoActividadObjetivoDesde, gao.GrupoActividadObjetivoHasta
             FROM GrupoActividadObjetivo gao WHERE gao.GrupoActividadObjetivoObjetivoId = @0 AND ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= @1 AND gao.GrupoActividadObjetivoDesde<=@1 `,
-            [infoActividad[0].GrupoActividadObjetivoObjetivoId,now]
+            [infoActividad[0].GrupoActividadObjetivoObjetivoId, now]
         )
 
         if (gao.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && gao[0].GrupoActividadObjetivoDesde > GrupoActividadObjetivoDesde) {
@@ -835,7 +835,7 @@ export class ObjetivosController extends BaseController {
             throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
         }
         // Restar un día a la fecha
-        
+
         const nuevoHasta = new Date(GrupoActividadObjetivoDesde)
         nuevoHasta.setDate(nuevoHasta.getDate() - 1)
 
@@ -850,7 +850,7 @@ export class ObjetivosController extends BaseController {
 
             const GrupoActividadObjetivoUltNro = await queryRunner.query(`SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId = @0`, [infoActividad[0].GrupoActividadId])
             const GrupoActividadObjetivoIdNew = GrupoActividadObjetivoUltNro[0].GrupoActividadObjetivoUltNro + 1;
-    
+
             await queryRunner.query(`INSERT INTO GrupoActividadObjetivo (
             GrupoActividadObjetivoId,
             GrupoActividadId,
@@ -892,7 +892,7 @@ export class ObjetivosController extends BaseController {
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }
             const infoActividad = { ...Obj.infoActividad }
-            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad:[], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
+            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
 
             //throw new ClientException(`test.`)
             //validaciones
@@ -921,16 +921,16 @@ export class ObjetivosController extends BaseController {
 
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId)
             //update
-//throw new ClientException('debug2')
+            //throw new ClientException('debug2')
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
             ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
             ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
-            
+
             if ((!Obj.ContratoFechaHasta && ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta) || (Obj.ContratoFechaHasta > ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta)) {
                 await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2  WHERE GrupoActividadObjetivoId=@0 AND GrupoActividadId=@1`, [ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoId, ObjObjetivoNew.infoActividad[0].GrupoActividadId, Obj.ContratoFechaHasta])
-            } 
-//            throw new ClientException('debug')
+            }
+            //            throw new ClientException('debug')
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
@@ -968,7 +968,7 @@ export class ObjetivosController extends BaseController {
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
 
             if (Obj.files?.length > 0) {
-                await FileUploadController.handleDOCUpload(0, ObjetivoId,0,0,new Date(),null,'obj',  Obj.files, usuarioId, ip)
+                await FileUploadController.handleDOCUpload(0, ObjetivoId, 0, 0, new Date(), null, 'obj', Obj.files, usuarioId, ip, queryRunner)
             }
 
             if (Obj.ClienteId !== Obj.clienteOld) {
@@ -1259,11 +1259,11 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body };
         const infoActividad = { ...Obj.infoActividad }
-        let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad:[] }
+        let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad: [] }
         try {
 
             const ip = this.getRemoteAddress(req)
-            const usuarioId = await this.getUsuarioId(res,queryRunner)
+            const usuarioId = await this.getUsuarioId(res, queryRunner)
 
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
@@ -1328,7 +1328,7 @@ export class ObjetivosController extends BaseController {
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
 
             if (Obj.files?.length > 0) {
-                await FileUploadController.handleDOCUpload(0, ObjetivoId,0,0,new Date(),null,'obj',  Obj.files, usuarioId, ip)
+                await FileUploadController.handleDOCUpload(0, ObjetivoId, 0, 0, new Date(), null, 'obj', Obj.files, usuarioId, ip, queryRunner)
             }
 
             await queryRunner.commitTransaction()
@@ -1591,32 +1591,32 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones:any[], usuarioId:number, ip:string) {
+    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones: any[], usuarioId: number, ip: string) {
         //Compruebo si hubo cambios
         let cambios: boolean = false
         if (!habilitaciones || !habilitaciones.length) {
             throw new ClientException('Al menos debe seleccionar un lugar de habilitación para el objetivo')
-        } 
+        }
 
         const habilitacionesOld = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
-    
+
         if (habilitaciones.length != habilitacionesOld.length)
-          cambios = true
+            cambios = true
         else
-          habilitacionesOld.forEach((hab: any, index: number) => {
-            if (habilitaciones.find(h=>hab!=h)) {
-              cambios = true
-            }
-          });
+            habilitacionesOld.forEach((hab: any, index: number) => {
+                if (habilitaciones.find(h => hab != h)) {
+                    cambios = true
+                }
+            });
         if (!cambios) return
-    
-    
+
+
         //Actualizo
         const now = new Date()
         const time = this.getTimeString(now)
-    
-        let ObjetivoHabilitacionNecesariaLugarHabilitacionId:number = 0
-        now.setHours(0,0,0,0)
+
+        let ObjetivoHabilitacionNecesariaLugarHabilitacionId: number = 0
+        now.setHours(0, 0, 0, 0)
         await queryRunner.query(`
           DELETE FROM ObjetivoHabilitacionNecesaria
           WHERE ObjetivoId IN (@0)
@@ -1629,7 +1629,7 @@ export class ObjetivosController extends BaseController {
               ObjetivoHabilitacionNecesariaDia, ObjetivoHabilitacionNecesariaTiempo, ObjetivoHabilitacionNecesariaLugarHabilitacionId
               )
               VALUES(@0,@1,@2,@3,@4,@5,@6)
-              `, [ObjetivoHabilitacionNecesariaLugarHabilitacionId, ObjetivoId, ip, usuarioId, now, time,habilitacionId])
+              `, [ObjetivoHabilitacionNecesariaLugarHabilitacionId, ObjetivoId, ip, usuarioId, now, time, habilitacionId])
         }
         await queryRunner.query(`
           UPDATE Objetivo SET
@@ -1647,7 +1647,7 @@ export class ObjetivosController extends BaseController {
           `, [ObjetivoId]
         )
         for (const hab of habilitacionPers)
-          habs.push(hab.ObjetivoHabilitacionNecesariaLugarHabilitacionId)
+            habs.push(hab.ObjetivoHabilitacionNecesariaLugarHabilitacionId)
         return habs
     }
 
