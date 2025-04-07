@@ -4,7 +4,7 @@ import { IGNORE_BASE_URL, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
 import { Observable, of, throwError, mergeMap, catchError } from 'rxjs';
 
-import { CODEMESSAGE,ReThrowHttpError, checkStatus, getAdditionalHeaders, toLogin } from './helper';
+import { CODEMESSAGE, ReThrowHttpError, checkStatus, getAdditionalHeaders, toLogin } from './helper';
 import { tryRefreshToken } from './refresh-token';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
@@ -74,10 +74,14 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
       }
       toLogin(injector);
       break;
+    case 400:
+      const warningMessage = err.error?.msg || CODEMESSAGE[400] || 'Solicitud incorrecta';
+      injector.get(NzNotificationService).warning(`Advertencia`, warningMessage);
+      break;
     default:
       if (err.error instanceof Blob) {
         const reader = new FileReader();
-        reader.onload = e => { 
+        reader.onload = e => {
           if (e.target?.readyState === 2) {
             const res = JSON.parse(String(e.target.result))
             injector.get(NzNotificationService).error(`Error`, res.msg)
@@ -86,9 +90,9 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
         reader.readAsText(err.error);
         break;
       }
-        
-      
-      
+
+
+
       let errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText
 
       if (Array.isArray(errortext)) {

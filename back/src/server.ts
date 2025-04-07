@@ -64,7 +64,7 @@ const errorResponder = (
 
   if (error instanceof ClientWarning) { 
     message = error.messageArr
-    status = 200
+    status = 400
     data = error.extended
 
     if (process.env.DEBUG) {
