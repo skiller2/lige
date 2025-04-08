@@ -107,19 +107,29 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.formChange$.next('');
   }
 
-  ngOnInit(){
+  ngOnInit() {
+    this.initializeDocumentTypes();
+  }
 
-    if(this.textForSearch() == ""){
+  private initializeDocumentTypes() {
+    if (this.textForSearch() === "") {
+      this.loadDocumentTypesFromApi();
+    } else {
+      this.setDocumentTypesFromInput();
+    }
+  }
 
-      this.apiService.getSelectTipoinFile().subscribe((res: any) => {
-      const documentTypes = res.map((item: any) => item.TipoDocumentoDescripcion.trim()).join(',')
-      this.textForSearchSelected.set(documentTypes)
+  private loadDocumentTypesFromApi() {
+    this.apiService.getSelectTipoinFile().subscribe((res: any) => {
+      const documentTypes = res.map((item: any) => item.TipoDocumentoDescripcion.trim()).join(',');
+      this.textForSearchSelected.set(documentTypes);
+    });
+  }
 
-    })
-    }else{
-
-      this.textForSearchSelected.set(this.textForSearch())
-
+  private setDocumentTypesFromInput() {
+    this.textForSearchSelected.set(this.textForSearch());
+    if (!this.textForSearchSelected().includes(',')) {
+      this.tipoSelected.set(this.textForSearch());
     }
   }
   

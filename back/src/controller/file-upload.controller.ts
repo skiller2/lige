@@ -52,7 +52,6 @@ export class FileUploadController extends BaseController {
       await queryRunner.startTransaction()
 
       let info = await queryRunner.query(`SELECT TipoDocumentoDescripcion FROM tipodocumento`)
-      console.log("info", info)
       await queryRunner.commitTransaction()
       return this.jsonRes(info, res);
     } catch (error) {
