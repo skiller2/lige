@@ -241,10 +241,16 @@
           </nz-select>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Año</nz-form-label>
+        <!-- <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Año</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">
           <input nz-input placeholder="" formControlName="EstudioAno" type="number" />
+        </nz-form-control> -->
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="3">Fecha de Otorgamiento</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3">
+          <nz-date-picker formControlName="PersonalEstudioOtorgado"></nz-date-picker>
         </nz-form-control>
+
       </nz-form-item>
 
       <nz-form-item class="marginElement">

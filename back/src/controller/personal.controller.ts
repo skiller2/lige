@@ -133,7 +133,7 @@ const columns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-  },  
+  },
   {
     id: "PersonalFechaIngreso",
     name: "Fecha Ingreso",
@@ -278,7 +278,7 @@ export class PersonalController extends BaseController {
     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
     const anio = fechaActual.getFullYear();
     const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0', [PersonalId])
-    const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo FROM PersonalEstudio est 
+    const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo, est.PersonalEstudioOtorgado FROM PersonalEstudio est 
       JOIN TipoEstudio tip ON tip.TipoEstudioId = est.TipoEstudioId
       WHERE est.PersonalId=@0 AND est.EstadoEstudioId = 2
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
@@ -373,7 +373,7 @@ export class PersonalController extends BaseController {
         WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
         [PersonalId, stmactual]
       )
-      result.map((cuenta:any) => { cuenta.PersonalBancoCBU = cuenta.PersonalBancoCBU.slice(0, -6)+'XXXXXX' }) 
+      result.map((cuenta: any) => { cuenta.PersonalBancoCBU = cuenta.PersonalBancoCBU.slice(0, -6) + 'XXXXXX' })
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
@@ -645,15 +645,15 @@ cuit.PersonalCUITCUILCUIT,
   }
   private async updateSucursalPrincipal(queryRunner: any, personaId: any, PersonalSucursalPrincipalSucursalId: number) {
     const actual = new Date()
-    actual.setHours(0,0,0,0)
+    actual.setHours(0, 0, 0, 0)
     const res = await queryRunner.query(`
       SELECT TOP 1 PersonalSucursalPrincipalSucursalId
       FROM PersonalSucursalPrincipal
       WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC, PersonalSucursalPrincipalId  DESC `,
       [personaId]
     )
-console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, PersonalSucursalPrincipalSucursalId)
-    if (res.length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
+    console.log('original, nueva', res[0]?.PersonalSucursalPrincipalSucursalId, PersonalSucursalPrincipalSucursalId)
+    if (res.length == 0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
       VALUES (@0, @1, @2)`,
@@ -682,7 +682,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
     const estudios = req.body.estudios
     const familiares = req.body.familiares
     const actas = req.body.actas
-    const habilitacion: number[]= (req.body.habilitacion)?req.body.habilitacion:[]
+    const habilitacion: number[] = (req.body.habilitacion) ? req.body.habilitacion : []
     const beneficiarios = req.body.beneficiarios
     let errors: string[] = []
     let now = new Date()
@@ -693,7 +693,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
     try {
       await queryRunner.startTransaction()
 
-      const valForm = this.valPersonalForm(req.body,'I')
+      const valForm = this.valPersonalForm(req.body, 'I')
       if (valForm instanceof ClientException)
         throw valForm
 
@@ -778,7 +778,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
 
       //Habilitacion necesaria
-      const usuarioId = await this.getUsuarioId(res,queryRunner)
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
 
       const ip = this.getRemoteAddress(req)
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
@@ -795,7 +795,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
       await queryRunner.commitTransaction()
-      return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
+      return this.jsonRes({ PersonalId }, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -808,7 +808,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
     const ultnro = await queryRunner.query(`SELECT PersonalTelefonoUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
-    const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro)?ultnro[0]?.PersonalTelefonoUltNro+1:1
+    const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro) ? ultnro[0]?.PersonalTelefonoUltNro + 1 : 1
     const telefonoNum = telefono.TelefonoNro.split('').filter(char => !isNaN(Number(char)) && char !== ' ').join('')
 
     await queryRunner.query(`
@@ -823,17 +823,17 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
     ])
     await queryRunner.query(`
       UPDATE Personal SET PersonalTelefonoUltNro = @0 WHERE PersonalId = @1
-      `, [PersonalTelefonoId,personalId])
+      `, [PersonalTelefonoId, personalId])
   }
 
   async addPersonalEstudio(queryRunner: any, estudio: any, personalId: any) {
     const tipoEstudioId = estudio.TipoEstudioId
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
-    const estudioAnio = estudio.EstudioAno
-    const docTitulo = (estudio.DocTitulo)?estudio.DocTitulo[0]:null
+    const PersonalEstudioOtorgado = estudio.PersonalEstudioOtorgado
+    const docTitulo = (estudio.DocTitulo) ? estudio.DocTitulo[0] : null
     const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
-    const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro)?ultnro[0]?.PersonalEstudioUltNro+1:1
+    const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro) ? ultnro[0]?.PersonalEstudioUltNro + 1 : 1
 
     let DocumentoImagenEstudioId = null
     if (docTitulo) {
@@ -857,11 +857,11 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
       TipoEstudioId,
       EstadoEstudioId,
       PersonalEstudioTitulo,
-      PersonalEstudioAno,
+      PersonalEstudioOtorgado,
       PersonalEstudioPagina1Id
       )
       VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
-      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio, DocumentoImagenEstudioId
+      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, PersonalEstudioOtorgado, DocumentoImagenEstudioId
     ])
 
     await queryRunner.query(`
@@ -883,9 +883,9 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
         FROM Personal
         WHERE PersonalId IN (@0)
         `, [PersonalId])
-        PersonalFamiliaId = Personal[0].UltNro
+      PersonalFamiliaId = Personal[0].UltNro
     }
-    
+
     await queryRunner.query(`
       INSERT INTO PersonalFamilia (
       PersonalId,
@@ -897,7 +897,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
       PersonalFamiliaVive
       )
       VALUES (@0, @1, @2, @3, @4, @5, @6)`, [
-        PersonalId, PersonalFamiliaId, Apellido, Nombre, 'N', TipoParentescoId, 1
+      PersonalId, PersonalFamiliaId, Apellido, Nombre, 'N', TipoParentescoId, 1
     ])
     await queryRunner.query(`
       UPDATE Personal SET
@@ -936,7 +936,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
 
   async setFoto(queryRunner: any, personalId: any, file: any) {
     const type = file.mimetype.split('/')[1]
-    
+
     const fieldname = file.fieldname
     // let foto = await queryRunner.query(`
     //   SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
@@ -946,7 +946,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
     //   WHERE foto.PersonalId =@0
     // `, [personalId])
     // if (!foto.length) {
-      await queryRunner.query(`
+    await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
         PersonalId,
         DocumentoImagenFotoBlobTipoArchivo,
@@ -954,9 +954,9 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
         DocumentoImagenParametroDirectorioId
         )
         VALUES(@0,@1,@2,@3)`,
-        [personalId, type, 7, 1]
-      )
-      let foto = await queryRunner.query(`
+      [personalId, type, 7, 1]
+    )
+    let foto = await queryRunner.query(`
         SELECT TOP 1 foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
         FROM DocumentoImagenFoto foto
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
@@ -1047,7 +1047,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
         WHERE PersonalId = @0 AND PersonalDocumentoId = @1
       `, [personalId, PersonalDocumentoUltNro, docId]
       )
-    }else if (parametro == 12){
+    } else if (parametro == 12) {
       await queryRunner.query(`
         UPDATE PersonalDocumento SET
         PersonalDocumentoFrenteId = @2
@@ -1055,10 +1055,10 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
       `, [personalId, PersonalDocumentoUltNro, docId]
       )
     }
-    
+
   }
 
-  async setImagenEstudio(queryRunner: any, personalId: any, file: any, DocumentoImagenEstudioId:number) {
+  async setImagenEstudio(queryRunner: any, personalId: any, file: any, DocumentoImagenEstudioId: number) {
     const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
@@ -1142,7 +1142,7 @@ console.log('original, nueva',res[0]?.PersonalSucursalPrincipalSucursalId, Perso
   }
 
   private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
-console.log('infoDomicilio',infoDomicilio)
+    console.log('infoDomicilio', infoDomicilio)
 
     if (!infoDomicilio.Calle && !infoDomicilio.Nro && !infoDomicilio.Piso && !infoDomicilio.Dpto && !infoDomicilio.CodigoPostal && !infoDomicilio.PaisId)
       return;
@@ -1157,9 +1157,9 @@ console.log('infoDomicilio',infoDomicilio)
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
       `, [PersonalId, infoDomicilio.PersonalDomicilioId])
     const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
-  
+
     if (domicilioRes.length == 0)
-      cambio=true
+      cambio = true
 
     for (const key in domicilio) {
       if (infoDomicilio[key] != domicilio[key]) {
@@ -1173,8 +1173,8 @@ console.log('infoDomicilio',infoDomicilio)
       UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
 
       const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [PersonalId])
-      const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro)?ultnro[0]?.PersonalDomicilioUltNro+1:1
-  
+      const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro) ? ultnro[0]?.PersonalDomicilioUltNro + 1 : 1
+
       await queryRunner.query(`
         INSERT INTO PersonalDomicilio (
         PersonalId,
@@ -1206,8 +1206,8 @@ console.log('infoDomicilio',infoDomicilio)
       ])
       await queryRunner.query(`
         UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
-        `, [PersonalId,PersonalDomicilioId])
- 
+        `, [PersonalId, PersonalDomicilioId])
+
 
     }
   }
@@ -1251,7 +1251,7 @@ console.log('infoDomicilio',infoDomicilio)
     for (const infoEstudio of estudios) {
       if (infoEstudio.EstudioTitulo) {
         if (infoEstudio.PersonalEstudioId) {
-          let find = oldStudies.find((study:any) => {return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId)})
+          let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId) })
           let Pagina1Id = find.PersonalEstudioPagina1Id
           // const Pagina2Id = find.PersonalEstudioPagina2Id
           // const Pagina3Id = find.PersonalEstudioPagina3Id
@@ -1276,14 +1276,14 @@ console.log('infoDomicilio',infoDomicilio)
             TipoEstudioId,
             EstadoEstudioId,
             PersonalEstudioTitulo,
-            PersonalEstudioAno,
+            PersonalEstudioOtorgado,
             PersonalEstudioPagina1Id
             --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
             )
             VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
             PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
-            infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.EstudioAno,
-            Pagina1Id, 
+            infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
+            Pagina1Id,
             //Pagina2Id, Pagina3Id, Pagina4Id
           ])
 
@@ -1292,7 +1292,7 @@ console.log('infoDomicilio',infoDomicilio)
             await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
           }
 
-        }else{
+        } else {
           return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
         }
       }
@@ -1302,14 +1302,14 @@ console.log('infoDomicilio',infoDomicilio)
 
   async updatePersonalEmail(queryRunner: any, personalId: number, email: string) {
     email = email.toLowerCase()
-    const emailRec = await queryRunner.query(`SELECT PersonalEmailEmail FROM PersonalEmail WHERE PersonalId =@0 AND PersonalEmailInactivo =0`,[personalId])
+    const emailRec = await queryRunner.query(`SELECT PersonalEmailEmail FROM PersonalEmail WHERE PersonalId =@0 AND PersonalEmailInactivo =0`, [personalId])
 
     if (emailRec[0]?.PersonalEmailEmail != email) {
       await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailInactivo = 1 WHERE PersonalId =@0`, [personalId])
       if (email) {
         const ultnro = await queryRunner.query(`SELECT PersonalEmailUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
-        const PersonalEmailId = (ultnro[0]?.PersonalEmailUltNro)?ultnro[0]?.PersonalEmailUltNro+1:1
-    
+        const PersonalEmailId = (ultnro[0]?.PersonalEmailUltNro) ? ultnro[0]?.PersonalEmailUltNro + 1 : 1
+
         await queryRunner.query(`
           INSERT INTO PersonalEmail (
           PersonalId,
@@ -1320,8 +1320,8 @@ console.log('infoDomicilio',infoDomicilio)
           VALUES (@0,@1,@2,@3)`,
           [personalId, PersonalEmailId, email, 0]
         )
-    
-        await queryRunner.query(`UPDATE Personal SET PersonalEmailUltNro = @0 WHERE PersonalId = @1`, [PersonalEmailId,personalId])
+
+        await queryRunner.query(`UPDATE Personal SET PersonalEmailUltNro = @0 WHERE PersonalId = @1`, [PersonalEmailId, personalId])
       }
     }
   }
@@ -1332,9 +1332,9 @@ console.log('infoDomicilio',infoDomicilio)
       if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
         continue
 
-      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) 
+      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId)
         return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
-      
+
       await this.addPersonalFamilia(queryRunner, PersonalId, familiar)
     }
   }
@@ -1360,7 +1360,7 @@ console.log('infoDomicilio',infoDomicilio)
   //   await this.setSituacionRevistaQuerys(queryRunner, PersonalId, infoSitRevista)
   // }
 
-  async updatePersonalCUITQuery(queryRunner: any, personaId: any, CUIT: number, now:Date) {
+  async updatePersonalCUITQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
     const PersonalCUITCUIL = await queryRunner.query(`
       SELECT per.PersonalCUITCUILUltNro, cuit.PersonalCUITCUILDesde
       FROM Personal per
@@ -1380,7 +1380,7 @@ console.log('infoDomicilio',infoDomicilio)
         [personaId, PersonalCUITCUILUltNro, yesterday]
       )
       await this.addPersonalCUITQuery(queryRunner, personaId, CUIT, now)
-    }else if (PersonalCUITCUILDesde.getTime() == now.getTime()) {
+    } else if (PersonalCUITCUILDesde.getTime() == now.getTime()) {
       await queryRunner.query(`
         UPDATE PersonalCUITCUIL SET
         PersonalCUITCUILCUIT = @2
@@ -1388,7 +1388,7 @@ console.log('infoDomicilio',infoDomicilio)
         [personaId, PersonalCUITCUILUltNro, CUIT]
       )
     }
-    
+
   }
 
   private async updatePersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
@@ -1420,23 +1420,23 @@ console.log('infoDomicilio',infoDomicilio)
     const SucursalId = req.body.SucursalId
     const actas = req.body.actas
     const habilitacion = req.body.habilitacion
-    
+
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.startTransaction()
-      const usuarioId = await this.getUsuarioId(res,queryRunner)
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
-      const valForm = this.valPersonalForm(req.body,'U')
+      const valForm = this.valPersonalForm(req.body, 'U')
       if (valForm instanceof ClientException)
         throw valForm
 
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
 
-      await this.updateSucursalPrincipal(queryRunner,PersonalId,SucursalId)
-//throw new ClientException('DEBUG')
+      await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
+      //throw new ClientException('DEBUG')
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
@@ -1460,7 +1460,7 @@ console.log('infoDomicilio',infoDomicilio)
       }
       //Estudios
       await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
-      
+
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
       if (updatePersonalFamilia instanceof ClientException)
@@ -1518,9 +1518,9 @@ console.log('infoDomicilio',infoDomicilio)
     )
     let persona: any = data[0]
     persona.actas = {
-      alta:{ fecha:data[0].PersonalFechaActa , numero:data[0].PersonalNroActa },
-      baja:{ fecha:data[0].PersonalBajaFechaActa , numero:data[0].PersonalBajaNroActa },
-      destruccion:{ fecha:data[0].PersonalFechaDestruccion , numero:data[0].PersonalDestruccionNroActa }
+      alta: { fecha: data[0].PersonalFechaActa, numero: data[0].PersonalNroActa },
+      baja: { fecha: data[0].PersonalBajaFechaActa, numero: data[0].PersonalBajaNroActa },
+      destruccion: { fecha: data[0].PersonalFechaDestruccion, numero: data[0].PersonalDestruccionNroActa }
     }
     delete persona.PersonalNroActa
     delete persona.PersonalFechaActa
@@ -1552,7 +1552,7 @@ console.log('infoDomicilio',infoDomicilio)
   private async getFormEstudiosByPersonalIdQuery(queryRunner: any, personalId: any) {
     return await queryRunner.query(`
         SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
-        TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioAno EstudioAno,
+        TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioOtorgado PersonalEstudioOtorgado,
         est.PersonalEstudioPagina1Id AS docId
         FROM PersonalEstudio est
         WHERE est.PersonalId IN (@0)
@@ -1751,9 +1751,9 @@ console.log('infoDomicilio',infoDomicilio)
     yesterday.setHours(0, 0, 0, 0)
 
 
-    if (this.listSitRev.split(',').find((sit: any) =>  SituacionRevistaId == sit )) 
+    if (this.listSitRev.split(',').find((sit: any) => SituacionRevistaId == sit))
       throw new ClientException(`La situación de revista seleccionada no se puede cargar desde esta pantalla.`)
-  
+
     //Obtengo la última situación de revista
     let sitRevista = await queryRunner.query(`
       SELECT TOP 1 sitrev.PersonalSituacionRevistaId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaSituacionId,  ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') PersonalSituacionRevistaHasta
@@ -1764,15 +1764,15 @@ console.log('infoDomicilio',infoDomicilio)
     )
 
     if (sitRevista.length == 1 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() > desde.getTime())
-      throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde.getDate()}/${sitRevista[0].PersonalSituacionRevistaDesde.getMonth()+1}/${sitRevista[0].PersonalSituacionRevistaDesde.getFullYear()}`)
+      throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde.getDate()}/${sitRevista[0].PersonalSituacionRevistaDesde.getMonth() + 1}/${sitRevista[0].PersonalSituacionRevistaDesde.getFullYear()}`)
 
     if (sitRevista[0]?.PersonalSituacionRevistaSituacionId == SituacionRevistaId)
       throw new ClientException(`La situación de revista es igual a la existente`)
 
-    if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) =>  sitRevista[0]?.PersonalSituacionRevistaSituacionId == sit ))
+    if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) => sitRevista[0]?.PersonalSituacionRevistaSituacionId == sit))
       throw new ClientException(`No se puede modificar la situación de revista desde esta pantalla`)
 
-    if (sitRevista.length>0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
+    if (sitRevista.length > 0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
       await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaDesde = @2, PersonalSituacionRevistaMotivo = @3, PersonalSituacionRevistaSituacionId = @4,
         PersonalSituacionRevistaHasta = NULL
         WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1
@@ -1868,7 +1868,7 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  valPersonalForm(personalForm: any, action:string) {
+  valPersonalForm(personalForm: any, action: string) {
     let campos_vacios: any[] = []
 
     if (!personalForm.Nombre) {
@@ -1889,7 +1889,7 @@ console.log('infoDomicilio',infoDomicilio)
     if (!personalForm.Email) {
       campos_vacios.push(`- Email`)
     }
-    if (action=='I' && !personalForm.SituacionId) {
+    if (action == 'I' && !personalForm.SituacionId) {
       campos_vacios.push(`- Situacion de Revista`)
     }
 
@@ -2053,11 +2053,11 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  async getCategoriasByTipoAsociado(req: any, res: Response, next: NextFunction){
+  async getCategoriasByTipoAsociado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const tipoAsociado:number = req.body.tipoAsociadoId
+    const tipoAsociado: number = req.body.tipoAsociadoId
     try {
-      const options =await queryRunner.query(`
+      const options = await queryRunner.query(`
         SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label
         FROM CategoriaPersonal catper
         WHERE catper.TipoAsociadoId IN (@0) AND catper.CategoriaPersonalInactivo IS NULL
@@ -2092,7 +2092,7 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  private async setCategoriaQuerys(queryRunner:any, PersonalId:number, TipoAsociadoId:number, CategoriaId:number, Desde:Date){
+  private async setCategoriaQuerys(queryRunner: any, PersonalId: number, TipoAsociadoId: number, CategoriaId: number, Desde: Date) {
     Desde.setHours(0, 0, 0, 0)
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
@@ -2110,10 +2110,10 @@ console.log('infoDomicilio',infoDomicilio)
     //Validaciones
     if (categoria.length && categoria[0].PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0].PersonalCategoriaCategoriaPersonalId == CategoriaId)
       throw new ClientException(`Debe ingresar una categoria distinta a la que se encuentra activa.`)
-    
-    if (categoria.length && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime()) 
-      throw new ClientException(`La fecha Desde no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
-    
+
+    if (categoria.length && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime())
+      throw new ClientException(`La fecha Desde no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth() + 1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
+
     //Actuliza o Cierra la ultima categorización
     if (categoria.length && categoria[0].PersonalCategoriaDesde.getTime() == Desde.getTime()) {
       await queryRunner.query(`
@@ -2121,7 +2121,7 @@ console.log('infoDomicilio',infoDomicilio)
         WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)
         `, [PersonalId, categoria[0]?.PersonalCategoriaId, Desde, TipoAsociadoId, CategoriaId]
       )
-    }else{
+    } else {
       if (categoria.length) {
         await queryRunner.query(`
           UPDATE PersonalCategoria SET PersonalCategoriaHasta = @2
@@ -2137,7 +2137,7 @@ console.log('infoDomicilio',infoDomicilio)
       await queryRunner.query(`
         INSERT INTO PersonalCategoria ( PersonalCategoriaId, PersonalCategoriaPersonalId, PersonalCategoriaTipoAsociadoId, PersonalCategoriaCategoriaPersonalId, PersonalCategoriaDesde, SucursalId, TipoJornadaId)
           VALUES(@0, @1, @2, @3, @4, @5, @6)`,
-        [PersonalCategoriaUltNro, PersonalId, TipoAsociadoId, CategoriaId, Desde, SucursalId,1]
+        [PersonalCategoriaUltNro, PersonalId, TipoAsociadoId, CategoriaId, Desde, SucursalId, 1]
       )
 
       await queryRunner.query(`UPDATE Personal SET PersonalCategoriaUltNro = @1 WHERE PersonalId IN (@0)`, [PersonalId, PersonalCategoriaUltNro])
@@ -2182,16 +2182,16 @@ console.log('infoDomicilio',infoDomicilio)
   }
 
   private async setGrupoActividadPersonalQuerys(
-    queryRunner:any, PersonalId:number, GrupoActividadId:number, Desde:Date,
-    usuarioId:number, ip:string
-  ){
+    queryRunner: any, PersonalId: number, GrupoActividadId: number, Desde: Date,
+    usuarioId: number, ip: string
+  ) {
     Desde.setHours(0, 0, 0, 0)
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
-    let now:Date = new Date()
+    let now: Date = new Date()
     const time = this.getTimeString(now)
     now.setHours(0, 0, 0, 0)
-    
+
     //Obtengo el ultimo Grupo Actividad Personal
     let ultGrupoActividadPersonal = await queryRunner.query(`
       SELECT TOP 1 grup.GrupoActividadPersonalId, grup.GrupoActividadId, grup.GrupoActividadPersonalPersonalId,
@@ -2204,7 +2204,7 @@ console.log('infoDomicilio',infoDomicilio)
 
 
     if (ultGrupoActividadPersonal.length == 1 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() > Desde.getTime())
-      throw new ClientException(`La fecha Desde no puede ser menor al ${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getDate()}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getMonth()+1}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getFullYear()}`)
+      throw new ClientException(`La fecha Desde no puede ser menor al ${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getDate()}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getMonth() + 1}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getFullYear()}`)
 
     if (ultGrupoActividadPersonal[0]?.GrupoActividadId == GrupoActividadId)
       throw new ClientException(`Debe ingresar un Grupo Actividad distinto al que se encuentra activo.`)
@@ -2245,7 +2245,7 @@ console.log('infoDomicilio',infoDomicilio)
         ) VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8)
         `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, ip, usuarioId, now, time]
       )
-      
+
     }
   }
 
@@ -2271,7 +2271,7 @@ console.log('infoDomicilio',infoDomicilio)
         throw new ClientException(campos_vacios);
       }
 
-      const usuarioId = await this.getUsuarioId(res,queryRunner)
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
 
       await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), usuarioId, ip)
 
@@ -2351,7 +2351,7 @@ console.log('infoDomicilio',infoDomicilio)
         throw new ClientException(campos_vacios);
       }
 
-      if (CBU.length != 22) 
+      if (CBU.length != 22)
         throw new ClientException('El CBU debe de estar compuesto por 22 digitos.')
 
       let PersonalBanco = await queryRunner.query(`
@@ -2359,18 +2359,18 @@ console.log('infoDomicilio',infoDomicilio)
         FROM PersonalBanco 
         WHERE PersonalBancoCBU = @0 AND PersonalBancoHasta IS NULL
       `, [CBU])
-      if (PersonalBanco.length) 
+      if (PersonalBanco.length)
         throw new ClientException('No puedes ingresar un CBU ya registrado.');
-      
+
       Desde = new Date(Desde)
-      Desde.setHours(0,0,0,0)
+      Desde.setHours(0, 0, 0, 0)
 
       PersonalBanco = await queryRunner.query(`
         SELECT *
         FROM PersonalBanco 
         WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
       `, [PersonalId, BancoId])
-      
+
       if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == Desde.getTime()) {
         const PersonalBancoId = PersonalBanco[0].PersonalBancoId
         await queryRunner.query(`
@@ -2378,20 +2378,20 @@ console.log('infoDomicilio',infoDomicilio)
           PersonalBancoCBU = @3
           WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
         `, [PersonalId, BancoId, PersonalBancoId, CBU])
-      }else{
-        if (PersonalBanco.length){
+      } else {
+        if (PersonalBanco.length) {
           if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
-            throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth()+1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}`)
-          
+            throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth() + 1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}`)
+
           const PersonalBancoId = PersonalBanco[0].PersonalBancoId
           const Hasta = new Date(Desde)
-          Hasta.setDate(Hasta.getDate()-1)
+          Hasta.setDate(Hasta.getDate() - 1)
           await queryRunner.query(`
             UPDATE PersonalBanco SET
             PersonalBancoHasta = @3
             WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
           `, [PersonalId, BancoId, PersonalBancoId, Hasta])
-          
+
         }
         const Personal = await queryRunner.query(`
           SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
@@ -2418,16 +2418,16 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  private async setActasQuerys(queryRunner: any, personalId: number, actas:any) {
+  private async setActasQuerys(queryRunner: any, personalId: number, actas: any) {
     const PersonalNroActa = actas.alta.numero
     const PersonalFechaActa = actas.alta.fecha
     const PersonalBajaNroActa = actas.baja.numero
     const PersonalBajaFechaActa = actas.baja.fecha
     const PersonalDestruccionNroActa = actas.destruccion.numero
     const PersonalFechaDestruccion = actas.destruccion.fecha
-    if (((!PersonalNroActa && PersonalFechaActa) || (PersonalNroActa && !PersonalFechaActa)) || 
-    ((!PersonalBajaNroActa && PersonalBajaFechaActa) || (PersonalBajaNroActa && !PersonalBajaFechaActa)) || 
-    ((!PersonalDestruccionNroActa && PersonalFechaDestruccion) || (PersonalDestruccionNroActa && !PersonalFechaDestruccion))) {
+    if (((!PersonalNroActa && PersonalFechaActa) || (PersonalNroActa && !PersonalFechaActa)) ||
+      ((!PersonalBajaNroActa && PersonalBajaFechaActa) || (PersonalBajaNroActa && !PersonalBajaFechaActa)) ||
+      ((!PersonalDestruccionNroActa && PersonalFechaDestruccion) || (PersonalDestruccionNroActa && !PersonalFechaDestruccion))) {
       return new ClientException(`Los campos Fecha y Numero de la seccion Actas deben de completarse a la par.`)
     }
     await queryRunner.query(`
@@ -2438,7 +2438,7 @@ console.log('infoDomicilio',infoDomicilio)
       `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
   }
 
-  private async getLugarHabilitacionQuery(queryRunner:any) {
+  private async getLugarHabilitacionQuery(queryRunner: any) {
     return await queryRunner.query(`
       SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
       FROM LugarHabilitacion
@@ -2456,16 +2456,16 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:number, ip:string) {
+  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuarioId: number, ip: string) {
     //Compruebo si hubo cambios
-    let cambios:boolean = false
+    let cambios: boolean = false
     const habilitacionesOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
 
     if (habilitaciones.length != habilitacionesOld.length)
       cambios = true
     else
       habilitacionesOld.forEach((hab: any, index: number) => {
-        if (habilitaciones.find(h=>hab!=h)) {
+        if (habilitaciones.find(h => hab != h)) {
           cambios = true
         }
       });
@@ -2476,15 +2476,15 @@ console.log('infoDomicilio',infoDomicilio)
     const now = new Date()
     const time = this.getTimeString(now)
 
-    let PersonalHabilitacionNecesariaId:number = 0
-    now.setHours(0,0,0,0)
+    let PersonalHabilitacionNecesariaId: number = 0
+    now.setHours(0, 0, 0, 0)
     await queryRunner.query(`
       DELETE FROM PersonalHabilitacionNecesaria
       WHERE PersonalId IN (@0)
       `, [personalId])
     for (const habilitacionId of habilitaciones) {
-        PersonalHabilitacionNecesariaId++
-        await queryRunner.query(`
+      PersonalHabilitacionNecesariaId++
+      await queryRunner.query(`
           INSERT INTO PersonalHabilitacionNecesaria (
           PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId,
           PersonalHabilitacionNecesariaDesde, PersonalHabilitacionNecesariaPuesto, PersonalHabilitacionNecesariaUsuarioId,

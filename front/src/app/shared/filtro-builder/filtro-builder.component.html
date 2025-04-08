@@ -200,7 +200,7 @@
         [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsCurso | async">
 
-          <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDescripcion"></nz-option>
+          <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod"></nz-option>
         </ng-container>
       </nz-select>
 
