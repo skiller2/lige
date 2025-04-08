@@ -83,6 +83,10 @@ FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", async (req, 
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
+FileUploadRouter.get('/select_tipo_in_file', (req, res, next) => {
+  fileUploadController.getSelectTipoinFile(req, res, next)
+});
+
 FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:columnForSearch/:tableForSearch', (req, res, next) => {
   fileUploadController.getArchivosAnteriores(req, res, next)
 });

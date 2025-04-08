@@ -29,12 +29,12 @@ export class FileUploadController extends BaseController {
     try {
       const hash = CryptoJS.algo.SHA256.create(); // Create a SHA256 hash instance
       const stream = fs.createReadStream(filePath);
-  
+
       // Process the file in chunks
       for await (const chunk of stream) {
         hash.update(CryptoJS.enc.Latin1.parse(chunk.toString('latin1')));
       }
-  
+
       // Finalize the hash
       const finalHash = hash.finalize().toString(CryptoJS.enc.Hex);
       return finalHash;
@@ -43,6 +43,27 @@ export class FileUploadController extends BaseController {
       throw error;
     }
   }
+
+  async getSelectTipoinFile(req: any, res: Response, next: NextFunction) {
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      await queryRunner.startTransaction()
+
+      let info = await queryRunner.query(`SELECT TipoDocumentoDescripcion FROM tipodocumento`)
+      console.log("info", info)
+      await queryRunner.commitTransaction()
+      return this.jsonRes(info, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+
+  }
+
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = req.params.id;
@@ -81,7 +102,7 @@ export class FileUploadController extends BaseController {
           break;
         case 'docgeneral':
           document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
-          console.log('aver',this.pathDocuments,document[0]["path"])
+          console.log('aver', this.pathDocuments, document[0]["path"])
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
           break;
@@ -223,7 +244,7 @@ export class FileUploadController extends BaseController {
     personal_id: number,
     objetivo_id: number,
     cliente_id: number,
-    doc_id:number,
+    doc_id: number,
     fecha: Date,
     fec_doc_ven: Date,
     den_documento: string,
@@ -319,7 +340,7 @@ export class FileUploadController extends BaseController {
         } else {
           console.log('file', file)
           throw new ClientException(`stop`)
-//          const hash = await FileUploadController.hashFile(filePath: string)
+          //          const hash = await FileUploadController.hashFile(filePath: string)
           await queryRunner.query(`
             UPDATE lige.dbo.docgeneral
             SET periodo = @1, fecha = @2, 
@@ -330,7 +351,7 @@ export class FileUploadController extends BaseController {
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
         }
-        return doc_id        
+        return doc_id
         break;
     }
   }

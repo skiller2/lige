@@ -62,13 +62,15 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   selectedValue = null;
   tipoSelected = signal<string>("")
+  textForSearchSelected = signal<string>("")
 
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
       this.files.set([])
-      if (this.idForSearh() > 0 && this.textForSearch() != "" && !this.textForSearch().includes(',') && this.tableForSearch() != "") {
-        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch()).pipe(
+      
+      if (this.idForSearh() > 0 && this.textForSearchSelected() != "" && !this.textForSearchSelected().includes(',') && this.tableForSearch() != "") {
+        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearchSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
           map((list: any) => {
             this.cantFilesAnteriores.set(list.length)
             return list
@@ -100,6 +102,22 @@ export class FileUploadComponent implements ControlValueAccessor {
   onChange(event: any) {
     this.tipoSelected.set(event)
     this.formChange$.next('');
+  }
+
+  ngOnInit(){
+
+    if(this.textForSearch() == ""){
+
+      this.apiService.getSelectTipoinFile().subscribe((res: any) => {
+      const documentTypes = res.map((item: any) => item.TipoDocumentoDescripcion.trim()).join(',')
+      this.textForSearchSelected.set(documentTypes)
+
+    })
+    }else{
+
+      this.textForSearchSelected.set(this.textForSearch())
+
+    }
   }
   
 
@@ -143,7 +161,7 @@ export class FileUploadComponent implements ControlValueAccessor {
         let src = await this.LoadArchivoPreview(`${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}`, 'temp')
         this.blobUrl = URL.createObjectURL(src)
         Response.data[0].tableForSearch = this.tableForSearch()
-        Response.data[0].doctipo_id = this.textForSearch()
+        Response.data[0].doctipo_id = this.tipoSelected()
         Response.data[0].fileUrl = this.blobUrl
         this.files.set([...this.files(), Response.data[0]])
         this.uploading$.next({ loading: false, event })

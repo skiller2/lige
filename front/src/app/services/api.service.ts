@@ -94,6 +94,16 @@ export class ApiService {
     );
   }
 
+    getSelectTipoinFile() {
+    return  this.http.get(`/api/file-upload/select_tipo_in_file`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getOptionsForLicenciaDrawer() {
     return this.http.get(`/api/carga-licencia/sepaga_getOptions`).pipe(
       map((res: any) => res.data),

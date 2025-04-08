@@ -28,7 +28,7 @@
     </ng-container>
     } 
     @if(files().length > 0){
-    <ng-container class="" *ngFor="let filesAdd of files() ">
+    <ng-container class="" *ngFor="let filesAdd of files() " >
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
         @if(isDisabled()==false){
         <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
@@ -55,10 +55,10 @@
 
 </nz-form-item>
 
-@if(textForSearch().includes(',')){
+@if(textForSearchSelected().includes(',')){
     <nz-form-item style=" justify-content: center;">
-      <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione un tipo" [(ngModel)]="selectedValue" [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChange($event)">
-        @for (item of textForSearch().split(','); track item) {
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="selectedValue" [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChange($event)">
+        @for (item of textForSearchSelected().split(','); track item) {
           <nz-option [nzLabel]="item.trim()" [nzValue]="item.trim()"></nz-option>
         }
       </nz-select>
@@ -67,15 +67,15 @@
 
 @if(isDisabled()==false && cantFiles()){
   
-<nz-form-item>
-  <nz-form-control class="BtnUploadFile">
+<nz-form-item >
+  <nz-form-control class="BtnUploadFile" >
     <ng-container>
       <!-- image/*
         .pdf
         .pdf,image/* -->
       <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
-        <button nz-button>
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
+        <button nz-button [disabled]="tipoSelected() == ''">
           <span nz-icon nzType="upload"></span>
           {{ 'app.btn.file' | i18n }}
         </button>
