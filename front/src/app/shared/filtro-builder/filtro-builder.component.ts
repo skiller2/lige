@@ -4,6 +4,8 @@ import {
   EventEmitter,
   Input,
   Output,
+  computed,
+  effect,
   forwardRef,
   inject,
   input,
@@ -104,11 +106,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   valueExtended = { fullName: '' }
 
+  private loggingEffect = effect(() => {
+    if (this.fieldsToSelect() && this.startFilters()) {
+      for (const filter of this.startFilters()) {
+        this.addFilter(filter.field, filter.condition, filter.operator, filter.value, filter.forced)
+      }
+    }
+  });
+
 
   ngOnInit(): void {
-    for (const filter of this.startFilters()) {
-      this.addFilter(filter.field, filter.condition, filter.operator, filter.value, filter.forced)
-    }
   }
 
   handleTagInteraction() {
@@ -425,7 +432,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async addFilter(field: string, condition: string, operator: string, value: any, forced: boolean) {
-    
+    if (!this.fieldsToSelect()) return
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
     
     if (!fieldObj)

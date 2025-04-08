@@ -40,8 +40,6 @@ export class AuthMiddleware {
     return (req, res, next) => {
       if (res.locals?.skipMiddleware) return next()
 
-      let inGroup = false
-
       if (req?.groups) {
         for (const rowgroup of req?.groups) {
           const myGrp:string = rowgroup.match(/CN=([^,]+)/)![1]

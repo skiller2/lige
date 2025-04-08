@@ -52,6 +52,7 @@ export class CustomDescargaComprobanteComponent {
 })
 export class TipoDocumentoComponent {
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
+  startFilters = signal<any[]>([])
 
   constructor(
     private settingService: SettingsService,
@@ -93,12 +94,10 @@ export class TipoDocumentoComponent {
   childAlta = viewChild.required<TipoDocumentoAltaDrawerComponent>('alta')
   childDetalle = viewChild.required<TipoDocumentoAltaDrawerComponent>('detalle')
   childEdit = viewChild.required<TipoDocumentoAltaDrawerComponent>('editor')
-
-  conditional = computed(async () => {
-    if (this.refresh()) {
-      this.formChanged('')
-    }
-  });
+  
+  onAddorUpdate(_e:any) {
+    this.formChanged('')
+  }
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -147,6 +146,10 @@ export class TipoDocumentoComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
+
+    const fisrtOfMonth = new Date(); //date
+    fisrtOfMonth.setDate(1)
+    this.startFilters.set([{ field: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, forced: false }])
   }
 
   ngAfterViewInit(): void {

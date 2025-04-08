@@ -52,17 +52,19 @@
     <nz-tab></nz-tab>
     <nz-tab [nzForceRender]="false">
       <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
-      @if (conditional()|async) {}
       <ng-template nz-tab>
-        <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+        @if(columns$ | async; as columnas) {
 
-        <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+        <shared-filtro-builder [startFilters]="startFilters()"  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+
+        <div class="gridContainer container-fluid" >
           <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
+        }
       </ng-template>
     </nz-tab>
 
@@ -83,8 +85,7 @@
   </nz-tabset>
 
 </nz-card>
-<app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" [(refresh)]="refresh"></app-tipo-documento-alta-drawer>
+<app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-tipo-documento-alta-drawer>
 <app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId()
   [disabled]=true></app-tipo-documento-alta-drawer>
-<app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" [docId]=docId()
-[(refresh)]="refresh"></app-tipo-documento-alta-drawer>
+<app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-tipo-documento-alta-drawer>

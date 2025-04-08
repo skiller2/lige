@@ -434,7 +434,9 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, archivo[0], usuario, ip, queryRunner)
+      
+
+      await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ?archivo![0]:null, usuario, ip, queryRunner)
 
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
@@ -485,7 +487,7 @@ export class TipoDocumentoController extends BaseController {
         WHERE doc_id IN (@0)
       `, [id])
       await queryRunner.commitTransaction()
-      this.jsonRes(doc, res, 'Carga Exitosa');
+      this.jsonRes(doc[0], res, 'Carga Exitosa');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)

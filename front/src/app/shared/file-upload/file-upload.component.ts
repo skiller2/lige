@@ -39,6 +39,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   ArchivosAdd: any[] = []
   // valueFile = input()
   files = signal<any[]>([])
+  prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
   idForSearh = input(0)
@@ -67,9 +68,11 @@ export class FileUploadComponent implements ControlValueAccessor {
         return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch()).pipe(
           map((list: any) => {
             this.cantFilesAnteriores.set(list.length)
+            this.prevFiles.emit(list)
             return list
           }))
       } else {
+        this.prevFiles.emit([])
         this.cantFilesAnteriores.set(0)
         return of([])
       }
