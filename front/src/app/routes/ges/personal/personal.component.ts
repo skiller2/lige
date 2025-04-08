@@ -21,7 +21,11 @@ import { PersonalDocumentosDrawerComponent } from '../personal-documentos-drawer
 import { PersonalCategoriaDrawerComponent } from '../personal-categoria-drawer/personal-categoria-drawer.component'
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component'
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
-import { NzIconModule } from 'ng-zorro-antd/icon';
+
+// icons
+import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline} from '@ant-design/icons-angular/icons';
+
 
 @Component({
     selector: 'app-personal',
@@ -34,7 +38,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
         PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
         DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent
     ],
-    providers: [AngularUtilService, ExcelExportService],
+    providers: [AngularUtilService, ExcelExportService,provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline])],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
   

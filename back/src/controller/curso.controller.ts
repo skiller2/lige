@@ -6,11 +6,11 @@ import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
 
 
-const columnsCursos:any[] = [
+const columnsCursos: any[] = [
   {
-    id:'id', name:'Id', field:'id',
+    id: 'id', name: 'Id', field: 'id',
     fieldName: "",
-    type:'number',
+    type: 'number',
     searchType: "number",
     sortable: true,
     hidden: true,
@@ -45,11 +45,11 @@ const columnsCursos:any[] = [
     searchComponent: "inpurForCursoSearch",
     sortable: true,
     searchHidden: false,
-    hidden: true, 
+    hidden: true,
   },
   {
-    id: 'CantidadHoras', 
-    name: 'Cantidad Horas', 
+    id: 'CantidadHoras',
+    name: 'Cantidad Horas',
     field: 'CursoHabilitacionCantidadHoras',
     fieldName: 'cur.CursoHabilitacionCantidadHoras',
     type: 'varchar',
@@ -59,8 +59,8 @@ const columnsCursos:any[] = [
     searchHidden: false,
   },
   {
-    id: 'VigenciaD', 
-    name: 'Vigencia (D)', 
+    id: 'VigenciaD',
+    name: 'Vigencia (D)',
     field: 'CursoHabilitacionVigencia',
     fieldName: 'cur.CursoHabilitacionVigencia',
     type: 'number',
@@ -70,8 +70,8 @@ const columnsCursos:any[] = [
     searchHidden: false,
   },
   {
-    id: 'Modalidad', 
-    name: 'Modalidad', 
+    id: 'Modalidad',
+    name: 'Modalidad',
     field: 'ModalidadCursoModalidad',
     fieldName: 'modcur.ModalidadCursoModalidad',
     type: 'string',
@@ -89,15 +89,15 @@ const columnsCursos:any[] = [
     searchComponent: "inpurForModalidadCursoSearch",
     sortable: true,
     searchHidden: false,
-    hidden: true,  
+    hidden: true,
   },
 ]
 
-const columnsCursosHistory:any[] = [
+const columnsCursosHistory: any[] = [
   {
-    id:'id', name:'Id', field:'id',
+    id: 'id', name: 'Id', field: 'id',
     fieldName: "",
-    type:'number',
+    type: 'number',
     searchType: "number",
     sortable: true,
     hidden: true,
@@ -124,8 +124,8 @@ const columnsCursosHistory:any[] = [
     searchHidden: false,
   },
   {
-    id: 'CantidadHoras', 
-    name: 'Cantidad Horas', 
+    id: 'CantidadHoras',
+    name: 'Cantidad Horas',
     field: 'CursoHabilitacionCantidadHoras',
     fieldName: 'cur.CursoHabilitacionCantidadHoras',
     type: 'number',
@@ -135,8 +135,8 @@ const columnsCursosHistory:any[] = [
     searchHidden: false,
   },
   {
-    id: 'VigenciaD', 
-    name: 'Vigencia (D)', 
+    id: 'VigenciaD',
+    name: 'Vigencia (D)',
     field: 'CursoHabilitacionVigencia',
     fieldName: 'cur.CursoHabilitacionVigencia',
     type: 'number',
@@ -146,8 +146,8 @@ const columnsCursosHistory:any[] = [
     searchHidden: false,
   },
   {
-    id: 'Modalidad', 
-    name: 'Modalidad', 
+    id: 'Modalidad',
+    name: 'Modalidad',
     field: 'ModalidadCursoModalidad',
     fieldName: 'modcur.ModalidadCursoModalidad',
     type: 'string',
@@ -157,8 +157,8 @@ const columnsCursosHistory:any[] = [
     searchHidden: false,
   },
   {
-    id: 'CentroCapacitacionRazonSocial', 
-    name: 'Centro de Capacitación', 
+    id: 'CentroCapacitacionRazonSocial',
+    name: 'Centro de Capacitación',
     field: 'CentroCapacitacionRazonSocial',
     fieldName: 'cencap.CentroCapacitacionRazonSocial',
     type: 'string',
@@ -168,8 +168,8 @@ const columnsCursosHistory:any[] = [
     searchHidden: false,
   },
   {
-    id: 'CentroCapacitacionSedeDescripcion', 
-    name: 'Sede de Capacitación', 
+    id: 'CentroCapacitacionSedeDescripcion',
+    name: 'Sede de Capacitación',
     field: 'CentroCapacitacionSedeDescripcion',
     fieldName: 'sede.CentroCapacitacionSedeDescripcion',
     type: 'string',
@@ -179,8 +179,8 @@ const columnsCursosHistory:any[] = [
     searchHidden: false,
   },
   {
-    id: 'CursoHabilitacionInstructor', 
-    name: 'Instructor', 
+    id: 'CursoHabilitacionInstructor',
+    name: 'Instructor',
     field: 'CursoHabilitacionInstructor',
     fieldName: 'cur.CursoHabilitacionInstructor',
     type: 'string',
@@ -199,24 +199,27 @@ export class CursoController extends BaseController {
 
     const queryRunner = dataSource.createQueryRunner();
     try {
-        const Curso = await queryRunner.query(`SELECT CursoHabilitacionId,CursoHabilitacionDescripcion FROM CursoHabilitacion`)
-        return this.jsonRes(Curso, res);
+      const Curso = await queryRunner.query(
+        `SELECT CursoHabilitacionId
+		    ,CONCAT(TRIM(CursoHabilitacionDescripcion), ' (',ISNULL(CursoHabilitacionCodigo,CursoHabilitacionId), ')') AS CursoHabilitacionDesCod
+        FROM CursoHabilitacion`)
+      return this.jsonRes(Curso, res);
     } catch (error) {
-        return next(error)
+      return next(error)
     } finally {
 
     }
-  
+
   }
 
   async searchId(req: any, res: Response, next: NextFunction) {
     const { id } = req.params
     const queryRunner = dataSource.createQueryRunner();
     try {
-        const Curso = await queryRunner.query(`SELECT CursoHabilitacionId,CursoHabilitacionDescripcion FROM CursoHabilitacion WHERE CursoHabilitacionId = ${id}`)
-        return this.jsonRes(Curso, res);
+      const Curso = await queryRunner.query(`SELECT CursoHabilitacionId,CursoHabilitacionDescripcion FROM CursoHabilitacion WHERE CursoHabilitacionId = ${id}`)
+      return this.jsonRes(Curso, res);
     } catch (error) {
-        return next(error)
+      return next(error)
     } finally {
 
     }
@@ -346,41 +349,41 @@ export class CursoController extends BaseController {
   }
 
 
-    async searchModalidadCurso(req: any, res: Response, next: NextFunction) {
+  async searchModalidadCurso(req: any, res: Response, next: NextFunction) {
 
-      const queryRunner = dataSource.createQueryRunner();
-      try {
-          const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso`)
-          return this.jsonRes(Curso, res);
-      } catch (error) {
-          return next(error)
-      } finally {
-  
-      }
-    
-    }
-  
-    async searchModalidadCursoId(req: any, res: Response, next: NextFunction) {
-      const { id } = req.params
-      const queryRunner = dataSource.createQueryRunner();
-      try {
-          const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso WHERE ModalidadCursoCodigo = @0`,[id])
-          return this.jsonRes(Curso, res);
-      } catch (error) {
-          return next(error)
-      } finally {
-  
-      }
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso`)
+      return this.jsonRes(Curso, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+
     }
 
+  }
 
-    async setCurso(req: any, res: Response, next: NextFunction) {
+  async searchModalidadCursoId(req: any, res: Response, next: NextFunction) {
+    const { id } = req.params
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso WHERE ModalidadCursoCodigo = @0`, [id])
+      return this.jsonRes(Curso, res);
+    } catch (error) {
+      return next(error)
+    } finally {
 
-    let { 
-      CursoHabilitacionCodigo, CursoHabilitacionId,CursoHabilitacionDescripcion, CursoHabilitacionCantidadHoras, 
-      CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor, 
+    }
+  }
+
+
+  async setCurso(req: any, res: Response, next: NextFunction) {
+
+    let {
+      CursoHabilitacionCodigo, CursoHabilitacionId, CursoHabilitacionDescripcion, CursoHabilitacionCantidadHoras,
+      CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor,
       CentroCapacitacionId, CentroCapacitacionSedeId, CursoHabilitacionIdForEdit
-     } = req.body
+    } = req.body
 
     console.log("req.body", req.body)
     let result = []
@@ -396,8 +399,8 @@ export class CursoController extends BaseController {
 
       await this.validateFormCursos(req.body)
 
-   
-      if(CursoHabilitacionIdForEdit > 0){
+
+      if (CursoHabilitacionIdForEdit > 0) {
         // is edit
 
         await queryRunner.query(`
@@ -412,28 +415,28 @@ export class CursoController extends BaseController {
              CursoHabilitacionCentroCapacitacionSedeId = @7
           WHERE CursoHabilitacionId = @8
         `, [
-             CursoHabilitacionDescripcion, 
-             CursoHabilitacionCodigo,
-             CursoHabilitacionCantidadHoras,
-             CursoHabilitacionInstructor,
-             CursoHabilitacionVigencia,
-             ModalidadCursoCodigo,
-             CentroCapacitacionId,
-             CentroCapacitacionSedeId,
-             CursoHabilitacionIdForEdit
-           ]);
+          CursoHabilitacionDescripcion,
+          CursoHabilitacionCodigo,
+          CursoHabilitacionCantidadHoras,
+          CursoHabilitacionInstructor,
+          CursoHabilitacionVigencia,
+          ModalidadCursoCodigo,
+          CentroCapacitacionId,
+          CentroCapacitacionSedeId,
+          CursoHabilitacionIdForEdit
+        ]);
 
-      }else{
+      } else {
         // is new
-     console.log("estoy agregando")
+        console.log("estoy agregando")
 
-     const existCursoHabilitacion = await queryRunner.query(`SELECT * FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [ CursoHabilitacionCodigo])
+        const existCursoHabilitacion = await queryRunner.query(`SELECT * FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [CursoHabilitacionCodigo])
 
-     if(existCursoHabilitacion.length > 0){
-      throw new ClientException(`El código ${CursoHabilitacionCodigo} ya existe.`)
-     }
-     
-      await queryRunner.query(`
+        if (existCursoHabilitacion.length > 0) {
+          throw new ClientException(`El código ${CursoHabilitacionCodigo} ya existe.`)
+        }
+
+        await queryRunner.query(`
         INSERT INTO CursoHabilitacion (
            CursoHabilitacionDescripcion,
            CursoHabilitacionInactivo,
@@ -448,22 +451,22 @@ export class CursoController extends BaseController {
         ) VALUES (
            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9
         )`, [
-           CursoHabilitacionDescripcion, 
-           null, // CursoHabilitacionInactivo
-           CursoHabilitacionCodigo,
-           '-', // CursoHabilitacionDescripcion2
-           CursoHabilitacionCantidadHoras,
-           CursoHabilitacionInstructor,
-           CursoHabilitacionVigencia,
-           ModalidadCursoCodigo,
-           CentroCapacitacionId,
-           CentroCapacitacionSedeId
-         ]);
+          CursoHabilitacionDescripcion,
+          null, // CursoHabilitacionInactivo
+          CursoHabilitacionCodigo,
+          '-', // CursoHabilitacionDescripcion2
+          CursoHabilitacionCantidadHoras,
+          CursoHabilitacionInstructor,
+          CursoHabilitacionVigencia,
+          ModalidadCursoCodigo,
+          CentroCapacitacionId,
+          CentroCapacitacionSedeId
+        ]);
 
-        result = await queryRunner.query(`SELECT CursoHabilitacionId FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [ CursoHabilitacionCodigo])
-        
-     
-      } 
+        result = await queryRunner.query(`SELECT CursoHabilitacionId FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [CursoHabilitacionCodigo])
+
+
+      }
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (CursoHabilitacionIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
@@ -478,8 +481,8 @@ export class CursoController extends BaseController {
 
   async validateFormCursos(req: any) {
 
-    const { CursoHabilitacionCodigo, CursoHabilitacionId,CursoHabilitacionDescripcion, CursoHabilitacionCantidadHoras, 
-      CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor, 
+    const { CursoHabilitacionCodigo, CursoHabilitacionId, CursoHabilitacionDescripcion, CursoHabilitacionCantidadHoras,
+      CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor,
       CentroCapacitacionId, CentroCapacitacionSedeId } = req
 
     if (!CursoHabilitacionCodigo) {
@@ -509,12 +512,12 @@ export class CursoController extends BaseController {
   }
 
 
-  
+
   async deleteCurso(req: any, res: Response, next: NextFunction) {
     const { CursoHabilitacionId } = req.query
     console.log("req.params", req.query)
     const queryRunner = dataSource.createQueryRunner()
-   // throw new ClientException(`test`)
+    // throw new ClientException(`test`)
 
     try {
       await queryRunner.connect();
@@ -524,12 +527,12 @@ export class CursoController extends BaseController {
 
       await queryRunner.commitTransaction();
       this.jsonRes({}, res, 'Borrado Exitoso')
-  } catch (error) {
+    } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
-  }
+    }
 
-    
+
   }
 
 

@@ -1,155 +1,153 @@
 <nz-card class="small-margin">
 
-    <div nz-row class="contentStyle">
-        <div nz-col  class="listStyle">
-          <ul nz-menu nzMode="horizontal" style="display: flex;">
-            <li nz-menu-item nzMatchRouter>
-              <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'estudios']" (click)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.estudios' | i18n }}</a>
-            </li>
-            <li nz-menu-item nzMatchRouter>
-              <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'cursos']" (click)="selectedTab.set('cursos'); this.PersonalId.set(0)">{{ 'app.seguros.cursos' | i18n }}</a>
-            </li>
-            <li nz-menu-item nzMatchRouter>
-              <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'instituciones']" (click)="selectedTab.set('instituciones'); this.PersonalId.set(0);this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.instituciones' | i18n }}</a>
-            </li>
-          </ul>
-        </div>
-    
-        <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
-          <nz-button-group style="text-align: right;">
-      
-            @if(selectedTab() === 'estudios') {
-         
-                <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
-                  nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-                <button nz-button nzType="default" (click)="openDrawerforConsult()" [disabled]="!(PersonalId()>0)" nz-tooltip
-                  nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
-                    nzTheme="outline"></span></button>
-                <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
-                  nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-            }
-            @if(selectedTab() === 'cursos') {
-              
-              <button nz-button nzType="default" (click)="openDrawerCursoforEdit()" [disabled]="!(CursoHabilitacionSelectedId()>0)" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-              <button nz-button nzType="default" (click)="openDrawerCursoforConsult()" [disabled]="!(CursoHabilitacionSelectedId()>0)" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
-                  nzTheme="outline"></span></button>
-              <button nz-button nzType="default" (click)="openDrawerCursoforNew()" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+  <div nz-row class="contentStyle">
+    <div nz-col class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'estudios', 'estudios']"
+            (click)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">{{ 'app.seguros.estudios' |
+            i18n }}</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'estudios', 'cursos']"
+            (click)="selectedTab.set('cursos'); this.PersonalId.set(0)">{{ 'app.seguros.cursos' | i18n }}</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'estudios', 'instituciones']"
+            (click)="selectedTab.set('instituciones'); this.PersonalId.set(0);this.CursoHabilitacionSelectedId.set(0)">{{
+            'app.seguros.instituciones' | i18n }}</a>
+        </li>
+      </ul>
+    </div>
 
-              <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="CursoHabilitacionSelectedId() == 0"
-            nz-tooltip nzTooltipTitle="{{ 'app.mas.detalles' | i18n }}"><span nz-icon nzType="menu-unfold"
+    <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
+      <nz-button-group style="text-align: right;">
+
+        @if(selectedTab() === 'estudios') {
+        <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforConsult()" [disabled]="!(PersonalId()>0)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
             nzTheme="outline"></span></button>
-            }
-            @if(selectedTab() === 'instituciones') {
-              
-              <button nz-button nzType="default" (click)="openDrawerInstitucionesforEdit()" [disabled]="!(CentroCapacitacionId()>0)" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
 
-              <button nz-button nzType="default" (click)="openDrawerInstitucionesforConsult()" [disabled]="!(CentroCapacitacionId()>0)" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
-                  nzTheme="outline"></span></button>
-              <button nz-button nzType="default" (click)="openDrawerInstitucionesforNew()" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        }
+        @if(selectedTab() === 'cursos') {
+        <button nz-button nzType="default" (click)="openDrawerCursoforNew()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
 
-              <button nz-button nzType="default" (click)="openDrawerInstitucionesforSede()" [disabled]="!(CentroCapacitacionId()>0)" nz-tooltip
-                nzTooltipTitle="{{'app.btn.sede' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerCursoforEdit()"
+          [disabled]="!(CursoHabilitacionSelectedId()>0)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span
+            nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerCursoforConsult()"
+          [disabled]="!(CursoHabilitacionSelectedId()>0)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
+            nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforConsultHistory()"
+          [disabled]="CursoHabilitacionSelectedId() == 0" nz-tooltip
+          nzTooltipTitle="{{ 'app.mas.detalles' | i18n }}"><span nz-icon nzType="menu-unfold"
+            nzTheme="outline"></span></button>
+        }
+        @if(selectedTab() === 'instituciones') {
+        <button nz-button nzType="default" (click)="openDrawerInstitucionesforNew()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
 
-            }
-          </nz-button-group>
+        <button nz-button nzType="default" (click)="openDrawerInstitucionesforEdit()"
+          [disabled]="!(CentroCapacitacionId()>0)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span
+            nz-icon nzType="edit" nzTheme="outline"></span></button>
+
+        <button nz-button nzType="default" (click)="openDrawerInstitucionesforConsult()"
+          [disabled]="!(CentroCapacitacionId()>0)" nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span
+            nz-icon nzType="info-circle" nzTheme="outline"></span></button>
+
+        <button nz-button nzType="default" (click)="openDrawerInstitucionesforSede()"
+          [disabled]="!(CentroCapacitacionId()>0)" nz-tooltip nzTooltipTitle="{{'app.btn.sede' | i18n }}"><span nz-icon
+            nzType="environment" nzTheme="outline"></span></button>
+
+        }
+      </nz-button-group>
+    </div>
+
+  </div>
+
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab></nz-tab>
+    <nz-tab (nzSelect)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">
+      <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
+      <ng-template nz-tab>
+        <div class="container-fluid">
+
+          <app-table-estudios [RefreshEstudio]="RefreshEstudio()"
+            (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios>
+
         </div>
-    
-      </div>
-    
-    
-      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-        <nz-tab></nz-tab>
-        <nz-tab (nzSelect)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">
-          <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
-          <ng-template nz-tab>
-            <div class="container-fluid">
-              
-                <app-table-estudios [RefreshEstudio]="RefreshEstudio()"  (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
-              
-            </div>
-          </ng-template>
-        </nz-tab>
-        <nz-tab (nzSelect)="selectedTab.set('cursos'); this.PersonalId.set(0)">
-          <a nz-tab-link routerLink="/ges/estudios/cursos">{{ 'app.seguros.cursos' | i18n }} </a>
-          <ng-template nz-tab>
-            <div class="container-fluid">
-              
-              <app-table-cursos [RefreshCurso]="RefreshCurso()"  (valueGridEvent)="actualizarValorDrawerCurso($event)"></app-table-cursos>  
+      </ng-template>
+    </nz-tab>
+    <nz-tab (nzSelect)="selectedTab.set('cursos'); this.PersonalId.set(0)">
+      <a nz-tab-link routerLink="/ges/estudios/cursos">{{ 'app.seguros.cursos' | i18n }} </a>
+      <ng-template nz-tab>
+        <div class="container-fluid">
 
-            </div>
-          </ng-template>
-        </nz-tab>
+          <app-table-cursos [RefreshCurso]="RefreshCurso()"
+            (valueGridEvent)="actualizarValorDrawerCurso($event)"></app-table-cursos>
 
-        <nz-tab (nzSelect)="selectedTab.set('instituciones'); this.PersonalId.set(0);this.CursoHabilitacionSelectedId.set(0)">
-          <a nz-tab-link routerLink="/ges/estudios/instituciones">{{ 'app.seguros.instituciones' | i18n }} </a>
-          <ng-template nz-tab>
-            <div class="container-fluid">
-              
-              <app-table-instituciones [RefreshInstituciones]="RefreshInstituciones()"  (valueGridEvent)="actualizarValorDrawerInstitucion($event)"></app-table-instituciones>
+        </div>
+      </ng-template>
+    </nz-tab>
 
-            </div>
-          </ng-template>
-        </nz-tab>
-      </nz-tabset>
+    <nz-tab
+      (nzSelect)="selectedTab.set('instituciones'); this.PersonalId.set(0);this.CursoHabilitacionSelectedId.set(0)">
+      <a nz-tab-link routerLink="/ges/estudios/instituciones">{{ 'app.seguros.instituciones' | i18n }} </a>
+      <ng-template nz-tab>
+        <div class="container-fluid">
 
-      @defer (when visibleDrawer()) {
+          <app-table-instituciones [RefreshInstituciones]="RefreshInstituciones()"
+            (valueGridEvent)="actualizarValorDrawerInstitucion($event)"></app-table-instituciones>
 
-        <app-estudios-drawer 
-        (onRefreshEstudio)="RefreshEstudio.set(true)" 
-        [disabled]="disabled()" 
-        [(visible)]="visibleDrawer" 
-        [PersonalId]="PersonalId()"
-        [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
+        </div>
+      </ng-template>
+    </nz-tab>
+  </nz-tabset>
 
-      } 
-   
-      @defer (when visibleDrawerCurso()) {
+  @defer (when visibleDrawer()) {
 
-        <app-cursos-drawer 
-        (onRefreshCurso)="RefreshCurso.set(true)" 
-        [disabled]="disabled()" 
-        [(visible)]="visibleDrawerCurso" 
-        [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer> 
-      } 
+  <app-estudios-drawer (onRefreshEstudio)="RefreshEstudio.set(true)" [disabled]="disabled()" [(visible)]="visibleDrawer"
+    [PersonalId]="PersonalId()" [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
 
-      @defer (when visibleDrawerInstituciones()) {
+  }
 
-      <app-instituciones-drawer 
-      (onRefreshInstituciones)="RefreshInstituciones.set(true)" 
-      [disabled]="disabled()" 
-      [(visible)]="visibleDrawerInstituciones" 
-      [CentroCapacitacionId]="CentroCapacitacionId()"></app-instituciones-drawer> 
+  @defer (when visibleDrawerCurso()) {
 
-      } 
+  <app-cursos-drawer (onRefreshCurso)="RefreshCurso.set(true)" [disabled]="disabled()" [(visible)]="visibleDrawerCurso"
+    [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer>
+  }
 
-      @defer (when visibleDrawerSedes()) {
+  @defer (when visibleDrawerInstituciones()) {
 
-      <app-sedes-drawer 
-      (onRefreshInstituciones)="RefreshInstituciones.set(true)" 
-      [(visible)]="visibleDrawerSedes" 
-      [CentroCapacitacionId]="CentroCapacitacionId()"
-      [CentroCapacitacionName]="CentroCapacitacionName()"></app-sedes-drawer> 
+  <app-instituciones-drawer (onRefreshInstituciones)="RefreshInstituciones.set(true)" [disabled]="disabled()"
+    [(visible)]="visibleDrawerInstituciones" [CentroCapacitacionId]="CentroCapacitacionId()"></app-instituciones-drawer>
 
-      } 
+  }
 
-      @defer (when visibleHistorial()) {
+  @defer (when visibleDrawerSedes()) {
 
-      <app-curso-historial-drawer 
-      [(visibleHistorial)]="visibleHistorial" 
-      [CursoHabilitacionId]="CursoHabilitacionSelectedId()"
-      [CentroCapacitacionSedeId]="CentroCapacitacionSedeId()"
-      [CursoHabilitacionDescripcion]="CursoHabilitacionDescripcion()"></app-curso-historial-drawer> 
+  <app-sedes-drawer (onRefreshInstituciones)="RefreshInstituciones.set(true)" [(visible)]="visibleDrawerSedes"
+    [CentroCapacitacionId]="CentroCapacitacionId()"
+    [CentroCapacitacionName]="CentroCapacitacionName()"></app-sedes-drawer>
 
-      } 
+  }
+
+  @defer (when visibleHistorial()) {
+
+  <app-curso-historial-drawer [(visibleHistorial)]="visibleHistorial"
+    [CursoHabilitacionId]="CursoHabilitacionSelectedId()" [CentroCapacitacionSedeId]="CentroCapacitacionSedeId()"
+    [CursoHabilitacionDescripcion]="CursoHabilitacionDescripcion()"></app-curso-historial-drawer>
+
+  }
 
 </nz-card>
-

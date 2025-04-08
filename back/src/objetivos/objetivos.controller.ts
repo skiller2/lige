@@ -304,7 +304,7 @@ export class ObjetivosController extends BaseController {
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
-
+       
         try {
             const objetivos = await queryRunner.query(
                 `SELECT 
@@ -355,12 +355,12 @@ export class ObjetivosController extends BaseController {
 					    AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
 					    AND eledepcon.RowNum = 1       
    				
-                LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
-   				WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= GrupoActividadObjetivoDesde AND DATEFROMPARTS(@0,@1,1) <= ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') 
-   				GROUP BY GrupoActividadObjetivoObjetivoId
-					) gap2 ON gap2.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
+     --           LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
+   		--		WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= GrupoActividadObjetivoDesde AND DATEFROMPARTS(@0,@1,1) <= ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') 
+   		--		GROUP BY GrupoActividadObjetivoObjetivoId
+					--) gap2 ON gap2.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
       
-                LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gap.GrupoActividadObjetivoId=gap2.GrupoActividadObjetivoId
+                LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gap.GrupoActividadObjetivoDesde<=@2 AND ISNULL(gap.GrupoActividadObjetivoHasta, '9999-12-31')>=@2
                 LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
 		                    
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
@@ -369,8 +369,8 @@ export class ObjetivosController extends BaseController {
                 ROW_NUMBER() OVER (PARTITION BY ca.ClienteId ORDER BY ca.ClienteAdministradorAdministradorId DESC) AS RowNum
                 FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
                 adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
-
-                WHERE ${filterSql} ${orderBy}`, [anio, mes])
+                
+                WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
             this.jsonRes(
                 {

@@ -45,9 +45,9 @@
           <nz-form-control>
           <!-- <app-curso-search formControlName="CursoHabilitacionId" ></app-curso-search>   -->
           
-          <nz-select  formControlName="CursoHabilitacionId" nzPlaceHolder="Curso" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important">
+          <nz-select  formControlName="CursoHabilitacionId" nzPlaceHolder="Curso" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
             <ng-container *ngFor="let option of $optionsCurso | async " >
-              <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDescripcion" ></nz-option>
+              <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod" ></nz-option>
             </ng-container>
           </nz-select>
           </nz-form-control>

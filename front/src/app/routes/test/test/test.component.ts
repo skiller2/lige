@@ -16,8 +16,10 @@ import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
 import { BarcodeFormat } from '@zxing/library';
 import { I18NService } from '@core';
 
+// icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline} from '@ant-design/icons-angular/icons';
+
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component';
 
 
