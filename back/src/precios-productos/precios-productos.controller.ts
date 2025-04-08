@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "../controller/baseController";
+import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
@@ -415,7 +415,7 @@ export class PreciosProductosController extends BaseController {
         }
 
         if (params.SucursalId == null || params.SucursalId == "")
-            throw new ClientException(`Debe seleccionar la Sucursal`)
+            throw new ClientWarning(`Debe seleccionar la Sucursal`)
 
         let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1 AND precio_venta_id != @2`, [params.codigo, params.SucursalId, params.precioVentaId])
         const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [params.precioVentaId])
@@ -429,16 +429,16 @@ export class PreciosProductosController extends BaseController {
 
 
         if (params.nombre == null || params.nombre == "")
-            throw new ClientException(`Debe completar el nombre del producto`)
+            throw new ClientWarning(`Debe completar el nombre del producto`)
 
         if (params.TipoProductoId == null || params.TipoProductoId == "")
-            throw new ClientException(`Debe completar el tipo de producto`)
+            throw new ClientWarning(`Debe completar el tipo de producto`)
 
         if (params.descripcion == null || params.descripcion == "")
-            throw new ClientException(`Debe completar la descripcion del producto`)
+            throw new ClientWarning(`Debe completar la descripcion del producto`)
 
         if (params.importe == null || params.importe == "")
-            throw new ClientException(`Debe completar el Importe`)
+            throw new ClientWarning(`Debe completar el Importe`)
 
         if (params.hasta && hasta < desde)
             throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)

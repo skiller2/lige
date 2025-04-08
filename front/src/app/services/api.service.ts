@@ -694,7 +694,7 @@ export class ApiService {
 
   getTipoDocumentos(options: any) {
     if (!options.filtros.length){
-      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro.`);
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
     const parameter = {options}

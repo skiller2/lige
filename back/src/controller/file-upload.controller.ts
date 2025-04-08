@@ -224,7 +224,18 @@ export class FileUploadController extends BaseController {
           break;
       }
       // console.log('ArchivosAnteriores', ArchivosAnteriores);
-      ArchivosAnteriores.map((archivo) => { return archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim() })
+      ArchivosAnteriores.map((archivo) => {
+        archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim()
+        if (archivo.TipoArchivo == 'JPEG' || archivo.TipoArchivo == 'JPG' || archivo.TipoArchivo == 'PNG')
+          archivo.mimetype = 'image'
+        else if (archivo.TipoArchivo == 'PDF')
+          archivo.mimetype = 'pdf'
+        else
+          archivo.mimetype = 'unknown'
+
+        archivo.url = `api/file-upload/downloadFile/${id}/docgeneral/original`
+        return archivo
+      })
 
       this.jsonRes(
         {
@@ -339,7 +350,7 @@ export class FileUploadController extends BaseController {
           );
         } else {
           console.log('file', file)
-          throw new ClientException(`stop`)
+//          throw new ClientException(`stop`)
           //          const hash = await FileUploadController.hashFile(filePath: string)
           await queryRunner.query(`
             UPDATE lige.dbo.docgeneral
