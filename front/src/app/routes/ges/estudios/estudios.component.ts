@@ -14,14 +14,20 @@ import { TableInstitucionesComponent } from "../table-instituciones/table-instit
 import { InstitucionesDrawerComponent } from 'src/app/routes/ges/instituciones-drawer/instituciones-drawer.component';
 import { SedesDrawerComponent } from 'src/app/shared/sedes-drawer/sedes-drawer.component';
 
+// icons
+import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import {EnvironmentOutline} from '@ant-design/icons-angular/icons';
+
+
 @Component({
   selector: 'app-estudios',
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, TableEstudiosComponent, EstudiosDrawerComponent, 
+  imports: [...SHARED_IMPORTS, CommonModule, NzIconModule, TableEstudiosComponent, EstudiosDrawerComponent, 
     TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent, 
-    InstitucionesDrawerComponent, SedesDrawerComponent]
+    InstitucionesDrawerComponent, SedesDrawerComponent],
+    providers: [provideNzIconsPatch([EnvironmentOutline])],
 })
 export class EstudiosComponent {
 
