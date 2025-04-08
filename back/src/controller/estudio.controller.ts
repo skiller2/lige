@@ -272,6 +272,8 @@ export class EstudioController extends BaseController {
       personalEstudioId
     } = req.body
 
+    let result = []
+
     console.log("req.body", req.body)
 
     const usuario = res.locals.userName;
@@ -363,6 +365,9 @@ export class EstudioController extends BaseController {
           PersonalEstudioOtorgado,
           PersonalEstudioHasta]);
 
+
+          result = await queryRunner.query(`SELECT * FROM PersonalEstudio WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
+
       }
 
       console.log("req.body.files", req.body.files)
@@ -378,7 +383,7 @@ export class EstudioController extends BaseController {
 
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, (PersonalIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: result[0] }, res, (PersonalIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
       await queryRunner.rollbackTransaction()
       return next(error)
