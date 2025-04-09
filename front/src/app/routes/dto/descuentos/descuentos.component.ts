@@ -8,8 +8,6 @@ import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/table-descuentos-personal.component';
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
-import { TableDescuentosPrepagaComponent } from '../table-descuentos-prepaga/table-descuentos-prepaga.component';
-import { TableDescuentosStockComponent } from '../table-descuentos-stock/table-descuentos-stock.component';
 import { DescuentosAltaDrawerComponent } from '../descuentos-alta-drawer/descuentos-alta-drawer.component';
 
 @Component({
@@ -18,8 +16,7 @@ import { DescuentosAltaDrawerComponent } from '../descuentos-alta-drawer/descuen
     styleUrls: ['./descuentos.component.less'],
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule, TableDescuentosPersonalComponent,
-        TableDescuentosObjetivosComponent, TableDescuentosPrepagaComponent,
-        TableDescuentosStockComponent, DescuentosAltaDrawerComponent],
+        TableDescuentosObjetivosComponent,  DescuentosAltaDrawerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DescuentosComponent {
