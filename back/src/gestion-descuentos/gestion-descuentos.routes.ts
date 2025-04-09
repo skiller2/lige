@@ -12,21 +12,10 @@ gestionDescuentosRouter.get("/cols/objetivos", [authMiddleware.verifyToken,authM
     gestionDescuentosController.getObjetivosGridColumns(req, res, next);
 });
 
-gestionDescuentosRouter.get("/cols/prepaga", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.getPrepagaGridColumns(req, res, next);
-});
-
-gestionDescuentosRouter.get("/cols/stock", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.getStockGridColumns(req, res, next);
-});
-
 gestionDescuentosRouter.get("/tipo/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getTiposDescuentos(req, res, next);
 });
 
-gestionDescuentosRouter.get("/cols/stock", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.getStockGridColumns(req, res, next);
-});
 
 gestionDescuentosRouter.get("/tipo/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getTiposDescuentos(req, res, next);
@@ -38,14 +27,6 @@ gestionDescuentosRouter.post("/personal/:id", [authMiddleware.verifyToken,authMi
 
 gestionDescuentosRouter.post('/list/personal', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getDescuentosPersonal(req, res, next)
-});
-
-gestionDescuentosRouter.post('/list/prepaga', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.getDescuentosPrepaga(req, res, next)
-});
-
-gestionDescuentosRouter.post('/list/stock', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.getDescuentosStock(req, res, next)
 });
 
 gestionDescuentosRouter.post('/list/objetivos', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

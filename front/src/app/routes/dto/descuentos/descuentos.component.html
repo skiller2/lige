@@ -17,14 +17,6 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'dto', 'descuentos', 'objetivos']">Objetivos</a>
         </li>
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'dto', 'descuentos', 'stock']" >Stock</a>
-        </li>
-        <li nz-menu-item nzMatchRouter>
-            <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'dto', 'descuentos', 'prepaga']" >Prepaga</a>
-          </li>
       </ul>
       
       <nz-button-group>
@@ -47,20 +39,6 @@
         <a nz-tab-link routerLink="/dto/descuentos/objetivos">Objetivos</a>
         <ng-template nz-tab>
           <app-table-descuentos-objetivos [anio]="anio()" [mes]="mes()" ></app-table-descuentos-objetivos>
-        </ng-template>
-      </nz-tab>
-  
-      <nz-tab>
-        <a nz-tab-link routerLink="/dto/descuentos/stock">Stock</a>
-        <ng-template nz-tab>
-          <app-table-descuentos-stock [anio]="anio()" [mes]="mes()" ></app-table-descuentos-stock>
-        </ng-template>
-      </nz-tab>
-  
-      <nz-tab>
-        <a nz-tab-link routerLink="/dto/descuentos/prepaga">Prepaga</a>
-        <ng-template nz-tab>
-          <app-table-descuentos-prepaga [anio]="anio()" [mes]="mes()" ></app-table-descuentos-prepaga>
         </ng-template>
       </nz-tab>
   
