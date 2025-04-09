@@ -2333,10 +2333,25 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
+  isCBU(cbu:string):boolean {
+    // Verifica que tenga exactamente 22 caracteres
+    if (cbu.length != 22)
+      return false
+
+    // Verifica que todos los caracteres sean números
+    for (let i = 0; i < cbu.length; i++) {
+      const char = cbu[i];
+      if (isNaN(Number(char)))
+        return false
+    }
+    
+    return true
+  }
+
   async setPersonalBanco(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId: number = Number(req.params.id);
-    const BancoId = req.body.BancoId
+    const BancoId:number = req.body.BancoId
     const CBU = req.body.CBU
     let Desde = req.body.Desde
     try {
@@ -2350,9 +2365,8 @@ cuit.PersonalCUITCUILCUIT,
         campos_vacios.unshift('Debe completar los siguientes campos:')
         throw new ClientException(campos_vacios);
       }
-
-      if (CBU.length != 22)
-        throw new ClientException('El CBU debe de estar compuesto por 22 digitos.')
+      if (!this.isCBU(CBU))
+        throw new ClientException('El CBU debe ser de 22 digitos.')
 
       let PersonalBanco = await queryRunner.query(`
         SELECT *
@@ -2525,5 +2539,64 @@ cuit.PersonalCUITCUILCUIT,
       return next(error)
     }
   }
+
+  async updatePersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[]) {
+    await queryRunner.query(`UPDATE PersonalSeguroBeneficiario SET PersonalSeguroBeneficiarioInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
+    for (const beneficiario of beneficiarios) {
+      if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoParentescoId)
+        continue
+
+      if (!beneficiario.Nombre || !beneficiario.Apellido || !beneficiario.TipoParentescoId) 
+        return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Beneficiario No pueden estar vacios.`)
+      
+      await this.addPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario)
+    }
+  }
+
+  async addPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any) {
+    let PersonalSeguroBeneficiarioId = beneficiario.PersonalSeguroBeneficiarioId
+    const Nombre = beneficiario.Nombre
+    const Apellido = beneficiario.Apellido
+    const TipoDocumentoId = beneficiario.TipoDocumentoId
+    const DocumentoNro = beneficiario.DocumentoNro
+    const TipoParentescoId = beneficiario.TipoParentescoId
+    const Observacion = beneficiario.Observacion
+    let desde:Date = new Date()
+    desde.setHours(0,0,0,0)
+    
+    // PersonalSeguroBeneficiarioUltNro
+    // if (!PersonalSeguroBeneficiarioId) {
+    //   const Personal = await queryRunner.query(`
+    //     SELECT ISNULL(PersonalSeguroBeneficiarioUltNro, 0)+1 AS UltNro
+    //     FROM PersonalSeguro
+    //     WHERE PersonalId IN (@0)
+    //     `, [PersonalId])
+    //     PersonalSeguroBeneficiarioId = Personal[0].UltNro
+    // }
+    
+    await queryRunner.query(`
+      INSERT INTO PersonalSeguroBeneficiario (
+      PersonalId,
+      PersonalSeguroBeneficiarioId,
+      PersonalSeguroBeneficiarioApellido,
+      PersonalSeguroBeneficiarioNombre,
+      TipoParentescoId,
+      TipoDocumentoId,
+      PersonalSeguroBeneficiarioDocumentoNro,
+      PersonalSeguroBeneficiarioDesde,
+      PersonalSeguroBeneficiarioObservacion,
+      PersonalSeguroBeneficiarioInactivo
+      )
+      VALUES (@0, @1, @2, @3, @4, @5, 6)`, [
+        PersonalId, PersonalSeguroBeneficiarioId, Apellido, Nombre,TipoParentescoId,
+        TipoDocumentoId, DocumentoNro, desde, Observacion, 0
+    ])
+    await queryRunner.query(`
+      UPDATE Personal SET
+      PersonalFamiliaUltNro = @1
+      WHERE PersonalId IN (@0)
+      `, [PersonalId, PersonalSeguroBeneficiarioId])
+  }
+
 
 }
