@@ -297,7 +297,7 @@ export class EstudioController extends BaseController {
       if (TipoEstudioId == 8) {
 
         const CursoHabilitacionQuery = await queryRunner.query(`
-          SELECT * FROM CursoHabilitacion
+          SELECT CursoHabilitacionVigencia FROM CursoHabilitacion
           WHERE CursoHabilitacionId = ${CursoHabilitacionId}
         `)
         const CursoHabilitacionVigencia = CursoHabilitacionQuery[0].CursoHabilitacionVigencia
@@ -366,7 +366,8 @@ export class EstudioController extends BaseController {
           PersonalEstudioHasta]);
 
 
-          result = await queryRunner.query(`SELECT * FROM PersonalEstudio WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
+          result = await queryRunner.query(`SELECT PersonalId,PersonalEstudioId,TipoEstudioId,EstadoEstudioId FROM PersonalEstudio
+             WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
 
       }
 
@@ -425,7 +426,7 @@ export class EstudioController extends BaseController {
     try {
 
       let result = await queryRunner.query(`
-        SELECT * FROM PersonalEstudio
+        SELECT PersonalId,PersonalEstudioId,TipoEstudioId,PersonalEstudioTitulo,PersonalEstudioCursoId,PersonalEstudioOtorgado FROM PersonalEstudio
         WHERE PersonalId = @0 AND PersonalEstudioId = @1
       `, [PersonalId, PersonalEstudioId])
       this.jsonRes(result[0], res);

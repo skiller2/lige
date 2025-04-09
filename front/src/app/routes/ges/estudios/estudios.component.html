@@ -116,27 +116,27 @@
 
   @defer (when visibleDrawer()) {
 
-  <app-estudios-drawer (onRefreshEstudio)="RefreshEstudio.set(true)" [disabled]="disabled()" [(visible)]="visibleDrawer"
+  <app-estudios-drawer (onRefreshEstudio)="RefreshEstudio.set(!RefreshEstudio())" [disabled]="disabled()" [(visible)]="visibleDrawer"
     [PersonalId]="PersonalId()" [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
 
   }
 
   @defer (when visibleDrawerCurso()) {
 
-  <app-cursos-drawer (onRefreshCurso)="RefreshCurso.set(true)" [disabled]="disabled()" [(visible)]="visibleDrawerCurso"
+  <app-cursos-drawer (onRefreshCurso)="RefreshCurso.set(!RefreshCurso())" [disabled]="disabled()" [(visible)]="visibleDrawerCurso"
     [CursoHabilitacionSelectedId]="CursoHabilitacionSelectedId()"></app-cursos-drawer>
   }
 
   @defer (when visibleDrawerInstituciones()) {
 
-  <app-instituciones-drawer (onRefreshInstituciones)="RefreshInstituciones.set(true)" [disabled]="disabled()"
+  <app-instituciones-drawer (onRefreshInstituciones)="RefreshInstituciones.set(!RefreshInstituciones())" [disabled]="disabled()"
     [(visible)]="visibleDrawerInstituciones" [CentroCapacitacionId]="CentroCapacitacionId()"></app-instituciones-drawer>
 
   }
 
   @defer (when visibleDrawerSedes()) {
 
-  <app-sedes-drawer (onRefreshInstituciones)="RefreshInstituciones.set(true)" [(visible)]="visibleDrawerSedes"
+  <app-sedes-drawer (onRefreshInstituciones)="RefreshInstituciones.set(!RefreshInstituciones())" [(visible)]="visibleDrawerSedes"
     [CentroCapacitacionId]="CentroCapacitacionId()"
     [CentroCapacitacionName]="CentroCapacitacionName()"></app-sedes-drawer>
 

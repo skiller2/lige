@@ -133,7 +133,7 @@ export class InstitucionesController extends BaseController {
 
         ,cencap.CentroCapacitacionRazonSocial
         ,cencap.CentroCapacitacionCuit
-        ,cencap.CentroCapacitacionInactivo
+        ,CASE WHEN cencap.CentroCapacitacionInactivo = 0 OR cencap.CentroCapacitacionInactivo IS NULL THEN 'Si' ELSE 'No' END as CentroCapacitacionInactivo
 
         FROM CentroCapacitacion cencap
      

@@ -89,9 +89,8 @@ export class TableEstudiosComponent {
   }
 
   cambios = computed(async () => {
-    if (this.RefreshEstudio()) {
-      this.formChange$.next('');
-    }
+    this.RefreshEstudio()
+    this.formChange$.next('');
   });
 
 
