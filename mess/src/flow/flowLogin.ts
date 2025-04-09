@@ -72,7 +72,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 stop(ctx, gotoFlow, state)
                 return
             }
-
+            const PersonalId=res[0].personalId
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
             await state.update({ codigo: res[0].codigo })
@@ -90,7 +90,13 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 mensaje = "Buenas noches";
             }
 
-            await flowDynamic(`${mensaje} ${res[0].name.trim()}`, { delay: delay })
+            const fistName = res[0].name.trim().split(" ")[0].trim();
+            if (fistName)
+                await flowDynamic(`${mensaje} ${fistName.charAt(0).toUpperCase() + fistName.slice(1).toLowerCase()}`, { delay: delay })
+
+            await personalController.getDocsPendDescarga(PersonalId)
+            
+
 
 
             if (res[0].codigo) {

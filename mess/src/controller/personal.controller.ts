@@ -10,6 +10,25 @@ import { botServer } from "src";
 import { QueryRunner } from "typeorm";
 
 export class PersonalController extends BaseController {
+  async getDocsPendDescarga(PersonalId: number) {
+    const result = await dataSource.query(
+      `SELECT doc.persona_id PersonalId, 
+        doc.doc_id, @1 AS anio, @2 AS mes, 
+        MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
+        FROM lige.dbo.docgeneral doc
+        JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
+        LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.doc_id AND dl.personal_id = doc.persona_id 
+        WHERE doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
+        GROUP BY doc.persona_id, doc.doc_id, pr.mes, pr.anio,dl.doc_id
+        
+      `,
+      [PersonalId]
+    );
+    return result
+
+
+
+  }
 
   async removeCode(telefono: string) {
     return dataSource.query(

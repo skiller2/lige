@@ -44,7 +44,6 @@ export class AuthMiddleware {
         for (const rowgroup of req?.groups) {
           const myGrp:string = rowgroup.match(/CN=([^,]+)/)![1]
           for (const grp of group) {
-            console.log(`grupo: ${grp} contra ${myGrp}`)
             if (myGrp.toLowerCase() == grp.toLowerCase())
               return next()
           }

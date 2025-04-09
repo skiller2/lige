@@ -92,22 +92,23 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           }
           break;
         case "=":
-          if (type == 'number' || type=='float' || type=='currency') {
+          if (type == 'number' || type == 'float' || type == 'currency') {
             if (valorBusqueda === '' || valorBusqueda === null || valorBusqueda === 'null')
               filterString.push(`${fieldName} IS NULL`)
             else {
               if (String(valorBusqueda).indexOf(';') == 0)
-                filterString.push(`${fieldName} = ${String(valorBusqueda).replaceAll(',','.')}`)
-              else 
-                filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(',','.').replaceAll(';',',')})`)
+                filterString.push(`${fieldName} = ${String(valorBusqueda).replaceAll(',', '.')}`)
+              else
+                filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(',', '.').replaceAll(';', ',')})`)
             }
           } else if (type == 'date') {
-                filterString.push(`(${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') `)
+            filterString.push(`(${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') `)
           } else if (type == 'string' && (valorBusqueda === 'null' || valorBusqueda == null))
             filterString.push(`${fieldName} IS NULL`)
-          else
-            filterString.push(`${fieldName} = '${valorBusqueda}'`)
-
+          else {
+            const vals =String(valorBusqueda).split(';').map(value => value.trim());
+            filterString.push(`${fieldName} IN ('${vals.join('\',\'')}')`)
+          }
           break;
         case ">":
           if(type == 'date'){
