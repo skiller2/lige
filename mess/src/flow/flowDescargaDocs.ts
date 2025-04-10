@@ -39,7 +39,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 const documento = docsPend.pop()
                 console.log('documento', documento, docsPend.length)
                 
-                const urlDoc =`${apiBackPath}/file-upload/downloadFile/${documento.doc_id}/docgeneral/original`
+                const urlDoc =`${apiBackPath}/file-upload/downloadFile/${documento.doc_id}/docgeneral/${documento.doc_id}-${documento.doctipo_id}`
                 try {
                     await flowDynamic([{ body: documento.detalle, media: urlDoc, delay }])
                     await chatBotController.addToDocLog(documento.doc_id, ctx.from)
