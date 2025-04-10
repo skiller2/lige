@@ -2369,7 +2369,7 @@ cuit.PersonalCUITCUILCUIT,
         throw new ClientException('El CBU debe ser de 22 digitos.')
 
       let PersonalBanco = await queryRunner.query(`
-        SELECT *
+        SELECT PersonalBancoId
         FROM PersonalBanco 
         WHERE PersonalBancoCBU = @0 AND PersonalBancoHasta IS NULL
       `, [CBU])
@@ -2380,7 +2380,7 @@ cuit.PersonalCUITCUILCUIT,
       Desde.setHours(0, 0, 0, 0)
 
       PersonalBanco = await queryRunner.query(`
-        SELECT *
+        SELECT PersonalBancoId, PersonalBancoDesde
         FROM PersonalBanco 
         WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
       `, [PersonalId, BancoId])
