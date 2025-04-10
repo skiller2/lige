@@ -331,12 +331,11 @@ export class TipoDocumentoController extends BaseController {
 
   private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
-      SELECT CONCAT(des.doc_id,'-',cuit.PersonalCUITCUILCUIT,'-',des.fecha_descarga) AS id, des.doc_id, des.fecha_descarga, des.telefono,
-      per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
-      cuit.PersonalCUITCUILCUIT
-      FROM lige.dbo.doc_descaga_log AS des 
+      SELECT CONCAT(des.doc_id,'-',ROW_NUMBER() OVER (PARTITION BY des.doc_id ORDER BY des.fecha_descarga)) AS id, des.doc_id, des.fecha_descarga, des.telefono,
+      per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT
+      FROM lige.dbo.doc_descaga_log AS des
       LEFT JOIN Personal per ON des.personal_id = per.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE des.doc_id IN (@0)
       AND ${filterSql}
       ${orderBy}
@@ -376,7 +375,7 @@ export class TipoDocumentoController extends BaseController {
       FROM lige.dbo.regtelefonopersonal tel
       LEFT JOIN lige.dbo.doc_descaga_log des ON des.telefono != tel.telefono AND des.doc_id NOT IN (@0)
       LEFT JOIN Personal per ON tel.personal_id = per.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN (
           SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
           FROM PersonalSituacionRevista p
