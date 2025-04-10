@@ -58,7 +58,8 @@ export class EstudiosDrawerComponent {
     CursoHabilitacionId: 0,
     PersonalEstudioOtorgado: "",
     PersonalIdForEdit: 0,
-    files: []
+    files: [],
+    PersonalEstudioPagina1Id: 0
   })
 
   constructor(private searchService: SearchService) { 
@@ -75,7 +76,8 @@ export class EstudiosDrawerComponent {
           vals.PersonalEstudioTitulo = vals.PersonalEstudioTitulo
           vals.CursoHabilitacionId = vals.PersonalEstudioCursoId
           vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
-       
+          vals.PersonalEstudioPagina1Id = vals.PersonalEstudioPagina1Id
+
           this.formCli.patchValue(vals)
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
@@ -107,7 +109,8 @@ export class EstudiosDrawerComponent {
         
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)
         this.formCli.patchValue({
-          personalEstudioId: res.data?.list?.PersonalEstudioId
+          personalEstudioId: res.data?.list?.PersonalEstudioId,
+          PersonalEstudioPagina1Id: res.data?.list?.PersonalEstudioPagina1Id
         })
         this.tituloDrawer.set('Editar Estudio')
       }  

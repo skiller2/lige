@@ -11,6 +11,14 @@
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
+      <nz-form-item [hidden]="true">
+        <nz-form-label [nzSpan]="5">PersonalEstudioPagina1Id</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-input-group>
+           <input nz-input formControlName="PersonalEstudioPagina1Id" ngModel />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control [nzSpan]="18">
@@ -62,8 +70,8 @@
       </nz-form-item>
 
       <nz-form-control>
-        <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalId ?? 0" [cantMaxFiles]="1"
-          [textForSearch]="'CURSO'" [columnForSearch]="'personalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
+        <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0" [cantMaxFiles]="1"
+          [textForSearch]="'EST'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'"></app-file-upload>
       </nz-form-control>
 
       @if(this.formCli.enabled) {

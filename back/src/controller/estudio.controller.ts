@@ -269,7 +269,8 @@ export class EstudioController extends BaseController {
       PersonalEstudioTitulo, //titulo otorgado
       PersonalEstudioOtorgado, // fecha desde
       PersonalIdForEdit,
-      personalEstudioId
+      personalEstudioId,
+      PersonalEstudioPagina1Id // Para el archivo 
     } = req.body
 
     let result = []
@@ -374,13 +375,20 @@ export class EstudioController extends BaseController {
       console.log("req.body.files", req.body.files)
 
       if (req.body.files?.length > 0) {
-        // ahcer for para cada archivo
+        // hacer for para cada archivo
         for (const file of req.body.files) {
+
           console.log("file", file)
           await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file, usuario, ip, queryRunner)
-        }
-      }
 
+          const maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
+          let PersonalEstudioPagina1Id = maxId[0].doc_id 
+  
+          await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId = @1 AND PersonalEstudioId = @2`,
+             [PersonalEstudioPagina1Id, PersonalId, personalEstudioId])
+        }
+
+      }
 
 
       await queryRunner.commitTransaction();
@@ -426,7 +434,7 @@ export class EstudioController extends BaseController {
     try {
 
       let result = await queryRunner.query(`
-        SELECT PersonalId,PersonalEstudioId,TipoEstudioId,PersonalEstudioTitulo,PersonalEstudioCursoId,PersonalEstudioOtorgado FROM PersonalEstudio
+        SELECT PersonalId,PersonalEstudioId,TipoEstudioId,PersonalEstudioTitulo,PersonalEstudioCursoId,PersonalEstudioOtorgado,PersonalEstudioPagina1Id FROM PersonalEstudio
         WHERE PersonalId = @0 AND PersonalEstudioId = @1
       `, [PersonalId, PersonalEstudioId])
       this.jsonRes(result[0], res);

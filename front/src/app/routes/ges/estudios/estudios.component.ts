@@ -1,4 +1,4 @@
-import { Component, ViewChild, computed, inject, model, signal } from '@angular/core';
+import { Component, ViewChild, computed, inject, model, signal, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router'; 
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
@@ -24,6 +24,7 @@ import {EnvironmentOutline} from '@ant-design/icons-angular/icons';
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [...SHARED_IMPORTS, CommonModule, NzIconModule, TableEstudiosComponent, EstudiosDrawerComponent, 
     TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent, 
     InstitucionesDrawerComponent, SedesDrawerComponent],
