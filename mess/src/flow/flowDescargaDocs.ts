@@ -55,7 +55,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 if (docsPend.length)
                     return fallBack('Desea descargar el siguiente documento de la lista? (Si/No)')
                 else {
-                    await flowDynamic('Ya no hay mas documentos pendientes', { delay: delay*3 })
+                    await flowDynamic('Cargando menu general', { delay: delay*3 })
                     return gotoFlow(flowMenu)
                 }
 
