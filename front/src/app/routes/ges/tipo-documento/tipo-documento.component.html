@@ -50,7 +50,7 @@
 
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
-    <nz-tab [nzForceRender]="false">
+    <nz-tab>
       <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
       <ng-template nz-tab>
         @if(columns$ | async; as columnas) {
@@ -86,6 +86,5 @@
 
 </nz-card>
 <app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-tipo-documento-alta-drawer>
-<app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId()
-  [disabled]=true></app-tipo-documento-alta-drawer>
+<app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-tipo-documento-alta-drawer>
 <app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-tipo-documento-alta-drawer>
