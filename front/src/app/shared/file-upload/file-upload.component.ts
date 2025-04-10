@@ -121,7 +121,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   private loadDocumentTypesFromApi() {
     this.apiService.getSelectTipoinFile().subscribe((res: any) => {
-      const documentTypes = res.map((item: any) => item.TipoDocumentoDescripcion.trim()).join(',');
+      const documentTypes = res.map((item: any) => item.detalle.trim()).join(',');
       this.textForSearchSelected.set(documentTypes);
     });
   }
