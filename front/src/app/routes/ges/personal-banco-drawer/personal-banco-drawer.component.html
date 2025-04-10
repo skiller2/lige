@@ -32,7 +32,7 @@
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formPerBanco.pristine">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading1()" [disabled]="formPerBanco.pristine">
             {{ 'app.btn.save' | i18n }}
           </button>
         </nz-form-control>
@@ -40,6 +40,13 @@
 
     </form>
     </nz-card>
+
+    <nz-form-control style="text-align: right; margin-right: 25px;">
+      <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading2()">
+        Finalizar CBUs
+      </button>
+    </nz-form-control>
+    <br>
 
     <nz-form-control *ngIf="$listaBancoPer | async as listaBancoPer ">
       <nz-table #personalBanco [nzData]="listaBancoPer" nzSize="small" [nzPageSize]="100000000"

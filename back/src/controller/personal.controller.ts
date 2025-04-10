@@ -2598,5 +2598,37 @@ cuit.PersonalCUITCUILCUIT,
       `, [PersonalId, PersonalSeguroBeneficiarioId])
   }
 
+  async unsubscribeCBUs(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId: number = Number(req.body.PersonalId);
+    const yesterday:Date = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    yesterday.setHours(0,0,0,0)
+    try {
+      await queryRunner.startTransaction()
+
+      let PersonalBanco = await queryRunner.query(`
+        SELECT PersonalBancoId
+        FROM PersonalBanco 
+        WHERE PersonalId IN (@0) AND PersonalBancoHasta IS NULL
+      `, [PersonalId])
+      if (!PersonalBanco.length)
+        throw new ClientException('No se encuentro CBUs vigentes para dar de baja.');
+
+      await queryRunner.query(`
+        UPDATE PersonalBanco SET
+        PersonalBancoHasta = @1
+        WHERE PersonalId IN (@0) AND PersonalBancoHasta IS NULL
+      `, [PersonalId, yesterday])
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
 }

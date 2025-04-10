@@ -55,6 +55,10 @@ personalRouter.post('/setbanco/:id', [authMiddleware.verifyToken, authMiddleware
   personalController.setPersonalBanco(req, res, next)
 });
 
+personalRouter.post('/unsubscribe/cbu', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gPersonal'])], (req, res, next) => {
+  personalController.unsubscribeCBUs(req, res, next)
+});
+
 personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
