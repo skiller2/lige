@@ -1,5 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Inject, LOCALE_ID, model, signal, ViewChild, viewChild, computed } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { Component, model, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import {
   BehaviorSubject,
@@ -14,11 +13,11 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { CommonModule, formatDate } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
-import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { TipoDocumentoAltaDrawerComponent } from '../tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
 import { TablePendientesDescargasComponent } from '../table-pendientes-descargas/table-pendientes-descargas.component'
 import { TableHistorialDescargasComponent } from '../table-historial-descargas/table-historial-descargas.component'
@@ -51,14 +50,12 @@ export class CustomDescargaComprobanteComponent {
     providers: [AngularUtilService]
 })
 export class TipoDocumentoComponent {
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   startFilters = signal<any[]>([])
 
   constructor(
     private settingService: SettingsService,
     public apiService: ApiService,
     private angularUtilService: AngularUtilService,
-    // @Inject(LOCALE_ID) public locale: string,
     public searchService:SearchService
   ) { }
   
