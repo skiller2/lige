@@ -19,16 +19,17 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 
 
 @Component({
-    selector: 'app-adelanto',
-    templateUrl: './adelanto.component.html',
-    styleUrls: ['./adelanto.component.less'],
-    providers: [AngularUtilService, ExcelExportService],
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
+  selector: 'app-adelanto',
+  templateUrl: './adelanto.component.html',
+  styleUrls: ['./adelanto.component.less'],
+  providers: [AngularUtilService, ExcelExportService],
+  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
 })
 export class AdelantoComponent {
+  startFilters = signal<any[]>([])
   constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
+  //@ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
 
@@ -100,16 +101,16 @@ export class AdelantoComponent {
 
   async ngOnInit() {
     const now = new Date(); //date
-      const anio =
-        Number(localStorage.getItem('anio')) > 0
-          ? Number(localStorage.getItem('anio'))
-          : now.getFullYear();
-      const mes =
-        Number(localStorage.getItem('mes')) > 0
-          ? Number(localStorage.getItem('mes'))
-          : now.getMonth() + 1;
-      this.periodo.set(new Date(anio, mes - 1, 1))
-      this.selectedPeriod = { year: anio, month: mes }
+    const anio =
+      Number(localStorage.getItem('anio')) > 0
+        ? Number(localStorage.getItem('anio'))
+        : now.getFullYear();
+    const mes =
+      Number(localStorage.getItem('mes')) > 0
+        ? Number(localStorage.getItem('mes'))
+        : now.getMonth() + 1;
+    this.periodo.set(new Date(anio, mes - 1, 1))
+    this.selectedPeriod = { year: anio, month: mes }
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
@@ -118,7 +119,7 @@ export class AdelantoComponent {
     this.gridOptions.editable = true
     this.gridOptions.autoEdit = true
 
-    
+
 
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
       if (column.id != 'PersonalPrestamoMonto') return
@@ -127,16 +128,16 @@ export class AdelantoComponent {
         if (item.PersonalPrestamoMonto == 0) {
           const res = await firstValueFrom(this.apiService
             .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
-          item = {  ...item, PersonalPrestamoDia:null, PersonalPrestamoMonto:null, FormaPrestamoDescripcion:null }
+          item = { ...item, PersonalPrestamoDia: null, PersonalPrestamoMonto: null, FormaPrestamoDescripcion: null }
 
         } else if (item.PersonalPrestamoMonto > 0) {
           const res: any = await firstValueFrom(this.apiService
             .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month }))
-          
+
           const resObj = res?.data
           if (resObj)
-            item = {  ...item,...resObj }
-                  
+            item = { ...item, ...resObj }
+
         }
       } catch (err) {
         editCommand.undo()
@@ -156,11 +157,9 @@ export class AdelantoComponent {
   ngAfterContentInit(): void {
     const user: any = this.settingService.getUser()
     const gruposActividadList = user.GrupoActividad
+    this.startFilters.set([
+      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';'), forced: false },])
 
-    setTimeout(() => {
-      if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'), false)  //Ej 548
-    }, 1500);
 
   }
 
@@ -204,7 +203,6 @@ export class AdelantoComponent {
   );
 
   dateChange(result: Date): void {
-    console.log('result', result)
     this.selectedPeriod.year = result.getFullYear();
     this.selectedPeriod.month = result.getMonth() + 1;
 
@@ -292,6 +290,4 @@ export class AdelantoComponent {
     }
     return true;
   }
-
 }
-

@@ -719,6 +719,7 @@ export class AccesoBotController extends BaseController {
 
 
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
+        if (personalIdList.length==0) return []
         return queryRunner
             .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
 		 recibo.fecha_descarga, recibo.doc_id, @1 AS anio, @2 AS mes, 

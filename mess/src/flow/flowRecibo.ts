@@ -54,9 +54,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
             else {
                 try {
-                    console.log('empieza')
                     await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
-                    console.log('llegó aca')
                     await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from)
                 } catch (error) {
                     console.log('Error descargando Recibo',error)

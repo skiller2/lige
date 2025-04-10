@@ -149,7 +149,7 @@ export class AdelantosController extends BaseController {
         GrupoActividadIdList.push(0)
 
       const adelantos = await dataSource.query(
-        `SELECT perrel.GrupoActividadId GrupoActividadId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, pre.* 
+        `SELECT perrel.GrupoActividadId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, pre.* 
         FROM PersonalPrestamo pre 
         JOIN Personal per ON per.PersonalId = pre.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -378,9 +378,11 @@ export class AdelantosController extends BaseController {
     }
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+
+
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const adelantos = await queryRunner.query(
+        const adelantos = await queryRunner.query(
         `SELECT DISTINCT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId,'-',g.GrupoActividadId) id,
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,

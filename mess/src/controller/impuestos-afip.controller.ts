@@ -3,12 +3,9 @@ import { BaseController, ClientException } from "./base.controller";
 
 import {
   existsSync,
-  readFileSync
 } from "fs";
 
 import { dataSource } from "../data-source";
-
-import { tmpName } from "../server";
 import { QueryRunner } from "typeorm";
 
 export class ImpuestosAfipController extends BaseController { 
