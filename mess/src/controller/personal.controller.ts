@@ -12,6 +12,7 @@ import { QueryRunner } from "typeorm";
 export class PersonalController extends BaseController {
   async getDocsPendDescarga(PersonalId: number) {
     const result = await dataSource.query(
+/*
       `SELECT doc.persona_id PersonalId, 
         doc.doc_id, @1 AS anio, @2 AS mes, 
         MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
@@ -20,8 +21,19 @@ export class PersonalController extends BaseController {
         LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.doc_id AND dl.personal_id = doc.persona_id 
         WHERE doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
         GROUP BY doc.persona_id, doc.doc_id, pr.mes, pr.anio,dl.doc_id
-        
-      `,
+
+      `+
+*/
+      `SELECT doc.persona_id PersonalId, 
+        doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, tip.des_den_documento, doc.den_documento,
+        MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
+        FROM lige.dbo.docgeneral doc
+        JOIN lige.dbo.liqmaperiodo pr ON pr.periodo_id = doc.periodo
+        JOIN lige.dbo.doctipo tip ON tip.doctipo_id = doc.doctipo_id
+        LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.doc_id AND dl.personal_id = @0
+        WHERE doc.doctipo_id IN( 'ACT')  AND dl.fecha_descarga IS NULL
+        GROUP BY doc.persona_id, doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, des_den_documento, doc.den_documento, dl.doc_id`
+      ,
       [PersonalId]
     );
     return result

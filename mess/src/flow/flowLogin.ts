@@ -4,6 +4,7 @@ import { chatBotController, personalController } from "../controller/controller.
 import { reset, start, stop, stopSilence } from './flowIdle';
 import { botServer } from 'src';
 import flowRemoveTel from './flowRemoveTel';
+import { flowDescargaDocs } from './flowDescargaDocs';
 
 const delay = chatBotController.getDelay()
 const linkVigenciaHs = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
@@ -66,13 +67,13 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             res.length = 0
             res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
         }
+
         if (res.length) {
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })
                 stop(ctx, gotoFlow, state)
                 return
             }
-            const PersonalId=res[0].personalId
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
             await state.update({ codigo: res[0].codigo })
@@ -94,16 +95,11 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             if (fistName)
                 await flowDynamic(`${mensaje} ${fistName.charAt(0).toUpperCase() + fistName.slice(1).toLowerCase()}`, { delay: delay })
 
-            await personalController.getDocsPendDescarga(PersonalId)
-            
-
-
-
             if (res[0].codigo) {
                 //Código pendiente de ingreso
                 return gotoFlow(flowValidateCode)
             } else {
-                return gotoFlow(flowMenu)
+                return gotoFlow(flowDescargaDocs)
             }
 
         }
