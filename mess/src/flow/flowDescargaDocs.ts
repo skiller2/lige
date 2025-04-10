@@ -6,7 +6,6 @@ import { botServer } from 'src';
 
 const delay = chatBotController.getDelay()
 const apiBackPath = process.env.URL_BACK_API || "http://localhost:4200/api";
-
 export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -15,7 +14,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
         await state.update({ docsPend: docsPend })
 
         if (docsPend.length > 0) {
-            let docsPendStr = `Existe/n ${docsPend.length} documento/s pendiente/s de descarga:\n`
+            let docsPendStr = (docsPend.length==1)?`Existe un documento pendiente de descarga\n`:`Existen ${docsPend.length} documentos pendientes de descarga:\n`
             docsPend.forEach(doc => {
                 docsPendStr += `- ${doc.detalle} ${doc.des_den_documento} ${doc.den_documento}\n`
             })
@@ -41,7 +40,6 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 console.log('documento', documento, docsPend.length)
                 
                 const urlDoc =`${apiBackPath}/file-upload/downloadFile/${documento.doc_id}/docgeneral/original`
-
                 try {
                     await flowDynamic([{ body: documento.detalle, media: urlDoc, delay }])
                     await chatBotController.addToDocLog(documento.doc_id, ctx.from)

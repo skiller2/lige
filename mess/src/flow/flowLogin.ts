@@ -99,6 +99,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 //Código pendiente de ingreso
                 return gotoFlow(flowValidateCode)
             } else {
+                return gotoFlow(flowMenu)
                 return gotoFlow(flowDescargaDocs)
             }
 
