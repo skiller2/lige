@@ -22,22 +22,17 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
             await flowDynamic('Desea descargarlos (Si/No)?', { delay: delay })
 
         } else {
+            //await flowDynamic('No tiene documentos pendientes de descarga', { delay: delay })
             return gotoFlow(flowMenu)            
         }
-            
-
-
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const telefono = ctx.from
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const docsPend = await state.get('docsPend')
                 const documento = docsPend.pop()
-                console.log('documento', documento, docsPend.length)
                 
                 const urlDoc =`${apiBackPath}/file-upload/downloadFile/${documento.doc_id}/docgeneral/${documento.doc_id}-${documento.doctipo_id}`
                 try {
