@@ -69,14 +69,14 @@
         </form>
       </div>
 <p>Que tengo: {{prevFiles()|json}}</p>
-      @if (prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image') ) {
+      @if (prevFiles().length > 0 && prevFiles()[0]?.mimetype?.includes('image') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
-          <img nz-image class="image-content" [nzSrc]="prevFiles()[0].url" alt="" width="350px"/>
+          <img nz-image class="image-content" [nzSrc]="prevFiles()[0]?.url" alt="" width="350px"/>
         </div>
-      } @else if (prevFiles().length > 0 && prevFiles()[0].mimetype.includes('pdf') ) {
+      } @else if (prevFiles().length > 0 && prevFiles()[0]?.mimetype?.includes('pdf') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
-          <ngx-extended-pdf-viewer [src]="prevFiles()[0].url" [textLayer]="true" [showHandToolButton]="false"
-            [filenameForDownload]="prevFiles()[0].nombre" [height]="'500px'">
+          <ngx-extended-pdf-viewer [src]="prevFiles()[0]?.url" [textLayer]="true" [showHandToolButton]="false"
+            [filenameForDownload]="prevFiles()[0]?.nombre" [height]="'500px'">
           </ngx-extended-pdf-viewer>
         </div>
       }
