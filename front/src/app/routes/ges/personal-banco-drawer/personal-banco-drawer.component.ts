@@ -22,7 +22,8 @@ import { FormBuilder, FormArray } from '@angular/forms';
 export class PersonalBancoDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
-    isLoading = signal(false);
+    isLoading1 = signal(false);
+    isLoading2 = signal(false);
     visibleBanco = model<boolean>(false)
     periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
@@ -74,7 +75,7 @@ export class PersonalBancoDrawerComponent {
     }
 
     async save() {
-        this.isLoading.set(true)
+        this.isLoading1.set(true)
         let values = this.formPerBanco.value
         try {
             await firstValueFrom(this.apiService.setPersonalBanco(this.PersonalId(), values))
@@ -84,7 +85,20 @@ export class PersonalBancoDrawerComponent {
         } catch (e) {
 
         }
-        this.isLoading.set(false)
+        this.isLoading1.set(false)
+    }
+
+    async unsubscribeCBUs() {
+        this.isLoading2.set(true)
+        try {
+            await firstValueFrom(this.apiService.unsubscribeCBUs(this.PersonalId()))
+            this.selectedPersonalIdChange$.next('')
+            this.formPerBanco.markAsUntouched()
+            this.formPerBanco.markAsPristine()
+        } catch (e) {
+
+        }
+        this.isLoading2.set(false)
     }
 
 }

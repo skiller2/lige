@@ -1480,7 +1480,12 @@ export class ApiService {
     return this.http.delete<ResponseJSON<any>>('/api/tipo-documento/delete', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
+  }
 
+  unsubscribeCBUs(PersonalId:number){
+    return this.http.post<ResponseJSON<any>>(`/api/personal/unsubscribe/cbu`, {PersonalId}).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
 
 }
