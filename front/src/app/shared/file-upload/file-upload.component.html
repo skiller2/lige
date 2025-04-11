@@ -55,10 +55,11 @@
 
 </nz-form-item>
 
-@if(textForSearchSelected().includes(',')){
+@if(showTipoDocs){
     <nz-form-item style=" justify-content: center;">
-      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="selectedValue" [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChange($event)">
-        @for (item of textForSearchSelected().split(','); track item) {
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected" [nzDropdownMatchSelectWidth]="false">
+        <!-- Filtrar en funcion de docTiposValidos()-->
+        @for (item of textForSearchSelected(); track item) {
           <nz-option [nzLabel]="item.trim()" [nzValue]="item.trim()"></nz-option>
         }
       </nz-select>

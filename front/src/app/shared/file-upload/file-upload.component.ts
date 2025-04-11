@@ -32,15 +32,17 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   constructor() {
     pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
-
+/*
     effect(async() => {
       const id = this.idForSearh();
       const text = this.textForSearch();
       this.formChangeArchivos$.next('');
       this.initializeDocumentTypes();
     });
+*/  
+
   }
-    
+
 
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   private apiService = inject(ApiService)
@@ -50,10 +52,12 @@ export class FileUploadComponent implements ControlValueAccessor {
   prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
+  
   idForSearh = input(0) 
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")
+  showTipoDocs = input(true)
 
   modalViewerVisiable = signal(false)
   blobUrl = ""
@@ -65,10 +69,9 @@ export class FileUploadComponent implements ControlValueAccessor {
   forceImg = input<boolean>(false)
   previewFile = input<boolean>(true)
   isDisabled = signal(false)
-
+  docTiposValidos = signal<any[]>([])
   formChangeArchivos$ = new BehaviorSubject('');
 
-  selectedValue = null;
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<string>("")
 
@@ -98,21 +101,24 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
-      if (this.textForSearch() != "" && !this.textForSearch().includes(','))
-        this.tipoSelected.set(this.textForSearch())
+      if (changes['textForSearch']) {
+        //Parsear textForSearch y armar arreglo con los tipos de documento.
+        this.docTiposValidos.set([])
+      }
+
+      if (this.docTiposValidos.length==1)
+        this.tipoSelected.set(this.docTiposValidos()[0])
+
       this.formChangeArchivos$.next('');
     }
   }
 
-  onChange(event: any) {
-    this.tipoSelected.set(event)
-    this.formChangeArchivos$.next('');
-  }
-
   ngOnInit() {
-    this.initializeDocumentTypes();
+    // Cargar el compo textForSearchSelected con todos los tipos de documento
+    // this.initializeDocumentTypes();
   }
 
+/*
   private initializeDocumentTypes() {
     console.log("pase por aca...", this.textForSearch())
     if (this.textForSearch() === "" ) {
@@ -135,7 +141,7 @@ export class FileUploadComponent implements ControlValueAccessor {
       this.tipoSelected.set(this.textForSearch());
     }
   }
-
+*/
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
 
