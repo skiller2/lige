@@ -69,6 +69,9 @@ export class TablePendientesDescargasComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
+        this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+            totalRecords(this.angularGrid, 'PersonalCUITCUILCUIT')
+        })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
 

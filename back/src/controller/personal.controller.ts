@@ -2341,7 +2341,7 @@ cuit.PersonalCUITCUILCUIT,
     // Verifica que todos los caracteres sean números
     for (let i = 0; i < cbu.length; i++) {
       const char = cbu[i];
-      if (isNaN(Number(char)))
+      if (char < '0' || char > '9')
         return false
     }
     
@@ -2619,6 +2619,11 @@ cuit.PersonalCUITCUILCUIT,
         UPDATE PersonalBanco SET
         PersonalBancoHasta = @1
         WHERE PersonalId IN (@0) AND PersonalBancoHasta IS NULL
+      `, [PersonalId, yesterday])
+
+      await queryRunner.query(`
+        DELETE FROM PersonalBanco
+        WHERE PersonalId IN (@0) AND PersonalBancoHasta < PersonalBancoDesde
       `, [PersonalId, yesterday])
 
       await queryRunner.commitTransaction()

@@ -68,6 +68,9 @@ export class TableHistorialDescargasComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
+        this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+            totalRecords(this.angularGrid, 'ApellidoNombre')
+        })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
 
