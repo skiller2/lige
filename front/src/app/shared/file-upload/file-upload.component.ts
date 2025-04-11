@@ -32,7 +32,6 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   constructor() {
     pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
-
   };
 
   uploading$ = new BehaviorSubject({ loading: false, event: null });
@@ -43,7 +42,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
-  idForSearh = input(0)
+  idForSearh = signal(0)
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")
@@ -59,13 +58,13 @@ export class FileUploadComponent implements ControlValueAccessor {
   previewFile = input<boolean>(true)
   isDisabled = signal(false)
 
-  formChange$ = new BehaviorSubject('');
+  formChangeArchivos$ = new BehaviorSubject('');
 
   selectedValue = null;
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<string>("")
 
-  $files = this.formChange$.pipe(
+  $files = this.formChangeArchivos$.pipe(
     debounceTime(500),
     switchMap(() => {
       this.files.set([])
@@ -93,13 +92,13 @@ export class FileUploadComponent implements ControlValueAccessor {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       if (this.textForSearch() != "" && !this.textForSearch().includes(','))
         this.tipoSelected.set(this.textForSearch())
-      this.formChange$.next('');
+      this.formChangeArchivos$.next('');
     }
   }
 
   onChange(event: any) {
     this.tipoSelected.set(event)
-    this.formChange$.next('');
+    this.formChangeArchivos$.next('');
   }
 
   ngOnInit() {
@@ -200,7 +199,7 @@ export class FileUploadComponent implements ControlValueAccessor {
         } else {
           await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
         }
-        this.formChange$.next('');
+        this.formChangeArchivos$.next('');
       }
       this.propagateChange(this.files())
 
@@ -229,7 +228,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
-    this.formChange$.next('');
+    this.formChangeArchivos$.next('');
 
   }
 

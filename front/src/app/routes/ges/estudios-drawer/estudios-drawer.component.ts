@@ -104,7 +104,7 @@ export class EstudiosDrawerComponent {
     try {
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
       const res = await firstValueFrom(this.apiService.setEstudio(vals))
-
+      console.log("res", res)
       if(res.data?.list?.PersonalId > 0) {
         
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)
@@ -115,7 +115,7 @@ export class EstudiosDrawerComponent {
         this.tituloDrawer.set('Editar Estudio')
       }  
 
-      this.onRefreshEstudio.emit()
+      //this.onRefreshEstudio.emit()
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
     } catch (error) {

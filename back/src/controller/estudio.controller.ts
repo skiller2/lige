@@ -269,7 +269,7 @@ export class EstudioController extends BaseController {
       PersonalEstudioTitulo, //titulo otorgado
       PersonalEstudioOtorgado, // fecha desde
       PersonalIdForEdit,
-      personalEstudioId,
+      PersonalEstudioId,
       PersonalEstudioPagina1Id // Para el archivo 
     } = req.body
 
@@ -322,7 +322,7 @@ export class EstudioController extends BaseController {
           WHERE PersonalId = @0 AND PersonalEstudioId = @1
           `, [
           PersonalId,
-          personalEstudioId,
+          PersonalEstudioId,
           TipoEstudioId,
           PersonalEstudioTitulo,
           PersonalEstudioCursoId,
@@ -332,7 +332,7 @@ export class EstudioController extends BaseController {
       } else {
         // is new
 
-        let PersonalEstudioId = await queryRunner.query(`SELECT MAX(pe.PersonalEstudioId) as PersonalEstudioId FROM  PersonalEstudio pe WHERE PersonalId = @0`, [PersonalId])
+        PersonalEstudioId = await queryRunner.query(`SELECT MAX(pe.PersonalEstudioId) as PersonalEstudioId FROM  PersonalEstudio pe WHERE PersonalId = @0`, [PersonalId])
 
         if (PersonalEstudioId[0].PersonalEstudioId)
           PersonalEstudioId = PersonalEstudioId[0].PersonalEstudioId + 1
@@ -385,7 +385,7 @@ export class EstudioController extends BaseController {
           let PersonalEstudioPagina1Id = maxId[0].doc_id 
   
           await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId = @1 AND PersonalEstudioId = @2`,
-             [PersonalEstudioPagina1Id, PersonalId, personalEstudioId])
+             [PersonalEstudioPagina1Id, PersonalId, PersonalEstudioId])
         }
 
       }

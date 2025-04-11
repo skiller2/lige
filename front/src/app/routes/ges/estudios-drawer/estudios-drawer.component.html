@@ -1,5 +1,5 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
-  [nzTitle]="tituloDrawer() " (nzOnClose)="visible.set(false)">
+  [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
     <!-- @if (cambios()|async) {} -->
     <form [formGroup]="formCli">
