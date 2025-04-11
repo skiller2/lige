@@ -94,6 +94,7 @@ export class EstudiosDrawerComponent {
         this.formCli.reset()
         this.formCli.enable()
         this.PersonalIdForEdit.set(0)
+        this.tituloDrawer.set(' Nuevo Estudio ')
       }
     })
   }
@@ -104,7 +105,6 @@ export class EstudiosDrawerComponent {
     try {
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
       const res = await firstValueFrom(this.apiService.setEstudio(vals))
-      console.log("res", res)
       if(res.data?.list?.PersonalId > 0) {
         
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)

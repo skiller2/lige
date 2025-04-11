@@ -1,4 +1,4 @@
-import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
+import { Component, effect, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map, of } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -32,7 +32,13 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   constructor() {
     pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
-  };
+
+    effect(async() => {
+      const id = this.idForSearh();
+      this.formChangeArchivos$.next('');
+    });
+  }
+    
 
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   private apiService = inject(ApiService)
@@ -42,7 +48,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
-  idForSearh = signal(0)
+  idForSearh = input(0) 
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")

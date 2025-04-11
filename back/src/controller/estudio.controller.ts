@@ -366,10 +366,6 @@ export class EstudioController extends BaseController {
           PersonalEstudioOtorgado,
           PersonalEstudioHasta]);
 
-
-          result = await queryRunner.query(`SELECT PersonalId,PersonalEstudioId,TipoEstudioId,EstadoEstudioId FROM PersonalEstudio
-             WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
-
       }
 
       console.log("req.body.files", req.body.files)
@@ -390,6 +386,8 @@ export class EstudioController extends BaseController {
 
       }
 
+      result = await queryRunner.query(`SELECT PersonalId,PersonalEstudioId,TipoEstudioId,EstadoEstudioId,PersonalEstudioPagina1Id FROM PersonalEstudio
+        WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result[0] }, res, (PersonalIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
