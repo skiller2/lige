@@ -1602,7 +1602,7 @@ cuit.PersonalCUITCUILCUIT,
         TRIM(PersonalBeneficiarioObservacion) AS Observacion,
         PersonalBeneficiarioDesde AS Desde
         FROM PersonalBeneficiario
-        WHERE PersonalId IN (@0)
+        WHERE PersonalId IN (@0) AND PersonalBeneficiarioInactivo = 0
       `, [personalId]
     )
   }
@@ -2350,7 +2350,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  isCBU(cbu:string):boolean {
+  isCBU(cbu: string): boolean {
     // Verifica que tenga exactamente 22 caracteres
     if (cbu.length != 22)
       return false
@@ -2361,14 +2361,14 @@ cuit.PersonalCUITCUILCUIT,
       if (char < '0' || char > '9')
         return false
     }
-    
+
     return true
   }
 
   async setPersonalBanco(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId: number = Number(req.params.id);
-    const BancoId:number = req.body.BancoId
+    const BancoId: number = req.body.BancoId
     const CBU = req.body.CBU
     let Desde = req.body.Desde
     try {
@@ -2557,87 +2557,109 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  async setPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[], usuario:string, ip:string) {
-    await queryRunner.query(`UPDATE PersonalSeguroBeneficiario SET PersonalSeguroBeneficiarioInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
+  async setPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[], usuario: string, ip: string) {
+
+    await queryRunner.query(`UPDATE PersonalBeneficiario SET PersonalBeneficiarioInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
     for (const beneficiario of beneficiarios) {
       if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoDocumentoId && !beneficiario.DocumentoNro)
         continue
 
-      if (!beneficiario.Nombre || !beneficiario.Apellido || !beneficiario.TipoDocumentoId || !beneficiario.DocumentoNro) 
+      if (!beneficiario.Nombre || !beneficiario.Apellido || !beneficiario.TipoDocumentoId || !beneficiario.DocumentoNro)
         return new ClientException(`Los campos Nombre, Apellido, Tipo Documento y Documento Nro de la seccion Beneficiario No pueden estar vacios.`)
-      
-      if (beneficiario.Desde){
-        // await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
-      }else
+
+      if (beneficiario.Desde) {
+        await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
+      } else
         await this.addPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
     }
   }
 
-  async addPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any, usuario:string, ip:string) {
+  async addPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any, usuario: string, ip: string) {
     const Nombre = beneficiario.Nombre
     const Apellido = beneficiario.Apellido
     const TipoDocumentoId = beneficiario.TipoDocumentoId
     const DocumentoNro = beneficiario.DocumentoNro
     const TipoParentescoId = beneficiario.TipoParentescoId
     const Observacion = beneficiario.Observacion
-    let desde:Date = new Date()
-    desde.setHours(0,0,0,0)
-    
+    let desde: Date = new Date()
+    // desde.setHours(0,0,0,0)
     await queryRunner.query(`
-      INSERT INTO PersonalSeguroBeneficiario (
+      INSERT INTO PersonalBeneficiario (
       PersonalId,
-      PersonalSeguroBeneficiarioApellido,
-      PersonalSeguroBeneficiarioNombre,
+      PersonalBeneficiarioApellido,
+      PersonalBeneficiarioNombre,
       TipoParentescoId,
       TipoDocumentoId,
-      PersonalSeguroBeneficiarioDocumentoNro,
-      PersonalSeguroBeneficiarioDesde,
-      PersonalSeguroBeneficiarioObservacion,
-      PersonalSeguroBeneficiarioInactivo,
-      AudFechaIng, AudUsuarioIng, AudIpIng,
-      AudFechaMod, AudUsuarioMod, AudIpMod
+      PersonalBeneficiarioDocumentoNro,
+      PersonalBeneficiarioDesde,
+      PersonalBeneficiarioObservacion,
+      PersonalBeneficiarioInactivo,
+
+      AudFechaIng, 
+      AudUsuarioIng, 
+      AudIpIng,
+      AudFechaMod, 
+      AudUsuarioMod, 
+      AudIpMod
       )
-      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @9, @10, @11)`, [
-        PersonalId, Apellido, Nombre, TipoParentescoId,
-        TipoDocumentoId, DocumentoNro, desde, Observacion, 0,
-        usuario, ip, desde
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, 
+        @9, @10, @11, @9, @10, @11)`, [
+      PersonalId, Apellido, Nombre, TipoParentescoId,
+      TipoDocumentoId, DocumentoNro, desde, Observacion, 0,
+      desde, usuario, ip
     ])
   }
 
-  async updatePersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any, usuario:string, ip:string) {
+  async updatePersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any, usuario: string, ip: string) {
     const Nombre = beneficiario.Nombre
     const Apellido = beneficiario.Apellido
     const TipoDocumentoId = beneficiario.TipoDocumentoId
+
+    // TODO - VALIDAR EL TAMAÑO DEL NRO DE DOCUMENTO - SINO ARROJA 'Arithmetic overflow error converting expression to data type int'.
     const DocumentoNro = beneficiario.DocumentoNro
+
     const TipoParentescoId = beneficiario.TipoParentescoId
     const Observacion = beneficiario.Observacion
-    const desde:Date = new Date(beneficiario.Desde)
-    let now:Date = new Date()
-    now.setHours(0,0,0,0)
-    
+    const desde: Date = new Date(beneficiario.Desde)
+    let now: Date = new Date()
+    // now.setHours(0,0,0,0)
+
     await queryRunner.query(`
-      UPDATE PersonalSeguroBeneficiario SET
-      PersonalSeguroBeneficiarioApellido = @1,
-      PersonalSeguroBeneficiarioNombre = @2,
+      UPDATE PersonalBeneficiario SET
+      PersonalBeneficiarioApellido = @1,
+      PersonalBeneficiarioNombre = @2,
       TipoParentescoId = @3,
       TipoDocumentoId = @4,
-      PersonalSeguroBeneficiarioDocumentoNro = @5,
-      PersonalSeguroBeneficiarioObservacion = @6,
-      PersonalSeguroBeneficiarioInactivo = @7,
-      AudFechaMod = @8, AudUsuarioMod = @9, AudIpMod = @10
-      WHERE PersonalId = @0 AND `, [
-        PersonalId, Apellido, Nombre, TipoParentescoId,
-        TipoDocumentoId, DocumentoNro, Observacion, 0,
-        usuario, ip, now
+      PersonalBeneficiarioDocumentoNro = @5,
+      PersonalBeneficiarioObservacion = @6,
+      PersonalBeneficiarioInactivo = @7,
+
+      AudFechaMod = @8, 
+      AudUsuarioMod = @9, 
+      AudIpMod = @10
+      WHERE PersonalId = @0 AND PersonalBeneficiarioDesde=@11 AND PersonalBeneficiarioDocumentoNro=@5` , [
+      PersonalId,
+      Apellido,
+      Nombre,
+      TipoParentescoId,
+      TipoDocumentoId,
+      DocumentoNro,
+      Observacion,
+      0,
+      now,
+      usuario,
+      ip,
+      desde
     ])
+
   }
 
   async unsubscribeCBUs(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId: number = Number(req.body.PersonalId);
-    const yesterday:Date = new Date()
+    const yesterday: Date = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
-    yesterday.setHours(0,0,0,0)
+    yesterday.setHours(0, 0, 0, 0)
     try {
       await queryRunner.startTransaction()
 
