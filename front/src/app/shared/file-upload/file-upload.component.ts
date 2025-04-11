@@ -14,17 +14,17 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-    selector: 'app-file-upload',
-    imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule],
-    templateUrl: './file-upload.component.html',
-    styleUrl: './file-upload.component.less',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => FileUploadComponent),
-            multi: true
-        },
-    ]
+  selector: 'app-file-upload',
+  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule],
+  templateUrl: './file-upload.component.html',
+  styleUrl: './file-upload.component.less',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => FileUploadComponent),
+      multi: true
+    },
+  ]
 })
 export class FileUploadComponent implements ControlValueAccessor {
   public src = signal<Blob>(new Blob())
@@ -69,35 +69,30 @@ export class FileUploadComponent implements ControlValueAccessor {
     debounceTime(500),
     switchMap(() => {
       this.files.set([])
-      
-      if (this.idForSearh() > 0 && this.textForSearchSelected() != "" && !this.textForSearchSelected().includes(',') && this.tableForSearch() != "") {
-        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearchSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
+
+      if (this.idForSearh() > 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
+
+        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
           map((list: any) => {
             this.cantFilesAnteriores.set(list.length)
             this.prevFiles.emit(list)
+
             return list
           }))
       } else {
-        if(this.idForSearh() > 0 &&  this.tipoSelected() != "" && this.tableForSearch() != ""){
-          return this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
-            map((list: any) => {
-              this.cantFilesAnteriores.set(list.length)
-              return list
-            }))
-        }else{
-          this.prevFiles.emit([])
-          this.cantFilesAnteriores.set(0)
-          return of([])
-        }
-       
+        this.prevFiles.emit([])
+        this.cantFilesAnteriores.set(0)
+        return of([])
       }
+
 
     })
   )
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['idForSearh']|| changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
-
+    if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
+      if (this.textForSearch() != "" && !this.textForSearch().includes(','))
+        this.tipoSelected.set(this.textForSearch())
       this.formChange$.next('');
     }
   }
@@ -132,9 +127,9 @@ export class FileUploadComponent implements ControlValueAccessor {
       this.tipoSelected.set(this.textForSearch());
     }
   }
-  
 
-  async LoadArchivo(documentId: any, tableForSearch:string, filename:string) {
+
+  async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
 
     this.modalViewerVisiable.set(false)
 
@@ -145,7 +140,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivoPreview(documentId: string, tableForSearch: string) {
-    const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, {}, { responseType: 'blob' } ))
+    const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, {}, { responseType: 'blob' }))
     return res
   }
 
@@ -202,7 +197,7 @@ export class FileUploadComponent implements ControlValueAccessor {
       } else {
         if (this.tableForSearch() == 'docgeneral') {
           await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
-        }else{
+        } else {
           await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
         }
         this.formChange$.next('');
@@ -246,8 +241,8 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.modalViewerVisiable.set(false)
   }
 
-  cantFiles():boolean {
-    if((this.files().length + this.cantFilesAnteriores()) < this.cantMaxFiles())
+  cantFiles(): boolean {
+    if ((this.files().length + this.cantFilesAnteriores()) < this.cantMaxFiles())
       return true
     return false
   }
