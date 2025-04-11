@@ -2624,33 +2624,81 @@ cuit.PersonalCUITCUILCUIT,
     let now: Date = new Date()
     // now.setHours(0,0,0,0)
 
-    await queryRunner.query(`
-      UPDATE PersonalBeneficiario SET
-      PersonalBeneficiarioApellido = @1,
-      PersonalBeneficiarioNombre = @2,
-      TipoParentescoId = @3,
-      TipoDocumentoId = @4,
-      PersonalBeneficiarioDocumentoNro = @5,
-      PersonalBeneficiarioObservacion = @6,
-      PersonalBeneficiarioInactivo = @7,
+    try {
 
-      AudFechaMod = @8, 
-      AudUsuarioMod = @9, 
-      AudIpMod = @10
-      WHERE PersonalId = @0 AND PersonalBeneficiarioDesde=@11 AND PersonalBeneficiarioDocumentoNro=@5` , [
-      PersonalId,
-      Apellido,
-      Nombre,
-      TipoParentescoId,
-      TipoDocumentoId,
-      DocumentoNro,
-      Observacion,
-      0,
-      now,
-      usuario,
-      ip,
-      desde
-    ])
+      // COMPRUEBO SI EXISTE UN DNI YA CARGADO EN LA BASE DE DATOS
+      let PersonalBeneficiarioDocumentoNro = await queryRunner.query(`
+        SELECT PersonalId,PersonalBeneficiarioDocumentoNro
+        FROM PersonalBeneficiario
+        WHERE PersonalBeneficiarioDocumentoNro=@0 AND PersonalId= @1 AND PersonalBeneficiarioInactivo=0
+        `,[DocumentoNro,PersonalId])
+
+
+      if (PersonalBeneficiarioDocumentoNro.length>0){
+        // HAGO UPDATE PERO NO DEL DOCUMENTO NRO
+        await queryRunner.query(`
+          UPDATE PersonalBeneficiario SET
+          PersonalBeneficiarioApellido = @1,
+          PersonalBeneficiarioNombre = @2,
+          TipoParentescoId = @3,
+          TipoDocumentoId = @4,
+          PersonalBeneficiarioObservacion = @6,
+          PersonalBeneficiarioInactivo = @7,
+
+          AudFechaMod = @8, 
+          AudUsuarioMod = @9, 
+          AudIpMod = @10
+
+          WHERE PersonalId = @0 AND PersonalBeneficiarioDesde=@11 AND PersonalBeneficiarioDocumentoNro=@5` , [
+          PersonalId,
+          Apellido,
+          Nombre,
+          TipoParentescoId,
+          TipoDocumentoId,
+          DocumentoNro,
+          Observacion,
+          0,
+          now,
+          usuario,
+          ip,
+          desde
+        ])
+
+      }else{
+        await queryRunner.query(`
+          UPDATE PersonalBeneficiario SET
+          PersonalBeneficiarioApellido = @1,
+          PersonalBeneficiarioNombre = @2,
+          TipoParentescoId = @3,
+          TipoDocumentoId = @4,
+          PersonalBeneficiarioDocumentoNro = @5,
+          PersonalBeneficiarioObservacion = @6,
+          PersonalBeneficiarioInactivo = @7,
+    
+          AudFechaMod = @8, 
+          AudUsuarioMod = @9, 
+          AudIpMod = @10
+          WHERE PersonalId = @0 AND PersonalBeneficiarioDesde=@11` , [
+          PersonalId,
+          Apellido,
+          Nombre,
+          TipoParentescoId,
+          TipoDocumentoId,
+          DocumentoNro,
+          Observacion,
+          0,
+          now,
+          usuario,
+          ip,
+          desde
+        ])
+      }
+    } catch (error) {
+      return new ClientException(error)
+
+    }
+
+ 
 
   }
 
