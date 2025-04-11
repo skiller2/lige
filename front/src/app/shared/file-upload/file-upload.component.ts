@@ -35,7 +35,9 @@ export class FileUploadComponent implements ControlValueAccessor {
 
     effect(async() => {
       const id = this.idForSearh();
+      const text = this.textForSearch();
       this.formChangeArchivos$.next('');
+      this.initializeDocumentTypes();
     });
   }
     
@@ -112,7 +114,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   private initializeDocumentTypes() {
-    if (this.textForSearch() === "") {
+    console.log("pase por aca...", this.textForSearch())
+    if (this.textForSearch() === "" ) {
       this.loadDocumentTypesFromApi();
     } else {
       this.setDocumentTypesFromInput();
