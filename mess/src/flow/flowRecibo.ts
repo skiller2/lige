@@ -16,7 +16,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         const personalId = myState.personalId
         const periodosArray: any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array => { return array })
         let resPeriodos = ''
-        if (periodosArray.length) {
+        if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {
                 const today = new Date(obj.anio,obj.mes-1,1);
                 const month = today.toLocaleString('default', { month: 'short' });

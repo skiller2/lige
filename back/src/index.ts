@@ -15,7 +15,7 @@ import { Temporal } from "@js-temporal/polyfill";
 //GlobalWorkerOptions.workerSrc = pdfWorker
 
 
-dotenv.config()
+dotenv.config({})
 
 // Init App
 const dbServer = new DBServer(5, 2000, dataSource)
