@@ -471,9 +471,9 @@ export class RecibosController extends BaseController {
 
   ) {
 
-    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "idrecibo")
+    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "idrecibo", "ind_descarga_bot", "den_documento")
     VALUES
-    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);`,
+    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
       [
         docgeneral,
         periodo,
@@ -484,7 +484,8 @@ export class RecibosController extends BaseController {
         nombre_archivo,
         usuario, ip, fecha,
         usuario, ip, audfecha,
-        doctipo_id, idrecibo
+        doctipo_id, idrecibo, 1,
+        idrecibo
       ])
 
   }

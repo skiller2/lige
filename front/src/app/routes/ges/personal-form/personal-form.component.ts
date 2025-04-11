@@ -43,8 +43,7 @@ export class PersonalFormComponent {
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
   objActa = { fecha: '', numero:null }
-  objBeneficiario = {PersonalSeguroBeneficiarioId: 0, Apellido:'', Nombre:'',
-    TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:''}
+  objBeneficiario = {Apellido:'', Nombre:'', TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:'', Desde:''}
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
@@ -177,6 +176,7 @@ export class PersonalFormComponent {
       this.telefonos().clear()
       this.estudios().clear()
       this.familiares().clear()
+      this.beneficiarios().clear()
 
       infoPersonal.telefonos.forEach((obj:any) => {
           this.telefonos().push(this.fb.group({...this.objTelefono}))
@@ -196,6 +196,13 @@ export class PersonalFormComponent {
 
       if (this.familiares().length == 0)
           this.familiares().push(this.fb.group({...this.objFamiliar}))
+
+      infoPersonal.beneficiarios.forEach((obj:any) => {
+        this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
+      });
+
+      if (this.beneficiarios().length == 0)
+          this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
 
       this.formPer.reset(values)
 
@@ -315,6 +322,7 @@ export class PersonalFormComponent {
       this.telefonos().clear()
       this.estudios().clear()
       this.familiares().clear()
+      this.beneficiarios().clear()
 
       if (this.telefonos().length == 0)
         this.telefonos().push(this.fb.group({...this.objTelefono}))
@@ -322,6 +330,8 @@ export class PersonalFormComponent {
         this.estudios().push(this.fb.group({...this.objEstudio}))
       if (this.familiares().length == 0)
         this.familiares().push(this.fb.group({...this.objFamiliar}))
+      if (this.beneficiarios().length == 0)
+        this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
 
       this.formPer.markAsPristine()
     }
