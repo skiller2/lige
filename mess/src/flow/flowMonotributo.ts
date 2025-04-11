@@ -27,7 +27,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const periodosArray : any[] = await impuestosAfipController.getLastPeriodosOfComprobantes(personalId, 3).then(array =>{return array})
         // console.log('periodos', periodosArray);
         let resPeriodos = ''
-        if (periodosArray.length) {
+        if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {
                 const today = new Date(obj.anio,obj.mes-1,1);
                 const month = today.toLocaleString('default', { month: 'short' });
@@ -54,7 +54,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         const periodosArray : any[] = myState.recibo.periodosArray
         const msj = ctx.body
-        if (parseInt(msj)<1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray.length ) {
+        if (parseInt(msj)<1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray?.length ) {
             return fallBack('El numero ingresado no aparece en la lista  📝\nIngrese otro')
         }
         const mes = periodosArray[parseInt(msj)-1]?.mes
