@@ -692,6 +692,9 @@ cuit.PersonalCUITCUILCUIT,
 
     try {
       await queryRunner.startTransaction()
+      const usuario = res.locals.userName
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const ip = this.getRemoteAddress(req)
 
       const valForm = this.valPersonalForm(req.body, 'I')
       if (valForm instanceof ClientException)
@@ -770,17 +773,14 @@ cuit.PersonalCUITCUILCUIT,
         throw updatePersonalFamilia
 
       //Beneficiario
-      // const updatePersonalSeguroBeneficiario = await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios)
-      // if (updatePersonalSeguroBeneficiario instanceof ClientException)
-      //   throw updatePersonalFamilia
+      const setPersonalSeguroBeneficiario = await this.setPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios, usuario, ip)
+      if (setPersonalSeguroBeneficiario instanceof ClientException)
+        throw setPersonalSeguroBeneficiario
 
       //Situacion de Revista
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
 
       //Habilitacion necesaria
-      const usuarioId = await this.getUsuarioId(res, queryRunner)
-
-      const ip = this.getRemoteAddress(req)
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
@@ -1417,6 +1417,7 @@ cuit.PersonalCUITCUILCUIT,
     const telefonos: any[] = req.body.telefonos
     const estudios: any[] = req.body.estudios
     const familiares: any[] = req.body.familiares
+    const beneficiarios: any[] = req.body.beneficiarios
     const SucursalId = req.body.SucursalId
     const actas = req.body.actas
     const habilitacion = req.body.habilitacion
@@ -1426,6 +1427,7 @@ cuit.PersonalCUITCUILCUIT,
 
     try {
       await queryRunner.startTransaction()
+      const usuario = res.locals.userName
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
@@ -1447,10 +1449,6 @@ cuit.PersonalCUITCUILCUIT,
       }
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
 
-
-
-
-
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
       //Telefonos
@@ -1466,8 +1464,12 @@ cuit.PersonalCUITCUILCUIT,
       if (updatePersonalFamilia instanceof ClientException)
         throw updatePersonalFamilia
 
-      //Habilitacion Necesaria
+      //Beneficiario
+      const setPersonalSeguroBeneficiario = await this.setPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios, usuario, ip)
+      if (setPersonalSeguroBeneficiario instanceof ClientException)
+        throw setPersonalSeguroBeneficiario
 
+      //Habilitacion Necesaria
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
@@ -1592,6 +1594,19 @@ cuit.PersonalCUITCUILCUIT,
     */
   }
 
+  private async getFormBeneficiariosByPersonalIdQuery(queryRunner: any, personalId: any) {
+    return await queryRunner.query(`
+        SELECT TRIM(PersonalBeneficiarioApellido) AS Apellido,
+        TRIM(PersonalBeneficiarioNombre) AS Nombre,
+        TipoParentescoId, TipoDocumentoId, PersonalBeneficiarioDocumentoNro AS DocumentoNro,
+        TRIM(PersonalBeneficiarioObservacion) AS Observacion,
+        PersonalBeneficiarioDesde AS Desde
+        FROM PersonalBeneficiario
+        WHERE PersonalId IN (@0)
+      `, [personalId]
+    )
+  }
+
   async getFormDataById(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner()
     const personalId = req.params.id
@@ -1602,11 +1617,13 @@ cuit.PersonalCUITCUILCUIT,
       const estudios = await this.getFormEstudiosByPersonalIdQuery(queryRunner, personalId)
       const familiares = await this.getFormFamiliaresByPersonalIdQuery(queryRunner, personalId)
       const habilitacion = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
+      const beneficiarios = await this.getFormBeneficiariosByPersonalIdQuery(queryRunner, personalId)
 
       data.telefonos = telefonos
       data.estudios = estudios
       data.familiares = familiares
       data.habilitacion = habilitacion
+      data.beneficiarios = beneficiarios
 
       this.jsonRes(data, res);
     } catch (error) {
@@ -2540,21 +2557,23 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  async updatePersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[]) {
+  async setPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[], usuario:string, ip:string) {
     await queryRunner.query(`UPDATE PersonalSeguroBeneficiario SET PersonalSeguroBeneficiarioInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
     for (const beneficiario of beneficiarios) {
-      if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoParentescoId)
+      if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoDocumentoId && !beneficiario.DocumentoNro)
         continue
 
-      if (!beneficiario.Nombre || !beneficiario.Apellido || !beneficiario.TipoParentescoId) 
-        return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Beneficiario No pueden estar vacios.`)
+      if (!beneficiario.Nombre || !beneficiario.Apellido || !beneficiario.TipoDocumentoId || !beneficiario.DocumentoNro) 
+        return new ClientException(`Los campos Nombre, Apellido, Tipo Documento y Documento Nro de la seccion Beneficiario No pueden estar vacios.`)
       
-      await this.addPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario)
+      if (beneficiario.Desde){
+        // await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
+      }else
+        await this.addPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
     }
   }
 
-  async addPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any) {
-    let PersonalSeguroBeneficiarioId = beneficiario.PersonalSeguroBeneficiarioId
+  async addPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any, usuario:string, ip:string) {
     const Nombre = beneficiario.Nombre
     const Apellido = beneficiario.Apellido
     const TipoDocumentoId = beneficiario.TipoDocumentoId
@@ -2564,20 +2583,9 @@ cuit.PersonalCUITCUILCUIT,
     let desde:Date = new Date()
     desde.setHours(0,0,0,0)
     
-    // PersonalSeguroBeneficiarioUltNro
-    // if (!PersonalSeguroBeneficiarioId) {
-    //   const Personal = await queryRunner.query(`
-    //     SELECT ISNULL(PersonalSeguroBeneficiarioUltNro, 0)+1 AS UltNro
-    //     FROM PersonalSeguro
-    //     WHERE PersonalId IN (@0)
-    //     `, [PersonalId])
-    //     PersonalSeguroBeneficiarioId = Personal[0].UltNro
-    // }
-    
     await queryRunner.query(`
       INSERT INTO PersonalSeguroBeneficiario (
       PersonalId,
-      PersonalSeguroBeneficiarioId,
       PersonalSeguroBeneficiarioApellido,
       PersonalSeguroBeneficiarioNombre,
       TipoParentescoId,
@@ -2585,17 +2593,43 @@ cuit.PersonalCUITCUILCUIT,
       PersonalSeguroBeneficiarioDocumentoNro,
       PersonalSeguroBeneficiarioDesde,
       PersonalSeguroBeneficiarioObservacion,
-      PersonalSeguroBeneficiarioInactivo
+      PersonalSeguroBeneficiarioInactivo,
+      AudFechaIng, AudUsuarioIng, AudIpIng,
+      AudFechaMod, AudUsuarioMod, AudIpMod
       )
-      VALUES (@0, @1, @2, @3, @4, @5, 6)`, [
-        PersonalId, PersonalSeguroBeneficiarioId, Apellido, Nombre,TipoParentescoId,
-        TipoDocumentoId, DocumentoNro, desde, Observacion, 0
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @9, @10, @11)`, [
+        PersonalId, Apellido, Nombre, TipoParentescoId,
+        TipoDocumentoId, DocumentoNro, desde, Observacion, 0,
+        usuario, ip, desde
     ])
+  }
+
+  async updatePersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiario: any, usuario:string, ip:string) {
+    const Nombre = beneficiario.Nombre
+    const Apellido = beneficiario.Apellido
+    const TipoDocumentoId = beneficiario.TipoDocumentoId
+    const DocumentoNro = beneficiario.DocumentoNro
+    const TipoParentescoId = beneficiario.TipoParentescoId
+    const Observacion = beneficiario.Observacion
+    const desde:Date = new Date(beneficiario.Desde)
+    let now:Date = new Date()
+    now.setHours(0,0,0,0)
+    
     await queryRunner.query(`
-      UPDATE Personal SET
-      PersonalFamiliaUltNro = @1
-      WHERE PersonalId IN (@0)
-      `, [PersonalId, PersonalSeguroBeneficiarioId])
+      UPDATE PersonalSeguroBeneficiario SET
+      PersonalSeguroBeneficiarioApellido = @1,
+      PersonalSeguroBeneficiarioNombre = @2,
+      TipoParentescoId = @3,
+      TipoDocumentoId = @4,
+      PersonalSeguroBeneficiarioDocumentoNro = @5,
+      PersonalSeguroBeneficiarioObservacion = @6,
+      PersonalSeguroBeneficiarioInactivo = @7,
+      AudFechaMod = @8, AudUsuarioMod = @9, AudIpMod = @10
+      WHERE PersonalId = @0 AND `, [
+        PersonalId, Apellido, Nombre, TipoParentescoId,
+        TipoDocumentoId, DocumentoNro, Observacion, 0,
+        usuario, ip, now
+    ])
   }
 
   async unsubscribeCBUs(req: any, res: Response, next: NextFunction) {
