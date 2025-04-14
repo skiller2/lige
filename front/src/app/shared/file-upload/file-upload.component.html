@@ -1,34 +1,38 @@
 <nz-form-item>
   <nz-form-control>
     @if($files | async; as filesinDB;){
-      @if (filesinDB.length==0){
-        <div class="">Sin archivo adjunto</div>
-        }
+    @if (filesinDB.length==0){
+    <div class="">Sin archivo adjunto</div>
+    }
     <ng-container *ngFor="let files of filesinDB">
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{files.nombre}}>
         @if(isDisabled()==false){
-          <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-            (nzOnConfirm)="confirmDeleteArchivo(files.id,false)" nzPopconfirmPlacement="top"  
-            nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color"></a>
+        <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
+          (nzOnConfirm)="confirmDeleteArchivo(files.id,false)" nzPopconfirmPlacement="top" nzDanger nz-icon
+          nzType="delete" nzTheme="outline" class="trash-color"></a>
         }
-        @if ((files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG' || forceImg()) && previewFile()) {
-        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
-        class="image-content" />
+        @if ((files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG' || forceImg()) &&
+        previewFile()) {
+        <img nz-image alt=""
+          nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
+          class="image-content" />
         }
         @if (files.TipoArchivo == 'PDF' && !forceImg() && previewFile()) {
-        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/thumb" class="image-content" />
-        <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,tableForSearch(),files.filename)"></a>
+        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/thumb"
+          class="image-content" />
+        <a nz-icon nzType="search" nzTheme="outline"
+          (click)="LoadArchivo(files.id,tableForSearch(),files.filename)"></a>
         }
 
         <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline" class="download-color"
           app-down-file [httpMethod]="'POST'"
           httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/original"> {{files.nombre}} </a>
-        
+
       </div>
     </ng-container>
-    } 
+    }
     @if(files().length > 0){
-    <ng-container class="" *ngFor="let filesAdd of files() " >
+    <ng-container class="" *ngFor="let filesAdd of files() ">
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
         @if(isDisabled()==false){
         <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
@@ -39,10 +43,12 @@
 
 
         @if (filesAdd.mimetype.includes('image') && previewFile()) {
-          <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original" alt=""/>
-        } 
+        <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original"
+          alt="" />
+        }
         @if (filesAdd.mimetype.includes('pdf') && previewFile()) {
-          <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(filesAdd.filename,'temp',filesAdd.originalname)"></a>
+        <a nz-icon nzType="search" nzTheme="outline"
+          (click)="LoadArchivo(filesAdd.filename,'temp',filesAdd.originalname)"></a>
         }
 
         <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline" class="download-color"
@@ -55,31 +61,32 @@
 
 </nz-form-item>
 
-@if(showTipoDocs()){
-    <nz-form-item style=" justify-content: center;">
-      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [ngModel]="tipoSelected()" [nzDropdownMatchSelectWidth]="false">
-        <!-- Filtrar en funcion de docTiposValidos()-->
-        @for (option of textForSearchSelected(); track option.doctipo_id) {
-          <ng-container >
-            @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
-              <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
-            }
-            </ng-container>
-          }
-      </nz-select>
-    </nz-form-item>
-  }
+
 
 @if(isDisabled()==false && cantFiles()){
-  
-<nz-form-item >
-  <nz-form-control class="BtnUploadFile" >
+
+<nz-form-item>
+  <nz-form-control class="BtnUploadFile">
     <ng-container>
-      <!-- image/*
-        .pdf
-        .pdf,image/* -->
+
+      @if(showTipoDocs()){
+
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [ngModel]="tipoSelected()"
+        [nzDropdownMatchSelectWidth]="false" style="margin: 10px;" [disabled]="!tipoSelected()">
+        <!-- Filtrar en funcion de docTiposValidos()-->
+        @for (option of textForSearchSelected(); track option.doctipo_id) {
+        <ng-container>
+          @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
+          <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
+          }
+        </ng-container>
+        }
+      </nz-select>
+
+      }
+      <!-- image/* .pdf.pdf,image/* -->
       <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
         <button nz-button [disabled]="tipoSelected() == ''">
           <span nz-icon nzType="upload"></span>
           {{ 'app.btn.file' | i18n }}
