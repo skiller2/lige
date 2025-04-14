@@ -828,7 +828,7 @@ cuit.PersonalCUITCUILCUIT,
 
   async addPersonalEstudio(queryRunner: any, estudio: any, personalId: any) {
     const tipoEstudioId = estudio.TipoEstudioId
-    const estadoEstudioId = estudio.EstadoEstudioId
+    // const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
     const PersonalEstudioOtorgado = estudio.PersonalEstudioOtorgado
     const docTitulo = (estudio.DocTitulo) ? estudio.DocTitulo[0] : null
@@ -861,7 +861,7 @@ cuit.PersonalCUITCUILCUIT,
       PersonalEstudioPagina1Id
       )
       VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
-      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, PersonalEstudioOtorgado, DocumentoImagenEstudioId
+      personalId, PersonalEstudioId, tipoEstudioId, 2, estudioTitulo, PersonalEstudioOtorgado, DocumentoImagenEstudioId
     ])
 
     await queryRunner.query(`
@@ -1298,7 +1298,7 @@ cuit.PersonalCUITCUILCUIT,
             )
             VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
             PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
-            infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
+            2, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
             Pagina1Id,
             //Pagina2Id, Pagina3Id, Pagina4Id
           ])
