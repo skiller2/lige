@@ -2595,12 +2595,12 @@ cuit.PersonalCUITCUILCUIT,
       PersonalBeneficiarioObservacion,
       PersonalBeneficiarioInactivo,
 
-      AudFechaIng, 
-      AudUsuarioIng, 
-      AudIpIng,
-      AudFechaMod, 
-      AudUsuarioMod, 
-      AudIpMod
+      PersonalBeneficiarioAudFechaIng, 
+      PersonalBeneficiarioAudUsuarioIng, 
+      PersonalBeneficiarioAudIpIng,
+      PersonalBeneficiarioAudFechaMod, 
+      PersonalBeneficiarioAudUsuarioMod, 
+      PersonalBeneficiarioAudIpMod
       )
       VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, 
         @9, @10, @11, @9, @10, @11)`, [
@@ -2645,9 +2645,9 @@ cuit.PersonalCUITCUILCUIT,
           PersonalBeneficiarioObservacion = @6,
           PersonalBeneficiarioInactivo = @7,
 
-          AudFechaMod = @8, 
-          AudUsuarioMod = @9, 
-          AudIpMod = @10
+          PersonalBeneficiarioAudFechaMod = @8, 
+          PersonalBeneficiarioAudUsuarioMod = @9, 
+          PersonalBeneficiarioAudIpMod = @10
 
           WHERE PersonalId = @0 AND PersonalBeneficiarioDesde=@11 AND PersonalBeneficiarioDocumentoNro=@5` , [
           PersonalId,
@@ -2675,9 +2675,9 @@ cuit.PersonalCUITCUILCUIT,
           PersonalBeneficiarioObservacion = @6,
           PersonalBeneficiarioInactivo = @7,
     
-          AudFechaMod = @8, 
-          AudUsuarioMod = @9, 
-          AudIpMod = @10
+          PersonalBeneficiarioAudFechaMod = @8, 
+          PersonalBeneficiarioAudUsuarioMod = @9, 
+          PersonalBeneficiarioAudIpMod = @10
           WHERE PersonalId = @0 AND PersonalBeneficiarioDesde=@11` , [
           PersonalId,
           Apellido,
