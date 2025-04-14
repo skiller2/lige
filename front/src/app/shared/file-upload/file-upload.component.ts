@@ -85,20 +85,20 @@ export class FileUploadComponent implements ControlValueAccessor {
     switchMap(() => {
       this.files.set([])
 
+      if (this.docTiposValidos().length == 1) 
+        this.tipoSelected.set(this.docTiposValidos()[0])
+
       if (this.idForSearh() > 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
 
         return this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
           map((list: any) => {
+
             this.cantFilesAnteriores.set(list.length)
             this.prevFiles.emit(list)
 
             return list
           }))
       } else {
-        
-        if (this.docTiposValidos().length == 1) 
-          this.tipoSelected.set(this.docTiposValidos()[0])
-        
         this.prevFiles.emit([])
         this.cantFilesAnteriores.set(0)
         return of([])
