@@ -44,6 +44,7 @@ export class EstudiosDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   onRefreshEstudio = output<void>();
+  showTipoDocs = signal<boolean>(true)
   uploading$ = new BehaviorSubject({loading:false,event:null});
 
   $optionsNivelEstudio = this.searchService.getEstudioSearch() 
@@ -84,9 +85,11 @@ export class EstudiosDrawerComponent {
   
           if (this.disabled()) {
             this.tituloDrawer.set(' Consultar Estudio ')
+            this.showTipoDocs.set(false)
             this.formCli.disable()
           } else {
             this.tituloDrawer.set('Editar Estudio')
+            this.showTipoDocs.set(true)
             this.formCli.enable()
           }
         }
@@ -95,6 +98,7 @@ export class EstudiosDrawerComponent {
         this.formCli.enable()
         this.PersonalIdForEdit.set(0)
         this.tituloDrawer.set(' Nuevo Estudio ')
+        this.showTipoDocs.set(true)
       }
     })
   }

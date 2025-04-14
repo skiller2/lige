@@ -13,6 +13,11 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
 
+interface DocTipo {
+  doctipo_id: string;
+  detalle: string;
+}
+
 @Component({
   selector: 'app-file-upload',
   imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule],
@@ -73,7 +78,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   formChangeArchivos$ = new BehaviorSubject('');
 
   tipoSelected = signal<string>("")
-  textForSearchSelected = signal<string>("")
+  textForSearchSelected = signal<DocTipo[]>([])
 
   $files = this.formChangeArchivos$.pipe(
     debounceTime(500),
@@ -90,6 +95,10 @@ export class FileUploadComponent implements ControlValueAccessor {
             return list
           }))
       } else {
+        
+        if (this.docTiposValidos().length == 1) 
+          this.tipoSelected.set(this.docTiposValidos()[0])
+        
         this.prevFiles.emit([])
         this.cantFilesAnteriores.set(0)
         return of([])
@@ -103,7 +112,7 @@ export class FileUploadComponent implements ControlValueAccessor {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       if (changes['textForSearch']) {
         //Parsear textForSearch y armar arreglo con los tipos de documento.
-        this.docTiposValidos.set([])
+        this.docTiposValidos.set(this.textForSearch().split(','))
       }
 
       if (this.docTiposValidos.length==1)
@@ -113,8 +122,14 @@ export class FileUploadComponent implements ControlValueAccessor {
     }
   }
 
-  ngOnInit() {
+   ngOnInit() {
     // Cargar el compo textForSearchSelected con todos los tipos de documento
+   this.apiService.getSelectTipoinFile().subscribe((res: any) => {
+      this.textForSearchSelected.set(res);
+      console.log("textForSearchSelected", this.textForSearchSelected())
+    });
+
+  
     // this.initializeDocumentTypes();
   }
 

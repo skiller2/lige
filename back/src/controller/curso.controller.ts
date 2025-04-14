@@ -353,7 +353,7 @@ export class CursoController extends BaseController {
 
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso`)
+      const Curso = await queryRunner.query(`SELECT ModalidadCursoCodigo, ModalidadCursoModalidad FROM ModalidadCurso`)
       return this.jsonRes(Curso, res);
     } catch (error) {
       return next(error)
@@ -367,7 +367,7 @@ export class CursoController extends BaseController {
     const { id } = req.params
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const Curso = await queryRunner.query(`SELECT * FROM ModalidadCurso WHERE ModalidadCursoCodigo = @0`, [id])
+      const Curso = await queryRunner.query(`SELECT ModalidadCursoCodigo, ModalidadCursoModalidad FROM ModalidadCurso WHERE ModalidadCursoCodigo = @0`, [id])
       return this.jsonRes(Curso, res);
     } catch (error) {
       return next(error)
@@ -430,7 +430,7 @@ export class CursoController extends BaseController {
         // is new
         console.log("estoy agregando")
 
-        const existCursoHabilitacion = await queryRunner.query(`SELECT * FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [CursoHabilitacionCodigo])
+        const existCursoHabilitacion = await queryRunner.query(`SELECT CursoHabilitacionId FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [CursoHabilitacionCodigo])
 
         if (existCursoHabilitacion.length > 0) {
           throw new ClientException(`El código ${CursoHabilitacionCodigo} ya existe.`)

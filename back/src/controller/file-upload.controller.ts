@@ -51,7 +51,7 @@ export class FileUploadController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
-      let info = await queryRunner.query(`SELECT detalle FROM lige.dbo.doctipo`)
+      let info = await queryRunner.query(`SELECT doctipo_id,detalle FROM lige.dbo.doctipo`)
       await queryRunner.commitTransaction()
       return this.jsonRes(info, res);
     } catch (error) {
@@ -274,7 +274,7 @@ export class FileUploadController extends BaseController {
       throw new ClientException(`No se especificó destino -doctipo_id-`)
 
     const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo 
-          WHERE tipo.doctipo_id = @0 OR TRIM(tipo.detalle) = @0`, [doctipo_id])
+          WHERE tipo.doctipo_id = @0`, [doctipo_id])
     if (!doctipo.length)
       throw new ClientException(`Tipo de documento no existe`)
     const folder = doctipo[0]['path_origen']

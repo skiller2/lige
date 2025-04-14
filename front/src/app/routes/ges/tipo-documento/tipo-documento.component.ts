@@ -202,18 +202,26 @@ export class TipoDocumentoComponent {
   }
 
   openDrawerforAlta(): void{
-    this.childAlta().resetForm()
+   
     this.visibleAlta.set(true) 
+    setTimeout(() => {
+      this.childAlta().resetForm()
+    }, 1000)
   }
 
   openDrawerforEdit(): void{
-    this.childEdit().load()
+    
     this.visibleEdit.set(true)
+    setTimeout(() => {
+      this.childEdit().load()
+    }, 1000)
   }
 
   openDrawerforDetalle(): void{
-    this.childDetalle().load()
     this.visibleDetalle.set(true)
+    setTimeout(() => {
+      this.childDetalle().load()
+    }, 1000)
   }
 
   onTabsetChange(_event: any) {

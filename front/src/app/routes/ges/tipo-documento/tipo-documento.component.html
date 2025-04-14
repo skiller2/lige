@@ -85,6 +85,15 @@
   </nz-tabset>
 
 </nz-card>
-<app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-tipo-documento-alta-drawer>
-<app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-tipo-documento-alta-drawer>
-<app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-tipo-documento-alta-drawer>
+
+@defer( when visibleAlta()){
+  <app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-tipo-documento-alta-drawer>
+}
+
+@defer( when visibleDetalle()){
+  <app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-tipo-documento-alta-drawer>
+}
+
+@defer( when visibleEdit()){
+  <app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-tipo-documento-alta-drawer>
+}
