@@ -370,7 +370,7 @@ export class AccesoBotController extends BaseController {
             if (result.length < 1)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
-            if (result[0].idrecibo != recibo && result[1].idrecibo != recibo)
+            if (result[0].idrecibo != recibo && result[1]?.idrecibo != recibo)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
             this.jsonRes("OK", res)

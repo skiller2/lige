@@ -10,7 +10,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const PersonalId = state.get('personalId')
-        const docsPend = await personalController.getDocsPendDescarga(PersonalId)
+        const docsPend:any[] = await personalController.getDocsPendDescarga(PersonalId)
         await state.update({ docsPend: docsPend })
 
         if (docsPend.length > 0) {
