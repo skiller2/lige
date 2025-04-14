@@ -22,7 +22,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
             await flowDynamic('Desea descargarlos (Si/No)?', { delay: delay })
 
         } else {
-            //await flowDynamic('No tiene documentos pendientes de descarga', { delay: delay })
+            await flowDynamic('No posee documentos pendientes de descarga', { delay: delay })
             return gotoFlow(flowMenu)            
         }
     })

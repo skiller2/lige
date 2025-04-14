@@ -7,6 +7,7 @@ import {
 
 import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
+import { dbServer } from "src";
 
 export class ImpuestosAfipController extends BaseController { 
   directory = process.env.PATH_MONOTRIBUTO || "tmp";
@@ -18,7 +19,7 @@ export class ImpuestosAfipController extends BaseController {
     mes: number,
   ) {
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dbServer.dataSource.createQueryRunner();
 
     try {
       const gettmpfilename = await this.getRutaFile(queryRunner, PersonalId, anio, mes)
@@ -65,7 +66,7 @@ export class ImpuestosAfipController extends BaseController {
 
 
   async downloadComprobante( req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dbServer.dataSource.createQueryRunner();
     const PersonalId = req.params.PersonalId
     const anio = req.params.anio
     const mes = req.params.mes
@@ -110,7 +111,7 @@ console.log('envio comprobante comprobante',filename)
   }
 
   async getLastPeriodosOfComprobantes(personalId: number, cant: number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dbServer.dataSource.createQueryRunner();
     try {
       // await queryRunner.startTransaction()
       const respuesta = await queryRunner.query(`

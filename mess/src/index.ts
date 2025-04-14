@@ -8,7 +8,7 @@ import { ChatBotController } from "./controller/chatbot.controller";
 dotenv.config()
 
 // Init App
-const dbServer = new DBServer(5, 2000, dataSource)
+export const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 export const botServer = new BotServer()
 //const categoriasController = new CategoriasController()
@@ -25,11 +25,11 @@ scheduleJob('*/1 * * * *', async function (fireDate) {
   const ahora = new Date();
   const horas = ahora.getHours();
 
-  if (horas >= 8 && horas <= 22) { 
+  if (horas >= 8 && horas <= 22) {
     const listmsg = await ChatBotController.getColaMsg()
 
     for (const msg of listmsg) {
-  
+
       console.log('sendMsg', BotServer.getSaludo(), msg.telefono, msg.texto_mensaje)
       await botServer.sendMsg(msg.telefono, BotServer.getSaludo())
       await delay(1000)
@@ -59,18 +59,7 @@ fechaAyer.setDate(fechaAyer.getDate() - 1);
 fechaAyer.setHours(0, 0, 0, 0)
 console.log('actual', fechaActual, 'ayer', fechaAyer)
 
-
-dbServer.init()
-  .then((res) => {
-    console.info(`${res.res}`)
-  })
-  .catch((error) => {
-    console.error(error)
-    //    process.exit()
-  })
-
-
-webServer.init()
+await webServer.init()
   .then((res) => {
     console.info(res)
     makeRoutes(webServer)
@@ -80,5 +69,15 @@ webServer.init()
 
     process.exit()
   })
+
+await dbServer.init()
+  .then((res) => {
+    console.info(`${res.res}`)
+  })
+  .catch((error) => {
+    console.error(error)
+    //    process.exit()
+  })
+
 
 await botServer.init()

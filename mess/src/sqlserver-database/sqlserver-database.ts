@@ -1,6 +1,8 @@
 import { MemoryDB } from '@builderbot/bot'
 import { dataSource } from "../data-source";
 import { rejects, throws } from 'node:assert';
+import { DBServer } from 'src/server';
+import { dbServer } from 'src';
 
 class SqlServerAdapter extends MemoryDB {
   public listHistory: any[] = []
@@ -24,7 +26,7 @@ class SqlServerAdapter extends MemoryDB {
     if (lastRow)
       return lastRow
     else {
-      const res = await dataSource.query(`SELECT TOP 1 l.* FROM lige.dbo.bot_log l WHERE l.from_msg = @0 AND l.keyword IS NOT NULL ORDER BY stm DESC`, [from])
+      const res = await dbServer.dataSource.query(`SELECT TOP 1 l.* FROM lige.dbo.bot_log l WHERE l.from_msg = @0 AND l.keyword IS NOT NULL ORDER BY stm DESC`, [from])
       const row = res[0] ? { stm: res[0].stm, ref: res[0].ref, keyword: res[0].keyword, answer: res[0].answer, refSerialize: res[0].refSerialize, from: res[0].from_msg, options: JSON.parse(res[0].options) } : {}
       return row
     }
@@ -43,7 +45,7 @@ class SqlServerAdapter extends MemoryDB {
     let finished=false
     while (!finished) {
       try {
-        await dataSource.query(`INSERT INTO lige.dbo.bot_log (stm, ref, keyword, answer, refSerialize, from_msg, options)
+        await dbServer.dataSource.query(`INSERT INTO lige.dbo.bot_log (stm, ref, keyword, answer, refSerialize, from_msg, options)
         VALUES (@0,@1,@2,@3,@4,@5,@6)`, [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json])
         finished=true
       } catch (error) { 
