@@ -626,7 +626,7 @@ export class FileUploadController extends BaseController {
     }
 
     const imgData: any = await new Promise((resolve, reject) => {
-      if (imgArgsFoto[0].startsWith("g_"))
+      if (imgArgsFoto[0] && imgArgsFoto[0].startsWith("g_"))
         pdfPage.commonObjs.get(imgArgsFoto[0], (imgData: any) => { resolve(imgData) })
       else
         pdfPage.objs.get(imgArgsFoto[0], (imgData: any) => { resolve(imgData) })
