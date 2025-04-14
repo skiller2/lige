@@ -55,7 +55,7 @@
 
 </nz-form-item>
 
-@if(showTipoDocs){
+@if(showTipoDocs()){
     <nz-form-item style=" justify-content: center;">
       <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected" [nzDropdownMatchSelectWidth]="false">
         <!-- Filtrar en funcion de docTiposValidos()-->
