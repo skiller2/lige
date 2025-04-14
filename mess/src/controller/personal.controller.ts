@@ -6,11 +6,11 @@ import { dataSource } from "../data-source";
 // import { ParsedQs } from "qs";
 import { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
-import { botServer } from "src";
+import { botServer, dbServer } from "src";
 
 export class PersonalController extends BaseController {
   async getDocsPendDescarga(PersonalId: number) {
-    const result = await dataSource.query(
+    const result = await dbServer.dataSource.query(
       `SELECT doc.persona_id PersonalId, 
         doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, tip.des_den_documento, doc.den_documento,
         MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
@@ -27,7 +27,7 @@ export class PersonalController extends BaseController {
   }
 
   async removeCode(telefono: string) {
-    return dataSource.query(
+    return dbServer.dataSource.query(
       `UPDATE lige.dbo.regtelefonopersonal SET codigo=NULL WHERE telefono=@0`,
       [telefono]
     );
@@ -37,7 +37,7 @@ export class PersonalController extends BaseController {
 
   async delTelefonoPersona(telefono: string) {
 
-    const result = await dataSource.query(
+    const result = await dbServer.dataSource.query(
       `DELETE FROM lige.dbo.regtelefonopersonal WHERE telefono=@0`,
       [telefono]
     );
@@ -52,7 +52,7 @@ export class PersonalController extends BaseController {
     }
   
     async searchQuery(cuit: number) {
-      const result = await dataSource.query(
+      const result = await dbServer.dataSource.query(
         `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName 
         FROM dbo.Personal per 
         LEFT JOIN PersonalCUITCUIL cuit 
@@ -79,7 +79,7 @@ export class PersonalController extends BaseController {
     async checkTelefonoPersonal(personalId: number, telefono: string, usuario: string, ip: string) {
       try {
         let result: any
-        const [telefonoPersonal] = await dataSource.query(
+        const [telefonoPersonal] = await dbServer.dataSource.query(
           `SELECT reg.personal_id personalId, reg.telefono telefonoPersonal
           FROM lige.dbo.regtelefonopersonal reg
           WHERE reg.personal_id = @0`,
@@ -99,7 +99,7 @@ export class PersonalController extends BaseController {
   
     async addTelefonoPersonalQuery(personalId: number, telefono: string, usuario: string, ip: string) {
       const fecha = new Date
-      return dataSource.query(
+      return dbServer.dataSource.query(
         `INSERT INTO lige.dbo.regtelefonopersonal (personal_id, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) 
         VALUES(@0,@1,@2,@3,@4,@2,@3,@4)`,
         [personalId, telefono, usuario, ip, fecha]
@@ -107,7 +107,7 @@ export class PersonalController extends BaseController {
     }
   */
   async getPersonalQuery(telefono: string, PersonalId:number) {
-    return await dataSource.query(
+    return await dbServer.dataSource.query(
       `SELECT reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit, codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
       sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, per.PersonalFechaIngreso
@@ -144,7 +144,7 @@ export class PersonalController extends BaseController {
   
     async updateTelefonoPersonalQuery(personalId: number, telefono: string, usuario: string, ip: string) {
       const fecha = new Date
-      return dataSource.query(
+      return dbServer.dataSource.query(
         `UPDATE lige.dbo.regtelefonopersonal SET telefono = @1, aud_usuario_mod = @2, aud_ip_mod= @3, aud_fecha_mod = @4
         WHERE personal_id = @0`,
         [personalId, telefono, usuario, ip, fecha]
@@ -190,7 +190,7 @@ export class PersonalController extends BaseController {
 
 
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dbServer.dataSource.createQueryRunner();
 
     try {
       if (des_doc_ident_parts.length > 4) {
@@ -278,7 +278,7 @@ export class PersonalController extends BaseController {
 
 
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dbServer.dataSource.createQueryRunner();
 
     try {
  
@@ -310,7 +310,7 @@ export class PersonalController extends BaseController {
   }
   
   static async getPersonalSitRevista(personalId:number, anio:number,mes:number) {
-      const responsables = await dataSource.query(
+      const responsables = await dbServer.dataSource.query(
         `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
         JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)))
@@ -323,7 +323,7 @@ export class PersonalController extends BaseController {
 
 
   static async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number) {
-    return dataSource.query(
+    return dbServer.dataSource.query(
       `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, CONCAT(cat.TipoAsociadoId, '-',catrel.PersonalCategoriaCategoriaPersonalId) AS id, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
         TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
         TRIM(cat.CategoriaPersonalDescripcion) as fullName,
@@ -340,7 +340,7 @@ export class PersonalController extends BaseController {
 
 
   static async getResponsablesListByPersonal(personalId:number) {
-      return await dataSource.query(`
+      return await dbServer.dataSource.query(`
         SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
         gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
         gaj.GrupoActividadJerarquicoPersonalId PersonalId,
@@ -357,7 +357,7 @@ export class PersonalController extends BaseController {
   }
 
   static async getTelefono(personalId:number) {
-    return await dataSource.query(`SELECT tel.telefono FROM lige.dbo.regtelefonopersonal tel WHERE tel.personal_id IN (@0)`, [personalId] )
+    return await dbServer.dataSource.query(`SELECT tel.telefono FROM lige.dbo.regtelefonopersonal tel WHERE tel.personal_id IN (@0)`, [personalId] )
   }
 
 

@@ -1,3 +1,4 @@
+import { dbServer } from "src";
 import { BaseController } from "../controller/base.controller";
 import { dataSource } from "../data-source";
 import { Request, Response, NextFunction } from "express";
@@ -12,7 +13,7 @@ export class InfoController extends BaseController {
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
 
-    dataSource
+    dbServer.dataSource
       .query("SELECT 1 + @0", [2])
       .then((records) => {
         data.sqltest = records;
