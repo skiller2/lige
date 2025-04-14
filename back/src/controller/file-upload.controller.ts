@@ -101,7 +101,6 @@ export class FileUploadController extends BaseController {
           break;
         case 'docgeneral':
           document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
-          console.log('aver', this.pathDocuments, document[0]["path"])
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
           break;
@@ -213,7 +212,7 @@ export class FileUploadController extends BaseController {
             JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
             WHERE 
                 doc.${columnSearch} = @0 AND
-                tipo.doctipo_id = @1 `,
+                ('${columnSearch}'='doc_id' OR tipo.doctipo_id = @1) `,
             [id, TipoSearch])
 
           break;
@@ -357,7 +356,7 @@ export class FileUploadController extends BaseController {
             SET periodo = @1, fecha = @2, 
             -- path = @3, nombre_archivo = @4, detalle_documento = @14
             doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
-            aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, 
+            aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13 
             WHERE doc_id = @0
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])

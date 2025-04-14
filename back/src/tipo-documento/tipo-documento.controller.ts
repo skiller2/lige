@@ -421,7 +421,7 @@ export class TipoDocumentoController extends BaseController {
     const objetivo_id: number = req.body.objetivo_id
     const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : req.body.fecha
     const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
-    const archivo: any[] = req.body.archivo
+    //const archivo: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -433,7 +433,7 @@ export class TipoDocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      
+      const archivo = [{ doc_id,doctipo_id,tableForSearch:'docgeneral',den_documento,persona_id,cliente_id,objetivo_id,fecha,fec_doc_ven }]
 
       await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ?archivo![0]:null, usuario, ip, queryRunner)
 
