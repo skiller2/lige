@@ -1,7 +1,7 @@
 import { Component, effect, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map, of } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../services/api.service';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -123,11 +123,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
    async ngOnInit() {
-    // Cargar el compo textForSearchSelected con todos los tipos de documento
-
-    await firstValueFrom(this.apiService.getSelectTipoinFile()).then((res: any) => {
-      this.textForSearchSelected.set(res);
-    });
+    this.textForSearchSelected.set( await firstValueFrom(this.apiService.getSelectTipoinFile()))
   }
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
