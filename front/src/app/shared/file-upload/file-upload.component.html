@@ -70,9 +70,8 @@
     <ng-container>
 
       @if(showTipoDocs()){
-
-      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [ngModel]="tipoSelected()"
-        [nzDropdownMatchSelectWidth]="false" style="margin: 10px;" [disabled]="!tipoSelected()">
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
+        [nzDropdownMatchSelectWidth]="false" style="margin: 10px;">
         <!-- Filtrar en funcion de docTiposValidos()-->
         @for (option of textForSearchSelected(); track option.doctipo_id) {
         <ng-container>
