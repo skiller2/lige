@@ -71,7 +71,7 @@
 
       <nz-form-control>
         <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0" [cantMaxFiles]="1"
-          [textForSearch]="'EST'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'"></app-file-upload>
+          [textForSearch]="'EST'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="showTipoDocs()"></app-file-upload>
       </nz-form-control>
 
       @if(this.formCli.enabled) {

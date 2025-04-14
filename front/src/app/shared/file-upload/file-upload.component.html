@@ -57,11 +57,15 @@
 
 @if(showTipoDocs()){
     <nz-form-item style=" justify-content: center;">
-      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected" [nzDropdownMatchSelectWidth]="false">
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [ngModel]="tipoSelected()" [nzDropdownMatchSelectWidth]="false">
         <!-- Filtrar en funcion de docTiposValidos()-->
-        @for (item of textForSearchSelected(); track item) {
-          <nz-option [nzLabel]="item.trim()" [nzValue]="item.trim()"></nz-option>
-        }
+        @for (option of textForSearchSelected(); track option.doctipo_id) {
+          <ng-container >
+            @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
+              <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
+            }
+            </ng-container>
+          }
       </nz-select>
     </nz-form-item>
   }
