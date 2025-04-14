@@ -122,41 +122,13 @@ export class FileUploadComponent implements ControlValueAccessor {
     }
   }
 
-   ngOnInit() {
+   async ngOnInit() {
     // Cargar el compo textForSearchSelected con todos los tipos de documento
-   this.apiService.getSelectTipoinFile().subscribe((res: any) => {
+
+    await firstValueFrom(this.apiService.getSelectTipoinFile()).then((res: any) => {
       this.textForSearchSelected.set(res);
-      console.log("textForSearchSelected", this.textForSearchSelected())
-    });
-
-  
-    // this.initializeDocumentTypes();
-  }
-
-/*
-  private initializeDocumentTypes() {
-    console.log("pase por aca...", this.textForSearch())
-    if (this.textForSearch() === "" ) {
-      this.loadDocumentTypesFromApi();
-    } else {
-      this.setDocumentTypesFromInput();
-    }
-  }
-
-  private loadDocumentTypesFromApi() {
-    this.apiService.getSelectTipoinFile().subscribe((res: any) => {
-      const documentTypes = res.map((item: any) => item.detalle.trim()).join(',');
-      this.textForSearchSelected.set(documentTypes);
     });
   }
-
-  private setDocumentTypesFromInput() {
-    this.textForSearchSelected.set(this.textForSearch());
-    if (!this.textForSearchSelected().includes(',')) {
-      this.tipoSelected.set(this.textForSearch());
-    }
-  }
-*/
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
 
