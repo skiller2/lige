@@ -1142,72 +1142,88 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
-    console.log('infoDomicilio', infoDomicilio)
 
-    if (!infoDomicilio.Calle && !infoDomicilio.Nro && !infoDomicilio.Piso && !infoDomicilio.Dpto && !infoDomicilio.CodigoPostal && !infoDomicilio.PaisId)
-      return;
+    if (infoDomicilio.Calle || infoDomicilio.Nro || infoDomicilio.Piso || infoDomicilio.Dpto ||
+      infoDomicilio.CodigoPostal || infoDomicilio.PaisId || infoDomicilio.ProvinciaId || infoDomicilio.LocalidadId) {
 
+      let campos_vacios = []
+      if (!infoDomicilio.Calle) campos_vacios.push('- Calle')
+      if (!infoDomicilio.Nro) campos_vacios.push('- Nro')
+      if (!infoDomicilio.Piso) campos_vacios.push('- Piso')
+      if (!infoDomicilio.Dpto) campos_vacios.push('- Dpto')
+      if (!infoDomicilio.CodigoPostal) campos_vacios.push('- Codigo Postal')
+      if (!infoDomicilio.PaisId) campos_vacios.push('- Pais')
+      if (!infoDomicilio.ProvinciaId) campos_vacios.push('- Provincia')
+      if (!infoDomicilio.LocalidadId) campos_vacios.push('- Localidad')
 
-    let cambio: boolean = false
-    const domicilioRes = await queryRunner.query(`
-      SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
-      TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
-      PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
-      FROM PersonalDomicilio
-      WHERE PersonalId = @0 AND PersonalDomicilioId = @1
-      `, [PersonalId, infoDomicilio.PersonalDomicilioId])
-    const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
-
-    if (domicilioRes.length == 0)
-      cambio = true
-
-    for (const key in domicilio) {
-      if (infoDomicilio[key] != domicilio[key]) {
-        cambio = true
-        break
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos del Domicilio:')
+        throw new ClientException(campos_vacios)
       }
-    }
 
-    if (cambio) {
-      await queryRunner.query(`
-      UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
 
-      const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [PersonalId])
-      const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro) ? ultnro[0]?.PersonalDomicilioUltNro + 1 : 1
+      let cambio: boolean = false
+      const domicilioRes = await queryRunner.query(`
+          SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
+          TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
+          PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
+          FROM PersonalDomicilio
+          WHERE PersonalId = @0 AND PersonalDomicilioId = @1
+          `, [PersonalId, infoDomicilio.PersonalDomicilioId])
 
-      await queryRunner.query(`
-        INSERT INTO PersonalDomicilio (
-        PersonalId,
-        PersonalDomicilioId,
-        PersonalDomicilioDomCalle,
-        PersonalDomicilioDomNro,
-        PersonalDomicilioDomPiso,
-        PersonalDomicilioDomDpto,
-        PersonalDomicilioCodigoPostal,
-        PersonalDomicilioActual,
-        PersonalDomicilioPaisId,
-        PersonalDomicilioProvinciaId,
-        PersonalDomicilioLocalidadId,
-        PersonalDomicilioBarrioId
-        )
-        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
-        PersonalId,
-        PersonalDomicilioId,
-        infoDomicilio.Calle,
-        infoDomicilio.Nro,
-        infoDomicilio.Piso,
-        infoDomicilio.Dpto,
-        infoDomicilio.CodigoPostal,
-        1,
-        infoDomicilio.PaisId,
-        infoDomicilio.ProvinciaId,
-        infoDomicilio.LocalidadId,
-        infoDomicilio.BarrioId,
-      ])
-      await queryRunner.query(`
-        UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
-        `, [PersonalId, PersonalDomicilioId])
+      const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
 
+      if (domicilioRes.length == 0)
+        cambio = true
+
+      for (const key in domicilio) {
+        if (infoDomicilio[key] != domicilio[key]) {
+          cambio = true
+          break
+        }
+      }
+
+      if (cambio) {
+        await queryRunner.query(`
+          UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
+
+        const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [PersonalId])
+        const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro) ? ultnro[0]?.PersonalDomicilioUltNro + 1 : 1
+
+        await queryRunner.query(`
+            INSERT INTO PersonalDomicilio (
+            PersonalId,
+            PersonalDomicilioId,
+            PersonalDomicilioDomCalle,
+            PersonalDomicilioDomNro,
+            PersonalDomicilioDomPiso,
+            PersonalDomicilioDomDpto,
+            PersonalDomicilioCodigoPostal,
+            PersonalDomicilioActual,
+            PersonalDomicilioPaisId,
+            PersonalDomicilioProvinciaId,
+            PersonalDomicilioLocalidadId,
+            PersonalDomicilioBarrioId
+            )
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
+          PersonalId,
+          PersonalDomicilioId,
+          infoDomicilio.Calle,
+          infoDomicilio.Nro,
+          infoDomicilio.Piso,
+          infoDomicilio.Dpto,
+          infoDomicilio.CodigoPostal,
+          1,
+          infoDomicilio.PaisId,
+          infoDomicilio.ProvinciaId,
+          infoDomicilio.LocalidadId,
+          infoDomicilio.BarrioId,
+        ])
+        await queryRunner.query(`
+            UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
+            `, [PersonalId, PersonalDomicilioId])
+
+      }
 
     }
   }
@@ -2631,10 +2647,10 @@ cuit.PersonalCUITCUILCUIT,
         SELECT PersonalId,PersonalBeneficiarioDocumentoNro
         FROM PersonalBeneficiario
         WHERE PersonalBeneficiarioDocumentoNro=@0 AND PersonalId= @1 AND PersonalBeneficiarioInactivo=0
-        `,[DocumentoNro,PersonalId])
+        `, [DocumentoNro, PersonalId])
 
 
-      if (PersonalBeneficiarioDocumentoNro.length>0){
+      if (PersonalBeneficiarioDocumentoNro.length > 0) {
         // HAGO UPDATE PERO NO DEL DOCUMENTO NRO
         await queryRunner.query(`
           UPDATE PersonalBeneficiario SET
@@ -2664,7 +2680,7 @@ cuit.PersonalCUITCUILCUIT,
           desde
         ])
 
-      }else{
+      } else {
         await queryRunner.query(`
           UPDATE PersonalBeneficiario SET
           PersonalBeneficiarioApellido = @1,
@@ -2698,7 +2714,7 @@ cuit.PersonalCUITCUILCUIT,
 
     }
 
- 
+
 
   }
 
