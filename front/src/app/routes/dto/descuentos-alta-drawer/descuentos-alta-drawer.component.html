@@ -3,7 +3,8 @@
   <ng-container *nzDrawerContent>
 
     <nz-card nzType="inner" nzTitle="Agregar Nuevo Descuento" >
-      <form [formGroup]="formAltaDesc">
+    <form [formGroup]="formAltaDesc">
+
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Tipo</nz-form-label>
         <nz-form-control [nzMd]="18">
@@ -19,29 +20,50 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Personal</nz-form-label>
         <nz-form-control [nzMd]="18">
-            <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
+            <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()" (ngModelChange)="onDescuentosChange($event)"/>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Objetivo</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <app-objetivo-search formControlName="ObjetivoId"></app-objetivo-search>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Prepaga</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-select formControlName="PrepagaId" nzPlaceHolder="tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsPrepaga | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item> -->
+
+      <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
         <nz-form-control [nzMd]="18">
-          <nz-date-picker ngMode="month" formControlName="AplicaEl" ></nz-date-picker>
+          <nz-date-picker ngMode="month" formControlName="AplicaEl" (ngModelChange)="onDescuentosChange($event)"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Cant. de Cuotas</nz-form-label>
-        <nz-form-control [nzMd]="18">
+        <nz-form-control [nzMd]="5">
           <input nz-input placeholder="" formControlName="Cuotas" type="number" />
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="3">Importe</nz-form-label>
+        <nz-form-control [nzMd]="10">
+          <input nz-input placeholder="" formControlName="Importe" type="number" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Importe</nz-form-label>
-        <nz-form-control [nzMd]="18">
-          <input nz-input placeholder="" formControlName="Importe" type="number" />
-        </nz-form-control>
+        
       </nz-form-item>
 
       <nz-form-item>
@@ -55,27 +77,31 @@
     </form>
     </nz-card>
 
-    <!-- <nz-form-control *ngIf="$listaBancoPer | async as listaBancoPer ">
-      <nz-table #personalBanco [nzData]="listaBancoPer" nzSize="small" [nzPageSize]="100000000"
+    <nz-form-control *ngIf="$listaDecuentosPer | async as listaDecuentosPer ">
+      <nz-table #list [nzData]="listaDecuentosPer" nzSize="small" [nzPageSize]="100000000"
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
         <thead>
           <tr>
-            <th nzWidth="230px">Banco</th>
-            <th>CBU</th>
-            <th nzWidth="110px">Desde</th>
-            <th nzWidth="110px">Hasta</th>
+            <th>Tipo de Cuenta</th>
+            <th nzWidth="210px">Tipo Movimiento</th>
+            <th>Año</th>
+            <th>Mes</th>
+            <th>Cant. Cuotas</th>
+            <th>Importe Total</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let data of personalBanco.data" class="">
-            <td>{{ data.Descripcion }}</td>
-            <td>{{ data.CBU }}</td>
-            <td>{{ data.Desde }}</td>
-            <td>{{ data.Hasta }}</td>
+          <tr *ngFor="let data of list.data" class="">
+            <td>{{ data.tipocuenta_id }}</td>
+            <td>{{ data.tipomov }}</td>
+            <td>{{ data.anio }}</td>
+            <td>{{ data.mes }}</td>
+            <td>{{ data.cantcuotas }}</td>
+            <td>{{ data.importetotal }}</td>
           </tr>
         </tbody>
       </nz-table>
-    </nz-form-control> -->
+    </nz-form-control>
 
   </ng-container>
 </nz-drawer>

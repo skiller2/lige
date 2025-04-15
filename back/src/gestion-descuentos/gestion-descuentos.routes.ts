@@ -16,12 +16,11 @@ gestionDescuentosRouter.get("/tipo/options", [authMiddleware.verifyToken,authMid
     gestionDescuentosController.getTiposDescuentos(req, res, next);
 });
 
-
 gestionDescuentosRouter.get("/tipo/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getTiposDescuentos(req, res, next);
 });
 
-gestionDescuentosRouter.post("/personal/:id", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post("/personal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getDescuentosByPersonalId(req, res, next);
 });
 

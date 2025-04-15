@@ -17,20 +17,33 @@ const columnsPersonalDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
-    fieldName: 'gap.GrupoActividadId',
+    id:'PersonalCUITCUILCUIT', name:'CUIT', field:'PersonalCUITCUILCUIT',
+    fieldName:'cuit.PersonalCUITCUILCUIT',
     type:'number',
     searchType: 'number',
     sortable: true,
-    hidden: true,
-    searchHidden: false
+    hidden: false,
+    searchHidden: true,
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
-    id:'PersonalId', name:'Personal', field:'PersonalId',
-    fieldName: 'per.PersonalId',
-    searchComponent: 'inpurForPersonalSearch',
+    id: 'personal', name:'Apellido Nombre', field: 'personal.fullName',
+    fieldName: "per.PersonalId",
+    sortable: true,
+    type: 'string',
+    formatter: 'complexObject',
+    params: {
+        complexFieldLabel: 'personal.fullName',
+    },
+    searchComponent: "inpurForPersonalSearch",
+    searchType: "number",
+    // maxWidth: 170,
+    // minWidth: 100,
+  },
+  {
+    id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
+    fieldName: 'gap.GrupoActividadId',
     type:'number',
     searchType: 'number',
     sortable: true,
@@ -47,28 +60,6 @@ const columnsPersonalDescuentos:any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  {
-    id:'CUIT', name:'CUIT', field:'CUIT',
-    fieldName: 'cuit.PersonalCUITCUILCUIT',
-    type:'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  {
-    id:'ApellidoNombre', name:'Apellido Nombre', field:'ApellidoNombre',
-    fieldName: '',
-    type:'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -198,43 +189,58 @@ const columnsObjetivosDescuentos:any[] = [
   //   // minWidth: 10,
   // },
   {
-    id:'PersonalId', name:'Personal', field:'PersonalId',
-    fieldName: 'per.PersonalId',
-    searchComponent: 'inpurForPersonalSearch',
+    id: 'objetivo', name:'Objetivo', field: 'objetivo.descripcion',
+    fieldName: "obj.ObjetivoId",
+    sortable: true,
+    type: 'string',
+    formatter: 'complexObject',
+    params: {
+        complexFieldLabel: 'objetivo.descripcion',
+    },
+    searchComponent: "inpurForObjetivoSearch",
+    searchType: "number",
+    // maxWidth: 170,
+    // minWidth: 100,
+  },
+  {
+    id:'CUIT', name:'CUIT', field:'CUIT',
+    fieldName:'cuit.PersonalCUITCUILCUIT',
     type:'number',
     searchType: 'number',
     sortable: true,
-    hidden: true,
-    searchHidden: false,
+    hidden: false,
+    searchHidden: true,
     // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id: 'personal', name:'Apellido Nombre', field: 'personal.fullName',
+    fieldName: "per.PersonalId",
+    sortable: true,
+    type: 'string',
+    formatter: 'complexObject',
+    params: {
+        complexFieldLabel: 'personal.fullName',
+    },
+    searchComponent: "inpurForPersonalSearch",
+    searchType: "number",
+    // maxWidth: 170,
+    // minWidth: 100,
+  },
+  {
+    id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
+    fieldName: "gap.GrupoActividadId",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+    // minWidth: 50,
     // minWidth: 10,
   },
   {
     id:'tipocuenta_id', name:'Tipo de Cuenta', field:'tipocuenta_id',
     fieldName: 'tipocuenta_id',
-    type:'string',
-    searchType: 'string',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  {
-    id:'CUIT', name:'CUIT', field:'CUIT',
-    fieldName: 'cuit.PersonalCUITCUILCUIT',
-    type:'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  {
-    id:'ApellidoNombre', name:'Apellido Nombre', field:'ApellidoNombre',
-    fieldName: '',
-    searchComponent: '',
     type:'string',
     searchType: 'string',
     sortable: true,
@@ -471,8 +477,14 @@ export class GestionDescuentosController extends BaseController {
       const orderBy = orderToSQL(options.sort)
 
       const lista: any[] = await this.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
-      console.log('-----------------------------');
-      console.log('lista:', lista.length);
+      
+      for (const descuento of lista) {
+        descuento.personal = { id:descuento.PersonalId, fullName:descuento.ApellidoNombre }
+        delete descuento.PersonalId;
+        delete descuento.ApellidoNombre;
+      }
+      // console.log('-----------------------------');
+      // console.log('lista:', lista.length);
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -486,13 +498,23 @@ export class GestionDescuentosController extends BaseController {
 
   private async getDescuentosObjetivosQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     return await queryRunner.query(`
-      SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,
-      cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov, 
-      CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', obj.ObjetivoDescripcion)) AS desmovimiento,
-      'OTRO' tipoint,
-      cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal,
-      obj.ObjetivoDescripcion
+      SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
+      , gap.GrupoActividadId
+      , des.ObjetivoId
+      , per.PersonalId
+      , IIF(des.ObjetivoId>0,'C','G') tipocuenta_id
+      , cuit.PersonalCUITCUILCUIT AS CUIT
+      , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+      , @0 AS anio
+      , @1 AS mes
+      , det.DescuentoDescripcion AS tipomov
+      , CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', obj.ObjetivoDescripcion)) AS desmovimiento
+      , 'OTRO' tipoint
+      , cuo.ObjetivoDescuentoCuotaImporte AS importe
+      , cuo.ObjetivoDescuentoCuotaCuota AS cuotanro
+      , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
+      , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
+      , obj.ObjetivoDescripcion
       FROM ObjetivoDescuentoCuota cuo 
       JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
       LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@0,@1,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
@@ -520,6 +542,14 @@ export class GestionDescuentosController extends BaseController {
       const orderBy = orderToSQL(options.sort)
 
       const lista: any[] = await this.getDescuentosObjetivosQuery(queryRunner, filterSql, orderBy, anio, mes)
+      for (const descuento of lista) {
+        descuento.personal = { id:descuento.PersonalId, fullName:descuento.ApellidoNombre }
+        descuento.objetivo = { id:descuento.ObjetivoId, descripcion:descuento.ObjetivoDescripcion }
+        delete descuento.PersonalId;
+        delete descuento.ApellidoNombre;
+        delete descuento.ObjetivoId;
+        delete descuento.ObjetivoDescripcion;
+      }
       // console.log('-----------------------------');
       // console.log('lista:', lista.length);
       
@@ -552,51 +582,86 @@ export class GestionDescuentosController extends BaseController {
 
   async getDescuentosByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const PersonalId: number = Number(req.params.id)
-    const anio: number = Number(req.body.anio)
-    const mes: number = Number(req.bosy.mes)
+    const PersonalId: number = req.body.PersonalId
+    const anio: number = req.body.anio
+    const mes: number = req.body.mes
     try {
       const descuentos = await queryRunner.query(`
-      SELECT per.PersonalId, 'G' as tipocuenta_id, 
-      @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov,
-      des.PersonalOtroDescuentoDetalle AS desmovimiento,
-      'OTRO' tipoint,
-      cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro,
-      des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+      -- OTROS DESCUENTOS
+      SELECT DISTINCT 
+      'G' as tipocuenta_id
+      , @0 AS anio
+      , @1 AS mes
+      , det.DescuentoDescripcion AS tipomov
+      , des.PersonalOtroDescuentoDetalle AS desmovimiento
+      , 'OTRO' tipoint
+      , cuo.PersonalOtroDescuentoCuotaImporte AS importe
+      , cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro
+      , des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas
+      , des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+
       FROM PersonalOtroDescuentoCuota cuo
       JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
       JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
       JOIN Personal per ON per.PersonalId = des.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-      WHERE cuo.PersonalOtroDescuentoCuotaAno = @0 AND cuo.PersonalOtroDescuentoCuotaMes = @1 AND per.PersonalId = @2
+
+      WHERE cuo.PersonalOtroDescuentoCuotaAno = @0 AND cuo.PersonalOtroDescuentoCuotaMes = @1 AND per.PersonalId IN (@2)
+
       UNION ALL
-      SELECT per.PersonalId, 'G' as tipocuenta_id,
-      @0 AS anio, @1 AS mes, 'Prepaga' AS tipomov, 
-      CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, 
-      'PREP' tipoint,
-      IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
+
+      -- DESCUENTO EFECTO
+      SELECT DISTINCT
+      'G' as tipocuenta_id
+      , @0 AS anio
+      , @1 AS mes
+      , 'Efecto' AS tipomov
+
+      , efe.EfectoDescripcion AS desmovimiento
+      , 'DESC' tipoint
+      , cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe
+      , cuo.PersonalDescuentoCuotaCuota AS cuotanro
+      , des.PersonalDescuentoCuotas AS cantcuotas
+      , des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
+
+      FROM PersonalDescuento des 
+      JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
+      JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
+      JOIN Personal per ON per.PersonalId = des.PersonalDescuentoPersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+
+      WHERE cuo.PersonalDescuentoCuotaAno = @0 AND cuo.PersonalDescuentoCuotaMes = @1 AND per.PersonalId IN (@2)
+
+      UNION ALL
+
+      -- DESCUENTO PREPAGA
+      SELECT 
+      'G' as tipocuenta_id
+      , @0 AS anio
+      , @1 AS mes
+      , 'Prepaga' AS tipomov
+      , CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento
+      , 'PREP' tipoint
+      , IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe
+      , 1 AS cuotanro
+      , 1 AS cantcuotas
+      , 0 AS importetotal
+
       FROM PersonalPrepagaDescuento des
       JOIN Prepaga pre ON pre.PrepagaId = des.PrepagaId
       JOIN PrepagaPlan pla ON pla.PrepagaPlanId = des.PrepagaPlanId AND pla.PrepagaId = des.PrepagaId
       JOIN PersonalPrepagaDescuentoDiscriminado dis ON dis.PersonalId = des.PersonalId AND dis.PersonalPrepagaDescuentoId = des.PersonalPrepagaDescuentoId
-      JOIN Personal per ON per.PersonalId = des.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-      WHERE des.PersonalPrepagaDescuentoPeriodo = CONCAT(FORMAT(CONVERT(INT, @1), '00'),'/',@0) AND per.PersonalId = @2
-      UNION ALL
-      SELECT per.PersonalId, 'G' as tipocuenta_id,
-      @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov,
-      des.PersonalOtroDescuentoDetalle AS desmovimiento,
-      'OTRO' tipoint,
-      cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro,
-      des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
-      FROM PersonalOtroDescuentoCuota cuo
-      JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
-      JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
-      JOIN Personal per ON per.PersonalId = des.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-      WHERE cuo.PersonalOtroDescuentoCuotaAno = @0 AND cuo.PersonalOtroDescuentoCuotaMes = @1 AND per.PersonalId = @2
-      `, [anio, mes, PersonalId])
 
+      JOIN Personal per ON per.PersonalId = des.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+
+      WHERE des.PersonalPrepagaDescuentoPeriodo=CONCAT(FORMAT(CONVERT(INT, @1), '00'),'/',@0) AND per.PersonalId IN (@2)
+      `, [anio, mes, PersonalId])
+      // console.log('descuentos: ', descuentos.length);
+        
       this.jsonRes(descuentos, res);
     } catch (error) {
       return next(error)
