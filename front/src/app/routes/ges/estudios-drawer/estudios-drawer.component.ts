@@ -51,7 +51,7 @@ export class EstudiosDrawerComponent {
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({
-    personalEstudioId: 0,
+    PersonalEstudioId: 0,
     PersonalId: 0,
     TipoEstudioId: 0,
     PersonalEstudioTitulo: "",
@@ -109,13 +109,13 @@ export class EstudiosDrawerComponent {
         
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)
         this.formCli.patchValue({
-          personalEstudioId: res.data?.list?.PersonalEstudioId,
+          PersonalEstudioId: res.data?.list?.PersonalEstudioId,
           PersonalEstudioPagina1Id: res.data?.list?.PersonalEstudioPagina1Id
         })
         this.tituloDrawer.set('Editar Estudio')
       }  
 
-      //this.onRefreshEstudio.emit()
+      this.onRefreshEstudio.emit()
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
     } catch (error) {
