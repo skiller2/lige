@@ -103,7 +103,7 @@ export class PersonalComponent {
       //     selectActiveRow: true
       // }
       this.startFilters = [
-        {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11', forced:false},
+        {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', forced:false},
       ]
   }
 
