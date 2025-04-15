@@ -11,19 +11,19 @@ import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FormBuilder, FormArray } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 
 @Component({
     selector: 'app-descuentos-alta-drawer',
     templateUrl: './descuentos-alta-drawer.component.html',
     styleUrl: './descuentos-alta-drawer.component.less',
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent, ObjetivoSearchComponent],
     providers: [AngularUtilService]
 })
 export class DescuentosAltaDrawerComponent {
     isLoading = signal(false);
     visibleAltaDesc = model<boolean>(false)
-    periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
     // noOptions = signal<any[]>([])
 
@@ -38,61 +38,47 @@ export class DescuentosAltaDrawerComponent {
 
     fb = inject(FormBuilder)
     formAltaDesc = this.fb.group({
-        DescuentoId: 0, PersonalId:0, AplicaEl:'', Cuotas:null, Importe:null,
+        DescuentoId: 0, PersonalId:0, ObjetivoId:0, AplicaEl:new Date(), Cuotas:null, Importe:null,
     })
 
     $optionsDescuento = this.searchService.getDecuentosOptions();
 
-    // $listaSitRevistaPer = this.selectedPersonalIdChange$.pipe(
-    //     debounceTime(500),
-    //     switchMap(() =>{
-    //         setTimeout(async () => {
-    //             const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
-    //             this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
-    //         }, 0);
-    //         return this.searchService.getHistoriaSituacionRevistaPersona(
-    //             Number(this.PersonalId())
-    //         ).pipe(map(data => {
-    //             let find = this.noOptions().find((obj:any) => {return obj.SituacionRevistaId == data[0]?.SituacionRevistaId})
-    //             if (find){ this.formSitRevista.disable()}
-    //             else { this.formSitRevista.enable() }
-
-    //             data.map((obj:any) =>{
-    //                 let inicio = new Date(obj.Desde)
-    //                 let fin = obj.Hasta? new Date(obj.Hasta) : null
-    //                 obj.Desde = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
-    //                 obj.Hasta = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
-    //             })
-    //             return data
-    //         }))
-    //     })
-    // );
+    $listaDecuentosPer = this.selectedPersonalIdChange$.pipe(
+        debounceTime(500),
+        switchMap(() =>{
+            return this.searchService.getDescuentosByPersonalId(this.PersonalId(), this.anio(), this.mes())
+        })
+    );
 
     PersonalId():number {
-        const value = this.formAltaDesc.value.PersonalId
+        const value = this.formAltaDesc.get("PersonalId")?.value
         if (value) {
           return value
         }
         return 0
     }
 
-    anio():number{
-        if(this.periodo() && this.periodo().getFullYear()) return this.periodo().getFullYear()
+    anio():number {
+        const value = this.formAltaDesc.get("AplicaEl")?.value
+        if(value) return value.getFullYear()
         return 0
     }
 
-    mes():number{
-        if(this.periodo() && this.periodo().getMonth()+1) return this.periodo().getMonth()+1
+    mes():number {
+        const value = this.formAltaDesc.get("AplicaEl")?.value
+        if(value) return value.getMonth()+1
         return 0
     }
 
-    async ngOnInit(){
-        this.periodo.set(new Date())
-    }
+    async ngOnInit(){}
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
+    }
+
+    async onDescuentosChange(event:any){
+        this.selectedPersonalIdChange$.next('');
     }
 
     async save() {

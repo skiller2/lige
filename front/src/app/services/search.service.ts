@@ -1644,9 +1644,9 @@ export class SearchService {
     );
   }
 
-  getDescuentosByPersonalId(PersonalId: number, anio: number, mes: number): Observable<any> {
+  getDescuentosByPersonalId(PersonalId: number, anio: number, mes: number) {
     if (!PersonalId && anio && mes) return of([]);
-    return this.http.get<ResponseJSON<PersonaObj>>(`/api/gestion-descuentos/personal`, { PersonalId, anio, mes }).pipe(
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/personal`, { PersonalId, anio, mes }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

@@ -186,6 +186,7 @@ WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AN
 
 
   private async getPersonalHorasByClientId(queryRunner: any, ClientId: number, anio: number, mes: number) {
+    //Incluye Horas de Vigilancia y Custodia
     return queryRunner.query(`
         SELECT  
 		-- obja.ObjetivoAsistenciaAnoAno, 
@@ -253,15 +254,26 @@ FROM ObjetivoAsistenciaAnoMesPersonalDias objd
 		JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
 		JOIN Personal per ON per.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
 
-
-
-		
-
 WHERE obja.ObjetivoAsistenciaAnoAno = @1 
 		AND objm.ObjetivoAsistenciaAnoMesMes = @2 
 		AND obj.ClienteId = @0
 
 GROUP BY objd.ObjetivoAsistenciaMesPersonalId
+
+UNION 
+
+            SELECT per.PersonalId, CONCAT('Custodia/s ',STRING_AGG(obj.objetivo_custodia_id,', ')) detalle
+            -- SUM(ABS(CEILING(CONVERT(FLOAT,DATEDIFF(minute, obj.fecha_inicio,obj.fecha_fin)) / 60))) AS detalle
+            FROM dbo.Personal AS per
+            INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
+            INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
+            INNER JOIN lige.dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+            INNER JOIN lige.dbo.Personal perres ON perres.PersonalId = obj.responsable_id
+            WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@1 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@2) AND obj.cliente_id = @0
+				GROUP BY per.PersonalId
+
+
+
 `, [ClientId, anio, mes])
   }
 
