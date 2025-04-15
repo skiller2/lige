@@ -1,3 +1,5 @@
+import { readdirSync, unlinkSync } from "fs";
+import path from "path";
 import { QueryRunner } from "typeorm";
 
 export class Utils {
@@ -36,6 +38,36 @@ export class Utils {
         resolve(ms)
       }, ms)
     })
+  }
+
+  static removeBotFileSessions() {
+
+    const directoryPath = path.join(process.cwd(),'./bot_sessions')
+
+    console.log('currentDirectory', directoryPath)
+
+    // Regular expression to match files
+    const pattern = /^session-.*$/;
+
+    try {
+      const archivos = readdirSync(directoryPath);
+      archivos.forEach(archivo => {
+        if (pattern.test(archivo)) {
+          const rutaArchivo = path.join(directoryPath, archivo);
+          unlinkSync(rutaArchivo);
+        }
+      });
+      const rutaArchivo = path.join(directoryPath, 'baileys_store.json');
+      unlinkSync(rutaArchivo);
+  
+    } catch (error) { 
+      const errMsg = `Error al eliminar archivos de sesión: ${error}`
+      console.log(errMsg)
+      throw new Error(errMsg)
+    }
+
+
+
   }
 
 }

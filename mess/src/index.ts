@@ -19,6 +19,11 @@ function delay(ms: number) {
 }
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
+
+
+})
+
+scheduleJob('*/1 * * * *', async function (fireDate) {
   const status = botServer.status().bot_online
   if (status != 'ONLINE') return
 

@@ -18,6 +18,7 @@ import { idleFlow } from "./flow/flowIdle";
 import flowInformacionPersonal from "./flow/flowInformacionPersonal";
 import flowInformacionEmpresa from "./flow/flowInformacionEmpresa";
 import { flowDescargaDocs } from "./flow/flowDescargaDocs";
+import { Utils } from "./controller/util";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -66,6 +67,8 @@ export class BotServer {
   }
 
   public async init() {
+
+    Utils.removeBotFileSessions()
 
     const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal,flowInformacionEmpresa,flowDescargaDocs])
     this.adapterProvider = createProvider(Provider)

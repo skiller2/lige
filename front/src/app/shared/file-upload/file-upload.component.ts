@@ -62,7 +62,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")
-  showTipoDocs = input(true)
+  showTipoDocs = input(false)
 
   modalViewerVisiable = signal(false)
   blobUrl = ""
