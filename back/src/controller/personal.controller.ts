@@ -2738,7 +2738,7 @@ cuit.PersonalCUITCUILCUIT,
       await queryRunner.query(`
         UPDATE PersonalBanco SET
         PersonalBancoHasta = @1
-        WHERE PersonalId IN (@0) AND PersonalBancoHasta IS NULL
+        WHERE PersonalId IN (@0) AND (PersonalBancoHasta IS NULL OR @1 < PersonalBancoHasta)
       `, [PersonalId, yesterday])
 
       await queryRunner.query(`
