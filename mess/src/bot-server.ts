@@ -71,7 +71,9 @@ export class BotServer {
     Utils.removeBotFileSessions()
 
     const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal,flowInformacionEmpresa,flowDescargaDocs])
-    this.adapterProvider = createProvider(Provider)
+    this.adapterProvider = createProvider(Provider, {
+      timeRelease: 10800000, // 3 hours in milliseconds
+    })
     const adapterDB = new Database()
     this.globalTimeOutMs = 60000 * 5
     this.botHandle = await createBot({

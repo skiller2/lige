@@ -5,6 +5,7 @@ import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
 import { ChatBotController } from "./controller/chatbot.controller";
+import { exit } from "process";
 dotenv.config()
 
 // Init App
@@ -18,18 +19,26 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-scheduleJob('*/1 * * * *', async function (fireDate) {
-
-
+scheduleJob('0 7 * * *', async function (fireDate) {
+  exit()
 })
+
+//  0 */4 * * *  cada 4 hs
+//scheduleJob('*/1 * * * *', async function (fireDate) {
+//  const status = botServer.status().bot_online
+//  if (status != 'ONLINE') return
+//  console.log('envio mensaje')
+//  await botServer.sendMsg('', BotServer.getSaludo())
+
+
+//})
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
   const status = botServer.status().bot_online
   if (status != 'ONLINE') return
-
+  console.log('reviso cola')
   const ahora = new Date();
   const horas = ahora.getHours();
-
   if (horas >= 8 && horas <= 22) {
     const listmsg = await ChatBotController.getColaMsg()
 

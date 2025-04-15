@@ -70,7 +70,4 @@ export class ChatBotController extends BaseController {
     const fechaActual = new Date()
     return queryRunner.query(`UPDATE lige.dbo.bot_cola_mensajes SET fecha_proceso = @0, aud_usuario_mod=@3, aud_fecha_mod=@0, aud_ip_mod=@4 WHERE fecha_ingreso = @1 AND personal_id = @2`, [fechaActual, fecha_ingreso, personal_id,'bot','127.0.0.1'])
   }
-
-
-
 }
