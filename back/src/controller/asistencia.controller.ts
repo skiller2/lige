@@ -39,8 +39,8 @@ const columnasPersonalxResponsable: any[] = [
     fieldName: "cuit.PersonalCUITCUILCUIT",
     type: "number",
     sortable: true,
-    minWidth:100,
-    maxWidth:100
+    minWidth: 100,
+    maxWidth: 100
   },
   {
     name: "PersonalId",
@@ -77,8 +77,8 @@ const columnasPersonalxResponsable: any[] = [
     field: "ingresos_horas",
     fieldName: "ingresos_horas",
     sortable: true,
-    minWidth:50,
-    maxWidth:50
+    minWidth: 50,
+    maxWidth: 50
   },
   {
     name: "Descuentos",
@@ -227,30 +227,30 @@ export class AsistenciaController extends BaseController {
 
   }
 
-  static async objetivosPendAsis(anio:number,mes:number){
-      return await ObjetivosPendasisController.listObjetivosAsis({
-        filtros: [
-          { index: 'anio', operador: '=', condition: 'AND', valor: anio },
-          { index: 'mes', operador: '=', condition: 'AND', valor: mes }
-        ],
-        sort: null,
-        extra: null
-      })
+  static async objetivosPendAsis(anio: number, mes: number) {
+    return await ObjetivosPendasisController.listObjetivosAsis({
+      filtros: [
+        { index: 'anio', operador: '=', condition: 'AND', valor: anio },
+        { index: 'mes', operador: '=', condition: 'AND', valor: mes }
+      ],
+      sort: null,
+      extra: null
+    })
 
 
-      /*
-      let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[] = []
-      let data: { x: string; y: any; }[] = []
-      let total = 0
+    /*
+    let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[] = []
+    let data: { x: string; y: any; }[] = []
+    let total = 0
 
 
-      result.forEach(rec => {
-        const cant: number = (Number(porGrupo[rec.GrupoActividadId]?.CantidadObjetivos) > 0) ? porGrupo[rec.GrupoActividadId].CantidadObjetivos : 0
-        const GrupoActividadId = (rec.GrupoActividadId) ? rec.GrupoActividadId : 0
-        const GrupoActividadDetalle = (rec.GrupoActividadDetalle) ? rec.GrupoActividadDetalle : 'Sin Grupo'
-        porGrupo[GrupoActividadId] = { GrupoActividadDetalle, CantidadObjetivos: cant + 1 }
-        total++
-      })
+    result.forEach(rec => {
+      const cant: number = (Number(porGrupo[rec.GrupoActividadId]?.CantidadObjetivos) > 0) ? porGrupo[rec.GrupoActividadId].CantidadObjetivos : 0
+      const GrupoActividadId = (rec.GrupoActividadId) ? rec.GrupoActividadId : 0
+      const GrupoActividadDetalle = (rec.GrupoActividadDetalle) ? rec.GrupoActividadDetalle : 'Sin Grupo'
+      porGrupo[GrupoActividadId] = { GrupoActividadDetalle, CantidadObjetivos: cant + 1 }
+      total++
+    })
 
 */
 
@@ -316,7 +316,7 @@ export class AsistenciaController extends BaseController {
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
       );
     }
-    cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner) 
+    cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     return cabecera[0]
 
   }
@@ -628,7 +628,7 @@ export class AsistenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      const usuarioId = await this.getUsuarioId(res,queryRunner)
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
       let {
         SucursalId,
         anio,
@@ -918,8 +918,8 @@ export class AsistenciaController extends BaseController {
         JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
 
 
-        WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1  AND objd.ObjetivoAsistenciaMesPersonalId = @2 AND obja.ObjetivoId = @3`,[anio,mes,PersonalId,ObjetivoId])
-      if (resPersona.length==0)
+        WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1  AND objd.ObjetivoAsistenciaMesPersonalId = @2 AND obja.ObjetivoId = @3`, [anio, mes, PersonalId, ObjetivoId])
+      if (resPersona.length == 0)
         throw new ClientException('Antes de cargar la Excepción, debe cargarle al menos una hora en el objetivo a la persona')
 
 
@@ -1154,9 +1154,28 @@ export class AsistenciaController extends BaseController {
     }
   }
 
+  static async getDescuentosObjetivo(queryRunner: QueryRunner, anio: number, mes: number, ObjetivoId: number[]) {
+    //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
+    const descuentos = await queryRunner.query(
+      `SELECT CONCAT('cuo',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, 0, des.ObjetivoId, 0 as PersonalId, 'G' as tipocuenta_id, null as PersonalCUITCUILCUIT, null AS ApellidoNombre, 
+      @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
+      des.ObjetivoDescuentoDetalle AS desmovimiento, 
+      des.ObjetivoDescuentoDetalle AS desmovimiento2, 
+      'OTRO' tipoint,
+      cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad AS importetotal
+      FROM ObjetivoDescuentoCuota cuo
+      JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
+      JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId 
+      WHERE cuo.ObjetivoId = @0 AND cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
+       `, [ObjetivoId, anio, mes])
+    return descuentos
+  }
+
+
+
   static async getDescuentos(anio: number, mes: number, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
-//TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
+    //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
     const descuentos = await dataSource.query(
       `      
       SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
@@ -1418,10 +1437,27 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
 
-      const resultG = result.filter(row=>row.tipocuenta_id == 'G' )
+      const resultG = result.filter(row => row.tipocuenta_id == 'G')
       let totalG: number = resultG.reduce((totalG, row) => totalG + row.importe, 0)
 
       this.jsonRes({ descuentos: resultG, totalG }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+  async getDescuentosPorObjetivo(req: any, res: Response, next: NextFunction) {
+    try {
+      const ObjetivoId = req.params.objetivoId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthObjetivo(anio, mes, res, ObjetivoId, queryRunner) == false)
+        throw new ClientException(`No tiene permiso para obtener información de descuentos`)
+
+      const result = await AsistenciaController.getDescuentosObjetivo(queryRunner, anio, mes, ObjetivoId)
+      let total: number = result.reduce((total, row) => total + row.importe, 0)
+
+      this.jsonRes({ descuentos: result, total }, res);
     } catch (error) {
       return next(error)
     }
@@ -1432,14 +1468,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      
+
       const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
 
-      const resultC = result.filter(row=>row.tipocuenta_id == 'C' )
+      const resultC = result.filter(row => row.tipocuenta_id == 'C')
       let totalC: number = resultC.reduce((totalC, row) => totalC + row.importe, 0)
 
       this.jsonRes({ descuentos: resultC, totalC }, res);
@@ -1465,11 +1501,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       let prevAnio = anio;
       let prevMes = mes - 1;
-    
+
       if (prevMes === 0) {
         prevMes = 12;
         prevAnio -= 1;
-      }      
+      }
 
 
       const options = req.body.options;
@@ -1603,7 +1639,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       for (const row of resBot) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
         if (key >= 0) {
-          personal[key].det_status_bot= (row.registro=='OK') ? row.descarga :row.registro
+          personal[key].det_status_bot = (row.registro == 'OK') ? row.descarga : row.registro
         }
       }
 
@@ -1988,7 +2024,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
-  async getDescuentosPorObjetivo(req: any, res: Response, next: NextFunction) {
+  async getDescuentosPerPorObjetivo(req: any, res: Response, next: NextFunction) {
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -2841,7 +2877,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let ClienteId = 0
       let ClienteElementoDependienteId = 0
 
-//      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
+      //      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
       let listadoProcessed = {}
       for (const personal of listado) {
         const CUIT = personal.employeeNo
@@ -2870,7 +2906,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           }
         }
       }
-//      fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
+      //      fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
 
 
       await queryRunner.startTransaction()
@@ -2893,7 +2929,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, null)
 
           if (!cabecera.ObjetivoAsistenciaAnoMesId || !cabecera.ObjetivoAsistenciaAnoId)
-            throw new ClientException(`Error habilitando período ${mes}/${anio} para la carga del objetivo ${ObjetivoId}`,cabecera)
+            throw new ClientException(`Error habilitando período ${mes}/${anio} para la carga del objetivo ${ObjetivoId}`, cabecera)
 
           const asistencia = await queryRunner.query(`
             SELECT 
@@ -3144,7 +3180,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         }
       }
 
-//      throw new ClientException('DEBUG')
+      //      throw new ClientException('DEBUG')
 
 
 
@@ -3298,8 +3334,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString(16).padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
   }
-  
-  static createDigestAuthOptions(authHeader:string,username:string,password:string,url:string) {
+
+  static createDigestAuthOptions(authHeader: string, username: string, password: string, url: string) {
     if (!authHeader) {
       throw new Error("Digest authentication not supported on this endpoint.");
     }
@@ -3344,7 +3380,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const authHeader = initialResponse.headers.get('www-authenticate')
-    let authOptions = AsistenciaController.createDigestAuthOptions(authHeader,username,password,url)
+    let authOptions = AsistenciaController.createDigestAuthOptions(authHeader, username, password, url)
     let recordsArray = []
     let searchResultPosition = 1
     let retryfetch = 1

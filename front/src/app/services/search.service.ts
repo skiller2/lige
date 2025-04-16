@@ -652,6 +652,26 @@ export class SearchService {
       );
   }
 
+  getDescuentosObjetivo(
+    ObjetivoId: number,
+    anio: number,
+    mes: number
+  ): Observable<any> {
+    if (!ObjetivoId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/descuentosxobj/${anio}/${mes}/${ObjetivoId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
 
   getDescuentosPersonaCoord(
     personalId: number,
@@ -818,7 +838,7 @@ export class SearchService {
       );
   }
 
-  getDescuentosObjetivo(
+  getDescuentosPerxObjetivo(
     objetivoId: number,
     anio: number,
     mes: number
@@ -826,7 +846,7 @@ export class SearchService {
     if (!objetivoId) return of([]);
 
     return this.http
-      .get(`api/asistencia/descuentosxobj/${anio}/${mes}/${objetivoId}`)
+      .get(`api/asistencia/descuentosperxobj/${anio}/${mes}/${objetivoId}`)
       .pipe(
         map((res: ResponseJSON<any>) =>
           res && res.data ? res.data : []

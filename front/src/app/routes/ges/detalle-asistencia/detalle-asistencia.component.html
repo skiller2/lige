@@ -169,7 +169,7 @@
                     <th>Categoría</th>
                     <th>Horas</th>
                     <th>Valor Hora</th>
-                    <th>Art14</th>
+                    <th>Art17</th>
                     <th>Importe Total</th>
                   </tr>
                 </thead>
@@ -185,7 +185,7 @@
                     <td> N/A</td>
                     <td>{{ data.CategoriaPersonalDescripcion }}</td>
                     <td>{{ data.totalhorascalc }}</td>
-                    <td>
+                    <td class="text-right">
                       <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
                         data.ValorHoraNorm | currency
                         }}</span>
@@ -204,7 +204,7 @@
                       <span class="inline-block" *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
                         {{ data.PersonalArt14AdicionalHora | currency }}</span>
                     </td>
-                    <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
+                    <td class="text-right">{{ data.totalminutoscalcimporteconart14 | currency }}</td>
 
                     <!-- td>
               <a>Action 一 {{data.name}}</a>
@@ -213,15 +213,68 @@
             </td -->
                   </tr>
                 </tbody>
+                <tfoot nzSummary>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-right">{{ listaAsistenciaObj.totalImporte | currency }}</td>
+                  </tr>
+                </tfoot>
               </nz-table>
             </nz-form-control>
 
           </nz-form-item>
         </ng-container>
+
+        @if ($listaDescuentosObj | async; as listaDescuentosObj ) { @if (listaDescuentosObj.descuentos?.length) {
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Descuentos Objetivo</nz-form-label>
+            <nz-form-control>
+              <nz-table #descObj [nzData]="listaDescuentosObj.descuentos" nzSize="small" [nzPageSize]="100000000"
+                [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+                <thead>
+                  <tr>
+                    <th>Tipo Movimiento</th>
+                    <th>Detalle</th>
+                    <th>Cuota</th>
+                    <th>Importe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let data of descObj.data" class="">
+                    <td>{{ data.tipomov }}</td>
+                    <td>{{ data.desmovimiento }}</td>
+                    <td>
+                      <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                        | currency }}</div>
+                    </td>
+                    <td class="text-right">{{ data.importe | currency }}</td>
+                  </tr>
+                </tbody>
+                <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">{{listaDescuentosObjTotal | currency}}</td>
+                </tr>
+              </tfoot>
+              </nz-table>
+            </nz-form-control>
+          </nz-form-item>
+        }}
+        
+
+
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
+          <nz-form-label [nzSpan]="5">Descuentos Personal Objetivo</nz-form-label>
           <nz-form-control>
-            <nz-table #descObj [nzData]="$listaDescuentosObj | async" nzSize="small" [nzPageSize]="100000000"
+            <nz-table #descPerObj [nzData]="$listaDescuentosPerxObj | async" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
@@ -234,7 +287,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let data of descObj.data" class="">
+                <tr *ngFor="let data of descPerObj.data" class="">
                   <td>{{ data.PersonalCUITCUILCUIT }}</td>
                   <td>
                     <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
@@ -246,9 +299,19 @@
                     <div *ngIf="(data.cantcuotas>1) ">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
-                  <td>{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | currency }}</td>
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right"></td>
+                </tr>
+              </tfoot>
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -383,6 +446,17 @@
             </td -->
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right"></td>
+                </tr>
+              </tfoot>
+
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -416,8 +490,8 @@
                     </a>
                   </td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
-                  <td>{{ data.totalhorascalc }}</td>
-                  <td>
+                  <td class="text-right">{{ data.totalhorascalc }}</td>
+                  <td class="text-right">
                     <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
                       data.ValorHoraNorm | currency
                       }}</span>
@@ -433,7 +507,7 @@
                     <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
                       {{ data.PersonalArt14AdicionalHora | currency }}</span>
                   </td>
-                  <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
+                  <td class="text-right">{{ data.totalminutoscalcimporteconart14 | currency }}</td>
 
                   <!-- td>
               <a>Action 一 {{data.name}}</a>
@@ -442,6 +516,17 @@
             </td -->
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">{{listaAsistenciaPerTotal | currency}}</td>
+                </tr>
+              </tfoot>
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -469,9 +554,19 @@
                   <td>{{ data.TipoInasistenciaDescripcion}}</td>
                   <td>{{ data.PersonalLicenciaAplicaPeriodoHorasMensuales }}</td>
                   <td>{{ data.ValorLiquidacionHoraNormal | currency}}</td>
-                  <td>{{ data.total | currency}}</td>
+                  <td class="text-right">{{ data.total | currency}}</td>
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">{{listaIngresosPerTotal | currency}}</td>
+                </tr>
+              </tfoot>
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -499,9 +594,20 @@
                   <td>{{ data.cliente }}</td>
                   <td>{{ data.tipo_importe }} {{ data.patente }}</td>
                   <td>{{ data.horas }}</td>
-                  <td>{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | currency }}</td>
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">{{ listaCustodiasPerTotal | currency }}</td>
+                </tr>
+              </tfoot>
+
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -522,9 +628,16 @@
               <tbody>
                 <tr *ngFor="let data of ingextraPer.data" class="">
                   <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.des_movimiento }}</td>
-                  <td>{{ data.importe | currency}}</td>
+                  <td class="text-right">{{ data.importe | currency}}</td>
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td class="text-right">{{ listaIngresosExtraPerTotalG + listaIngresosExtraPerTotalC | currency }}</td>
+                </tr>
+              </tfoot>
+
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -552,9 +665,18 @@
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
-                  <td>{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | currency }}</td>
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">{{ listaDescuentosPerTotalC + listaDescuentosPerTotalG | currency }}</td>
+                </tr>
+              </tfoot>
+
             </nz-table>
           </nz-form-control>
         </nz-form-item>
@@ -583,9 +705,18 @@
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
-                  <td>{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | currency }}</td>
                 </tr>
               </tbody>
+              <tfoot nzSummary>
+                <tr>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="text-right">{{ listaDescuentosPerTotalC | currency }}</td>
+                </tr>
+              </tfoot>
+
             </nz-table>
           </nz-form-control>
         </nz-form-item>
