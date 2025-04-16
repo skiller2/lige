@@ -184,12 +184,12 @@ export class TipoDocumentoComponent {
  
   }
 
-  exportGrid() {
-    this.excelExportService.exportToExcel({
-      filename: 'tipo-documento',
-      format: FileType.xlsx
-    });
-  }
+  // exportGrid() {
+  //   this.excelExportService.exportToExcel({
+  //     filename: 'tipo-documento',
+  //     format: FileType.xlsx
+  //   });
+  // }
 
   handleSelectedRowsChanged(e: any): void {
     if (e.detail.args.changedSelectedRows.length ==1) {

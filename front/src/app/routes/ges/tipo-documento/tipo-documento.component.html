@@ -14,13 +14,6 @@
           Documentos
         </a>
       </li>
-      <li nz-submenu nzTitle="Acciones" >
-        <ul>
-          <li nz-menu-item (click)="exportGrid()">
-            <span nz-icon nzType="download"></span>XLS
-          </li>
-        </ul>
-      </li>
       <li nz-menu-item [nzDisabled]="docId()? false : true">
         <a [routerLink]="['/', 'ges', 'tipo_documento', 'descargas']">Historial Descargas</a>
       </li>

@@ -73,6 +73,10 @@ export class TableDescuentosPersonalComponent {
         this.gridData = angularGrid.dataView
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'tipocuenta_id')
+            columnTotal('importe', this.angularGrid)
+            columnTotal('cuotanro', this.angularGrid)
+            columnTotal('cantcuotas', this.angularGrid)
+            columnTotal('importetotal', this.angularGrid)
         })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])

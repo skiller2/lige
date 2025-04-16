@@ -338,17 +338,17 @@ const columnsObjetivosDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
-  // {
-  //   id:'importetotal', name:'Importe Total', field:'importetotal',
-  //   fieldName: '',
-  //   type:'float',
-  //   searchType: 'float',
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: true,
-  //   // maxWidth: 50,
-  //   // minWidth: 10,
-  // },
+  {
+    id:'importetotal', name:'Importe Total', field:'importetotal',
+    fieldName: '',
+    type:'float',
+    searchType: 'float',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
 ]
 
 export class GestionDescuentosController extends BaseController {
