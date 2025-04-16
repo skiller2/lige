@@ -68,18 +68,12 @@
           </nz-form-item>
         </form>
       </div>
-      <!-- 
-<p>prevFiles: {{prevFiles()|json}}</p>
-<p>Doc_id: {{doc_id()|json}}</p>
-<p>Doctipo_id: {{doctipo_id()|json}}</p>
--->
       @if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
           <img nz-image class="image-content" [nzSrc]="prevFiles()[0]?.url" alt="" width="350px"/>
         </div>
       } @else if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('pdf') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
-          <p>SRC: {{prevFiles()[0]?.url}}</p>
           <ngx-extended-pdf-viewer [src]="prevFiles()[0]?.url" [textLayer]="true" [showHandToolButton]="false"
             [filenameForDownload]="prevFiles()[0]?.nombre" [height]="'500px'">
           </ngx-extended-pdf-viewer>
