@@ -730,7 +730,6 @@ export class ApiService {
       tipocuenta_id: row.tipocuenta_id
 
     }
-    //    this.notification.success('Respuesta', `Inicio Borrado `);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/deleteMovimiento', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1161,7 +1160,6 @@ export class ApiService {
 
   deleteArchivosEstudios(deleteId: any) {
     const parameter = [deleteId]
-    this.notification.success('Respuesta', `Inicio Borrado `);
 
     return this.http.delete<ResponseJSON<any>>('/api/estudio/deleteArchivo', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),                
@@ -1170,7 +1168,6 @@ export class ApiService {
 
   deleteArchivosImagen(deleteId: number, tableSearch:string) {
     const parameter:any[] = [deleteId, tableSearch]
-    this.notification.success('Respuesta', `Inicio Borrado `);
 
     return this.http.delete<ResponseJSON<any>>('/api/file-upload/deleteImage', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1472,7 +1469,6 @@ export class ApiService {
 
   deleteTipoDocumento(deleteId: any) {
     const parameter = [deleteId]
-    this.notification.success('Respuesta', `Inicio Borrado `);
 
     return this.http.delete<ResponseJSON<any>>('/api/tipo-documento/delete', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
