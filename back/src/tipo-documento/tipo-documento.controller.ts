@@ -318,7 +318,6 @@ export class TipoDocumentoController extends BaseController {
 
       const doc_id = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner)
 
-      // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
       this.jsonRes({ doc_id }, res, 'Carga Exitosa');
     } catch (error) {
@@ -437,7 +436,6 @@ export class TipoDocumentoController extends BaseController {
 
       await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ?archivo![0]:null, usuario, ip, queryRunner)
 
-      // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
@@ -497,7 +495,7 @@ export class TipoDocumentoController extends BaseController {
 
   async deleteArchivo(req: Request, res: Response, next: NextFunction) {
   
-      let deleteId = Number(req.query[0])
+      let doc_id = Number(req.query[0])
       const queryRunner = dataSource.createQueryRunner();
       try {
   
@@ -505,20 +503,17 @@ export class TipoDocumentoController extends BaseController {
           SELECT doc_id AS id, path, nombre_archivo AS name
           FROM lige.dbo.docgeneral
           WHERE doc_id = @0
-          `, [deleteId])
+          `, [doc_id])
         const finalurl = `${document[0]["path"]}`
   
         if (document.length > 0) {
-          if (!existsSync(finalurl)) {
-            console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-          } else {
-            await unlink(finalurl);
-          }
-          throw new ClientException('DEBUG')
+          if (existsSync(finalurl)) 
+            await unlink(finalurl)
+          
           await queryRunner.connect();
           await queryRunner.startTransaction();
   
-          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
   
           await queryRunner.commitTransaction();
         }

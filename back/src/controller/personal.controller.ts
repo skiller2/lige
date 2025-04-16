@@ -1454,7 +1454,7 @@ cuit.PersonalCUITCUILCUIT,
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
-      //throw new ClientException('DEBUG')
+
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )

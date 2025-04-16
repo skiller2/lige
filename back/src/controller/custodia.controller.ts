@@ -1018,8 +1018,6 @@ export class CustodiaController extends BaseController {
             objetivoCustodia.id = custodiaId
             await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
-            //                        throw new ClientException('DEBUG')
-
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Carga Exitosa');
         } catch (error) {

@@ -26,52 +26,52 @@ function generateRandomDigitNumber() {
 
   return randomNumber;
 }
-  
-const storage = multer.diskStorage({
-    destination: (
-      req: Request,
-      file: Express.Multer.File,
-      callback: DestinationCallback
-    ) => {
-      return callback(null, dirtmp);
-    },
-    filename: (
-      req: Request,
-      file: Express.Multer.File,
-      callback: DestinationCallback
-    ) => {
-      
-      const originalname = generateRandomDigitNumber();
-      file.fieldname = originalname.toString()
-      
-      //const originalname = file.uid;
-      console.log(file)
-      let type = file.mimetype.split("/")[1]
-      if (type == "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        type="xlsx"
-      callback(null, `${originalname}.${type}`);
-    },
-  });
-  
-  const fileFilterPdf = (
-    request: Request,
-    file: Express.Multer.File,
-    callback: FileFilterCallback
-  ): void => {
-    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      callback(new ClientException(`El archivo no es del tipo seleccionado, ${file.mimetype}`));
-      return;
-    }
 
-    callback(null, true);
-  };
-  
-  const uploadPdf = multer({
-    storage: storage,
-    fileFilter: fileFilterPdf,
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB en bytes
-  }).single("pdf");
+const storage = multer.diskStorage({
+  destination: (
+    req: Request,
+    file: Express.Multer.File,
+    callback: DestinationCallback
+  ) => {
+    return callback(null, dirtmp);
+  },
+  filename: (
+    req: Request,
+    file: Express.Multer.File,
+    callback: DestinationCallback
+  ) => {
+
+    const originalname = generateRandomDigitNumber();
+    file.fieldname = originalname.toString()
+
+    //const originalname = file.uid;
+    console.log(file)
+    let type = file.mimetype.split("/")[1]
+    if (type == "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+      type = "xlsx"
+    callback(null, `${originalname}.${type}`);
+  },
+});
+
+const fileFilterPdf = (
+  request: Request,
+  file: Express.Multer.File,
+  callback: FileFilterCallback
+): void => {
+  const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    callback(new ClientException(`El archivo no es del tipo seleccionado, ${file.mimetype}`));
+    return;
+  }
+
+  callback(null, true);
+};
+
+const uploadPdf = multer({
+  storage: storage,
+  fileFilter: fileFilterPdf,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB en bytes
+}).single("pdf");
 
 export const FileUploadRouter = Router();
 
@@ -92,10 +92,10 @@ FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:columnForSearch/:tab
 });
 
 FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
-  
+
   uploadPdf(req, res, (err) => {
-    
-    
+
+
     //FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
       return res.status(409).json({
@@ -104,25 +104,34 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
         stamp: new Date(),
       });
     }
-  
+
     else if (err) {
       return res
         .status(409)
         .json({ msg: err.message, data: [], stamp: new Date() });
     }
-  
+
     else if (!req.file) {
       return res
         .status(409)
         .json({ msg: "File is required!", data: [], stamp: new Date() });
-    }else{
+    } else {
+      
+      const fileData = {
+        url: `/api/file-upload/downloadFile/${req.file.filename}/temp/original`,
+        filename: req.file.filename,
+        fieldname: req.file.fieldname,
+        mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
+        size: req.file.size,
+      }
       return res
         .status(200)
-        .json({ msg: "archivo subido con exito!", data: [req.file], stamp: new Date() });
+        .json({ msg: "archivo subido con exito!", data: [fileData], stamp: new Date() });
     }
 
-    
-   });
+
+  });
 });
 
 FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], async (req, res, next) => {

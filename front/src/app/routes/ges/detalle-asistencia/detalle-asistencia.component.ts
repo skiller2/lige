@@ -73,7 +73,7 @@ export class DetalleAsistenciaComponent {
   //listaAsistenciaObjTotalHoras = 0
   listaCustodiasPerTotal = 0
   listaCustodiasPerTotalHoras = 0
-
+  listaDescuentosObjTotal = 0
   objetivoIdSelected = 0;
 
   personalIdlist = signal([])
@@ -138,10 +138,10 @@ export class DetalleAsistenciaComponent {
     )
   );
 
-  $listaDescuentosObj = this.$selectedObjetivoIdChange.pipe(
+  $listaDescuentosPerxObj = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
     switchMap(objetivoId =>
-      this.searchService.getDescuentosObjetivo(
+      this.searchService.getDescuentosPerxObjetivo(
         Number(objetivoId),
         this.selectedPeriod().year,
         this.selectedPeriod().month
@@ -263,6 +263,19 @@ export class DetalleAsistenciaComponent {
   )))
 
 
+  $listaDescuentosObj = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(500),
+    switchMap(ObjetivoId =>
+      this.searchService
+        .getDescuentosObjetivo(
+          Number(ObjetivoId),
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        (tap(data => { this.listaDescuentosObjTotal = data.total })
+  )))
 
   $listaCategoriasPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
