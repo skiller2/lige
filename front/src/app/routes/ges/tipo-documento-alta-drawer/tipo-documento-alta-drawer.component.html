@@ -79,6 +79,7 @@
         </div>
       } @else if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('pdf') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
+          <p>SRC: {{prevFiles()[0]?.url}}</p>
           <ngx-extended-pdf-viewer [src]="prevFiles()[0]?.url" [textLayer]="true" [showHandToolButton]="false"
             [filenameForDownload]="prevFiles()[0]?.nombre" [height]="'500px'">
           </ngx-extended-pdf-viewer>
