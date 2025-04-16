@@ -1154,12 +1154,9 @@ export class ApiService {
 
   deleteArchivosLicencias(deleteId: any) {
     const parameter = [deleteId]
-    this.notification.success('Respuesta', `Inicio Borrado `);
-
     return this.http.delete<ResponseJSON<any>>('/api/carga-licencia/deleteArchivo', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
-
   }
 
   deleteArchivosEstudios(deleteId: any) {

@@ -193,7 +193,8 @@ export class FileUploadComponent implements ControlValueAccessor {
 
       } else {
         if (this.tableForSearch() == 'docgeneral') {
-          await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
+          this.notification.success('Respuesta', `Pendiente de implementar `)
+          //await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
         } else {
           await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
         }

@@ -881,7 +881,6 @@ export class CargaLicenciaController extends BaseController {
           await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), PersonalSituacionRevistaHastaNuevo, '', PersonalSituacionRevistaSituacionId)
         }
       }
-      //      throw new ClientException(`DEBUG ${PersonalSituacionRevistaHastaNuevo}`)
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
       if (req.body.files) {

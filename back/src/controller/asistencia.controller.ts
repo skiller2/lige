@@ -3180,12 +3180,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         }
       }
 
-      //      throw new ClientException('DEBUG')
-
-
-
-
-
 
       await queryRunner.commitTransaction();
       this.jsonRes(listadoProcessed, res);

@@ -921,7 +921,6 @@ export class ObjetivosController extends BaseController {
 
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId)
             //update
-            //throw new ClientException('debug2')
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
             ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
@@ -930,7 +929,6 @@ export class ObjetivosController extends BaseController {
             if ((!Obj.ContratoFechaHasta && ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta) || (Obj.ContratoFechaHasta > ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta)) {
                 await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2  WHERE GrupoActividadObjetivoId=@0 AND GrupoActividadId=@1`, [ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoId, ObjObjetivoNew.infoActividad[0].GrupoActividadId, Obj.ContratoFechaHasta])
             }
-            //            throw new ClientException('debug')
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
@@ -980,8 +978,6 @@ export class ObjetivosController extends BaseController {
                 ObjObjetivoNew.ClienteId = Obj.ClienteId
             }
             await queryRunner.commitTransaction()
-
-            //throw new ClientException('debug')
 
             return this.jsonRes(ObjObjetivoNew, res, 'Modificación  Exitosa');
         } catch (error) {
