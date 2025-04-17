@@ -81,16 +81,6 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
-    name: "Curso",
-    type: "string",
-    id: "CursoHabilitacionDescripcion",
-    field: "CursoHabilitacionDescripcion",
-    fieldName: "cur.CursoHabilitacionDescripcion",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
     name: "Curso ",
     type: "string",
     id: "CursoHabilitacionId",
@@ -276,12 +266,12 @@ export class EstudioController extends BaseController {
     let result = []
 
     console.log("req.body", req.body)
-
+    //throw new ClientException(`test.`)
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
     //console.log("req.body.files", req.body.files[0].tableForSearch)
-    //throw new ClientException(`test.`)
+    
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -290,6 +280,12 @@ export class EstudioController extends BaseController {
 
       await this.validateFormObjetivos(req.body)
 
+      if (!PersonalEstudioTitulo && CursoHabilitacionId) {
+        const CursoHabilitacionQuery = await queryRunner.query(` SELECT CursoHabilitacionDescripcion FROM CursoHabilitacion WHERE CursoHabilitacionId = @0`,[CursoHabilitacionId])
+        PersonalEstudioTitulo = CursoHabilitacionQuery[0].CursoHabilitacionDescripcion
+      }
+      
+      
       const EstadoEstudioId = 2
       let PersonalEstudioHasta = null
       PersonalEstudioOtorgado = new Date(new Date(PersonalEstudioOtorgado).setHours(0, 0, 0, 0))
@@ -339,10 +335,6 @@ export class EstudioController extends BaseController {
         else
           PersonalEstudioId = 1
 
-        console.log("fechaHasta", PersonalEstudioHasta)
-        console.log("PersonalEstudioId", PersonalEstudioId)
-
-        //throw new ClientException(`test.`)
 
         await queryRunner.query(`
         INSERT INTO PersonalEstudio (
@@ -443,24 +435,24 @@ export class EstudioController extends BaseController {
   }
 
   async deleteEstudio(req: any, res: Response, next: NextFunction) {
-    const { PersonalId, personalEstudioId } = req.query
-    console.log("req.params", req.query)
+    const { PersonalId, PersonalEstudioId,files } = req.query
     const queryRunner = dataSource.createQueryRunner()
-
+    console.log("files", files)
+     //throw new ClientException(`test.`)
 
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      await queryRunner.query(`DELETE FROM PersonalEstudio  WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, personalEstudioId])
+      const result = await queryRunner.query(`DELETE FROM PersonalEstudio  WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
 
+      
       await queryRunner.commitTransaction();
       this.jsonRes({}, res, 'Borrado Exitoso')
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
-    }
-
+    } 
 
   }
 
