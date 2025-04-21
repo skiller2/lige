@@ -412,7 +412,8 @@ const estados: any[] = [
     { value: 1, label: 'Finalizado' },
     { value: 2, label: 'Cancelado' },
     { value: 3, label: 'A facturar' },
-    { value: 4, label: 'Facturado' }
+    { value: 4, label: 'Facturado' },
+    { value: 5, label: 'No facturable' }
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
@@ -1380,7 +1381,7 @@ export class CustodiaController extends BaseController {
                 else
                     return false
             case 'number':
-                if (estado == 1 || estado == 3 || estado == 4)
+                if (estado == 1 || estado == 3 || estado == 4 || estado == 5)
                     return true
                 else
                     return false
