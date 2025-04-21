@@ -10,15 +10,15 @@
 
     <ul nz-menu nzMode="horizontal" style="display: flex;">
       <li nz-menu-item nzSelected>
-        <a [routerLink]="['/', 'ges', 'tipo_documento', 'list']">
+        <a [routerLink]="['/', 'ges', 'documento', 'list']">
           Documentos
         </a>
       </li>
       <li nz-menu-item [nzDisabled]="docId()? false : true">
-        <a [routerLink]="['/', 'ges', 'tipo_documento', 'descargas']">Historial Descargas</a>
+        <a [routerLink]="['/', 'ges', 'documento', 'descargas']">Historial Descargas</a>
       </li>
       <li nz-menu-item [nzDisabled]="docId()? false : true">
-        <a [routerLink]="['/', 'ges', 'tipo_documento', 'pendientes']">Pendientes</a>
+        <a [routerLink]="['/', 'ges', 'documento', 'pendientes']">Pendientes</a>
       </li>
       <li nz-submenu nzTitle="Informes">
         <ul style="width: auto !important">
@@ -44,7 +44,7 @@
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
+      <a nz-tab-link routerLink="/ges/documento/list">Documentos</a>
       <ng-template nz-tab>
         @if(columns$ | async; as columnas) {
 
@@ -62,14 +62,14 @@
     </nz-tab>
 
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/tipo_documento/descargas">Historial Descargas</a>
+      <a nz-tab-link routerLink="/ges/documento/descargas">Historial Descargas</a>
       <ng-template nz-tab>
         <app-table-historial-descargas #historialDescargas [docId]=docId()></app-table-historial-descargas>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/tipo_documento/pendientes">Pendientes</a>
+      <a nz-tab-link routerLink="/ges/documento/pendientes">Pendientes</a>
       <ng-template nz-tab>
         <app-table-pendientes-descargas #listPendientes [docId]=docId()></app-table-pendientes-descargas>
       </ng-template>
@@ -80,13 +80,13 @@
 </nz-card>
 
 @defer( when visibleAlta()){
-  <app-tipo-documento-alta-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-tipo-documento-alta-drawer>
+  <app-documento-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-documento-drawer>
 }
 
 @defer( when visibleDetalle()){
-  <app-tipo-documento-alta-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-tipo-documento-alta-drawer>
+  <app-documento-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-documento-drawer>
 }
 
 @defer( when visibleEdit()){
-  <app-tipo-documento-alta-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-tipo-documento-alta-drawer>
+  <app-documento-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-documento-drawer>
 }

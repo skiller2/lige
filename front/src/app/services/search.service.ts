@@ -1569,8 +1569,8 @@ export class SearchService {
     );
   }
 
-  getTiposDocumentoOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/tipo-documento/tipos/options`).pipe(
+  getDocumentoTipoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/documento/tipos/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1579,20 +1579,20 @@ export class SearchService {
     );
   }
 
-  getTipoDocumentoDownloadList(doc_id: number, options: any) {
+  getDocumentoDownloadList(doc_id: number, options: any) {
     if (!doc_id) return of([]);
     return this.http
-      .post<ResponseJSON<any>>(`api/tipo-documento/list-download`, { doc_id, options })
+      .post<ResponseJSON<any>>(`api/documento/list-download`, { doc_id, options })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
 
-  getTipoDocumentoNoDownloadList(doc_id: number, options: any) {
+  getDocumentoNoDownloadList(doc_id: number, options: any) {
     if (!doc_id) return of([]);
     return this.http
-      .post<ResponseJSON<any>>(`api/tipo-documento/list-no-download`, { doc_id, options })
+      .post<ResponseJSON<any>>(`api/documento/list-no-download`, { doc_id, options })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
@@ -1653,9 +1653,9 @@ export class SearchService {
 
   }
 
-  getTipoDocumentoById(docId: number) {
+  getDocumentoById(docId: number) {
     if (!docId) return of([]);
-    return this.http.get<ResponseJSON<any>>(`api/tipo-documento/get/${docId}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/documento/get/${docId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

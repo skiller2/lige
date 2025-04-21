@@ -16,16 +16,16 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 
 @Component({
-  selector: 'app-tipo-documento-alta-drawer',
-  templateUrl: './tipo-documento-alta-drawer.component.html',
-  styleUrl: './tipo-documento-alta-drawer.component.less',
+  selector: 'app-documento-drawer',
+  templateUrl: './documento-drawer.component.html',
+  styleUrl: './documento-drawer.component.less',
   imports: [SHARED_IMPORTS, ReactiveFormsModule, PersonalSearchComponent,
     CommonModule, FileUploadComponent, ClienteSearchComponent, ObjetivoSearchComponent,
     NgxExtendedPdfViewerModule, NzImageModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class TipoDocumentoAltaDrawerComponent {
+export class DocumentoDrawerComponent {
   tituloDrawer = signal<string>('Carga de Documento')
   visible = model<boolean>(false)
 
@@ -56,7 +56,7 @@ export class TipoDocumentoAltaDrawerComponent {
   formTipoDocumento = this.fb.group({ doc_id: 0, doctipo_id: '', den_documento: null, persona_id: 0, cliente_id: 0,
     objetivo_id: 0, fecha: null, fec_doc_ven: null, archivo: [] })
 
-  $optionsTipos = this.searchService.getTiposDocumentoOptions();
+  $optionsTipos = this.searchService.getDocumentoTipoOptions();
 
 
   doc_id(): number {
@@ -84,7 +84,7 @@ export class TipoDocumentoAltaDrawerComponent {
     let now = new Date()
     this.periodo.set({ anio: now.getFullYear(), mes: now.getMonth() + 1 })
 
-    const res = await firstValueFrom(this.searchService.getTiposDocumentoOptions())
+    const res = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
     this.optionsLabels.set(res)
 
     this.formTipoDocumento.get('archivo')?.valueChanges.subscribe((value: any) => {
@@ -97,9 +97,9 @@ export class TipoDocumentoAltaDrawerComponent {
     const values = this.formTipoDocumento.value
     try {
       if (values.doc_id)
-        await firstValueFrom(this.apiService.updateTipoDocumento(values))
+        await firstValueFrom(this.apiService.updateDocumento(values))
       else {
-        const res = await firstValueFrom(this.apiService.addTipoDocumento(values))
+        const res = await firstValueFrom(this.apiService.addDocumento(values))
         if (res.data.doc_id)
           this.formTipoDocumento.patchValue({ doc_id: res.data.doc_id })
       }
@@ -115,7 +115,7 @@ export class TipoDocumentoAltaDrawerComponent {
 
   async load() {
     if (this.docId()) {
-      let infoDoc = await firstValueFrom(this.searchService.getTipoDocumentoById(this.docId()))
+      let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
       this.formTipoDocumento.reset(infoDoc)
 
       this.formTipoDocumento.markAsUntouched()

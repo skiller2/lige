@@ -16,7 +16,7 @@ import { telefoniaRouter } from "../telefonia/telefonia.routes";
 import { liquidacionesRouter } from "../liquidaciones/liquidaciones.routes";
 import { informesRouter } from "../informes/informes.routes";
 import { pendieteRouter } from "./pendiente.routes";
-import { tipoDocumentoRouter } from "../tipo-documento/tipo-documento.routes";
+import { documentoRouter } from "../documento/documento.routes";
 import { recibosRouter } from "src/recibos/recibos.routes";
 import { personalObjetivoRouter } from "src/personal-objetivo/personal-objetivo.routes";
 import { listaPersmisoCargaRouter } from "src/lista-permisocarga/lista-permisocarga.controller.routes";
@@ -61,7 +61,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/liquidaciones", liquidacionesRouter);
   server.setRoute("/api/informes", informesRouter);
   server.setRoute("/api/pendiente", pendieteRouter);
-  server.setRoute("/api/tipo-documento", tipoDocumentoRouter);
+  server.setRoute("/api/documento", documentoRouter);
   server.setRoute("/api/recibos", recibosRouter);
   server.setRoute("/api/personalobjetivo", personalObjetivoRouter);
   server.setRoute("/api/custodia", custodiaRouter);

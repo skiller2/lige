@@ -18,9 +18,9 @@ import { promisify } from 'util';
 
 const unlink = promisify(fs.unlink);
 
-export class TipoDocumentoController extends BaseController {
+export class DocumentoController extends BaseController {
 
-  listaTipoDocumento: any[] = [
+  listaDocumento: any[] = [
     {
       id: "id", name: "ID", field: "id",
       fieldName: "docg.doc_id",
@@ -222,7 +222,7 @@ export class TipoDocumentoController extends BaseController {
   ];
 
   async getGridCols(req, res) {
-    this.jsonRes(this.listaTipoDocumento, res);
+    this.jsonRes(this.listaDocumento, res);
   }
 
 
@@ -262,7 +262,7 @@ export class TipoDocumentoController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
-    const filterSql = filtrosToSql(req.body.options.filtros, this.listaTipoDocumento);
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy)

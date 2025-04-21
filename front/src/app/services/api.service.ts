@@ -692,13 +692,13 @@ export class ApiService {
     )
   }
 
-  getTipoDocumentos(options: any) {
+  getDocumentos(options: any) {
     if (!options.filtros.length){
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
     const parameter = {options}
-    return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/documento/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
@@ -1370,14 +1370,14 @@ export class ApiService {
     );
   }
 
-  addTipoDocumento( values:any){
-    return this.http.post<ResponseJSON<any>>(`/api/tipo-documento/add`, values).pipe(
+  addDocumento( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/documento/add`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  updateTipoDocumento( values:any){
-    return this.http.post<ResponseJSON<any>>(`/api/tipo-documento/update`, values).pipe(
+  updateDocumento( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/documento/update`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
@@ -1467,10 +1467,10 @@ export class ApiService {
     );
   }
 
-  deleteTipoDocumento(deleteId: any) {
+  deleteDocumento(deleteId: any) {
     const parameter = [deleteId]
 
-    return this.http.delete<ResponseJSON<any>>('/api/tipo-documento/delete', parameter).pipe(
+    return this.http.delete<ResponseJSON<any>>('/api/documento/delete', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

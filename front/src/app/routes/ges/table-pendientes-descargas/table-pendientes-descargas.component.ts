@@ -47,7 +47,7 @@ export class TablePendientesDescargasComponent {
     gridData$ = this.list$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getTipoDocumentoNoDownloadList(this.docId(), this.listOptions)
+            return this.searchService.getDocumentoNoDownloadList(this.docId(), this.listOptions)
             .pipe(map(data => { return data.list }))
         })
     )
