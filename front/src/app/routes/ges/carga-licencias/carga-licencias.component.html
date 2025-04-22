@@ -19,7 +19,8 @@
         <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0"
           nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
             nzTheme="outline"></span></button>
-        <button nz-button nzType="default" [disabled]="PersonalId() == 0" (click)="deletelicencia()"
+        <button nz-button nzType="default" [disabled]="PersonalId() == 0" [nzLoading]="loadingDelete()"
+          nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar esta Licencia?" (nzOnConfirm)="deleteLicencia()"
           nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete"
             nzTheme="outline"></span></button>
       </nz-button-group>

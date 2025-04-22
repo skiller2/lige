@@ -79,6 +79,7 @@ export class DocumentoComponent {
   visibleEdit = model<boolean>(false)
   visibleDetalle = model<boolean>(false)
   refresh = signal(0)
+  loadingDelete = signal<boolean>(false)
   
   listOptions: listOptionsT = {
     filtros: [],
@@ -237,11 +238,13 @@ export class DocumentoComponent {
     }
   }
 
-  async deleteTipoDocumento(){
+  async deleteDocumento(){
+    this.loadingDelete.set(true)
     if (this.docId()) {
       await firstValueFrom(this.apiService.deleteDocumento(this.docId()))
       this.formChange$.next('')
     }
+    this.loadingDelete.set(false)
   }
 
 }

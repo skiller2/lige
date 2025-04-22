@@ -31,6 +31,7 @@ export class CargaLicenciasComponent {
   openDrawerForConsult = false
   inputForConsult = true
   RefreshLicencia = false;
+  loadingDelete = signal<boolean>(false)
 
   constructor(
     private apiService : ApiService
@@ -109,12 +110,14 @@ export class CargaLicenciasComponent {
     this.inputForConsult = value
   }
 
-  async deletelicencia() {
+  async deleteLicencia() {
+    this.loadingDelete.set(true)
     if (this.PersonalId() && this.PersonalLicenciaId) {
       await firstValueFrom(this.apiService.deleteLicencia({ PersonalId:this.PersonalId(), PersonalLicenciaId: this.PersonalLicenciaId }))
       this.visibleDrawer = false
       this.RefreshLicencia = true
     }
+    this.loadingDelete.set(false)
   }
   
 }
