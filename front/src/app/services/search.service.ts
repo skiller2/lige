@@ -1166,7 +1166,6 @@ export class SearchService {
   }
 
   getOptionsCondicionAnteIva(): Observable<any> {
-    console.log("voy")
     return this.http.get<ResponseJSON<any>>(`api/clientes/getCondicion`).pipe(
       map(res => res.data),
       catchError((err, caught) => {

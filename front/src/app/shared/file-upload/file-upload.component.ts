@@ -80,33 +80,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
 
-  $files = this.formChangeArchivos$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      this.files.set([])
-
-      if (this.docTiposValidos().length == 1) 
-        this.tipoSelected.set(this.docTiposValidos()[0])
-
-      if (this.idForSearh() > 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
-
-        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()).pipe(
-          map((list: any) => {
-
-            this.cantFilesAnteriores.set(list.length)
-            this.prevFiles.emit(list)
-
-            return list
-          }))
-      } else {
-        this.prevFiles.emit([])
-        this.cantFilesAnteriores.set(0)
-        return of([])
-      }
-
-
-    })
-  )
+ 
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
@@ -123,7 +97,32 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
    async ngOnInit() {
+
     this.textForSearchSelected.set( await firstValueFrom(this.apiService.getSelectTipoinFile()))
+
+    this.LoadArchivosAnteriores()
+
+  }
+
+  async LoadArchivosAnteriores() {
+
+    if (this.docTiposValidos().length == 1) 
+      this.tipoSelected.set(this.docTiposValidos()[0])
+
+    if (this.idForSearh() > 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
+
+      const result = await firstValueFrom(this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
+      this.cantFilesAnteriores.set(result.length)
+      this.prevFiles.emit(result)
+      this.files.set(result)
+      this.propagateChange(this.files())
+
+    } else {
+      this.prevFiles.emit([])
+      this.cantFilesAnteriores.set(0)
+      this.files.set([])
+      this.propagateChange(this.files())
+    }
   }
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
@@ -189,16 +188,16 @@ export class FileUploadComponent implements ControlValueAccessor {
 
         const ArchivoFilter = this.files().filter((item) => item.fieldname === this.ArchivoIdForDelete)
         this.files.set(ArchivoFilter)
-        this.notification.success('Respuesta', `Archivo borrado con exito `)
+        this.notification.warning('Respuesta', `Archivo borrado con exito `)
 
       } else {
         if (this.tableForSearch() == 'docgeneral') {
-          this.notification.success('Respuesta', `Pendiente de implementar `)
+          this.notification.warning('Respuesta', `Pendiente de implementar `)
           //await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
         } else {
           await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
         }
-        this.formChangeArchivos$.next('');
+        this.LoadArchivosAnteriores()
       }
       this.propagateChange(this.files())
 
@@ -227,7 +226,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
-    this.formChangeArchivos$.next('');
+    //this.formChangeArchivos$.next('');
 
   }
 
@@ -240,7 +239,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   cantFiles(): boolean {
-    if ((this.files().length + this.cantFilesAnteriores()) < this.cantMaxFiles())
+    if ((this.files().length ) < this.cantMaxFiles())
       return true
     return false
   }

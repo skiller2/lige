@@ -126,23 +126,10 @@ export class EstudiosDrawerComponent {
 
   async deleteEstudio() {
     let vals = this.formCli.value
+    //borra el estudio
     await firstValueFrom(this.apiService.deleteEstudio(vals))
+    
     this.visible.set(false)
     this.onRefreshEstudio.emit()
-  }
-
-  async confirmDeleteArchivo(id: string, tipoDocumentDelete: boolean) {
-    try {
-      this.ArchivoIdForDelete = parseInt(id)
-      if(tipoDocumentDelete) {
-        const ArchivoFilter = this.ArchivosEstudioAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)
-        this.ArchivosEstudioAdd = ArchivoFilter
-        this.notification.success('Respuesta', 'Archivo borrado con exito')
-      } else {
-        await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
-      }
-    } catch (error) {
-      // Handle error if needed
-    }
   }
 }

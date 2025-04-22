@@ -1083,9 +1083,10 @@ export class ApiService {
   }
 
   deleteEstudio(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/estudio`,  vals ).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res))
-    )
+  
+    return this.http.post<ResponseJSON<any>>(`/api/estudio/detele`, vals).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
 
   deleteCurso(vals: any) {

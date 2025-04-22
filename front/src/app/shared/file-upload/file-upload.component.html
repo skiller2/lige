@@ -1,47 +1,42 @@
 <nz-form-item>
   <nz-form-control>
-    @if($files | async; as filesinDB;){
-    @if (filesinDB.length==0){
-    <div class="">Sin archivo adjunto</div>
-    }
-    <ng-container *ngFor="let files of filesinDB">
-      <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{files.nombre}}>
-        @if(isDisabled()==false){
-        <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-          (nzOnConfirm)="confirmDeleteArchivo(files.id,false)" nzPopconfirmPlacement="top" nzDanger nz-icon
-          nzType="delete" nzTheme="outline" class="trash-color"></a>
-        }
-        @if ((files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG' || forceImg()) &&
-        previewFile()) {
-        <img nz-image alt=""
-          nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
-          class="image-content" />
-        }
-        @if (files.TipoArchivo == 'PDF' && !forceImg() && previewFile()) {
-        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/thumb"
-          class="image-content" />
-        <a nz-icon nzType="search" nzTheme="outline"
-          (click)="LoadArchivo(files.id,tableForSearch(),files.filename)"></a>
-        }
-
-        <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline" class="download-color"
-          app-down-file [httpMethod]="'POST'"
-          httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/original"> {{files.nombre}} </a>
-
-      </div>
-    </ng-container>
-    }
     @if(files().length > 0){
     <ng-container class="" *ngFor="let filesAdd of files() ">
+
+    @if(filesAdd.id){
+      <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.nombre}}>
+        @if(isDisabled()==false){
+        <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
+          (nzOnConfirm)="confirmDeleteArchivo(filesAdd.id,false)" nzPopconfirmPlacement="top" nzDanger nz-icon
+          nzType="delete" nzTheme="outline" class="trash-color"></a>
+        }
+        @if ((filesAdd.TipoArchivo == 'JPEG' || filesAdd.TipoArchivo == 'JPG' || filesAdd.TipoArchivo == 'PNG' || forceImg()) &&
+        previewFile()) {
+        <img nz-image alt=""
+          nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
+          class="image-content" />
+        }
+        @if (filesAdd.TipoArchivo == 'PDF' && !forceImg() && previewFile()) {
+        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/thumb"
+          class="image-content" />
+        <a nz-icon nzType="search" nzTheme="outline"
+          (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.filename)"></a>
+        }
+
+        <a nz-icon nzType="download" nzHref="filesAdd.path" target="_blank" nzTheme="outline" class="download-color"
+          app-down-file [httpMethod]="'POST'"
+          httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original"> {{filesAdd.nombre}} </a>
+
+      </div>
+    }@else{
+
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
+
         @if(isDisabled()==false){
         <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
           (nzOnConfirm)="confirmDeleteArchivo(filesAdd.fieldname,true)" nzPopconfirmPlacement="top" nz-button
           nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color cursor-pointer"></span>
         }
-
-
-
         @if (filesAdd.mimetype.includes('image') && previewFile()) {
         <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original"
           alt="" />
@@ -55,6 +50,8 @@
           app-down-file [httpMethod]="'POST'"
           httpUrl="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original">{{filesAdd.originalname}}</a>
       </div>
+    }
+
     </ng-container>
     }
   </nz-form-control>

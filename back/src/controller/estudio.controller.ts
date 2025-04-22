@@ -266,7 +266,7 @@ export class EstudioController extends BaseController {
     let result = []
 
     console.log("req.body", req.body)
-    //throw new ClientException(`test.`)
+    //new ClientException(`test.`)
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
@@ -435,17 +435,23 @@ export class EstudioController extends BaseController {
   }
 
   async deleteEstudio(req: any, res: Response, next: NextFunction) {
-    const { PersonalId, PersonalEstudioId,files } = req.query
+    const { PersonalId, PersonalEstudioId } = req.body
     const queryRunner = dataSource.createQueryRunner()
-    console.log("files", files)
-     //throw new ClientException(`test.`)
+
+    console.log('req.body', req.body)
+    //throw new ClientException(`test.`)
 
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const result = await queryRunner.query(`DELETE FROM PersonalEstudio  WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
+      const PersonalEstudioPagina1Id = await queryRunner.query(`SELECT PersonalEstudioPagina1Id FROM PersonalEstudio WHERE PersonalEstudioId = @0 AND PersonalId = @1`, [PersonalEstudioId, PersonalId])
+      
+      await queryRunner.query(`DELETE FROM PersonalEstudio  WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
 
+      if(PersonalEstudioPagina1Id[0].PersonalEstudioPagina1Id) {
+        await FileUploadController.deleteFile(PersonalEstudioPagina1Id[0].PersonalEstudioPagina1Id, 'docgeneral', queryRunner)
+      }
       
       await queryRunner.commitTransaction();
       this.jsonRes({}, res, 'Borrado Exitoso')

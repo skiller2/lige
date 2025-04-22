@@ -32,7 +32,7 @@ estudioRouter.get('/:PersonalId/:PersonalEstudioId', [authMiddleware.verifyToken
   })
 
 
-estudioRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+estudioRouter.post("/detele", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     estudioController.deleteEstudio(req, res, next);
   });
   

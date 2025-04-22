@@ -67,7 +67,7 @@ export class EstudiosComponent {
 
 
   actualizarValorDrawer(event: any) {
-    console.log('event', event)
+    //console.log('event', event)
     this.visibleDrawer.set(false);
     if (event.length > 0) {
       this.PersonalId.set(event[0].PersonalId);
