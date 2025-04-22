@@ -2646,7 +2646,7 @@ cuit.PersonalCUITCUILCUIT,
       let PersonalBeneficiarioDocumentoNro = await queryRunner.query(`
         SELECT PersonalId,PersonalBeneficiarioDocumentoNro
         FROM PersonalBeneficiario
-        WHERE PersonalBeneficiarioDocumentoNro=@0 AND PersonalId= @1 AND PersonalBeneficiarioInactivo=0
+        WHERE PersonalBeneficiarioDocumentoNro=@0 AND PersonalId= @1
         `, [DocumentoNro, PersonalId])
 
 
