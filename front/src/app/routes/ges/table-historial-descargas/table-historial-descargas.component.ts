@@ -46,7 +46,7 @@ export class TableHistorialDescargasComponent {
     gridData$ = this.list$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getTipoDocumentoDownloadList(this.docId(), this.listOptions)
+            return this.searchService.getDocumentoDownloadList(this.docId(), this.listOptions)
             .pipe(map(data => { return data.list }))
         })
     )

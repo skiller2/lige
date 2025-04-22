@@ -18,9 +18,9 @@ import { promisify } from 'util';
 
 const unlink = promisify(fs.unlink);
 
-export class TipoDocumentoController extends BaseController {
+export class DocumentoController extends BaseController {
 
-  listaTipoDocumento: any[] = [
+  listaDocumento: any[] = [
     {
       id: "id", name: "ID", field: "id",
       fieldName: "docg.doc_id",
@@ -222,7 +222,7 @@ export class TipoDocumentoController extends BaseController {
   ];
 
   async getGridCols(req, res) {
-    this.jsonRes(this.listaTipoDocumento, res);
+    this.jsonRes(this.listaDocumento, res);
   }
 
 
@@ -262,7 +262,7 @@ export class TipoDocumentoController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
-    const filterSql = filtrosToSql(req.body.options.filtros, this.listaTipoDocumento);
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy)
@@ -427,7 +427,23 @@ export class TipoDocumentoController extends BaseController {
     const now = new Date()
     try {
       await queryRunner.startTransaction()
-
+      //Validaciones
+      const telefonos = await dataSource.query(`
+        SELECT telefono
+        FROM lige.dbo.doc_descaga_log
+        WHERE doc_id IN (@0)
+        `, [doc_id])
+      if (telefonos.length){
+        const doc = await queryRunner.query(`
+          SELECT doctipo_id, persona_id, objetivo_id, cliente_id,
+          FROM lige.dbo.docgeneral
+          WHERE doc_id IN (@0)
+        `, [doc_id])
+        if (doc[0].doctipo_id != doctipo_id || doc[0].persona_id != persona_id || doc[0].objetivo_id != objetivo_id || doc[0].cliente_id != cliente_id) {
+          throw new ClientException('El Documento tiene movimientos de descarga. No se puede modificar Tipo de documento, Persona, Cliente y Objetivo')
+        }
+      }
+      
       const valsTipoDocumento = this.valsTipoDocumento(req.body)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
@@ -472,7 +488,7 @@ export class TipoDocumentoController extends BaseController {
   }
 
   async getTipoDocumentoById(req: any, res: Response, next: NextFunction) {
-    const id: number = req.params.id;
+    const doc_id: number = req.params.id;
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
@@ -482,7 +498,7 @@ export class TipoDocumentoController extends BaseController {
         nombre_archivo
         FROM lige.dbo.docgeneral
         WHERE doc_id IN (@0)
-      `, [id])
+      `, [doc_id])
       await queryRunner.commitTransaction()
       this.jsonRes(doc[0], res, 'Carga Exitosa');
     } catch (error) {
@@ -498,7 +514,16 @@ export class TipoDocumentoController extends BaseController {
       let doc_id = Number(req.query[0])
       const queryRunner = dataSource.createQueryRunner();
       try {
-  
+        //Validaciones
+        const telefonos = await dataSource.query(`
+          SELECT telefono
+          FROM lige.dbo.doc_descaga_log
+          WHERE doc_id IN (@0)
+          `, [doc_id])
+        if (telefonos.length)
+          throw new ClientException('No se puede eliminar Documentos que tienen movimientos de descarga.')
+        
+        //Busca el path del archivo
         const document = await dataSource.query(`
           SELECT doc_id AS id, path, nombre_archivo AS name
           FROM lige.dbo.docgeneral

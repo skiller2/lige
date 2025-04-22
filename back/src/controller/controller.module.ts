@@ -23,7 +23,7 @@ import { LiquidacionesController } from "../liquidaciones/liquidaciones.controll
 import { LiquidacionesBancoController } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.controller";
 import { InformesController } from "../informes/informes.controller";
 import { PendienteController } from "../controller/pendiente.controller"
-import { TipoDocumentoController } from "../tipo-documento/tipo-documento.controller"
+import { DocumentoController } from "../documento/documento.controller"
 import { RecibosController } from "../recibos/recibos.controller"
 import { PersonalObjetivosController } from "../personal-objetivo/personal-objetivo.controller"
 import { CustodiaController } from "./custodia.controller";
@@ -75,7 +75,7 @@ export const liquidacionesController = new LiquidacionesController();
 export const liquidacionesBancoController = new LiquidacionesBancoController();
 export const informesController = new InformesController();
 export const pendienteController = new PendienteController();
-export const tipoDocumentoController = new TipoDocumentoController();
+export const documentoController = new DocumentoController();
 export const recibosController = new RecibosController();
 export const personalObjetivosController = new PersonalObjetivosController();
 export const custodiaController = new CustodiaController();

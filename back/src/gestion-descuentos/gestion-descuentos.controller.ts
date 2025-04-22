@@ -132,23 +132,23 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
-    fieldName: "",
+    fieldName:'cuo.cuotanro',
     type:'number',
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
-    fieldName: '',
+    fieldName:'des.cantcuotas',
     type:'number',
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -338,17 +338,17 @@ const columnsObjetivosDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
-  // {
-  //   id:'importetotal', name:'Importe Total', field:'importetotal',
-  //   fieldName: '',
-  //   type:'float',
-  //   searchType: 'float',
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: true,
-  //   // maxWidth: 50,
-  //   // minWidth: 10,
-  // },
+  {
+    id:'importetotal', name:'Importe Total', field:'importetotal',
+    fieldName: '',
+    type:'float',
+    searchType: 'float',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
 ]
 
 export class GestionDescuentosController extends BaseController {
@@ -666,6 +666,27 @@ export class GestionDescuentosController extends BaseController {
     } catch (error) {
       return next(error)
     }
+  }
+
+  async addPersonalOtroDescuento(queryRunner:any, PersonalId:number){
+    const PersonalOtroDescuento = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
+    const PersonalOtroDescuentoId = PersonalOtroDescuento[0].PersonalOtroDescuentoUltNro+1
+    const now = new Date()
+    const hora = this.getTimeString(now)
+    await queryRunner.query(`
+      INSERT INTO PersonalOtroDescuento (
+      PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
+      , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
+      , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas
+      , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
+      , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
+      VALUES ()
+      `, [])
+  }
+
+  async addObjetivoDescuento(queryRunner:any){
+    await queryRunner.query(`
+      `, [])
   }
 
 }

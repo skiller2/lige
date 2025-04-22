@@ -18,7 +18,7 @@ import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
-import { TipoDocumentoAltaDrawerComponent } from '../tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
+import { DocumentoDrawerComponent } from '../documento-drawer/documento-drawer.component'
 import { TablePendientesDescargasComponent } from '../table-pendientes-descargas/table-pendientes-descargas.component'
 import { TableHistorialDescargasComponent } from '../table-historial-descargas/table-historial-descargas.component'
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
@@ -38,18 +38,18 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-    selector: 'tipo-documento',
-    templateUrl: './tipo-documento.component.html',
+    selector: 'documento',
+    templateUrl: './documento.component.html',
     imports: [
         SHARED_IMPORTS, CommonModule, NzAffixModule,
-        FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent,
+        FiltroBuilderComponent, DocumentoDrawerComponent,
         TablePendientesDescargasComponent, TableHistorialDescargasComponent,
         ReporteComponent
     ],
-    styleUrls: ['./tipo-documento.component.less'],
+    styleUrls: ['./documento.component.less'],
     providers: [AngularUtilService]
 })
-export class TipoDocumentoComponent {
+export class DocumentoComponent {
   startFilters = signal<any[]>([])
 
   constructor(
@@ -63,7 +63,7 @@ export class TipoDocumentoComponent {
   tableLoading$ = new BehaviorSubject(false);
   columnDefinitions: Column[] = [];
   
-  columns$ = this.apiService.getCols('/api/tipo-documento/cols').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/documento/cols').pipe(map((cols) => {
     return cols
   }));
 
@@ -88,9 +88,9 @@ export class TipoDocumentoComponent {
 
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
-  childAlta = viewChild.required<TipoDocumentoAltaDrawerComponent>('alta')
-  childDetalle = viewChild.required<TipoDocumentoAltaDrawerComponent>('detalle')
-  childEdit = viewChild.required<TipoDocumentoAltaDrawerComponent>('editor')
+  childAlta = viewChild.required<DocumentoDrawerComponent>('alta')
+  childDetalle = viewChild.required<DocumentoDrawerComponent>('detalle')
+  childEdit = viewChild.required<DocumentoDrawerComponent>('editor')
   
   onAddorUpdate(_e:any) {
     this.formChanged('')
@@ -105,7 +105,7 @@ export class TipoDocumentoComponent {
     debounceTime(500),
     switchMap(() => {
       return this.apiService
-        .getTipoDocumentos(
+        .getDocumentos(
           this.listOptions
         )
         .pipe(
@@ -184,12 +184,12 @@ export class TipoDocumentoComponent {
  
   }
 
-  exportGrid() {
-    this.excelExportService.exportToExcel({
-      filename: 'tipo-documento',
-      format: FileType.xlsx
-    });
-  }
+  // exportGrid() {
+  //   this.excelExportService.exportToExcel({
+  //     filename: 'documento',
+  //     format: FileType.xlsx
+  //   });
+  // }
 
   handleSelectedRowsChanged(e: any): void {
     if (e.detail.args.changedSelectedRows.length ==1) {
@@ -239,7 +239,7 @@ export class TipoDocumentoComponent {
 
   async deleteTipoDocumento(){
     if (this.docId()) {
-      await firstValueFrom(this.apiService.deleteTipoDocumento(this.docId()))
+      await firstValueFrom(this.apiService.deleteDocumento(this.docId()))
       this.formChange$.next('')
     }
   }
