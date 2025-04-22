@@ -924,13 +924,16 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   moveFile(dirFile: any, newFilePath: any, newFileName: any) {
-    // console.log("dirFile ", dirFile)
-    // console.log("newFilePath ", newFilePath)
+    console.log("dirFile ", dirFile)
+    console.log("newFilePath ", newFilePath)
+    console.log("newFileName ", newFileName)
     if (!existsSync(newFilePath)) {
       mkdirSync(newFilePath, { recursive: true })
     }
 
-    renameSync(dirFile, `${newFilePath}/${newFileName}`)
+    console.log("antes")
+    renameSync(dirFile, `${newFilePath}${newFileName}`)
+    console.log("despues")
 
   }
 
@@ -1070,11 +1073,24 @@ cuit.PersonalCUITCUILCUIT,
       `, [personalId, DocumentoImagenEstudioId])
 
     const estudioId = DocumentoImagenEstudioId
+    console.log('estudioId', estudioId)
+
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+    console.log('pathArchivos', pathArchivos)
+
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+    console.log('dirFile', dirFile)
+
     const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
+    console.log('newFieldname', newFieldname)
+
     const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
+    console.log('newFilePath', newFilePath)
+
     this.moveFile(dirFile, newFilePath, newFieldname);
+    console.log('sali', dirFile, newFilePath, newFieldname)
+    
+
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
       DocumentoImagenEstudioBlobNombreArchivo = @1,
