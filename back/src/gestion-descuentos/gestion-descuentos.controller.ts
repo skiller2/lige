@@ -668,11 +668,31 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async addPersonalOtroDescuento(queryRunner:any, PersonalId:number){
-    const PersonalOtroDescuento = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
-    const PersonalOtroDescuentoId = PersonalOtroDescuento[0].PersonalOtroDescuentoUltNro+1
-    const now = new Date()
-    const hora = this.getTimeString(now)
+  private async addPersonalOtroDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
+    const DescuentoId:number = otroDescuento.DescuentoId
+    const PersonalId:number = otroDescuento.PersonalId
+    const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
+    // AplicaEl.setHours(0, 0, 0, 0)
+    const Cuotas:number = otroDescuento.Cuotas
+    const Importe:number = otroDescuento.Importe
+    const Detalle:number = otroDescuento.Detalle
+
+    const anio:number = AplicaEl.getFullYear()
+    const mes:number = AplicaEl.getMonth()+1
+
+    let PersonalOtroDescuento = await queryRunner.query(`
+      SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
+      FROM PersonalOtroDescuento
+      WHERE PersonalId IN (@0) AND PersonalOtroDescuentoDescuentoId IN (@1) AND PersonalOtroDescuentoAnoAplica IN (@2) AND PersonalOtroDescuentoMesesAplica IN (@3)
+    `, [PersonalId, DescuentoId, anio, mes])
+    if (PersonalOtroDescuento.length) {
+      throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
+    }
+    
+    const Personal = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
+    const PersonalOtroDescuentoId = Personal[0].PersonalOtroDescuentoUltNro+1
+    const hoy = new Date()
+    const hora = this.getTimeString(hoy)
     await queryRunner.query(`
       INSERT INTO PersonalOtroDescuento (
       PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
@@ -680,13 +700,175 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
-      VALUES ()
-      `, [])
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, '', @8, @9, @10, @11, @12)
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+    
+    await queryRunner.query(`UPDATE Personal SET PersonalOtroDescuentoUltNro = @1 WHERE PersonalId IN (@0)`, [PersonalId, PersonalOtroDescuentoId])
   }
 
-  async addObjetivoDescuento(queryRunner:any){
+  private async addObjetivoDescuento(queryRunner:any, objDescuento:any, usuarioId:number, ip:string){
+    const DescuentoId:number = objDescuento.DescuentoId
+    const ObjetivoId:number = objDescuento.ObjetivoId
+    const AplicaEl:Date = objDescuento.AplicaEl? new Date(objDescuento.AplicaEl) : null
+    // AplicaEl.setHours(0, 0, 0, 0)
+    const Cuotas:number = objDescuento.Cuotas
+    const Importe:number = objDescuento.Importe
+    const Detalle:number = objDescuento.Detalle
+
+    const anio:number = AplicaEl.getFullYear()
+    const mes:number = AplicaEl.getMonth()+1
+
+    let ObjetivoDescuento = await queryRunner.query(`
+      SELECT ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica, ObjetivoDescuentoMesesAplica
+      FROM ObjetivoDescuento
+      WHERE ObjetivoId IN (@0) AND ObjetivoDescuentoDescuentoId IN (@1) AND ObjetivoDescuentoAnoAplica IN (@2) AND ObjetivoDescuentoMesesAplica IN (@3)
+    `, [ObjetivoId, DescuentoId, anio, mes])
+    if (ObjetivoDescuento.length) {
+      throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} del objetivo.`)
+    }
+    
+    const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
+    const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro+1
+    const hoy = new Date()
+    const hora = this.getTimeString(hoy)
     await queryRunner.query(`
-      `, [])
+      INSERT INTO ObjetivoDescuento (
+      ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica
+      , ObjetivoDescuentoMesesAplica, ObjetivoDescuentoMes, ObjetivoDescuentoCantidad, ObjetivoDescuentoCantidadCuotas
+      , ObjetivoDescuentoImporteVariable, ObjetivoDescuentoFechaAplica, ObjetivoDescuentoCuotasPagas
+      , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
+      , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12)
+    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+
+    await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
   }
+
+  async addDescuento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId = req.body.PersonalId
+    const ObjetivoId = req.body.ObjetivoId
+    try {
+      await queryRunner.startTransaction()
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const ip = this.getRemoteAddress(req)
+
+      //Valida que el período no tenga el indicador de recibos generado
+      const AplicaEl:Date = new Date(req.body.AplicaEl)
+      const anio = AplicaEl.getFullYear()
+      const mes = AplicaEl.getMonth()+1
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+
+
+      if (PersonalId && !ObjetivoId) {
+        await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
+      }else if (ObjetivoId && !PersonalId) {
+        await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+      }else {
+        throw new ClientException('Debe de ingresar solo una Objetivo o Personal')
+      }
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getPeriodoQuery(queryRunner:any, anio:number, mes:number){
+    return await queryRunner.query(`
+      SELECT periodo_id, anio, mes, ind_recibos_generados
+      FROM lige.dbo.liqmaperiodo
+      WHERE anio = @0 AND mes = @1
+      `, [anio, mes])
+  }
+
+  // async addDescuentoCuotas(req: any, res: Response, next: NextFunction) {
+  //   const queryRunner = dataSource.createQueryRunner();
+  //   const anio : number = req.body.year
+  //   const mes : number = req.body.month
+  //   let errors : string[] = []
+  //   try {
+  //     await queryRunner.startTransaction()
+
+  //     const per = await this.getPeriodoQuery(queryRunner, anio, mes)
+  //     if (per[0]?.ind_recibos_generados == 1)
+  //       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
+  //     const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
+      
+  //     //PersonalOtrosDescuentos
+  //     for (const obj of listOtroDescuento) {
+  //       let res = await this.personalOtroDescuentoAddCuota(
+  //         queryRunner, obj.PersonalOtroDescuentoId, obj.PersonalId, anio, mes,
+  //         obj.PersonalPrestamoCuotaImporte, obj.PersonalPrestamoCuotaUltNro, obj.ApellidoNombre
+  //       )
+  //       if (res instanceof ClientException) {
+  //         errors.push(res.messageArr[0])
+  //       }
+  //     }
+
+  //     //ObjetivoDescuentos
+  //     // const listObjDeccuento = await this.personalPrestamoListAddCuotaQuery(queryRunner, anio, mes)
+  //     // for (const obj of listObjDeccuento) {
+  //     //   let res = await this.personalPrestamoCuotaAddCuota(
+  //     //     queryRunner, obj.PersonalPrestamoId, obj.PersonalId, anio, mes,
+  //     //     obj.PersonalPrestamoCuotaImporte, obj.PersonalPrestamoCuotaUltNro, obj.ApellidoNombre
+  //     //   )
+  //     //   if (res instanceof ClientException) {
+  //     //     errors.push(res.messageArr[0])
+  //     //   }
+  //     // }
+
+  //     await queryRunner.commitTransaction()
+  //     return this.jsonRes({}, res, 'Carga Exitosa');
+  //   }catch (error) {
+  //     await this.rollbackTransaction(queryRunner)
+  //     return next(error)
+  //   } finally {
+  //     await queryRunner.release()
+  //   }
+  // }
+
+  // async otroDescuentoListAddCuotaQuery(
+  //   queryRunner:any, anio:number, mes:number
+  // ){
+  //   return await queryRunner.query(`
+  //     SELECT PersonalOtroDescuentoId, PersonalId,
+  //     CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+  //     ISNULL(PersonalOtroDescuentoCuotaUltNro, 0) AS PersonalOtroDescuentoCuotaUltNro,
+  //     ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS PersonalOtroDescuentoCuotaImporte
+  //     FROM PersonalOtroDescuento
+  //     LEFT JOIN Personal per ON per.PersonalId = PersonalId 
+  //     WHERE PersonalOtroDescuentoCantidadCuotas > ISNULL(PersonalPrestamoCuotaUltNro, 0)
+  //     AND DATEADD(MONTH,  ISNULL(PersonalPrestamoCuotaUltNro, 0),  DATEFROMPARTS(PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, 1)) = DATEFROMPARTS(@0,@1,1)
+  //     `, [ anio, mes])
+  // }
+
+  // async personalOtroDescuentoAddCuota(
+  //   queryRunner: any, personalPrestamoId: number, personalId: number, anio:number, mes:number,
+  //   importeCuota:number, ultCuota:number, apellidoNombre:string
+  // ) {
+  //   ultCuota++
+
+  //   let cuota = await this.getPersonalPrestamoCuotaByPeriodoQuery(queryRunner, personalPrestamoId, personalId, anio, mes)
+  //   if (cuota.length) {
+  //     return new ClientException(`La cuota para ${apellidoNombre} del período ${anio}/${mes} ya existe.`)
+  //   }
+    
+  //   let ligm = await this.getLigmamovimientosQuery(queryRunner, personalId, anio, mes, 'G')
+  //   if (!ligm.length) {
+  //     return new ClientException(`${apellidoNombre} no tiene disponibilidad de su cuenta.`)
+  //   }
+
+  //   await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId, anio, mes, importeCuota)
+  //   await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota, anio, mes)
+    
+  //   return
+  // }
 
 }

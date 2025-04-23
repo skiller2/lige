@@ -1482,6 +1482,18 @@ export class ApiService {
     );
   }
 
+  addDescuento( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/add`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  descuentoAddCuota(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/addcuota`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

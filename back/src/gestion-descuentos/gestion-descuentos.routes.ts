@@ -31,3 +31,11 @@ gestionDescuentosRouter.post('/list/personal', [authMiddleware.verifyToken,authM
 gestionDescuentosRouter.post('/list/objetivos', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getDescuentosObjetivos(req, res, next)
 });
+
+gestionDescuentosRouter.post('/add', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.addDescuento(req, res, next)
+});
+
+// gestionDescuentosRouter.post('/addcuota', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+//     gestionDescuentosController.addDescuentoCuotas(req, res, next)
+// });
