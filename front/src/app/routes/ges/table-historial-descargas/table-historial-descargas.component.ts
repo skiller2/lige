@@ -41,7 +41,7 @@ export class TableHistorialDescargasComponent {
     private apiService = inject(ApiService)
     private injector = inject(Injector)
 
-    columns$ = this.apiService.getCols(`/api/tipo-documento/cols-download`)
+    columns$ = this.apiService.getCols(`/api/documento/cols-download`)
 
     gridData$ = this.list$.pipe(
         debounceTime(500),

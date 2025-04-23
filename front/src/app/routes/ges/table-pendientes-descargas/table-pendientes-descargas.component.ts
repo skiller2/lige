@@ -42,7 +42,7 @@ export class TablePendientesDescargasComponent {
     private apiService = inject(ApiService)
     private injector = inject(Injector)
 
-    columns$ = this.apiService.getCols(`/api/tipo-documento/cols-no-download`)
+    columns$ = this.apiService.getCols(`/api/documento/cols-no-download`)
 
     gridData$ = this.list$.pipe(
         debounceTime(500),
