@@ -162,6 +162,17 @@ export class DocumentoController extends BaseController {
       maxWidth: 250,
     },
     {
+      id: "SituacionRevistaDescripcion",
+      name: "Situacion Revista",
+      field: "SituacionRevistaDescripcion",
+      type: "string",
+      fieldName: "sitrev.SituacionRevistaDescripcion",
+      searchType: "date",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
       id: "fecha_descarga",
       name: "Fecha",
       field: "fecha_descarga",
@@ -172,6 +183,7 @@ export class DocumentoController extends BaseController {
       searchHidden: false,
       hidden: false,
     }
+    
   ];
 
   listaPersonalNoDescarga: any[] = [
@@ -204,6 +216,17 @@ export class DocumentoController extends BaseController {
       fieldName: "per.PersonalId",
       searchComponent: "inpurForPersonalSearch",
       searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      id: "SituacionRevistaDescripcion",
+      name: "Situacion Revista",
+      field: "SituacionRevistaDescripcion",
+      type: "string",
+      fieldName: "sitrev.SituacionRevistaDescripcion",
+      searchType: "date",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -330,11 +353,19 @@ export class DocumentoController extends BaseController {
 
   private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
-      SELECT CONCAT(des.doc_id,'-',ROW_NUMBER() OVER (PARTITION BY des.doc_id ORDER BY des.fecha_descarga)) AS id, des.doc_id, des.fecha_descarga, des.telefono,
-      per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT
+      SELECT CONCAT(des.doc_id,'-',ROW_NUMBER() OVER (PARTITION BY des.doc_id ORDER BY des.fecha_descarga)) AS id
+          , des.doc_id
+          , des.fecha_descarga
+          , des.telefono
+          ,per.PersonalId
+          , CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
+          , cuit.PersonalCUITCUILCUIT
+          ,sitrev.SituacionRevistaDescripcion
       FROM lige.dbo.doc_descaga_log AS des
       LEFT JOIN Personal per ON des.personal_id = per.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      LEFT JOIN PersonalSituacionRevista persitrev ON persitrev.PersonalId = per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta, '9999-12-31')>= GETDATE() 
+      LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
       WHERE des.doc_id IN (@0)
       AND ${filterSql}
       ${orderBy}
@@ -368,20 +399,23 @@ export class DocumentoController extends BaseController {
 
   private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
-      SELECT DISTINCT per.PersonalId AS id, tel.telefono,
-      per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
-      cuit.PersonalCUITCUILCUIT
-      FROM lige.dbo.regtelefonopersonal tel
-      LEFT JOIN lige.dbo.doc_descaga_log des ON des.telefono != tel.telefono AND des.doc_id NOT IN (@0)
-      LEFT JOIN Personal per ON tel.personal_id = per.PersonalId
+      
+      SELECT per.PersonalId AS id, tel.telefono,
+            per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
+            cuit.PersonalCUITCUILCUIT,
+          sitrev.SituacionRevistaDescripcion 
+      FROM Personal per
+      LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
+      LEFT JOIN lige.dbo.doc_descaga_log des ON des.telefono = tel.telefono and des.doc_id = @0
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN (
           SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
           FROM PersonalSituacionRevista p
           JOIN SituacionRevista s
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
-			) sitrev ON sitrev.PersonalId = per.PersonalId
-      WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2,10,11)
+        ) sitrev ON sitrev.PersonalId = per.PersonalId
+
+      where des.telefono IS NULL
       AND ${filterSql}
       ${orderBy}
     `, [doc_id])
@@ -433,7 +467,7 @@ export class DocumentoController extends BaseController {
         FROM lige.dbo.doc_descaga_log
         WHERE doc_id IN (@0)
         `, [doc_id])
-      if (telefonos.length){
+      if (telefonos.length) {
         const doc = await queryRunner.query(`
           SELECT doctipo_id, persona_id, objetivo_id, cliente_id,
           FROM lige.dbo.docgeneral
@@ -443,14 +477,14 @@ export class DocumentoController extends BaseController {
           throw new ClientException('El Documento tiene movimientos de descarga. No se puede modificar Tipo de documento, Persona, Cliente y Objetivo')
         }
       }
-      
+
       const valsTipoDocumento = this.valsTipoDocumento(req.body)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      const archivo = [{ doc_id,doctipo_id,tableForSearch:'docgeneral',den_documento,persona_id,cliente_id,objetivo_id,fecha,fec_doc_ven }]
+      const archivo = [{ doc_id, doctipo_id, tableForSearch: 'docgeneral', den_documento, persona_id, cliente_id, objetivo_id, fecha, fec_doc_ven }]
 
-      await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ?archivo![0]:null, usuario, ip, queryRunner)
+      await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ? archivo![0] : null, usuario, ip, queryRunner)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -510,46 +544,46 @@ export class DocumentoController extends BaseController {
   }
 
   async deleteArchivo(req: Request, res: Response, next: NextFunction) {
-  
-      let doc_id = Number(req.query[0])
-      const queryRunner = dataSource.createQueryRunner();
-      try {
-        //Validaciones
-        const telefonos = await dataSource.query(`
+
+    let doc_id = Number(req.query[0])
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      //Validaciones
+      const telefonos = await dataSource.query(`
           SELECT telefono
           FROM lige.dbo.doc_descaga_log
           WHERE doc_id IN (@0)
           `, [doc_id])
-        if (telefonos.length)
-          throw new ClientException('No se puede eliminar Documentos que tienen movimientos de descarga.')
-        
-        //Busca el path del archivo
-        const document = await dataSource.query(`
+      if (telefonos.length)
+        throw new ClientException('No se puede eliminar Documentos que tienen movimientos de descarga.')
+
+      //Busca el path del archivo
+      const document = await dataSource.query(`
           SELECT doc_id AS id, path, nombre_archivo AS name
           FROM lige.dbo.docgeneral
           WHERE doc_id = @0
           `, [doc_id])
-        const finalurl = `${document[0]["path"]}`
-  
-        if (document.length > 0) {
-          if (existsSync(finalurl)) 
-            await unlink(finalurl)
-          
-          await queryRunner.connect();
-          await queryRunner.startTransaction();
-  
-          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
-  
-          await queryRunner.commitTransaction();
-        }
-  
-        this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
-  
-      } catch (error) {
-        await this.rollbackTransaction(queryRunner)
-        return next(error)
+      const finalurl = `${document[0]["path"]}`
+
+      if (document.length > 0) {
+        if (existsSync(finalurl))
+          await unlink(finalurl)
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
+
+        await queryRunner.commitTransaction();
       }
-  
+
+      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
     }
+
+  }
 
 }
