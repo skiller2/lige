@@ -162,14 +162,26 @@ export class DocumentoController extends BaseController {
       maxWidth: 250,
     },
     {
+      id: "SituacionRevistaId",
+      name: "Situacion Revista",
+      field: "SituacionRevistaId",
+      type: "number",
+      fieldName: "sitrev.SituacionRevistaId",
+      searchComponent: "inpurForSituacionRevistaSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true,
+    },
+    {
       id: "SituacionRevistaDescripcion",
       name: "Situacion Revista",
       field: "SituacionRevistaDescripcion",
       type: "string",
       fieldName: "sitrev.SituacionRevistaDescripcion",
-      searchType: "date",
+      searchType: "string",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
       hidden: false,
     },
     {
@@ -221,14 +233,26 @@ export class DocumentoController extends BaseController {
       hidden: false,
     },
     {
+      id: "SituacionRevistaId",
+      name: "Situacion Revista",
+      field: "SituacionRevistaId",
+      type: "number",
+      fieldName: "sitrev.SituacionRevistaId",
+      searchComponent: "inpurForSituacionRevistaSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true,
+    },
+    {
       id: "SituacionRevistaDescripcion",
       name: "Situacion Revista",
       field: "SituacionRevistaDescripcion",
       type: "string",
       fieldName: "sitrev.SituacionRevistaDescripcion",
-      searchType: "date",
+      searchType: "string",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
       hidden: false,
     },
     {
@@ -357,15 +381,15 @@ export class DocumentoController extends BaseController {
           , des.doc_id
           , des.fecha_descarga
           , des.telefono
-          ,per.PersonalId
+          , per.PersonalId
           , CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
           , cuit.PersonalCUITCUILCUIT
-          ,sitrev.SituacionRevistaDescripcion
+          , sitrev.SituacionRevistaDescripcion
       FROM lige.dbo.doc_descaga_log AS des
       LEFT JOIN Personal per ON des.personal_id = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
       LEFT JOIN PersonalSituacionRevista persitrev ON persitrev.PersonalId = per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta, '9999-12-31')>= GETDATE() 
-      LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
+      LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId = persitrev.PersonalSituacionRevistaSituacionId
       WHERE des.doc_id IN (@0)
       AND ${filterSql}
       ${orderBy}
@@ -408,14 +432,17 @@ export class DocumentoController extends BaseController {
       LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
       LEFT JOIN lige.dbo.doc_descaga_log des ON des.telefono = tel.telefono and des.doc_id = @0
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN (
-          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
-          FROM PersonalSituacionRevista p
-          JOIN SituacionRevista s
-          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
-        ) sitrev ON sitrev.PersonalId = per.PersonalId
+      --LEFT JOIN (
+      --    SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
+      --    FROM PersonalSituacionRevista p
+      --    JOIN SituacionRevista s
+      --    ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+      --  ) sitrev ON sitrev.PersonalId = per.PersonalId
+      LEFT JOIN PersonalSituacionRevista persitrev ON persitrev.PersonalId = per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta, '9999-12-31')>= GETDATE() 
+      LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId = persitrev.PersonalSituacionRevistaSituacionId
 
-      where des.telefono IS NULL
+
+      WHERE des.telefono IS NULL
       AND ${filterSql}
       ${orderBy}
     `, [doc_id])
