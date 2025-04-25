@@ -344,7 +344,7 @@ export class DocumentoController extends BaseController {
     }
   }
 
-  async addTipoDocumento(req: any, res: Response, next: NextFunction) {
+  async addDocumento(req: any, res: Response, next: NextFunction) {
     const doctipo_id: string = req.body.doctipo_id
     const den_documento: string = req.body.den_documento
     const persona_id: number = req.body.persona_id
@@ -352,6 +352,7 @@ export class DocumentoController extends BaseController {
     const objetivo_id: number = req.body.objetivo_id
     const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : null
     const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : null
+    const ind_descarga_bot:boolean = req.body.ind_descarga_bot
     const archivos: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
@@ -364,6 +365,8 @@ export class DocumentoController extends BaseController {
         throw valsTipoDocumento
 
       const doc_id = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner)
+
+      await queryRunner.query(`UPDATE lige.dbo.docgeneral SET ind_descarga_bot = @1 WHERE doc_id IN (@0)`, [doc_id, ind_descarga_bot])
 
       await queryRunner.commitTransaction()
       this.jsonRes({ doc_id }, res, 'Carga Exitosa');
@@ -472,7 +475,7 @@ export class DocumentoController extends BaseController {
     this.jsonRes(this.listaPersonalNoDescarga, res);
   }
 
-  async updateTipoDocumento(req: any, res: Response, next: NextFunction) {
+  async updateDocumento(req: any, res: Response, next: NextFunction) {
     const doc_id = req.body.doc_id
     const doctipo_id: string = req.body.doctipo_id
     const den_documento: string = req.body.den_documento
@@ -481,6 +484,7 @@ export class DocumentoController extends BaseController {
     const objetivo_id: number = req.body.objetivo_id
     const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : req.body.fecha
     const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
+    const ind_descarga_bot:boolean = req.body.ind_descarga_bot
     //const archivo: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
@@ -512,6 +516,8 @@ export class DocumentoController extends BaseController {
       const archivo = [{ doc_id, doctipo_id, tableForSearch: 'docgeneral', den_documento, persona_id, cliente_id, objetivo_id, fecha, fec_doc_ven }]
 
       await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ? archivo![0] : null, usuario, ip, queryRunner)
+
+      await queryRunner.query(`UPDATE lige.dbo.docgeneral SET ind_descarga_bot = @1 WHERE doc_id IN (@0)`, [doc_id, ind_descarga_bot])
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -548,15 +554,16 @@ export class DocumentoController extends BaseController {
     }
   }
 
-  async getTipoDocumentoById(req: any, res: Response, next: NextFunction) {
+  async getDocumentoById(req: any, res: Response, next: NextFunction) {
     const doc_id: number = req.params.id;
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
       const doc = await queryRunner.query(`
-        SELECT doc_id, periodo, fecha, fec_doc_ven, doctipo_id, persona_id, objetivo_id, den_documento, cliente_id,
+        SELECT doc_id, periodo, fecha, fec_doc_ven, doctipo_id,
+        persona_id, objetivo_id, den_documento, cliente_id,
         RIGHT(nombre_archivo, CHARINDEX('.', REVERSE(nombre_archivo)) - 1) AS extension,
-        nombre_archivo
+        nombre_archivo, ind_descarga_bot
         FROM lige.dbo.docgeneral
         WHERE doc_id IN (@0)
       `, [doc_id])

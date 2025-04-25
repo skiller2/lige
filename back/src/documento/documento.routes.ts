@@ -5,7 +5,7 @@ import { documentoController } from "../controller/controller.module";
 export const documentoRouter = Router();
 
 documentoRouter.get("/get/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  documentoController.getTipoDocumentoById(req, res, next);
+  documentoController.getDocumentoById(req, res, next);
 });
 
 documentoRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
@@ -37,11 +37,11 @@ documentoRouter.post('/list-no-download', [authMiddleware.verifyToken, authMiddl
 })
 
 documentoRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
-  documentoController.addTipoDocumento(req, res, next)
+  documentoController.addDocumento(req, res, next)
 })
 
 documentoRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
-  documentoController.updateTipoDocumento(req, res, next)
+  documentoController.updateDocumento(req, res, next)
 })
 
 documentoRouter.delete('/delete', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
