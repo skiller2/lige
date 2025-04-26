@@ -1,41 +1,57 @@
 <nz-form-item>
   <nz-form-control>
-    @if(files().length > 0){
+    @if(files().length > 0 ){
     <ng-container class="" *ngFor="let filesAdd of files() ">
 
-    @if(filesAdd.id){
+ @if(!filesAdd.delete ){
+    @if(filesAdd.id ){
+
+       <!-- <P>{{filesAdd | json}}</P>  -->
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.nombre}}>
-        @if(isDisabled()==false){
-        <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-          (nzOnConfirm)="confirmDeleteArchivo(filesAdd.id,false)" nzPopconfirmPlacement="top" nzDanger nz-icon
-          nzType="delete" nzTheme="outline" class="trash-color"></a>
+        @if(isDisabled()==false && !filesAdd.update){
+        <a nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"
+          (nzOnConfirm)="confirmUpdateArchivo(filesAdd)" nzPopconfirmPlacement="top" nzDanger nz-icon
+          nzType="swap" nzTheme="outline" class="swap-color"></a>
         }
-        @if ((filesAdd.TipoArchivo == 'JPEG' || filesAdd.TipoArchivo == 'JPG' || filesAdd.TipoArchivo == 'PNG' || forceImg()) &&
+
+        @if(filesAdd.update){
+      
+
+        <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event,filesAdd)">
+        <a nz-icon nzType="upload" nzTheme="outline" nz-tooltip nzTooltipTitle="Subir nuevo archivo"></a>
+        </nz-upload>
+       
+        }
+        @if ((filesAdd.mimetype.toLowerCase() == 'jpeg' || filesAdd.mimetype.toLowerCase() == 'jpg' || filesAdd.mimetype.toLowerCase() == 'png' || forceImg()) &&
         previewFile()) {
         <img nz-image alt=""
           nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
           class="image-content" />
         }
-        @if (filesAdd.TipoArchivo == 'PDF' && !forceImg() && previewFile()) {
+        @if (filesAdd.mimetype.toLowerCase() == 'pdf' && !forceImg() && previewFile() && !filesAdd.update) {
         <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/thumb"
           class="image-content" />
         <a nz-icon nzType="search" nzTheme="outline"
           (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.filename)"></a>
         }
 
+        {{filesAdd.nombre}}
+
+        @if(!filesAdd.update){
         <a nz-icon nzType="download" nzHref="filesAdd.path" target="_blank" nzTheme="outline" class="download-color"
           app-down-file [httpMethod]="'POST'"
-          httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original"> {{filesAdd.nombre}} </a>
-
+          httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original">  </a>
+        }
       </div>
     }@else{
 
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
 
         @if(isDisabled()==false){
-        <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-          (nzOnConfirm)="confirmDeleteArchivo(filesAdd.fieldname,true)" nzPopconfirmPlacement="top" nz-button
-          nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color cursor-pointer"></span>
+        <span nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"
+          (nzOnConfirm)="confirmUpdateArchivo(filesAdd)" nzPopconfirmPlacement="top" nz-button
+          nzType="primary" nzDanger nz-icon nzType="swap" nzTheme="outline" class="swap-color cursor-pointer"></span>
         }
         @if (filesAdd.mimetype.includes('image') && previewFile()) {
         <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original"
@@ -51,13 +67,13 @@
           httpUrl="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original">{{filesAdd.originalname}}</a>
       </div>
     }
+  }
 
     </ng-container>
     }
   </nz-form-control>
 
 </nz-form-item>
-
 
 
 @if(isDisabled()==false && cantFiles()){
@@ -82,7 +98,7 @@
       }
       <!-- image/* .pdf.pdf,image/* -->
       <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event,null)">
         <button nz-button [disabled]="tipoSelected() == ''">
           <span nz-icon nzType="upload"></span>
           {{ 'app.btn.file' | i18n }}

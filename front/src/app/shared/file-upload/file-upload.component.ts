@@ -12,7 +12,8 @@ import { HttpClient } from '@angular/common/http';
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
-
+import { FileSyncOutline } from '@ant-design/icons-angular/icons';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 interface DocTipo {
   doctipo_id: string;
   detalle: string;
@@ -20,7 +21,7 @@ interface DocTipo {
 
 @Component({
   selector: 'app-file-upload',
-  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule],
+  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.less',
   providers: [
@@ -80,7 +81,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
 
- 
+
+
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
@@ -111,6 +113,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
     if (this.idForSearh() > 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
 
+
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(this.idForSearh(), this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
@@ -135,6 +138,11 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.modalViewerVisiable.set(true)
   }
 
+  async LoadNewArchivo(file:any) {
+
+   
+  }
+
   async LoadArchivoPreview(documentId: string, tableForSearch: string) {
     const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, {}, { responseType: 'blob' }))
     return res
@@ -142,7 +150,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
 
 
-  async uploadChange(event: any) {
+  async uploadChange(event: any, file:any) {
     switch (event.type) {
       case 'start':
 
@@ -162,12 +170,34 @@ export class FileUploadComponent implements ControlValueAccessor {
 
         const Response = event.file.response
 
-        let src = await this.LoadArchivoPreview(`${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}`, 'temp')
-        this.blobUrl = URL.createObjectURL(src)
-        Response.data[0].tableForSearch = this.tableForSearch()
-        Response.data[0].doctipo_id = this.tipoSelected()
-        Response.data[0].fileUrl = this.blobUrl
-        this.files.set([...this.files(), Response.data[0]])
+        if(file){
+        
+          this.files.set(this.files().map(item => {
+            if (item.id === file.id) {
+              return { 
+                ...item, 
+                tempfilename: Response.data[0].tempfilename,
+              };
+            }
+            return item;
+          }));
+
+        }else{
+          let src = await this.LoadArchivoPreview(`${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}`, 'temp')
+          this.blobUrl = URL.createObjectURL(src)
+          Response.data[0].tableForSearch = this.tableForSearch()
+          Response.data[0].doctipo_id = this.tipoSelected()
+          Response.data[0].fileUrl = this.blobUrl
+          Response.data[0].persona_id = 0
+          Response.data[0].den_documento = ""
+          Response.data[0].objetivo_id = 0
+          Response.data[0].cliente_id = 0
+          Response.data[0].fec_doc_ven = null
+          Response.data[0].path = ""
+          Response.data[0].nombre_archivo = ""
+          Response.data[0].TipoArchivo = "pdf"
+          this.files.set([...this.files(), Response.data[0]])
+        }
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
         // this.valueExtendedEmitter
@@ -180,32 +210,29 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   }
 
-  async confirmDeleteArchivo(id: string, tipoDocumentDelete: boolean) {
+  async confirmUpdateArchivo(file:any) {
+
     try {
 
-      this.ArchivoIdForDelete = parseInt(id);
-      if (tipoDocumentDelete) {
+      if(file.id){
+        this.files.set(this.files().map(item => {
 
-        const ArchivoFilter = this.files().filter((item) => item.fieldname === this.ArchivoIdForDelete)
-        this.files.set(ArchivoFilter)
+          if (item.id === file.id) 
+            return { ...item, update: true };
+          
+          return item;
+        }));
+      }else{
+        // si file no tiene id, es un archivo temporal y se borra del array
+        this.files.set(this.files().filter((item) => item.fieldname !== file.fieldname))
         this.notification.warning('Respuesta', `Archivo borrado con exito `)
-
-      } else {
-        if (this.tableForSearch() == 'docgeneral') {
-          this.notification.warning('Respuesta', `Pendiente de implementar `)
-          //await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
-        } else {
-          await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
-        }
-        this.LoadArchivosAnteriores()
       }
-      this.propagateChange(this.files())
+    this.propagateChange(this.files())
 
-    } catch (error) {
+  } catch (error) {
 
-    }
   }
-  ////////
+}
 
   ngOnDestroy() {
     this.files().forEach(file => {
@@ -239,7 +266,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   cantFiles(): boolean {
-    if ((this.files().length ) < this.cantMaxFiles())
+    if ((this.files().length - this.files().filter(file => file.delete === true).length) < this.cantMaxFiles())
       return true
     return false
   }

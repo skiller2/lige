@@ -116,15 +116,18 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
         .status(409)
         .json({ msg: "File is required!", data: [], stamp: new Date() });
     } else {
-      
+    
       const fileData = {
         url: `/api/file-upload/downloadFile/${req.file.filename}/temp/original`,
-        filename: req.file.filename,
-        fieldname: req.file.fieldname,
+        tempfilename: req.file.filename,
+        fieldname: req.file.fieldname,   
         mimetype: req.file.mimetype,
         originalname: req.file.originalname,
         size: req.file.size,
       }
+
+      console.log('fileData', fileData)
+
       return res
         .status(200)
         .json({ msg: "archivo subido con exito!", data: [fileData], stamp: new Date() });

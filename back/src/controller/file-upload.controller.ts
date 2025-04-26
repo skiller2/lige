@@ -201,39 +201,15 @@ export class FileUploadController extends BaseController {
           break;
 
         case 'docgeneral':
-          ArchivosAnteriores = await queryRunner.query(`
-            SELECT 
-                doc.doc_id AS id, 
-                doc.path, 
-                doc.nombre_archivo AS nombre,  
-                doc.aud_fecha_ins AS fecha,
-                'pdf' AS TipoArchivo
-            FROM lige.dbo.docgeneral doc
-            JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
-            WHERE 
-                doc.${columnSearch} = @0 AND
-                ('${columnSearch}'='doc_id' OR tipo.doctipo_id = @1) `,
-            [id, TipoSearch])
-
-          break;
+          ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner,columnSearch,TipoSearch,id)
+        break;
 
         default:
           throw new ClientException(`Falla en busqueda de Archivo`)
           break;
       }
-      // console.log('ArchivosAnteriores', ArchivosAnteriores);
-      ArchivosAnteriores.map((archivo) => {
-        archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim()
-        if (archivo.TipoArchivo == 'JPEG' || archivo.TipoArchivo == 'JPG' || archivo.TipoArchivo == 'PNG')
-          archivo.mimetype = 'image'
-        else if (archivo.TipoArchivo == 'PDF')
-          archivo.mimetype = 'pdf'
-        else
-          archivo.mimetype = 'unknown'
 
-        archivo.url = `api/file-upload/downloadFile/${id}/docgeneral/original`
-        return archivo
-      })
+       ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores,id)
 
       this.jsonRes(
         {
@@ -248,6 +224,47 @@ export class FileUploadController extends BaseController {
       return next(error)
     }
   }
+
+  static async mapArchivosAnteriores(ArchivosAnteriores:any[],id:any) {
+    ArchivosAnteriores.map((archivo) => {
+      const TipoArchivo = archivo.nombre.split('.')[1]
+      if (TipoArchivo.toLowerCase() == 'jpeg' || TipoArchivo.toLowerCase() == 'jpg' || TipoArchivo.toLowerCase() == 'png')
+        archivo.mimetype = 'image'
+      else if (TipoArchivo.toLowerCase() == 'pdf')
+        archivo.mimetype = 'pdf'
+      else
+        archivo.mimetype = 'unknown'
+
+      archivo.url = `api/file-upload/downloadFile/${id}/docgeneral/original`
+      return archivo
+    })
+    return ArchivosAnteriores
+  }
+
+  static async getArchivosAnterioresBydocgeneral(queryRunner:QueryRunner,columnSearch:any,TipoSearch:any,id:any) {
+
+        let ArchivosAnteriores = await queryRunner.query(`
+          SELECT 
+                doc.doc_id AS id, 
+              doc.doctipo_id,
+              doc.persona_id,
+              doc.den_documento,
+              doc.objetivo_id,
+              doc.cliente_id,
+              doc.fec_doc_ven,
+              doc.path, 
+              'docgeneral' AS tableForSearch,
+              doc.nombre_archivo AS nombre
+          FROM lige.dbo.docgeneral doc
+          JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
+          WHERE 
+              doc.${columnSearch} = @0 AND
+              ('${columnSearch}'='doc_id' OR tipo.doctipo_id = @1) `,
+          [id, TipoSearch])
+
+       return ArchivosAnteriores
+    
+      }
 
   static async handleDOCUpload(
     personal_id: number,
@@ -267,10 +284,15 @@ export class FileUploadController extends BaseController {
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
     const tableForSearch = file.tableForSearch
+    let fileupate = null
     if (!tableForSearch)
       throw new ClientException(`No se especificó destino -tableForSearch-`)
     if (!doctipo_id)
       throw new ClientException(`No se especificó destino -doctipo_id-`)
+
+    if(file.update && (!file.tempfilename || file.tempfilename === '')){
+      throw new ClientException(`No se especificó archivo a actualizar`)
+    }
 
     const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo 
           WHERE tipo.doctipo_id = @0`, [doctipo_id])
@@ -312,12 +334,12 @@ export class FileUploadController extends BaseController {
       default:
         if (!doc_id) {
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
-          newFilePath = `/${folder}/${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`;
+          newFilePath = `${folder}${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`;
 
           const type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') {
-            const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.filename}`)
+            const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`)
             const document = await loadingTask.promise;//Error
             for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
               const page = await document.getPage(pagenum);
@@ -327,8 +349,10 @@ export class FileUploadController extends BaseController {
               });
             }
           }
+        
           this.copyTmpFile(file.filename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
+          const namefile = `${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`
           await this.setArchivos(
             queryRunner,
             doc_id,
@@ -338,7 +362,7 @@ export class FileUploadController extends BaseController {
             personal_id,
             objetivo_id,
             cliente_id,
-            file.originalname,
+            namefile,
             newFilePath,
             detalle_documento,
             doctipo_id,
@@ -348,9 +372,30 @@ export class FileUploadController extends BaseController {
             fechaActual,
           );
         } else {
-          console.log('file', file)
-          //          throw new ClientException(`stop`)
-          //          const hash = await FileUploadController.hashFile(filePath: string)
+
+          if(file.tempfilename && file.tempfilename != ''){
+
+            const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
+
+            console.log('file', file)
+
+            const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
+            const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
+  
+            console.log("filePath", filePath)
+            console.log("tempFilePath", tempFilePath)
+  
+           // Borra el archivo si existe
+            if (existsSync(filePath)) {
+              await unlink(filePath);
+            }
+  
+            // Copia el nuevo archivo
+            copyFileSync(tempFilePath, filePath);
+
+          }
+         
+          // Actualiza el registro
           await queryRunner.query(`
             UPDATE lige.dbo.docgeneral
             SET periodo = @1, fecha = @2, 
@@ -360,6 +405,8 @@ export class FileUploadController extends BaseController {
             WHERE doc_id = @0
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
+
+
         }
         return doc_id
         break;

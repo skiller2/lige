@@ -266,15 +266,15 @@ export class EstudioController extends BaseController {
     let result = []
 
     console.log("req.body", req.body)
-    //new ClientException(`test.`)
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
 
-    //console.log("req.body.files", req.body.files[0].tableForSearch)
-    
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+
+    //throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
     await queryRunner.startTransaction();
+    
 
     try {
 
@@ -366,16 +366,28 @@ export class EstudioController extends BaseController {
         // hacer for para cada archivo
         for (const file of req.body.files) {
 
-          console.log("file", file)
-          await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file, usuario, ip, queryRunner)
+          let fec_doc_ven = file.fec_doc_ven ? file.fec_doc_ven : PersonalEstudioHasta
+     
+          await FileUploadController.handleDOCUpload(
+            PersonalId, 
+            file.objetivo_id, 
+            file.cliente_id, 
+            file.id, 
+            new Date(), 
+            fec_doc_ven, 
+            file.den_documento, 
+            file, 
+            usuario,
+            ip,
+            queryRunner)
 
           const maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
           let PersonalEstudioPagina1Id = maxId[0].doc_id 
   
           await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId = @1 AND PersonalEstudioId = @2`,
              [PersonalEstudioPagina1Id, PersonalId, PersonalEstudioId])
-        }
-
+          }
+        
       }
 
       result = await queryRunner.query(`SELECT PersonalId,PersonalEstudioId,TipoEstudioId,EstadoEstudioId,PersonalEstudioPagina1Id FROM PersonalEstudio
@@ -413,6 +425,14 @@ export class EstudioController extends BaseController {
       if (!params.PersonalEstudioTitulo) {
         throw new ClientException(`Debe completar el campo Título del Certificado.`)
       }
+    }
+
+    if(params.files.length == 0){
+      throw new ClientException(`Debe subir al menos un archivo.`)
+    }
+
+    if(params.files.length > 1){
+      throw new ClientException(`Debe subir un solo archivo.`)
     }
   }
 
