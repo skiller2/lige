@@ -35,13 +35,14 @@ export class TableHistorialDescargasComponent {
         sort: null,
     };
     detailViewRowCount = 1;
+    startFilters: any[]=[]
 
     private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
     private injector = inject(Injector)
 
-    columns$ = this.apiService.getCols(`/api/tipo-documento/cols-download`)
+    columns$ = this.apiService.getCols(`/api/documento/cols-download`)
 
     gridData$ = this.list$.pipe(
         debounceTime(500),
@@ -57,6 +58,10 @@ export class TableHistorialDescargasComponent {
         this.gridDetalleOptions.enableAutoSizeColumns = true
         this.gridDetalleOptions.showFooterRow = true
         this.gridDetalleOptions.createFooterRow = true
+
+        this.startFilters = [
+            {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', forced:false},
+        ]
     }
 
     ngOnDestroy() {

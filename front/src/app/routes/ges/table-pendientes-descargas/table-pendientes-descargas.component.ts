@@ -36,13 +36,14 @@ export class TablePendientesDescargasComponent {
         sort: null,
     };
     detailViewRowCount = 1;
+    startFilters: any[]=[]
 
     private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
     private injector = inject(Injector)
 
-    columns$ = this.apiService.getCols(`/api/tipo-documento/cols-no-download`)
+    columns$ = this.apiService.getCols(`/api/documento/cols-no-download`)
 
     gridData$ = this.list$.pipe(
         debounceTime(500),
@@ -58,6 +59,10 @@ export class TablePendientesDescargasComponent {
         this.gridDetalleOptions.enableAutoSizeColumns = true
         this.gridDetalleOptions.showFooterRow = true
         this.gridDetalleOptions.createFooterRow = true
+
+        this.startFilters = [
+            {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', forced:false},
+        ]
     }
 
     ngOnDestroy() {

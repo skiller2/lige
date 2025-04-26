@@ -38,7 +38,8 @@ export class DescuentosAltaDrawerComponent {
 
     fb = inject(FormBuilder)
     formAltaDesc = this.fb.group({
-        DescuentoId: 0, PersonalId:0, ObjetivoId:0, AplicaEl:new Date(), Cuotas:null, Importe:null,
+        DescuentoId: 0, PersonalId:0, ObjetivoId:0, AplicaEl:new Date(),
+        Cuotas:null, Importe:null, Deatlle:''
     })
 
     $optionsDescuento = this.searchService.getDecuentosOptions();
@@ -52,6 +53,14 @@ export class DescuentosAltaDrawerComponent {
 
     PersonalId():number {
         const value = this.formAltaDesc.get("PersonalId")?.value
+        if (value) {
+          return value
+        }
+        return 0
+    }
+
+    ObjetivoId():number {
+        const value = this.formAltaDesc.get("ObjetivoId")?.value
         if (value) {
           return value
         }
@@ -85,7 +94,7 @@ export class DescuentosAltaDrawerComponent {
         this.isLoading.set(true)
         let values = this.formAltaDesc.value
         try {
-            // await firstValueFrom(this.apiService.setSitRevista(this.PersonalId(), values))
+            await firstValueFrom(this.apiService.addDescuento(values))
             this.selectedPersonalIdChange$.next('')
             this.formAltaDesc.markAsUntouched()
             this.formAltaDesc.markAsPristine()

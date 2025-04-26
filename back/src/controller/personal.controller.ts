@@ -924,13 +924,14 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   moveFile(dirFile: any, newFilePath: any, newFileName: any) {
-    // console.log("dirFile ", dirFile)
-    // console.log("newFilePath ", newFilePath)
+    
     if (!existsSync(newFilePath)) {
       mkdirSync(newFilePath, { recursive: true })
     }
 
-    renameSync(dirFile, `${newFilePath}/${newFileName}`)
+    console.log("antes")
+    renameSync(dirFile, `${newFilePath}${newFileName}`)
+    console.log("despues")
 
   }
 
@@ -1070,11 +1071,18 @@ cuit.PersonalCUITCUILCUIT,
       `, [personalId, DocumentoImagenEstudioId])
 
     const estudioId = DocumentoImagenEstudioId
+
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+
     const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
+
     const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
+
     this.moveFile(dirFile, newFilePath, newFieldname);
+    
+
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
       DocumentoImagenEstudioBlobNombreArchivo = @1,
@@ -1305,7 +1313,10 @@ cuit.PersonalCUITCUILCUIT,
 
           if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
             const docTitulo = infoEstudio.DocTitulo[0]
-            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
+            console.log('docTitulo', docTitulo)
+            if (!docTitulo?.id) 
+              await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
+
           }
 
         } else {
@@ -2646,7 +2657,7 @@ cuit.PersonalCUITCUILCUIT,
       let PersonalBeneficiarioDocumentoNro = await queryRunner.query(`
         SELECT PersonalId,PersonalBeneficiarioDocumentoNro
         FROM PersonalBeneficiario
-        WHERE PersonalBeneficiarioDocumentoNro=@0 AND PersonalId= @1 AND PersonalBeneficiarioInactivo=0
+        WHERE PersonalBeneficiarioDocumentoNro=@0 AND PersonalId= @1
         `, [DocumentoNro, PersonalId])
 
 

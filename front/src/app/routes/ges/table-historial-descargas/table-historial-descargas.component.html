@@ -1,6 +1,7 @@
 <nz-card class="small-margin">
     <ng-container>
-      <shared-filtro-builder #thd [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)"/>
+      <shared-filtro-builder #thd [fieldsToSelect]="columns$ | async" [startFilters]="startFilters"
+      (optionsChange)="listOptionsChange($event)"/>
       <div class="gridDescargasContainer container-fluid" *ngIf="(columns$|async) as columnas">
         <angular-slickgrid gridId="gridDescargas" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridDetalleOptions"
           [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">

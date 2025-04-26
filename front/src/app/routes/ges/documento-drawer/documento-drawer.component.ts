@@ -53,8 +53,8 @@ export class DocumentoDrawerComponent {
   ) { }
 
   fb = inject(FormBuilder)
-  formTipoDocumento = this.fb.group({ doc_id: 0, doctipo_id: '', den_documento: null, persona_id: 0, cliente_id: 0,
-    objetivo_id: 0, fecha: null, fec_doc_ven: null, archivo: [] })
+  formTipoDocumento = this.fb.group({ doc_id: 0, doctipo_id: '', den_documento: null, persona_id: 0,
+    cliente_id: 0, objetivo_id: 0, fecha: null, fec_doc_ven: null, ind_descarga_bot: false, archivo: [] })
 
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
 
