@@ -267,6 +267,7 @@ export class EstudioController extends BaseController {
 
     console.log("req.body", req.body)
 
+    let resultFile = null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
@@ -368,7 +369,7 @@ export class EstudioController extends BaseController {
 
           let fec_doc_ven = file.fec_doc_ven ? file.fec_doc_ven : PersonalEstudioHasta
      
-          await FileUploadController.handleDOCUpload(
+          resultFile = await FileUploadController.handleDOCUpload(
             PersonalId, 
             file.objetivo_id, 
             file.cliente_id, 
@@ -392,6 +393,10 @@ export class EstudioController extends BaseController {
 
       result = await queryRunner.query(`SELECT PersonalId,PersonalEstudioId,TipoEstudioId,EstadoEstudioId,PersonalEstudioPagina1Id FROM PersonalEstudio
         WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
+
+      if (resultFile) {
+        result[0].files = resultFile.ArchivosAnteriores;
+      }
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result[0] }, res, (PersonalIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);

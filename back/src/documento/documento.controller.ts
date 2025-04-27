@@ -364,7 +364,9 @@ export class DocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      const doc_id = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner)
+      const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner)
+      const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+
 
       await queryRunner.query(`UPDATE lige.dbo.docgeneral SET ind_descarga_bot = @1 WHERE doc_id IN (@0)`, [doc_id, ind_descarga_bot])
 

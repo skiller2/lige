@@ -284,6 +284,7 @@ export class FileUploadController extends BaseController {
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
     const tableForSearch = file.tableForSearch
+    let ArchivosAnteriores = []
     let fileupate = null
     if (!tableForSearch)
       throw new ClientException(`No se especificó destino -tableForSearch-`)
@@ -406,9 +407,13 @@ export class FileUploadController extends BaseController {
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
 
+            
+            ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner,'doc_id',doctipo_id,doc_id)
+            ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores,doc_id)
 
         }
-        return doc_id
+
+        return {doc_id, ArchivosAnteriores}
         break;
     }
   }

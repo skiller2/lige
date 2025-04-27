@@ -7,7 +7,7 @@
     @if(filesAdd.id ){
 
        <!-- <P>{{filesAdd | json}}</P>  -->
-      <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.nombre}}>
+      <div class="containerAnteriores">
         @if(isDisabled()==false && !filesAdd.update){
         <a nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"
           (nzOnConfirm)="confirmUpdateArchivo(filesAdd)" nzPopconfirmPlacement="top" nzDanger nz-icon
@@ -46,7 +46,7 @@
       </div>
     }@else{
 
-      <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
+      <div class="containerAnteriores" >
 
         @if(isDisabled()==false){
         <span nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"

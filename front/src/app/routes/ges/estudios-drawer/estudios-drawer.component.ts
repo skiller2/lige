@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, signal, output, effect } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, signal, output, effect, viewChild  } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
@@ -36,7 +36,7 @@ export class EstudiosDrawerComponent {
   PersonalEstudioId = input.required<number>() 
   PersonalIdForEdit = signal(0)
   ArchivoIdForDelete = 0;
-  files = model([]);
+  files = signal<any[]>([])
   currentDate = new Date()
   anio = signal(this.currentDate.getFullYear())
   mes = signal(this.currentDate.getMonth() + 1)
@@ -46,6 +46,8 @@ export class EstudiosDrawerComponent {
   onRefreshEstudio = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
 
+  fileUploadComponent = viewChild.required(FileUploadComponent);
+  
   $optionsNivelEstudio = this.searchService.getEstudioSearch() 
   $optionsCurso = this.searchService.getCursoSearch() 
 
@@ -106,12 +108,15 @@ export class EstudiosDrawerComponent {
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
       const res = await firstValueFrom(this.apiService.setEstudio(vals))
       if(res.data?.list?.PersonalId > 0) {
-        
+        console.log("res.data?.list", res.data?.list)
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)
+        
         this.formCli.patchValue({
+         
           PersonalEstudioId: res.data?.list?.PersonalEstudioId,
-          PersonalEstudioPagina1Id: res.data?.list?.PersonalEstudioPagina1Id
+          PersonalEstudioPagina1Id: res.data?.list?.PersonalEstudioPagina1Id,
         })
+        this.fileUploadComponent().LoadArchivosAnteriores()
         this.tituloDrawer.set('Editar Estudio')
       }  
 

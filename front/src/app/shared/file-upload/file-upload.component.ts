@@ -1,4 +1,4 @@
-import { Component, effect, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
+import { Component, computed, effect, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map, of } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from '../../services/api.service';
@@ -54,7 +54,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   private apiService = inject(ApiService)
   ArchivosAdd: any[] = []
   // valueFile = input()
-  files = signal<any[]>([])
+  files = model<any[]>([])
   prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
@@ -80,9 +80,6 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
-
-
-
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
