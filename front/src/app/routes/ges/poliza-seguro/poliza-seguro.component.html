@@ -1,0 +1,24 @@
+<nz-card #tabPoliza class="small-margin">
+    <ng-container>
+
+        <div class="d-flex justify-content-end mb-3">
+            <button nz-button nzType="default" (click)="openDrawerForNew()" nz-tooltip
+              nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+              
+          </div>
+          <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" /> 
+  
+  
+      @if(columns$ | async; as columnas) {
+        <div class="gridContainerPoliza container-fluid">
+          <angular-slickgrid 
+            gridId="gridPoliza" 
+            [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" 
+            [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+        </div>
+      }
+    </ng-container>
+  </nz-card> 

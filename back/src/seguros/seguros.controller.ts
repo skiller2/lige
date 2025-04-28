@@ -130,6 +130,61 @@ const listaColumnas: any[] = [
 ];
 
 
+const listaColumnasPoliza: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "PolizaSeguroCod",
+    name: "Código de Póliza",
+    field: "PolizaSeguroCod",
+    fieldName: "seg.PolizaSeguroCod",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "TipoSeguroCod",
+    name: "Código de Tipo de Seguro",
+    field: "TipoSeguroCod",
+    fieldName: "seg.TipoSeguroCod",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "DocumentoId",
+    name: "ID de Documento",
+    field: "DocumentoId",
+    fieldName: "seg.DocumentoId",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "PolizaSeguroNroPoliza",
+    name: "Número de Póliza",
+    field: "PolizaSeguroNroPoliza",
+    fieldName: "seg.PolizaSeguroNroPoliza",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+
+];
+
+
 export class SegurosController extends BaseController {
 
 
@@ -478,6 +533,11 @@ UNION
   }
 
 
+  async getGridColsPoliza(req, res) {
+    this.jsonRes(listaColumnasPoliza, res);
+  }
+
+
   async getSegurosList(
     req: any,
     res: Response, next: NextFunction
@@ -530,6 +590,40 @@ UNION
     }
   }
 
+
+  async getListPolizaSeguro(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    //console.log("req.body.options.filtros ", req.body.options.filtros)
+    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    try {
+      const result = await dataSource.query(`
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
+            seg.PolizaSeguroCod,
+            seg.TipoSeguroCod,
+            seg.DocumentoId,
+            seg.PolizaSeguroNroPoliza 
+        FROM 
+            PolizaSeguroNew AS seg
+           WHERE (1=1)
+         AND ${filterSql}
+        ${orderBy}
+      `)
+      this.jsonRes(
+        {
+          total: result.length,
+          list: result,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
 
   search(req: any, res: Response, next: NextFunction) {
 

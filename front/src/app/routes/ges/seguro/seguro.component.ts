@@ -7,14 +7,14 @@ import { ApiService } from 'src/app/services/api.service'
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm'
 import { NzMenuModule } from 'ng-zorro-antd/menu'
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
+import { PolizaSeguroComponent } from '../poliza-seguro/poliza-seguro.component'
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
 
 @Component({
   selector: 'app-seguro',
   standalone: true,
-  imports: [...SHARED_IMPORTS, NzIconModule, TableSeguroListComponent, NzPopconfirmModule, NzMenuModule, NzButtonModule, ReporteComponent
-  ],
+  imports: [...SHARED_IMPORTS, NzIconModule, TableSeguroListComponent, NzPopconfirmModule, NzMenuModule, NzButtonModule, ReporteComponent, PolizaSeguroComponent],
   templateUrl: './seguro.component.html',
   styleUrl: './seguro.component.less'
 })

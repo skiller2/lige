@@ -30,6 +30,17 @@ segurosRouter.post('/updateSeguros', [authMiddleware.verifyToken, authMiddleware
 }
 )
 
+segurosRouter.get('/cols-poliza', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.getGridColsPoliza(req, res);
+})
+
+segurosRouter.post('/list-poliza', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.getListPolizaSeguro(req, res, next);
+})
+
+
+
+
 
 
 
