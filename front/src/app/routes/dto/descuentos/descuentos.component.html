@@ -23,6 +23,9 @@
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="openDrawerforAltaDescuentos()">
             <span nz-icon nzType="plus" nzTheme="outline"></span>
         </button>
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{mes()}}/{{anio()}}" (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
+          <span nz-icon nzType="info-circle" nzTheme="outline"></span>
+        </button>
       </nz-button-group>
     </div>
   

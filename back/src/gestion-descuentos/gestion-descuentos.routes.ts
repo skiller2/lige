@@ -36,6 +36,6 @@ gestionDescuentosRouter.post('/add', [authMiddleware.verifyToken,authMiddleware.
     gestionDescuentosController.addDescuento(req, res, next)
 });
 
-// gestionDescuentosRouter.post('/addcuota', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-//     gestionDescuentosController.addDescuentoCuotas(req, res, next)
-// });
+gestionDescuentosRouter.post('/addcuota', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.addDescuentoCuotas(req, res, next)
+});

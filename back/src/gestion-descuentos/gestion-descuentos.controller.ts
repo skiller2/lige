@@ -788,87 +788,167 @@ export class GestionDescuentosController extends BaseController {
       `, [anio, mes])
   }
 
-  // async addDescuentoCuotas(req: any, res: Response, next: NextFunction) {
-  //   const queryRunner = dataSource.createQueryRunner();
-  //   const anio : number = req.body.year
-  //   const mes : number = req.body.month
-  //   let errors : string[] = []
-  //   try {
-  //     await queryRunner.startTransaction()
-
-  //     const per = await this.getPeriodoQuery(queryRunner, anio, mes)
-  //     if (per[0]?.ind_recibos_generados == 1)
-  //       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
-  //     const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
+  async addDescuentoCuotas(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const anio : number = req.body.year
+    const mes : number = req.body.month
+    let errors : string[] = []
+    try {
+      await queryRunner.startTransaction()
+      const per = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (per[0] && per[0].ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
+      const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
       
-  //     //PersonalOtrosDescuentos
-  //     for (const obj of listOtroDescuento) {
-  //       let res = await this.personalOtroDescuentoAddCuota(
-  //         queryRunner, obj.PersonalOtroDescuentoId, obj.PersonalId, anio, mes,
-  //         obj.PersonalPrestamoCuotaImporte, obj.PersonalPrestamoCuotaUltNro, obj.ApellidoNombre
-  //       )
-  //       if (res instanceof ClientException) {
-  //         errors.push(res.messageArr[0])
-  //       }
-  //     }
+      //PersonalOtrosDescuentos
+      for (const obj of listOtroDescuento) {
+        let res = await this.personalOtroDescuentoAddCuota(
+          queryRunner, obj.PersonalOtroDescuentoId, obj.PersonalId, anio, mes,
+          obj.PersonalOtroDescuentoCuotaImporte, obj.PersonalOtroDescuentoCuotaUltNro, obj.ApellidoNombre
+        )
+        if (res instanceof ClientException) {
+          errors.push(res.messageArr[0])
+        }
+      }
+      
+      //ObjetivoDescuentos
+      const listObjetivoDescuento = await this.objetivoDescuentoListAddCuotaQuery(queryRunner, anio, mes)
+      
+      for (const obj of listObjetivoDescuento) {
+        let res = await this.objetivoDescuentoAddCuota(
+          queryRunner, obj.ObjetivoDescuentoId, obj.ObjetivoId, anio, mes,
+          obj.ObjetivoDescuentoCuotaImporte, obj.ObjetivoDescuentoCuotaUltNro, obj.ObjetivoDescripcion
+        )
+        if (res instanceof ClientException) {
+          errors.push(res.messageArr[0])
+        }
+      }
 
-  //     //ObjetivoDescuentos
-  //     // const listObjDeccuento = await this.personalPrestamoListAddCuotaQuery(queryRunner, anio, mes)
-  //     // for (const obj of listObjDeccuento) {
-  //     //   let res = await this.personalPrestamoCuotaAddCuota(
-  //     //     queryRunner, obj.PersonalPrestamoId, obj.PersonalId, anio, mes,
-  //     //     obj.PersonalPrestamoCuotaImporte, obj.PersonalPrestamoCuotaUltNro, obj.ApellidoNombre
-  //     //   )
-  //     //   if (res instanceof ClientException) {
-  //     //     errors.push(res.messageArr[0])
-  //     //   }
-  //     // }
+      throw new ClientException(`DEBUG.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    }catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
-  //     await queryRunner.commitTransaction()
-  //     return this.jsonRes({}, res, 'Carga Exitosa');
-  //   }catch (error) {
-  //     await this.rollbackTransaction(queryRunner)
-  //     return next(error)
-  //   } finally {
-  //     await queryRunner.release()
-  //   }
-  // }
+  async otroDescuentoListAddCuotaQuery(
+    queryRunner:any, anio:number, mes:number
+  ){
+    return await queryRunner.query(`
+      SELECT otro.PersonalOtroDescuentoId, otro.PersonalId,
+      CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+      ISNULL(otro.PersonalOtroDescuentoCuotaUltNro, 0) AS PersonalOtroDescuentoCuotaUltNro,
+      ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS PersonalOtroDescuentoCuotaImporte
+      FROM PersonalOtroDescuento otro
+      LEFT JOIN Personal per ON per.PersonalId = otro.PersonalId 
+      WHERE otro.PersonalOtroDescuentoCantidadCuotas > ISNULL(otro.PersonalOtroDescuentoCuotaUltNro, 0)
+      AND DATEADD(MONTH, ISNULL(otro.PersonalOtroDescuentoCuotaUltNro, 0), DATEFROMPARTS(otro.PersonalOtroDescuentoAnoAplica, otro.PersonalOtroDescuentoMesesAplica, 1)) = DATEFROMPARTS(@0,@1,1)
+      `, [ anio, mes])
+  }
 
-  // async otroDescuentoListAddCuotaQuery(
-  //   queryRunner:any, anio:number, mes:number
-  // ){
-  //   return await queryRunner.query(`
-  //     SELECT PersonalOtroDescuentoId, PersonalId,
-  //     CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-  //     ISNULL(PersonalOtroDescuentoCuotaUltNro, 0) AS PersonalOtroDescuentoCuotaUltNro,
-  //     ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS PersonalOtroDescuentoCuotaImporte
-  //     FROM PersonalOtroDescuento
-  //     LEFT JOIN Personal per ON per.PersonalId = PersonalId 
-  //     WHERE PersonalOtroDescuentoCantidadCuotas > ISNULL(PersonalPrestamoCuotaUltNro, 0)
-  //     AND DATEADD(MONTH,  ISNULL(PersonalPrestamoCuotaUltNro, 0),  DATEFROMPARTS(PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, 1)) = DATEFROMPARTS(@0,@1,1)
-  //     `, [ anio, mes])
-  // }
+  async personalOtroDescuentoAddCuota(
+    queryRunner: any, personalOtroDescuentoId: number, personalId: number, anio:number, mes:number,
+    importeCuota:number, ultCuota:number, apellidoNombre:string
+  ) {
+    ultCuota++
 
-  // async personalOtroDescuentoAddCuota(
-  //   queryRunner: any, personalPrestamoId: number, personalId: number, anio:number, mes:number,
-  //   importeCuota:number, ultCuota:number, apellidoNombre:string
-  // ) {
-  //   ultCuota++
+    let cuota = await queryRunner.query(`
+      SELECT PersonalOtroDescuentoCuotaId
+      FROM PersonalOtroDescuentoCuota 
+      WHERE personalOtroDescuentoId = @0 AND PersonalId = @1 AND PersonalOtroDescuentoCuotaAno = @2 AND PersonalOtroDescuentoCuotaMes = @3
+    `, [personalOtroDescuentoId, personalId, anio, mes])
 
-  //   let cuota = await this.getPersonalPrestamoCuotaByPeriodoQuery(queryRunner, personalPrestamoId, personalId, anio, mes)
-  //   if (cuota.length) {
-  //     return new ClientException(`La cuota para ${apellidoNombre} del período ${anio}/${mes} ya existe.`)
-  //   }
-    
-  //   let ligm = await this.getLigmamovimientosQuery(queryRunner, personalId, anio, mes, 'G')
-  //   if (!ligm.length) {
-  //     return new ClientException(`${apellidoNombre} no tiene disponibilidad de su cuenta.`)
-  //   }
+    if (cuota.length) {
+      return new ClientException(`La cuota para ${apellidoNombre} del período ${anio}/${mes} ya existe.`)
+    }
+    //¿Que relaciones tiene los descuentos con los movimientos de liquidacion?
+    // let ligm = await queryRunner.query(`
+    //   SELECT *
+    //   FROM lige.dbo.liqmamovimientos liqm
+    //   LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = liqm.periodo_id
+    //   WHERE liqm.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND liqm.tipocuenta_id = @3
+    //   `, [ personalId, anio, mes, tipocuenta_id])
+    // if (!ligm.length) {
+    //   return new ClientException(`${apellidoNombre} no tiene disponibilidad de su cuenta.`)
+    // }
 
-  //   await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId, anio, mes, importeCuota)
-  //   await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota, anio, mes)
-    
-  //   return
-  // }
+    await queryRunner.query(`
+      INSERT PersonalOtroDescuentoCuota (PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+      PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
+      PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
+      PersonalOtroDescuentoCuotaProceso)
+      VALUES (@0,@1,@2,@3,@4,@0,@5,0,0,@6)
+    `,[ultCuota, personalOtroDescuentoId, personalId, anio, mes, importeCuota, 'FA'])
+
+    await queryRunner.query(`
+      UPDATE PersonalOtroDescuento
+      SET PersonalOtroDescuentoUltimaLiquidacion = CONCAT(FORMAT(@2,'00'),'/',@3,' Cuota ', @4), PersonalOtroDescuentoCuotaUltNro = @4
+      WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
+    `, [personalOtroDescuentoId, personalId, mes, anio, ultCuota]
+    )    
+    return
+  }
+
+  async objetivoDescuentoListAddCuotaQuery(
+    queryRunner:any, anio:number, mes:number
+  ){
+    return await queryRunner.query(`
+      SELECT objdes.ObjetivoDescuentoId, objdes.ObjetivoId,
+      TRIM(obj.ObjetivoDescripcion) AS ObjetivoDescripcion,
+      ISNULL(objdes.ObjetivoDescuentoCuotaUltNro, 0) AS ObjetivoDescuentoCuotaUltNro,
+      ROUND(objdes.ObjetivoDescuentoImporteVariable / objdes.ObjetivoDescuentoCantidadCuotas, 2) AS ObjetivoDescuentoCuotaImporte
+      FROM ObjetivoDescuento objdes
+      LEFT JOIN Objetivo obj ON obj.ObjetivoId = objdes.ObjetivoId 
+      WHERE objdes.ObjetivoDescuentoCantidadCuotas > ISNULL(objdes.ObjetivoDescuentoCuotaUltNro, 0)
+      AND DATEADD(MONTH, ISNULL(objdes.ObjetivoDescuentoCuotaUltNro, 0), DATEFROMPARTS(objdes.ObjetivoDescuentoAnoAplica, objdes.ObjetivoDescuentoMesesAplica, 1)) = DATEFROMPARTS(@0,@1,1)
+      `, [ anio, mes])
+  }
+
+  async objetivoDescuentoAddCuota(
+    queryRunner:any, objetivoDescuentoId:number, ObjetivoId:number, anio:number, mes:number,
+    importeCuota:number, ultCuota:number, objDescripcion:string
+  ) {
+    ultCuota++
+
+    let cuota = await queryRunner.query(`
+      SELECT ObjetivoDescuentoCuotaId
+      FROM ObjetivoDescuentoCuota 
+      WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaAno = @2 AND ObjetivoDescuentoCuotaMes = @3
+    `, [objetivoDescuentoId, ObjetivoId, anio, mes])
+
+    if (cuota.length) {
+      return new ClientException(`La cuota para ${objDescripcion} del período ${anio}/${mes} ya existe.`)
+    }
+    //¿Que relaciones tiene los descuentos con los movimientos de liquidacion?
+    // let ligm = await queryRunner.query(`
+    //   SELECT *
+    //   FROM lige.dbo.liqmamovimientos liqm
+    //   LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = liqm.periodo_id
+    //   WHERE liqm.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND liqm.tipocuenta_id = @3
+    //   `, [ personalId, anio, mes, tipocuenta_id])
+    // if (!ligm.length) {
+    //   return new ClientException(`${objDescripcion} no tiene disponibilidad de su cuenta.`)
+    // }
+
+    await queryRunner.query(`
+      INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+      ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
+      ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
+      ObjetivoDescuentoCuotaProceso)
+      VALUES (@0,@1,@2,@3,@4,@0,@5,0,0,@6)
+    `,[ultCuota, objetivoDescuentoId, ObjetivoId, anio, mes, importeCuota, 'FA'])
+
+    await queryRunner.query(`
+      UPDATE ObjetivoDescuento
+      SET ObjetivoDescuentoCuotaUltNro = @2
+      WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
+    `, [objetivoDescuentoId, ObjetivoId, ultCuota]
+    )    
+    return
+  }
 
 }

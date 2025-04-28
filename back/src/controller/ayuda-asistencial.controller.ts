@@ -271,7 +271,7 @@ export class AyudaAsistencialController extends BaseController {
     return await queryRunner.query(`
       SELECT *
       FROM PersonalPrestamoCuota ppc
-      WHERE ppc.PersonalPrestamoId = @0 AND ppc.PersonalId = @1 AND ppc.PersonalPrestamoCuotaAno = @2 AND ppc.PersonalPrestamoCuotaAno = @3
+      WHERE ppc.PersonalPrestamoId = @0 AND ppc.PersonalId = @1 AND ppc.PersonalPrestamoCuotaAno = @2 AND ppc.PersonalPrestamoCuotaMes = @3
       `, [personalPrestamoId, personalId, anio, mes])
   }
 
