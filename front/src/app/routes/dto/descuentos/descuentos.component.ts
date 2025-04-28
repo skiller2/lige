@@ -24,8 +24,22 @@ export class DescuentosComponent {
     anio = computed(() => this.periodo()?.getFullYear())
     mes = computed(() => this.periodo()?.getMonth()+1)
     visibleAltaDesc = model<boolean>(false)
+    loadingCuo = signal(false)
+
+    private apiService = inject(ApiService)
 
     openDrawerforAltaDescuentos(){
       this.visibleAltaDesc.set(true)
+    }
+
+    async addCuotaReg() {
+        this.loadingCuo.set(true)
+        try {
+            const res: any = await firstValueFrom(this.apiService.descuentoAddCuota({ year: this.anio(), month: this.mes() }))
+            // this.formChange('')
+        } catch (error) {
+            console.log(error);
+        }
+        this.loadingCuo.set(false)
     }
 }
