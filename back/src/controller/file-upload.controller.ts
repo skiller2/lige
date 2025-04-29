@@ -572,7 +572,7 @@ export class FileUploadController extends BaseController {
 
       switch (tableForSearch) {
         case 'docgeneral':
-          await queryRunner.query(`DELETE FROM docgeneral WHERE doc_id = @0`, [deleteId])
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
           break;
         default:
           const document = await queryRunner.query(`

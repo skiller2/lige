@@ -33,7 +33,7 @@
         <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/thumb"
           class="image-content" />
         <a nz-icon nzType="search" nzTheme="outline"
-          (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.filename)"></a>
+          (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.tempfilename)"></a>
         }
 
         {{filesAdd.nombre}}
@@ -54,17 +54,17 @@
           nzType="primary" nzDanger nz-icon nzType="swap" nzTheme="outline" class="swap-color cursor-pointer"></span>
         }
         @if (filesAdd.mimetype.includes('image') && previewFile()) {
-        <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original"
+        <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.tempfilename}}/temp/original"
           alt="" />
         }
         @if (filesAdd.mimetype.includes('pdf') && previewFile()) {
         <a nz-icon nzType="search" nzTheme="outline"
-          (click)="LoadArchivo(filesAdd.filename,'temp',filesAdd.originalname)"></a>
+          (click)="LoadArchivo(filesAdd.tempfilename,'temp',filesAdd.originalname)"></a>
         }
 
         <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline" class="download-color"
           app-down-file [httpMethod]="'POST'"
-          httpUrl="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original">{{filesAdd.originalname}}</a>
+          httpUrl="api/file-upload/downloadFile/{{filesAdd.tempfilename}}/temp/original">{{filesAdd.originalname}}</a>
       </div>
     }
   }
