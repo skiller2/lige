@@ -88,7 +88,7 @@ export class FileUploadComponent implements ControlValueAccessor {
         this.docTiposValidos.set(this.textForSearch().split(','))
       }
 
-      if (this.docTiposValidos.length==1)
+      if (this.docTiposValidos().length==1)
         this.tipoSelected.set(this.docTiposValidos()[0])
 
       this.formChangeArchivos$.next('');
