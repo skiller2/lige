@@ -792,32 +792,39 @@ ${orderBy}`, [fechaActual])
     }
 
     async FormValidations(form: any, queryRunner: any) {
-        const CUIT: number = form.ClienteFacturacionCUIT
-        const idCliente: number = form.id
+        const CUIT: string = form.ClienteFacturacionCUIT;
+        const idCliente: number = form.id;
 
-        let valCuit = await queryRunner.query(`SELECT ClienteId FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT])
+        if (!CUIT) {
+            throw new ClientException(`Debe completar el campo CUIT.`);
+        }
 
-        if (valCuit.length > 0 && idCliente != valCuit[0].ClienteId)
-            throw new ClientException(`El CUIT ingresado ya existe`)
+        if (!/^\d{11}$/.test(CUIT)) {
+            throw new ClientException(`El CUIT debe contener exactamente 11 dígitos numéricos.`);
+        }
 
-        if (!form.ClienteFacturacionCUIT) {
-            throw new ClientException(`Debe completar el campo CUIT.`)
+        const valCuit = await queryRunner.query(
+            `SELECT ClienteId FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT]
+        );
+
+        if (valCuit.length > 0 && idCliente !== valCuit[0].ClienteId) {
+            throw new ClientException(`El CUIT ingresado ya existe.`);
         }
 
         if (!form.ClienteFechaAlta) {
-            throw new ClientException(`Debe completar el campo Fecha Inicial.`)
+            throw new ClientException(`Debe completar el campo Fecha Inicial.`);
         }
 
         if (!form.ClienteNombreFantasia) {
-            throw new ClientException(`Debe completar el campo Nombre Fantasia.`)
+            throw new ClientException(`Debe completar el campo Nombre Fantasia.`);
         }
 
         if (!form.CondicionAnteIVAId) {
-            throw new ClientException(`Debe completar el campo Condición ante IVA.`)
+            throw new ClientException(`Debe completar el campo Condición ante IVA.`);
         }
 
         if (!form.ClienteApellidoNombre) {
-            throw new ClientException(`Debe completar el campo Razón Social.`)
+            throw new ClientException(`Debe completar el campo Razón Social.`);
         }
 
 
