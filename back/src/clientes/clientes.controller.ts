@@ -416,7 +416,9 @@ ${orderBy}`, [fechaActual])
 
 
             if (ObjCliente.files?.length > 0) {
-                await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', ObjCliente.files, usuario, ip, queryRunner)
+                for (const file of ObjCliente.files) {
+                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', file, usuario, ip, queryRunner)
+                }
             }
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
@@ -654,7 +656,9 @@ ${orderBy}`, [fechaActual])
 
 
             if (ObjCliente.files?.length > 0) {
-                await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', ObjCliente.files, usuario, ip, queryRunner)
+                for (const file of ObjCliente.files) {
+                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', file, usuario, ip, queryRunner)
+                }
             }
 
             await queryRunner.commitTransaction()

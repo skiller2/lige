@@ -45,9 +45,9 @@ export class EstudiosDrawerComponent {
   visible = model<boolean>(false)
   onRefreshEstudio = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
-
-  fileUploadComponent = viewChild.required(FileUploadComponent);
   
+  fileUploadComponent = viewChild.required(FileUploadComponent);
+  PersonalEstudioPagina1Id = signal(0)
   $optionsNivelEstudio = this.searchService.getEstudioSearch() 
   $optionsCurso = this.searchService.getCursoSearch() 
 
@@ -108,18 +108,17 @@ export class EstudiosDrawerComponent {
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
       const res = await firstValueFrom(this.apiService.setEstudio(vals))
       if(res.data?.list?.PersonalId > 0) {
-        console.log("res.data?.list", res.data?.list)
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)
-        
+        this.PersonalEstudioPagina1Id.set(res.data?.list?.PersonalEstudioPagina1Id)
         this.formCli.patchValue({
          
           PersonalEstudioId: res.data?.list?.PersonalEstudioId,
           PersonalEstudioPagina1Id: res.data?.list?.PersonalEstudioPagina1Id,
         })
-        this.fileUploadComponent().LoadArchivosAnteriores()
+       
         this.tituloDrawer.set('Editar Estudio')
       }  
-
+      this.fileUploadComponent().LoadArchivosAnteriores(this.PersonalEstudioPagina1Id())
       this.onRefreshEstudio.emit()
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()

@@ -286,6 +286,7 @@ export class FileUploadController extends BaseController {
     const tableForSearch = file.tableForSearch
     let ArchivosAnteriores = []
     let fileupate = null
+    console.log("file...", file)
     if (!tableForSearch)
       throw new ClientException(`No se especificó destino -tableForSearch-`)
     if (!doctipo_id)
@@ -351,7 +352,7 @@ export class FileUploadController extends BaseController {
             }
           }
         
-          this.copyTmpFile(file.filename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
+          this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`
           await this.setArchivos(
