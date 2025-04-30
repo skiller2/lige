@@ -26,6 +26,7 @@ export class SeguroComponent {
   calendarView = signal(false)
   selectedPeriod = { year: 0, month: 0 }
   selectedOption = model("APG")
+  isActiveProcess = signal(true)
 
   public apiService = inject(ApiService)
   constructor() { }
@@ -49,5 +50,22 @@ export class SeguroComponent {
 
     this.fechaseguro.set(new Date(this.fechaActual().getFullYear(), this.fechaActual().getMonth() - 1, 1))
   }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 2: //Poliza
+        this.isActiveProcess.set(false)
+        break;
+        default:
+          this.isActiveProcess.set(true)
+        break;
+    }
+
+  }
+  
+  //onTabChanged(selectedIndex: number): void {
+  //  window.dispatchEvent(new Event('resize'));
+  //}
+
 
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, LOCALE_ID, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, LOCALE_ID, model, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -9,6 +9,7 @@ import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { PolizaSeguroDrawerComponent } from '../poliza-seguro-drawer/poliza-seguro-drawer.component';
 
 interface ListOptions {
   filtros: any[];
@@ -18,17 +19,16 @@ interface ListOptions {
 
 interface PolizaSeguro {
   id: number;
-  PolizaSeguroCod: number;
-  TipoSeguroCod: number;
-  DocumentoId: number;
+  TipoSeguroNombre: string;
   PolizaSeguroNroPoliza: string;
-  PersonalEstudioObservacion: string;
+  PolizaSeguroNroEndoso: string;
+  PolizaSeguroFechaEndoso: string;
 }
 
 
 @Component({
   selector: 'app-poliza-seguro',
-  imports: [ SHARED_IMPORTS, CommonModule,FiltroBuilderComponent],
+  imports: [ SHARED_IMPORTS, CommonModule,FiltroBuilderComponent, PolizaSeguroDrawerComponent],
   templateUrl: './poliza-seguro.component.html',
   styleUrl: './poliza-seguro.component.less',
   providers: [AngularUtilService],
@@ -47,7 +47,7 @@ export class PolizaSeguroComponent {
   private readonly detailViewRowCount = 9;
   private excelExportService = new ExcelExportService();
   private angularGridEdit!: AngularGridInstance;
-
+  visibleDrawer = model<boolean>(false)
 
 
   private listOptions: ListOptions = {
@@ -118,9 +118,11 @@ export class PolizaSeguroComponent {
     });
   }
 
+  
+
   ////////// Drawer para nuevo /////////////
 
   async openDrawerForNew() {
-    console.log('openDrawerForNew');
+    this.visibleDrawer.set(true)
   }
 }

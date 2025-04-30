@@ -1,12 +1,15 @@
 <nz-card #tabPoliza class="small-margin">
     <ng-container>
-
-        <div class="d-flex justify-content-end mb-3">
-            <button nz-button nzType="default" (click)="openDrawerForNew()" nz-tooltip
+    
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" /> 
+            </div>
+            <nz-button-group>
+              <button nz-button nzType="default" (click)="openDrawerForNew()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-              
+            </nz-button-group>
           </div>
-          <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" /> 
   
   
       @if(columns$ | async; as columnas) {
@@ -21,4 +24,6 @@
         </div>
       }
     </ng-container>
+
+    <app-poliza-seguro-drawer [visible]="visibleDrawer()"></app-poliza-seguro-drawer>
   </nz-card> 

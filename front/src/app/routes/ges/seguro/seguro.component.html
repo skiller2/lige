@@ -34,6 +34,7 @@
       </ul>
     </div>
 
+  @if(isActiveProcess()){
     <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
       <nz-button-group style="text-align: right;">
   
@@ -54,25 +55,21 @@
   
     </div>
 
-  </div>
+  }
+</div>
 
-
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/listado">Listado</a>
       <ng-template nz-tab>
-        <div class="gridContainer container-fluid">
           <app-table-seguros-list></app-table-seguros-list>
-        </div>
       </ng-template>
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/poliza">Poliza</a>
       <ng-template nz-tab>
-        <div class="gridContainer container-fluid">
           <app-poliza-seguro></app-poliza-seguro>
-        </div>
       </ng-template>
     </nz-tab>
   </nz-tabset>

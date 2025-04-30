@@ -142,38 +142,18 @@ const listaColumnasPoliza: any[] = [
     searchHidden: true
   },
   {
-    id: "PolizaSeguroCod",
-    name: "Código de Póliza",
-    field: "PolizaSeguroCod",
-    fieldName: "seg.PolizaSeguroCod",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    id: "TipoSeguroCod",
-    name: "Código de Tipo de Seguro",
-    field: "TipoSeguroCod",
-    fieldName: "seg.TipoSeguroCod",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    id: "DocumentoId",
-    name: "ID de Documento",
-    field: "DocumentoId",
-    fieldName: "seg.DocumentoId",
-    type: "number",
+    id: "TipoSeguroNombre",
+    name: "Tipo de Seguro",
+    field: "TipoSeguroNombre",
+    fieldName: "seg.TipoSeguroNombre",
+    type: "string", 
     sortable: true,
     hidden: false,
     searchHidden: false
   },
   {
     id: "PolizaSeguroNroPoliza",
-    name: "Número de Póliza",
+    name: "Número de Poliza",
     field: "PolizaSeguroNroPoliza",
     fieldName: "seg.PolizaSeguroNroPoliza",
     type: "string",
@@ -181,7 +161,27 @@ const listaColumnasPoliza: any[] = [
     hidden: false,
     searchHidden: false
   },
-
+  {
+    id: "PolizaSeguroNroEndoso",
+    name: "Número de Endoso",
+    field: "PolizaSeguroNroEndoso",
+    fieldName: "seg.PolizaSeguroNroEndoso",
+    type: "string",   
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "PolizaSeguroFechaEndoso",
+    name: "Fecha de Endoso",
+    field: "PolizaSeguroFechaEndoso",
+    fieldName: "seg.PolizaSeguroFechaEndoso",
+    type: "date",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  } 
+ 
 ];
 
 
@@ -602,10 +602,10 @@ UNION
       const result = await dataSource.query(`
         SELECT 
             ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
-            seg.PolizaSeguroCod,
-            seg.TipoSeguroCod,
-            seg.DocumentoId,
-            seg.PolizaSeguroNroPoliza 
+            seg.TipoSeguroNombre,
+            seg.PolizaSeguroNroPoliza,
+            seg.PolizaSeguroNroEndoso,
+            seg.PolizaSeguroFechaEndoso 
         FROM 
             PolizaSeguroNew AS seg
            WHERE (1=1)
