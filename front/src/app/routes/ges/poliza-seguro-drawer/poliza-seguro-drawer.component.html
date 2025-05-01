@@ -4,19 +4,21 @@
     <!-- @if (cambios()|async) {} -->
     <form [formGroup]="formCli">
       <nz-form-item [hidden]="true">
-        <nz-form-label [nzSpan]="5">Personal Estudio Id</nz-form-label>
+        <nz-form-label [nzSpan]="5">Poliza Seguro Cod</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <input nz-input formControlName="PersonalEstudioId" ngModel />
+           <input nz-input formControlName="PolizaSeguroCod" ngModel />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
-          <nz-select formControlName="TipoSeguroId" nzPlaceHolder="Seleccione tipo de seguro">
+          <nz-select formControlName="TipoSeguroId"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
             <!-- <nz-option *ngFor="let tipo of $optionsTipoSeguro | async" [nzValue]="tipo.id" [nzLabel]="tipo.nombre"></nz-option> -->
-            <nz-option *ngFor="let tipo of [{id: 1, nombre: 'Seguro de Vida'}, {id: 2, nombre: 'Seguro de Salud'}, {id: 3, nombre: 'Seguro de Auto'}]" [nzValue]="tipo.id" [nzLabel]="tipo.nombre"></nz-option>
+            <nz-option [nzValue]="1" [nzLabel]="'Seguro de Vida'"></nz-option>
+            <nz-option [nzValue]="2" [nzLabel]="'Seguro de Salud'"></nz-option>
+            <nz-option [nzValue]="3" [nzLabel]="'Seguro de Auto'"></nz-option>
           </nz-select>
         </nz-form-control>
       </nz-form-item>
@@ -24,9 +26,8 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Compañía</nz-form-label>
         <nz-form-control [nzSpan]="18">
-          <nz-select formControlName="CompaniaSeguroId" nzPlaceHolder="Seleccione compañía">
-            <!-- <nz-option *ngFor="let compania of $optionsCompaniaSeguro | async" [nzValue]="compania.id" [nzLabel]="compania.nombre"></nz-option> -->
-            <nz-option *ngFor="let compania of [{id: 1, nombre: 'Seguro de Vida'}, {id: 2, nombre: 'Seguro de Salud'}, {id: 3, nombre: 'Seguro de Auto'}]" [nzValue]="compania.id" [nzLabel]="compania.nombre"></nz-option>
+          <nz-select formControlName="CompaniaSeguroId"  [nzDropdownMatchSelectWidth]="false"  nzPlaceHolder="Seleccione compañía" nzShowSearch>
+            <nz-option *ngFor="let compania of $optionsCompaniaSeguro | async" [nzValue]="compania.CompaniaSeguroId" [nzLabel]="compania.CompaniaSeguroDescripcion"></nz-option> 
           </nz-select>
         </nz-form-control>
       </nz-form-item>   

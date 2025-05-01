@@ -2,7 +2,7 @@
     <ng-container>
     
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div>
+            <div style="width: 80%;">
               <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" /> 
             </div>
             <nz-button-group>
@@ -25,5 +25,5 @@
       }
     </ng-container>
 
-    <app-poliza-seguro-drawer [visible]="visibleDrawer()"></app-poliza-seguro-drawer>
+    <app-poliza-seguro-drawer [visible]="visibleDrawer()" [PolizaSeguroCod]="PolizaSeguroCod()"></app-poliza-seguro-drawer>
   </nz-card> 

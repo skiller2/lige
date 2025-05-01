@@ -38,6 +38,14 @@ segurosRouter.post('/list-poliza', [authMiddleware.verifyToken, authMiddleware.h
   segurosController.getListPolizaSeguro(req, res, next);
 })
 
+segurosRouter.get('/searchCompaniaSeguro', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.getCompaniaSeguroSearch(req, res, next);
+})
+
+segurosRouter.get('/searchCompaniaSeguroId/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.getCompaniaSeguroId(req, res, next);
+})
+
 
 
 

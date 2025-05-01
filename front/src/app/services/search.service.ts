@@ -282,7 +282,28 @@ export class SearchService {
 
   ///////
 
+  getCompaniaSeguroSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/seguros/searchCompaniaSeguro`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
 
+  }
+
+
+  getCompaniaSeguroId(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/seguros/searchCompaniaSeguroId/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
 
 
 

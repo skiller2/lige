@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, LOCALE_ID, model, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, LOCALE_ID, model, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -48,7 +48,8 @@ export class PolizaSeguroComponent {
   private excelExportService = new ExcelExportService();
   private angularGridEdit!: AngularGridInstance;
   visibleDrawer = model<boolean>(false)
-
+  angularGrid!: AngularGridInstance
+  PolizaSeguroCod = signal<number>(0)
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -109,6 +110,14 @@ export class PolizaSeguroComponent {
   listOptionsChange(options: any): void {
     this.listOptions = options;
     this.formChange$.next('');
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    if (row?.PolizaSeguroCod)
+      this.PolizaSeguroCod.set(row.id)
+
   }
 
   exportGrid(): void {

@@ -1033,6 +1033,16 @@ export class ApiService {
 
   }
 
+  getPolizaSeguro(PolizaSeguroCod: number) {
+
+    return this.http.get<ResponseJSON<any>>(`/api/poliza-seguro/${PolizaSeguroCod}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+
+    ) 
+
+  }
+
   getAccesoBot(PersonalId: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/acceso-bot/${PersonalId}`).pipe(

@@ -142,6 +142,16 @@ const listaColumnasPoliza: any[] = [
     searchHidden: true
   },
   {
+    id: "PolizaSeguroCod",
+    name: "Poliza Seguro Cod",
+    field: "PolizaSeguroCod",
+    fieldName: "seg.PolizaSeguroCod",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
     id: "TipoSeguroNombre",
     name: "Tipo de Seguro",
     field: "TipoSeguroNombre",
@@ -180,7 +190,18 @@ const listaColumnasPoliza: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false
-  } 
+  },
+  {
+    id: "CompaniaSeguroDescripcion",
+    name: "Compañía",
+    field: "CompaniaSeguroDescripcion",
+    fieldName: "seg.CompaniaSeguroDescripcion",
+    searchComponent: "inputForCompaniaSeguroSearch",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  }
  
 ];
 
@@ -599,19 +620,30 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const result = await dataSource.query(`
-        SELECT 
-            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
-            seg.TipoSeguroNombre,
-            seg.PolizaSeguroNroPoliza,
-            seg.PolizaSeguroNroEndoso,
-            seg.PolizaSeguroFechaEndoso 
-        FROM 
-            PolizaSeguroNew AS seg
-           WHERE (1=1)
-         AND ${filterSql}
-        ${orderBy}
-      `)
+      //let result = await dataSource.query(`
+       // SELECT 
+       //     ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
+       //     seg.TipoSeguroNombre,
+       //     seg.PolizaSeguroNroPoliza,
+       //     seg.PolizaSeguroNroEndoso,
+       //     seg.PolizaSeguroFechaEndoso 
+       // FROM 
+       //     PolizaSeguroNew AS seg
+       //  WHERE (1=1)
+       // AND ${filterSql}
+       // ${orderBy}
+      // `)
+      let result = []
+      if (result.length === 0) {
+        result = [{
+          id: 1,
+          PolizaSeguroCod: 5,
+          TipoSeguroNombre: "Seguro de Vida",
+          PolizaSeguroNroPoliza: "POL-001",
+          PolizaSeguroNroEndoso: "END-001",
+          PolizaSeguroFechaEndoso: new Date().toISOString().split('T')[0]
+        }]
+      }
       this.jsonRes(
         {
           total: result.length,
@@ -663,6 +695,18 @@ UNION
 
     }
 
+
+    async getCompaniaSeguroSearch(req: any, res: Response, next: NextFunction) {
+      const result = await dataSource.query(`
+        SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro  WHERE CompaniaSeguroInactivo IS NULL OR CompaniaSeguroInactivo = 0`)
+      this.jsonRes(result, res);
+    }
+
+    async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
+      const result = await dataSource.query(`
+        SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
+      this.jsonRes(result, res);
+    }
 
 }
 
