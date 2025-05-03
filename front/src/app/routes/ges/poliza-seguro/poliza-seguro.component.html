@@ -19,7 +19,8 @@
             [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptions" 
             [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)">
+            (onAngularGridCreated)="angularGridReady($event)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
       }

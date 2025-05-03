@@ -1035,7 +1035,7 @@ export class ApiService {
 
   getPolizaSeguro(PolizaSeguroCod: number) {
 
-    return this.http.get<ResponseJSON<any>>(`/api/poliza-seguro/${PolizaSeguroCod}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/seguros/poliza/${PolizaSeguroCod}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
 
@@ -1469,6 +1469,12 @@ export class ApiService {
   
   setInstituciones( values:any){
     return this.http.post<ResponseJSON<any>>(`/api/instituciones/setinstitucion`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  setPolizaSeguro( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/seguros/setpoliza`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }

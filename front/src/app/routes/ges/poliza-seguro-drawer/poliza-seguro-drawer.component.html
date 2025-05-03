@@ -3,11 +3,11 @@
   <ng-container *nzDrawerContent>
     <!-- @if (cambios()|async) {} -->
     <form [formGroup]="formCli">
-      <nz-form-item [hidden]="true">
+      <nz-form-item style="display: none;">
         <nz-form-label [nzSpan]="5">Poliza Seguro Cod</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <input nz-input formControlName="PolizaSeguroCod" ngModel />
+           <input nz-input formControlName="PolizaSeguroCod" ngModel/>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -57,20 +57,20 @@
         </nz-form-control>
       </nz-form-item>
     
-     <!-- <nz-form-control>
-        <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0" [cantMaxFiles]="1"
-          [textForSearch]="'EST'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="false" ></app-file-upload>
-      </nz-form-control> -->
+      <nz-form-control>
+        <!-- <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0" [cantMaxFiles]="1"
+          [textForSearch]="'EST'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="false" ></app-file-upload> -->
+      </nz-form-control> 
 
-     <!-- @if(this.formCli.enabled) {
+    @if(this.formCli.enabled) {
         <nz-form-item class="btnCenter">
             <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
 
-            @if (this.PersonalIdForEdit() > 0) {
+            @if (this.PolizaSeguroCod() > 0) {
             
             <button 
             nz-popconfirm
-            nzPopconfirmTitle="Esta seguro que quiere eliminar este seguro?"
+            nzPopconfirmTitle="Esta seguro que quiere eliminar esta póliza?"
             (nzOnConfirm)="deletePoliza()"
             nzPopconfirmPlacement="top"
             nz-button 
@@ -79,10 +79,10 @@
           } 
         </nz-form-item>
       }
- -->
+ 
     </form>
 
     
-     <!-- <p>Debug Valores: {{formCli.value | json }}</p>  -->
+     <p>Debug Valores: {{formCli.value | json }}</p> 
   </ng-container>
 </nz-drawer>

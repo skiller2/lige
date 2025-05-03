@@ -167,7 +167,10 @@ export class FileUploadComponent implements ControlValueAccessor {
         const Response = event.file.response
 
         if(file){
-        
+
+          if(false){
+
+          }
           this.files.set(this.files().map(item => {
             if (item.id === file.id) {
               return { 

@@ -9,11 +9,11 @@ import { FormBuilder } from '@angular/forms';
 import { SearchService } from '../../../services/search.service';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
-
+import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
 @Component({
   selector: 'app-poliza-seguro-drawer',
-  imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule],
+  imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, FileUploadComponent],
   templateUrl: './poliza-seguro-drawer.component.html',
   styleUrl: './poliza-seguro-drawer.component.less'
 })
@@ -23,9 +23,9 @@ export class PolizaSeguroDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   tituloDrawer = signal<string>("")
   PolizaSeguroCod = input<number>(0)
+  isSaving = signal<boolean>(false)
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
   private apiService = inject(ApiService)
-  PersonalIdForEdit = signal(0)
   disabled = input<boolean>(false)
 
 
@@ -38,9 +38,10 @@ export class PolizaSeguroDrawerComponent {
         if (this.PolizaSeguroCod() > 0) {
           let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroCod()));
         
-          vals.PolizaSeguroId = vals.PolizaSeguroCod
+          
 
-          this.formCli.patchValue(vals)
+
+          this.formCli.patchValue(vals[0])
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
   
@@ -55,11 +56,39 @@ export class PolizaSeguroDrawerComponent {
       } else {
         this.formCli.reset()
         this.formCli.enable()
-        this.PersonalIdForEdit.set(0)
         this.tituloDrawer.set(' Nuevo Poliza Seguro ')
       }
     })
   }
+
+  async save() {
+    this.isSaving.set(true)
+    let vals = this.formCli.value
+    try {
+    
+      const res = await firstValueFrom(this.apiService.setPolizaSeguro(vals))
+      if(res.data?.list[0]?.PolizaSeguroCod > 0) {
+       
+        this.formCli.patchValue({
+          PolizaSeguroCod: res.data?.list[0]?.PolizaSeguroCod,
+        })
+        this.tituloDrawer.set('Editar Poliza Seguro')
+      }  
+      
+      this.formCli.markAsUntouched()
+      this.formCli.markAsPristine()
+     // this.onRefreshPolizaSeguro.emit()
+    } catch (error) {
+      // Handle error if needed
+    }
+    this.isSaving.set(false)
+  }
+
+  deletePoliza() {
+    console.log("deletePoliza")
+  }
+
+
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({

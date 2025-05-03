@@ -3,6 +3,7 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 const listaColumnas: any[] = [
   {
@@ -638,7 +639,9 @@ UNION
         result = [{
           id: 1,
           PolizaSeguroCod: 5,
-          TipoSeguroNombre: "Seguro de Vida",
+          TipoSeguroNombre: "TEST-1",
+          CompaniaSeguro: "MAPFRE",
+          CompaniaSeguroId: 1,
           PolizaSeguroNroPoliza: "POL-001",
           PolizaSeguroNroEndoso: "END-001",
           PolizaSeguroFechaEndoso: new Date().toISOString().split('T')[0]
@@ -655,6 +658,116 @@ UNION
     } catch (error) {
       return next(error)
     }
+  }
+
+  async getPolizaSeguro(req: any, res: Response, next: NextFunction) {
+
+    try {
+      //acomodar select para que sea el correcto
+      //const result = await dataSource.query(`SELECT * FROM PolizaSeguroNew WHERE PolizaSeguroCod = @0`, [req.params.id])
+      let result = []
+      if (result.length === 0) {
+        result = [{
+          PolizaSeguroCod: 5,
+          TipoSeguroId: 1,
+          CompaniaSeguro: "MAPFRE",
+          CompaniaSeguroId: 1,
+          PolizaSeguroNroPoliza: "POL-001",
+          PolizaSeguroNroEndoso: "END-001",
+          PolizaSeguroFechaEndoso: new Date().toISOString().split('T')[0]
+        }]
+      }
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    }
+
+  }
+
+  async setPolizaSeguro(req: any, res: Response, next: NextFunction) {
+
+    let {
+      PolizaSeguroCod,
+      TipoSeguroId,
+      CompaniaSeguroId,
+      PolizaSeguroNroPoliza,
+      PolizaSeguroNroEndoso,
+      PolizaSeguroFechaEndoso,
+
+    } = req.body
+
+    let result = []
+
+    console.log("req.body", req.body)
+    
+    let resultFile = null
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+
+    //throw new ClientException(`test.`)
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    
+
+    try {
+
+      await this.validateFormPolizaSeguro(req.body)
+
+      if (PolizaSeguroCod > 0) {
+        // is edit
+      console.log("is edit")
+      } else {
+        // is new
+        console.log("is new")
+      }
+
+
+      if (req.body.files?.length > 0) {
+        // hacer for para cada archivo
+        for (const file of req.body.files) {
+
+          let fec_doc_ven = null
+          let PersonalId = null
+     
+          //resultFile = await FileUploadController.handleDOCUpload(
+          //  PersonalId, 
+          //  file.objetivo_id, 
+          //  file.cliente_id, 
+          //  file.id, 
+          //  new Date(), 
+          //  fec_doc_ven, 
+          //  file.den_documento, 
+          //  file, 
+          //  usuario,
+          //  ip,
+          //  queryRunner)
+
+          const maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
+          let PersonalEstudioPagina1Id = maxId[0].doc_id 
+  
+          //await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId = @1 AND PersonalEstudioId = @2`,[PersonalEstudioPagina1Id, PersonalId, PersonalEstudioId])
+        }
+        
+      }
+
+      result = await queryRunner.query(`SELECT PolizaSeguroCod,TipoSeguroId,CompaniaSeguroId,PolizaSeguroNroPoliza,PolizaSeguroNroEndoso,PolizaSeguroFechaEndoso FROM PolizaSeguroNew
+        WHERE PolizaSeguroCod = @0`, [req.body.PolizaSeguroCod])
+
+      if (resultFile) {
+        result[0].files = resultFile.ArchivosAnteriores;
+      }
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ list: result[0] }, res, (req.body.PolizaSeguroCod > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+
+
   }
 
   search(req: any, res: Response, next: NextFunction) {
@@ -706,6 +819,37 @@ UNION
       const result = await dataSource.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
       this.jsonRes(result, res);
+    }
+
+    async validateFormPolizaSeguro(params: any) {
+      
+      if(!params.TipoSeguroId){
+        throw new ClientException(`Debe completar el campo Tipo de Seguro.`)
+      }
+
+      if(!params.CompaniaSeguroId){
+        throw new ClientException(`Debe completar el campo Compañía.`)
+      }
+
+      if(!params.PolizaSeguroNroPoliza){
+        throw new ClientException(`Debe completar el campo Número de Poliza.`)
+      }
+
+      if(!params.PolizaSeguroNroEndoso){
+        throw new ClientException(`Debe completar el campo Número de Endoso.`)
+      }
+
+      if(!params.PolizaSeguroFechaEndoso){
+        throw new ClientException(`Debe completar el campo Fecha de Endoso.`)
+      }
+
+      if(params.files.length == 0){
+        throw new ClientException(`Debe subir al menos un archivo.`)
+      }
+
+      if(params.files.length > 1){
+        throw new ClientException(`Debe subir un solo archivo.`)
+      }
     }
 
 }

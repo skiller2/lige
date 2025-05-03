@@ -114,9 +114,9 @@ export class PolizaSeguroComponent {
 
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
-    const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
     if (row?.PolizaSeguroCod)
-      this.PolizaSeguroCod.set(row.id)
+      this.PolizaSeguroCod.set(row.PolizaSeguroCod)
 
   }
 
