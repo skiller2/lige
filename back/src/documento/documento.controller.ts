@@ -281,12 +281,13 @@ export class DocumentoController extends BaseController {
       tipo.detalle AS tipo, 
       docg.fecha, docg.fec_doc_ven,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
-      obj.ObjetivoId, TRIM(obj.ObjetivoDescripcion) ObjetivoDescripcion,
+      obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
       FROM lige.dbo.docgeneral AS docg 
       LEFT JOIN lige.dbo.doctipo AS tipo ON docg.doctipo_id = tipo.doctipo_id
       LEFT JOIN Personal AS pers ON docg.persona_id = pers.PersonalId 
-      LEFT JOIN Objetivo AS obj ON docg.objetivo_id = obj.ObjetivoId 
+      LEFT JOIN Objetivo AS obj ON docg.objetivo_id = obj.ObjetivoId
+      JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.periodo = per.periodo_id
       LEFT JOIN lige.dbo.Cliente AS cli ON docg.cliente_id = cli.ClienteId
       WHERE ${filterSql}
@@ -295,11 +296,11 @@ export class DocumentoController extends BaseController {
 
     let list = result.map((obj: any) => {
       obj.cliente = { id: obj.ClienteId, fullname: obj.ClienteDenominacion }
-      obj.objetivo = { id: obj.ObjetivoId, fullname: obj.ObjetivoDescripcion }
+      obj.objetivo = { id: obj.ObjetivoId, fullname: obj.ClienteElementoDependienteDescripcion }
       delete obj.cliente_id
       delete obj.ClienteDenominacion
       delete obj.ObjetivoId
-      delete obj.ObjetivoDescripcion
+      delete obj.ClienteElementoDependienteDescripcion
       return obj
     })
     return list

@@ -316,7 +316,6 @@ export class ObjetivosController extends BaseController {
                 CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
                 cli.ClienteApellidoNombre,
                 ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) Descripcion,                
---                obj.ObjetivoDescripcion AS Descripcion2, --Basura
                 gap.GrupoActividadId,
                 ga.GrupoActividadDetalle,
                  adm.AdministradorApellidoNombre,

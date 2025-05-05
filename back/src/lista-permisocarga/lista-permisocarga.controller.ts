@@ -28,8 +28,8 @@ const columnasGrilla: any[] = [
   {
     name: "Objetivo Descripción",
     type: "string",
-    id: "ObjetivoDescripcion",
-    field: "ObjetivoDescripcion",
+    id: "ClienteElementoDependienteDescripcion",
+    field: "ClienteElementoDependienteDescripcion",
     fieldName: "carg.objetivo_id",
     searchComponent: "inpurForObjetivoSearch",
     hidden: false,
@@ -92,12 +92,13 @@ export class ListaPermisoCargaController extends BaseController {
         `SELECT 
         ROW_NUMBER() OVER (ORDER BY carg.objetivo_id) AS id,
         objetivo_id AS ObjetivoCodigo,
-        obj.ObjetivoDescripcion AS ObjetivoDescripcion,
+        eledep.ClienteElementoDependienteDescripcion,
         per.PersonalApellidoNombre AS PersonaDescripcion ,
         cuit.personalCUITCUILCUIT AS CUIT ,
         aud_fecha_mod AS Fechadeultimamodificación
         FROM lige.dbo.percargadirecta carg
         JOIN Objetivo AS obj ON obj.ObjetivoId = carg.objetivo_id
+        JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         JOIN personal AS per ON per.PersonalId = carg.persona_id
         JOIN personalCUITCUIL AS cuit ON cuit.PersonalId = carg.persona_id where (${filterSql}) `)
 

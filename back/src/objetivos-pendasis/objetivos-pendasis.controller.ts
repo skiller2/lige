@@ -37,9 +37,9 @@ const columnasGrilla: any[] = [
   {
     name: "Descripción Objetivo",
     type: "string",
-    id: "ObjetivoDescripcion",
-    field: "ObjetivoDescripcion",
-    fieldName: "obj.ObjetivoDescripcion",
+    id: "ClienteElementoDependienteDescripcion",
+    field: "ClienteElementoDependienteDescripcion",
+    fieldName: "clidep.ClienteElementoDependienteDescripcion",
     sortable: true,
   },
   {
@@ -141,7 +141,7 @@ export class ObjetivosPendasisController extends BaseController {
     return queryRunner.query(
       `SELECT DISTINCT suc.SucursalId, 
       suc.SucursalDescripcion,
-      obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+      obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, clidep.ClienteElementoDependienteDescripcion,
       
       CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
       CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as id, 

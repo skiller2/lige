@@ -339,8 +339,8 @@ export class LiquidacionesController extends BaseController {
     {
       name: "Objetivo",
       type: "string",
-      id: "ObjetivoDescripcion",
-      field: "ObjetivoDescripcion",
+      id: "ClienteElementoDependienteDescripcion",
+      field: "ClienteElementoDependienteDescripcion",
       fieldName: "li.objetivo_id",
       searchComponent: "inpurForObjetivoSearch",
       searchType: "number",

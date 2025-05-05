@@ -199,7 +199,7 @@ export class ObjetivoController extends BaseController {
       ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
 
-	    ISNULL(clidep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) ObjetivoDescripcion,
+	    clidep.ClienteElementoDependienteDescripcion,
       obj.ObjetivoId, 
       
       obj.ClienteId,

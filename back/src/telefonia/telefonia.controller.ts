@@ -63,8 +63,8 @@ export class TelefoniaController extends BaseController {
     {
       name: "Objetivo",
       type: "string",
-      id: "ObjetivoDescripcion",
-      field: "ObjetivoDescripcion",
+      id: "ClienteElementoDependienteDescripcion",
+      field: "ClienteElementoDependienteDescripcion",
       fieldName: "tel.TelefoniaObjetivoId",
       searchComponent: "inpurForObjetivoSearch",
       searchType: "number",
@@ -116,12 +116,13 @@ export class TelefoniaController extends BaseController {
     fecha.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, obj.ObjetivoDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
+      `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe,
       per.PersonalId
       FROM Telefonia tel 
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
+      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
       
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)

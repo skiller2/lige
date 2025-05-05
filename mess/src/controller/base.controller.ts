@@ -117,7 +117,7 @@ export class BaseController {
       obj.ObjetivoId, 
       obj.ClienteId,
       obj.ClienteElementoDependienteId,
-      obj.ObjetivoDescripcion,
+      clidep.ClienteElementoDependienteDescripcion,
       
       opj.GrupoActividadObjetivoDesde,
       opj.GrupoActividadObjetivoHasta,
@@ -207,7 +207,7 @@ export class BaseController {
       obj.ObjetivoId, 
       obj.ClienteId,
       obj.ClienteElementoDependienteId,
-      obj.ObjetivoDescripcion,
+      clidep.ClienteElementoDependienteDescripcion,
       
       1
       
