@@ -1378,6 +1378,7 @@ export class GrupoActividadController extends BaseController {
         fechaMonth.setDate(fechaCorte.getDate() - 1);
         const anio = fechaMonth.getFullYear()
         const mes = fechaMonth.getMonth() + 1
+        fechaMonth.setHours(0, 0, 0, 0)
 
         try {
             await queryRunner.connect();
