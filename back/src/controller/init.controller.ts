@@ -117,7 +117,7 @@ export class InitController extends BaseController {
         obj.ObjetivoId, 
         obj.ClienteId,
         obj.ClienteElementoDependienteId,
-        obj.ObjetivoDescripcion,
+        eledep.ClienteElementoDependienteDescripcion,
     gru.GrupoActividadObjetivoId,
     gru.GrupoActividadId,
         
@@ -265,7 +265,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         suc.SucursalId, TRIM(suc.SucursalDescripcion) SucursalDescripcion,  
         COUNT (DISTINCT obj.ObjetivoId) CantidadObjetivos, COUNT(DISTINCT obj.ClienteId) CantidadClientes,
         
---        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+--        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, eledep.ClienteElementoDependienteDescripcion,
         
 --	CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
 
@@ -318,7 +318,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         suc.SucursalId, TRIM(suc.SucursalDescripcion) SucursalDescripcion,  
         COUNT (DISTINCT obj.ObjetivoId) CantidadObjetivos, COUNT(DISTINCT obj.ClienteId) CantidadClientes,
         
---        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+--        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, eledep.ClienteElementoDependienteDescripcion,
         
 --	CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
 

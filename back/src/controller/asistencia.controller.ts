@@ -379,7 +379,7 @@ export class AsistenciaController extends BaseController {
 
       await queryRunner.commitTransaction();
 
-      this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
+      this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ClienteElementoDependienteDescripcion}`)
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -591,7 +591,7 @@ export class AsistenciaController extends BaseController {
     suc.SucursalId,
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-      obj.ObjetivoDescripcion,
+      clidep.ClienteElementoDependienteDescripcion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
       1 as last
@@ -1314,7 +1314,7 @@ export class AsistenciaController extends BaseController {
 
       SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
 @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
-CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion)) AS desmovimiento, 
+CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion)) AS desmovimiento, 
 '' AS desmovimiento2, 'OTRO' tipoint,
 cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
 
@@ -1323,6 +1323,7 @@ JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId 
 LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
 JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
 JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
+JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
@@ -1339,7 +1340,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       SELECT CONCAT('tel',con.ConsumoTelefoniaAnoMesTelefonoConsumoId,'-',con.ConsumoTelefoniaAnoMesTelefonoAsignadoId,'-',con.ConsumoTelefoniaAnoMesId,'-',con.ConsumoTelefoniaAnoId) id, gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, IIF(obj.ObjetivoId>0,'C','G') tipocuenta_id,
       cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov,
-      CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion),'')) AS desmovimiento,
+      CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion),'')) AS desmovimiento,
       
       TRIM(tel.TelefoniaNro) AS desmovimiento2, 'TELE' tipoint, 
        con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 ) AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
@@ -1351,7 +1352,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       JOIN Telefonia tel ON tel.TelefoniaId = asi.TelefoniaId
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = asi.TelefonoConsumoFacturarAObjetivoId
-      
+      JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = obj.ObjetivoId 
 		AND coo.ObjetivoPersonalJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
 		AND ISNULL(coo.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
@@ -1811,7 +1812,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
                 CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo,
                 obj.ObjetivoId,
-                obj.ObjetivoDescripcion,
+                eledep.ClienteElementoDependienteDescripcion,
                 art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
                 IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
                 
@@ -1819,6 +1820,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
                 FROM PersonalArt14 art 
                 JOIN Personal per ON per.PersonalId = art.PersonalId
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+                JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
                 LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -1847,7 +1849,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       persona.PersonalId,
       obj.ObjetivoId, 
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-      obj.ObjetivoDescripcion,
+      clidep.ClienteElementoDependienteDescripcion,
 
 --      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 --      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,

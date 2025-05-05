@@ -9,7 +9,7 @@ export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
     try {
       const result: ObjetivoInfo[] = await dataSource.query(
-        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, obj.ObjetivoDescripcion descripcion, 
+        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, ele.ClienteElementoDependienteDescripcion descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
         JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -29,7 +29,7 @@ export class ObjetivoController extends BaseController {
     return queryRunner
       .query(
         `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
-     obj.ObjetivoDescripcion,
+     eledep.ClienteElementoDependienteDescripcion,
     ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId,
   eledepcon.ClienteElementoDependienteContratoFechaDesde ContratoFechaDesde,
   eledepcon.ClienteElementoDependienteContratoFechaHasta ContratoFechaHasta,
@@ -142,7 +142,7 @@ export class ObjetivoController extends BaseController {
         obj.ObjetivoId, 
         obj.ClienteId,
         obj.ClienteElementoDependienteId,
-        obj.ObjetivoDescripcion,
+        eledep.ClienteElementoDependienteDescripcion,
         ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
 		  CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombreCoordinador,
@@ -198,7 +198,7 @@ export class ObjetivoController extends BaseController {
       ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
 
-      obj.ObjetivoDescripcion, 
+      clidep.ClienteElementoDependienteDescripcion, 
       obj.ObjetivoId, 
       
       obj.ClienteId,

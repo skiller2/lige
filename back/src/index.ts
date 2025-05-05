@@ -57,8 +57,8 @@ scheduleJob('1 0 * * *', async function (fireDate) {
 scheduleJob('0 0 1 * *', async function (fireDate) {
   //TODO Se debería instanciar Response correctamente
 
-  const ret = await grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  //const ret = await grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)
+  //console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
 scheduleJob('1 0 * * *', async function (fireDate) {
