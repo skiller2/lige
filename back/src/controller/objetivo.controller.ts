@@ -9,7 +9,8 @@ export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
     try {
       const result: ObjetivoInfo[] = await dataSource.query(
-        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, ele.ClienteElementoDependienteDescripcion descripcion, 
+        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId,
+        ISNULL(ele.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
         JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -25,7 +26,7 @@ export class ObjetivoController extends BaseController {
   }
 
   static async getObjetivoContratos(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
-    const buscaObjetivo =  (objetivoId!=0) ? ' AND obj.ObjetivoId=@0':''
+    const buscaObjetivo = (objetivoId != 0) ? ' AND obj.ObjetivoId=@0' : ''
     return queryRunner
       .query(
         `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
@@ -198,7 +199,7 @@ export class ObjetivoController extends BaseController {
       ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
 
-      clidep.ClienteElementoDependienteDescripcion, 
+	    ISNULL(clidep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) ObjetivoDescripcion,
       obj.ObjetivoId, 
       
       obj.ClienteId,
@@ -230,7 +231,7 @@ WHERE  `;
           const valueArray: Array<string> = value.split(/[\s,.-]+/);
           valueArray.forEach((element, index) => {
             if (element.trim().length > 1) {
-              query += ` obj.ObjetivoDescripcion LIKE '%${element.trim()}%' AND `;
+              query += `ISNULL(clidep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) LIKE '%${element.trim()}%' AND `;
               buscar = true;
             }
           });
