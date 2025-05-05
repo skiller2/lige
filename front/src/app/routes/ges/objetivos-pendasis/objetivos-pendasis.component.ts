@@ -76,7 +76,7 @@ export class ObjetivosPendAsisComponent {
   tableLoading$ = new BehaviorSubject(false);
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
-    cols[3].asyncPostRender= this.renderAngularComponent.bind(this)
+    cols[4].asyncPostRender= this.renderAngularComponent.bind(this)
 
     return cols
   }));

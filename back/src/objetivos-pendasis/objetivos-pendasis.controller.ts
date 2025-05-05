@@ -7,7 +7,7 @@ import { ObjetivoController } from "src/controller/objetivo.controller";
 const columnasGrilla: any[] = [
   {
     id: "SucursalDescripcion",
-    name: "Descripción Sucursal",
+    name: "Sucursal",
     field: "SucursalDescripcion",
     fieldName: "suc.SucursalDescripcion",
     type: "string",
@@ -35,11 +35,19 @@ const columnasGrilla: any[] = [
     hidden: true
   },
   {
+    name: "Cliente",
+    type: "string",
+    id: "ClienteDenominacion",
+    field: "ClienteDenominacion",
+    fieldName: "cli.ClienteDenominacion",
+    sortable: true,
+  },
+  {
     name: "Descripción Objetivo",
     type: "string",
     id: "ClienteElementoDependienteDescripcion",
     field: "ClienteElementoDependienteDescripcion",
-    fieldName: "clidep.ClienteElementoDependienteDescripcion",
+    fieldName: "eledep.ClienteElementoDependienteDescripcion",
     sortable: true,
   },
   {
@@ -141,8 +149,8 @@ export class ObjetivosPendasisController extends BaseController {
     return queryRunner.query(
       `SELECT DISTINCT suc.SucursalId, 
       suc.SucursalDescripcion,
-      obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, clidep.ClienteElementoDependienteDescripcion,
-      
+      obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+      cli.ClienteDenominacion, eledep.ClienteElementoDependienteDescripcion,
       CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
       CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as id, 
       
