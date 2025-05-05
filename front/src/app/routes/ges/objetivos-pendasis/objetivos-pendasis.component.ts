@@ -146,7 +146,7 @@ export class ObjetivosPendAsisComponent {
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     switch (colDef.id) {
-      case 'ObjetivoDescripcion':
+      case 'ClienteElementoDependienteDescripcion':
         Object.assign(componentOutput.componentRef.instance, { link: '/ges/carga_asistencia', params: {ObjetivoId:dataContext.ObjetivoId}, detail:cellNode.innerText
        })
         

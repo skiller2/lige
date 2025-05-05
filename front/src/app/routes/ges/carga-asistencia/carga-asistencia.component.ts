@@ -99,11 +99,11 @@ export class CargaAsistenciaComponent {
             map((data: any[]) => {
                 // console.log('DATA',data);
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
-                this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ObjetivoDescripcion}`
+                this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
                 this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
                 [{ value: `Mes: ${mes}` }],
                 [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
-                [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
+                [{ value: `Objetivo: ${data[2][0]?.ClienteElementoDependienteDescripcion}` }],
                 [{ value: `Grupo: ${data[0][0]?.detalle}` }],
                 []]
                 

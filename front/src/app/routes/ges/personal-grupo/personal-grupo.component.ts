@@ -64,7 +64,7 @@ export class PersonalGrupoComponent {
         })
 
         break;
-      case 'ObjetivoDescripcion':
+      case 'ClienteElementoDependienteDescripcion':
         Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: { ObjetivoId: dataContext.objetivo_id }, detail: cellNode.innerText })
 
         break;

@@ -509,18 +509,19 @@ export class GestionDescuentosController extends BaseController {
       , @0 AS anio
       , @1 AS mes
       , det.DescuentoDescripcion AS tipomov
-      , CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', obj.ObjetivoDescripcion)) AS desmovimiento
+      , CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', eledep.ClienteElementoDependienteDescripcion)) AS desmovimiento
       , 'OTRO' tipoint
       , cuo.ObjetivoDescuentoCuotaImporte AS importe
       , cuo.ObjetivoDescuentoCuotaCuota AS cuotanro
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
       , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
-      , obj.ObjetivoDescripcion
+      , eledep.ClienteElementoDependienteDescripcion
       FROM ObjetivoDescuentoCuota cuo 
       JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
       LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@0,@1,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
       JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
+      JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
@@ -545,11 +546,11 @@ export class GestionDescuentosController extends BaseController {
       const lista: any[] = await this.getDescuentosObjetivosQuery(queryRunner, filterSql, orderBy, anio, mes)
       for (const descuento of lista) {
         descuento.personal = { id:descuento.PersonalId, fullName:descuento.ApellidoNombre }
-        descuento.objetivo = { id:descuento.ObjetivoId, descripcion:descuento.ObjetivoDescripcion }
+        descuento.objetivo = { id:descuento.ObjetivoId, descripcion:descuento.ClienteElementoDependienteDescripcion }
         delete descuento.PersonalId;
         delete descuento.ApellidoNombre;
         delete descuento.ObjetivoId;
-        delete descuento.ObjetivoDescripcion;
+        delete descuento.ClienteElementoDependienteDescripcion;
       }
       // console.log('-----------------------------');
       // console.log('lista:', lista.length);
@@ -902,12 +903,13 @@ export class GestionDescuentosController extends BaseController {
       objdes.ObjetivoDescuentoCantidadCuotas,
       objdes.ObjetivoDescuentoCuotasPagas,
       objdes.ObjetivoDescuentoImporteVariable,
-      TRIM(obj.ObjetivoDescripcion) AS ObjetivoDescripcion,
+      TRIM(eledep.ClienteElementoDependienteDescripcion) AS ClienteElementoDependienteDescripcion,
       ISNULL(objdes.ObjetivoDescuentoCuotaUltNro, 0) AS ObjetivoDescuentoCuotaUltNro,
       ROUND(objdes.ObjetivoDescuentoImporteVariable / objdes.ObjetivoDescuentoCantidadCuotas, 2) AS ObjetivoDescuentoCuotaImporte,
       fin.ObjetivoDescuentoCuotaFinalizado
       FROM ObjetivoDescuento objdes
       JOIN Objetivo obj ON obj.ObjetivoId = objdes.ObjetivoId
+      JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN (SELECT DISTINCT odc.ObjetivoId, odc.ObjetivoDescuentoId, odc.ObjetivoDescuentoCuotaFinalizado FROM ObjetivoDescuentoCuota odc WHERE odc.ObjetivoDescuentoCuotaFinalizado = 1 AND odc.ObjetivoDescuentoCuotaAno*100+odc.ObjetivoDescuentoCuotaMes <= @1*100+@2) fin ON fin.ObjetivoId = objdes.ObjetivoId AND fin.ObjetivoDescuentoId = objdes.ObjetivoDescuentoId
       LEFT JOIN ObjetivoDescuentoCuota odcx ON odcx.ObjetivoId = objdes.ObjetivoId AND odcx.ObjetivoDescuentoId = objdes.ObjetivoDescuentoId AND odcx.ObjetivoDescuentoCuotaAno = @1 AND odcx.ObjetivoDescuentoCuotaMes =@2
 		
@@ -927,7 +929,7 @@ export class GestionDescuentosController extends BaseController {
     const anio:number = descuento.anio
     const mes:number = descuento.mes
     const importeCuota:number = descuento.importeCuota
-    const objDescripcion:string = descuento.ObjetivoDescripcion
+    const objDescripcion:string = descuento.ClienteElementoDependienteDescripcion
     const finalizado:boolean = descuento.ObjetivoDescuentoCuotaFinalizado
     let ultCuota:number = descuento.ObjetivoDescuentoCuotaUltNro
     if (objetivoDescuentoCuotaId && !finalizado) {

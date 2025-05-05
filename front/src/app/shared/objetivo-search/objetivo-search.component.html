@@ -3,7 +3,7 @@
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.ObjetivoId"
-      nzLabel="{{ option.ClienteId }}/{{option.ClienteElementoDependienteId ?? '0' }} {{ option.ObjetivoDescripcion }} ({{option.ObjetivoId}})" />
+      nzLabel="{{ option.ClienteId }}/{{option.ClienteElementoDependienteId ?? '0' }} {{ option.ClienteElementoDependienteDescripcion }} ({{option.ObjetivoId}})" />
   </ng-container>
   <nz-option *ngIf="extendedOption.objetivoId >0 " [nzValue]="extendedOption.objetivoId"
     [nzLabel]="extendedOption.fullName" />

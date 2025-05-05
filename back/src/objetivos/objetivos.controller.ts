@@ -1404,14 +1404,14 @@ export class ObjetivosController extends BaseController {
         await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteDomicilioUltNro=@2  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId, ClienteElementoDependienteDomicilioId])
     }
 
-    async insertObjetivoSql(queryRunner: any, ClienteId: number, ObjetivoDescripcion: any, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
+    async insertObjetivoSql(queryRunner: any, ClienteId: number, ClienteElementoDependienteDescripcion: string, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
 
         return await queryRunner.query(`INSERT INTO Objetivo (
             ClienteId,
             ObjetivoDescripcion,
             ClienteElementoDependienteId,
             ObjetivoSucursalUltNro) VALUES (@0,@1,@2,@3)`,
-            [ClienteId, ObjetivoDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
+            [ClienteId, ClienteElementoDependienteDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
     }
 
     async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, ClienteElementoDependienteDomicilioUltNro: any) {

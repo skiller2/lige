@@ -38,7 +38,7 @@ export interface Objetivo {
   PersonalId: number;
   PersonalApellido: string;
   PersonalNombre: string;
-  ObjetivoDescripcion: string;
+  ClienteElementoDependienteDescripcion: string;
   ObjetivoId: number;
   ClienteId: number;
   ClienteElementoDependienteId: number | null;
