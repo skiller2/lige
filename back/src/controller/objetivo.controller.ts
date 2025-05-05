@@ -10,7 +10,7 @@ export class ObjetivoController extends BaseController {
     try {
       const result: ObjetivoInfo[] = await dataSource.query(
         `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId,
-        ISNULL(ele.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) descripcion, 
+        ISNULL(ele.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
         JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -231,7 +231,7 @@ WHERE  `;
           const valueArray: Array<string> = value.split(/[\s,.-]+/);
           valueArray.forEach((element, index) => {
             if (element.trim().length > 1) {
-              query += `ISNULL(clidep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) LIKE '%${element.trim()}%' AND `;
+              query += `ISNULL(clidep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) LIKE '%${element.trim()}%' AND `;
               buscar = true;
             }
           });

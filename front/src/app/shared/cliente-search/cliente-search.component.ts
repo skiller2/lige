@@ -93,7 +93,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
         this.searchService
           .getClientFromName('ClienteId', this._selectedId)
           .pipe(tap(res => {
-            this.extendedOption = { ClienteId: res[0].ClienteId, fullName: res[0].ClienteApellidoNombre }
+            this.extendedOption = { ClienteId: res[0].ClienteId, fullName: res[0].ClienteDenominacion }
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
             if (this.tmpInputVal != this._selected) {
@@ -148,7 +148,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
     debounceTime(500),
      switchMap(value =>
        this.searchService
-        .getClientFromName(Number(value) ? 'ClienteId' : 'ClienteApellidoNombre', value)
+        .getClientFromName(Number(value) ? 'ClienteId' : 'ClienteDenominacion', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })

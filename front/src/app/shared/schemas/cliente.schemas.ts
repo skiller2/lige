@@ -1,7 +1,7 @@
 
 export interface SearchClient {
     ClienteId: number,
-    ClienteApellidoNombre: string
+    ClienteDenominacion: string
 }
 
 export interface ResponseBySearchCliente {

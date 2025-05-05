@@ -116,7 +116,7 @@ export class ObjetivosComponent {
       this.editClienteId.set(row.ClienteId)
       this.editClienteElementoDependienteId.set(row.ClienteElementoDependienteId)
       //
-      this.ObjetivoNombre.set(`${row.ClienteApellidoNombre} - ${row.Descripcion}`)
+      this.ObjetivoNombre.set(`${row.ClienteDenominacion} - ${row.Descripcion}`)
     }
     
 

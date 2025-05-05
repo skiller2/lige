@@ -10,14 +10,14 @@ export class ClienteController extends BaseController {
   search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
-    let query: string = `SELECT ClienteId,ClienteApellidoNombre  FROM cliente WHERE`;
+    let query: string = `SELECT ClienteId,ClienteDenominacion  FROM cliente WHERE`;
     switch (fieldName) {
-      case "ClienteApellidoNombre":
+      case "ClienteDenominacion":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-//            query += `(ClienteApellidoNombre LIKE '%${element.trim()}%') AND `;
-            query += `(CONCAT(ClienteNombreFantasia, ClienteApellidoNombre) LIKE '%${element.trim()}%') AND `;
+//            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
+            query += `(CONCAT(ClienteNombreFantasia, ClienteDenominacion) LIKE '%${element.trim()}%') AND `;
             buscar = true;
           }
         });
@@ -64,7 +64,7 @@ export class ClienteController extends BaseController {
       await queryRunner.startTransaction()
       for (const id of clientesIds) {
         let info = await queryRunner.query(`
-          SELECT cli.ClienteId AS ClienteId, TRIM(cli.ClienteApellidoNombre) AS ApellidoNombre, fac.ClienteFacturacionCUIT AS CUIT,
+          SELECT cli.ClienteId AS ClienteId, TRIM(cli.ClienteDenominacion) AS ClienteDenominacion, fac.ClienteFacturacionCUIT AS CUIT,
           CONCAT_WS(' ', TRIM(domcli.ClienteDomicilioDomCalle), TRIM(domcli.ClienteDomicilioDomNro), TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
           FROM Cliente cli
           LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 

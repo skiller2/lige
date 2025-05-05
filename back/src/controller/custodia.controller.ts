@@ -431,7 +431,7 @@ export class CustodiaController extends BaseController {
         diascorrimiento = diascorrimiento * -1
         const queryRunner = dataSource.createQueryRunner();
         return queryRunner.query(`SELECT obj.objetivo_custodia_id, obj.responsable_id, obj.cliente_id, obj.fecha_inicio,
-            obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) ClienteApellidoNombre,
+            obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteDenominacion) ClienteDenominacion,
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ResponsableDetalle, obj.impo_facturar,
             obj.fecha_liquidacion,1, DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) fecha_limite
             FROM lige.dbo.objetivocustodia obj
@@ -546,7 +546,7 @@ export class CustodiaController extends BaseController {
         return await queryRunner.query(`
             SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId,
             obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
-            obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente,
+            obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteDenominacion) cliente,
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
             obj.desc_facturacion, obj.fecha_liquidacion,
             obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos,

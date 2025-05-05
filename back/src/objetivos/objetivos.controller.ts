@@ -59,9 +59,9 @@ const listaColumnas: any[] = [
     {
         name: "Razón Social",
         type: "string",
-        id: "ClienteApellidoNombre",
-        field: "ClienteApellidoNombre",
-        fieldName: "cli.ClienteApellidoNombre",
+        id: "ClienteDenominacion",
+        field: "ClienteDenominacion",
+        fieldName: "cli.ClienteDenominacion",
         searchType: "string",
         sortable: true,
 
@@ -314,8 +314,8 @@ export class ObjetivosController extends BaseController {
                 obj.ClienteId,
                 obj.ClienteElementoDependienteId,
                 CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
-                cli.ClienteApellidoNombre,
-                ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) Descripcion,                
+                cli.ClienteDenominacion,
+                ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) Descripcion,                
                 gap.GrupoActividadId,
                 ga.GrupoActividadDetalle,
                  adm.AdministradorApellidoNombre,
@@ -540,7 +540,7 @@ export class ObjetivosController extends BaseController {
                 ,obj.ClienteId
                 ,obj.ClienteElementoDependienteId
                 ,eledep.ClienteElementoDependienteRubroUltNro as RubroUltNro
-                ,ISNULL(TRIM(eledep.ClienteElementoDependienteDescripcion), TRIM(cli.ClienteApellidoNombre)) AS Descripcion
+                ,CONCAT(TRIM(cli.ClienteDenominacion),' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
                 ,eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde
@@ -576,7 +576,7 @@ export class ObjetivosController extends BaseController {
             return await queryRunner.query(`
                 SELECT cli.ClienteId AS id
                 ,cli.ClienteId
-                ,TRIM(cli.ClienteApellidoNombre) AS Descripcion 
+                ,TRIM(cli.ClienteDenominacion) AS Descripcion 
                 ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
                 ,cli.ClienteRubroUltNro as RubroUltNro
                 ,cli.ClienteAdministradorUltNro
