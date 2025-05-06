@@ -12,7 +12,8 @@ const columnasGrilla: any[] = [
     fieldName: "suc.SucursalDescripcion",
     type: "string",
     sortable: true,
-    hidden: false
+    hidden: false,
+    maxWidth: 150,
   },
   {
     name: "Sucursal",
@@ -20,10 +21,10 @@ const columnasGrilla: any[] = [
     id: "SucursalId",
     field: "SucursalId",
     fieldName: "suc.SucursalId",
-    searchComponent:"inpurForSucursalSearch",
+    searchComponent: "inpurForSucursalSearch",
 
     hidden: true,
-    searchHidden:false
+    searchHidden: false
   },
   {
     name: "Identificación Objetivo",
@@ -57,7 +58,7 @@ const columnasGrilla: any[] = [
     field: "codObjetivo",
     fieldName: "CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0))",
     sortable: true,
-    maxWidth:55
+    maxWidth: 65,
   },
   {
     name: "Grupo Objetivo",
@@ -70,7 +71,7 @@ const columnasGrilla: any[] = [
     hidden: false,
   },
   {
-    name: "Grupo Objetivo ",
+    name: "Grupo Objetivo",
     type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
@@ -81,13 +82,14 @@ const columnasGrilla: any[] = [
     hidden: true,
   },
   {
-     name: "Grupo Código",
-     type: "string",
-     id: "GrupoActividadNumero",
-     field: "GrupoActividadNumero",
-     fieldName: "ga.GrupoActividadNumero",
-     sortable: true,
-     hidden: false
+    name: "Grupo Código",
+    type: "string",
+    id: "GrupoActividadNumero",
+    field: "GrupoActividadNumero",
+    fieldName: "ga.GrupoActividadNumero",
+    sortable: true,
+    hidden: false,
+    maxWidth: 65,
   },
 
   {
@@ -97,7 +99,8 @@ const columnasGrilla: any[] = [
     field: "AsistenciaHoras",
     fieldName: "AsistenciaHoras",
     sortable: true,
-    hidden: false
+    hidden: false,
+    maxWidth: 80,
   },
   /*
   {
@@ -133,16 +136,16 @@ export class ObjetivosPendasisController extends BaseController {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
 
-    const filterPendientes = (options.extra && options.extra.todos) ? '':' (obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND '
+    const filterPendientes = (options.extra && options.extra.todos) ? '' : ' (obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND '
 
-    const anio:number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
-    const mes:number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
+    const anio: number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
+    const mes: number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
 
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
 
     const objetivos = await ObjetivoController.getObjetivoContratos(0, anio, mes, queryRunner)
-    let arrObjetivos = [] 
+    let arrObjetivos = []
     for (const objetivo of objetivos)
       arrObjetivos.push(objetivo.ObjetivoId)
 
@@ -266,7 +269,7 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
 
      AND (${filterSql})
       `,
-      [,anio,mes])
+      [, anio, mes])
 
   }
 
@@ -275,7 +278,7 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
   async getObjetivosPendAsis(
     req: any,
     res: Response,
-    next:NextFunction
+    next: NextFunction
   ) {
     const options = getOptionsFromRequest(req);
     try {
