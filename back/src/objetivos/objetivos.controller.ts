@@ -540,7 +540,7 @@ export class ObjetivosController extends BaseController {
                 ,obj.ClienteId
                 ,obj.ClienteElementoDependienteId
                 ,eledep.ClienteElementoDependienteRubroUltNro as RubroUltNro
-                ,CONCAT(TRIM(cli.ClienteDenominacion),' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Descripcion
+                ,TRIM(eledep.ClienteElementoDependienteDescripcion) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
                 ,eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde
