@@ -32,7 +32,7 @@
         <nz-form-label [nzSpan]="5">Nro de Póliza</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <input nz-input formControlName="PolizaSeguroNroPoliza" placeholder="Ingrese número de póliza" />
+            <input nz-input formControlName="PolizaSeguroNroPoliza" placeholder="Ingrese número de póliza" [disabled]="true"/>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -41,7 +41,7 @@
         <nz-form-label [nzSpan]="5">Nro de Endoso</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <input nz-input formControlName="PolizaSeguroNroEndoso" placeholder="Ingrese número de endoso"  />
+            <input nz-input formControlName="PolizaSeguroNroEndoso" placeholder="Ingrese número de endoso" [disabled]="true"  />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>

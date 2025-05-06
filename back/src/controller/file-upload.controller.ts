@@ -807,6 +807,7 @@ export class FileUploadController extends BaseController {
     }
 
     return detalle_documento
+
   }
 
 }

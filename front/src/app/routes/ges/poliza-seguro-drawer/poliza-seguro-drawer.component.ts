@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { NzInputModule } from 'ng-zorro-antd/input';
 
 
+
 interface ArchivoConDatos {
   dataInFile: {
     poliza: string;
@@ -96,6 +97,11 @@ export class PolizaSeguroDrawerComponent {
   }
 
   ngOnInit(){
+    
+    this.formCli.get('PolizaSeguroNroPoliza')?.disable()
+    this.formCli.get('PolizaSeguroNroEndoso')?.disable()
+    this.formCli.get('PolizaSeguroFechaEndoso')?.disable()
+
     //this.formCli.valueChanges.subscribe(value => {
     //  console.log("value.files", value.files)
     //  if (value.files && (value.files as ArchivoConDatos[]).length > 0) {

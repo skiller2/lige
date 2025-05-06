@@ -684,10 +684,12 @@ UNION
       PolizaSeguroNroPoliza,
       PolizaSeguroNroEndoso,
       PolizaSeguroFechaEndoso,
+      files
 
     } = req.body
 
     let result = []
+
 
     console.log("req.body", req.body)
     
@@ -703,8 +705,28 @@ UNION
 
     try {
 
-      await this.validateFormPolizaSeguro(req.body)
+      //await this.validateFormPolizaSeguro(req.body)
 
+      //#Crear validacion para periodo
+
+      const detalle_documento = await FileUploadController.FileData(files[0].tempfilename)
+   
+      const dni = detalle_documento.match(/\b(\d{1,2}(?:\.\d{3}){2})\b/gi)
+
+      const polizaEndoso = detalle_documento.match(/\b(\d{9})\/(\d{6})\b/i)
+  
+      if (!dni || !polizaEndoso) {
+        throw new ClientException(`Error al procesar el Documento.`)
+      }
+
+      console.log("poliza", polizaEndoso[1])
+      console.log("endoso", polizaEndoso[2])
+      console.log("dni", dni)
+      
+      
+
+      //console.log("detalle_documento", detalle_documento)
+      throw new ClientException(`test.`)
       if (PolizaSeguroCod > 0) {
         // is edit
       console.log("is edit")
@@ -832,18 +854,6 @@ UNION
 
       if(!params.CompaniaSeguroId){
         throw new ClientException(`Debe completar el campo Compañía.`)
-      }
-
-      if(!params.PolizaSeguroNroPoliza){
-        throw new ClientException(`Debe completar el campo Número de Poliza.`)
-      }
-
-      if(!params.PolizaSeguroNroEndoso){
-        throw new ClientException(`Debe completar el campo Número de Endoso.`)
-      }
-
-      if(!params.PolizaSeguroFechaEndoso){
-        throw new ClientException(`Debe completar el campo Fecha de Endoso.`)
       }
 
       if(params.files.length == 0){
