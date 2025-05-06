@@ -49,9 +49,8 @@
       <div class="containerAnteriores" >
 
         @if(isDisabled()==false){
-        <span nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"
-          (nzOnConfirm)="confirmUpdateArchivo(filesAdd)" nzPopconfirmPlacement="top" nz-button
-          nzType="primary" nzDanger nz-icon nzType="swap" nzTheme="outline" class="swap-color cursor-pointer"></span>
+        <span (click)="confirmUpdateArchivo(filesAdd)" nz-button
+          nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="swap-trash cursor-pointer"></span>
         }
         @if (filesAdd.mimetype.includes('image') && previewFile()) {
         <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.tempfilename}}/temp/original"

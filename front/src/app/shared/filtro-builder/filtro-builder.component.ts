@@ -92,6 +92,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsGrupoActividad = this.searchService.getTipo();
   $optionsCurso = this.searchService.getCursoSearch();
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
+  $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
   $optionsCentroCapacitacion = this.searchService.getCentroCapacitacionSearch()
   isFiltroBuilder = false;
 
@@ -393,6 +394,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.value = val 
       const res = await firstValueFrom(this.searchService.getCompaniaSeguroId(val))
       this.selections.label = res[0].CompaniaSeguroDescripcion
+    }
+  }
+
+  async selectedValueTipoSeguro(val: any) {
+
+    if (val) {
+      this.selections.value = val 
+      const res = await firstValueFrom(this.searchService.getTipoSeguroId(val))
+      this.selections.label = res[0].TipoSeguroNombre
     }
   }
 

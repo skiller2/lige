@@ -1,6 +1,6 @@
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
-import { NextFunction, Request, Response, query } from "express";
+import { NextFunction, Request, Response, query, text } from "express";
 import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import * as fs from 'fs';
@@ -13,12 +13,11 @@ import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
-
+import { fileUploadController } from "./controller.module";
 
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
-
 
 export class FileUploadController extends BaseController {
   pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
@@ -341,15 +340,7 @@ export class FileUploadController extends BaseController {
           const type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') {
-            const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`)
-            const document = await loadingTask.promise;//Error
-            for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
-              const page = await document.getPage(pagenum);
-              const textContent = await page.getTextContent();
-              textContent.items.forEach((item: TextItem) => {
-                detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
-              });
-            }
+            detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
         
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
@@ -802,5 +793,21 @@ export class FileUploadController extends BaseController {
     return 'C:/temp/test.png'
   }
 
+  static async FileData(tempfilename:any){
+
+    let detalle_documento = ''
+    const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${tempfilename}`)
+    const document = await loadingTask.promise;//Error
+    for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+      const page = await document.getPage(pagenum);
+      const textContent = await page.getTextContent();
+      textContent.items.forEach((item: TextItem) => {
+        detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
+      });
+    }
+
+    return detalle_documento
+  }
 
 }
+

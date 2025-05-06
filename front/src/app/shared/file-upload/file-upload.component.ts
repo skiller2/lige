@@ -81,6 +81,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
 
+ 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       if (changes['textForSearch']) {
@@ -167,10 +168,6 @@ export class FileUploadComponent implements ControlValueAccessor {
         const Response = event.file.response
 
         if(file){
-
-          if(false){
-
-          }
           this.files.set(this.files().map(item => {
             if (item.id === file.id) {
               return { 
@@ -196,11 +193,14 @@ export class FileUploadComponent implements ControlValueAccessor {
           Response.data[0].nombre_archivo = ""
           Response.data[0].TipoArchivo = "pdf"
           this.files.set([...this.files(), Response.data[0]])
+
         }
+
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
         // this.valueExtendedEmitter
         this.propagateChange(this.files())
+
 
         break
       default:
