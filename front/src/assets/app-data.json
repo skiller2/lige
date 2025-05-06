@@ -32,12 +32,12 @@
           ]
         },
         {
-          "text": "Descuentos",
+          "text": "Descuentos #",
           "link": "/dto/descuentos",
           "icon": "anticon-profile"
         },
         {
-          "text": "Documentos",
+          "text": "Documentos #",
           "link": "/ges/documento",
           "icon": "anticon-profile"
         },
@@ -78,12 +78,12 @@
               "link": "/ges/acceso-bot"
             },
             {
-              "text": "Seguro",
+              "text": "Seguro #",
               "icon": "anticon-profile",
               "link": "/ges/seguro"
             },
             {
-              "text": "Estudios",
+              "text": "Estudios #",
               "link": "/ges/estudios",
               "icon": "anticon-profile"
             }
