@@ -68,21 +68,6 @@ export class PolizaSeguroDrawerComponent {
     })
   }
 
-
-  dataFile(dataInFile: any) {
-
-       console.log("files", this.formCli.value.files)
-
-      if (this.formCli.value.files && (this.formCli.value.files as ArchivoConDatos[]).length > 0) {
-      this.formCli.patchValue({
-        PolizaSeguroNroPoliza: (this.formCli.value.files as ArchivoConDatos[])[0].dataInFile.poliza,  
-        PolizaSeguroNroEndoso: (this.formCli.value.files as ArchivoConDatos[])[0].dataInFile.endoso,
-        PolizaSeguroFechaEndoso: (this.formCli.value.files as ArchivoConDatos[])[0].dataInFile.fechaInicio
-     })
-    }
-
-  }
-
   async save() {
     this.isSaving.set(true)
     let vals = this.formCli.value

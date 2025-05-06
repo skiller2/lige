@@ -13,6 +13,7 @@ import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
+import { fileUploadController } from "./controller.module";
 
 
 const stat = promisify(fs.stat);
@@ -339,15 +340,7 @@ export class FileUploadController extends BaseController {
           const type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') {
-            const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`)
-            const document = await loadingTask.promise;//Error
-            for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
-              const page = await document.getPage(pagenum);
-              const textContent = await page.getTextContent();
-              textContent.items.forEach((item: TextItem) => {
-                detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
-              });
-            }
+            detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
         
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
@@ -800,38 +793,21 @@ export class FileUploadController extends BaseController {
     return 'C:/temp/test.png'
   }
 
-  async getPolizaSeguroFileData(req, res, next) {
+  static async FileData(tempfilename:any){
 
+    let detalle_documento = ''
+    const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${tempfilename}`)
+    const document = await loadingTask.promise;//Error
+    for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+      const page = await document.getPage(pagenum);
+      const textContent = await page.getTextContent();
+      textContent.items.forEach((item: TextItem) => {
+        detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
+      });
+    }
 
-     const tempfilename = req.params.tempfilename;
-     const filePath = path.join(this.tempFolderPath, tempfilename);
-
-     try {
-
-      const fileBuffer = fs.readFileSync(filePath);
-      const pdfDoc = await getDocument({ data: new Uint8Array(fileBuffer) }).promise;
-
-       //console.log('pdfDoc', pdfDoc);
-       const page = await pdfDoc.getPage(1);
-       const textContent = await page.getTextContent();
-       const strArray = textContent.items
-      .filter((item): item is TextItem => 'str' in item && item.str.trim() !== '')
-      .map((item) => item.str.trim());
-
-       const data = {
-         seccion: strArray[0],
-         poliza: strArray[1],
-         endoso: strArray[2],
-         fechaInicio: strArray[3],
-         fechaFin: strArray[4]
-       };
-
-       
-
-       return this.jsonRes(data , res);
-     } catch (error) {
-       return this.jsonRes({ error: 'Error al procesar el archivo PDF' }, res);
-     }
+    return detalle_documento
   }
+
 }
 
