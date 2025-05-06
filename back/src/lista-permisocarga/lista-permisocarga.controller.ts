@@ -98,7 +98,7 @@ export class ListaPermisoCargaController extends BaseController {
         aud_fecha_mod AS Fechadeultimamodificación
         FROM lige.dbo.percargadirecta carg
         JOIN Objetivo AS obj ON obj.ObjetivoId = carg.objetivo_id
-        JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+        JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         JOIN personal AS per ON per.PersonalId = carg.persona_id
         JOIN personalCUITCUIL AS cuit ON cuit.PersonalId = carg.persona_id where (${filterSql}) `)
 

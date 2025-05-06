@@ -47,7 +47,7 @@ export interface Objetivo {
 export interface ObjetivoInfo {
   objetivoId: number;
   clienteId: number;
-  elementoDependienteId: number;
+  ClienteElementoDependienteId: number;
   descripcion: string;
 }
 

@@ -498,7 +498,7 @@ export class GrupoActividadController extends BaseController {
                     FROM GrupoActividadObjetivo gaobj
                     INNER JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
                     INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoObjetivoId
-                    JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+                    JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
 
                 WHERE ${filterSql} ORDER BY eledep.ClienteElementoDependienteDescripcion`
             );

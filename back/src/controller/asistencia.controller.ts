@@ -1324,7 +1324,7 @@ JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId 
 LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
 JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
 JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
-JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
@@ -1353,7 +1353,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       JOIN Telefonia tel ON tel.TelefoniaId = asi.TelefoniaId
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = asi.TelefonoConsumoFacturarAObjetivoId
-      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = obj.ObjetivoId 
 		AND coo.ObjetivoPersonalJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
 		AND ISNULL(coo.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
@@ -1821,7 +1821,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
                 FROM PersonalArt14 art 
                 JOIN Personal per ON per.PersonalId = art.PersonalId
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
-                JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+                JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
                 LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 

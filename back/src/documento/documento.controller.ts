@@ -287,7 +287,7 @@ export class DocumentoController extends BaseController {
       LEFT JOIN lige.dbo.doctipo AS tipo ON docg.doctipo_id = tipo.doctipo_id
       LEFT JOIN Personal AS pers ON docg.persona_id = pers.PersonalId 
       LEFT JOIN Objetivo AS obj ON docg.objetivo_id = obj.ObjetivoId
-      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
+      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.periodo = per.periodo_id
       LEFT JOIN lige.dbo.Cliente AS cli ON docg.cliente_id = cli.ClienteId
       WHERE ${filterSql}

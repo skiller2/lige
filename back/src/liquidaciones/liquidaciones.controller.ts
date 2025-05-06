@@ -449,7 +449,7 @@ export class LiquidacionesController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pers.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pers.PersonalId) 
         LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId=li.tipo_asociado_id AND cat.CategoriaPersonalId =li.categoria_personal_id
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         LEFT JOIN lige.dbo.objetivocustodia AS cus ON cus.objetivo_custodia_id = li.custodia_id
         LEFT JOIN Cliente AS cli ON cli.ClienteId = cus.cliente_id
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 

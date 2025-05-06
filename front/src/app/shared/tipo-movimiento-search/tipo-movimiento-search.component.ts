@@ -133,7 +133,7 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    // this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
+    // this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
     // this.$searchChange.next(value);
   }
 
