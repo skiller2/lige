@@ -2,7 +2,7 @@
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Nombre Cliente"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.ClienteId" [nzLabel]="option.ClienteApellidoNombre" />
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.ClienteId" [nzLabel]="option.ClienteDenominacion" />
   </ng-container>
   <nz-option *ngIf="extendedOption.ClienteId >0 " [nzValue]="extendedOption.ClienteId"
     [nzLabel]="extendedOption.fullName" />  

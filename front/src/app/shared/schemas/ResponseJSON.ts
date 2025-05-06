@@ -38,7 +38,8 @@ export interface Objetivo {
   PersonalId: number;
   PersonalApellido: string;
   PersonalNombre: string;
-  ObjetivoDescripcion: string;
+  ClienteElementoDependienteDescripcion: string;
+  ClienteDenominacion: string;
   ObjetivoId: number;
   ClienteId: number;
   ClienteElementoDependienteId: number | null;
@@ -49,7 +50,7 @@ export interface Objetivo {
 export interface ObjetivoInfo {
   objetivoId: number;
   clienteId: number;
-  elementoDependienteId: number;
+  ClienteElementoDependienteId: number;
   descripcion: string;
   fullName: string;
 }

@@ -339,8 +339,8 @@ export class LiquidacionesController extends BaseController {
     {
       name: "Objetivo",
       type: "string",
-      id: "ObjetivoDescripcion",
-      field: "ObjetivoDescripcion",
+      id: "ClienteElementoDependienteDescripcion",
+      field: "ClienteElementoDependienteDescripcion",
       fieldName: "li.objetivo_id",
       searchComponent: "inpurForObjetivoSearch",
       searchType: "number",
@@ -439,7 +439,7 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const liqudacion = await dataSource.query(
-        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(cus.objetivo_custodia_id, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.fecha_inicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
+        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.objetivo_custodia_id, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.fecha_inicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
         cat.CategoriaPersonalDescripcion
         FROM lige.dbo.liqmamovimientos AS li
@@ -449,6 +449,7 @@ export class LiquidacionesController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pers.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pers.PersonalId) 
         LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId=li.tipo_asociado_id AND cat.CategoriaPersonalId =li.categoria_personal_id
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         LEFT JOIN lige.dbo.objetivocustodia AS cus ON cus.objetivo_custodia_id = li.custodia_id
         LEFT JOIN Cliente AS cli ON cli.ClienteId = cus.cliente_id
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
@@ -544,7 +545,7 @@ export class LiquidacionesController extends BaseController {
         let tipo_movimiento_id = row.des_movimiento.id
         let tipocuenta_id = row.des_cuenta.id
         let detalle = row.detalle
-        let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
+        let objetivo_id = row.ClienteElementoDependienteDescripcion?.id == undefined ? null : row.ClienteElementoDependienteDescripcion?.id
         let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
         let importe = row.monto
 

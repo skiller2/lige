@@ -72,12 +72,12 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<ObjetivoInfo>>(`api/objetivos/name/${objetivoId}`)
       .pipe(
-        map(res => { res.data.fullName = `${res.data.clienteId}/${Number(res.data.elementoDependienteId)} ${res.data.descripcion}`; return res.data }),
+        map(res => { res.data.fullName = `${res.data.clienteId}/${Number(res.data.ClienteElementoDependienteId)} ${res.data.descripcion}`; return res.data }),
         catchError(() =>
           of({
             objetivoId: 0,
             clienteId: 0,
-            elementoDependienteId: 0,
+            ClienteElementoDependienteId: 0,
             descripcion: '',
             fullName: ''
           })

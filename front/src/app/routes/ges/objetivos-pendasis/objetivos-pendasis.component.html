@@ -2,7 +2,7 @@
   <form nz-form #objpendForm="ngForm">
     <ng-container>
       <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-      <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+      <shared-filtro-builder [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)"  [startFilters]="startfilters()"/>
 
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>
@@ -28,10 +28,10 @@
         <nz-tab [nzForceRender]="false">
           <a nz-tab-link routerLink="/ges/objetivos_pendasis/pendientes">Pendientes</a>
           <ng-template nz-tab>
-            <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+            <div class="gridContainer1 container-fluid" *ngIf="(columns$|async) as columnas">
               <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
-                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-                (onAngularGridCreated)="angularGridReady($event)">
+                [gridOptions]="gridOptionsOPA" [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReadyOPA($event)">
               </angular-slickgrid>
             </div>
           </ng-template>
@@ -40,10 +40,10 @@
         <nz-tab [nzForceRender]="false">
           <a nz-tab-link routerLink="/ges/objetivos_pendasis/todos">Todos</a>
           <ng-template nz-tab>
-            <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+            <div class="gridContainer2 container-fluid" *ngIf="(columns$|async) as columnas">
               <angular-slickgrid gridId="gridOPAT" class="" [columnDefinitions]="columnas | colsFilter"
-                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-                (onAngularGridCreated)="angularGridReady($event)">
+                [gridOptions]="gridOptionsOPAT" [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReadyOPAT($event)">
               </angular-slickgrid>
             </div>
           </ng-template>

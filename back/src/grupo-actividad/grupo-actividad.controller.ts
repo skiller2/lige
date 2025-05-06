@@ -190,7 +190,7 @@ export class GrupoActividadController extends BaseController {
             type: "string",
             id: "GrupoObjetivoDetalle",
             field: "GrupoObjetivoDetalle",
-            fieldName: "obj.ObjetivoDescripcion",
+            fieldName: "eledep.ClienteElementoDependienteDescripcion",
 
             sortable: true,
             searchHidden: true
@@ -489,7 +489,7 @@ export class GrupoActividadController extends BaseController {
                     ga.GrupoActividadSucursalId,
 
                     obj.ObjetivoId,
-                    obj.ObjetivoDescripcion,
+                    eledep.ClienteElementoDependienteDescripcion,
                     gaobj.GrupoActividadObjetivoId,
                     gaobj.GrupoActividadObjetivoObjetivoId,
                     gaobj.GrupoActividadObjetivoDesde,
@@ -498,8 +498,9 @@ export class GrupoActividadController extends BaseController {
                     FROM GrupoActividadObjetivo gaobj
                     INNER JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
                     INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoObjetivoId
-                    
-                WHERE ${filterSql} ORDER BY obj.ObjetivoDescripcion`
+                    JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+
+                WHERE ${filterSql} ORDER BY eledep.ClienteElementoDependienteDescripcion`
             );
 
             const formattedData = GrupoActividadObjetivos.map((item: any) => ({
@@ -514,11 +515,11 @@ export class GrupoActividadController extends BaseController {
                 },
                 GrupoObjetivoDetalle: {
                     id: item.ObjetivoId,
-                    fullName: item.ObjetivoDescripcion
+                    fullName: item.ClienteElementoDependienteDescripcion
                 },
                 GrupoObjetivoDetalleOld: {
                     id: item.ObjetivoId,
-                    fullName: item.ObjetivoDescripcion
+                    fullName: item.ClienteElementoDependienteDescripcion
                 }
             }));
 
@@ -1377,6 +1378,7 @@ export class GrupoActividadController extends BaseController {
         fechaMonth.setDate(fechaCorte.getDate() - 1);
         const anio = fechaMonth.getFullYear()
         const mes = fechaMonth.getMonth() + 1
+        fechaMonth.setHours(0, 0, 0, 0)
 
         try {
             await queryRunner.connect();
@@ -1397,7 +1399,7 @@ export class GrupoActividadController extends BaseController {
 
             if (personal.length > 0) {
                 const personalIds = personal.map(p => p.PersonalId).join(',');
-                await queryRunner.query(`UPDATE GrupoActividadPersonal SET  GrupoActividadPersonalHasta = @0 WHERE GrupoActividadPersonalPersonalId IN (${personalIds}) AND GrupoActividadPersonalDesde <= @0`, [fechaMonth])
+                await queryRunner.query(`UPDATE GrupoActividadPersonal SET  GrupoActividadPersonalHasta = @0 WHERE GrupoActividadPersonalPersonalId IN (${personalIds}) AND GrupoActividadPersonalDesde <= @0 AND ISNULL(GrupoActividadPersonalHasta,'9999-12-31')>@0 `, [fechaMonth])
             }
 
             await queryRunner.commitTransaction();

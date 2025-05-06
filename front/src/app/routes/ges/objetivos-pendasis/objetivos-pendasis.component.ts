@@ -1,11 +1,10 @@
 import {
-  ChangeDetectorRef,
   Component,
-  ElementRef,
   Inject,
   LOCALE_ID,
   ViewChild,
   inject,
+  signal,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
@@ -21,7 +20,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { CommonModule, formatDate } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
@@ -65,7 +64,6 @@ export class CustomDescargaComprobanteComponent {
 export class ObjetivosPendAsisComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
     new NgForm([], []);
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
 
@@ -76,22 +74,28 @@ export class ObjetivosPendAsisComponent {
   tableLoading$ = new BehaviorSubject(false);
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
-    cols[3].asyncPostRender= this.renderAngularComponent.bind(this)
-
-    return cols
+    let mapped = cols.map((col: Column) => {
+      if (col.id == 'ClienteElementoDependienteDescripcion') {
+        col.asyncPostRender = this.renderAngularComponent.bind(this)
+      }
+      return col
+    });
+    return mapped    
   }));
 
   excelExportService = new ExcelExportService()
-  angularGrid!: AngularGridInstance;
-  gridObj!: SlickGrid;
+  angularGridOPA!: AngularGridInstance;
+  angularGridOPAT!: AngularGridInstance;
   detailViewRowCount = 9
-  gridOptions!: GridOption
+  gridOptionsOPA!: GridOption
+  gridOptionsOPAT!: GridOption
   gridDataLen = 0
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
     extra: null,
   }
+  startfilters = signal<any>([])
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -125,28 +129,26 @@ export class ObjetivosPendAsisComponent {
   )
 
   ngOnInit() {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-    this.gridOptions.showFooterRow = true
-    this.gridOptions.createFooterRow = true
+    this.gridOptionsOPA = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsOPA.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptionsOPA.showFooterRow = true
+    this.gridOptionsOPA.createFooterRow = true
 
-  }
+    this.gridOptionsOPAT = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsOPAT.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptionsOPAT.showFooterRow = true
+    this.gridOptionsOPAT.createFooterRow = true
 
-  ngAfterContentInit(): void {
+
     const user: any = this.settingService.getUser()
-    const gruposActividadList = user.GrupoActividad
 
-    setTimeout(() => {
-      if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'),false)  //Ej 548
-    }, 3000);
-
+    this.startfilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '>=', value: user.GrupoActividad.join(';'), forced: false }])
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     switch (colDef.id) {
-      case 'ObjetivoDescripcion':
+      case 'ClienteElementoDependienteDescripcion':
         Object.assign(componentOutput.componentRef.instance, { link: '/ges/carga_asistencia', params: {ObjetivoId:dataContext.ObjetivoId}, detail:cellNode.innerText
        })
         
@@ -202,16 +204,27 @@ export class ObjetivosPendAsisComponent {
   ngOnDestroy() {
   }
 
-  angularGridReady(angularGrid: any) {
+  angularGridReadyOPA(angularGrid: any) {
 
-    this.angularGrid = angularGrid.detail
-    this.gridObj = angularGrid.detail.slickGrid;
+    this.angularGridOPA = angularGrid.detail
 
     if (this.apiService.isMobile())
-      this.angularGrid.gridService.hideColumnByIds(['SucursalDescripcion','GrupoActividadNumero','AsistenciaHoras'])
+      this.angularGridOPA.gridService.hideColumnByIds(['SucursalDescripcion','GrupoActividadNumero','AsistenciaHoras'])
 
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-      totalRecords(this.angularGrid)
+    this.angularGridOPA.dataView.onRowsChanged.subscribe((e:any, arg:any) => {
+      totalRecords(this.angularGridOPA)
+    })    
+  }
+
+  angularGridReadyOPAT(angularGrid: any) {
+
+    this.angularGridOPAT = angularGrid.detail
+
+    if (this.apiService.isMobile())
+      this.angularGridOPAT.gridService.hideColumnByIds(['SucursalDescripcion','GrupoActividadNumero','AsistenciaHoras'])
+
+    this.angularGridOPAT.dataView.onRowsChanged.subscribe((e:any, arg:any) => {
+      totalRecords(this.angularGridOPAT)
     })    
   }
 

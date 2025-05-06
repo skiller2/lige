@@ -275,7 +275,7 @@ WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AN
 		--objetivo
 		-- obj.ObjetivoId, 
 		STRING_AGG(CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0),' ',  
-		-- obj.ObjetivoDescripcion,
+
 
 
 		--Calculo de horas

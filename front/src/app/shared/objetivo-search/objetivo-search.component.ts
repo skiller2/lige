@@ -44,7 +44,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
-  extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
+  extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -139,7 +139,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
+    this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
     this.$searchChange.next(value);
   }
 

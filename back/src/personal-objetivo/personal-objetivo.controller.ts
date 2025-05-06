@@ -67,9 +67,10 @@ export class PersonalObjetivosController extends BaseController {
   async getPersonaAndGroup(queryRunner:QueryRunner,parameter:number,isValue:boolean ){
     
     if(isValue){
-      return queryRunner.query(`SELECT obj.ObjetivoId as id,obj.ObjetivoDescripcion AS Descripcion 
+      return queryRunner.query(`SELECT obj.ObjetivoId as id,eledep.ClienteElementoDependienteDescripcion  AS Descripcion 
       FROM lige.dbo.percargadirecta per
       JOIN Objetivo AS obj ON obj.ObjetivoId = per.objetivo_id
+      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       WHERE per.persona_id = @0;`, [parameter])
     }else{
       return queryRunner.query(`SELECT percarga.persona_id as id ,per.PersonalApellidoNombre AS Descripcion 

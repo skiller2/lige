@@ -159,7 +159,7 @@ export class LiquidacionesComponent {
         })
 
         break;
-      case 'ObjetivoDescripcion':
+      case 'ClienteElementoDependienteDescripcion':
         Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: { ObjetivoId: dataContext.objetivo_id }, detail: cellNode.innerText })
 
         break;
@@ -509,13 +509,13 @@ export class LiquidacionesComponent {
         }
       },
       {
-        id: 'ObjetivoDescripcion', name: 'Objetivo', field: 'ObjetivoDescripcion',
+        id: 'ClienteElementoDependienteDescripcion', name: 'Objetivo', field: 'ClienteElementoDependienteDescripcion',
         sortable: true,
         type: FieldType.string,
         maxWidth: 200,
         formatter: Formatters['complexObject'],
         params: {
-          complexFieldLabel: 'ObjetivoDescripcion.fullName',
+          complexFieldLabel: 'ClienteElementoDependienteDescripcion.fullName',
         },
 
         editor: {
@@ -574,14 +574,14 @@ export class LiquidacionesComponent {
 
     this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
       editCommand.execute()
-      if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto && row.des_cuenta) {
+      if (row.detalle && row.des_movimiento && (row.ClienteElementoDependienteDescripcion || row.ApellidoNombre) && row.monto && row.des_cuenta) {
         row.isfull = 1;
       } else {
         row.isfull = 2;
       }
 
 
-      if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
+      if (!row.detalle && !row.des_movimiento && !row.ClienteElementoDependienteDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
         this.angularGridEdit.gridService.deleteItem(row)
       else {
         this.angularGridEdit.gridService.updateItem(row)
@@ -594,7 +594,7 @@ export class LiquidacionesComponent {
       this.angularGridEdit.slickGrid.render();
 
       const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-      if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
+      if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ClienteElementoDependienteDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
         this.addNewItem("bottom")
       }
 

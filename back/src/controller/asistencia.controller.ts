@@ -379,7 +379,7 @@ export class AsistenciaController extends BaseController {
 
       await queryRunner.commitTransaction();
 
-      this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
+      this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ClienteElementoDependienteDescripcion}`)
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -591,7 +591,7 @@ export class AsistenciaController extends BaseController {
     suc.SucursalId,
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-      obj.ObjetivoDescripcion,
+      clidep.ClienteElementoDependienteDescripcion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
       1 as last
@@ -1162,7 +1162,8 @@ export class AsistenciaController extends BaseController {
       `SELECT CONCAT('cuo',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, 0, des.ObjetivoId, 0 as PersonalId, 'G' as tipocuenta_id, null as PersonalCUITCUILCUIT, null AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.ObjetivoDescuentoDetalle AS desmovimiento, 
-      des.ObjetivoDescuentoDetalle AS desmovimiento2, 
+      des.ObjetivoDescuentoDetalle AS desmovimiento2,
+      des.ObjetivoDescuentoDescontarCoordinador, 
       'OTRO' tipoint,
       cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad AS importetotal
       FROM ObjetivoDescuentoCuota cuo
@@ -1189,9 +1190,12 @@ export class AsistenciaController extends BaseController {
       FROM PersonalOtroDescuentoCuota cuo
       JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
       JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
-              JOIN Personal per ON per.PersonalId = des.PersonalId
-              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-              LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      JOIN Personal per ON per.PersonalId = des.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
       WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2 ${listPersonaId}
       
@@ -1207,7 +1211,14 @@ export class AsistenciaController extends BaseController {
       JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
               JOIN Personal per ON per.PersonalId = des.PersonalDescuentoPersonalId
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-              LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+
+
+
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
+
       
       WHERE cuo.PersonalDescuentoCuotaAno = @1 AND cuo.PersonalDescuentoCuotaMes = @2 ${listPersonaId}
       
@@ -1225,7 +1236,10 @@ export class AsistenciaController extends BaseController {
       JOIN PersonalPrestamoCuota cuo ON cuo.PersonalPrestamoId = des.PersonalPrestamoId AND cuo.PersonalId = des.PersonalId
               JOIN Personal per ON per.PersonalId = des.PersonalId
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-              LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
       WHERE cuo.PersonalPrestamoCuotaAno = @1 AND cuo.PersonalPrestamoCuotaMes = @2 ${listPersonaId}
       
@@ -1248,7 +1262,10 @@ export class AsistenciaController extends BaseController {
       
         JOIN Personal per ON per.PersonalId = des.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
       WHERE des.PersonalPrepagaDescuentoPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) ${listPersonaId}
 
@@ -1266,7 +1283,10 @@ export class AsistenciaController extends BaseController {
       FROM PersonalRentasPagos ren
       JOIN Personal per ON per.PersonalId = ren.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
       WHERE ren.PersonalRentasPagosPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) ${listPersonaId}
 
@@ -1284,7 +1304,10 @@ export class AsistenciaController extends BaseController {
       JOIN ValorDDJJ vdj ON vdj.ValorDDJJDesde <= DATEFROMPARTS(@1,@2,1) AND ISNULL(vdj.ValorDDJJHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28)
       JOIN Personal per ON per.PersonalId = ren.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
       WHERE ren.PersonalRentasPagosPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) ${listPersonaId}
 
@@ -1292,7 +1315,7 @@ export class AsistenciaController extends BaseController {
 
       SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
 @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
-CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion)) AS desmovimiento, 
+CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion)) AS desmovimiento, 
 '' AS desmovimiento2, 'OTRO' tipoint,
 cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
 
@@ -1301,9 +1324,13 @@ JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId 
 LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
 JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
 JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
+JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
 
 WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
 AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
@@ -1314,7 +1341,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       SELECT CONCAT('tel',con.ConsumoTelefoniaAnoMesTelefonoConsumoId,'-',con.ConsumoTelefoniaAnoMesTelefonoAsignadoId,'-',con.ConsumoTelefoniaAnoMesId,'-',con.ConsumoTelefoniaAnoId) id, gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, IIF(obj.ObjetivoId>0,'C','G') tipocuenta_id,
       cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov,
-      CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion),'')) AS desmovimiento,
+      CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion),'')) AS desmovimiento,
       
       TRIM(tel.TelefoniaNro) AS desmovimiento2, 'TELE' tipoint, 
        con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 ) AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
@@ -1326,7 +1353,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       JOIN Telefonia tel ON tel.TelefoniaId = asi.TelefoniaId
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = asi.TelefonoConsumoFacturarAObjetivoId
-      
+      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = obj.ObjetivoId 
 		AND coo.ObjetivoPersonalJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
 		AND ISNULL(coo.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
@@ -1334,8 +1361,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       
       
 		JOIN Personal per ON  (obj.ObjetivoId IS NULL AND per.PersonalId = asi.TelefonoConsumoFacturarAPersonalId) OR (obj.ObjetivoId IS NOT NULL AND per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId)
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) <= ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-		LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
+
+
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       
       WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 ${listPersonaId}
 
@@ -1781,7 +1813,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
                 CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo,
                 obj.ObjetivoId,
-                obj.ObjetivoDescripcion,
+                eledep.ClienteElementoDependienteDescripcion,
                 art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
                 IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
                 
@@ -1789,6 +1821,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
                 FROM PersonalArt14 art 
                 JOIN Personal per ON per.PersonalId = art.PersonalId
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+                JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
                 LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -1817,7 +1850,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       persona.PersonalId,
       obj.ObjetivoId, 
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-      obj.ObjetivoDescripcion,
+      clidep.ClienteElementoDependienteDescripcion,
 
 --      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 --      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,

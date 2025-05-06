@@ -241,6 +241,7 @@
                   <tr>
                     <th>Tipo Movimiento</th>
                     <th>Detalle</th>
+                    <th>Descontar Coordinador</th>
                     <th>Cuota</th>
                     <th>Importe</th>
                   </tr>
@@ -249,6 +250,7 @@
                   <tr *ngFor="let data of descObj.data" class="">
                     <td>{{ data.tipomov }}</td>
                     <td>{{ data.desmovimiento }}</td>
+                    <td>{{ data.ObjetivoDescuentoDescontarCoordinador=='S'?'Si':'No' }}</td>
                     <td>
                       <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                         | currency }}</div>
@@ -258,6 +260,7 @@
                 </tbody>
                 <tfoot nzSummary>
                 <tr>
+                  <td></td>
                   <td></td>
                   <td></td>
                   <td></td>
@@ -424,7 +427,7 @@
                   </td>
                   <td>
                     <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
-                      [textContent]="data.ObjetivoDescripcion">
+                      [textContent]="data.ClienteElementoDependienteDescripcion">
                     </a>
                   </td>
                   <td>{{ data.PersonalArt14Autorizado }}</td>
@@ -486,7 +489,7 @@
                   </td>
                   <td>
                     <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
-                      [textContent]="data.ObjetivoDescripcion">
+                      [textContent]="data.ClienteElementoDependienteDescripcion">
                     </a>
                   </td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
