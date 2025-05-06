@@ -1162,7 +1162,8 @@ export class AsistenciaController extends BaseController {
       `SELECT CONCAT('cuo',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, 0, des.ObjetivoId, 0 as PersonalId, 'G' as tipocuenta_id, null as PersonalCUITCUILCUIT, null AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.ObjetivoDescuentoDetalle AS desmovimiento, 
-      des.ObjetivoDescuentoDetalle AS desmovimiento2, 
+      des.ObjetivoDescuentoDetalle AS desmovimiento2,
+      des.ObjetivoDescuentoDescontarCoordinador, 
       'OTRO' tipoint,
       cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad AS importetotal
       FROM ObjetivoDescuentoCuota cuo
