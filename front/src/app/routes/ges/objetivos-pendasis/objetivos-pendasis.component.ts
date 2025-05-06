@@ -142,7 +142,7 @@ export class ObjetivosPendAsisComponent {
 
     const user: any = this.settingService.getUser()
 
-    this.startfilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '>=', value: user.GrupoActividad.join(';'), forced: false }])
+    this.startfilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.join(';'), forced: false }])
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
