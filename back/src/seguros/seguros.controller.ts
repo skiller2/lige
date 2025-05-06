@@ -678,7 +678,7 @@ UNION
   async setPolizaSeguro(req: any, res: Response, next: NextFunction) {
 
     let {
-      PolizaSeguroCod,
+      PolizaSeguroCodigo,
       TipoSeguroId,
       CompaniaSeguroId,
       PolizaSeguroNroPoliza,
@@ -689,7 +689,6 @@ UNION
     } = req.body
 
     let result = []
-
 
     console.log("req.body", req.body)
     
@@ -705,15 +704,20 @@ UNION
 
     try {
 
-      //await this.validateFormPolizaSeguro(req.body)
+      await this.validateFormPolizaSeguro(req.body)
 
       //#Crear validacion para periodo
 
-      const detalle_documento = await FileUploadController.FileData(files[0].tempfilename)
-   
-      const dni = detalle_documento.match(/\b(\d{1,2}(?:\.\d{3}){2})\b/gi)
+      const getRegex = await queryRunner.query(`SELECT CompaniaSeguroFiltroDocumento FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [CompaniaSeguroId])
+      const regex = JSON.parse(getRegex[0].CompaniaSeguroFiltroDocumento)
 
-      const polizaEndoso = detalle_documento.match(/\b(\d{9})\/(\d{6})\b/i)
+      const detalle_documento = await FileUploadController.FileData(files[0].tempfilename)
+
+      const dniRegex = new RegExp(regex.DNI, "gi");
+      const polizaRegex = new RegExp(regex.PolizaEndoso, "i");
+
+      const dni = detalle_documento.match(dniRegex)
+      const polizaEndoso = detalle_documento.match(polizaRegex)
   
       if (!dni || !polizaEndoso) {
         throw new ClientException(`Error al procesar el Documento.`)
@@ -724,46 +728,50 @@ UNION
       console.log("dni", dni)
       
       
-
-      //console.log("detalle_documento", detalle_documento)
-      throw new ClientException(`test.`)
-      if (PolizaSeguroCod > 0) {
+      //throw new ClientException(`test.`)
+      if (PolizaSeguroCodigo) {
         // is edit
       console.log("is edit")
+
+      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip)
+      let fecha_endoso = new Date()
+
+      console.log("resultFile", resultFile)
+      await queryRunner.query(`
+        UPDATE PolizaSeguroNew SET
+          TipoSeguroCod = @0,
+          DocumentoId = @1,
+          PolizaSeguroNroPoliza = @2,
+          PolizaSeguroNroEndoso = @3,
+          PolizaSeguroFechaEndoso = @4,
+          CompaniaSeguroId = @5,
+          PolizaSeguroAudFechaMod = @6,
+          PolizaSeguroAudUsuarioMod = @7,
+          PolizaSeguroAudIpMod = @8
+        WHERE PolizaSeguroCodigo = @9
+      `, [
+        TipoSeguroId,
+        resultFile[0].doc_id,
+        polizaEndoso[1],
+        polizaEndoso[2],
+        fecha_endoso,
+        CompaniaSeguroId,
+        new Date(),
+        usuario,
+        ip,
+        PolizaSeguroCodigo
+      ]);
+      
+
+
       } else {
         // is new
+
+
         console.log("is new")
       }
 
-
-      if (req.body.files?.length > 0) {
-        // hacer for para cada archivo
-        for (const file of req.body.files) {
-
-          let fec_doc_ven = null
-          let PersonalId = null
-     
-          //resultFile = await FileUploadController.handleDOCUpload(
-          //  PersonalId, 
-          //  file.objetivo_id, 
-          //  file.cliente_id, 
-          //  file.id, 
-          //  new Date(), 
-          //  fec_doc_ven, 
-          //  file.den_documento, 
-          //  file, 
-          //  usuario,
-          //  ip,
-          //  queryRunner)
-
-          const maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
-          let PersonalEstudioPagina1Id = maxId[0].doc_id 
-  
-          //await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId = @1 AND PersonalEstudioId = @2`,[PersonalEstudioPagina1Id, PersonalId, PersonalEstudioId])
-        }
-        
-      }
-
+      throw new ClientException(`test.`)
       result = await queryRunner.query(`SELECT PolizaSeguroCod,TipoSeguroId,CompaniaSeguroId,PolizaSeguroNroPoliza,PolizaSeguroNroEndoso,PolizaSeguroFechaEndoso FROM PolizaSeguroNew
         WHERE PolizaSeguroCod = @0`, [req.body.PolizaSeguroCod])
 
@@ -781,6 +789,39 @@ UNION
     }
 
 
+  }
+
+
+  async fileSeguroUpload(files: any, queryRunner: QueryRunner, usuario: string, ip: string) {
+
+    let maxId = 0
+    if (files?.length > 0) {
+      // hacer for para cada archivo
+      for (const file of files) {
+        console.log("file.............", file)
+        let fec_doc_ven = null
+        let PersonalId = 0
+   
+        const resultFile = await FileUploadController.handleDOCUpload(
+          PersonalId, 
+          file.objetivo_id, 
+          file.cliente_id, 
+          file.id, 
+          new Date(), 
+          fec_doc_ven, 
+          file.den_documento, 
+          file, 
+          usuario,
+          ip,
+          queryRunner)
+
+       maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
+       
+      
+      }
+      return maxId
+
+    }
   }
 
   search(req: any, res: Response, next: NextFunction) {

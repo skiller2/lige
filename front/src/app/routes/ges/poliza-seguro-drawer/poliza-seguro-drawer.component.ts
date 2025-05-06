@@ -73,7 +73,7 @@ export class PolizaSeguroDrawerComponent {
     this.isSaving.set(true)
     let vals = this.formCli.value
     try {
-    
+
       const res = await firstValueFrom(this.apiService.setPolizaSeguro(vals))
       if(res.data?.list[0]?.PolizaSeguroCodigo) {
        
@@ -97,7 +97,7 @@ export class PolizaSeguroDrawerComponent {
   }
 
   ngOnInit(){
-    
+
     this.formCli.get('PolizaSeguroNroPoliza')?.disable()
     this.formCli.get('PolizaSeguroNroEndoso')?.disable()
     this.formCli.get('PolizaSeguroFechaEndoso')?.disable()
