@@ -593,16 +593,16 @@ export class CustodiaController extends BaseController {
         const fechaActual = new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
-        let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4)) ? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
+        let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4 || estado == 5)) ? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
 
-        if (estado != 1 && estado != 3 && estado != 4)
+        if (estado != 1 && estado != 3 && estado != 4 && estado != 5)
             fecha_liquidacion = null
 
         const periodo = await queryRunner.query(`
             SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
         `)
 
-        if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && (estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null)
+        if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && (estado == 1 || estado == 3 || estado == 4 || estado == 5) && objetivoCustodia.fecha_liquidacion == null)
             throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
 
         return queryRunner.query(`

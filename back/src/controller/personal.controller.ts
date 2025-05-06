@@ -2547,8 +2547,8 @@ cuit.PersonalCUITCUILCUIT,
           PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId,
           PersonalHabilitacionNecesariaDesde, PersonalHabilitacionNecesariaPuesto, PersonalHabilitacionNecesariaUsuarioId,
           PersonalHabilitacionNecesariaDia, PersonalHabilitacionNecesariaTiempo)
-          VALUES(@0,@1,@2,@3,@4,@5,@3,@6)
-          `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuarioId, time])
+          VALUES(@0,@1,@2,@3,@4,@5,@6,@7)
+          `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuarioId, now, time])
     }
     await queryRunner.query(`
       UPDATE Personal SET
