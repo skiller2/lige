@@ -91,6 +91,11 @@ FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:columnForSearch/:tab
   fileUploadController.getArchivosAnteriores(req, res, next)
 });
 
+FileUploadRouter.get('/PolizaSeguroFileData/:tempfilename', (req, res, next) => {
+  fileUploadController.getPolizaSeguroFileData(req, res, next)
+});
+
+
 FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
 
   uploadPdf(req, res, (err) => {

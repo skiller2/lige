@@ -94,7 +94,17 @@ export class ApiService {
     );
   }
 
-    getSelectTipoinFile() {
+  getPolizaSeguroFileData(tempfilename:string) {
+    return this.http.get(`/api/file-upload/PolizaSeguroFileData/${tempfilename}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getSelectTipoinFile() {
     return  this.http.get(`/api/file-upload/select_tipo_in_file`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
@@ -1033,9 +1043,9 @@ export class ApiService {
 
   }
 
-  getPolizaSeguro(PolizaSeguroCod: number) {
+  getPolizaSeguro(PolizaSeguroCodigo: string) {
 
-    return this.http.get<ResponseJSON<any>>(`/api/seguros/poliza/${PolizaSeguroCod}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/seguros/poliza/${PolizaSeguroCodigo}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
 

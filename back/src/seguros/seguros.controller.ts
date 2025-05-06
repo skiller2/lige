@@ -143,10 +143,10 @@ const listaColumnasPoliza: any[] = [
     searchHidden: true
   },
   {
-    id: "PolizaSeguroCod",
+    id: "PolizaSeguroCodigo",
     name: "Poliza Seguro Cod",
-    field: "PolizaSeguroCod",
-    fieldName: "seg.PolizaSeguroCod",
+    field: "PolizaSeguroCodigo",
+    fieldName: "seg.PolizaSeguroCodigo",
     type: "number",
     sortable: false,
     hidden: true,
@@ -157,6 +157,7 @@ const listaColumnasPoliza: any[] = [
     name: "Tipo de Seguro",
     field: "TipoSeguroNombre",
     fieldName: "seg.TipoSeguroNombre",
+    searchComponent: "inputForTipoSeguroSearch",
     type: "string", 
     sortable: true,
     hidden: false,
@@ -621,32 +622,20 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      //let result = await dataSource.query(`
-       // SELECT 
-       //     ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
-       //     seg.TipoSeguroNombre,
-       //     seg.PolizaSeguroNroPoliza,
-       //     seg.PolizaSeguroNroEndoso,
-       //     seg.PolizaSeguroFechaEndoso 
-       // FROM 
-       //     PolizaSeguroNew AS seg
-       //  WHERE (1=1)
-       // AND ${filterSql}
-       // ${orderBy}
-      // `)
-      let result = []
-      if (result.length === 0) {
-        result = [{
-          id: 1,
-          PolizaSeguroCod: 5,
-          TipoSeguroNombre: "TEST-1",
-          CompaniaSeguro: "MAPFRE",
-          CompaniaSeguroId: 1,
-          PolizaSeguroNroPoliza: "POL-001",
-          PolizaSeguroNroEndoso: "END-001",
-          PolizaSeguroFechaEndoso: new Date().toISOString().split('T')[0]
-        }]
-      }
+      let result = await dataSource.query(`
+      SELECT 
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
+        ts.TipoSeguroNombre,
+        ps.TipoSeguroCod,
+        ps.PolizaSeguroCodigo,
+        ps.PolizaSeguroNroPoliza,
+        ps.PolizaSeguroNroEndoso,
+        ps.PolizaSeguroFechaEndoso
+      FROM PolizaSeguroNew ps
+      LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCod
+       AND ${filterSql}
+       ${orderBy}
+      `)
       this.jsonRes(
         {
           total: result.length,
@@ -664,19 +653,21 @@ UNION
 
     try {
       //acomodar select para que sea el correcto
-      //const result = await dataSource.query(`SELECT * FROM PolizaSeguroNew WHERE PolizaSeguroCod = @0`, [req.params.id])
-      let result = []
-      if (result.length === 0) {
-        result = [{
-          PolizaSeguroCod: 5,
-          TipoSeguroId: 1,
-          CompaniaSeguro: "MAPFRE",
-          CompaniaSeguroId: 1,
-          PolizaSeguroNroPoliza: "POL-001",
-          PolizaSeguroNroEndoso: "END-001",
-          PolizaSeguroFechaEndoso: new Date().toISOString().split('T')[0]
-        }]
-      }
+      console.log("estoy en el back...............")
+      console.log("req.params.id", req.params.id)
+      const result = await dataSource.query(`
+      SELECT 
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
+        ts.TipoSeguroNombre,
+        ps.TipoSeguroCod,
+        ps.PolizaSeguroCodigo,
+        ps.PolizaSeguroNroPoliza,
+        ps.PolizaSeguroNroEndoso,
+        ps.PolizaSeguroFechaEndoso
+      FROM PolizaSeguroNew ps
+      LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCod
+      WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
+    
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
@@ -818,6 +809,18 @@ UNION
     async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
       const result = await dataSource.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
+      this.jsonRes(result, res);
+    }
+
+    async getTipoSeguroSearch(req: any, res: Response, next: NextFunction) {
+      const result = await dataSource.query(`
+        SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro `)
+      this.jsonRes(result, res);
+    }
+
+    async getTipoSeguroId(req: any, res: Response, next: NextFunction) {
+      const result = await dataSource.query(`
+        SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro WHERE TipoSeguroCodigo = @0`, [req.params.id])
       this.jsonRes(result, res);
     }
 

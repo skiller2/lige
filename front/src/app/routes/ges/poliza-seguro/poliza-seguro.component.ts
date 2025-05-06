@@ -47,9 +47,9 @@ export class PolizaSeguroComponent {
   private readonly detailViewRowCount = 9;
   private excelExportService = new ExcelExportService();
   private angularGridEdit!: AngularGridInstance;
-  visibleDrawer = model<boolean>(false)
+  visible = model<boolean>(false)
   angularGrid!: AngularGridInstance
-  PolizaSeguroCod = signal<number>(0)
+  PolizaSeguroCodigo = signal<string>("")
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -115,8 +115,9 @@ export class PolizaSeguroComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.PolizaSeguroCod)
-      this.PolizaSeguroCod.set(row.PolizaSeguroCod)
+    console.log("row", row)
+    if (row?.PolizaSeguroCodigo)
+      this.PolizaSeguroCodigo.set(row.PolizaSeguroCodigo)
 
   }
 
@@ -132,6 +133,6 @@ export class PolizaSeguroComponent {
   ////////// Drawer para nuevo /////////////
 
   async openDrawerForNew() {
-    this.visibleDrawer.set(true)
+    this.visible.set(true)
   }
 }

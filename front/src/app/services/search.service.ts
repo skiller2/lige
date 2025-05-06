@@ -305,7 +305,34 @@ export class SearchService {
 
   }
 
+  //////
 
+  
+  getTipoSeguroSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/seguros/searchTipoSeguro`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
+
+  getTipoSeguroId(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/seguros/searchTipoSeguroId/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
+
+  //////
 
   getModalidadCursoSearch(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/curso/searchModalidadCurso`).pipe(

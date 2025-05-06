@@ -1,6 +1,6 @@
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
-import { NextFunction, Request, Response, query } from "express";
+import { NextFunction, Request, Response, query, text } from "express";
 import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import * as fs from 'fs';
@@ -15,10 +15,8 @@ import { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 
 
-
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
-
 
 export class FileUploadController extends BaseController {
   pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
@@ -802,5 +800,38 @@ export class FileUploadController extends BaseController {
     return 'C:/temp/test.png'
   }
 
+  async getPolizaSeguroFileData(req, res, next) {
 
+
+     const tempfilename = req.params.tempfilename;
+     const filePath = path.join(this.tempFolderPath, tempfilename);
+
+     try {
+
+      const fileBuffer = fs.readFileSync(filePath);
+      const pdfDoc = await getDocument({ data: new Uint8Array(fileBuffer) }).promise;
+
+       //console.log('pdfDoc', pdfDoc);
+       const page = await pdfDoc.getPage(1);
+       const textContent = await page.getTextContent();
+       const strArray = textContent.items
+      .filter((item): item is TextItem => 'str' in item && item.str.trim() !== '')
+      .map((item) => item.str.trim());
+
+       const data = {
+         seccion: strArray[0],
+         poliza: strArray[1],
+         endoso: strArray[2],
+         fechaInicio: strArray[3],
+         fechaFin: strArray[4]
+       };
+
+       
+
+       return this.jsonRes(data , res);
+     } catch (error) {
+       return this.jsonRes({ error: 'Error al procesar el archivo PDF' }, res);
+     }
+  }
 }
+

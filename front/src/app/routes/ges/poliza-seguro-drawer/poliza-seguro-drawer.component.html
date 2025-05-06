@@ -1,13 +1,12 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
   [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
-    <!-- @if (cambios()|async) {} -->
     <form [formGroup]="formCli">
       <nz-form-item style="display: none;">
         <nz-form-label [nzSpan]="5">Poliza Seguro Cod</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <input nz-input formControlName="PolizaSeguroCod" ngModel/>
+           <input nz-input formControlName="PolizaSeguroCodigo" ngModel/>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -15,10 +14,7 @@
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select formControlName="TipoSeguroId"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
-            <!-- <nz-option *ngFor="let tipo of $optionsTipoSeguro | async" [nzValue]="tipo.id" [nzLabel]="tipo.nombre"></nz-option> -->
-            <nz-option [nzValue]="1" [nzLabel]="'Seguro de Vida'"></nz-option>
-            <nz-option [nzValue]="2" [nzLabel]="'Seguro de Salud'"></nz-option>
-            <nz-option [nzValue]="3" [nzLabel]="'Seguro de Auto'"></nz-option>
+            <nz-option *ngFor="let tiposeguro of $optionsTipoSeguro | async" [nzValue]="tiposeguro.TipoSeguroCodigo" [nzLabel]="tiposeguro.TipoSeguroNombre"></nz-option> 
           </nz-select>
         </nz-form-control>
       </nz-form-item>
@@ -45,7 +41,7 @@
         <nz-form-label [nzSpan]="5">Nro de Endoso</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <input nz-input formControlName="PolizaSeguroNroEndoso" placeholder="Ingrese número de endoso" />
+            <input nz-input formControlName="PolizaSeguroNroEndoso" placeholder="Ingrese número de endoso"  />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -53,20 +49,20 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Fecha de Endoso</nz-form-label>
         <nz-form-control [nzSpan]="18">
-          <nz-date-picker formControlName="PolizaSeguroFechaEndoso" nzPlaceHolder="Seleccione fecha"></nz-date-picker>
+          <nz-date-picker formControlName="PolizaSeguroFechaEndoso" nzPlaceHolder="Seleccione fecha" ></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
     
       <nz-form-control>
-        <!-- <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0" [cantMaxFiles]="1"
-          [textForSearch]="'EST'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="false" ></app-file-upload> -->
+        <app-file-upload  (dataFile)="dataFile($event)" formControlName="files" [idForSearh]="0" [cantMaxFiles]="1"
+          [textForSearch]="'POL'" [columnForSearch]="''" [tableForSearch]="'docgeneral'" [showTipoDocs]="false"  ></app-file-upload>
       </nz-form-control> 
 
     @if(this.formCli.enabled) {
         <nz-form-item class="btnCenter">
             <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
 
-            @if (this.PolizaSeguroCod() > 0) {
+            @if (this.PolizaSeguroCodigo()) {
             
             <button 
             nz-popconfirm
@@ -83,6 +79,7 @@
     </form>
 
     
-     <p>Debug Valores: {{formCli.value | json }}</p> 
+    <!-- <p>Debug Valores: {{formCli.value | json }}</p>   -->
+
   </ng-container>
 </nz-drawer>

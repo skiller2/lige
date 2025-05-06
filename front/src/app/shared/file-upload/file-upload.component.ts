@@ -81,6 +81,9 @@ export class FileUploadComponent implements ControlValueAccessor {
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
 
+  dataFile = output<any>()
+  dataInFile = ""
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       if (changes['textForSearch']) {
@@ -167,10 +170,6 @@ export class FileUploadComponent implements ControlValueAccessor {
         const Response = event.file.response
 
         if(file){
-
-          if(false){
-
-          }
           this.files.set(this.files().map(item => {
             if (item.id === file.id) {
               return { 
@@ -196,17 +195,50 @@ export class FileUploadComponent implements ControlValueAccessor {
           Response.data[0].nombre_archivo = ""
           Response.data[0].TipoArchivo = "pdf"
           this.files.set([...this.files(), Response.data[0]])
+
+          let dataInFile = await this.getFileData(Response.data[0].tempfilename)
+
+          if(dataInFile){
+            this.files.set(this.files().map(item => {
+              if (item.id === Response.data[0].id) {
+                return { ...item, dataInFile };
+              }
+              return item;
+            }));
+
+            setTimeout(() => {
+              this.dataFile.emit(this.dataInFile)
+            }, 1000);
+        
+          }
+
         }
+
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
         // this.valueExtendedEmitter
         this.propagateChange(this.files())
+
 
         break
       default:
         break;
     }
 
+  }
+
+
+  async getFileData(tempfilename:any) {
+
+    switch(this.textForSearch()){
+      case "POL": //Poliza Seguro
+        const res = await firstValueFrom(this.apiService.getPolizaSeguroFileData(tempfilename))
+        return res
+      default:
+        return null
+    }
+    
+    
   }
 
   async confirmUpdateArchivo(file:any) {

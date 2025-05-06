@@ -213,6 +213,15 @@
         </ng-container>
       </nz-select>
 
+      <nz-select ngModel nzAllowClear style="width:100%" *ngIf="selections.field.searchComponent=='inputForTipoSeguroSearch'"
+        nzPlaceHolder="Tipo Seguro" nzShowSearch (ngModelChange)="selectedValueTipoSeguro($event)"
+        [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+        <ng-container *ngFor="let option of $optionsTipoSeguro | async">
+
+          <nz-option [nzValue]="option.TipoSeguroCodigo" [nzLabel]="option.TipoSeguroNombre"></nz-option>
+        </ng-container>
+      </nz-select>
+
       <nz-select ngModel nzAllowClear style="width:100%"
         *ngIf="selections.field.searchComponent=='inpurForCentroCapacitacionSearch'" nzPlaceHolder="Centro Capacitación"
         nzShowSearch (ngModelChange)="selectedValueCentroCapacitacion($event)" [nzDropdownMatchSelectWidth]="false"
