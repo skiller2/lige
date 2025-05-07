@@ -41,7 +41,7 @@ export class RecibosController extends BaseController {
   }
 
 
-  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number, isUnique: any, directorPathUnique: string, idrecibo: number) {
+  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number, isUnique: any, directorPathUnique: string, den_documento: number) {
     try {
 
       if (isUnique) {
@@ -56,18 +56,18 @@ export class RecibosController extends BaseController {
           });
         }
       }
-      await this.deleteDirectories(queryRunner, periodo, isUnique, idrecibo)
+      await this.deleteDirectories(queryRunner, periodo, isUnique, den_documento)
     } catch (error) {
       console.error("Error al limpiar el directorio:", error);
     }
   }
 
-  async deleteDirectories(queryRunner: QueryRunner, periodo: number, isUnique: any, idrecibo: number) {
+  async deleteDirectories(queryRunner: QueryRunner, periodo: number, isUnique: any, den_documento: number) {
 
     if (isUnique) {
-      await queryRunner.query(`delete from lige.dbo.docgeneral where idrecibo=@0 ; `, [idrecibo])
+      await queryRunner.query(`delete from lige.dbo.docgeneral where den_documento=@0 AND doctipo_id='REC'; `, [den_documento])
     } else {
-      await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
+      await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 AND doctipo_id='REC'; `, [periodo])
     }
 
   }
@@ -113,7 +113,7 @@ export class RecibosController extends BaseController {
     //estas  variables se usan solo si el recibo previamente ya existe 
     let fechaRecibo = new Date(req.body.fechaRecibo)
     let docgeneral: number
-    let idrecibo: number
+    let den_documento: number
     let directorPathUnique = ""
     const fechaActual = new Date();
 
@@ -149,7 +149,7 @@ export class RecibosController extends BaseController {
           throw new ClientException(`Recibo no existe para el periodo seleccionado`)
 
         fechaRecibo = existRecibo[0].fecha;
-        idrecibo = existRecibo[0].idrecibo
+        den_documento = existRecibo[0].den_documento
         docgeneral = existRecibo[0].docgeneral
         directorPathUnique = existRecibo[0].path
       }
@@ -160,7 +160,7 @@ export class RecibosController extends BaseController {
         mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }
 
-      await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo_id, isUnique, directorPathUnique, idrecibo)
+      await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo_id, isUnique, directorPathUnique, den_documento)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaRecibo, periodo.year, periodo.month)
 
@@ -174,7 +174,7 @@ export class RecibosController extends BaseController {
         docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
 
         if (!isUnique)
-          idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+          den_documento = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
 
 
 
@@ -192,11 +192,11 @@ export class RecibosController extends BaseController {
           ip,
           fechaActual,
           "REC",
-          idrecibo
+          den_documento
 
         )
 
-        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
       }
 
@@ -257,7 +257,7 @@ export class RecibosController extends BaseController {
   async createPdf(queryRunner: QueryRunner,
     filesPath: string,
     persona_id: number,
-    idrecibo: number,
+    den_documento: number,
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
@@ -276,7 +276,7 @@ export class RecibosController extends BaseController {
     Cuit = (Cuit) ? Cuit.toString() : 'Sin especificar'
 
 
-    headerContent = headerContent.replace(/\${idrecibo}/g, idrecibo.toString());
+    headerContent = headerContent.replace(/\${idrecibo}/g, den_documento.toString());
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit);
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
@@ -444,13 +444,13 @@ export class RecibosController extends BaseController {
   //   usuario: string,
   //   ip: string,
   //   audfecha: Date,
-  //   idrecibo: number,
+  //   den_documento: number,
   //   persona_id: number, )
   // {
   //   return queryRunner.query(`UPDATE lige.dbo.docgeneral
   //   SET aud_ip_mod= @1, aud_fecha_mod=@2
-  //   WHERE persona_id =@3 AND idrecibo=@4 `,
-  //     [usuario, ip, audfecha,persona_id,idrecibo ])
+  //   WHERE persona_id =@3 AND den_documento=@4 `,
+  //     [usuario, ip, audfecha,persona_id,den_documento ])
 
   // }
 
@@ -467,11 +467,11 @@ export class RecibosController extends BaseController {
     ip: string,
     audfecha: Date,
     doctipo_id: string,
-    idrecibo: number
+    den_documento: number
 
   ) {
 
-    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "idrecibo", "ind_descarga_bot", "den_documento")
+    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "ind_descarga_bot", "den_documento")
     VALUES
     (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
       [
@@ -484,8 +484,9 @@ export class RecibosController extends BaseController {
         nombre_archivo,
         usuario, ip, fecha,
         usuario, ip, audfecha,
-        doctipo_id, idrecibo, 1,
-        idrecibo
+        doctipo_id,
+        1, //ind_descarga_bot
+        den_documento
       ])
 
   }
@@ -786,8 +787,8 @@ export class RecibosController extends BaseController {
       for (const movimiento of movimientosPendientes) {
         persona_id = movimiento.PersonalId
         filesPath = (process.env.PATH_RECIBO_HTML_TEST) ? process.env.PATH_RECIBO_HTML_TEST : 'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
-        const idrecibo = Math.floor(10000 + Math.random() * 90000);
-        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
+        const den_documento = Math.floor(10000 + Math.random() * 90000);
+        await this.createPdf(queryRunner, filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
       }
 

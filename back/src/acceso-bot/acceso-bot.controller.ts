@@ -363,14 +363,14 @@ export class AccesoBotController extends BaseController {
             const personalId = personaIdQuery[0].PersonalId
 
 
-            const result = await queryRunner.query(`SELECT TOP 2 rec.idrecibo FROM lige.dbo.docgeneral rec
+            const result = await queryRunner.query(`SELECT TOP 2 rec.den_documento FROM lige.dbo.docgeneral rec
                 WHERE rec.persona_id = @0 AND rec.doctipo_id='REC'
                 ORDER BY rec.fecha DESC
             `, [personalId])
             if (result.length < 1)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
-            if (result[0].idrecibo != recibo && result[1]?.idrecibo != recibo)
+            if (result[0].den_documento != recibo && result[1]?.den_documento != recibo)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
             this.jsonRes("OK", res)
