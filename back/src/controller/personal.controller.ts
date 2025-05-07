@@ -1157,8 +1157,7 @@ cuit.PersonalCUITCUILCUIT,
       let campos_vacios = []
       if (!infoDomicilio.Calle) campos_vacios.push('- Calle')
       if (!infoDomicilio.Nro) campos_vacios.push('- Nro')
-      if (!infoDomicilio.Piso) campos_vacios.push('- Piso')
-      if (!infoDomicilio.Dpto) campos_vacios.push('- Dpto')
+      
       if (!infoDomicilio.CodigoPostal) campos_vacios.push('- Codigo Postal')
       if (!infoDomicilio.PaisId) campos_vacios.push('- Pais')
       if (!infoDomicilio.ProvinciaId) campos_vacios.push('- Provincia')
