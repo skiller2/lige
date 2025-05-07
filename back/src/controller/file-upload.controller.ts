@@ -370,13 +370,8 @@ export class FileUploadController extends BaseController {
 
             const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
 
-            console.log('file', file)
-
             const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
             const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
-  
-            console.log("filePath", filePath)
-            console.log("tempFilePath", tempFilePath)
   
            // Borra el archivo si existe
             if (existsSync(filePath)) {
@@ -400,10 +395,12 @@ export class FileUploadController extends BaseController {
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
 
             
-            ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner,'doc_id',doctipo_id,doc_id)
-            ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores,doc_id)
+          
 
         }
+
+        ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner,'doc_id',doctipo_id,doc_id)
+        ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores,doc_id)
 
         return {doc_id, ArchivosAnteriores}
         break;

@@ -653,8 +653,6 @@ UNION
 
     try {
       //acomodar select para que sea el correcto
-      console.log("estoy en el back...............")
-      console.log("req.params.id", req.params.id)
       const result = await dataSource.query(`
       SELECT 
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
@@ -663,7 +661,8 @@ UNION
         ps.PolizaSeguroCodigo,
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
-        ps.PolizaSeguroFechaEndoso
+        ps.PolizaSeguroFechaEndoso,
+        ps.PolizaSeguroResultado
       FROM PolizaSeguroNew ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCod
       WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
@@ -695,7 +694,7 @@ UNION
     let resultFile = null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-
+    let resultPolizaSeguroCodigo
     //throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
@@ -713,72 +712,135 @@ UNION
 
       const detalle_documento = await FileUploadController.FileData(files[0].tempfilename)
 
-      const dniRegex = new RegExp(regex.DNI, "gi");
-      const polizaRegex = new RegExp(regex.PolizaEndoso, "i");
 
-      const dni = detalle_documento.match(dniRegex)
+
+      //const dniRegex = new RegExp(regex.DNILista, "mg");
+      //const polizaRegex = new RegExp(regex.Poliza, "m");
+      //const endosoRegex = new RegExp(regex.Endoso, "m");
+      //const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m");
+
+      const dniRegex = new RegExp(/DNI ([\d.]{9,10})$/mg);
+      const polizaRegex = new RegExp(/(\d{9}) (?=\d{6})/m);
+      const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
+      const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
+
+
+      const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
       const polizaEndoso = detalle_documento.match(polizaRegex)
+      const endoso = detalle_documento.match(endosoRegex)
+      const fechaDesdeEndoso = detalle_documento.match(fechaDesdeRegex)
+
+      const fechaTexto = fechaDesdeEndoso[0];
+      const [dia, mes, anio] = fechaTexto.split(".");
+      let fechaDesde = new Date(`${anio}-${mes}-${dia}`);
   
       if (!dni || !polizaEndoso) {
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
-      console.log("poliza", polizaEndoso[1])
-      console.log("endoso", polizaEndoso[2])
-      console.log("dni", dni)
-      
-      
-      //throw new ClientException(`test.`)
       if (PolizaSeguroCodigo) {
         // is edit
       console.log("is edit")
 
       resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip)
-      let fecha_endoso = new Date()
 
-      console.log("resultFile", resultFile)
-      await queryRunner.query(`
-        UPDATE PolizaSeguroNew SET
-          TipoSeguroCod = @0,
-          DocumentoId = @1,
-          PolizaSeguroNroPoliza = @2,
-          PolizaSeguroNroEndoso = @3,
-          PolizaSeguroFechaEndoso = @4,
-          CompaniaSeguroId = @5,
-          PolizaSeguroAudFechaMod = @6,
-          PolizaSeguroAudUsuarioMod = @7,
-          PolizaSeguroAudIpMod = @8
-        WHERE PolizaSeguroCodigo = @9
-      `, [
-        TipoSeguroId,
-        resultFile[0].doc_id,
-        polizaEndoso[1],
-        polizaEndoso[2],
-        fecha_endoso,
-        CompaniaSeguroId,
-        new Date(),
-        usuario,
-        ip,
-        PolizaSeguroCodigo
-      ]);
-      
+        await queryRunner.query(`
+          UPDATE PolizaSeguroNew SET
+            TipoSeguroCod = @0,
+            DocumentoId = @1,
+            PolizaSeguroNroPoliza = @2,
+            PolizaSeguroNroEndoso = @3,
+            PolizaSeguroFechaEndoso = @4,
+            CompaniaSeguroId = @5,
+            PolizaSeguroAudFechaMod = @6,
+            PolizaSeguroAudUsuarioMod = @7,
+            PolizaSeguroAudIpMod = @8
+          WHERE PolizaSeguroCodigo = @9
+        `, [
+          TipoSeguroId,
+          resultFile.doc_id,
+          polizaEndoso[0],
+          endoso[1],
+          fechaDesde ,
+          CompaniaSeguroId,
+          new Date(),
+          usuario,
+          ip,
+          PolizaSeguroCodigo
+        ]);
+        
 
 
       } else {
         // is new
 
+      console.log("is new")
 
-        console.log("is new")
+        resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip)
+
+ //'CompaniaSeguroId'-'TipoSeguroCod'-'PolizaSeguroNroPoliza'-'PolizaSeguroNroEndoso'
+
+         resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroId}-${polizaEndoso[0]}-${endoso[1]}`
+
+        await queryRunner.query(`
+          INSERT INTO PolizaSeguroNew (
+            PolizaSeguroCodigo,
+            TipoSeguroCod,
+            DocumentoId,
+            PolizaSeguroNroPoliza,
+            PolizaSeguroNroEndoso,
+            PolizaSeguroFechaEndoso,
+            CompaniaSeguroId,
+            PolizaSeguroAudFechaIng,
+            PolizaSeguroAudUsuarioIng,
+            PolizaSeguroAudIpIng,
+            PolizaSeguroAudFechaMod,
+            PolizaSeguroAudUsuarioMod,
+            PolizaSeguroAudIpMod
+          ) VALUES (
+            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12
+          )
+        `, [
+          resultPolizaSeguroCodigo,
+          TipoSeguroId,
+          resultFile.doc_id,
+          polizaEndoso[0],
+          endoso[1],
+          fechaDesde,
+          CompaniaSeguroId,
+          new Date(),
+          usuario,
+          ip,
+          new Date(),
+          usuario,
+          ip
+        ]);
+
       }
 
-      throw new ClientException(`test.`)
-      result = await queryRunner.query(`SELECT PolizaSeguroCod,TipoSeguroId,CompaniaSeguroId,PolizaSeguroNroPoliza,PolizaSeguroNroEndoso,PolizaSeguroFechaEndoso FROM PolizaSeguroNew
-        WHERE PolizaSeguroCod = @0`, [req.body.PolizaSeguroCod])
+      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroId)
 
-      if (resultFile) {
+      console.log("validationDniResults", validationDniResults)
+      console.log("resultFile", resultFile)
+
+      resultPolizaSeguroCodigo  = PolizaSeguroCodigo ? PolizaSeguroCodigo : resultPolizaSeguroCodigo
+
+      if(validationDniResults)
+          await queryRunner.query(`UPDATE PolizaSeguroNew SET PolizaSeguroResultado = @0 WHERE PolizaSeguroCodigo = @1`, [JSON.stringify(validationDniResults), resultPolizaSeguroCodigo])
+    
+      result = await queryRunner.query(`SELECT ts.TipoSeguroNombre, ps.TipoSeguroCod, ps.PolizaSeguroCodigo, ps.PolizaSeguroNroPoliza, ps.PolizaSeguroNroEndoso,
+         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado FROM PolizaSeguroNew ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCod WHERE ps.PolizaSeguroCodigo = @0`, 
+         [resultPolizaSeguroCodigo])
+
+      if (resultFile) 
         result[0].files = resultFile.ArchivosAnteriores;
-      }
+      
+      if(validationDniResults)
+        result[0].notFound = validationDniResults
+      
 
+      console.log("result..........................", result)
+      throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result[0] }, res, (req.body.PolizaSeguroCod > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
@@ -791,10 +853,79 @@ UNION
 
   }
 
+  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string){
+
+
+    const notFoundInPersonalTable: number[] = [];
+    const notFoundInPersonalSeguro: number[] = [];
+    const shouldNotBeInSeguro: number[] = [];
+
+
+    const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
+
+    const personalRows = await queryRunner.query(`
+      SELECT per.PersonalId, Nro.PersonalDocumentoNro
+      FROM dbo.Personal per
+      INNER JOIN PersonalDocumento Nro ON Nro.PersonalId = per.PersonalId
+    `);
+
+    const documentoToPersonalId = new Map<number, number>();
+    personalRows.forEach(row => {
+      documentoToPersonalId.set(row.PersonalDocumentoNro, row.PersonalId);
+    });
+
+
+    const personalSeguroRows = await queryRunner.query(`
+      SELECT ps.PersonalId, pd.PersonalDocumentoNro
+      FROM PersonalSeguro ps
+      INNER JOIN PersonalDocumento pd ON pd.PersonalId = ps.PersonalId
+      WHERE ps.TipoSeguroCodigo = @0 AND (ps.PersonalSeguroHasta IS NULL OR ps.PersonalSeguroHasta > GETDATE())
+    `, [tipoSeguroCodigo]);
+
+    const aseguradosSet = new Set<number>();
+    const documentoAseguradosSet = new Set<number>();
+
+    personalSeguroRows.forEach(row => {
+      aseguradosSet.add(row.PersonalId);
+      documentoAseguradosSet.add(row.PersonalDocumentoNro);
+    });
+
+    for (const doc of dniNumeros) {
+      const personalId = documentoToPersonalId.get(doc);
+
+      // Si no está en la tabla Personal
+      if (!personalId) {
+        notFoundInPersonalTable.push(doc);
+        continue;
+      }
+
+      // Si no está asegurado y debería estarlo
+      if (!aseguradosSet.has(personalId)) {
+        notFoundInPersonalSeguro.push(doc);
+      }
+    }
+
+    // 4. Validar asegurados que no deberían estarlo
+    for (const doc of documentoAseguradosSet) {
+      if (!dniNumeros.includes(doc)) {
+        shouldNotBeInSeguro.push(doc);
+      }
+    }
+
+    return {
+      notFoundInPersonalTable,
+      notFoundInPersonalSeguro,
+      shouldNotBeInSeguro
+    }
+
+  }
+
 
   async fileSeguroUpload(files: any, queryRunner: QueryRunner, usuario: string, ip: string) {
 
-    let maxId = 0
+    
+    let resultFile = null
+
     if (files?.length > 0) {
       // hacer for para cada archivo
       for (const file of files) {
@@ -802,7 +933,7 @@ UNION
         let fec_doc_ven = null
         let PersonalId = 0
    
-        const resultFile = await FileUploadController.handleDOCUpload(
+         resultFile = await FileUploadController.handleDOCUpload(
           PersonalId, 
           file.objetivo_id, 
           file.cliente_id, 
@@ -815,11 +946,11 @@ UNION
           ip,
           queryRunner)
 
-       maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
+       //maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
        
       
       }
-      return maxId
+      return resultFile
 
     }
   }

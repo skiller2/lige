@@ -58,23 +58,75 @@
           [textForSearch]="'POLSEG'" [columnForSearch]="''" [tableForSearch]="'docgeneral'" [showTipoDocs]="false"  ></app-file-upload>
       </nz-form-control> 
 
+      
     @if(this.formCli.enabled) {
-        <nz-form-item class="btnCenter">
-            <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+      <nz-form-item class="btnCenter">
+          <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
 
-            @if (this.PolizaSeguroCodigo()) {
-            
-            <button 
-            nz-popconfirm
-            nzPopconfirmTitle="Esta seguro que quiere eliminar esta póliza?"
-            (nzOnConfirm)="deletePoliza()"
-            nzPopconfirmPlacement="top"
-            nz-button 
-            nzType="primary"
-            nzDanger>Eliminar</button>
-          } 
-        </nz-form-item>
+          @if (this.PolizaSeguroCodigo()) {
+          
+          <button 
+          nz-popconfirm
+          nzPopconfirmTitle="Esta seguro que quiere eliminar esta póliza?"
+          (nzOnConfirm)="deletePoliza()"
+          nzPopconfirmPlacement="top"
+          nz-button 
+          nzType="primary"
+          nzDanger>Eliminar</button>
+        } 
+      </nz-form-item>
+    }
+
+      @if (PolizaSeguroResultado() && (PolizaSeguroResultado().notFoundInPersonalTable.length > 0 ||
+      PolizaSeguroResultado().notFoundInPersonalSeguro.length > 0 || PolizaSeguroResultado().shouldNotBeInSeguro.length > 0)) {
+        <div class="validation-tables-container">
+          @if (PolizaSeguroResultado()?.notFoundInPersonalTable.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">No localizados</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalTable.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
+
+          @if (PolizaSeguroResultado()?.notFoundInPersonalSeguro.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">Deberían estar asegurados pero no lo están</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalSeguro.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
+
+          @if (PolizaSeguroResultado()?.shouldNotBeInSeguro.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">Están asegurados pero no deberían</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().shouldNotBeInSeguro.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
+        </div>
       }
+
  
     </form>
 
