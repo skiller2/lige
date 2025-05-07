@@ -143,11 +143,11 @@
           ]
         },
         {
-          "text": "Productos",
+          "text": "Productos #",
           "icon": "anticon-profile",
           "children": [
             {
-              "text": "Precios",
+              "text": "Precios #",
               "icon": "anticon-profile",
               "link": "/lpv/precios_productos"
             }
