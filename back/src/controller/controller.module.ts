@@ -1,7 +1,7 @@
 import { AuthController } from "./auth.controller";
 import { InfoController } from "./info.controller";
 import { PersonalController } from "./personal.controller";
-import { ClienteController } from "./cliente.controller";
+import { ClienteController } from "./cliente.Controller";
 import { InitController } from "./init.controller";
 import { SucursalController } from "./sucursal.controller";
 import { ObjetivoController } from "./objetivo.controller";
