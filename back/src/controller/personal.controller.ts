@@ -1268,59 +1268,74 @@ cuit.PersonalCUITCUILCUIT,
       FROM PersonalEstudio
       WHERE PersonalId IN (@0)
       `, [PersonalId])
+
     await queryRunner.query(`
       DELETE FROM PersonalEstudio WHERE PersonalId IN (@0)
       `, [PersonalId])
+
     for (const infoEstudio of estudios) {
-      if (infoEstudio.EstudioTitulo) {
-        if (infoEstudio.PersonalEstudioId) {
-          let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId) })
-          let Pagina1Id = find.PersonalEstudioPagina1Id
-          // const Pagina2Id = find.PersonalEstudioPagina2Id
-          // const Pagina3Id = find.PersonalEstudioPagina3Id
-          // const Pagina4Id = find.PersonalEstudioPagina4Id
-          if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
-            const DocumentoImagenEstudio = await queryRunner.query(`
-              INSERT INTO DocumentoImagenEstudio (
-              PersonalId,
-              DocumentoImagenParametroId,
-              DocumentoImagenParametroDirectorioId
-              )
-              VALUES(@0,@1,@2)
-        
-              SELECT MAX(DocumentoImagenEstudioId) as DocumentoImagenEstudioId FROM DocumentoImagenEstudio WHERE PersonalId IN (@0)
-            `, [PersonalId, 14, 1])
-            Pagina1Id = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
-          }
-          await queryRunner.query(`
-            INSERT INTO PersonalEstudio (
-            PersonalId,
-            PersonalEstudioId,
-            TipoEstudioId,
-            EstadoEstudioId,
-            PersonalEstudioTitulo,
-            PersonalEstudioOtorgado,
-            PersonalEstudioPagina1Id
-            --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
-            )
-            VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
-            PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
-            2, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
-            Pagina1Id,
-            //Pagina2Id, Pagina3Id, Pagina4Id
-          ])
+      console.log('infoEstudio', infoEstudio)
 
-          if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
-            const docTitulo = infoEstudio.DocTitulo[0]
-            console.log('docTitulo', docTitulo)
-            if (!docTitulo?.id)
-              await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
-
-          }
-
-        } else {
-          return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
+      if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado) {
+        let campos_vacios = []
+        if (!infoEstudio.EstudioTitulo) campos_vacios.push('- Título')
+          if (!infoEstudio.TipoEstudioId) campos_vacios.push('- Tipo de Estudio')
+        if (!infoEstudio.PersonalEstudioOtorgado) campos_vacios.push('- Estudio Otorgado')  
+      
+        if (campos_vacios.length) {
+          campos_vacios.unshift('Debe completar los siguientes campos de la sección estudios:')
+          throw new ClientException(campos_vacios)
         }
+
+      }
+
+      if (infoEstudio.PersonalEstudioId) {
+        let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId) })
+        let Pagina1Id = find.PersonalEstudioPagina1Id
+        // const Pagina2Id = find.PersonalEstudioPagina2Id
+        // const Pagina3Id = find.PersonalEstudioPagina3Id
+        // const Pagina4Id = find.PersonalEstudioPagina4Id
+        if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
+          const DocumentoImagenEstudio = await queryRunner.query(`
+            INSERT INTO DocumentoImagenEstudio (
+            PersonalId,
+            DocumentoImagenParametroId,
+            DocumentoImagenParametroDirectorioId
+            )
+            VALUES(@0,@1,@2)
+      
+            SELECT MAX(DocumentoImagenEstudioId) as DocumentoImagenEstudioId FROM DocumentoImagenEstudio WHERE PersonalId IN (@0)
+          `, [PersonalId, 14, 1])
+          Pagina1Id = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
+        }
+        await queryRunner.query(`
+          INSERT INTO PersonalEstudio (
+          PersonalId,
+          PersonalEstudioId,
+          TipoEstudioId,
+          EstadoEstudioId,
+          PersonalEstudioTitulo,
+          PersonalEstudioOtorgado,
+          PersonalEstudioPagina1Id
+          --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+          )
+          VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
+          PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
+          2, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
+          Pagina1Id,
+          //Pagina2Id, Pagina3Id, Pagina4Id
+        ])
+
+        if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
+          const docTitulo = infoEstudio.DocTitulo[0]
+          console.log('docTitulo', docTitulo)
+          if (!docTitulo?.id)
+            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
+
+        }
+
+      } else {
+        return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
       }
 
     }
