@@ -924,7 +924,7 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   moveFile(dirFile: any, newFilePath: any, newFileName: any) {
-    
+
     if (!existsSync(newFilePath)) {
       mkdirSync(newFilePath, { recursive: true })
     }
@@ -1081,7 +1081,7 @@ cuit.PersonalCUITCUILCUIT,
     const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
 
     this.moveFile(dirFile, newFilePath, newFieldname);
-    
+
 
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
@@ -1157,7 +1157,7 @@ cuit.PersonalCUITCUILCUIT,
       let campos_vacios = []
       if (!infoDomicilio.Calle) campos_vacios.push('- Calle')
       if (!infoDomicilio.Nro) campos_vacios.push('- Nro')
-      
+
       if (!infoDomicilio.CodigoPostal) campos_vacios.push('- Codigo Postal')
       if (!infoDomicilio.PaisId) campos_vacios.push('- Pais')
       if (!infoDomicilio.ProvinciaId) campos_vacios.push('- Provincia')
@@ -1313,7 +1313,7 @@ cuit.PersonalCUITCUILCUIT,
           if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
             const docTitulo = infoEstudio.DocTitulo[0]
             console.log('docTitulo', docTitulo)
-            if (!docTitulo?.id) 
+            if (!docTitulo?.id)
               await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
 
           }
@@ -2482,17 +2482,24 @@ cuit.PersonalCUITCUILCUIT,
     const PersonalBajaFechaActa = actas.baja.fecha
     const PersonalDestruccionNroActa = actas.destruccion.numero
     const PersonalFechaDestruccion = actas.destruccion.fecha
+
     if (((!PersonalNroActa && PersonalFechaActa) || (PersonalNroActa && !PersonalFechaActa)) ||
       ((!PersonalBajaNroActa && PersonalBajaFechaActa) || (PersonalBajaNroActa && !PersonalBajaFechaActa)) ||
       ((!PersonalDestruccionNroActa && PersonalFechaDestruccion) || (PersonalDestruccionNroActa && !PersonalFechaDestruccion))) {
       return new ClientException(`Los campos Fecha y Numero de la seccion Actas deben de completarse a la par.`)
+    } else if ((PersonalNroActa && PersonalFechaActa) ||
+      (PersonalBajaNroActa && PersonalBajaFechaActa) ||
+      (PersonalDestruccionNroActa && PersonalFechaDestruccion)) {
+
+      await queryRunner.query(`
+            UPDATE Personal SET
+            PersonalNroActa = @1, PersonalFechaActa = @2, PersonalBajaNroActa = @3,
+            PersonalBajaFechaActa = @4, PersonalDestruccionNroActa = @5, PersonalFechaDestruccion = @6
+            WHERE PersonalId IN (@0)
+            `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
     }
-    await queryRunner.query(`
-      UPDATE Personal SET
-      PersonalNroActa = @1, PersonalFechaActa = @2, PersonalBajaNroActa = @3,
-      PersonalBajaFechaActa = @4, PersonalDestruccionNroActa = @5, PersonalFechaDestruccion = @6
-      WHERE PersonalId IN (@0)
-      `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
+
+
   }
 
   private async getLugarHabilitacionQuery(queryRunner: any) {
