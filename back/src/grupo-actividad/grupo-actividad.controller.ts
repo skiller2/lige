@@ -190,7 +190,7 @@ export class GrupoActividadController extends BaseController {
             type: "string",
             id: "GrupoObjetivoDetalle",
             field: "GrupoObjetivoDetalle",
-            fieldName: "eledep.ClienteElementoDependienteDescripcion",
+            fieldName: "ObjetivoDescripcion",
 
             sortable: true,
             searchHidden: true
@@ -489,18 +489,20 @@ export class GrupoActividadController extends BaseController {
                     ga.GrupoActividadSucursalId,
 
                     obj.ObjetivoId,
-                    eledep.ClienteElementoDependienteDescripcion,
+                    CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0),
+                             ' - ', TRIM(cli.ClienteDenominacion) , ' - ', TRIM(eledep.ClienteElementoDependienteDescripcion)) AS ObjetivoDescripcion,
                     gaobj.GrupoActividadObjetivoId,
                     gaobj.GrupoActividadObjetivoObjetivoId,
                     gaobj.GrupoActividadObjetivoDesde,
                     gaobj.GrupoActividadObjetivoHasta
 
                     FROM GrupoActividadObjetivo gaobj
-                    INNER JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
-                    INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoObjetivoId
-                    JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+                    LEFT JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
+                    LEFT JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoObjetivoId
+                    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+                    LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
 
-                WHERE ${filterSql} ORDER BY eledep.ClienteElementoDependienteDescripcion`
+                WHERE ${filterSql}`
             );
 
             const formattedData = GrupoActividadObjetivos.map((item: any) => ({
@@ -515,11 +517,11 @@ export class GrupoActividadController extends BaseController {
                 },
                 GrupoObjetivoDetalle: {
                     id: item.ObjetivoId,
-                    fullName: item.ClienteElementoDependienteDescripcion
+                    fullName: item.ObjetivoDescripcion
                 },
                 GrupoObjetivoDetalleOld: {
                     id: item.ObjetivoId,
-                    fullName: item.ClienteElementoDependienteDescripcion
+                    fullName: item.ObjetivoDescripcion
                 }
             }));
 
@@ -722,7 +724,7 @@ export class GrupoActividadController extends BaseController {
         if (GrupoActividadJerarquicoHastaNew) GrupoActividadJerarquicoHastaNew.setHours(0, 0, 0, 0)
 
         GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
-        
+
         try {
             await queryRunner.connect()
             await queryRunner.startTransaction()
@@ -744,7 +746,7 @@ export class GrupoActividadController extends BaseController {
                         const maxFecha = new Date(maxFechaRec[0].GrupoActividadJerarquicoHasta);
                         if (GrupoActividadJerarquicoDesde <= maxFecha)
                             throw new ClientException(`La fecha desde ser mayor a ${this.dateOutputFormat(maxFecha)}`)
-                    } else { 
+                    } else {
                         const maxFechaRec = await queryRunner.query(`SELECT MAX(GrupoActividadJerarquicoHasta) GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo=@1 AND GrupoActividadJerarquicoPersonalId=@2`, [params.GrupoActividadId, params.GrupoActividadJerarquicoComo, params.ApellidoNombrePersona.id])
                         const maxFecha = new Date(maxFechaRec[0].GrupoActividadJerarquicoHasta);
                         if (GrupoActividadJerarquicoDesde <= maxFecha)
@@ -778,7 +780,7 @@ export class GrupoActividadController extends BaseController {
 
             } else {  //Es un nuevo registro
                 // console.log('nuevo registro')
-                let GrupoActividadJerarquicoHastaAnt=null
+                let GrupoActividadJerarquicoHastaAnt = null
                 GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
 
                 await this.validateFormResponsables(params, queryRunner)
@@ -797,7 +799,7 @@ export class GrupoActividadController extends BaseController {
                     [GrupoActividadDetalle.id, 'J', GrupoActividadJerarquicoDesde]
                 );
                 if (jerarquico.length > 0 && new Date(jerarquico[0].GrupoActividadJerarquicoDesde) > new Date(GrupoActividadJerarquicoDesde))
-                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(jerarquico[0].GrupoActividadJerarquicoDesde)) }` )
+                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(jerarquico[0].GrupoActividadJerarquicoDesde))}`)
 
                 if (GrupoActividadJerarquicoComo == 'J') {
 
@@ -813,7 +815,7 @@ export class GrupoActividadController extends BaseController {
                         await queryRunner.query(
                             `DELETE GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId=@1 And GrupoActividadId = @0 AND GrupoActividadJerarquicoHasta < GrupoActividadJerarquicoDesde`,
                             [jerarquico[0].GrupoActividadId, jerarquico[0].GrupoActividadJerarquicoId, GrupoActividadJerarquicoHastaAnt])
-    
+
                     }
                 } else {
                     if (jerarquico.length > 0 && jerarquico[0].GrupoActividadJerarquicoPersonalId == params.ApellidoNombrePersona.id)
@@ -825,9 +827,9 @@ export class GrupoActividadController extends BaseController {
                     `SELECT TOP 1 GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadJerarquicoDesde, ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') GrupoActividadJerarquicoHastaMax, GrupoActividadJerarquicoHasta FROM GrupoActividadJerarquico WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1  AND GrupoActividadJerarquicoDesde <= @2 AND GrupoActividadJerarquicoPersonalId=@3 ORDER BY GrupoActividadJerarquicoDesde DESC`,
                     [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo, GrupoActividadJerarquicoDesde, ApellidoNombrePersona.id])
 
-                
+
                 if (mismaPersona.length > 0 && new Date(mismaPersona[0].GrupoActividadJerarquicoHastaMax) >= GrupoActividadJerarquicoDesde)
-                    throw new ClientException(`Ya existe un registro con misma persona, tipo y grupo vigente hasta ${this.dateOutputFormat(mismaPersona[0].GrupoActividadJerarquicoHasta?new Date(mismaPersona[0].GrupoActividadJerarquicoHasta):null,' sin final')}`)
+                    throw new ClientException(`Ya existe un registro con misma persona, tipo y grupo vigente hasta ${this.dateOutputFormat(mismaPersona[0].GrupoActividadJerarquicoHasta ? new Date(mismaPersona[0].GrupoActividadJerarquicoHasta) : null, ' sin final')}`)
 
                 let day = new Date()
                 const time = this.getTimeString(day)
@@ -949,7 +951,7 @@ export class GrupoActividadController extends BaseController {
                 }
                 if (GrupoActividadObjetivoHasta)
                     await this.checkDateHasta(desdeNew, GrupoActividadObjetivoHasta, queryRunner)
-                
+
 
                 await this.validateFormObjetivos(params, queryRunner)
                 await queryRunner.query(`
@@ -973,7 +975,7 @@ export class GrupoActividadController extends BaseController {
                 dataResultado = { action: 'U', GrupoActividadObjetivoId: params.GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadId }
                 message = "Actualización exitosa"
             } else {  //Es un nuevo registro
-                let GrupoActividadObjetivoHastaAnt=null
+                let GrupoActividadObjetivoHastaAnt = null
                 await this.validateFormObjetivos(params, queryRunner)
                 GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0)
 
@@ -987,12 +989,12 @@ export class GrupoActividadController extends BaseController {
                 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
             `, [params.GrupoObjetivoDetalle.id, GrupoActividadObjetivoDesde])
                 if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadObjetivoDesde) > GrupoActividadObjetivoDesde)
-                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadObjetivoDesde)) }` )
+                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadObjetivoDesde))}`)
 
                 if (resultQuery.length > 0) {
                     if (GrupoActividadObjetivoDesde <= new Date(resultQuery[0].GrupoActividadObjetivoHastaMax)) {
-                        if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id) 
-                            throw new ClientException(`Ya existe un grupo de actividad asignado al objetivo vigente hasta ${this.dateOutputFormat( resultQuery[0].GrupoActividadObjetivoHasta,'sin fecha')}`)
+                        if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id)
+                            throw new ClientException(`Ya existe un grupo de actividad asignado al objetivo vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadObjetivoHasta, 'sin fecha')}`)
 
                         GrupoActividadObjetivoHastaAnt = new Date(GrupoActividadObjetivoDesde)
                         GrupoActividadObjetivoHastaAnt.setDate(GrupoActividadObjetivoHastaAnt.getDate() - 1)
@@ -1000,7 +1002,7 @@ export class GrupoActividadController extends BaseController {
                             `UPDATE GrupoActividadObjetivo 
                              SET GrupoActividadObjetivoHasta = @2 
                              WHERE GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1`,
-                            [resultQuery[0].GrupoActividadObjetivoId,resultQuery[0].GrupoActividadObjetivoObjetivoId, GrupoActividadObjetivoHastaAnt]
+                            [resultQuery[0].GrupoActividadObjetivoId, resultQuery[0].GrupoActividadObjetivoObjetivoId, GrupoActividadObjetivoHastaAnt]
                         )
                         //TODO:  BOT Notificar Informar el cambio de 
                         //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado el objetivo a su grupo`, `RECIBO${bot[0].doc_id}`, usuario, ip)
@@ -1029,19 +1031,19 @@ export class GrupoActividadController extends BaseController {
                     SET GrupoActividadObjetivoUltNro = @0
                     WHERE GrupoActividadId =  @1`, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id])
 
-            
+
                 dataResultado = { action: 'I', GrupoActividadObjetivoId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHastaAnt }
                 message = "Carga exitosa del nuevo registro."
             }
             await queryRunner.query(`DELETE GrupoActividadObjetivo WHERE GrupoActividadObjetivoHasta IS NOT NULL AND GrupoActividadObjetivoHasta < GrupoActividadObjetivoDesde AND GrupoActividadObjetivoObjetivoId = @0`, [params.GrupoObjetivoDetalle.id])
             //Double check
-            
+
             const checkObjetivoGrupo = await queryRunner.query(`SELECT GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta, ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') GrupoActividadObjetivoHastaMax FROM GrupoActividadObjetivo 
                 WHERE GrupoActividadObjetivoObjetivoId = @0 
                 AND GrupoActividadObjetivoDesde <= @1 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') >= @1
-                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id,new Date()])
-            if (checkObjetivoGrupo.length>1)
-                throw new ClientException(`El objetivo se encuentra en mas de un Grupo de Actividad` )
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id, new Date()])
+            if (checkObjetivoGrupo.length > 1)
+                throw new ClientException(`El objetivo se encuentra en mas de un Grupo de Actividad`)
 
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
@@ -1092,7 +1094,7 @@ export class GrupoActividadController extends BaseController {
                         throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(maxFecha)}`)
                     }
                 }
-                if (GrupoActividadPersonalHasta) 
+                if (GrupoActividadPersonalHasta)
                     await this.checkDateHasta(desdeNew, GrupoActividadPersonalHasta, queryRunner)
 
 
@@ -1117,11 +1119,11 @@ export class GrupoActividadController extends BaseController {
                 ])
 
 
-                dataResultado = { action: 'U', GrupoActividadPersonalId:params.GrupoActividadPersonalId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalHasta, GrupoActividadPersonalDesde}
+                dataResultado = { action: 'U', GrupoActividadPersonalId: params.GrupoActividadPersonalId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalHasta, GrupoActividadPersonalDesde }
                 message = "Actualización exitosa"
 
             } else {  //Es un nuevo registro
-                let GrupoActividadPersonalHastaAnt=null
+                let GrupoActividadPersonalHastaAnt = null
                 await this.validateFormPersonal(params, queryRunner)
                 GrupoActividadPersonalDesde.setHours(0, 0, 0, 0)
 
@@ -1138,13 +1140,13 @@ export class GrupoActividadController extends BaseController {
                     [params.ApellidoNombrePersona.id, GrupoActividadPersonalDesde])
 
                 if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadPersonalDesde) > GrupoActividadPersonalDesde)
-                    throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde)) }` )
-                    
-                
+                    throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde))}`)
+
+
                 if (resultQuery.length > 0) {
                     if (GrupoActividadPersonalDesde <= new Date(resultQuery[0].GrupoActividadPersonalHastaMax)) {
-                        if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id) 
-                            throw new ClientException(`Ya existe un grupo de actividad asignado a la persona vigente hasta ${this.dateOutputFormat( resultQuery[0].GrupoActividadPersonalHasta,'sin fecha')}`)
+                        if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id)
+                            throw new ClientException(`Ya existe un grupo de actividad asignado a la persona vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadPersonalHasta, 'sin fecha')}`)
 
                         GrupoActividadPersonalHastaAnt = new Date(GrupoActividadPersonalDesde)
                         GrupoActividadPersonalHastaAnt.setDate(GrupoActividadPersonalHastaAnt.getDate() - 1)
