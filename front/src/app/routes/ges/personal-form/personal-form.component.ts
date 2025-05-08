@@ -73,26 +73,24 @@ export class PersonalFormComponent {
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
   $optionsEstadoCivil = this.searchService.getEstadoCivilOptions();
-  fotoId = signal<number>(0)
-  docDorsoId = signal<number>(0)
-  docFrenteId = signal<number>(0)
-  //fotoId():number {
-    //const value = this.formPer.value.FotoId
-    //if (value) {
-    //  return value
-    //}
-    //return 0
-  //}
-  //docDorsoId():number {
-    //const value = this.formPer.get("docDorsoId")?.value
-    //if(value) return value
-    //return 0
-  //}
-  //docFrenteId():number {
-    //const value = this.formPer.get("docFrenteId")?.value
-    //if(value) return value
-    //return 0
-  //}
+
+  fotoId():number {
+    const value = this.formPer.value.FotoId
+    if (value) {
+      return value
+    }
+    return 0
+  }
+  docDorsoId():number {
+    const value = this.formPer.get("docDorsoId")?.value
+    if(value) return value
+    return 0
+  }
+  docFrenteId():number {
+    const value = this.formPer.get("docFrenteId")?.value
+    if(value) return value
+    return 0
+  }
   paisId():number {
     const value = this.formPer.get("PaisId")?.value
     if(value) return value
@@ -171,9 +169,7 @@ export class PersonalFormComponent {
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
       let values:any = {...this.inputs}
-      this.fotoId.set(infoPersonal.FotoId)
-      this.docFrenteId.set(infoPersonal.DocFrenteId)
-      this.docDorsoId.set(infoPersonal.DocDorsoId)
+
       for (const key in values) {
         values[key] = infoPersonal[key]
       }
