@@ -81,13 +81,13 @@
 </nz-card>
 
 @defer( when visibleAlta()){
-  <app-documento-drawer #alta [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-documento-drawer>
+  <app-documento-drawer [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-documento-drawer>
 }
 
 @defer( when visibleDetalle()){
-  <app-documento-drawer #detalle [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-documento-drawer>
+  <app-documento-drawer [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-documento-drawer>
 }
 
 @defer( when visibleEdit()){
-  <app-documento-drawer #editor [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-documento-drawer>
+  <app-documento-drawer [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-documento-drawer>
 }

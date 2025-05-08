@@ -89,9 +89,6 @@ export class DocumentoComponent {
 
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
-  childAlta = viewChild.required<DocumentoDrawerComponent>('alta')
-  childDetalle = viewChild.required<DocumentoDrawerComponent>('detalle')
-  childEdit = viewChild.required<DocumentoDrawerComponent>('editor')
   
   onAddorUpdate(_e:any) {
     this.formChanged('')
@@ -203,26 +200,15 @@ export class DocumentoComponent {
   }
 
   openDrawerforAlta(): void{
-   
     this.visibleAlta.set(true) 
-    setTimeout(() => {
-      this.childAlta().resetForm()
-    }, 1000)
   }
 
   openDrawerforEdit(): void{
-    
     this.visibleEdit.set(true)
-    setTimeout(() => {
-      this.childEdit().load()
-    }, 1000)
   }
 
   openDrawerforDetalle(): void{
     this.visibleDetalle.set(true)
-    setTimeout(() => {
-      this.childDetalle().load()
-    }, 1000)
   }
 
   onTabsetChange(_event: any) {
