@@ -94,8 +94,9 @@ export class BaseController {
 
 
   async getUsuarioId(res: any, queryRunner: QueryRunner) {
+    console.log("res", res)
     if (res.locals.PersonalId == 0) {
-      const usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId=@0`, [res.locals.PersonalId])
+      const usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioNombre =@0`, [res.locals.userName])
       if (usuario.length > 0)
         return usuario[0].UsuarioId
     }

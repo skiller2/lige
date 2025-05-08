@@ -77,6 +77,7 @@ export class PolizaSeguroDrawerComponent {
     try {
 
       const res = await firstValueFrom(this.apiService.setPolizaSeguro(vals))
+      console.log("res", res)
       if(res.data?.list[0]?.PolizaSeguroCodigo) {
        
         this.formCli.patchValue({
@@ -122,7 +123,7 @@ export class PolizaSeguroDrawerComponent {
   formCli = this.fb.group({
     id: 0,
     PolizaSeguroCodigo: "",
-    TipoSeguroId: 0,
+    TipoSeguroCod: "",
     CompaniaSeguroId: 0,
     PolizaSeguroNroPoliza: "",
     PolizaSeguroNroEndoso: "",

@@ -654,7 +654,7 @@ UNION
     try {
       //acomodar select para que sea el correcto
       const result = await dataSource.query(`
-      SELECT 
+      SELECT
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
         ts.TipoSeguroNombre,
         ps.TipoSeguroCod,
@@ -662,9 +662,12 @@ UNION
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
-        ps.PolizaSeguroResultado
+        ps.PolizaSeguroResultado,
+        ps.CompaniaSeguroId,
+        cs.CompaniaSeguroDescripcion
       FROM PolizaSeguroNew ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCod
+      LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
       WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
     
       this.jsonRes(result, res);
@@ -678,7 +681,7 @@ UNION
 
     let {
       PolizaSeguroCodigo,
-      TipoSeguroId,
+      TipoSeguroCod,
       CompaniaSeguroId,
       PolizaSeguroNroPoliza,
       PolizaSeguroNroEndoso,
@@ -757,7 +760,7 @@ UNION
             PolizaSeguroAudIpMod = @8
           WHERE PolizaSeguroCodigo = @9
         `, [
-          TipoSeguroId,
+          TipoSeguroCod,
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
@@ -780,7 +783,7 @@ UNION
 
  //'CompaniaSeguroId'-'TipoSeguroCod'-'PolizaSeguroNroPoliza'-'PolizaSeguroNroEndoso'
 
-         resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroId}-${polizaEndoso[0]}-${endoso[1]}`
+         resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCod}-${polizaEndoso[0]}-${endoso[1]}`
 
         await queryRunner.query(`
           INSERT INTO PolizaSeguroNew (
@@ -802,7 +805,7 @@ UNION
           )
         `, [
           resultPolizaSeguroCodigo,
-          TipoSeguroId,
+          TipoSeguroCod,
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
@@ -818,7 +821,7 @@ UNION
 
       }
 
-      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroId)
+      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCod)
 
       console.log("validationDniResults", validationDniResults)
       console.log("resultFile", resultFile)
@@ -1020,7 +1023,7 @@ UNION
 
     async validateFormPolizaSeguro(params: any) {
       
-      if(!params.TipoSeguroId){
+      if(!params.TipoSeguroCod){
         throw new ClientException(`Debe completar el campo Tipo de Seguro.`)
       }
 

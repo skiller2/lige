@@ -13,7 +13,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
-          <nz-select formControlName="TipoSeguroId"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
+          <nz-select formControlName="TipoSeguroCod"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
             <nz-option *ngFor="let tiposeguro of $optionsTipoSeguro | async" [nzValue]="tiposeguro.TipoSeguroCodigo" [nzLabel]="tiposeguro.TipoSeguroNombre"></nz-option> 
           </nz-select>
         </nz-form-control>
@@ -63,7 +63,7 @@
       <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
 
-          @if (this.PolizaSeguroCodigo()) {
+         <!-- @if (this.PolizaSeguroCodigo()) {
           
           <button 
           nz-popconfirm
@@ -73,7 +73,7 @@
           nz-button 
           nzType="primary"
           nzDanger>Eliminar</button>
-        } 
+        } -->
       </nz-form-item>
     }
 
