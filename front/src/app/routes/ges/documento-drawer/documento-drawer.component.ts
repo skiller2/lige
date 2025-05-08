@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, output, effect } from '@angular/core';
 import { FormBuilder, FormArray } from '@angular/forms';
 import { BehaviorSubject, firstValueFrom, debounceTime, switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
@@ -50,7 +50,28 @@ export class DocumentoDrawerComponent {
   constructor(
     private searchService: SearchService,
     private apiService: ApiService,
-  ) { }
+  ) {
+    effect(async() => { 
+      const visible = this.visible()
+      if (visible) {
+        if (this.docId()) {
+          let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
+          console.log('infoDoc: ', infoDoc);
+          this.formTipoDocumento.reset(infoDoc)
+          this.formTipoDocumento.markAsUntouched()
+          this.formTipoDocumento.markAsPristine()
+        }
+        if (this.disabled())
+          this.formTipoDocumento.disable()
+        else
+          this.formTipoDocumento.enable()
+      }
+      else {
+        this.formTipoDocumento.reset()
+        this.formTipoDocumento.enable()
+      }
+    })
+  }
 
   fb = inject(FormBuilder)
   formTipoDocumento = this.fb.group({ doc_id: 0, doctipo_id: '', den_documento: null, persona_id: 0,
@@ -87,9 +108,6 @@ export class DocumentoDrawerComponent {
     const res = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
     this.optionsLabels.set(res)
 
-    this.formTipoDocumento.get('archivo')?.valueChanges.subscribe((value: any) => {
-      this.prevFiles.set(value)
-    });
   }
 
   async save() {
@@ -113,19 +131,19 @@ export class DocumentoDrawerComponent {
     this.isLoading.set(false)
   }
 
-  async load() {
-    if (this.docId()) {
-      let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-      this.formTipoDocumento.reset(infoDoc)
-
-      this.formTipoDocumento.markAsUntouched()
-      this.formTipoDocumento.markAsPristine()
-    }
-    if (this.disabled())
-      this.formTipoDocumento.disable()
-    else
-      this.formTipoDocumento.enable()
-  }
+  // async load() {
+  //   if (this.docId()) {
+  //     let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
+  //     console.log('infoDoc: ', infoDoc);
+  //     this.formTipoDocumento.reset(infoDoc)
+  //     this.formTipoDocumento.markAsUntouched()
+  //     this.formTipoDocumento.markAsPristine()
+  //   }
+  //   if (this.disabled())
+  //     this.formTipoDocumento.disable()
+  //   else
+  //     this.formTipoDocumento.enable()
+  // }
 
   resetForm() {
     this.formTipoDocumento.reset()
