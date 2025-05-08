@@ -49,7 +49,7 @@ export class ObjetivosFormComponent {
 
   objCoordinadorCuenta = { 
     ObjetivoId:0,
-    PersonaId:0,
+    PersonalId:0,
     ObjetivoPersonalJerarquicoId:0,
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
@@ -257,7 +257,7 @@ export class ObjetivosFormComponent {
           let Rubro = form.infoRubro
           // este es para cuando es update
 
-          if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonaId) === '')
+          if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
             form.infoCoordinadorCuenta = []   
           
           if( Rubro.length === 1 && !Rubro[0]?.ClienteElementoDependienteRubroId && String(Rubro[0]?.RubroId) === '')

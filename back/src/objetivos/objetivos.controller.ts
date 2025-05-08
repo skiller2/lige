@@ -510,7 +510,7 @@ export class ObjetivosController extends BaseController {
         return await queryRunner.query(`SELECT
                 ObjetivoId,
                 ObjetivoPersonalJerarquicoId,
-                ObjetivoPersonalJerarquicoPersonalId as PersonaId,
+                ObjetivoPersonalJerarquicoPersonalId as PersonalId,
                 ObjetivoPersonalJerarquicoComision,
                 ObjetivoPersonalJerarquicoDesde,
                 ObjetivoPersonalJerarquicoHasta,
@@ -1149,7 +1149,7 @@ export class ObjetivosController extends BaseController {
         // Coordinador de cuenta
 
         for (const obj of form.infoCoordinadorCuenta) {
-            if (!obj.PersonaId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
+            if (!obj.PersonalId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
                 throw new ClientException(`Debe completar el campo Persona en Coordinador de cuenta.`)
             }
 
