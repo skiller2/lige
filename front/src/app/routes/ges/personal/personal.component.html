@@ -97,7 +97,11 @@
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
-      <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
+      @defer (when personalId()){
+        <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
+
+      }
+    
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
