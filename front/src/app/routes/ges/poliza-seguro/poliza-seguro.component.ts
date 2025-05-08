@@ -128,11 +128,14 @@ export class PolizaSeguroComponent {
     });
   }
 
-  
-
   ////////// Drawer para nuevo /////////////
 
   async openDrawerForNew() {
+    this.visible.set(true)
+    this.PolizaSeguroCodigo.set('');
+  }
+
+  async openDrawerforEdit() {
     this.visible.set(true)
   }
 }

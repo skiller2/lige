@@ -41,7 +41,7 @@ export class PolizaSeguroDrawerComponent {
   $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
   private apiService = inject(ApiService)
   disabled = input<boolean>(false)
-
+  PolizaSeguroResultado = signal<any>(null)
 
   constructor(private searchService: SearchService) { 
     
@@ -51,7 +51,9 @@ export class PolizaSeguroDrawerComponent {
       if (visible) {
         if (this.PolizaSeguroCodigo()) {
           let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroCodigo()));
-        
+
+          this.PolizaSeguroResultado.set(vals[0].PolizaSeguroResultado)
+
           this.formCli.patchValue(vals[0])
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
@@ -82,7 +84,8 @@ export class PolizaSeguroDrawerComponent {
         })
         this.tituloDrawer.set('Editar Poliza Seguro')
       }  
-      
+
+      this.PolizaSeguroResultado.set(res.data?.list[0]?.PolizaSeguroResultado)
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
      // this.onRefreshPolizaSeguro.emit()

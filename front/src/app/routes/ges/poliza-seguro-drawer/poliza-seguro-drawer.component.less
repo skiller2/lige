@@ -2,3 +2,40 @@
     justify-content: center;
 }
 
+.validation-tables-container {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.validation-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .table-header {
+        background-color: #f5f5f5;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: #333;
+        text-align: left;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .table-content {
+        padding: 12px 16px;
+        background-color: #fff;
+        color: #666;
+        line-height: 1.5;
+    }
+
+    tr {
+        &:hover {
+            background-color: #fafafa;
+        }
+    }
+}
+
