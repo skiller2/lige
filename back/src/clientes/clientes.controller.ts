@@ -417,7 +417,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
                 for (const file of ObjCliente.files) {
-                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', file, usuario, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, ObjCliente.ClienteFacturacionCUIT, file, usuario, ip, queryRunner)
                 }
             }
             await queryRunner.commitTransaction()
@@ -659,7 +659,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
                 for (const file of ObjCliente.files) {
-                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', file, usuario, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, ObjCliente.ClienteFacturacionCUIT, file, usuario, ip, queryRunner)
                 }
             }
 
