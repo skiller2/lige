@@ -400,7 +400,7 @@ ${orderBy}`, [fechaActual])
             await this.updateClienteTable(queryRunner, ClienteId, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId);
 
             //se actualiza lo relacionado a cliente facturacion
-            const ClienteFacturacionId = await this.ClienteFacturacion(queryRunner, ObjCliente, ClienteId, ClienteFechaAlta)
+            const ClienteFacturacionId = await this.ClienteFacturacion(queryRunner, ObjCliente, ClienteId)
             ObjCliente.ClienteFacturacionId = ClienteFacturacionId
 
             // se actualiza el domicilio
@@ -417,7 +417,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
                 for (const file of ObjCliente.files) {
-                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', file, usuario, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, ObjCliente.ClienteFacturacionCUIT, file, usuario, ip, queryRunner)
                 }
             }
             await queryRunner.commitTransaction()
@@ -532,7 +532,7 @@ ${orderBy}`, [fechaActual])
         return ClienteAdministradorId
     }
 
-    async ClienteFacturacion(queryRunner: any, ObjCliente: any, ClienteId: any, ClienteFechaAlta: any) {
+    async ClienteFacturacion(queryRunner: any, ObjCliente: any, ClienteId: any) {
 
         let ClienteFacturacionId
         if (ObjCliente.ClienteFacturacionId) {
@@ -540,7 +540,7 @@ ${orderBy}`, [fechaActual])
             await this.updateFacturaTable(queryRunner, ClienteId, ObjCliente.ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId);
         } else {
             ClienteFacturacionId = 1;
-            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta);
+            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId);
             await this.updateClienteTableforFactura(queryRunner, ClienteId, ClienteFacturacionId);
         }
 
@@ -638,6 +638,8 @@ ${orderBy}`, [fechaActual])
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
+
+
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
             const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteDomicilioUltNro, ClienteAdministradorId)
@@ -645,7 +647,7 @@ ${orderBy}`, [fechaActual])
             ObjClienteNew.ClienteId = ClienteId
             ObjClienteNew.ClienteFacturacionId = ClienteFacturacionId
 
-            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta)
+            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId)
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
@@ -657,7 +659,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
                 for (const file of ObjCliente.files) {
-                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, 'cli', file, usuario, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, ObjCliente.ClienteFacturacionCUIT, file, usuario, ip, queryRunner)
                 }
             }
 
@@ -697,7 +699,8 @@ ${orderBy}`, [fechaActual])
         return ContactoId[0]['']
     }
 
-    async insertClienteFacturacion(queryRunner: any, ClienteId: any, ClienteFacturacionId: any, CondicionAnteIVAId: any, ClienteFacturacionCUIT: any, ClienteFechaAlta: Date) {
+    async insertClienteFacturacion(queryRunner: any, ClienteId: any, ClienteFacturacionId: any, CondicionAnteIVAId: any, ClienteFacturacionCUIT: any) {
+        let FechaActual = new Date()
 
         await queryRunner.query(`INSERT INTO ClienteFacturacion (
         ClienteId,
@@ -708,7 +711,7 @@ ${orderBy}`, [fechaActual])
         ClienteFacturacionTipoFacturacion,
         ClienteFacturacionDesde,
         ClienteFacturacionHasta) VALUES (
-        @0,@1,@2,@3,@4,@5,@6,@7)`, [ClienteId, ClienteFacturacionId, CondicionAnteIVAId, ClienteFacturacionCUIT, null, null, ClienteFechaAlta, null])
+        @0,@1,@2,@3,@4,@5,@6,@7)`, [ClienteId, ClienteFacturacionId, CondicionAnteIVAId, ClienteFacturacionCUIT, null, null, FechaActual, null])
     }
 
     async inserClientetDomicilioOLD(queryRunner: any, ClienteId: any, ClienteDomicilioId: any, ClienteDomicilioDomLugar: any, ClienteDomicilioDomCalle: any,
