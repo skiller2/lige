@@ -4,6 +4,7 @@ import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { FileUploadController } from "src/controller/file-upload.controller";
+import { Utils } from "src/liquidaciones/liquidaciones.utils";
 
 const listaColumnas: any[] = [
   {
@@ -703,10 +704,12 @@ UNION
     await queryRunner.connect();
     await queryRunner.startTransaction();
     
+    //const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
+
 
     try {
 
-      await this.validateFormPolizaSeguro(req.body)
+      await this.validateFormPolizaSeguro(req.body, queryRunner)
 
       //#Crear validacion para periodo
 
@@ -717,15 +720,15 @@ UNION
 
 
 
-      //const dniRegex = new RegExp(regex.DNILista, "mg");
-      //const polizaRegex = new RegExp(regex.Poliza, "m");
-      //const endosoRegex = new RegExp(regex.Endoso, "m");
-      //const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m");
+      const dniRegex = new RegExp(regex.DNILista, "mg");
+      const polizaRegex = new RegExp(regex.Poliza, "m");
+      const endosoRegex = new RegExp(regex.Endoso, "m");
+      const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m");
 
-      const dniRegex = new RegExp(/DNI ([\d.]{9,10})$/mg);
-      const polizaRegex = new RegExp(/(\d{9}) (?=\d{6})/m);
-      const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
-      const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
+      //const dniRegex = new RegExp(/DNI ([\d.]{9,10})$/mg);
+      //const polizaRegex = new RegExp(/(\d{9}) (?=\d{6})/m);
+      //const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
+      //const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
 
 
       const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
@@ -741,6 +744,37 @@ UNION
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
+
+      //optiene periodo del documento
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(anio), parseInt(mes), usuario, ip);
+      console.log("periodo_id", periodo_id)
+
+      //busca si el periodo esta cerrado
+      const ind_recibos_generados = await queryRunner.query(`SELECT ind_recibos_generados,EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+      const FechaCierre = new Date(ind_recibos_generados[0].FechaCierre)
+
+      //No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
+      if (ind_recibos_generados[0].ind_recibos_generados == 1) {
+
+        const existPolizaInPeriodo = await queryRunner.query(`SELECT PolizaSeguroDocumentoId FROM PolizaSeguroNew WHERE Periodo = @0 and TipoSeguroCod = @1`, [periodo_id, TipoSeguroCod])
+        const polizaDocumentoId = existPolizaInPeriodo[0].PolizaSeguroDocumentoId
+
+        //si existe un documento en el periodo cerrado, no se puede reprocesar
+        if (polizaDocumentoId) {
+          throw new ClientException(`No se puede reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada. ${this.dateOutputFormat(FechaCierre)}`)
+        }
+        
+      }
+
+      // Validar que no exista una póliza del mismo tipo en el periodo
+      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguroNew WHERE TipoSeguroCod = @0 AND Periodo = @1`, [TipoSeguroCod, periodo_id])
+
+      if (polizaExistente[0].count > 0) {
+        throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCod} para el periodo seleccionado. Solo se permite una póliza por tipo por periodo.`)
+      }
+
+
+      
       if (PolizaSeguroCodigo) {
         // is edit
       console.log("is edit")
@@ -757,7 +791,8 @@ UNION
             CompaniaSeguroId = @5,
             PolizaSeguroAudFechaMod = @6,
             PolizaSeguroAudUsuarioMod = @7,
-            PolizaSeguroAudIpMod = @8
+            PolizaSeguroAudIpMod = @8,
+            Periodo = @10
           WHERE PolizaSeguroCodigo = @9
         `, [
           TipoSeguroCod,
@@ -769,7 +804,8 @@ UNION
           new Date(),
           usuario,
           ip,
-          PolizaSeguroCodigo
+          PolizaSeguroCodigo,
+          periodo_id
         ]);
         
 
@@ -778,6 +814,19 @@ UNION
         // is new
 
       console.log("is new")
+
+
+      // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
+      const result = await queryRunner.query(`
+        SELECT COUNT(*) as count 
+        FROM PolizaSeguroNew ps
+        WHERE ps.TipoSeguroCod = @0 
+        AND ps.PolizaSeguroFechaEndoso = @1`, 
+        [TipoSeguroCod, PolizaSeguroFechaEndoso])
+
+      if(result[0].count > 0) {
+        throw new ClientException(`Ya existe una póliza de este tipo para el periodo seleccionado.`)
+      }
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip)
 
@@ -799,9 +848,10 @@ UNION
             PolizaSeguroAudIpIng,
             PolizaSeguroAudFechaMod,
             PolizaSeguroAudUsuarioMod,
-            PolizaSeguroAudIpMod
+            PolizaSeguroAudIpMod,
+            Periodo
           ) VALUES (
-            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12
+            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13
           )
         `, [
           resultPolizaSeguroCodigo,
@@ -816,7 +866,8 @@ UNION
           ip,
           new Date(),
           usuario,
-          ip
+          ip,
+          periodo_id
         ]);
 
       }
@@ -1021,7 +1072,7 @@ UNION
       this.jsonRes(result, res);
     }
 
-    async validateFormPolizaSeguro(params: any) {
+    async validateFormPolizaSeguro(params: any, queryRunner: QueryRunner) {
       
       if(!params.TipoSeguroCod){
         throw new ClientException(`Debe completar el campo Tipo de Seguro.`)
@@ -1038,6 +1089,11 @@ UNION
       if(params.files.length > 1){
         throw new ClientException(`Debe subir un solo archivo.`)
       }
+
+
+      // No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
+      // en caso de que el periodo que desea cargar el endoso tenga cerrada la liquidación pero no tenga póliza asociada, se podrá cargada el endoso de la poliza (esto para cada tipo)
+      
     }
 
 }
