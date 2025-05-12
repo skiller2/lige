@@ -30,7 +30,7 @@ export class PersonalActaDrawerComponent {
 
     constructor(
         private searchService: SearchService,
-        // private apiService: ApiService,
+        private apiService: ApiService,
         // private router: Router,
         // private route: ActivatedRoute,
         // private settingService: SettingsService,
@@ -40,12 +40,12 @@ export class PersonalActaDrawerComponent {
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
     fb = inject(FormBuilder)
-    formSitRevista = this.fb.group({
-        SituacionId: 0, Motivo:'', Desde:new Date()
+    formActa = this.fb.group({
+        // SituacionId: 0, Motivo:'', Desde:new Date()
     })
 
-    $optionsSitRevista = this.searchService.getSitRevistaOptions();
-    // $listaSitRevistaPer = this.selectedPersonalIdChange$.pipe(
+    // $optionsActa = this.searchService.getTipoPersonalActaOptions(); 
+    // $listaActaPer = this.selectedPersonalIdChange$.pipe(
     //     debounceTime(500),
     //     switchMap(() =>{
     //         setTimeout(async () => {
