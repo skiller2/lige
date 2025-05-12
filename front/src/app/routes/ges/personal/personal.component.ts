@@ -20,6 +20,8 @@ import { PersonalResponsableDrawerComponent } from '../personal-responsable-draw
 import { PersonalDocumentosDrawerComponent } from '../personal-documentos-drawer/personal-documentos-drawer.component'
 import { PersonalCategoriaDrawerComponent } from '../personal-categoria-drawer/personal-categoria-drawer.component'
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component'
+import { PersonalActaDrawerComponent } from '../personal-acta-drawer/personal-acta-drawer.component'
+
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 
 // icons
@@ -36,7 +38,7 @@ import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOut
         PersonalFormComponent, LicenciaHistorialDrawerComponent,
         PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
         PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
-        DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent
+        DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent,PersonalActaDrawerComponent
     ],
     providers: [AngularUtilService, ExcelExportService,provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline])],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -72,6 +74,8 @@ export class PersonalComponent {
     visibleDetalle = model<boolean>(false)
     visibleCategoria = model<boolean>(false)
     visibleBanco = model<boolean>(false)
+    visibleActa = model<boolean>(false)
+
 
     // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
     // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
@@ -179,6 +183,10 @@ export class PersonalComponent {
 
   closeDrawerforConsultDetalle(): void {
     this.visibleDetalle.set( false)
+  }
+
+  openDrawerforConsultActa(): void{
+    this.visibleActa.set(true) 
   }
 
   onTabsetChange(_event: any) {

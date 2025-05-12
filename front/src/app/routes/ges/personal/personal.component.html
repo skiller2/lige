@@ -45,8 +45,7 @@
           nzTheme="outline"></span></button>
       <!-- btn  datos bancarios -->
       <button nz-button nzType="default" (click)="openDrawerforConsultBanco()" [disabled]="personalId() == 0" nz-tooltip
-        nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank"
-          nzTheme="outline"></span></button>
+        nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
       <!-- btn  responsable -->
       <button nz-button nzType="default" (click)="openDrawerforConsultResponsable()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.responsable' | i18n }}"><span nz-icon nzType="eye"
@@ -59,6 +58,10 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
           nzTheme="outline"></span></button>
+
+      <!-- btn acta -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultActa()" [disabled]="personalId() == 0" nz-tooltip
+        nzTooltipTitle="{{ 'app.acta' | i18n }}"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
 
 
 
@@ -98,10 +101,10 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
       @defer (when personalId()){
-        <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
+      <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
 
       }
-    
+
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
@@ -129,3 +132,6 @@
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
   (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
 <app-personal-banco-drawer [(visibleBanco)]="visibleBanco" [PersonalId]="personalId()"></app-personal-banco-drawer>
+
+<app-personal-acta-drawer #actaDrawer [(visibleActa)]="visibleActa"
+  [PersonalId]="personalId()"></app-personal-acta-drawer>
