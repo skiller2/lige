@@ -354,6 +354,10 @@ const columnsObjetivosDescuentos:any[] = [
 
 export class GestionDescuentosController extends BaseController {
 
+  getTimeString(stm: Date) {
+    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}`:null
+  }
+
   async getPersonalGridColumns(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsPersonalDescuentos, res)
   }
@@ -841,7 +845,7 @@ export class GestionDescuentosController extends BaseController {
         )
       }
 
-      throw new ClientException(`DEBUG.`)
+      // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     }catch (error) {
@@ -980,6 +984,230 @@ export class GestionDescuentosController extends BaseController {
       ) 
     }  
     return
+  }
+
+  async updateDescuento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId = req.body.PersonalId
+    const ObjetivoId = req.body.ObjetivoId
+    let errors : string[] = []
+    try {
+      await queryRunner.startTransaction()
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const ip = this.getRemoteAddress(req)
+      
+      const AplicaEl:Date = new Date(req.body.AplicaEl)
+      const anio = AplicaEl.getFullYear()
+      const mes = AplicaEl.getMonth()+1
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+     
+      if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
+        await this.updatePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
+      } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
+        await this.updateObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+      }
+
+      // throw new ClientException(`DEBUG.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    }catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private async updatePersonalOtroDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
+    const id:number = otroDescuento.id
+    const DescuentoId:number = otroDescuento.DescuentoId
+    const PersonalId:number = otroDescuento.PersonalId
+    const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
+    const Cuotas:number = otroDescuento.Cuotas
+    const Importe:number = otroDescuento.Importe
+    const Detalle:number = otroDescuento.Detalle
+
+    const anio:number = AplicaEl.getFullYear()
+    const mes:number = AplicaEl.getMonth()+1
+
+    let res = await queryRunner.query(`
+      SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
+      , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
+      , PersonalOtroDescuentoCantidadCuotas Cuotas, PersonalOtroDescuentoImporteVariable Importe
+      , PersonalOtroDescuentoDetalle Detalle, PersonalOtroDescuentoCuotaUltNro CuotaUltNro
+      FROM PersonalOtroDescuento
+      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+    `, [id, PersonalId])
+    if (!res.length) {
+      throw new ClientException(`No se encontro el descuento de la persona.`)
+    }
+    // const PersonalOtroDescuento = res[0]
+    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
+    // if (checkrecibos[0]?.ind_recibos_generados == 1)
+    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+
+    const hoy:Date = new Date()
+    const hora = this.getTimeString(hoy)
+    hoy.setHours(0, 0, 0, 0)
+    await queryRunner.query(`
+      UPDATE PersonalOtroDescuento SET
+      PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
+      , PersonalOtroDescuentoMesesAplica = @4, PersonalOtroDescuentoMes = @4
+      , PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = @6
+      , PersonalOtroDescuentoFechaAplica = @7, PersonalOtroDescuentoDetalle = @8
+      , PersonalOtroDescuentoPuesto = @9, PersonalOtroDescuentoUsuarioId = @10
+      , PersonalOtroDescuentoDia = @11, PersonalOtroDescuentoTiempo = @12
+      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      `, [id, PersonalId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+    
+    await queryRunner.query(`
+      UPDATE PersonalOtroDescuentoCuota SET
+      PersonalOtroDescuentoCuotaImporte = ROUND(@3/@2, 2)
+      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      `, [id, PersonalId, Cuotas, Importe])
+  }
+
+  private async updateObjetivoDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
+    const id:number = otroDescuento.id
+    const DescuentoId:number = otroDescuento.DescuentoId
+    const ObjetivoId:number = otroDescuento.ObjetivoId
+    const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
+    const Cuotas:number = otroDescuento.Cuotas
+    const Importe:number = otroDescuento.Importe
+    const Detalle:number = otroDescuento.Detalle
+
+    const anio:number = AplicaEl.getFullYear()
+    const mes:number = AplicaEl.getMonth()+1
+
+    let res = await queryRunner.query(`
+      SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
+      , ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
+      , ObjetivoDescuentoCantidadCuotas Cuotas, ObjetivoDescuentoImporteVariable Importe
+      , ObjetivoDescuentoDetalle Detalle, ObjetivoDescuentoCuotaUltNro CuotaUltNro
+      FROM ObjetivoDescuento
+      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+    `, [id, ObjetivoId])
+    if (!res.length) {
+      throw new ClientException(`No se encontro el descuento del objetivo.`)
+    }
+    // const ObjetivoDescuento = res[0]
+    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
+    // if (checkrecibos[0]?.ind_recibos_generados == 1)
+    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+
+    const hoy:Date = new Date()
+    const hora = this.getTimeString(hoy)
+    hoy.setHours(0, 0, 0, 0)
+    await queryRunner.query(`
+      UPDATE ObjetivoDescuento SET
+      ObjetivoDescuentoDescuentoId = @2, ObjetivoDescuentoAnoAplica = @3
+      , ObjetivoDescuentoMesesAplica = @4, ObjetivoDescuentoMes = @4
+      , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = @6
+      , ObjetivoDescuentoFechaAplica = @7, ObjetivoDescuentoDetalle = @8
+      , ObjetivoDescuentoPuesto = @9, ObjetivoDescuentoUsuarioId = @10
+      , ObjetivoDescuentoDia = @11, ObjetivoDescuentoTiempo = @12
+      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      `, [id, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+    
+    await queryRunner.query(`
+      UPDATE ObjetivoDescuentoCuota SET
+      ObjetivoDescuentoCuotaImporte = ROUND(@3/@2, 2)
+      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      `, [id, ObjetivoId, Cuotas, Importe])
+  }
+
+  async deleteDescuento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId = req.body.PersonalId
+    const ObjetivoId = req.body.ObjetivoId
+    let errors : string[] = []
+    try {
+      await queryRunner.startTransaction()
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const ip = this.getRemoteAddress(req)
+      
+      const AplicaEl:Date = new Date(req.body.AplicaEl)
+      const anio = AplicaEl.getFullYear()
+      const mes = AplicaEl.getMonth()+1
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+     
+      if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
+        await this.deletePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
+      } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
+        await this.deleteObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+      }
+
+      // throw new ClientException(`DEBUG.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    }catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private async deletePersonalOtroDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
+    const id:number = otroDescuento.id
+    const PersonalId:number = otroDescuento.PersonalId
+    
+    let res = await queryRunner.query(`
+      SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
+      , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
+      , PersonalOtroDescuentoCantidadCuotas Cuotas, PersonalOtroDescuentoImporteVariable Importe
+      , PersonalOtroDescuentoDetalle Detalle, PersonalOtroDescuentoCuotaUltNro CuotaUltNro
+      FROM PersonalOtroDescuento
+      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+    `, [id, PersonalId])
+    if (!res.length) {
+      throw new ClientException(`No se encontro el descuento de la persona.`)
+    }
+    // const PersonalOtroDescuento = res[0]
+    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
+    // if (checkrecibos[0]?.ind_recibos_generados == 1)
+    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+
+    await queryRunner.query(`
+      DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      `, [id, PersonalId])
+
+    await queryRunner.query(`
+      DELETE FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      `, [id, PersonalId])
+  }
+
+  private async deleteObjetivoDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
+    const id:number = otroDescuento.id
+    const ObjetivoId:number = otroDescuento.ObjetivoId
+    
+    let res = await queryRunner.query(`
+      SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
+      , ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
+      , ObjetivoDescuentoCantidadCuotas Cuotas, ObjetivoDescuentoImporteVariable Importe
+      , ObjetivoDescuentoDetalle Detalle, ObjetivoDescuentoCuotaUltNro CuotaUltNro
+      FROM ObjetivoDescuento
+      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+    `, [id, ObjetivoId])
+    if (!res.length) {
+      throw new ClientException(`No se encontro el descuento del objetivo.`)
+    }
+    // const ObjetivoDescuento = res[0]
+    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
+    // if (checkrecibos[0]?.ind_recibos_generados == 1)
+    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+
+    await queryRunner.query(`
+      DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      `, [id, ObjetivoId])
+
+    await queryRunner.query(`
+      DELETE FROM ObjetivoDescuento WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      `, [id, ObjetivoId])
   }
 
 }
