@@ -307,7 +307,7 @@ export class SearchService {
 
   //////
 
-  
+
   getTipoSeguroSearch(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/seguros/searchTipoSeguro`).pipe(
       map(res => res.data),
@@ -1363,6 +1363,16 @@ export class SearchService {
 
   getSitRevistaOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getTipoPersonalActaOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/acta/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
