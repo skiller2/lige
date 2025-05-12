@@ -26,7 +26,7 @@ import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.comp
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
-import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline} from '@ant-design/icons-angular/icons';
+import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline} from '@ant-design/icons-angular/icons';
 
 
 @Component({
@@ -40,7 +40,7 @@ import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOut
         PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
         DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent,PersonalActaDrawerComponent
     ],
-    providers: [AngularUtilService, ExcelExportService,provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline])],
+    providers: [AngularUtilService, ExcelExportService,provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline])],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
   

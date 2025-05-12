@@ -23,6 +23,9 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
           nzTheme="outline"></span></button>
+      <!-- btn acta -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultActa()" [disabled]="personalId() == 0" nz-tooltip
+        nzTooltipTitle="{{ 'app.acta' | i18n }}"><span nz-icon nzType="container" nzTheme="outline"></span></button>
       <!-- btn  history -->
       <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.licencias' | i18n }}"><span nz-icon nzType="clock-circle"
@@ -58,12 +61,6 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
           nzTheme="outline"></span></button>
-
-      <!-- btn acta -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultActa()" [disabled]="personalId() == 0" nz-tooltip
-        nzTooltipTitle="{{ 'app.acta' | i18n }}"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
-
-
 
     </nz-button-group>
   </div>
