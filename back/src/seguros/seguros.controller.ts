@@ -740,14 +740,15 @@ UNION
       const fechaDesdeEndoso = detalle_documento.match(fechaDesdeRegex)
 
       const fechaTexto = fechaDesdeEndoso[0];
-      const [dia, mes, anio] = fechaTexto.split(".");
-      let fechaDesde = new Date(`${anio}-${mes}-${dia}`);
+      const [dia, mes, anio] = fechaTexto.split(".")
+      let fechaDesde = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia)))
+
   
       if (!dni || !polizaEndoso) {
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
-
+      //throw new ClientException(`test`)
       //optiene periodo del documento
       const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(anio), parseInt(mes), usuario, ip);
       console.log("periodo_id", periodo_id)
@@ -802,7 +803,7 @@ UNION
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
-          fechaDesde ,
+          fechaDesde.toISOString().replace('Z', '') ,
           CompaniaSeguroId,
           new Date(),
           usuario,
@@ -868,7 +869,7 @@ UNION
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
-          fechaDesde,
+          fechaDesde.toISOString().replace('Z', ''),
           CompaniaSeguroId,
           new Date(),
           usuario,
