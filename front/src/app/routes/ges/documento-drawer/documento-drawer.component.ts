@@ -56,7 +56,7 @@ export class DocumentoDrawerComponent {
       if (visible) {
         if (this.docId()) {
           let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-          console.log('infoDoc: ', infoDoc);
+          
           this.formTipoDocumento.reset(infoDoc)
           this.formTipoDocumento.markAsUntouched()
           this.formTipoDocumento.markAsPristine()
@@ -134,7 +134,7 @@ export class DocumentoDrawerComponent {
   // async load() {
   //   if (this.docId()) {
   //     let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-  //     console.log('infoDoc: ', infoDoc);
+  //     
   //     this.formTipoDocumento.reset(infoDoc)
   //     this.formTipoDocumento.markAsUntouched()
   //     this.formTipoDocumento.markAsPristine()

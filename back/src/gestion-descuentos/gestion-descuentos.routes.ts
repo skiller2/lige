@@ -45,5 +45,5 @@ gestionDescuentosRouter.post('/addcuota', [authMiddleware.verifyToken,authMiddle
 // });
 
 // gestionDescuentosRouter.delete('/delete', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-//     gestionDescuentosController.deleteDescuentoCuotas(req, res, next)
+//     gestionDescuentosController.deleteDescuento(req, res, next)
 // });
