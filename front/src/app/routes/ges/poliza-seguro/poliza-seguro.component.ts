@@ -50,6 +50,7 @@ export class PolizaSeguroComponent {
   visible = model<boolean>(false)
   angularGrid!: AngularGridInstance
   PolizaSeguroCodigo = signal<string>("")
+  openDrawerConsult = signal<boolean>(false)
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -115,7 +116,6 @@ export class PolizaSeguroComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    console.log("row", row)
     if (row?.PolizaSeguroCodigo)
       this.PolizaSeguroCodigo.set(row.PolizaSeguroCodigo)
 
@@ -128,14 +128,27 @@ export class PolizaSeguroComponent {
     });
   }
 
+  onRefreshPolizaSeguro(){
+    this.formChange$.next('')
+  }
+
   ////////// Drawer para nuevo /////////////
 
   async openDrawerForNew() {
+
+    this.PolizaSeguroCodigo.set('')
+    this.openDrawerConsult.set(false)
     this.visible.set(true)
-    this.PolizaSeguroCodigo.set('');
   }
 
   async openDrawerforEdit() {
+    
+    this.openDrawerConsult.set(false)
+    this.visible.set(true)
+  }
+
+  async openDrawerForConsult() {
+    this.openDrawerConsult.set(true)
     this.visible.set(true)
   }
 }

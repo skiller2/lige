@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, model, output, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
@@ -42,6 +42,9 @@ export class PolizaSeguroDrawerComponent {
   private apiService = inject(ApiService)
   disabled = input<boolean>(false)
   PolizaSeguroResultado = signal<any>(null)
+  openDrawerConsult = input<boolean>(false)
+  onRefreshPolizaSeguro = output<void>()
+  fileUploadComponent = viewChild.required(FileUploadComponent);
 
   constructor(private searchService: SearchService) { 
     
@@ -51,20 +54,28 @@ export class PolizaSeguroDrawerComponent {
       if (visible) {
         if (this.PolizaSeguroCodigo()) {
           let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroCodigo()));
+          
           this.PolizaSeguroResultado.set(JSON.parse(vals[0].PolizaSeguroResultado))
           this.formCli.patchValue(vals[0])
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
   
-        
-          this.tituloDrawer.set(' Editar Poliza Seguro ')
-          //this.formCli.disable()
+          if(this.openDrawerConsult()) {
+            this.formCli.disable()
+            this.tituloDrawer.set(' Consulta Poliza Seguro ')
+          }else{
+            this.tituloDrawer.set(' Editar Poliza Seguro ')
+            this.formCli.enable()
+            this.enableForm()
+          }
         
         }
       } else {
         this.formCli.reset()
-       //this.formCli.disable()
+        this.formCli.enable()
+        this.enableForm()
         this.tituloDrawer.set(' Nueva Poliza Seguro ')
+        this.PolizaSeguroResultado.set(null)
       }
     })
   }
@@ -75,17 +86,20 @@ export class PolizaSeguroDrawerComponent {
     try {
 
       const res = await firstValueFrom(this.apiService.setPolizaSeguro(vals))
+      console.log("res.data?.list", res.data?.list)
       if(res.data?.list?.PolizaSeguroCodigo) {
-        this.formCli.patchValue({
-          PolizaSeguroCodigo: res.data?.list?.PolizaSeguroCodigo,
-        })
+
+        this.formCli.patchValue(res.data?.list)
         this.tituloDrawer.set('Editar Poliza Seguro')
       }  
+
+      console.log("res.data?.list?.DocumentoId", res.data?.list?.DocumentoId)
+      this.fileUploadComponent().LoadArchivosAnteriores(res.data?.list?.DocumentoId)
 
       this.PolizaSeguroResultado.set(JSON.parse(res.data?.list?.PolizaSeguroResultado))
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
-     // this.onRefreshPolizaSeguro.emit()
+       this.onRefreshPolizaSeguro.emit()
     } catch (error) {
       // Handle error if needed
     }
@@ -97,21 +111,12 @@ export class PolizaSeguroDrawerComponent {
   }
 
   ngOnInit(){
+  }
 
+  async enableForm(){
     this.formCli.get('PolizaSeguroNroPoliza')?.disable()
     this.formCli.get('PolizaSeguroNroEndoso')?.disable()
     this.formCli.get('PolizaSeguroFechaEndoso')?.disable()
-
-    //this.formCli.valueChanges.subscribe(value => {
-    //  console.log("value.files", value.files)
-    //  if (value.files && (value.files as ArchivoConDatos[]).length > 0) {
-    //    this.formCli.patchValue({
-    //      PolizaSeguroNroPoliza: (value.files as ArchivoConDatos[])[0].dataInFile.poliza,  
-    //      PolizaSeguroNroEndoso: (value.files as ArchivoConDatos[])[0].dataInFile.endoso,
-    //      PolizaSeguroFechaEndoso: (value.files as ArchivoConDatos[])[0].dataInFile.fechaInicio
-    //    })
-    //  }
-    //});
   }
 
 
@@ -120,6 +125,7 @@ export class PolizaSeguroDrawerComponent {
     id: 0,
     PolizaSeguroCodigo: "",
     TipoSeguroCodigo: "",
+    DocumentoId: 0,
     CompaniaSeguroId: 0,
     PolizaSeguroNroPoliza: "",
     PolizaSeguroNroEndoso: "",

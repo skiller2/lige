@@ -10,6 +10,14 @@
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
+      <nz-form-item style="display: none;">
+        <nz-form-label [nzSpan]="5">Documento</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-input-group>
+            <input nz-input formControlName="DocumentoId" placeholder="Ingrese documento" [disabled]="true" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
@@ -52,10 +60,10 @@
           <nz-date-picker formControlName="PolizaSeguroFechaEndoso" nzPlaceHolder="Seleccione fecha" ></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
-    
       <nz-form-control>
-        <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1"
-          [textForSearch]="'POLSEG'" [columnForSearch]="''" [tableForSearch]="'docgeneral'" [showTipoDocs]="false"  ></app-file-upload>
+
+        <app-file-upload formControlName="files" [idForSearh]="formCli.get('DocumentoId')?.value ?? 0" [cantMaxFiles]="1"
+          [textForSearch]="'POLSEG'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="false"  ></app-file-upload>
       </nz-form-control> 
 
       

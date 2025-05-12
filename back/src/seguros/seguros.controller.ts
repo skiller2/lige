@@ -660,6 +660,7 @@ UNION
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
         ts.TipoSeguroNombre,
         ps.TipoSeguroCodigo,
+        ps.DocumentoId,
         ps.PolizaSeguroCodigo,
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
@@ -838,7 +839,7 @@ UNION
 
         const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguroNew WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
-        if(existPoliza[0].PolizaSeguroCodigo) {
+        if(existPoliza[0]?.PolizaSeguroCodigo) {
           throw new ClientException(`Ya existe una póliza con este documento.`)
         }
 
@@ -891,7 +892,7 @@ UNION
           await queryRunner.query(`UPDATE PolizaSeguroNew SET PolizaSeguroResultado = @0 WHERE PolizaSeguroCodigo = @1`, [JSON.stringify(validationDniResults), resultPolizaSeguroCodigo])
     
       result = await queryRunner.query(`SELECT ts.TipoSeguroNombre, ps.TipoSeguroCodigo, ps.PolizaSeguroCodigo, ps.PolizaSeguroNroPoliza, ps.PolizaSeguroNroEndoso,
-         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado FROM PolizaSeguroNew ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
+         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado, ps.DocumentoId FROM PolizaSeguroNew ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
          [resultPolizaSeguroCodigo])
 
       if (resultFile) 
@@ -991,11 +992,14 @@ UNION
       for (const file of files) {
         let fec_doc_ven = null
         let PersonalId = 0
+
+        let cliente_id = file.cliente_id > 0 ? file.cliente_id : null
+        let objetivo_id = file.objetivo_id > 0 ? file.objetivo_id : null
    
          resultFile = await FileUploadController.handleDOCUpload(
           PersonalId, 
-          file.objetivo_id, 
-          file.cliente_id, 
+          objetivo_id, 
+          cliente_id, 
           file.id, 
           new Date(), 
           fec_doc_ven, 

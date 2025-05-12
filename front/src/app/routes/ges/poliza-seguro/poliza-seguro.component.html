@@ -10,6 +10,8 @@
               nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
               <button nz-button nzType="default" (click)="openDrawerforEdit()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+              <button nz-button nzType="default" (click)="openDrawerForConsult()" nz-tooltip
+              nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
             </nz-button-group>
           </div>
   
@@ -28,5 +30,5 @@
       }
     </ng-container>
 
-    <app-poliza-seguro-drawer [(visible)]="visible" [PolizaSeguroCodigo]="PolizaSeguroCodigo()"></app-poliza-seguro-drawer> 
+    <app-poliza-seguro-drawer (onRefreshPolizaSeguro)="onRefreshPolizaSeguro()" [(visible)]="visible" [PolizaSeguroCodigo]="PolizaSeguroCodigo()" [openDrawerConsult]="openDrawerConsult()"></app-poliza-seguro-drawer> 
   </nz-card> 
