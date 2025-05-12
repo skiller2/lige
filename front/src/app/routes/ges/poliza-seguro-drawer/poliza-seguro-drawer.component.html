@@ -13,7 +13,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
-          <nz-select formControlName="TipoSeguroCod"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
+          <nz-select formControlName="TipoSeguroCodigo"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
             <nz-option *ngFor="let tiposeguro of $optionsTipoSeguro | async" [nzValue]="tiposeguro.TipoSeguroCodigo" [nzLabel]="tiposeguro.TipoSeguroNombre"></nz-option> 
           </nz-select>
         </nz-form-control>
@@ -76,9 +76,8 @@
         } -->
       </nz-form-item>
     }
+      @if (PolizaSeguroResultado()) {
 
-      @if (PolizaSeguroResultado() && (PolizaSeguroResultado().notFoundInPersonalTable.length > 0 ||
-      PolizaSeguroResultado().notFoundInPersonalSeguro.length > 0 || PolizaSeguroResultado().shouldNotBeInSeguro.length > 0)) {
         <div class="validation-tables-container">
           @if (PolizaSeguroResultado()?.notFoundInPersonalTable.length > 0) {
             <table class="validation-table">

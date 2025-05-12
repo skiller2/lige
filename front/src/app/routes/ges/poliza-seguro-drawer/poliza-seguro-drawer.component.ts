@@ -51,9 +51,7 @@ export class PolizaSeguroDrawerComponent {
       if (visible) {
         if (this.PolizaSeguroCodigo()) {
           let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroCodigo()));
-
-          this.PolizaSeguroResultado.set(vals[0].PolizaSeguroResultado)
-
+          this.PolizaSeguroResultado.set(JSON.parse(vals[0].PolizaSeguroResultado))
           this.formCli.patchValue(vals[0])
           this.formCli.markAsUntouched()
           this.formCli.markAsPristine()
@@ -77,16 +75,14 @@ export class PolizaSeguroDrawerComponent {
     try {
 
       const res = await firstValueFrom(this.apiService.setPolizaSeguro(vals))
-      console.log("res", res)
-      if(res.data?.list[0]?.PolizaSeguroCodigo) {
-       
+      if(res.data?.list?.PolizaSeguroCodigo) {
         this.formCli.patchValue({
-          PolizaSeguroCodigo: res.data?.list[0]?.PolizaSeguroCodigo,
+          PolizaSeguroCodigo: res.data?.list?.PolizaSeguroCodigo,
         })
         this.tituloDrawer.set('Editar Poliza Seguro')
       }  
 
-      this.PolizaSeguroResultado.set(res.data?.list[0]?.PolizaSeguroResultado)
+      this.PolizaSeguroResultado.set(JSON.parse(res.data?.list?.PolizaSeguroResultado))
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
      // this.onRefreshPolizaSeguro.emit()
@@ -123,7 +119,7 @@ export class PolizaSeguroDrawerComponent {
   formCli = this.fb.group({
     id: 0,
     PolizaSeguroCodigo: "",
-    TipoSeguroCod: "",
+    TipoSeguroCodigo: "",
     CompaniaSeguroId: 0,
     PolizaSeguroNroPoliza: "",
     PolizaSeguroNroEndoso: "",
