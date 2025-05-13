@@ -169,7 +169,6 @@ export class PersonalFormComponent {
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
       let values:any = {...this.inputs}
-
       for (const key in values) {
         values[key] = infoPersonal[key]
       }

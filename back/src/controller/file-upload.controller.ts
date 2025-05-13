@@ -155,7 +155,6 @@ export class FileUploadController extends BaseController {
       // let usuario = res.locals.userName
       // let ip = this.getRemoteAddress(req)
       // let fechaActual = new Date()
-
       let ArchivosAnteriores = []
       switch (tableSearch) {
         case 'DocumentoImagenFoto':

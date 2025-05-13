@@ -8,6 +8,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { isObject, promisify } from 'util';
 import * as fs from 'fs';
+import { FileUploadController } from "../controller/file-upload.controller"
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -788,6 +789,22 @@ cuit.PersonalCUITCUILCUIT,
       if (valActas instanceof ClientException)
         throw valActas
 
+      console.log("file....", foto[0])
+      //throw new ClientException('test.')
+     // let  resultFile = await FileUploadController.handleDOCUpload(
+       // PersonalId, 
+        //file.objetivo_id, 
+        //file.cliente_id, 
+        //file.id, 
+        //new Date(), 
+        //fec_doc_ven, 
+        //file.den_documento, 
+        //file, 
+        //usuario,
+        //ip,
+        //queryRunner)
+
+
       if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
 
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
@@ -936,8 +953,10 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   async setFoto(queryRunner: any, personalId: any, file: any) {
-    const type = file.mimetype.split('/')[1]
+    if(file?.tempfilename){
 
+    const type = file.mimetype.split('/')[1]
+    console.log("file", file)
     const fieldname = file.fieldname
     // let foto = await queryRunner.query(`
     //   SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
@@ -982,9 +1001,13 @@ cuit.PersonalCUITCUILCUIT,
     await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
       [fotoId, personalId]
     )
+    }
   }
 
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
+    if(file.tempfilename){
+      
+  
     const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     // let doc = await queryRunner.query(`
@@ -1014,7 +1037,7 @@ cuit.PersonalCUITCUILCUIT,
       ORDER BY doc.DocumentoImagenDocumentoId DESC
     `, [personalId])
     // }
-
+  
     const docId = doc[0].docId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile: string = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
@@ -1056,10 +1079,11 @@ cuit.PersonalCUITCUILCUIT,
       `, [personalId, PersonalDocumentoUltNro, docId]
       )
     }
-
+  }
   }
 
   async setImagenEstudio(queryRunner: any, personalId: any, file: any, DocumentoImagenEstudioId: number) {
+    if(file.tempfilename){
     const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
@@ -1092,6 +1116,7 @@ cuit.PersonalCUITCUILCUIT,
       WHERE PersonalId IN (@0) AND DocumentoImagenEstudioId IN (@5)`,
       [personalId, newFieldname, type, 14, 1, DocumentoImagenEstudioId]
     )
+    }
   }
 
   private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any) {
@@ -1517,6 +1542,21 @@ cuit.PersonalCUITCUILCUIT,
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
       if (valActas instanceof ClientException)
         throw valActas
+
+      console.log("file....", Foto[0])
+     // throw new ClientException('test.')
+     // let  resultFile = await FileUploadController.handleDOCUpload(
+       // PersonalId, 
+        //file.objetivo_id, 
+        //file.cliente_id, 
+        //file.id, 
+        //new Date(), 
+        //fec_doc_ven, 
+        //file.den_documento, 
+        //file, 
+        //usuario,
+        //ip,
+        //queryRunner)
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
 
