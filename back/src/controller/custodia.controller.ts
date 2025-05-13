@@ -107,9 +107,9 @@ const columnsObjCustodia: any[] = [
         searchType: "date",
         sortable: true,
         searchHidden: false,
-//        hidden: true,
+        //        hidden: true,
         minWidth: 110,
-    },     
+    },
     {
         id: 'desc_facturacion', name: 'Desp/Oper/Ref', field: 'desc_facturacion',
         fieldName: "obj.desc_facturacion",
@@ -417,16 +417,16 @@ const estados: any[] = [
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
-/*
-    static async listCustodiasPendientes(anio: number, mes: number) {
-        const queryRunner = dataSource.createQueryRunner();
-        return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
-            FROM lige.dbo.objetivocustodia c 
-            JOIN Personal p ON p.PersonalId = c.responsable_id 
-            WHERE c.fecha_liquidacion IS NULL AND c.estado = 0
-        `, [anio, mes])
-    }
-*/
+    /*
+        static async listCustodiasPendientes(anio: number, mes: number) {
+            const queryRunner = dataSource.createQueryRunner();
+            return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
+                FROM lige.dbo.objetivocustodia c 
+                JOIN Personal p ON p.PersonalId = c.responsable_id 
+                WHERE c.fecha_liquidacion IS NULL AND c.estado = 0
+            `, [anio, mes])
+        }
+    */
     static async listCustodiasPendientesLiqui(anio: number, mes: number, diascorrimiento: number = 3) {
         diascorrimiento = diascorrimiento * -1
         const queryRunner = dataSource.createQueryRunner();
@@ -440,7 +440,7 @@ export class CustodiaController extends BaseController {
             
             WHERE obj.fecha_liquidacion IS NULL AND obj.estado <>2 
             AND obj.fecha_inicio <= DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) AND obj.fecha_inicio >= DATEADD(DAY,@0,DATEFROMPARTS(@1,@2,1))
-        `, [diascorrimiento,anio, mes])
+        `, [diascorrimiento, anio, mes])
     }
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia: any, usuario: any, ip: any) {
@@ -533,14 +533,14 @@ export class CustodiaController extends BaseController {
         let year = 0
         let month = 0
         let condition = ''
-        if (periodo){
+        if (periodo) {
             condition = `(obj.fecha_liquidacion IS NULL AND obj.estado IN (0)) OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1)`
             year = periodo.getFullYear()
             month = periodo.getMonth() + 1
-        }else condition = `1=1`
+        } else condition = `1=1`
         let search = ''
 
-        if (responsableId === undefined)  search = `1=1`
+        if (responsableId === undefined) search = `1=1`
         else search = `obj.responsable_id IN (${responsableId})`
 
         return await queryRunner.query(`
@@ -694,6 +694,27 @@ export class CustodiaController extends BaseController {
             [custodiaId, patente])
     }
 
+    async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner) {
+        let errores: string[] = []
+        const sitrev = await queryRunner.query(`SELECT per.PersonalId, CONCAT(per.PersonalApellido,' ',per.PersonalNombre) ApellidoNombre, ps.PersonalSituacionRevistaId, ps.PersonalSituacionRevistaDesde, ps.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion
+            FROM Personal per
+            LEFT JOIN PersonalSituacionRevista ps  ON ps.PersonalId = per.PersonalId AND ps.PersonalSituacionRevistaDesde <= @1  AND @1 <= ISNULL(ps.PersonalSituacionRevistaHasta,'9999-12-31')
+            LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = ps.PersonalSituacionRevistaSituacionId
+            WHERE per.PersonalId =@0`,
+            [PersonalId, fechaDesde])
+
+        if (sitrev.length == 0) {
+            errores.push(`No se encontró la persona con PersonalId: ${PersonalId}`)
+        } else {
+
+            if (![2, 12, 11, 20].includes(sitrev[0].PersonalSituacionRevistaId))
+                errores.push(`${sitrev[0].ApellidoNombre} se encuentra en situación de revista ${(sitrev[0].SituacionRevistaDescripcion) ? sitrev[0].SituacionRevistaDescripcion : 'no registrada'}`)
+
+        }
+        return errores
+    };
+                    
+
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         let errores = []
@@ -709,9 +730,9 @@ export class CustodiaController extends BaseController {
             const responsableId = res.locals.PersonalId
 
             const responsableQuery = await queryRunner.query(`
-                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre FROM Personal per WHERE per.PersonalId = @0`,[responsableId])
-            
-            if (responsableQuery.length!=1)
+                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre FROM Personal per WHERE per.PersonalId = @0`, [responsableId])
+
+            if (responsableQuery.length != 1)
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
 
@@ -766,6 +787,8 @@ export class CustodiaController extends BaseController {
 
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner);
+                    errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
@@ -826,7 +849,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             // const responsableId = 699
             const responsableId = res.locals.PersonalId
-            const periodo: Date = req.body.periodo? new Date(req.body.periodo) : null
+            const periodo: Date = req.body.periodo ? new Date(req.body.periodo) : null
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
@@ -966,6 +989,12 @@ export class CustodiaController extends BaseController {
                     //
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+
+
+                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner);
+                    errores = [...errores, ...erroresPersona]
+
+
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
                 }
@@ -1188,8 +1217,8 @@ export class CustodiaController extends BaseController {
                 const estado: number = form.estado
                 const numFactura: number = form.numFactura
 
-                const authEditAdmin:boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
-                const adminEdit:boolean = await this.hasGroup(req, 'administrativo')
+                const authEditAdmin: boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
+                const adminEdit: boolean = await this.hasGroup(req, 'administrativo')
 
                 if (estado == 4 && !adminEdit)
                     throw new ClientException(`Requiere ser miembro del grupo Administrativo`)
@@ -1202,12 +1231,12 @@ export class CustodiaController extends BaseController {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
-                    if (!authEditAdmin && infoCustodia.responsableId != responsableId ) {
+                    if (!authEditAdmin && infoCustodia.responsableId != responsableId) {
                         errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupos Administrativo/Liquidaciones.`)
                         continue
                     }
 
-                    if (!authEditAdmin && estado == 4) { 
+                    if (!authEditAdmin && estado == 4) {
                         errores.push(`Codigo ${id}: Solo los grupos Administrativo/Liquidaciones, pueden grabar estado Facturado`)
                         continue
                     }
