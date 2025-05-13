@@ -40,18 +40,18 @@ const listaColumnas: any[] = [
   {
     name: "Tipo seguro",
     type: "string",
-    id: "nom_tip_seguro",
-    field: "nom_tip_seguro",
-    fieldName: "tipseg.nom_tip_seguro",
+    id: "TipoSeguroNombre",
+    field: "TipoSeguroNombre",
+    fieldName: "tipseg.TipoSeguroNombre",
     sortable: true,
     searchHidden: true
   },
   {
     name: "Tipo seguro ",
     type: "string",
-    id: "cod_tip_seguro",
-    field: "cod_tip_seguro",
-    fieldName: "tipseg.cod_tip_seguro",
+    id: "TipoSeguroCodigo",
+    field: "TipoSeguroCodigo",
+    fieldName: "tipseg.TipoSeguroCodigo",
     searchComponent: "inpurForTipoSeguroSearch",
     sortable: false,
     hidden: true,
@@ -60,18 +60,18 @@ const listaColumnas: any[] = [
   {
     name: "Motivo adhesión",
     type: "string",
-    id: "mot_adh_seguro",
-    field: "mot_adh_seguro",
-    fieldName: "seg.mot_adh_seguro",
+    id: "PersonalSeguroMotivoAdhesion",
+    field: "PersonalSeguroMotivoAdhesion",
+    fieldName: "seg.PersonalSeguroMotivoAdhesion",
     sortable: true,
     searchHidden: true
   },
   {
     name: "Motivo baja",
     type: "string",
-    id: "mot_baj_seguro",
-    field: "mot_baj_seguro",
-    fieldName: "seg.mot_baj_seguro",
+    id: "PersonalSeguroMotivoBaja",
+    field: "PersonalSeguroMotivoBaja",
+    fieldName: "seg.PersonalSeguroMotivoBaja",
     sortable: true,
     searchHidden: true
   },
@@ -90,9 +90,9 @@ const listaColumnas: any[] = [
   {
     name: "Fecha de adhesión",
     type: "date",
-    id: "fec_desde",
-    field: "fec_desde",
-    fieldName: "seg.fec_desde",
+    id: "PersonalSeguroDesde",
+    field: "PersonalSeguroDesde",
+    fieldName: "seg.PersonalSeguroDesde",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     hidden: false,
@@ -101,9 +101,9 @@ const listaColumnas: any[] = [
   {
     name: "Fecha de baja",
     type: "date",
-    id: "fec_hasta",
-    field: "fec_hasta",
-    fieldName: "seg.fec_hasta",
+    id: "PersonalSeguroHasta",
+    field: "PersonalSeguroHasta",
+    fieldName: "seg.PersonalSeguroHasta",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     hidden: false,
@@ -239,9 +239,9 @@ WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AN
   }
 
 
-  private async getPersonalEnSeguro(queryRunner: any, cod_tip_seguro: string, anio: number, mes: number) {
-    return queryRunner.query(`SELECT seg.PersonalId, seg.fec_desde, seg.fec_hasta, seg.cod_tip_seguro, sitrev.PersonalSituacionRevistaSituacionId SituacionRevistaId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde
-      FROM lige.dbo.seg_personal_seguro seg
+  private async getPersonalEnSeguro(queryRunner: any, TipoSeguroNombre: string, anio: number, mes: number) {
+    return queryRunner.query(`SELECT seg.PersonalId, seg.PersonalSeguroDesde, seg.PersonalSeguroHasta, seg.TipoSeguroCodigo, sitrev.PersonalSituacionRevistaSituacionId SituacionRevistaId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde
+      FROM PersonalSeguro seg
         LEFT JOIN (
           SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
           FROM PersonalSituacionRevista p
@@ -249,8 +249,8 @@ WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AN
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
 			 ) sitrev ON sitrev.PersonalId = seg.PersonalId
 
-      WHERE seg.cod_tip_seguro = @0 AND seg.fec_desde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(seg.fec_hasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
-    `, [cod_tip_seguro, anio, mes])
+      WHERE seg.TipoSeguroCodigo = @0 AND seg.PersonalSeguroDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(seg.PersonalSeguroHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
+    `, [TipoSeguroNombre, anio, mes])
   }
 
   private async getPersonalResponableByClientId(queryRunner: any, ClientId: number, anio: number, mes: number) {
@@ -367,21 +367,21 @@ UNION
     try {
       await queryRunner.startTransaction();
 
-      const fec_desde = new Date(anio, mes - 1, 1)
-      const fec_hasta = new Date(anio, mes - 1, 0)
+      const PersonalSeguroDesde = new Date(anio, mes - 1, 1)
+      const PersonalSeguroHasta = new Date(anio, mes - 1, 0)
 
-      const maxfechas = (await queryRunner.query(`SELECT MAX(fec_desde) fec_desde_max, MAX(fec_hasta) fec_hasta_max FROM lige.dbo.seg_personal_seguro`))[0]
-      const fec_desde_max = new Date(maxfechas.fec_desde_max)
-      const fec_hasta_max = new Date(maxfechas.fec_hasta_max)
+      const maxfechas = (await queryRunner.query(`SELECT MAX(seg.PersonalSeguroDesde) PersonalSeguroDesde_max, MAX(seg.PersonalSeguroHasta) PersonalSeguroHasta_max FROM PersonalSeguro seg`))[0]
+      const PersonalSeguroDesde_max = new Date(maxfechas.PersonalSeguroDesde_max)
+      const PersonalSeguroHasta_max = new Date(maxfechas.PersonalSeguroHasta_max)
     
-      if (fec_desde_max > fec_desde || fec_hasta_max > fec_hasta) {
-        throw new ClientException("El período seleccionado es menor al ya procesado", { fec_desde_max, fec_hasta_max })
+      if (PersonalSeguroDesde_max > PersonalSeguroDesde || PersonalSeguroHasta_max > PersonalSeguroHasta) {
+        throw new ClientException("El período seleccionado es menor al ya procesado", { PersonalSeguroDesde_max, PersonalSeguroHasta_max })
       }
-      await queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=NULL, fec_hasta= NULL WHERE fec_hasta >= @0`,
-        [fec_hasta])
+      await queryRunner.query(`UPDATE PersonalSeguro SET PersonalSeguroMotivoBaja=NULL, PersonalSeguroHasta= NULL WHERE PersonalSeguroHasta >= @0`,
+        [PersonalSeguroHasta])
   
-      await queryRunner.query(`DELETE lige.dbo.seg_personal_seguro WHERE fec_desde >= @0`,
-        [fec_desde])
+      await queryRunner.query(`DELETE PersonalSeguro WHERE PersonalSeguroDesde >= @0`,
+        [PersonalSeguroDesde])
 
 //  throw new ClientException("stop")
       const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
@@ -401,31 +401,31 @@ UNION
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, rowEnSeguro.cod_tip_seguro, row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle,stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APC', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APC', row.detalle,stm_now, usuario, ip)
         }
-        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'AP', 'En COTO ' + row.detalle,stm_now, usuario, ip)
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'AP', 'En COTO ' + row.detalle,stm_now, usuario, ip)
       }
 
       for (const row of personalEdesur) {
         const rowEnSeguro = personalEnSeguroEdesur.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, rowEnSeguro.cod_tip_seguro, row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle,stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APE', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APE', row.detalle,stm_now, usuario, ip)
         }
-        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'En Edesur ' + row.detalle,stm_now, usuario, ip)
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En Edesur ' + row.detalle,stm_now, usuario, ip)
       }
 
       for (const row of personalEnergiaArgentina) {
         const rowEnSeguro = personalEnSeguroEnergiaArgentina.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, rowEnSeguro.cod_tip_seguro, row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle,stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APEA', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APEA', row.detalle,stm_now, usuario, ip)
         }
-        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'En EnergiaArgentina ' + row.detalle,stm_now, usuario, ip)
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En EnergiaArgentina ' + row.detalle,stm_now, usuario, ip)
       }
 
 
@@ -438,19 +438,19 @@ UNION
 
       for (const row of personalEnSeguroCoto) {
         if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APC', 'No está mas en COTO',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APC', 'No está mas en COTO',stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEdesur) {
         if (!personalEdesur.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APE', 'No está mas en Edesur',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APE', 'No está mas en Edesur',stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEnergiaArgentina) {
         if (!personalEnergiaArgentina.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APEA', 'No está mas en Energia Argentina',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APEA', 'No está mas en Energia Argentina',stm_now, usuario, ip)
         }
       }
 
@@ -464,36 +464,36 @@ UNION
         }
         const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'APG', row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'APG', row.detalle,stm_now, usuario, ip)
         } else {
           if ([7].includes(row.SituacionRevistaId) && row.month_diff > 3)
             continue
           if ([3,13,19,24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
             continue
           
-          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APG', row.detalle,stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroGeneral) {
         if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId))
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Coto',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Coto',stm_now, usuario, ip)
 
         if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId))
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Edesur',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Edesur',stm_now, usuario, ip)
 
         if (personalEnSeguroEnergiaArgentna2.find(r => r.PersonalId == row.PersonalId))
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Energia Argentina',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Energia Argentina',stm_now, usuario, ip)
 
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
 
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'No tiene situación revista (2,10,11,20,12,7)',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'No tiene situación revista (2,10,11,20,12,7)',stm_now, usuario, ip)
         } else {
           if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
           if ([3,13,19,24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' baja',stm_now, usuario, ip)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' baja',stm_now, usuario, ip)
         }
       }
 
@@ -506,21 +506,21 @@ UNION
 
         const rowEnSeguro = personalEnSeguroVidCol.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'VC', row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'VC', row.detalle,stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'VC', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'VC', row.detalle,stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroVidCol) {
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)',stm_now, usuario, ip)
         } else {
           if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
           if ([3,13,19,24,8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
           
         }
       }
@@ -533,22 +533,22 @@ UNION
     return (res)? this.jsonRes(true, res, "Procesado correctamente"): true
   }
 
-  queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, fec_desde: Date, cod_tip_seguro: string, mot_adh_seguro: string,stm_now:Date, usuario:string, ip:string) {
-    return queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_adh_seguro=@3, fec_hasta=@4, aud_fecha_mod=@5, aud_usuario_mod=@6, aud_ip_mod=@7 
-      WHERE PersonalId=@0 AND fec_desde=@1 AND cod_tip_seguro = @2
-    `, [PersonalId, fec_desde, cod_tip_seguro, mot_adh_seguro, null, stm_now, usuario, ip])
+  queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string,stm_now:Date, usuario:string, ip:string) {
+    return queryRunner.query(`UPDATE PersonalSeguro SET PersonalSeguroMotivoAdhesion=@3, PersonalSeguroHasta=@4, PersonalSeguroAudFechaMod=@5, PersonalSeguroAudUsuarioMod=@6, PersonalSeguroAudIpMod=@7 
+      WHERE PersonalId=@0 AND PersonalSeguroDesde=@1 AND TipoSeguroCodigo = @2
+    `, [PersonalId, PersonalSeguroDesde, TipoSeguroNombre, PersonalSeguroMotivoAdhesion, null, stm_now, usuario, ip])
   }
 
-  queryUpdSegurosFin(queryRunner: QueryRunner, PersonalId: number, fec_hasta: Date, cod_tip_seguro: string, mot_baj_seguro: string, stm_now:Date, usuario:string, ip:string) {
-    return queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=@2, fec_hasta=@3, aud_fecha_mod=@4, aud_usuario_mod=@5, aud_ip_mod=@6 
-      WHERE PersonalId=@0 AND cod_tip_seguro = @1 AND fec_desde <= @3 AND fec_hasta IS NULL
-    `, [PersonalId, cod_tip_seguro, mot_baj_seguro, fec_hasta, stm_now, usuario, ip])
+  queryUpdSegurosFin(queryRunner: QueryRunner, PersonalId: number, PersonalSeguroHasta: Date, TipoSeguroNombre: string, PersonalSeguroMotivoBaja: string, stm_now:Date, usuario:string, ip:string) {
+    return queryRunner.query(`UPDATE PersonalSeguro SET PersonalSeguroMotivoBaja=@2, PersonalSeguroHasta=@3, PersonalSeguroAudFechaMod=@4, PersonalSeguroAudUsuarioMod=@5, PersonalSeguroAudIpMod=@6 
+      WHERE PersonalId=@0 AND TipoSeguroCodigo = @1 AND PersonalSeguroDesde <= @3 AND PersonalSeguroHasta IS NULL
+    `, [PersonalId, TipoSeguroNombre, PersonalSeguroMotivoBaja, PersonalSeguroHasta, stm_now, usuario, ip])
   }
 
-  queryAddSeguros(queryRunner: QueryRunner, PersonalId: number, fec_desde: Date, cod_tip_seguro: string, mot_adh_seguro: string,stm_now:Date, usuario:string, ip:string) {
-    return queryRunner.query(`INSERT lige.dbo.seg_personal_seguro (PersonalId, cod_tip_seguro, fec_desde, fec_hasta, mot_adh_seguro, mot_baj_seguro, aud_fecha_ing, aud_usuario_ing, aud_ip_ing, aud_fecha_mod, aud_usuario_mod, aud_ip_mod) 
+  queryAddSeguros(queryRunner: QueryRunner, PersonalId: number, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string,stm_now:Date, usuario:string, ip:string) {
+    return queryRunner.query(`INSERT PersonalSeguro (PersonalId, TipoSeguroCodigo, PersonalSeguroDesde, PersonalSeguroHasta, PersonalSeguroMotivoAdhesion, PersonalSeguroMotivoBaja, PersonalSeguroAudFechaIng, PersonalSeguroAudUsuarioIng, PersonalSeguroAudIpIng, PersonalSeguroAudFechaMod, PersonalSeguroAudUsuarioMod, PersonalSeguroAudIpMod) 
       VALUES  (@0,@1, @2, @3,@4, @5, @6, @7, @8, @9, @10, @11)
-    `, [PersonalId, cod_tip_seguro, fec_desde, null, mot_adh_seguro, null, stm_now, usuario, ip, stm_now, usuario, ip])
+    `, [PersonalId, TipoSeguroNombre, PersonalSeguroDesde, null, PersonalSeguroMotivoAdhesion, null, stm_now, usuario, ip, stm_now, usuario, ip])
   }
 
 
@@ -576,19 +576,19 @@ UNION
        SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId,
-            per.PersonalApellidoNombre,
-            seg.cod_tip_seguro,
-            tipseg.nom_tip_seguro,
-            seg.mot_adh_seguro,
-            seg.mot_baj_seguro,
-            seg.fec_desde,
-            seg.fec_hasta,
+            CONCAT(per.PersonalApellido,' ',per.PersonalNombre) PersonalApellidoNombre,
+            seg.TipoSeguroCodigo,
+            tipseg.TipoSeguroNombre,
+            seg.PersonalSeguroMotivoAdhesion,
+            seg.PersonalSeguroMotivoBaja,
+            seg.PersonalSeguroDesde,
+            seg.PersonalSeguroHasta,
             sitrev.PersonalSituacionRevistaSituacionId,
             sitrev.SituacionRevistaDescripcion,
             sitrev.PersonalSituacionRevistaDesde
         FROM Personal per
-        LEFT JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId     
-         LEFT JOIN lige.dbo.seg_tipo_seguro tipseg ON seg.cod_tip_seguro = tipseg.cod_tip_seguro
+        LEFT JOIN PersonalSeguro seg ON per.PersonalId = seg.PersonalId
+         LEFT JOIN TipoSeguro tipseg ON seg.TipoSeguroCodigo = tipseg.TipoSeguroCodigo
        
         LEFT JOIN (
 				SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
@@ -1023,20 +1023,20 @@ UNION
 
     const { fieldName, value } = req.body;
     let buscar = false;
-    let query: string = `SELECT cod_tip_seguro as SeguroId ,nom_tip_seguro as SeguroDescripcion from lige.dbo.seg_tipo_seguro WHERE 1=1 AND `;
+    let query: string = `SELECT TipoSeguroCodigo, TipoSeguroNombre from TipoSeguro WHERE 1=1 AND `;
     switch (fieldName) {
-      case "SeguroDescripcion":
+      case "TipoSeguroNombre":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length >= 1) {
-            query += ` nom_tip_seguro LIKE '%${element.trim()}%' AND `;
+            query += ` TipoSeguroNombre LIKE '%${element.trim()}%' AND `;
             buscar = true;
           }
         });
         break;
-      case "SeguroId":
+      case "TipoSeguroCodigo":
         if (value > 0) {
-          query += ` cod_tip_seguro = '${value}' AND `;
+          query += ` TipoSeguroCodigo = '${value}' AND `;
           buscar = true;
         }
         break;

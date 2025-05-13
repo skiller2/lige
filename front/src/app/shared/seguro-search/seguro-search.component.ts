@@ -43,7 +43,7 @@ export class SeguroSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
-  extendedOption = { SeguroId: '', SeguroDescripcion: '' }
+  extendedOption = { TipoSeguroCodigo: '', TipoSeguroNombre: '' }
   
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -112,9 +112,9 @@ export class SeguroSearchComponent implements ControlValueAccessor {
   
         firstValueFrom(
           this.searchService
-          .getSeguroFromName('SeguroId', this._selectedId)
+          .getSeguroFromName('TipoSeguroCodigo', this._selectedId)
             .pipe(tap(res => {
-              this.extendedOption = { SeguroId: res[0].SeguroId,SeguroDescripcion: res[0].SeguroDescripcion }
+              this.extendedOption = { TipoSeguroCodigo: res[0].TipoSeguroCodigo,TipoSeguroNombre: res[0].TipoSeguroNombre }
               this._selected = this._selectedId
               this.valueExtendedEmitter.emit(this.extendedOption)
               if (this.tmpInputVal != this._selected) {
@@ -136,7 +136,7 @@ export class SeguroSearchComponent implements ControlValueAccessor {
     debounceTime(500),
     switchMap(value =>
       this.searchService
-        .getSeguroSearch(Number(value) ? 'SeguroId' : 'SeguroDescripcion', value)
+        .getSeguroSearch(Number(value) ? 'TipoSeguroCodigo' : 'TipoSeguroNombre', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
@@ -154,7 +154,7 @@ export class SeguroSearchComponent implements ControlValueAccessor {
   } 
 
   search(value: string): void {
-    this.extendedOption = { SeguroId: '', SeguroDescripcion: '' }
+    this.extendedOption = { TipoSeguroCodigo: '', TipoSeguroNombre: '' }
     this.$searchChange.next(value)
   }
 

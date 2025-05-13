@@ -2,11 +2,11 @@
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Tipo Seguro"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.SeguroId"
-      nzLabel="{{ option.SeguroDescripcion }} ({{option.SeguroId}})" />
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.TipoSeguroCodigo"
+      nzLabel="{{ option.TipoSeguroNombre }} ({{option.TipoSeguroCodigo}})" />
   </ng-container>
-  <nz-option *ngIf="extendedOption.SeguroId != ''" [nzValue]="extendedOption.SeguroId"
-    [nzLabel]="extendedOption.SeguroDescripcion" />
+  <nz-option *ngIf="extendedOption.TipoSeguroCodigo != ''" [nzValue]="extendedOption.TipoSeguroCodigo"
+    [nzLabel]="extendedOption.TipoSeguroNombre" />
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>
     Cargando datos...
