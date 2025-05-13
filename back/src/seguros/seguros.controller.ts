@@ -632,7 +632,8 @@ UNION
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
-        ps.Periodo_id
+        ps.PolizaPeriodoAnio,
+        ps.PolizaPeriodoMes
       FROM PolizaSeguroNew ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
        AND ${filterSql}
@@ -668,7 +669,8 @@ UNION
         ps.PolizaSeguroResultado,
         ps.CompaniaSeguroId,
         cs.CompaniaSeguroDescripcion,
-        ps.Periodo_id
+        ps.PolizaPeriodoAnio,
+        ps.PolizaPeriodoMes
       FROM PolizaSeguroNew ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
@@ -690,6 +692,8 @@ UNION
       PolizaSeguroNroPoliza,
       PolizaSeguroNroEndoso,
       PolizaSeguroFechaEndoso,
+      PolizaPeriodoAnio,
+      PolizaPeriodoMes,
       files
 
     } = req.body
@@ -750,7 +754,7 @@ UNION
 
       //throw new ClientException(`test`)
       //optiene periodo del documento
-      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(anio), parseInt(mes), usuario, ip);
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(PolizaPeriodoAnio), parseInt(PolizaPeriodoMes), usuario, ip);
       console.log("periodo_id", periodo_id)
 
       //busca si el periodo esta cerrado
@@ -783,7 +787,7 @@ UNION
         // is edit
       console.log("is edit")
 
-      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip)
+      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
 
         await queryRunner.query(`
           UPDATE PolizaSeguroNew SET
@@ -796,7 +800,8 @@ UNION
             PolizaSeguroAudFechaMod = @6,
             PolizaSeguroAudUsuarioMod = @7,
             PolizaSeguroAudIpMod = @8,
-            Periodo_id = @10
+            PolizaPeriodoAnio = @10,
+            PolizaPeriodoMes = @11
           WHERE PolizaSeguroCodigo = @9
         `, [
           TipoSeguroCodigo,
@@ -809,7 +814,8 @@ UNION
           usuario,
           ip,
           PolizaSeguroCodigo,
-          periodo_id
+          PolizaPeriodoAnio,
+          PolizaPeriodoMes
         ]);
         
 
@@ -818,8 +824,6 @@ UNION
         // is new
 
       console.log("is new")
-
-
       // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
       const result = await queryRunner.query(`
         SELECT COUNT(*) as count 
@@ -832,7 +836,7 @@ UNION
         throw new ClientException(`Ya existe una póliza de este tipo para el periodo seleccionado.`)
       }
 
-        resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip)
+        resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
 
  //'CompaniaSeguroId'-'TipoSeguroCod'-'PolizaSeguroNroPoliza'-'PolizaSeguroNroEndoso'
 
@@ -859,9 +863,10 @@ UNION
             PolizaSeguroAudFechaMod,
             PolizaSeguroAudUsuarioMod,
             PolizaSeguroAudIpMod,
-            Periodo_id
+            PolizaPeriodoAnio,
+            PolizaPeriodoMes
           ) VALUES (
-            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13
+            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
           )
         `, [
           resultPolizaSeguroCodigo.trim(),
@@ -877,15 +882,13 @@ UNION
           new Date(),
           usuario,
           ip,
-          periodo_id
+          PolizaPeriodoAnio,
+          PolizaPeriodoMes
         ]);
 
       }
 
       const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo)
-
-      console.log("validationDniResults", validationDniResults)
-      console.log("resultFile", resultFile)
 
       resultPolizaSeguroCodigo  = PolizaSeguroCodigo ? PolizaSeguroCodigo : resultPolizaSeguroCodigo
 
@@ -983,20 +986,21 @@ UNION
   }
 
 
-  async fileSeguroUpload(files: any, queryRunner: QueryRunner, usuario: string, ip: string) {
+  async fileSeguroUpload(files: any, queryRunner: QueryRunner, usuario: string, ip: string, polizaEndoso: string, endoso: string) {
 
     
     let resultFile = null
-
+    let denDocumento = `${polizaEndoso}-${endoso}`
     if (files?.length > 0) {
       // hacer for para cada archivo
       for (const file of files) {
         let fec_doc_ven = null
         let PersonalId = 0
-
+        
         let cliente_id = file.cliente_id > 0 ? file.cliente_id : null
         let objetivo_id = file.objetivo_id > 0 ? file.objetivo_id : null
-   
+        console.log("file", file)
+        //throw new ClientException(`Debe subir un solo archivo.`)
          resultFile = await FileUploadController.handleDOCUpload(
           PersonalId, 
           objetivo_id, 
@@ -1004,7 +1008,7 @@ UNION
           file.id, 
           new Date(), 
           fec_doc_ven, 
-          file.den_documento, 
+          denDocumento, 
           file, 
           usuario,
           ip,

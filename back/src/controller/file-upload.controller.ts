@@ -330,22 +330,26 @@ export class FileUploadController extends BaseController {
           DocumentoImagenParametroId,
           DocumentoImagenParametroDirectorioId
         )
+
+        ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores,doc_id)
         return 0
         break;
       default:
         if (!doc_id) {
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
-          newFilePath = `${folder}${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`;
+        
 
           const type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') {
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
-        
+          newFilePath = `${folder}${doc_id}-${personal_id + cliente_id + objetivo_id}.${type}`;
+
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
-          const namefile = `${doc_id}-${personal_id + cliente_id + objetivo_id}.pdf`
+          const namefile = `${doc_id}-${personal_id + cliente_id + objetivo_id}.${type}`
+          
           await this.setArchivos(
             queryRunner,
             doc_id,
@@ -395,13 +399,9 @@ export class FileUploadController extends BaseController {
             den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento])
 
             
-          
+            ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner,'doc_id',doctipo_id,doc_id)
 
         }
-
-        ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner,'doc_id',doctipo_id,doc_id)
-        ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores,doc_id)
-
         return {doc_id, ArchivosAnteriores}
         break;
     }

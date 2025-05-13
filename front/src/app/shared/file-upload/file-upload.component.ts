@@ -105,7 +105,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivosAnteriores(idForSearh: number) {
-
+    console.log("LoadArchivosAnteriores", idForSearh)
     if (this.docTiposValidos().length == 1) 
       this.tipoSelected.set(this.docTiposValidos()[0])
 
