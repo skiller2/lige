@@ -1,7 +1,7 @@
 
 export interface SearchSeguro {
-    SeguroId: string,
-    SeguroDescripcion: string
+    TipoSeguroCodigo: string,
+    TipoSeguroNombre: string
 }
 
 export interface ResponseBySearchSeguro {

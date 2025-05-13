@@ -76,7 +76,6 @@ export class FileUploadComponent implements ControlValueAccessor {
   previewFile = input<boolean>(true)
   isDisabled = signal(false)
   docTiposValidos = signal<any[]>([])
-  formChangeArchivos$ = new BehaviorSubject('');
 
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
@@ -92,16 +91,13 @@ export class FileUploadComponent implements ControlValueAccessor {
       if (this.docTiposValidos().length==1)
         this.tipoSelected.set(this.docTiposValidos()[0])
 
-      this.formChangeArchivos$.next('');
+      this.LoadArchivosAnteriores(this.idForSearh())
+
     }
   }
 
    async ngOnInit() {
-
     this.textForSearchSelected.set( await firstValueFrom(this.apiService.getSelectTipoinFile()))
-
-    this.LoadArchivosAnteriores(this.idForSearh())
-
   }
 
   async LoadArchivosAnteriores(idForSearh: number) {
@@ -115,14 +111,14 @@ export class FileUploadComponent implements ControlValueAccessor {
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
-      this.propagateChange(this.files())
 
     } else {
       this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)
       this.files.set([])
-      this.propagateChange(this.files())
     }
+    this.propagateChange(this.files())
+
   }
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
@@ -135,17 +131,10 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.modalViewerVisiable.set(true)
   }
 
-  async LoadNewArchivo(file:any) {
-
-   
-  }
-
   async LoadArchivoPreview(documentId: string, tableForSearch: string) {
     const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, {}, { responseType: 'blob' }))
     return res
   }
-
-
 
   async uploadChange(event: any, file:any) {
     switch (event.type) {
