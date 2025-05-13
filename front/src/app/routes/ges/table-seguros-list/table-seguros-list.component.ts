@@ -114,8 +114,6 @@ export class TableSeguroListComponent {
      {field:'PersonalSeguroDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
      {field:'PersonalSeguroHasta', condition:'AND', operator:'>=', value: dateToday, forced:false},
      {field:'SituacionRevistaId', condition:'AND',operator:'=', value: '2;10;11;12', forced:false}]
-
- 
   }
 
   
