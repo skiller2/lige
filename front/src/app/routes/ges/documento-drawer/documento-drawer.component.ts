@@ -35,6 +35,8 @@ export class DocumentoDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
+  fileUploadComponent = viewChild.required(FileUploadComponent);
+
 
   drawerWidth = computed(() => {
     if (this.prevFiles() && this.prevFiles().length)
@@ -113,21 +115,30 @@ export class DocumentoDrawerComponent {
   async save() {
     this.isLoading.set(true)
     const values = this.formTipoDocumento.value
-    try {
-      if (values.doc_id)
-        await firstValueFrom(this.apiService.updateDocumento(values))
-      else {
+    let docId = 0
+      try {
+        if (values.doc_id){
+          docId = values.doc_id
+          await firstValueFrom(this.apiService.updateDocumento(values))
+        } else {
         const res = await firstValueFrom(this.apiService.addDocumento(values))
-        if (res.data.doc_id)
+        if (res.data.doc_id){
+          docId = res.data.doc_id
           this.formTipoDocumento.patchValue({ doc_id: res.data.doc_id })
+        }
+        
       }
 
+      if (docId > 0){
+        this.fileUploadComponent().LoadArchivosAnteriores(docId)
+      }
       this.onAddorUpdate.emit()
       this.formTipoDocumento.markAsUntouched()
       this.formTipoDocumento.markAsPristine()
     } catch (e) {
 
     }
+
     this.isLoading.set(false)
   }
 
