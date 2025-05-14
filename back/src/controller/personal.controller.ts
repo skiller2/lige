@@ -1547,7 +1547,6 @@ cuit.PersonalCUITCUILCUIT,
       if (valActas instanceof ClientException)
         throw valActas
 
-      console.log("file....", Foto[0])
      // throw new ClientException('test.')
      // let  resultFile = await FileUploadController.handleDOCUpload(
        // PersonalId, 
