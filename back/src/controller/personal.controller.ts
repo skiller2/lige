@@ -953,11 +953,13 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   async setFoto(queryRunner: any, personalId: any, file: any) {
+    console.log("file", file)
     if(file?.tempfilename){
 
-    const type = file.mimetype.split('/')[1]
-    console.log("file", file)
-    const fieldname = file.fieldname
+    //const type = file.mimetype.split('/')[1]
+    const type = file.TipoArchivo
+    //const fieldname = file.fieldname
+    const fieldname = file.tempfilename
     // let foto = await queryRunner.query(`
     //   SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
     //   FROM DocumentoImagenFoto foto 
@@ -988,7 +990,7 @@ cuit.PersonalCUITCUILCUIT,
 
     const fotoId = foto[0].fotoId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}`;
     const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
     const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
     this.moveFile(dirFile, newFilePath, newFieldname);
@@ -1008,8 +1010,10 @@ cuit.PersonalCUITCUILCUIT,
     if(file.tempfilename){
       
   
-    const type = file.mimetype.split('/')[1]
-    const fieldname = file.fieldname
+       //const type = file.mimetype.split('/')[1]
+       const type = file.TipoArchivo
+       //const fieldname = file.fieldname
+       const fieldname = file.tempfilename
     // let doc = await queryRunner.query(`
     //   SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
     //   FROM DocumentoImagenDocumento doc 
@@ -1040,7 +1044,7 @@ cuit.PersonalCUITCUILCUIT,
   
     const docId = doc[0].docId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-    const dirFile: string = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+    const dirFile: string = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}`;
     let newFieldname: string = `${personalId}-${docId}`
     if (parametro == 13) {
       newFieldname += `-DOCUMENDOR`
