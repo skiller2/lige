@@ -67,7 +67,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.csc.focus()
+      // this.csc.focus()
     }, 1);
   }
 
