@@ -733,6 +733,7 @@ export class GestionDescuentosController extends BaseController {
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
     
     await queryRunner.query(`UPDATE Personal SET PersonalOtroDescuentoUltNro = @1 WHERE PersonalId IN (@0)`, [PersonalId, PersonalOtroDescuentoId])
+    return PersonalOtroDescuentoId
   }
 
   private async addObjetivoDescuento(queryRunner:any, objDescuento:any, usuarioId:number, ip:string){
@@ -771,12 +772,14 @@ export class GestionDescuentosController extends BaseController {
     `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
+    return ObjetivoDescuentoId
   }
 
   async addDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
+    let id:number = 0
     try {
       await queryRunner.startTransaction()
       const usuarioId = await this.getUsuarioId(res, queryRunner)
@@ -792,15 +795,15 @@ export class GestionDescuentosController extends BaseController {
 
 
       if (PersonalId && !ObjetivoId) {
-        await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
+        id = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
       }else if (ObjetivoId && !PersonalId) {
-        await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+        id = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
       }else {
         throw new ClientException('Debe de ingresar solo una Objetivo o Personal')
       }
 
       await queryRunner.commitTransaction()
-      this.jsonRes({}, res, 'Carga Exitosa');
+      this.jsonRes({ id }, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1007,6 +1010,8 @@ export class GestionDescuentosController extends BaseController {
         await this.updatePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
       } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
         await this.updateObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+      }  else {
+        throw new ClientException(`Error de busqueda.`)
       }
 
       // throw new ClientException(`DEBUG.`)
@@ -1118,32 +1123,25 @@ export class GestionDescuentosController extends BaseController {
       `, [id, ObjetivoId, Cuotas, Importe])
   }
 
-  async deleteDescuento(req: any, res: Response, next: NextFunction) {
+  async deletePersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const PersonalId = req.body.PersonalId
-    const ObjetivoId = req.body.ObjetivoId
+    const id = Number(req.query[0])
+    const PersonalId = Number(req.query[1])
     let errors : string[] = []
     try {
       await queryRunner.startTransaction()
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
       
-      const AplicaEl:Date = new Date(req.body.AplicaEl)
-      const anio = AplicaEl.getFullYear()
-      const mes = AplicaEl.getMonth()+1
-      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
-      if (checkrecibos[0]?.ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
-     
-      if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
-        await this.deletePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
-      } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
-        await this.deleteObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+      if (PersonalId) { //PersonalOtrosDescuentos
+        await this.deletePersonalOtroDescuentoQuery(queryRunner, id, PersonalId)
+      } else {
+        throw new ClientException(`Error de busqueda.`)
       }
 
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa');
+      return this.jsonRes({}, res, 'Descuento borrado con exito.');
     }catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1152,10 +1150,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async deletePersonalOtroDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
-    const id:number = otroDescuento.id
-    const PersonalId:number = otroDescuento.PersonalId
-    
+  private async deletePersonalOtroDescuentoQuery(queryRunner:any, id:number, PersonalId:number){
     let res = await queryRunner.query(`
       SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
       , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
@@ -1167,10 +1162,10 @@ export class GestionDescuentosController extends BaseController {
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento de la persona.`)
     }
-    // const PersonalOtroDescuento = res[0]
-    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
-    // if (checkrecibos[0]?.ind_recibos_generados == 1)
-    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+    const PersonalOtroDescuento = res[0]
+    const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
+      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
@@ -1181,10 +1176,35 @@ export class GestionDescuentosController extends BaseController {
       `, [id, PersonalId])
   }
 
-  private async deleteObjetivoDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
-    const id:number = otroDescuento.id
-    const ObjetivoId:number = otroDescuento.ObjetivoId
-    
+
+  async deleteObjetivoDescuento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const id = Number(req.query[0])
+    const ObjetivoId = Number(req.query[1])
+    let errors : string[] = []
+    try {
+      await queryRunner.startTransaction()
+      const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const ip = this.getRemoteAddress(req)
+      
+      if (ObjetivoId) { //ObjetivoDescuentos
+        await this.deleteObjetivoDescuentoQuery(queryRunner, id, ObjetivoId)
+      } else {
+        throw new ClientException(`Error de busqueda.`)
+      }
+
+      // throw new ClientException(`DEBUG.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Descuento borrado con exito.');
+    }catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private async deleteObjetivoDescuentoQuery(queryRunner:any, id:number, ObjetivoId:number){
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
       , ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
@@ -1196,10 +1216,10 @@ export class GestionDescuentosController extends BaseController {
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
-    // const ObjetivoDescuento = res[0]
-    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
-    // if (checkrecibos[0]?.ind_recibos_generados == 1)
-    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+    const ObjetivoDescuento = res[0]
+    const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
+      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
     await queryRunner.query(`
       DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
@@ -1208,6 +1228,57 @@ export class GestionDescuentosController extends BaseController {
     await queryRunner.query(`
       DELETE FROM ObjetivoDescuento WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
       `, [id, ObjetivoId])
+  }
+
+  async getDescuentoPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId = req.body.PersonalId
+    const DescuentoId = req.body.DescuentoId
+    try {
+      await queryRunner.startTransaction()
+      
+      const descuento = await queryRunner.query(`
+      SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoDetalle Detalle
+      , PersonalOtroDescuentoFechaAplica AplicaEl, PersonalOtroDescuentoCantidadCuotas Cuotas
+      , PersonalOtroDescuentoImporteVariable Importe, PersonalId
+      , PersonalOtroDescuentoId id
+      FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      `, [DescuentoId, PersonalId])
+      // throw new ClientException(`DEBUG.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes(descuento[0], res);
+    }catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getDescuentoObjetivo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const ObjetivoId = req.body.ObjetivoId
+    const DescuentoId = req.body.DescuentoId
+    try {
+      await queryRunner.startTransaction()
+      
+      const descuento = await queryRunner.query(`
+      SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
+      , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
+      , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
+      , ObjetivoDescuentoId id
+      FROM ObjetivoDescuento WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      `, [DescuentoId, ObjetivoId])
+      // throw new ClientException(`DEBUG.`)
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes(descuento[0], res);
+    }catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 
 }

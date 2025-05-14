@@ -40,10 +40,22 @@ gestionDescuentosRouter.post('/addcuota', [authMiddleware.verifyToken,authMiddle
     gestionDescuentosController.addDescuentoCuotas(req, res, next)
 });
 
-// gestionDescuentosRouter.post('/update', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-//     gestionDescuentosController.updateDescuento(req, res, next)
-// });
+gestionDescuentosRouter.post('/update', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.updateDescuento(req, res, next)
+});
 
-// gestionDescuentosRouter.delete('/delete', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-//     gestionDescuentosController.deleteDescuento(req, res, next)
-// });
+gestionDescuentosRouter.delete('/personal/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.deletePersonalOtroDescuento(req, res, next)
+});
+
+gestionDescuentosRouter.delete('/objetivo/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.deleteObjetivoDescuento(req, res, next)
+});
+
+gestionDescuentosRouter.post("/persona", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getDescuentoPersona(req, res, next);
+});
+
+gestionDescuentosRouter.post("/objetivo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getDescuentoObjetivo(req, res, next);
+});

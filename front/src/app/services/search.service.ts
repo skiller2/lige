@@ -1752,4 +1752,30 @@ export class SearchService {
     );
   }
 
+  getDescuentoPersona(PersonalId:number, DescuentoId:number){
+    if (!PersonalId || !DescuentoId) {
+      return of({});
+    }
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/persona`, {PersonalId, DescuentoId}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getDescuentoObjetivo(ObjetivoId:number, DescuentoId:number){
+    if (!ObjetivoId || !DescuentoId) {
+      return of({});
+    }
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/objetivo`, {ObjetivoId, DescuentoId}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
