@@ -22,10 +22,10 @@ Instagram: https://www.instagram.com/linceseguridadoficial/
 LinkedIn: https://ar.linkedin.com/company/lince-seguridad-oficial
 Facebook: https://www.facebook.com/profile.php?id=100076266804842
 Consejo de Administración (mandato hasta el 30/04/2025) 🗓
-Presidente: Julio Marcelo Ruiz
-Secretario: Ricardo Augusto Elicabe
-Tesorero: Arnaldo Ramón Ayala Ramírez
-Síndico: Omar Alberto Muñoz
+Ricardo Augusto Elicabe – Presidente
+Omar Alberto Muñoz– Secretario
+Julio Marcelo Ruiz– Tesorero
+José Manuel Cuenca – Síndico
 `, delay
         }])
 

@@ -4,6 +4,8 @@ import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
+import { AsistenciaController } from "./asistencia.controller";
+import { error } from "pdf-lib";
 
 const columnsObjCustodia: any[] = [
     {
@@ -696,21 +698,28 @@ export class CustodiaController extends BaseController {
 
     async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner) {
         let errores: string[] = []
-        const sitrev = await queryRunner.query(`SELECT per.PersonalId, CONCAT(per.PersonalApellido,' ',per.PersonalNombre) ApellidoNombre, ps.PersonalSituacionRevistaId, ps.PersonalSituacionRevistaDesde, ps.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion
+        const sitrev = await queryRunner.query(`SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, ps.PersonalSituacionRevistaSituacionId, ps.PersonalSituacionRevistaDesde, ps.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion
             FROM Personal per
             LEFT JOIN PersonalSituacionRevista ps  ON ps.PersonalId = per.PersonalId AND ps.PersonalSituacionRevistaDesde <= @1  AND @1 <= ISNULL(ps.PersonalSituacionRevistaHasta,'9999-12-31')
             LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = ps.PersonalSituacionRevistaSituacionId
             WHERE per.PersonalId =@0`,
             [PersonalId, fechaDesde])
-
         if (sitrev.length == 0) {
             errores.push(`No se encontró la persona con PersonalId: ${PersonalId}`)
         } else {
-
-            if (![2, 12, 11, 20].includes(sitrev[0].PersonalSituacionRevistaId))
-                errores.push(`${sitrev[0].ApellidoNombre} se encuentra en situación de revista ${(sitrev[0].SituacionRevistaDescripcion) ? sitrev[0].SituacionRevistaDescripcion : 'no registrada'}`)
-
+            if (![2, 12, 11, 20].includes(sitrev[0].PersonalSituacionRevistaSituacionId))
+                errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) se encuentra en situación de revista ${(sitrev[0].SituacionRevistaDescripcion) ? sitrev[0].SituacionRevistaDescripcion : 'no registrada'} al ${this.dateOutputFormat(fechaDesde)}`)
         }
+
+        const anio = fechaDesde.getFullYear()
+        const mes = fechaDesde.getMonth() + 1
+        const asistenciaController = new AsistenciaController()
+        const categorias = await asistenciaController.getCategoriasPorPersonaQuery(anio, mes, PersonalId, 1, queryRunner);
+
+        const categoria = categorias.filter((cat: any) => cat.CategoriaId == 2) //CUSTODIA
+//        if (categoria.length == 0)
+//            errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
+
         return errores
     };
                     
