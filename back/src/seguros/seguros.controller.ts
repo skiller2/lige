@@ -634,7 +634,7 @@ UNION
         ps.PolizaSeguroFechaEndoso,
         ps.PolizaPeriodoAnio,
         ps.PolizaPeriodoMes
-      FROM PolizaSeguroNew ps
+      FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
        AND ${filterSql}
        ${orderBy}
@@ -671,7 +671,7 @@ UNION
         cs.CompaniaSeguroDescripcion,
         ps.PolizaPeriodoAnio,
         ps.PolizaPeriodoMes
-      FROM PolizaSeguroNew ps
+      FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
       WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
@@ -764,7 +764,7 @@ UNION
       //No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
       if (ind_recibos_generados[0].ind_recibos_generados == 1) {
 
-        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguroNew WHERE Periodo_id = @0 and TipoSeguroCodigo = @1`, [periodo_id, TipoSeguroCodigo])
+        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguro WHERE Periodo_id = @0 and TipoSeguroCodigo = @1`, [periodo_id, TipoSeguroCodigo])
         const polizaDocumentoId = existPolizaInPeriodo[0]?.DocumentoId
 
         //si existe un documento en el periodo cerrado, no se puede reprocesar
@@ -775,7 +775,7 @@ UNION
       }
 
       // Validar que no exista una póliza del mismo tipo en el periodo
-      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguroNew WHERE TipoSeguroCodigo = @0 AND Periodo_id = @1`, [TipoSeguroCodigo, periodo_id])
+      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE TipoSeguroCodigo = @0 AND Periodo_id = @1`, [TipoSeguroCodigo, periodo_id])
 
       if (polizaExistente[0].count > 0) {
         throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} para el periodo seleccionado. Solo se permite una póliza por tipo por periodo.`)
@@ -790,7 +790,7 @@ UNION
       resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
 
         await queryRunner.query(`
-          UPDATE PolizaSeguroNew SET
+          UPDATE PolizaSeguro SET
             TipoSeguroCodigo = @0,
             DocumentoId = @1,
             PolizaSeguroNroPoliza = @2,
@@ -827,7 +827,7 @@ UNION
       // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
       const result = await queryRunner.query(`
         SELECT COUNT(*) as count 
-        FROM PolizaSeguroNew ps
+        FROM PolizaSeguro ps
         WHERE ps.TipoSeguroCodigo = @0 
         AND ps.PolizaSeguroFechaEndoso = @1`, 
         [TipoSeguroCodigo, PolizaSeguroFechaEndoso])
@@ -842,14 +842,14 @@ UNION
 
          resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCodigo}-${polizaEndoso[0]}-${endoso[1]}`
 
-        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguroNew WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
         if(existPoliza[0]?.PolizaSeguroCodigo) {
           throw new ClientException(`Ya existe una póliza con este documento.`)
         }
 
         await queryRunner.query(`
-          INSERT INTO PolizaSeguroNew (
+          INSERT INTO PolizaSeguro (
             PolizaSeguroCodigo,
             TipoSeguroCodigo,
             DocumentoId,
@@ -890,13 +890,16 @@ UNION
 
       const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo)
 
+      const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+      const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
+
       resultPolizaSeguroCodigo  = PolizaSeguroCodigo ? PolizaSeguroCodigo : resultPolizaSeguroCodigo
 
       if(validationDniResults)
-          await queryRunner.query(`UPDATE PolizaSeguroNew SET PolizaSeguroResultado = @0 WHERE PolizaSeguroCodigo = @1`, [JSON.stringify(validationDniResults), resultPolizaSeguroCodigo])
+          await queryRunner.query(`UPDATE PolizaSeguro SET PolizaSeguroResultado = @0, PolizaSeguroVersion = @1 WHERE PolizaSeguroCodigo = @2`, [JSON.stringify(validationDniResults), PolizaAeguroVersion, resultPolizaSeguroCodigo])
     
       result = await queryRunner.query(`SELECT ts.TipoSeguroNombre, ps.TipoSeguroCodigo, ps.PolizaSeguroCodigo, ps.PolizaSeguroNroPoliza, ps.PolizaSeguroNroEndoso,
-         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado, ps.DocumentoId FROM PolizaSeguroNew ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
+         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado, ps.DocumentoId FROM PolizaSeguro ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
          [resultPolizaSeguroCodigo])
 
       if (resultFile) 
@@ -976,6 +979,7 @@ UNION
         shouldNotBeInSeguro.push(doc);
       }
     }
+
 
     return {
       notFoundInPersonalTable,
