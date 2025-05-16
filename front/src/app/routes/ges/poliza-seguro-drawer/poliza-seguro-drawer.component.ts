@@ -130,8 +130,8 @@ export class PolizaSeguroDrawerComponent {
     PolizaSeguroNroPoliza: "",
     PolizaSeguroNroEndoso: "",
     PolizaSeguroFechaEndoso: "",
-    PolizaPeriodoAnio: 0,
-    PolizaPeriodoMes: 0,
+    PolizaSeguroAnio: 0,
+    PolizaSeguroMes: 0,
     files: []
   })
 

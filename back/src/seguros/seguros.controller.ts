@@ -632,8 +632,8 @@ UNION
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
-        ps.PolizaPeriodoAnio,
-        ps.PolizaPeriodoMes
+        ps.PolizaSeguroAnio,
+        ps.PolizaSeguroMes
       FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
        AND ${filterSql}
@@ -669,8 +669,8 @@ UNION
         ps.PolizaSeguroResultado,
         ps.CompaniaSeguroId,
         cs.CompaniaSeguroDescripcion,
-        ps.PolizaPeriodoAnio,
-        ps.PolizaPeriodoMes
+        ps.PolizaSeguroAnio,
+        ps.PolizaSeguroMes
       FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
@@ -692,8 +692,8 @@ UNION
       PolizaSeguroNroPoliza,
       PolizaSeguroNroEndoso,
       PolizaSeguroFechaEndoso,
-      PolizaPeriodoAnio,
-      PolizaPeriodoMes,
+      PolizaSeguroAnio,
+      PolizaSeguroMes,
       files
 
     } = req.body
@@ -754,7 +754,7 @@ UNION
 
       //throw new ClientException(`test`)
       //optiene periodo del documento
-      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(PolizaPeriodoAnio), parseInt(PolizaPeriodoMes), usuario, ip);
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(PolizaSeguroAnio), parseInt(PolizaSeguroMes), usuario, ip);
       console.log("periodo_id", periodo_id)
 
       //busca si el periodo esta cerrado
@@ -800,9 +800,9 @@ UNION
             PolizaSeguroAudFechaMod = @6,
             PolizaSeguroAudUsuarioMod = @7,
             PolizaSeguroAudIpMod = @8,
-            PolizaPeriodoAnio = @10,
-            PolizaPeriodoMes = @11
-          WHERE PolizaSeguroCodigo = @9
+            PolizaSeguroAnio = @9,
+            PolizaSeguroMes = @10
+          WHERE PolizaSeguroCodigo = @11
         `, [
           TipoSeguroCodigo,
           resultFile.doc_id,
@@ -814,8 +814,8 @@ UNION
           usuario,
           ip,
           PolizaSeguroCodigo,
-          PolizaPeriodoAnio,
-          PolizaPeriodoMes
+          PolizaSeguroAnio,
+          PolizaSeguroMes
         ]);
         
 
@@ -863,8 +863,8 @@ UNION
             PolizaSeguroAudFechaMod,
             PolizaSeguroAudUsuarioMod,
             PolizaSeguroAudIpMod,
-            PolizaPeriodoAnio,
-            PolizaPeriodoMes
+            PolizaSeguroAnio,
+            PolizaSeguroMes
           ) VALUES (
             @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
           )
@@ -882,8 +882,8 @@ UNION
           new Date(),
           usuario,
           ip,
-          PolizaPeriodoAnio,
-          PolizaPeriodoMes
+          PolizaSeguroAnio,
+          PolizaSeguroMes
         ]);
 
       }
