@@ -1507,7 +1507,7 @@ export class ApiService {
     );
   }
 
-  addDescuento( values:any){
+  addDescuento(values:any){
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/add`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
@@ -1517,6 +1517,26 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/addcuota`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
+  }
+
+  updateDescuento(values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/update`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  deletePersonalOtroDescuento(id:number, PersonalId:number){
+    const params = [id, PersonalId]
+    return this.http.delete<ResponseJSON<any>>(`/api/gestion-descuentos/personal/`, params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  deleteObjetivoDescuento(id:number, ObjetivoId:number){
+    const params = [id, ObjetivoId]
+    return this.http.delete<ResponseJSON<any>>(`/api/gestion-descuentos/objetivo/`, params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
 
 }

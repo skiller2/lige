@@ -10,13 +10,15 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-alta-drawer/descuentos-objetivos-alta-drawer.component"
+
 @Component({
     selector: 'app-table-descuentos-objetivos',
     templateUrl: './table-descuentos-objetivos.component.html',
     styleUrls: ['./table-descuentos-objetivos.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent ],
+    imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosObjetivosAltaDrawerComponent ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableDescuentosObjetivosComponent {
@@ -35,6 +37,11 @@ export class TableDescuentosObjetivosComponent {
     };
     startFilters: any[] = []
     columnDefinitions: Column[] = []
+    descuentoId = signal<number>(0)
+    objetivoId = signal<number>(0)
+    visibleAltaDesc = signal<boolean>(false)
+    visibleEditDesc = signal<boolean>(false)
+    loadingDelete = signal<boolean>(false)
 
     constructor(
         private searchService: SearchService,
@@ -82,6 +89,20 @@ export class TableDescuentosObjetivosComponent {
             this.angularGrid.gridService.hideColumnByIds([])
     }
 
+    handleSelectedRowsChanged(e: any): void {
+        if (e.detail.args.changedSelectedRows.length ==1) {
+            const rowNum = e.detail.args.changedSelectedRows[0]
+            const id:string = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
+            const ids:string[] = id.split('-')
+            this.descuentoId.set(parseInt(ids[1]))
+            this.objetivoId.set(parseInt(ids[2]))
+            
+        } else {
+            this.descuentoId.set(0)
+            this.objetivoId.set(0)
+        }
+    }
+
     listOptionsChange(options: any) {
         this.listOptions = options;
         this.listDescuento('')
@@ -89,5 +110,28 @@ export class TableDescuentosObjetivosComponent {
 
     listDescuento(event: any) {
         this.listDescuento$.next(event);
+    }
+
+    openDrawerforAltaDescuentos(){
+        this.visibleAltaDesc.set(true)
+    }
+
+    openDrawerforEditDescuentos(){
+        this.visibleEditDesc.set(true)
+    }
+
+    async deleteDescuento(){
+        this.loadingDelete.set(true)
+        try {
+            if (this.descuentoId() && this.objetivoId()) {
+                await firstValueFrom(this.apiService.deleteObjetivoDescuento(this.descuentoId(), this.objetivoId()))
+                this.listDescuento('')
+            }
+        } catch (e) {}
+        this.loadingDelete.set(false)
+    }
+
+    onAddorUpdate(_e:any) {
+        this.listDescuento('')
     }
 }

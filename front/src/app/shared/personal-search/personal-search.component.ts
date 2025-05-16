@@ -93,7 +93,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   ngAfterViewInit() {
     setTimeout(() => {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.psc.focus()  //Al hacer click en el componente hace foco
+      // this.psc.focus()  //Al hacer click en el componente hace foco
       this.psc.setDisabledState(this.isDisabled)
      
     }, 1);

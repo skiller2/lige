@@ -8,7 +8,6 @@ import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/table-descuentos-personal.component';
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
-import { DescuentosAltaDrawerComponent } from '../descuentos-alta-drawer/descuentos-alta-drawer.component';
 
 @Component({
     selector: 'app-descuentos',
@@ -16,21 +15,26 @@ import { DescuentosAltaDrawerComponent } from '../descuentos-alta-drawer/descuen
     styleUrls: ['./descuentos.component.less'],
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule, TableDescuentosPersonalComponent,
-        TableDescuentosObjetivosComponent,  DescuentosAltaDrawerComponent],
+        TableDescuentosObjetivosComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DescuentosComponent {
     periodo = signal(new Date())
     anio = computed(() => this.periodo()?.getFullYear())
     mes = computed(() => this.periodo()?.getMonth()+1)
-    visibleAltaDesc = model<boolean>(false)
+    // visibleAltaDesc = model<boolean>(false)
+    // visibleEditDesc = model<boolean>(false)
     loadingCuo = signal(false)
 
     private apiService = inject(ApiService)
 
-    openDrawerforAltaDescuentos(){
-      this.visibleAltaDesc.set(true)
-    }
+    // openDrawerforAltaDescuentos(){
+    //     this.visibleAltaDesc.set(true)
+    // }
+
+    // openDrawerforEditDescuentos(){
+    //     this.visibleEditDesc.set(true)
+    // }
 
     async addCuotaReg() {
         this.loadingCuo.set(true)

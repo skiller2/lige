@@ -10,13 +10,15 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { DescuentosPersonalAltaDrawerComponent } from "../descuentos-personal-alta-drawer/descuentos-personal-alta-drawer.component"
+
 @Component({
     selector: 'app-table-descuentos-personal',
     templateUrl: './table-descuentos-personal.component.html',
     styleUrls: ['./table-descuentos-personal.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent ],
+    imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosPersonalAltaDrawerComponent ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableDescuentosPersonalComponent {
@@ -35,6 +37,11 @@ export class TableDescuentosPersonalComponent {
     };
     startFilters: any[] = []
     columnDefinitions: Column[] = []
+    descuentoId = signal<number>(0)
+    personalId = signal<number>(0)
+    visibleAltaDesc = signal<boolean>(false)
+    visibleEditDesc = signal<boolean>(false)
+    loadingDelete = signal<boolean>(false)
 
     constructor(
         private searchService: SearchService,
@@ -68,6 +75,19 @@ export class TableDescuentosPersonalComponent {
         }, { injector: this.injector });
     }
 
+    handleSelectedRowsChanged(e: any): void {
+        if (e.detail.args.changedSelectedRows.length ==1) {
+            const rowNum = e.detail.args.changedSelectedRows[0]
+            const id:string = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
+            const ids:string[] = id.split('-')
+            this.descuentoId.set(parseInt(ids[1]))
+            this.personalId.set(parseInt(ids[2]))
+        } else {
+            this.descuentoId.set(0)
+            this.personalId.set(0)
+        }
+    }
+
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.gridData = angularGrid.dataView
@@ -89,5 +109,28 @@ export class TableDescuentosPersonalComponent {
 
     listDescuento(event: any) {
         this.listDescuento$.next(event);
+    }
+
+    openDrawerforAltaDescuentos(){
+        this.visibleAltaDesc.set(true)
+    }
+
+    openDrawerforEditDescuentos(){
+        this.visibleEditDesc.set(true)
+    }
+
+    async deleteDescuento(){
+        this.loadingDelete.set(true)
+        try {
+            if (this.descuentoId() && this.personalId()) {
+            await firstValueFrom(this.apiService.deletePersonalOtroDescuento(this.descuentoId(), this.personalId()))
+            this.listDescuento('')
+        }
+        } catch (error) {}
+        this.loadingDelete.set(false)
+    }
+
+    onAddorUpdate(_e:any) {
+        this.listDescuento('')
     }
 }

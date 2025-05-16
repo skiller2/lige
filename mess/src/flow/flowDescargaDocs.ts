@@ -12,11 +12,11 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
         const PersonalId = state.get('personalId')
         const docsPend:any[] = await personalController.getDocsPendDescarga(PersonalId)
         await state.update({ docsPend: docsPend })
-
         if (docsPend.length > 0) {
             let docsPendStr = (docsPend.length==1)?`Existe un documento pendiente de descarga\n`:`Existen ${docsPend.length} documentos pendientes de descarga:\n`
             docsPend.forEach(doc => {
-                docsPendStr += `- ${doc.detalle} ${doc.des_den_documento} ${doc.den_documento}\n`
+                const periodo =  (doc.anio && doc.mes) ? `${doc.mes}/${doc.anio}` : ''
+                docsPendStr += `- ${doc.detalle} ${periodo} Nro. ${doc.den_documento}\n`
             })
             await flowDynamic(docsPendStr, { delay: delay })
             await flowDynamic('Desea descargarlos (Si/No)?', { delay: delay })
