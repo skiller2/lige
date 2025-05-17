@@ -23,9 +23,6 @@
         </nz-upload>
        
         }
-        <p>filesAdd.mimetype</p>{{filesAdd.mimetype}}
-        <p>previewFile</p>{{previewFile()}}
-        <p>tableForSearch</p>{{tableForSearch()}}
         @if ((filesAdd.mimetype.toLowerCase() == 'jpeg' || filesAdd.mimetype.toLowerCase() == 'jpg' || filesAdd.mimetype.toLowerCase() == 'png' || forceImg()) &&
         previewFile()) {
         <img nz-image alt=""

@@ -62,6 +62,14 @@ segurosRouter.get('/searchTipoSeguroId/:id', [authMiddleware.verifyToken, authMi
   segurosController.getTipoSeguroId(req, res, next);
 })
 
+segurosRouter.get('/cols-personal-seguro', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.getColsPersonalSeguro(req, res, next);
+})
+
+segurosRouter.post('/list-personal-seguro', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.getListPersonalSeguro(req, res, next);
+})
+
 
 
 

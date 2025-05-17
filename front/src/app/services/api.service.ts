@@ -1444,6 +1444,14 @@ export class ApiService {
       catchError(() => of([]))
     );
   }
+
+  getListPolizaPersonalSeguro(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/seguros/list-personal-seguro', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
   
 
   getListInstituciones(filters: any) {

@@ -31,6 +31,10 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'seguro', 'poliza']">{{ 'app.segurosPoliza' | i18n }}</a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'seguro', 'personal']">{{ 'app.segurosPersonal' | i18n }}</a>
+        </li>
       </ul>
     </div>
 
@@ -70,6 +74,12 @@
       <a nz-tab-link routerLink="/ges/seguro/poliza">Poliza</a>
       <ng-template nz-tab>
           <app-poliza-seguro></app-poliza-seguro>
+      </ng-template>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/seguro/personal">Personal Seguro</a>
+      <ng-template nz-tab>
+          <app-personal-seguro-poliza></app-personal-seguro-poliza>
       </ng-template>
     </nz-tab>
   </nz-tabset>

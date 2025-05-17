@@ -208,6 +208,101 @@ const listaColumnasPoliza: any[] = [
  
 ];
 
+const listaColumnasPersonalSeguro: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "PolizaSeguroCod",
+    name: "Código de Póliza",
+    field: "PolizaSeguroCod",
+    fieldName: "perpoliz.PolizaSeguroCod",
+    type: "string",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "PersonalId",
+    name: "ID Personal",
+    field: "PersonalId", 
+    fieldName: "perpoliz.PersonalId",
+    type: "number",
+    searchComponent: "inpurForPersonalSearch",
+    hidden: true,
+    searchHidden: false,
+    sortable: true
+  },
+  {
+    id: "PersonalApellidoNombre",
+    name: "Apellido y Nombre",
+    field: "PersonalApellidoNombre",
+    fieldName: "per.PersonalApellidoNombre",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "PersonalCUITCUILCUIT",
+    name: "CUIL/CUIT",
+    field: "PersonalCUITCUILCUIT",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "PolizaSeguroNroEndoso",
+    name: "Número de Endoso",
+    field: "polizaSeguroNroEndoso",
+    fieldName: "poliz.polizaSeguroNroEndoso",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "TipoSeguroCodigo",
+    name: "Código Tipo Seguro",
+    field: "TipoSeguroCodigo",
+    fieldName: "poliz.TipoSeguroCodigo",
+    type: "string",
+    hidden: true,
+    searchHidden: false,
+    sortable: true
+  },
+  {
+    id: "PolizaSeguroNroPoliza",
+    name: "Número de Póliza",
+    field: "PolizaSeguroNroPoliza",
+    fieldName: "poliz.PolizaSeguroNroPoliza",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "TipoSeguroNombre",
+    name: "Tipo de Seguro",
+    field: "TipoSeguroNombre",
+    fieldName: "ts.TipoSeguroNombre",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  }
+]
+
+
 
 export class SegurosController extends BaseController {
 
@@ -561,6 +656,10 @@ UNION
     this.jsonRes(listaColumnasPoliza, res);
   }
 
+  async getColsPersonalSeguro(req, res, next) {
+    this.jsonRes(listaColumnasPersonalSeguro, res);
+  }
+
 
   async getSegurosList(
     req: any,
@@ -634,9 +733,42 @@ UNION
         ps.PolizaSeguroFechaEndoso,
         ps.PolizaSeguroAnio,
         ps.PolizaSeguroMes
-      FROM PolizaSeguro ps
+      FROM PolizaSeguroNew ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
        AND ${filterSql}
+       ${orderBy}
+      `)
+      this.jsonRes(
+        {
+          total: result.length,
+          list: result,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getListPersonalSeguro(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    //console.log("req.body.options.filtros ", req.body.options.filtros)
+    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    try {
+      let result = await dataSource.query(`
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCod,perpoliz.PersonalId,per.PersonalApellidoNombre, 
+      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso, poliz.TipoSeguroCodigo,poliz.PolizaSeguroNroPoliza, ts.TipoSeguroNombre 
+      FROM PersonalPolizaSeguroNew AS perpoliz
+		  JOIN Personal per ON per.PersonalId = perpoliz.PersonalId 
+		  LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId 
+      AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)  
+			LEFT JOIN PolizaSeguroNew poliz ON	poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCod
+			LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = poliz.TipoSeguroCodigo
+      AND ${filterSql}
        ${orderBy}
       `)
       this.jsonRes(
@@ -671,7 +803,7 @@ UNION
         cs.CompaniaSeguroDescripcion,
         ps.PolizaSeguroAnio,
         ps.PolizaSeguroMes
-      FROM PolizaSeguro ps
+      FROM PolizaSeguroNew ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
       WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
@@ -752,9 +884,10 @@ UNION
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
+
       //throw new ClientException(`test`)
       //optiene periodo del documento
-      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(PolizaSeguroAnio), parseInt(PolizaSeguroMes), usuario, ip);
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(anio), parseInt(mes), usuario, ip);
       console.log("periodo_id", periodo_id)
 
       //busca si el periodo esta cerrado
@@ -764,7 +897,7 @@ UNION
       //No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
       if (ind_recibos_generados[0].ind_recibos_generados == 1) {
 
-        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguro WHERE Periodo_id = @0 and TipoSeguroCodigo = @1`, [periodo_id, TipoSeguroCodigo])
+        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguroNew WHERE PolizaSeguroAnio = @0 and PolizaSeguroMes = @1 and TipoSeguroCodigo = @2`, [anio, mes, TipoSeguroCodigo])
         const polizaDocumentoId = existPolizaInPeriodo[0]?.DocumentoId
 
         //si existe un documento en el periodo cerrado, no se puede reprocesar
@@ -775,7 +908,7 @@ UNION
       }
 
       // Validar que no exista una póliza del mismo tipo en el periodo
-      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE TipoSeguroCodigo = @0 AND Periodo_id = @1`, [TipoSeguroCodigo, periodo_id])
+      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguroNew WHERE TipoSeguroCodigo = @0 AND PolizaSeguroAnio = @1 AND PolizaSeguroMes = @2`, [TipoSeguroCodigo, anio, mes])
 
       if (polizaExistente[0].count > 0) {
         throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} para el periodo seleccionado. Solo se permite una póliza por tipo por periodo.`)
@@ -790,7 +923,7 @@ UNION
       resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
 
         await queryRunner.query(`
-          UPDATE PolizaSeguro SET
+          UPDATE PolizaSeguroNew SET
             TipoSeguroCodigo = @0,
             DocumentoId = @1,
             PolizaSeguroNroPoliza = @2,
@@ -813,9 +946,9 @@ UNION
           new Date(),
           usuario,
           ip,
-          PolizaSeguroCodigo,
-          PolizaSeguroAnio,
-          PolizaSeguroMes
+          anio,
+          mes,
+          PolizaSeguroCodigo
         ]);
         
 
@@ -827,7 +960,7 @@ UNION
       // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
       const result = await queryRunner.query(`
         SELECT COUNT(*) as count 
-        FROM PolizaSeguro ps
+        FROM PolizaSeguroNew ps
         WHERE ps.TipoSeguroCodigo = @0 
         AND ps.PolizaSeguroFechaEndoso = @1`, 
         [TipoSeguroCodigo, PolizaSeguroFechaEndoso])
@@ -842,14 +975,14 @@ UNION
 
          resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCodigo}-${polizaEndoso[0]}-${endoso[1]}`
 
-        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguroNew WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
         if(existPoliza[0]?.PolizaSeguroCodigo) {
           throw new ClientException(`Ya existe una póliza con este documento.`)
         }
 
         await queryRunner.query(`
-          INSERT INTO PolizaSeguro (
+          INSERT INTO PolizaSeguroNew (
             PolizaSeguroCodigo,
             TipoSeguroCodigo,
             DocumentoId,
@@ -869,7 +1002,7 @@ UNION
             @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
           )
         `, [
-          resultPolizaSeguroCodigo.trim(),
+          resultPolizaSeguroCodigo.replace(/ /g, ''),
           TipoSeguroCodigo,
           resultFile.doc_id,
           polizaEndoso[0],
@@ -882,15 +1015,15 @@ UNION
           new Date(),
           usuario,
           ip,
-          PolizaSeguroAnio,
-          PolizaSeguroMes
+          anio,
+          mes
         ]);
 
       }
 
-      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo)
+      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip)
 
-      const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+      const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguroNew WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
       resultPolizaSeguroCodigo  = PolizaSeguroCodigo ? PolizaSeguroCodigo : resultPolizaSeguroCodigo
@@ -899,7 +1032,7 @@ UNION
           await queryRunner.query(`UPDATE PolizaSeguro SET PolizaSeguroResultado = @0, PolizaSeguroVersion = @1 WHERE PolizaSeguroCodigo = @2`, [JSON.stringify(validationDniResults), PolizaAeguroVersion, resultPolizaSeguroCodigo])
     
       result = await queryRunner.query(`SELECT ts.TipoSeguroNombre, ps.TipoSeguroCodigo, ps.PolizaSeguroCodigo, ps.PolizaSeguroNroPoliza, ps.PolizaSeguroNroEndoso,
-         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado, ps.DocumentoId FROM PolizaSeguro ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
+         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado, ps.DocumentoId FROM PolizaSeguroNew ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
          [resultPolizaSeguroCodigo])
 
       if (resultFile) 
@@ -921,7 +1054,7 @@ UNION
 
   }
 
-  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string){
+  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string,resultPolizaSeguroCodigo:string, usuario:string, ip:string){
 
 
     const notFoundInPersonalTable: number[] = [];
@@ -947,39 +1080,62 @@ UNION
       SELECT ps.PersonalId, pd.PersonalDocumentoNro
       FROM PersonalSeguro ps
       INNER JOIN PersonalDocumento pd ON pd.PersonalId = ps.PersonalId
-      WHERE ps.TipoSeguroCodigo = @0 AND (ps.PersonalSeguroHasta IS NULL OR ps.PersonalSeguroHasta > GETDATE())
+      WHERE ps.TipoSeguroCodigo = @0
+        AND (ps.PersonalSeguroHasta IS NULL OR ps.PersonalSeguroHasta > GETDATE())
     `, [tipoSeguroCodigo]);
-
+    
     const aseguradosSet = new Set<number>();
     const documentoAseguradosSet = new Set<number>();
-
+    
     personalSeguroRows.forEach(row => {
       aseguradosSet.add(row.PersonalId);
       documentoAseguradosSet.add(row.PersonalDocumentoNro);
     });
-
+    
+    // Set para evitar duplicados al insertar
+    const insertados = new Set<number>();
+    
     for (const doc of dniNumeros) {
       const personalId = documentoToPersonalId.get(doc);
-
+    
       // Si no está en la tabla Personal
       if (!personalId) {
         notFoundInPersonalTable.push(doc);
         continue;
       }
-
+    
       // Si no está asegurado y debería estarlo
       if (!aseguradosSet.has(personalId)) {
         notFoundInPersonalSeguro.push(doc);
+        continue;
       }
+    
+      // Si ya se inserto se salta
+      if (insertados.has(personalId)) {
+        continue;
+      }
+    
+      // EXISTE EL PERSONAL Y ESTÁ ASEGURADO → insertar
+      await this.addPersonalPolizaSeguro(
+        resultPolizaSeguroCodigo,
+        personalId,
+        queryRunner,
+        usuario,
+        ip
+      );
+      insertados.add(personalId);
     }
-
-    // 4. Validar asegurados que no deberían estarlo
+    
+    //  Validar asegurados que no deberían estarlo
     for (const doc of documentoAseguradosSet) {
-      if (!dniNumeros.includes(doc)) {
-        shouldNotBeInSeguro.push(doc);
-      }
-    }
 
+      if (dniNumeros.includes(doc)) {
+        continue;
+      }
+
+      shouldNotBeInSeguro.push(doc);
+    }
+    
 
     return {
       notFoundInPersonalTable,
@@ -989,6 +1145,22 @@ UNION
 
   }
 
+  async addPersonalPolizaSeguro(resultPolizaSeguroCodigo:string, personalId:number, queryRunner:QueryRunner, usuario:string, ip:string){
+
+    await queryRunner.query(`INSERT into PersonalPolizaSeguroNew (
+      PolizaSeguroCod,
+      PersonalId,
+      PersonalPolizaAudFechaIng,
+      PersonalPolizaAudUsuarioIng,
+      PersonalPolizaAudIpIng
+    ) values (@0, @1, @2, @3, @4)`, [
+      resultPolizaSeguroCodigo,
+      personalId,
+      new Date(),
+      usuario,
+      ip
+    ])
+  }
 
   async fileSeguroUpload(files: any, queryRunner: QueryRunner, usuario: string, ip: string, polizaEndoso: string, endoso: string) {
 

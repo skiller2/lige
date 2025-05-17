@@ -8,13 +8,13 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm'
 import { NzMenuModule } from 'ng-zorro-antd/menu'
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
 import { PolizaSeguroComponent } from '../poliza-seguro/poliza-seguro.component'
-
+import { PersonalSeguroPolizaComponent } from '../personal-seguro-poliza/personal-seguro-poliza.component'
 import { NzButtonModule } from 'ng-zorro-antd/button';
 
 @Component({
   selector: 'app-seguro',
   standalone: true,
-  imports: [...SHARED_IMPORTS, NzIconModule, TableSeguroListComponent, NzPopconfirmModule, NzMenuModule, NzButtonModule, ReporteComponent, PolizaSeguroComponent],
+  imports: [...SHARED_IMPORTS, NzIconModule, TableSeguroListComponent, NzPopconfirmModule, NzMenuModule, NzButtonModule, ReporteComponent, PolizaSeguroComponent, PersonalSeguroPolizaComponent],
   templateUrl: './seguro.component.html',
   styleUrl: './seguro.component.less'
 })
