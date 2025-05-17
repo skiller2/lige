@@ -230,15 +230,15 @@ const listaColumnasPersonalSeguro: any[] = [
     searchHidden: true
   },
   {
+    name: "Apellido Nombre ",
+    type: "string",
     id: "PersonalId",
-    name: "ID Personal",
-    field: "PersonalId", 
-    fieldName: "perpoliz.PersonalId",
-    type: "number",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
     searchComponent: "inpurForPersonalSearch",
+    sortable: false,
     hidden: true,
-    searchHidden: false,
-    sortable: true
+    searchHidden: false
   },
   {
     id: "PersonalApellidoNombre",
@@ -256,9 +256,9 @@ const listaColumnasPersonalSeguro: any[] = [
     field: "PersonalCUITCUILCUIT",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
+    sortable: false,
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "PolizaSeguroNroEndoso",
@@ -266,9 +266,9 @@ const listaColumnasPersonalSeguro: any[] = [
     field: "polizaSeguroNroEndoso",
     fieldName: "poliz.polizaSeguroNroEndoso",
     type: "string",
-    sortable: true,
+    sortable: false,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "TipoSeguroCodigo",
@@ -298,8 +298,19 @@ const listaColumnasPersonalSeguro: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
+    searchHidden: true
+  },
+  {
+    name: "Tipo seguro ",
+    type: "string",
+    id: "TipoSeguroCodigo",
+    field: "TipoSeguroCodigo",
+    fieldName: "tipseg.TipoSeguroCodigo",
+    searchComponent: "inpurForTipoSeguroSearch",
+    sortable: false,
+    hidden: true,
     searchHidden: false
-  }
+  },
 ]
 
 
@@ -760,14 +771,15 @@ UNION
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       let result = await dataSource.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCod,perpoliz.PersonalId,per.PersonalApellidoNombre, 
-      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso, poliz.TipoSeguroCodigo,poliz.PolizaSeguroNroPoliza, ts.TipoSeguroNombre 
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCod,per.PersonalId,per.PersonalApellidoNombre,
+      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso, tipseg.TipoSeguroCodigo,poliz.PolizaSeguroNroPoliza, tipseg.TipoSeguroNombre
       FROM PersonalPolizaSeguroNew AS perpoliz
-		  JOIN Personal per ON per.PersonalId = perpoliz.PersonalId 
-		  LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId 
-      AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)  
-			LEFT JOIN PolizaSeguroNew poliz ON	poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCod
-			LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = poliz.TipoSeguroCodigo
+      JOIN Personal per ON per.PersonalId = perpoliz.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId     
+      AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      LEFT JOIN PolizaSeguroNew poliz ON      poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCod
+      LEFT JOIN TipoSeguro tipseg ON tipseg.TipoSeguroCodigo = poliz.TipoSeguroCodigo
+      WHERE (1=1)
       AND ${filterSql}
        ${orderBy}
       `)
@@ -1056,11 +1068,11 @@ UNION
 
   async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string,resultPolizaSeguroCodigo:string, usuario:string, ip:string){
 
+    await queryRunner.query(`DELETE FROM PersonalPolizaSeguroNew WHERE PolizaSeguroCod = @0`, [resultPolizaSeguroCodigo])
 
     const notFoundInPersonalTable: number[] = [];
     const notFoundInPersonalSeguro: number[] = [];
     const shouldNotBeInSeguro: number[] = [];
-
 
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
 
@@ -1116,13 +1128,7 @@ UNION
       }
     
       // EXISTE EL PERSONAL Y ESTÁ ASEGURADO → insertar
-      await this.addPersonalPolizaSeguro(
-        resultPolizaSeguroCodigo,
-        personalId,
-        queryRunner,
-        usuario,
-        ip
-      );
+      await this.addPersonalPolizaSeguro(resultPolizaSeguroCodigo,personalId,queryRunner,usuario,ip);
       insertados.add(personalId);
     }
     
@@ -1146,6 +1152,7 @@ UNION
   }
 
   async addPersonalPolizaSeguro(resultPolizaSeguroCodigo:string, personalId:number, queryRunner:QueryRunner, usuario:string, ip:string){
+
 
     await queryRunner.query(`INSERT into PersonalPolizaSeguroNew (
       PolizaSeguroCod,
