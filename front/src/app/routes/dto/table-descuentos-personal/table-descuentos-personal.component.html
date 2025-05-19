@@ -16,10 +16,10 @@
           [disabled]="descuentoId() == 0 && personalId() == 0">
           <span nz-icon nzType="edit" nzTheme="outline"></span>
         </button>
-        <!-- Eliminar Descuento -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" 
+        <!-- Anular Descuento -->
+        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" 
           [disabled]="descuentoId() == 0 && personalId() == 0" [nzLoading]="loadingDelete()"
-          nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Descuento?" (nzOnConfirm)="deleteDescuento()">
+          nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere anular este Descuento?" (nzOnConfirm)="deleteDescuento()">
           <span nz-icon nzType="delete" nzTheme="outline"></span>
         </button>
       </nz-button-group>
