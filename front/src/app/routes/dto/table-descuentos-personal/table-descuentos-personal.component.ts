@@ -123,7 +123,7 @@ export class TableDescuentosPersonalComponent {
         this.loadingDelete.set(true)
         try {
             if (this.descuentoId() && this.personalId()) {
-            await firstValueFrom(this.apiService.deletePersonalOtroDescuento(this.descuentoId(), this.personalId()))
+            await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(this.descuentoId(), this.personalId()))
             this.listDescuento('')
         }
         } catch (error) {}

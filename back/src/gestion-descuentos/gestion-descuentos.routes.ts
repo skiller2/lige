@@ -44,12 +44,12 @@ gestionDescuentosRouter.post('/update', [authMiddleware.verifyToken,authMiddlewa
     gestionDescuentosController.updateDescuento(req, res, next)
 });
 
-gestionDescuentosRouter.delete('/personal/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.deletePersonalOtroDescuento(req, res, next)
+gestionDescuentosRouter.post('/cancellation/personal/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.cancellationPersonalOtroDescuento(req, res, next)
 });
 
-gestionDescuentosRouter.delete('/objetivo/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    gestionDescuentosController.deleteObjetivoDescuento(req, res, next)
+gestionDescuentosRouter.post('/cancellation/objetivo/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.cancellationObjetivoDescuento(req, res, next)
 });
 
 gestionDescuentosRouter.post("/persona", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

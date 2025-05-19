@@ -1533,16 +1533,14 @@ export class ApiService {
     );
   }
 
-  deletePersonalOtroDescuento(id:number, PersonalId:number){
-    const params = [id, PersonalId]
-    return this.http.delete<ResponseJSON<any>>(`/api/gestion-descuentos/personal/`, params).pipe(
+  cancellationPersonalOtroDescuento(id:number, PersonalId:number){
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/personal/`, {id, PersonalId}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  deleteObjetivoDescuento(id:number, ObjetivoId:number){
-    const params = [id, ObjetivoId]
-    return this.http.delete<ResponseJSON<any>>(`/api/gestion-descuentos/objetivo/`, params).pipe(
+  cancellationObjetivoDescuento(id:number, ObjetivoId:number){
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/objetivo/`, {id, ObjetivoId}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
