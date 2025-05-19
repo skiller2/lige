@@ -1778,4 +1778,16 @@ export class SearchService {
     );
   }
 
+  getHistorialPersonalActa(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/historial/acta/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+
 }

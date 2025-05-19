@@ -2831,4 +2831,67 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
+  // PersonalActas
+  
+  async getPersonalActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId = Number(req.params.personalId);
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const PersonaActaList =  await queryRunner.query(`
+         SELECT act.ActaId, act.ActaNroActa as NroActa
+              , act.ActaDescripcion as DescriocionActa
+              , act.ActaFechaActa as Desde
+              , act.ActaFechaHasta as Hasta
+              , peract.PersonalId
+              , tipperact.TipoPersonalActaDescripcion as TipoActa
+              , peract.PersonalActaDescripcion
+
+        FROM PersonalActa peract
+        LEFT JOIN Acta act ON act.ActaId=peract.ActaId
+        LEFT JOIN TipoPersonalActa tipperact ON tipperact.TipoPersonalActaCodigo=peract.TipoPersonalActaCodigo
+        WHERE peract.PersonalId IN (@0)
+        ORDER BY act.ActaFechaActa desc
+        `, [personalId])
+
+      await queryRunner.commitTransaction();
+
+      this.jsonRes(PersonaActaList, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  // async getHistoryPersonalBanco(req: any, res: Response, next: NextFunction) {
+  //   const personalId = Number(req.params.personalId);
+
+  //   try {
+  //     const listSitRevista = await dataSource.query(`
+  //       SELECT perb.PersonalBancoId,
+  //       TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
+  //       perb.PersonalBancoDesde Desde, perb.PersonalBancoHasta Hasta
+  //       FROM PersonalBanco perb
+  //       LEFT JOIN Banco ban ON ban.BancoId = perb.PersonalBancoBancoId
+  //       WHERE perb.PersonalId IN (@0)
+  //       ORDER BY perb.PersonalBancoId DESC
+  //       `, [personalId])
+
+  //     this.jsonRes(listSitRevista, res);
+  //   } catch (error) {
+  //     return next(error)
+  //   }
+  // }
+
+  // async setActasPersonal(req: any, res: Response, next: NextFunction) {
+  //   const queryRunner = dataSource.createQueryRunner();
+  //   const personalId = Number(req.params.id)
+  //   const actas = req.body
+  // }
+
+
+
+
 }

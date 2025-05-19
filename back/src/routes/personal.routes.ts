@@ -31,7 +31,7 @@ personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.h
   personalController.addPersonal(req, res, next);
 });
 
-personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, ], (req, res, next) => {
+personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken,], (req, res, next) => {
   personalController.updatePersonal(req, res, next);
 });
 
@@ -187,4 +187,8 @@ personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req,
 
 personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getById(req.params.id, res, next);
+});
+
+personalRouter.get(`${base}/historial/acta/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  personalController.getPersonalActa(req, res, next);
 });
