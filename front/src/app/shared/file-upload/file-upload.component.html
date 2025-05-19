@@ -5,7 +5,6 @@
 
  @if(!filesAdd.delete ){
     @if(filesAdd.id ){
-
        <!-- <P>{{filesAdd | json}}</P>  -->
       <div class="containerAnteriores">
         @if(isDisabled()==false && !filesAdd.update){
@@ -75,7 +74,7 @@
 </nz-form-item>
 
 
-@if(isDisabled()==false && cantFiles()){
+
 
 <nz-form-item>
   <nz-form-control class="BtnUploadFile">
@@ -83,7 +82,7 @@
 
       @if(showTipoDocs()){
       <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
-        [nzDropdownMatchSelectWidth]="false" style="margin: 10px;">
+        [nzDropdownMatchSelectWidth]="false" style="margin: 10px;" (ngModelChange)="onTipoSelectedChange($event)">
         <!-- Filtrar en funcion de docTiposValidos()-->
         @for (option of textForSearchSelected(); track option.doctipo_id) {
         <ng-container>
@@ -94,7 +93,9 @@
         }
       </nz-select>
 
-      }
+    }
+
+      @if(isDisabled()==false && cantFiles()){
       <!-- image/* .pdf.pdf,image/* -->
       <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
         [nzShowUploadList]="false" (nzChange)="uploadChange($event,null)">
@@ -103,10 +104,11 @@
           {{ 'app.btn.file' | i18n }}
         </button>
       </nz-upload>
+      }
     </ng-container>
   </nz-form-control>
 </nz-form-item>
-}
+
 <nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true"
   (nzOnCancel)="handleCancel()">
   <ng-container *nzModalContent>

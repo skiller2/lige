@@ -80,6 +80,11 @@ export class FileUploadComponent implements ControlValueAccessor {
   tipoSelected = signal<string>("")
   textForSearchSelected = signal<DocTipo[]>([])
 
+  onTipoSelectedChange(newValue: string) {
+    this.tipoSelected.set(newValue)
+    console.log("this.idForSearh()", this.idForSearh())
+    this.LoadArchivosAnteriores(this.idForSearh())
+  }
  
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
@@ -101,12 +106,17 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivosAnteriores(idForSearh: number) {
-    console.log("LoadArchivosAnteriores", idForSearh)
-    if (this.docTiposValidos().length == 1) 
+    console.log("this.tipoSelected()", this.tipoSelected())
+    console.log("docTiposValidos", this.docTiposValidos())
+    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "") 
       this.tipoSelected.set(this.docTiposValidos()[0])
 
+    console.log("idForSearh", idForSearh)
+    console.log("this.tipoSelected()", this.tipoSelected())
+    console.log("this.tableForSearch()", this.tableForSearch())
+    console.log("this.columnForSearch()", this.columnForSearch())
     if (idForSearh> 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
-
+console.log("aca")
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
