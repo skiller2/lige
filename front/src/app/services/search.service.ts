@@ -1371,15 +1371,7 @@ export class SearchService {
     );
   }
 
-  getTipoPersonalActaOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/personal/acta/options`).pipe(
-      map(res => res.data),
-      catchError((err, caught) => {
-        console.log('Something went wrong!');
-        return of([]);
-      })
-    );
-  }
+
 
 
   getDatosFacturacionByCliente(listClientes: any) {
@@ -1752,11 +1744,11 @@ export class SearchService {
     );
   }
 
-  getDescuentoPersona(PersonalId:number, DescuentoId:number){
+  getDescuentoPersona(PersonalId: number, DescuentoId: number) {
     if (!PersonalId || !DescuentoId) {
       return of({});
     }
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/persona`, {PersonalId, DescuentoId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/persona`, { PersonalId, DescuentoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1765,11 +1757,11 @@ export class SearchService {
     );
   }
 
-  getDescuentoObjetivo(ObjetivoId:number, DescuentoId:number){
+  getDescuentoObjetivo(ObjetivoId: number, DescuentoId: number) {
     if (!ObjetivoId || !DescuentoId) {
       return of({});
     }
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/objetivo`, {ObjetivoId, DescuentoId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/objetivo`, { ObjetivoId, DescuentoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1777,10 +1769,33 @@ export class SearchService {
       })
     );
   }
+
+
+  // Personal Acta
 
   getHistorialPersonalActa(id: number): Observable<any> {
     if (!id) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/acta/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getTipoPersonalActaOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/acta/tipo-acta-options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+   getNroActaOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/acta/nro-acta-options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

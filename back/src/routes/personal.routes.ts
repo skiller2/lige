@@ -192,3 +192,11 @@ personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) =
 personalRouter.get(`${base}/historial/acta/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   personalController.getPersonalActa(req, res, next);
 });
+
+personalRouter.get(`${base}/acta/nro-acta-options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  personalController.getNroActa(req, res, next);
+});
+
+personalRouter.get(`${base}/acta/tipo-acta-options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  personalController.getTipoPersonalActa(req, res, next);
+});

@@ -5,22 +5,41 @@
     <nz-card nzType="inner" nzTitle="Agregar Nueva Acta">
       <form [formGroup]="formActa">
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Acta</nz-form-label>
-          <!-- <nz-form-control>
-          <nz-select formControlName="SituacionId" nzPlaceHolder="Situacion de Revista" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsSitRevista | async">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control> -->
+          <nz-form-label [nzXs]="5">Nro Acta</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="ActaId" nzPlaceHolder="Nro Acta" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              <ng-container *ngFor="let option of $optionsNroActa | async">
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              </ng-container>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Fecha de Acta</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <nz-date-picker formControlName="ActaFechaActa" nzPlaceHolder="" ></nz-date-picker>
+          </nz-form-control>  
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Descripción</nz-form-label>
-          <!-- <nz-form-control>
-          <input nz-input placeholder="" formControlName="Motivo" type="text" />
-        </nz-form-control> -->
+          <nz-form-label [nzXs]="5">Tipo</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="TipoActa" nzPlaceHolder="Tipo Acta" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              <ng-container *ngFor="let option of $optionsTipoActa | async">
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              </ng-container>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Descripcion</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="" formControlName="PersonalActaDescripcion" type="text" />
+          </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
