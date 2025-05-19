@@ -886,7 +886,8 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-            const usuarioId = await this.getUsuarioId(res, queryRunner)
+           // const usuarioId = await this.getUsuarioId(res, queryRunner)
+            const usuarioId = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }

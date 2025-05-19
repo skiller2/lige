@@ -1042,20 +1042,20 @@ UNION
 
       if(validationDniResults)
           await queryRunner.query(`UPDATE PolizaSeguro SET PolizaSeguroResultado = @0, PolizaSeguroVersion = @1 WHERE PolizaSeguroCodigo = @2`, [JSON.stringify(validationDniResults), PolizaAeguroVersion, resultPolizaSeguroCodigo])
-    
-      result = await queryRunner.query(`SELECT ts.TipoSeguroNombre, ps.TipoSeguroCodigo, ps.PolizaSeguroCodigo, ps.PolizaSeguroNroPoliza, ps.PolizaSeguroNroEndoso,
-         ps.PolizaSeguroFechaEndoso, ps.PolizaSeguroResultado, ps.DocumentoId FROM PolizaSeguroNew ps LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo WHERE ps.PolizaSeguroCodigo = @0`, 
-         [resultPolizaSeguroCodigo])
 
-      if (resultFile) 
-        result[0].files = resultFile.ArchivosAnteriores;
-      
-      if(validationDniResults)
-        result[0].notFound = validationDniResults
-      
+   
+  const result = {
+        PolizaSeguroCodigo: resultPolizaSeguroCodigo,
+        ArchivosAnteriores: resultFile.ArchivosAnteriores,
+        notFound: validationDniResults,
+        DocumentoId: resultFile.doc_id,
+        PolizaSeguroNroPoliza: polizaEndoso[0],
+        PolizaSeguroNroEndoso: endoso[1],
+        PolizaSeguroFechaEndoso: fechaDesde.toISOString().replace('Z', '')
+  }
       ///throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: result[0] }, res, (req.body.PolizaSeguroCod > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: result }, res, (req.body.PolizaSeguroCod > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
       await queryRunner.rollbackTransaction()
       return next(error)
