@@ -1261,7 +1261,9 @@ export class ObjetivosController extends BaseController {
         try {
 
             const ip = this.getRemoteAddress(req)
-            const usuarioId = await this.getUsuarioId(res, queryRunner)
+           
+            const usuarioId = res.locals.PersonalId
+
 
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
