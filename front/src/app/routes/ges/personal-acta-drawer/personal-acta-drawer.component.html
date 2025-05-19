@@ -40,28 +40,33 @@
 
       </form>
     </nz-card>
-<!-- 
-    <nz-form-control *ngIf="$listaSitRevistaPer | async as listaSitRevistaPer ">
-      <nz-table #sitRevistaPer [nzData]="listaSitRevistaPer" nzSize="small" [nzPageSize]="100000000"
+
+
+    <!-- grilla con LISTADO DE PersonalActa -->
+    <nz-form-control *ngIf="$listaPersonalActa| async as listaPersonalActa ">
+      <nz-table #PersonalActa [nzData]="listaPersonalActa" nzSize="small" [nzPageSize]="100000000"
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
         <thead>
           <tr>
-            <th>Situacion de Revista</th>
-            <th>Motivo</th>
+            <th>Nro Acta</th>
+            <th>Descripcion</th>
+            <th>Tipo Acta</th>
             <th>Desde</th>
             <th>Hasta</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let data of sitRevistaPer.data" class="">
-            <td>{{ data.Descripcion }}</td>
-            <td>{{ data.Motivo }}</td>
+          <tr *ngFor="let data of PersonalActa.data" class="">
+            <td>{{ data.NroActa }}</td>
+            <td>{{ data.DescripcionActa }}</td>
+            <td>{{ data.TipoActa }}</td>
             <td>{{ data.Desde }}</td>
             <td>{{ data.Hasta }}</td>
+
           </tr>
         </tbody>
       </nz-table>
-    </nz-form-control> -->
+    </nz-form-control>
 
   </ng-container>
 </nz-drawer>

@@ -45,30 +45,26 @@ export class PersonalActaDrawerComponent {
     })
 
     // $optionsActa = this.searchService.getTipoPersonalActaOptions(); 
-    // $listaActaPer = this.selectedPersonalIdChange$.pipe(
-    //     debounceTime(500),
-    //     switchMap(() =>{
-    //         setTimeout(async () => {
-    //             const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
-    //             this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
-    //         }, 0);
-    //         return this.searchService.getHistoriaActaPersona(
-    //             Number(this.PersonalId())
-    //         ).pipe(map(data => {
-    //             let find = this.noOptions().find((obj:any) => {return obj.ActaId == data[0]?.ActaId})
-    //             if (find){ this.formSitRevista.disable()}
-    //             else { this.formSitRevista.enable() }
-
-    //             data.map((obj:any) =>{
-    //                 let inicio = new Date(obj.Desde)
-    //                 let fin = obj.Hasta? new Date(obj.Hasta) : null
-    //                 obj.Desde = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
-    //                 obj.Hasta = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
-    //             })
-    //             return data
-    //         }))
-    //     })
-    // );
+    $listaPersonalActa = this.selectedPersonalIdChange$.pipe(
+        debounceTime(500),
+        switchMap(() =>{
+            setTimeout(async () => {
+                const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
+                this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
+            }, 0);
+            return this.searchService.getHistorialPersonalActa(
+                Number(this.PersonalId())
+            ).pipe(map(data => {
+                data.map((obj:any) =>{
+                    let inicio = new Date(obj.Desde)
+                    let fin = obj.Hasta? new Date(obj.Hasta) : null
+                    obj.Desde = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
+                    obj.Hasta = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
+                })
+                return data
+            }))
+        })
+    );
 
     async ngOnInit(){
         this.periodo.set(new Date())
