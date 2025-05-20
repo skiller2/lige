@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model } from '@angular/core'
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model, signal } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
+  Subject,
   debounceTime,
   firstValueFrom,
   noop,
@@ -37,14 +38,15 @@ export class RubroSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("isc") isc!: NzSelectComponent
-
+  private isDisabled = false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
+  onItemChanged = new Subject<any>();    // object
 
   private _selectedId: string = ''
-  _selected = ''
+   _selected = signal('')
   extendedOption = { RubroClienteId: 0, RubroClienteDescripcion: '' }
-  
+  selectedItem: any;
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
 
@@ -87,7 +89,8 @@ export class RubroSearchComponent implements ControlValueAccessor {
     setTimeout(() => {
       this.isc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       this.isc?.focus()  //Al hacer click en el componente hace foco
-     
+      this.isc.setDisabledState(this.isDisabled)
+
     }, 1);
   }
 
@@ -98,15 +101,20 @@ export class RubroSearchComponent implements ControlValueAccessor {
 
 
   set selectedId(val: string) {
+     this.isc?.focus()
       val = (val === null || val === undefined) ? '' : val
       
       if (val !== this._selectedId) {     
         this._selectedId = val
   
-        if (this._selectedId == '' || this._selectedId == '0') {
-          this.valueExtendedEmitter.emit({})
-          this._selected = ''
-          this.propagateChange(this._selectedId)
+       if (this._selectedId == '' || this._selectedId == '0') {
+        this.extendedOption = { RubroClienteId: 0, RubroClienteDescripcion: "" }
+        this.selectedItem = this.extendedOption
+
+        this.valueExtendedEmitter.emit(this.extendedOption)
+        if (this._selected() != '')
+          this._selected.set('')
+        this.propagateChange(this._selectedId)
           return
         }
   
@@ -114,12 +122,13 @@ export class RubroSearchComponent implements ControlValueAccessor {
           this.searchService
           .getRubroFromName('RubroClienteId', this._selectedId)
             .pipe(tap(res => {
-              this.extendedOption = { RubroClienteId: res[0].RubroClienteId, RubroClienteDescripcion: res[0].RubroClienteDescripcion }
-              this._selected = this._selectedId
-              this.valueExtendedEmitter.emit(this.extendedOption)
-              if (this.tmpInputVal != this._selected) {
-                this.propagateChange(this._selectedId)
-              }
+              this.extendedOption = { RubroClienteId: res[0].RubroClienteId, RubroClienteDescripcion: res[0].RubroClienteDescripcion}
+            this.selectedItem = this.extendedOption
+            this._selected.set(this._selectedId)
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            if (this.tmpInputVal != this._selected) {
+              this.propagateChange(this._selectedId)
+            }
             }))
         )
       }
@@ -150,6 +159,7 @@ export class RubroSearchComponent implements ControlValueAccessor {
 
 
   setDisabledState(isDisabled: boolean): void {
+    this.isDisabled = isDisabled
     this.isc?.setDisabledState(isDisabled)
   } 
 

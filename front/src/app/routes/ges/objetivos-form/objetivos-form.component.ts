@@ -170,6 +170,7 @@ export class ObjetivosFormComponent {
         this.formCli.disable()
         this.formCli.get('GrupoActividadId')?.disable()
         this.formCli.get('RubroId')?.disable()
+        this.formCli.get('infoRubro')?.disable()
       }else{
         this.formCli.enable()
       }
