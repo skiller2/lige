@@ -2,7 +2,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, output, effect } from '@angular/core';
 import { FormBuilder, FormArray } from '@angular/forms';
-import { BehaviorSubject, firstValueFrom, debounceTime, switchMap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, noop } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -28,6 +28,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 export class DocumentoDrawerComponent {
   tituloDrawer = signal<string>('Carga de Documento')
   visible = model<boolean>(false)
+  forceReloadId = signal<number>(Date.now());
 
   onAddorUpdate = output()
   isLoading = signal(false);
@@ -48,6 +49,7 @@ export class DocumentoDrawerComponent {
   docId = model<number>(0);
   disabled = model<boolean>(false);
   prevFiles = signal<any[]>([]);
+Date: any;
 
   constructor(
     private searchService: SearchService,
@@ -140,6 +142,13 @@ export class DocumentoDrawerComponent {
     }
 
     this.isLoading.set(false)
+  }
+
+  handlePrevFiles(event: any[]) {
+    const copia = event.map(item => ({ ...item }))
+    this.prevFiles.set([...copia])
+    this.forceReloadId.set(Date.now())
+
   }
 
   // async load() {
