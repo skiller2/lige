@@ -31,9 +31,7 @@ export class PersonalActaDrawerComponent {
     constructor(
         private searchService: SearchService,
         private apiService: ApiService,
-        // private router: Router,
-        // private route: ActivatedRoute,
-        // private settingService: SettingsService,
+        
     ) { }
     private destroy$ = new Subject();
 
@@ -41,10 +39,17 @@ export class PersonalActaDrawerComponent {
 
     fb = inject(FormBuilder)
     formActa = this.fb.group({
+        ActaId:0, TipoActa:0, PersonalActaDescripcion:''
         // SituacionId: 0, Motivo:'', Desde:new Date()
     })
 
-    // $optionsActa = this.searchService.getTipoPersonalActaOptions(); 
+
+    $optionsNroActa = this.searchService.getNroActaOptions(); 
+    $optionsTipoActa = this.searchService.getTipoPersonalActaOptions(); 
+
+
+    
+    // $optionsTipoPersonalActa = this.searchService.getTipoPersonalActaOptions(); 
     $listaPersonalActa = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
         switchMap(() =>{

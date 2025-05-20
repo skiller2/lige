@@ -2865,32 +2865,35 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  // async getHistoryPersonalBanco(req: any, res: Response, next: NextFunction) {
-  //   const personalId = Number(req.params.personalId);
+    async getNroActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT TOP 100 ActaId value
+            , CONCAT(ActaNroActa, ' - ', TRIM(ActaDescripcion), ' - ', ActaFechaActa) label
+            ,ActaFechaActa
+        FROM Acta
+        ORDER BY ActaFechaActa desc
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
 
-  //   try {
-  //     const listSitRevista = await dataSource.query(`
-  //       SELECT perb.PersonalBancoId,
-  //       TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
-  //       perb.PersonalBancoDesde Desde, perb.PersonalBancoHasta Hasta
-  //       FROM PersonalBanco perb
-  //       LEFT JOIN Banco ban ON ban.BancoId = perb.PersonalBancoBancoId
-  //       WHERE perb.PersonalId IN (@0)
-  //       ORDER BY perb.PersonalBancoId DESC
-  //       `, [personalId])
+  async getTipoPersonalActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT TipoPersonalActaCodigo value, TipoPersonalActaDescripcion label
+        FROM TipoPersonalActa
 
-  //     this.jsonRes(listSitRevista, res);
-  //   } catch (error) {
-  //     return next(error)
-  //   }
-  // }
-
-  // async setActasPersonal(req: any, res: Response, next: NextFunction) {
-  //   const queryRunner = dataSource.createQueryRunner();
-  //   const personalId = Number(req.params.id)
-  //   const actas = req.body
-  // }
-
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
 
 
 
