@@ -493,6 +493,7 @@ export class DocumentoController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
+
     try {
       await queryRunner.startTransaction()
       //Validaciones
@@ -516,9 +517,15 @@ export class DocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      const archivo = [{ doc_id, doctipo_id, tableForSearch: 'docgeneral', den_documento, persona_id, cliente_id, objetivo_id, fecha, fec_doc_ven }]
+      //const archivo = [{ doc_id, doctipo_id, tableForSearch: 'docgeneral', den_documento, persona_id, cliente_id, objetivo_id, fecha, fec_doc_ven }]
 
-      await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ? archivo![0] : null, usuario, ip, queryRunner)
+      if (req.body.archivo) {
+        for (const file of req.body.archivo) {
+        await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner)
+        }
+      }
+
+      //await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ? archivo![0] : null, usuario, ip, queryRunner)
 
       await queryRunner.query(`UPDATE lige.dbo.docgeneral SET ind_descarga_bot = @1 WHERE doc_id IN (@0)`, [doc_id, ind_descarga_bot])
 
