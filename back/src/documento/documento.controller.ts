@@ -503,7 +503,7 @@ export class DocumentoController extends BaseController {
         `, [doc_id])
       if (telefonos.length) {
         const doc = await queryRunner.query(`
-          SELECT doctipo_id, persona_id, objetivo_id, cliente_id,
+          SELECT doctipo_id, persona_id, objetivo_id, cliente_id
           FROM lige.dbo.docgeneral
           WHERE doc_id IN (@0)
         `, [doc_id])
