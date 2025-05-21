@@ -885,7 +885,46 @@ export class CargaLicenciaController extends BaseController {
 
       if (req.body.files) {
         for (const file of req.body.files) {
-          await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file , usuario, ip, queryRunner)
+          let doc_id = 0
+
+          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file , usuario, ip, queryRunner)
+          
+          if (result && typeof result === 'object') 
+            ({ doc_id } = result)
+          
+          if(file.tempfilename){
+          await queryRunner.query(`INSERT INTO DocumentoRelaciones (
+            DocumentoId,
+            PersonalId,
+            ObjetivoId,
+            ClienteId,
+            PersonalLicenciaId,
+            AudFechaIng,
+            AudFechaMod,
+            AudUsuarioIng,
+            AudUsuarioMod,
+            AudIpIng,
+            AudIpMod
+          ) VALUES (
+            @0, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7
+          )`, [
+            doc_id,
+            PersonalId,
+            null,
+            null,
+            PersonalLicenciaId,
+            new Date(),
+            usuario,
+            ip
+          ])
+          }else {
+            await queryRunner.query(`UPDATE DocumentoRelaciones SET AudFechaMod = @0, AudUsuarioMod = @1, AudIpMod = @2 WHERE DocumentoId = @3`, [
+              new Date(),
+              usuario,
+              ip,
+              doc_id
+            ])
+          }
         }
       }
 
@@ -1064,6 +1103,7 @@ export class CargaLicenciaController extends BaseController {
     lic.PersonalLicenciaCategoriaPersonalId,
     med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
     med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+    doc.DocumentoId,
       1
     FROM PersonalLicencia lic 
     JOIN Personal persona ON persona.PersonalId = lic.PersonalId
@@ -1075,6 +1115,7 @@ export class CargaLicenciaController extends BaseController {
     LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
+    LEFT JOIN DocumentoRelaciones doc ON doc.PersonalLicenciaId = lic.PersonalLicenciaId and persona.PersonalId = doc.PersonalId
     WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 `
 
     const result = await queryRunner.query(selectquery, [null, anio, mes, PersonalId, PersonalLicenciaId])

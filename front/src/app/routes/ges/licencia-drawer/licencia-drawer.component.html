@@ -10,6 +10,12 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item style="display:none">
+        <nz-form-label [nzSpan]="3">DocumentoId</nz-form-label>
+        <nz-form-control [nzSpan]="19">
+          <input nz-input name="DocumentoId" ngModel  />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item style="display:none">
         <nz-form-label [nzSpan]="3">PersonalLicenciaId</nz-form-label>
         <nz-form-control [nzSpan]="19">
           <input nz-input name="PersonalLicenciaId" ngModel  />
@@ -93,8 +99,8 @@
       </nz-form-item>
  
          <nz-form-control>
-            <app-file-upload  ngModel name="files"   [idForSearh]="this.ngForm().value.PersonalId ?? 0"
-            [textForSearch]="'LIC'" [columnForSearch]="'persona_id'" [tableForSearch]="'docgeneral'" ></app-file-upload>
+            <app-file-upload  ngModel name="files"   [idForSearh]="this.ngForm().value.DocumentoId ?? 0"
+            [textForSearch]="'LIC'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" ></app-file-upload>
           </nz-form-control>
       
 
@@ -118,6 +124,6 @@
     </form>
 
     
-    <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
+    <p>Debug Valores: {{ngForm().value | json }}</p> 
   </ng-container>
 </nz-drawer>
