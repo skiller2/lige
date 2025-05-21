@@ -533,6 +533,14 @@ export class DocumentoController extends BaseController {
       //const archivo = [{ doc_id, doctipo_id, tableForSearch: 'docgeneral', den_documento, persona_id, cliente_id, objetivo_id, fecha, fec_doc_ven }]
 
       if (req.body.archivo) {
+        const archivosActualizados = req.body.archivo.map(file => ({
+          ...file,
+          doctipo_id: file.doctipo_id !== doctipo_id ? doctipo_id : file.doctipo_id
+        }));
+        req.body.archivo = archivosActualizados;
+      }
+
+      if (req.body.archivo) {
         for (const file of req.body.archivo) {
           await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner)
         }
