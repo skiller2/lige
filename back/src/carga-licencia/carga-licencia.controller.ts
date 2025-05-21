@@ -974,7 +974,8 @@ export class CargaLicenciaController extends BaseController {
 
     const {
       PersonalLicenciaId,
-      PersonalId
+      PersonalId,
+      DocumentoId
     } = req.query
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -1010,9 +1011,8 @@ export class CargaLicenciaController extends BaseController {
       await queryRunner.query(`DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
         , [PersonalId, PersonalLicenciaId])
 
-      await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE Persona_id = @0 AND doctipo_id = 'LIC' AND den_documento = @1`
-        , [PersonalId, PersonalLicenciaId])
-
+      if (DocumentoId && Number(DocumentoId) > 0)
+      await FileUploadController.deleteFile( Number(DocumentoId), 'docgeneral', queryRunner)
 
       if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10)
         throw new ClientException(`La situación revista anterior no puede ser "Licencia", avise al administrador`)
@@ -1022,39 +1022,6 @@ export class CargaLicenciaController extends BaseController {
 
       this.jsonRes({ list: [] }, res, `Licencia borrada con exito`);
       await queryRunner.commitTransaction();
-
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    }
-
-  }
-
-  async deleteArchivos(req: Request, res: Response, next: NextFunction) {
-
-    let deleteId = Number(req.query[0])
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-
-      const document = await this.getLicenciatInfo(deleteId);
-      const finalurl = `${document[0]["path"]}`
-
-      if (document.length > 0) {
-        if (!existsSync(finalurl)) {
-          console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-        } else {
-          await unlink(finalurl);
-        }
-
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
-
-        await queryRunner.commitTransaction();
-      }
-
-      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -1157,7 +1124,7 @@ export class CargaLicenciaController extends BaseController {
   }
 
 
-  async handlePDFUpload(
+  /*async handlePDFUpload(
     anioRequest: number,
     mesRequest: number,
     persona_id: number,
@@ -1205,9 +1172,9 @@ export class CargaLicenciaController extends BaseController {
       //return next(error)
       return next('Error processing files:' + error)
     }
-  }
+  }*/
 
-  moveFile(filename: any, newFilePath: any, dirtmp: any) {
+  /*moveFile(filename: any, newFilePath: any, dirtmp: any) {
     const originalFilePath = `${process.env.PATH_LICENCIA}/temp/${filename}`;
     console.log("originalFilePath ", originalFilePath)
     console.log("newFilePath ", newFilePath)
@@ -1221,9 +1188,9 @@ export class CargaLicenciaController extends BaseController {
       console.error('Error moviendo el archivo:', error);
     }
 
-  }
+  }*/
 
-  async setLicenciaDocGeneral(
+  /*async setLicenciaDocGeneral(
     queryRunner: any,
     docgeneral: number,
     periodo: number,
@@ -1256,9 +1223,9 @@ export class CargaLicenciaController extends BaseController {
         doctipo_id, den_documento
       ])
 
-  }
+  }*/
 
-  async getLicenciaAnteriores(
+  /*async getLicenciaAnteriores(
     Anio: string,
     Mes: string,
     PersonalId: string,
@@ -1292,9 +1259,9 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       return next(error)
     }
-  }
+  }*/
 
-  async getByDownLicencia(req: any, res: Response, next: NextFunction) {
+  /*async getByDownLicencia(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
     try {
 
@@ -1309,15 +1276,15 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       return next(error)
     }
-  }
+  }*/
 
-  async getLicenciatInfo(documentId: Number) {
+  /*async getLicenciatInfo(documentId: Number) {
 
 
     return dataSource.query(
       `SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
 
-  }
+  }*/
 
   async changehours(req: any, res: Response, next: NextFunction) {
 

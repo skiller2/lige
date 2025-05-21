@@ -38,7 +38,6 @@ export class LicenciaDrawerComponent {
   visibleHistorial = model<boolean>(false)
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
-  ArchivosLicenciasAdd: any[] = [];
   tituloDrawer = input.required<string>()
   openDrawerForConsult =  input<boolean>(false)
   RefreshLicencia =  model<boolean>(false)
@@ -57,16 +56,8 @@ export class LicenciaDrawerComponent {
 
   
   isSaving= model<boolean>(false)
-  $ArchivosLicencias = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      const periodo = this.selectedPeriod()
-      return this.apiService
-        .getLicenciasArchivosAnteriores(
-          periodo.year, periodo.month, this.PersonalId(), this.PersonalLicenciaId()
-        )
-    })
-  )
+  fileUploadComponent = viewChild.required(FileUploadComponent);
+
 
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
@@ -79,14 +70,14 @@ export class LicenciaDrawerComponent {
 
   async ngOnInit(): Promise<void> {
 
-    this.ArchivosLicenciasAdd = []
+
     this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
   }
 
   cambios = computed(async () => {
     const visible = this.visible()
     this.ngForm().form.reset()
-    this.ArchivosLicenciasAdd = []
+
     if (visible) {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
@@ -151,7 +142,8 @@ export class LicenciaDrawerComponent {
 
   async deletelicencia() {
     let vals = this.ngForm().value
-    let res = await firstValueFrom(this.apiService.deleteLicencia(vals))
+    //al implementar ve los 3 valores que necesita el back
+    //let res = await firstValueFrom(this.apiService.deleteLicencia(vals))
     this.visible.set(false)
   }
 
@@ -159,27 +151,6 @@ export class LicenciaDrawerComponent {
   openDrawerforConsultHistory(){
     this.PersonalId.set(this.ngForm().value.PersonalId)
     this.visibleHistorial.set(true)
-  }
-
- async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {
-    try {
-      this.ArchivoIdForDelete = parseInt(id);
-      if( tipoDocumentDelete){
-        console.log("fieldname ", this.ArchivosLicenciasAdd)
-        console.log("ArchivoIdForDelete ", this.ArchivoIdForDelete)
-        const ArchivoFilter = this.ArchivosLicenciasAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)
-        this.ArchivosLicenciasAdd = ArchivoFilter
-         
-       this.notification.success('Respuesta', `Archivo borrado con exito `);
-
-      }else{
-        await firstValueFrom( this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
-      }
-
-      this.formChange$.next('');
-    } catch (error) {
-      
-    }
   }
   
 }

@@ -74,15 +74,7 @@ export class ApiService {
     );
   }
 
-  getLicenciasArchivosAnteriores(anio: number, mes: number,PersonalId:number,PersonalLicenciaId:number) {
-    return this.http.get(`/api/carga-licencia/licencia_anteriores/${anio}/${mes}/${PersonalId}/${PersonalLicenciaId}`).pipe(
-      map((res: any) => res.data.list),
-      catchError((err, caught) => {
-        console.log('Something went wrong!');
-        return of([]);
-      })
-    );
-  }
+
 
   getArchivosAnteriores(id:number, TipoSearch:string, keyField:string ,TableSearch:string) {
     return this.http.get(`/api/file-upload/archivos_anteriores/${id}/${TipoSearch}/${keyField}/${TableSearch}`).pipe(
@@ -1161,13 +1153,6 @@ export class ApiService {
 
   }
 
-
-  deleteArchivosLicencias(deleteId: any) {
-    const parameter = [deleteId]
-    return this.http.delete<ResponseJSON<any>>('/api/carga-licencia/deleteArchivo', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-  }
 
   deleteArchivosEstudios(deleteId: any) {
     const parameter = [deleteId]
