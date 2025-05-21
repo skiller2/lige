@@ -15,7 +15,7 @@
       "assert": "^2.1.0",
       "browserify-zlib": "^0.2.0",
       "crypto-browserify": "^3.12.0",
-      "esbuild": "^0.20.0",
+      "esbuild": "^0.25.4",
       "https-browserify": "^1.0.0",
       "os-browserify": "^0.3.0",
       "path-browserify": "^1.0.1",
@@ -54,12 +54,12 @@
       "numero-a-letras": "^1.0.6",
       "numeros_a_palabras": "^1.0.8",
       "pdf-lib": "^1.17.1",
-      "pdfjs-dist": "^4.10.38",
+      "pdfjs-dist": "^5.2.133",
       "pdfkit": "^0.14.0",
       "puppeteer": "^21.10.0",
       "qrcode-reader": "^1.0.4",
       "remove": "^0.1.5",
-      "typeorm": "^0.3.20"
+      "typeorm": "^0.3.24"
    },
    "scripts": {
       "dev": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts",
