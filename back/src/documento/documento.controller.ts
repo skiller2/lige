@@ -493,8 +493,6 @@ export class DocumentoController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const now = new Date()
 
-    // const update_archivo: any = req.body.archivo.update
-    console.log("body", req.body)
     try {
       await queryRunner.startTransaction()
       //Validaciones
@@ -511,8 +509,6 @@ export class DocumentoController extends BaseController {
           WHERE doc_id IN (@0)
         `, [doc_id])
 
-        console.log("doc", doc)
-
         if (doc[0].doctipo_id != doctipo_id
           || doc[0].persona_id != persona_id
           || doc[0].objetivo_id != objetivo_id
@@ -522,11 +518,10 @@ export class DocumentoController extends BaseController {
           throw new ClientException('El Documento tiene registros de descarga. Solo se puede modificar la fecha desde, hasta y la denominacion del documento.')
         }
 
-        // valida si el archivo tiene update
-        // TODO: modificar que no se reciba un array con un dato en formato json sino, el json
-        for (const data of req.body.archivo) {
-          if (data.update) {
-            throw new ClientException('El Documento tiene registros de descarga. Solo se puede modificar la fecha desde, hasta y la denominacion del documento.')
+        // Valida si el archivo es update
+        if (Array.isArray(req.body.archivo)) {
+          for (const data of req.body.archivo) {
+            if (data && data.update) throw new ClientException('El Documento tiene registros de descarga. Solo se puede modificar la fecha desde, hasta y la denominacion del documento.')
           }
         }
       }
