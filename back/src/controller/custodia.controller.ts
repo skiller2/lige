@@ -717,8 +717,8 @@ export class CustodiaController extends BaseController {
         const categorias = await asistenciaController.getCategoriasPorPersonaQuery(anio, mes, PersonalId, 1, queryRunner);
 
         const categoria = categorias.filter((cat: any) => cat.CategoriaId == 2) //CUSTODIA
-//        if (categoria.length == 0)
-//            errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
+        if (categoria.length == 0)
+            errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
         return errores
     };
