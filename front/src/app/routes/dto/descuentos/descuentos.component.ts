@@ -22,6 +22,7 @@ export class DescuentosComponent {
     periodo = signal(new Date())
     anio = computed(() => this.periodo()?.getFullYear())
     mes = computed(() => this.periodo()?.getMonth()+1)
+    reload = signal<number>(0)
     // visibleAltaDesc = model<boolean>(false)
     // visibleEditDesc = model<boolean>(false)
     loadingCuo = signal(false)
@@ -40,7 +41,8 @@ export class DescuentosComponent {
         this.loadingCuo.set(true)
         try {
             const res: any = await firstValueFrom(this.apiService.descuentoAddCuota({ year: this.anio(), month: this.mes() }))
-            // this.formChange('')
+            let newReload = this.reload()+1
+            this.reload.set(newReload)
         } catch (error) {
             console.log(error);
         }

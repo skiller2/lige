@@ -30,6 +30,7 @@ export class TableDescuentosObjetivosComponent {
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
     mes = input<number>(0)
+    reload = input<number>(0)
     listDescuento$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
         filtros: [],
@@ -48,7 +49,14 @@ export class TableDescuentosObjetivosComponent {
         private apiService: ApiService,
         private angularUtilService : AngularUtilService,
         private injector : Injector,
-    ) {}
+    ) {
+        effect(async () => {
+            const anio = this.anio()
+            const mes = this.mes()
+            const reload = this.reload()
+            this.listDescuento('')
+        });
+    }
 
     columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/objetivos')
 
@@ -67,12 +75,6 @@ export class TableDescuentosObjetivosComponent {
         this.gridOptions.fullWidthRows = true
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
-
-        effect(async () => {
-            const anio = this.anio()
-            const mes = this.mes()
-            this.listDescuento('')
-        }, { injector: this.injector });
     }
 
     async angularGridReady(angularGrid: any) {

@@ -42,20 +42,20 @@ const columnsPersonalDescuentos:any[] = [
     // maxWidth: 170,
     // minWidth: 100,
   },
-  {
-    id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
-    fieldName: 'gap.GrupoActividadId',
-    type:'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
+  // {
+  //   id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
+  //   fieldName: 'gap.GrupoActividadId',
+  //   type:'number',
+  //   searchType: 'number',
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: false
+  //   // maxWidth: 50,
+  //   // minWidth: 10,
+  // },
   {
     id:'tipocuenta_id', name:'Tipo de Cuenta', field:'tipocuenta_id',
-    fieldName: 'tipocuenta_id',
+    fieldName: 'perdes.tipocuenta_id',
     type:'string',
     searchType: 'string',
     sortable: true,
@@ -65,8 +65,8 @@ const columnsPersonalDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'tipomov', name:'Tipo Movimiento', field:'tipomov',
-    fieldName: '',
+    id:'DescuentoDescripcion', name:'Tipo Movimiento', field:'DescuentoDescripcion',
+    fieldName: 'tipdes.DescuentoDescripcion',
     // searchComponent: "",
     type:'number',
     searchType: 'number',
@@ -78,7 +78,7 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'mes', name:'Mes', field:'mes',
-    fieldName: '',
+    fieldName: 'perdes.mes',
     type:'number',
     searchType: 'number',
     sortable: true,
@@ -89,7 +89,7 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'anio', name:'Año', field:'anio',
-    fieldName: '',
+    fieldName: 'perdes.anio',
     type:'number',
     searchType: "number",
     sortable: true,
@@ -100,7 +100,7 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'desmovimiento', name:'Desmovimiento', field:'desmovimiento',
-    fieldName: '',
+    fieldName: 'perdes.desmovimiento',
     type:'string',
     searchType: "string",
     sortable: true,
@@ -109,20 +109,20 @@ const columnsPersonalDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
-  {
-    id:'tipoint', name:'Tipo', field:'tipoint',
-    fieldName: '',
-    type:'string',
-    searchType: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
+  // {
+  //   id:'tipoint', name:'Tipo', field:'tipoint',
+  //   fieldName: '',
+  //   type:'string',
+  //   searchType: "string",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: true,
+  //   // maxWidth: 50,
+  //   // minWidth: 10,
+  // },
   {
     id:'importe', name:'Importe', field:'importe',
-    fieldName: "",
+    fieldName: "perdes.importe",
     type:'float',
     searchType: "float",
     sortable: true,
@@ -133,7 +133,7 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
-    fieldName:'cuo.cuotanro',
+    fieldName:'perdes.cuotanro',
     type:'number',
     searchType: "number",
     sortable: true,
@@ -144,7 +144,7 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
-    fieldName:'des.cantcuotas',
+    fieldName:'perdes.cantcuotas',
     type:'number',
     searchType: "number",
     sortable: true,
@@ -155,7 +155,7 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'importetotal', name:'Importe Total', field:'importetotal',
-    fieldName: '',
+    fieldName: 'perdes.importetotal',
     type:'float',
     searchType: "float",
     sortable: true,
@@ -368,112 +368,26 @@ export class GestionDescuentosController extends BaseController {
 
   private async getDescuentosPersonalQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     return await queryRunner.query(`
-      -- OTROS DESCUENTOS
-      SELECT DISTINCT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId,'-',gap.GrupoActividadId) id
-      , gap.GrupoActividadId
-      --, 0 as ObjetivoId
-      , per.PersonalId
-      , 'G' as tipocuenta_id
-      , cuit.PersonalCUITCUILCUIT
-      , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-      , @1 AS anio
-      , @2 AS mes
-      , det.DescuentoDescripcion AS tipomov
+        SELECT  perdes.id
+        , cuit.PersonalCUITCUILCUIT
+        , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+        , perdes.tipocuenta_id
+        , tipdes.DescuentoDescripcion
+        , perdes.mes
+        , perdes.anio
+        , perdes.desmovimiento
+        , perdes.desmovimiento2
+        , perdes.importe
+        , perdes.cuotanro
+        , perdes.cantcuotas
+        , perdes.importetotal
 
-      , des.PersonalOtroDescuentoDetalle AS desmovimiento
-      --, des.PersonalOtroDescuentoDetalle AS desmovimiento2
-      , 'OTRO' tipoint
-      , cuo.PersonalOtroDescuentoCuotaImporte AS importe
-      , cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro
-      , des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas
-      , des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+      FROM VistaPersonalDescuento perdes
 
-      FROM PersonalOtroDescuentoCuota cuo
-      JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
-      JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
-      JOIN Personal per ON per.PersonalId = des.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
-
-      WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2
-      AND (${filterSql})
-      ${orderBy}
-
-      UNION ALL
-
-      -- DESCUENTO efecto
-      SELECT DISTINCT CONCAT('efe',cuo.PersonalDescuentoCuotaId,'-',cuo.PersonalDescuentoId,'-',cuo.PersonalDescuentoPersonalId,'-',gap.GrupoActividadId) id
-      , gap.GrupoActividadId
-      --, 0 as ObjetivoId
-      , per.PersonalId
-      , 'G' as tipocuenta_id
-      , cuit.PersonalCUITCUILCUIT
-      , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-      , @1 AS anio
-      , @2 AS mes
-      , 'Efecto' AS tipomov
-
-      , efe.EfectoDescripcion AS desmovimiento
-      --, efe.EfectoDescripcion AS desmovimiento2
-      , 'DESC' tipoint
-      , cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe
-      , cuo.PersonalDescuentoCuotaCuota AS cuotanro
-      , des.PersonalDescuentoCuotas AS cantcuotas
-      , des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
-
-      FROM PersonalDescuento des 
-      JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
-      JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
-      JOIN Personal per ON per.PersonalId = des.PersonalDescuentoPersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
-
-      WHERE cuo.PersonalDescuentoCuotaAno = @1 AND cuo.PersonalDescuentoCuotaMes = @2
-      AND (${filterSql})
-      ${orderBy}
-
-      UNION ALL
-
-      -- DESCUENTO PREPAGA
-      SELECT CONCAT('pre',dis.PersonalPrepagaDescuentoDiscriminadoId,'-',dis.PersonalPrepagaDescuentoId,'-',dis.PersonalId) id
-      , gap.GrupoActividadId
-      --, 0 as ObjetivoId
-      , per.PersonalId
-      , 'G' as tipocuenta_id
-      , cuit.PersonalCUITCUILCUIT
-      , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-      -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
-      , @1 AS anio
-      , @2 AS mes
-      , 'Prepaga' AS tipomov
-
-      , CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento
-      --, CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento2
-      , 'PREP' tipoint
-      , IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe
-      , 1 AS cuotanro
-      , 1 AS cantcuotas
-      , 0 AS importetotal
-
-      FROM PersonalPrepagaDescuento des
-      JOIN Prepaga pre ON pre.PrepagaId = des.PrepagaId
-      JOIN PrepagaPlan pla ON pla.PrepagaPlanId = des.PrepagaPlanId AND pla.PrepagaId = des.PrepagaId
-      JOIN PersonalPrepagaDescuentoDiscriminado dis ON dis.PersonalId = des.PersonalId AND dis.PersonalPrepagaDescuentoId = des.PersonalPrepagaDescuentoId
-
-      JOIN Personal per ON per.PersonalId = des.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
-
-      WHERE des.PersonalPrepagaDescuentoPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
+      LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
+      LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      WHERE perdes.anio IN (@1) AND perdes.mes IN (@2)
       AND (${filterSql})
       ${orderBy}
     `, [, anio, mes])
@@ -607,87 +521,26 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = req.body.mes
     try {
       const descuentos = await queryRunner.query(`
-      -- OTROS DESCUENTOS
-      SELECT DISTINCT 
-      'G' as tipocuenta_id
-      , @1 AS anio
-      , @2 AS mes
-      , det.DescuentoDescripcion AS tipomov
-      , des.PersonalOtroDescuentoDetalle AS desmovimiento
-      , 'OTRO' tipoint
-      , cuo.PersonalOtroDescuentoCuotaImporte AS importe
-      , cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro
-      , des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas
-      , des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+      SELECT  perdes.id
+        , cuit.PersonalCUITCUILCUIT
+        , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+        , perdes.tipocuenta_id
+        , tipdes.DescuentoDescripcion
+        , perdes.mes
+        , perdes.anio
+        , perdes.desmovimiento
+        , perdes.desmovimiento2
+        , perdes.importe
+        , perdes.cuotanro
+        , perdes.cantcuotas
+        , perdes.importetotal
 
-      FROM PersonalOtroDescuentoCuota cuo
-      JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
-      JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
-      JOIN Personal per ON per.PersonalId = des.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
+      FROM VistaPersonalDescuento perdes
 
-      WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2 AND per.PersonalId IN (@0)
-
-      UNION ALL
-
-      -- DESCUENTO EFECTO
-      SELECT DISTINCT
-      'G' as tipocuenta_id
-      , @1 AS anio
-      , @2 AS mes
-      , 'Efecto' AS tipomov
-
-      , efe.EfectoDescripcion AS desmovimiento
-      , 'DESC' tipoint
-      , cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe
-      , cuo.PersonalDescuentoCuotaCuota AS cuotanro
-      , des.PersonalDescuentoCuotas AS cantcuotas
-      , des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
-
-      FROM PersonalDescuento des 
-      JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
-      JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
-      JOIN Personal per ON per.PersonalId = des.PersonalDescuentoPersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
-
-      WHERE cuo.PersonalDescuentoCuotaAno = @1 AND cuo.PersonalDescuentoCuotaMes = @2 AND per.PersonalId IN (@0)
-
-      UNION ALL
-
-      -- DESCUENTO PREPAGA
-      SELECT 
-      'G' as tipocuenta_id
-      , @1 AS anio
-      , @2 AS mes
-      , 'Prepaga' AS tipomov
-      , CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento
-      , 'PREP' tipoint
-      , IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe
-      , 1 AS cuotanro
-      , 1 AS cantcuotas
-      , 0 AS importetotal
-
-      FROM PersonalPrepagaDescuento des
-      JOIN Prepaga pre ON pre.PrepagaId = des.PrepagaId
-      JOIN PrepagaPlan pla ON pla.PrepagaPlanId = des.PrepagaPlanId AND pla.PrepagaId = des.PrepagaId
-      JOIN PersonalPrepagaDescuentoDiscriminado dis ON dis.PersonalId = des.PersonalId AND dis.PersonalPrepagaDescuentoId = des.PersonalPrepagaDescuentoId
-
-      JOIN Personal per ON per.PersonalId = des.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
-
-      WHERE des.PersonalPrepagaDescuentoPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) AND per.PersonalId IN (@0)
+      LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
+      LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      WHERE per.PersonalId IN (@0) AND perdes.anio IN (@1) AND perdes.mes IN (@2)
       `, [ PersonalId, anio, mes])
       // console.log('descuentos: ', descuentos.length);
         
@@ -701,7 +554,7 @@ export class GestionDescuentosController extends BaseController {
     const DescuentoId:number = otroDescuento.DescuentoId
     const PersonalId:number = otroDescuento.PersonalId
     const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
-    // AplicaEl.setHours(0, 0, 0, 0)
+    AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas:number = otroDescuento.Cuotas
     const Importe:number = otroDescuento.Importe
     const Detalle:number = otroDescuento.Detalle
@@ -747,7 +600,7 @@ export class GestionDescuentosController extends BaseController {
     const DescuentoId:number = objDescuento.DescuentoId
     const ObjetivoId:number = objDescuento.ObjetivoId
     const AplicaEl:Date = objDescuento.AplicaEl? new Date(objDescuento.AplicaEl) : null
-    // AplicaEl.setHours(0, 0, 0, 0)
+    AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas:number = objDescuento.Cuotas
     const Importe:number = objDescuento.Importe
     const Detalle:number = objDescuento.Detalle
@@ -994,7 +847,7 @@ export class GestionDescuentosController extends BaseController {
 
       await queryRunner.query(`
         UPDATE ObjetivoDescuento
-        SET ObjetivoDescuentoCuotaUltNro = @3, ObjetivoDescuentoCuotasPagas = @3
+        SET ObjetivoDescuentoCuotaUltNro = @2, ObjetivoDescuentoCuotasPagas = @2
         WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
       `, [objetivoDescuentoId, objetivoId, ultCuota]
       ) 
@@ -1045,10 +898,11 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
     const Cuotas:number = otroDescuento.Cuotas
     const Importe:number = otroDescuento.Importe
-    const Detalle:number = otroDescuento.Detalle
+    const Detalle:string = otroDescuento.Detalle
 
     const anio:number = AplicaEl.getFullYear()
     const mes:number = AplicaEl.getMonth()+1
+    AplicaEl.setHours(0, 0, 0, 0)
 
     let res = await queryRunner.query(`
       SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
@@ -1061,10 +915,10 @@ export class GestionDescuentosController extends BaseController {
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento de la persona.`)
     }
-    // const PersonalOtroDescuento = res[0]
-    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
-    // if (checkrecibos[0]?.ind_recibos_generados == 1)
-    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+    const PersonalOtroDescuento = res[0]
+    const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
+      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
     const hoy:Date = new Date()
     const hora = this.getTimeString(hoy)
@@ -1077,14 +931,22 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoFechaAplica = @7, PersonalOtroDescuentoDetalle = @8
       , PersonalOtroDescuentoPuesto = @9, PersonalOtroDescuentoUsuarioId = @10
       , PersonalOtroDescuentoDia = @11, PersonalOtroDescuentoTiempo = @12
+      , PersonalOtroDescuentoCuotasPagas = 1, PersonalOtroDescuentoCuotaUltNro = 1
       WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
       `, [id, PersonalId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
     
     await queryRunner.query(`
-      UPDATE PersonalOtroDescuentoCuota SET
-      PersonalOtroDescuentoCuotaImporte = ROUND(@3/@2, 2)
-      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
-      `, [id, PersonalId, Cuotas, Importe])
+      DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+    `, [id, PersonalId])
+
+    await queryRunner.query(`
+      INSERT INTO PersonalOtroDescuentoCuota (
+      PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+      PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
+      PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
+      PersonalOtroDescuentoCuotaProceso)
+      VALUES (1,@0,@1,@2,@3,1,ROUND(@5/@4, 2),0,0,'FA')
+    `, [id, PersonalId, anio, mes, Cuotas, Importe])
   }
 
   private async updateObjetivoDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
@@ -1094,10 +956,11 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
     const Cuotas:number = otroDescuento.Cuotas
     const Importe:number = otroDescuento.Importe
-    const Detalle:number = otroDescuento.Detalle
+    const Detalle:string = otroDescuento.Detalle
 
     const anio:number = AplicaEl.getFullYear()
     const mes:number = AplicaEl.getMonth()+1
+    AplicaEl.setHours(0, 0, 0, 0)
 
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
@@ -1110,10 +973,10 @@ export class GestionDescuentosController extends BaseController {
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
-    // const ObjetivoDescuento = res[0]
-    // const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
-    // if (checkrecibos[0]?.ind_recibos_generados == 1)
-    //   throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+    const ObjetivoDescuento = res[0]
+    const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
+      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
     const hoy:Date = new Date()
     const hora = this.getTimeString(hoy)
@@ -1126,25 +989,33 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoFechaAplica = @7, ObjetivoDescuentoDetalle = @8
       , ObjetivoDescuentoPuesto = @9, ObjetivoDescuentoUsuarioId = @10
       , ObjetivoDescuentoDia = @11, ObjetivoDescuentoTiempo = @12
+      , ObjetivoDescuentoCuotasPagas = 1, ObjetivoDescuentoCuotaUltNro = 1
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-      `, [id, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+    `, [id, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
     
     await queryRunner.query(`
-      UPDATE ObjetivoDescuentoCuota SET
-      ObjetivoDescuentoCuotaImporte = ROUND(@3/@2, 2)
-      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-      `, [id, ObjetivoId, Cuotas, Importe])
+      DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+    `, [id, ObjetivoId])
+
+    await queryRunner.query(`
+      INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+      ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
+      ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
+      ObjetivoDescuentoCuotaProceso)
+      VALUES (1,@0,@1,@2,@3,1,ROUND(@5/@4, 2),0,0,'FA')
+    `,[DescuentoId, ObjetivoId, anio, mes, Cuotas, Importe])
+    
   }
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const id = Number(req.body.id)
     const PersonalId = Number(req.body.PersonalId)
-    let errors : string[] = []
+    // let errors : string[] = []
     try {
       await queryRunner.startTransaction()
-      const usuarioId = await this.getUsuarioId(res, queryRunner)
-      const ip = this.getRemoteAddress(req)
+      // const usuarioId = await this.getUsuarioId(res, queryRunner)
+      // const ip = this.getRemoteAddress(req)
       
       if (PersonalId) { //PersonalOtrosDescuentos
         await this.cancellationPersonalOtroDescuentoQuery(queryRunner, id, PersonalId)
@@ -1193,11 +1064,11 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const id = Number(req.body.id)
     const ObjetivoId = Number(req.body.ObjetivoId)
-    let errors : string[] = []
+    // let errors : string[] = []
     try {
       await queryRunner.startTransaction()
-      const usuarioId = await this.getUsuarioId(res, queryRunner)
-      const ip = this.getRemoteAddress(req)
+      // const usuarioId = await this.getUsuarioId(res, queryRunner)
+      // const ip = this.getRemoteAddress(req)
       
       if (ObjetivoId) { //ObjetivoDescuentos
         await this.cancellationObjetivoDescuentoQuery(queryRunner, id, ObjetivoId)
