@@ -17,10 +17,15 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'dto', 'descuentos', 'objetivos']">Objetivos</a>
         </li>
+        <!-- <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'dto', 'descuentos', 'carga']">Carga</a>
+        </li> -->
       </ul>
       
       <nz-button-group>
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{mes()}}/{{anio()}}" (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{mes()}}/{{anio()}}"
+        (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>
       </nz-button-group>
@@ -31,18 +36,23 @@
       <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/personal">Personal</a>
         <ng-template nz-tab>
-          <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" ></app-table-descuentos-personal>
+          <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" [reload]="reload()"></app-table-descuentos-personal>
         </ng-template>
       </nz-tab>
   
       <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/objetivos">Objetivos</a>
         <ng-template nz-tab>
-          <app-table-descuentos-objetivos [anio]="anio()" [mes]="mes()" ></app-table-descuentos-objetivos>
+          <app-table-descuentos-objetivos [anio]="anio()" [mes]="mes()" [reload]="reload()"></app-table-descuentos-objetivos>
         </ng-template>
       </nz-tab>
+
+      <!-- <nz-tab>
+        <a nz-tab-link routerLink="/dto/descuentos/carga">Carga</a>
+        <ng-template nz-tab>
+          
+        </ng-template>
+      </nz-tab> -->
   
     </nz-tabset>
 </nz-card>
-<!-- <app-descuentos-alta-drawer #altaDrawer [(visibleAltaDesc)]="visibleAltaDesc" ></app-descuentos-alta-drawer> -->
-<!-- <app-descuentos-alta-drawer #editDrawer [(visibleAltaDesc)]="visibleEditDesc" ></app-descuentos-alta-drawer> -->
