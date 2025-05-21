@@ -50,7 +50,7 @@ export class DocumentoController extends BaseController {
     {
       id: "tipo", name: "Tipo", field: "tipo",
       type: "string",
-      fieldName: "tipo.detalle",
+      fieldName: "tipo.doctipo_id",
       searchComponent: "inpurForTipoDocumentoSearch",
       searchType: "string",
       hidden: false,
