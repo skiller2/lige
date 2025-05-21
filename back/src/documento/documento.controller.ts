@@ -195,7 +195,7 @@ export class DocumentoController extends BaseController {
       searchHidden: false,
       hidden: false,
     }
-    
+
   ];
 
   listaPersonalNoDescarga: any[] = [
@@ -353,7 +353,7 @@ export class DocumentoController extends BaseController {
     const objetivo_id: number = req.body.objetivo_id
     const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : null
     const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : null
-    const ind_descarga_bot:boolean = req.body.ind_descarga_bot
+    const ind_descarga_bot: boolean = req.body.ind_descarga_bot
     const archivos: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
@@ -487,8 +487,7 @@ export class DocumentoController extends BaseController {
     const objetivo_id: number = req.body.objetivo_id
     const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : req.body.fecha
     const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
-    const ind_descarga_bot:boolean = req.body.ind_descarga_bot
-    //const archivo: any[] = req.body.archivo
+    const ind_descarga_bot: boolean = req.body.ind_descarga_bot
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -502,14 +501,28 @@ export class DocumentoController extends BaseController {
         FROM lige.dbo.doc_descaga_log
         WHERE doc_id IN (@0)
         `, [doc_id])
+
       if (telefonos.length) {
         const doc = await queryRunner.query(`
-          SELECT doctipo_id, persona_id, objetivo_id, cliente_id
+          SELECT doctipo_id, persona_id, objetivo_id, cliente_id, ind_descarga_bot
           FROM lige.dbo.docgeneral
           WHERE doc_id IN (@0)
         `, [doc_id])
-        if (doc[0].doctipo_id != doctipo_id || doc[0].persona_id != persona_id || doc[0].objetivo_id != objetivo_id || doc[0].cliente_id != cliente_id) {
-          throw new ClientException('El Documento tiene movimientos de descarga. No se puede modificar Tipo de documento, Persona, Cliente y Objetivo')
+
+        if (doc[0].doctipo_id != doctipo_id
+          || doc[0].persona_id != persona_id
+          || doc[0].objetivo_id != objetivo_id
+          || doc[0].cliente_id != cliente_id
+          || doc[0].ind_descarga_bot != ind_descarga_bot
+        ) {
+          throw new ClientException('El Documento tiene registros de descarga. Solo se puede modificar la fecha desde, hasta y la denominacion del documento.')
+        }
+
+        // Valida si el archivo es update
+        if (Array.isArray(req.body.archivo)) {
+          for (const data of req.body.archivo) {
+            if (data && data.update) throw new ClientException('El Documento tiene registros de descarga. Solo se puede modificar la fecha desde, hasta y la denominacion del documento.')
+          }
         }
       }
 
@@ -521,7 +534,7 @@ export class DocumentoController extends BaseController {
 
       if (req.body.archivo) {
         for (const file of req.body.archivo) {
-        await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner)
+          await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner)
         }
       }
 

@@ -37,9 +37,9 @@
 </nz-card>
 
 @defer( when visibleAltaDesc()){
-  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleAltaDesc" ></app-descuentos-personal-alta-drawer>
+  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)"></app-descuentos-personal-alta-drawer>
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleEditDesc" [personalId]="personalId()" [descuentoId]="descuentoId()"></app-descuentos-personal-alta-drawer>
+  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleEditDesc" [personalId]="personalId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)"></app-descuentos-personal-alta-drawer>
 }
