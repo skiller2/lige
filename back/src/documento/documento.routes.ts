@@ -10,70 +10,70 @@ documentoRouter.get("/get/:id", [authMiddleware.verifyToken, authMiddleware.hasG
 
 documentoRouter.get("/cols", [
   authMiddleware.verifyToken,
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res) => {
   documentoController.getGridCols(req, res);
 });
 
 documentoRouter.get("/cols-download", [
   authMiddleware.verifyToken,
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res) => {
   documentoController.getGridDownloadCols(req, res);
 });
 
 documentoRouter.get("/cols-no-download", [
   authMiddleware.verifyToken
-  , authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  , authMiddleware.hasGroup(['gSistemas'])
 ], (req, res) => {
   documentoController.getGridNoDownloadCols(req, res);
 });
 
 documentoRouter.get("/tipos/options", [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.getTipos(req, res, next);
 });
 
 documentoRouter.post('/list', [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.getdocgenralList(req, res, next)
 })
 
 documentoRouter.post('/list-download', [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.getPersonalDescarga(req, res, next)
 })
 
 documentoRouter.post('/list-no-download', [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.getPersonalNoDescarga(req, res, next)
 })
 
 documentoRouter.post('/add', [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['Liquidaciones', 'gSistemas','gLegales'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.addDocumento(req, res, next)
 })
 
 documentoRouter.post('/update', [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['Liquidaciones', 'gSistemas','gLegales'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.updateDocumento(req, res, next)
 })
 
 documentoRouter.delete('/delete', [
   authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['Liquidaciones', 'gSistemas','gLegales'])
+  authMiddleware.hasGroup(['gSistemas'])
 ], (req, res, next) => {
   documentoController.deleteArchivo(req, res, next)
 })
