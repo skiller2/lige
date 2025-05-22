@@ -365,11 +365,11 @@ export class DocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
+      archivos[0].ind_descarga_bot = ind_descarga_bot
       const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner)
       const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
 
 
-      await queryRunner.query(`UPDATE lige.dbo.docgeneral SET ind_descarga_bot = @1 WHERE doc_id IN (@0)`, [doc_id, ind_descarga_bot])
 
       await queryRunner.commitTransaction()
       this.jsonRes({ doc_id }, res, 'Carga Exitosa');
@@ -491,6 +491,7 @@ export class DocumentoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
+
     const now = new Date()
 
     try {
@@ -542,13 +543,13 @@ export class DocumentoController extends BaseController {
 
       if (req.body.archivo) {
         for (const file of req.body.archivo) {
+          file.ind_descarga_bot = ind_descarga_bot
           await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner)
         }
       }
 
       //await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ? archivo![0] : null, usuario, ip, queryRunner)
 
-      await queryRunner.query(`UPDATE lige.dbo.docgeneral SET ind_descarga_bot = @1 WHERE doc_id IN (@0)`, [doc_id, ind_descarga_bot])
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
