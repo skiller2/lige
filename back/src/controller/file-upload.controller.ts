@@ -371,6 +371,7 @@ export class FileUploadController extends BaseController {
 
         } else {
 
+        // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file.tempfilename && file.tempfilename != '') {
 
             const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
