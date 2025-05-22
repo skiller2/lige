@@ -887,13 +887,14 @@ export class CargaLicenciaController extends BaseController {
         for (const file of req.body.files) {
           let doc_id = 0
 
-          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file , usuario, ip, queryRunner)
-          
-          if (result && typeof result === 'object') 
+          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file, usuario, ip, queryRunner)
+
+          if (result && typeof result === 'object')
             ({ doc_id } = result)
-          
-          if(file.tempfilename){
-          await queryRunner.query(`INSERT INTO DocumentoRelaciones (
+
+
+          if (file.tempfilename) {
+            await queryRunner.query(`INSERT INTO DocumentoRelaciones (
             DocumentoId,
             PersonalId,
             ObjetivoId,
@@ -908,16 +909,16 @@ export class CargaLicenciaController extends BaseController {
           ) VALUES (
             @0, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7
           )`, [
-            doc_id,
-            PersonalId,
-            null,
-            null,
-            PersonalLicenciaId,
-            new Date(),
-            usuario,
-            ip
-          ])
-          }else {
+              doc_id,
+              PersonalId,
+              null,
+              null,
+              PersonalLicenciaUltNro,
+              new Date(),
+              usuario,
+              ip
+            ])
+          } else {
             await queryRunner.query(`UPDATE DocumentoRelaciones SET AudFechaMod = @0, AudUsuarioMod = @1, AudIpMod = @2 WHERE DocumentoId = @3`, [
               new Date(),
               usuario,
@@ -1012,7 +1013,7 @@ export class CargaLicenciaController extends BaseController {
         , [PersonalId, PersonalLicenciaId])
 
       if (DocumentoId && Number(DocumentoId) > 0)
-      await FileUploadController.deleteFile( Number(DocumentoId), 'docgeneral', queryRunner)
+        await FileUploadController.deleteFile(Number(DocumentoId), 'docgeneral', queryRunner)
 
       if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10)
         throw new ClientException(`La situación revista anterior no puede ser "Licencia", avise al administrador`)
