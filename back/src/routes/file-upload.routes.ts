@@ -79,6 +79,7 @@ FileUploadRouter.post("/downloadFile/:id/:tableForSearch/:filename", authMiddlew
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
+// si se agrega el authMiddleware.verifyToken no se previsualiza el archivo
 FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });

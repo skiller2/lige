@@ -72,8 +72,10 @@ export class FileUploadController extends BaseController {
     let deleteFile = false
 
     try {
-      if (documentId == '0')
-        throw new ClientException(`Archivo no localizado`)
+      if (documentId == '0') throw new ClientException(`Archivo no localizado`)
+
+      // console.log('req..........................', req)
+
       switch (tableForSearch) {
         case 'DocumentoImagenFoto':
         case 'DocumentoImagenDocumento':
@@ -99,6 +101,10 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
+          
+          // TODO: aca ago validacion del hasGrouo
+
+
           document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
