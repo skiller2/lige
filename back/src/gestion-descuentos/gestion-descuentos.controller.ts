@@ -60,7 +60,7 @@ const columnsPersonalDescuentos:any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -68,11 +68,11 @@ const columnsPersonalDescuentos:any[] = [
     id:'DescuentoDescripcion', name:'Tipo Movimiento', field:'DescuentoDescripcion',
     fieldName: 'tipdes.DescuentoDescripcion',
     // searchComponent: "",
-    type:'number',
-    searchType: 'number',
+    type:'string',
+    searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -105,7 +105,7 @@ const columnsPersonalDescuentos:any[] = [
     searchType: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -160,7 +160,7 @@ const columnsPersonalDescuentos:any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -217,7 +217,6 @@ const columnsObjetivosDescuentos:any[] = [
   {
     id: 'personal', name:'Apellido Nombre', field: 'personal.fullName',
     fieldName: "per.PersonalId",
-    sortable: true,
     type: 'string',
     formatter: 'complexObject',
     params: {
@@ -225,6 +224,9 @@ const columnsObjetivosDescuentos:any[] = [
     },
     searchComponent: "inpurForPersonalSearch",
     searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
     // maxWidth: 170,
     // minWidth: 100,
   },
@@ -252,13 +254,13 @@ const columnsObjetivosDescuentos:any[] = [
   },
   {
     id:'tipomov', name:'Tipo Movimiento', field:'tipomov',
-    fieldName: '',
-    // searchComponent: '',
-    type:'number',
-    searchType: "number",
+    fieldName: 'det.DescuentoId',
+    searchComponent: 'inpurForDescuentoForObjetivoSearch',
+    type:'string',
+    searchType: 'number',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -302,7 +304,7 @@ const columnsObjetivosDescuentos:any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -313,29 +315,29 @@ const columnsObjetivosDescuentos:any[] = [
     searchType: 'float',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
-    fieldName: '',
+    fieldName: 'cuo.ObjetivoDescuentoCuotaCuota',
     type:'number',
     searchType: 'number',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
-    fieldName: '',
+    fieldName: 'des.ObjetivoDescuentoCantidadCuotas',
     type:'number',
     searchType: 'number',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -367,6 +369,10 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosPersonalQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
+    // let condition = '(1=1)'
+    // if (anio && mes) {
+    //   condition = `perdes.anio IN (@1) AND perdes.mes IN (@2)`
+    // }
     return await queryRunner.query(`
         SELECT  perdes.id
         , cuit.PersonalCUITCUILCUIT
@@ -425,6 +431,10 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosObjetivosQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
+    let condition = '1=1'
+    if (anio && mes) {
+      condition = `cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2`
+    }
     return await queryRunner.query(`
       SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
       , gap.GrupoActividadId
@@ -457,7 +467,7 @@ export class GestionDescuentosController extends BaseController {
         GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
-      WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
+      WHERE (${condition})
       AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       AND (${filterSql})
       ${orderBy}
@@ -1161,6 +1171,21 @@ export class GestionDescuentosController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release()
+    }
+  }
+
+  async getDescuentoForObjetivo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT DescuentoId value, DescuentoDescripcion label
+        FROM Descuento
+        WHERE DescuentoUsadoEnObjetivo = 1
+      `)
+      
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
     }
   }
 

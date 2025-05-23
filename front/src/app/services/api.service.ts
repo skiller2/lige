@@ -1379,7 +1379,10 @@ export class ApiService {
   }
 
   getDescuentosPersonal(options: any, anio:number, mes:number){
-    if (!anio && !mes) return of([]);
+    if (!anio && !mes && !options.filtros.length){
+      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/personal`, {options, anio, mes})
       .pipe(
         map(res => res.data),
