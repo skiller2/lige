@@ -74,8 +74,6 @@ export class FileUploadController extends BaseController {
     try {
       if (documentId == '0') throw new ClientException(`Archivo no localizado`)
 
-      // console.log('req..........................', req)
-
       switch (tableForSearch) {
         case 'DocumentoImagenFoto':
         case 'DocumentoImagenDocumento':
@@ -101,11 +99,53 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          
-          // TODO: aca ago validacion del hasGrouo
+          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.path, docgen.nombre_archivo AS name , doctip.json_permisos_act_dir 
+                FROM lige.dbo.docgeneral docgen
+                LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
+                WHERE doc_id = @0`, [documentId]);
+
+          if (document[0]["json_permisos_act_dir"]) {
+            const json = JSON.parse(document[0]["json_permisos_act_dir"]);
+
+            // Corregir: Usar "FullAccess" en lugar de "AccessAll"
+            const PermisoFullAccess = json.FullAccess;
+            const PermisoReadOnly = json.ReadOnly;
+
+            // Verificar si alguno de los arrays tiene elementos
+            if (
+              (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
+              (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
+            ) {
+              let tienePermiso = false;
+
+              // Verificar grupos de FullAccess
+              for (const grupoPermitidoFullAccess of PermisoFullAccess) {
+                // console.log('aca estoy-------------------', await this.hasGroup(req, grupoPermitidoFullAccess))
+                if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
+                  tienePermiso = true;
+                  break;
+                }
+              }
+
+              // Si no tiene permiso FullAccess, verificar ReadOnly
+              if (!tienePermiso) {
+                for (const grupoPermitidoReadOnly of PermisoReadOnly) {
+                  if (await this.hasGroup(req, grupoPermitidoReadOnly)) {
+                    tienePermiso = true;
+                    break;
+                  }
+                }
+              }
+
+              if (!tienePermiso) {
+                throw new ClientException(`No tiene permisos para descargar este archivo. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
+              }
+            }
+          }
+
+          // await this.verificarPermisoDocId(req, documentId, dataSource)
 
 
-          document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
           break;
@@ -201,7 +241,7 @@ export class FileUploadController extends BaseController {
               const bufferStr = Buffer.from(buffer).toString('base64')
               ArchivosAnteriores[0].image = "data:image/jpeg;base64, " + bufferStr;
             }
-*/
+  */
           break;
 
         case 'docgeneral':
@@ -342,6 +382,7 @@ export class FileUploadController extends BaseController {
         break;
       default:
         if (!doc_id) {
+          // INSERT DOCUMENTO
 
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
 
@@ -376,8 +417,9 @@ export class FileUploadController extends BaseController {
             ])
 
         } else {
+          // UPDATE DOCUMENTO
 
-        // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
+          // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file.tempfilename && file.tempfilename != '') {
 
             const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
@@ -774,6 +816,55 @@ export class FileUploadController extends BaseController {
     return detalle_documento
 
   }
+
+  async verificarPermisoDocId(req: any, doc_id: number, queryRunner: any) {
+
+    const result = await queryRunner.query(`
+    SELECT doctip.json_permisos_act_dir
+    FROM lige.dbo.docgeneral docgen
+    LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
+    WHERE docgen.doc_id = @0
+  `, [doc_id]);
+
+    if (!result || result.length === 0) {
+      throw new ClientException(`No se encontró el documento con ID ${doc_id}.`);
+    }
+
+    const jsonPermisos = result[0]?.json_permisos_act_dir;
+
+    if (!jsonPermisos) return;
+
+    let gruposPermitidos: string[] = [];
+
+    try {
+      const json = JSON.parse(jsonPermisos);
+      console.log('json', json)
+      gruposPermitidos = json.ValGruposActiveDirectory;
+    } catch (error) {
+      throw new ClientException('El formato de permisos no es válido.');
+    }
+
+    if (Array.isArray(gruposPermitidos) && gruposPermitidos.length > 0) {
+      let tienePermiso = false;
+
+      for (const grupoPermitido of gruposPermitidos) {
+
+        if (await this.hasGroup(req, grupoPermitido)) {
+          tienePermiso = true;
+          break;
+        }
+      }
+
+
+      if (!tienePermiso) {
+        console.log('entre en: !tienePermiso', gruposPermitidos)
+        throw new ClientException(
+          `No tiene permisos para manipular este documento. Debe tener alguno de los grupos: ${gruposPermitidos.join(', ')}`
+        );
+      }
+    }
+  }
+
 
 }
 
