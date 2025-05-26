@@ -40,6 +40,7 @@ export class EditorCategoriaComponent {
 
   selectedPeriod = model({ year: 0, month: 0 });
   sucursalid = model(0)
+  ObjetivoId = model(0)
   PersonalId = model(0)
 
   onChange(key: any) {
@@ -71,7 +72,7 @@ export class EditorCategoriaComponent {
 
   async internalRefresh() {
     if (this.PersonalId() && this.optionsArray.length == 0) {
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(this.PersonalId(), this.selectedPeriod().year, this.selectedPeriod().month, this.sucursalid()))
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(this.PersonalId(), this.selectedPeriod().year, this.selectedPeriod().month, this.sucursalid(), this.ObjetivoId()));
       this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
     }
     let selopt = this.optionsArray.filter((f: any) => f.id == this.selectedId)

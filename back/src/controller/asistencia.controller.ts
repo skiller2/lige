@@ -1446,12 +1446,17 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const SucursalId = Number(req.params.SucursalId);
+      const ObjetivoId = Number(req.params.ObjetivoId);
       const queryRunner = dataSource.createQueryRunner();
 
       //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
       //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
 
-      const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
+      let categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
+      if (ObjetivoId && ![1102,1646].includes(ObjetivoId)) {
+        categorias = categorias.filter((i: any) => i.TipoAsociadoId === 1)
+      }
+console.log("categorias",categorias)
       this.jsonRes({ categorias: categorias }, res);
     } catch (error) {
       return next(error)

@@ -285,6 +285,7 @@ export class DetalleAsistenciaComponent {
           Number(PersonalId),
           this.selectedPeriod().year,
           this.selectedPeriod().month,
+          0,
           0
         )
         .pipe

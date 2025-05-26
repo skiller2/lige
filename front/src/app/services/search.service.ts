@@ -747,12 +747,13 @@ export class SearchService {
     personalId: number,
     anio: number,
     mes: number,
-    SucursalId: number
+    SucursalId: number,
+    ObjetivoId: number
   ): Observable<any> {
     if (!personalId) return of([]);
 
     return this.http
-      .get(`api/asistencia/categoriasxper/${anio}/${mes}/${personalId}/${SucursalId}`)
+      .get(`api/asistencia/categoriasxper/${anio}/${mes}/${personalId}/${SucursalId}/${ObjetivoId}`)
       .pipe(
         map((res: ResponseJSON<any>) =>
           res && res.data ? res.data : []

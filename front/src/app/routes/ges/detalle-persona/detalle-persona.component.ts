@@ -51,7 +51,7 @@ export class DetallePersonaComponent {
   load(): void {
     this.personalDetalle$ = this.searchService.getPersonalById(this.PersonalId)
     this.personalDetalleSitRevista$ = this.apiService.getPersonaSitRevista(this.PersonalId, this.anio, this.mes)
-    this.personalDetalleCategorias$ = this.searchService.getCategoriasPersona(this.PersonalId, this.anio, this.mes, this.SucursalId)
+    this.personalDetalleCategorias$ = this.searchService.getCategoriasPersona(this.PersonalId, this.anio, this.mes, this.SucursalId,0)
     this.personalDetalleLicencias$ = this.searchService.getLicenciasPersona(this.PersonalId, this.anio, this.mes)
     this.personalDetalleResponsables$ = this.apiService.getPersonaResponsables(this.PersonalId, this.anio, this.mes)
     this.objetivos$ = this.searchService.getAsistenciaPersona(this.PersonalId, this.anio, this.mes)
