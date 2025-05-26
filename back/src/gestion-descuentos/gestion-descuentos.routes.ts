@@ -59,3 +59,7 @@ gestionDescuentosRouter.post("/persona", [authMiddleware.verifyToken,authMiddlew
 gestionDescuentosRouter.post("/objetivo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getDescuentoObjetivo(req, res, next);
 });
+
+gestionDescuentosRouter.get("/objetivo-descuento/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getDescuentoForObjetivo(req, res, next);
+});

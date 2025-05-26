@@ -79,6 +79,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsTipoDocumento = this.searchService.getDocumentoTipoOptions();
   $optionsNivelEstudio = this.searchService.getEstudioSearch();
   $optionsModalidadCurso = this.searchService.getModalidadCursoSearch();
+  $optionsDescObj = this.searchService.getDescuentoForObjetivo();
 
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {

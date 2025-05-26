@@ -79,6 +79,7 @@ FileUploadRouter.post("/downloadFile/:id/:tableForSearch/:filename", authMiddlew
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
+// si se agrega el authMiddleware.verifyToken no se previsualiza el archivo
 FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
@@ -137,7 +138,7 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
   });
 });
 
-FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], async (req, res, next) => {
+FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
   await fileUploadController.deleteImage(req, res, next);
 });
 
