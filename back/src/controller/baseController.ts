@@ -21,8 +21,8 @@ export class ClientWarning extends Error {
   messageArr: string[];
 
   constructor(
-    message: string | string[], 
-    public extended: any = '', 
+    message: string | string[],
+    public extended: any = '',
     public code: number = 0
   ) {
     if (message instanceof Array) {
@@ -32,9 +32,9 @@ export class ClientWarning extends Error {
       super(message);
       this.messageArr = [message];
     }
-    
+
     this.name = "ClientWarning";
-    
+
     if (extended) {
       this.stack += "\nExtra: " + extended;
     }
@@ -58,10 +58,10 @@ export class BaseController {
   }
 
   getRemoteAddress(req: any) {
-    if (req?.headers) 
+    if (req?.headers)
       return req.headers['x-origin-ip'] ??
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
-      req.socket.remoteAddress
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
+        req.socket.remoteAddress
     else
       return '127.0.0.1'
   }
@@ -75,7 +75,7 @@ export class BaseController {
   dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
   dateOutputFormat(date: Date, defaultText = 'sin fecha') {
-    if (!date || date.getFullYear()==9999) return defaultText
+    if (!date || date.getFullYear() == 9999) return defaultText
     return this.dateFormatter.format(date)
   }
 
@@ -91,6 +91,18 @@ export class BaseController {
     }
     return (inGroup) ? true : false
   }
+
+  static async hasGroup(req: any, group: string) {
+    let inGroup = false
+    if (req?.groups) {
+      for (const rowgroup of req?.groups) {
+        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+          inGroup = true
+      }
+    }
+    return (inGroup) ? true : false
+  }
+
 
 
   async getUsuarioId(res: any, queryRunner: QueryRunner) {
@@ -206,7 +218,7 @@ export class BaseController {
   }
 
   getTimeString(stm: Date) {
-    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}`:null
+    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}` : null
   }
 
   async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
@@ -297,7 +309,7 @@ export class BaseController {
     let resultAuth = await queryRunner.query(
       `SELECT aut.* FROM lige.dbo.percargadirecta aut 
         WHERE aut.persona_id = @0 AND aut.objetivo_id = @1`,
-      [PersonalId,ObjetivoId]
+      [PersonalId, ObjetivoId]
     );
 
     if (resultAuth.length > 0)

@@ -544,7 +544,7 @@ export class DocumentoController extends BaseController {
       if (req.body.archivo) {
         for (const file of req.body.archivo) {
           file.ind_descarga_bot = ind_descarga_bot
-          await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner)
+          await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner,req)
         }
       }
 
