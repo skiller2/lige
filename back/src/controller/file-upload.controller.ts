@@ -14,6 +14,7 @@ import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 import { fileUploadController } from "./controller.module";
+import { debug } from "console";
 
 
 const stat = promisify(fs.stat);
@@ -71,6 +72,8 @@ export class FileUploadController extends BaseController {
     let document = ''
     let deleteFile = false
 
+    console.log('res--------------------', req.groups)
+    
     try {
       if (documentId == '0') throw new ClientException(`Archivo no localizado`)
 
@@ -107,7 +110,6 @@ export class FileUploadController extends BaseController {
           if (document[0]["json_permisos_act_dir"]) {
             const json = JSON.parse(document[0]["json_permisos_act_dir"]);
 
-            // Corregir: Usar "FullAccess" en lugar de "AccessAll"
             const PermisoFullAccess = json.FullAccess;
             const PermisoReadOnly = json.ReadOnly;
 

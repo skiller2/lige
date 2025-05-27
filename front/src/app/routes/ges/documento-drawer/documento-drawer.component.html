@@ -70,11 +70,12 @@
               <app-file-upload formControlName="archivo" [cantMaxFiles]="1"
               [idForSearh]="doc_id()" [textForSearch]="doctipo_id()"
               [tableForSearch]="'docgeneral'" [columnForSearch]="'doc_id'"
-              [previewFile]="false" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
+              [previewFile]="true" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
             </nz-form-control>
           </nz-form-item>
         </form>
       </div>
+<!--       
       @if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
           <img nz-image class="image-content" [nzSrc]="prevFiles()[0]?.url" alt="" width="350px"/>
@@ -86,7 +87,7 @@
             [filenameForDownload]="prevFiles()[0]?.nombre" [height]="'500px'">
           </ngx-extended-pdf-viewer>
         </div>
-      }
+      } -->
 
 
     </div>
