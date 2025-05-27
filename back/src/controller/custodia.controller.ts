@@ -714,7 +714,7 @@ export class CustodiaController extends BaseController {
         const anio = fechaDesde.getFullYear()
         const mes = fechaDesde.getMonth() + 1
         const asistenciaController = new AsistenciaController()
-        const categorias = await asistenciaController.getCategoriasPorPersonaQuery(anio, mes, PersonalId, 1, 0,queryRunner);
+        const categorias = await asistenciaController.getCategoriasPorPersonaQuery(anio, mes, PersonalId, 1, queryRunner);
 
         const categoria = categorias.filter((cat: any) => cat.TipoAsociadoId == 2) //CUSTODIA
         if (categoria.length == 0)
