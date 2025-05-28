@@ -77,7 +77,7 @@
       </div>
       @if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
-          <img nz-image class="image-content" [nzSrc]="prevFiles()[0]?.url" alt="" width="350px"/>
+          <img nz-image class="image-content" [src]="prevFiles()[0]?.url | urlauth | async" alt="" width="350px"/>
         </div>
       } @else if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('pdf') ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
