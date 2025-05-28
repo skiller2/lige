@@ -75,15 +75,11 @@ const uploadPdf = multer({
 
 export const FileUploadRouter = Router();
 
-FileUploadRouter.post("/downloadFile/:id/:tableForSearch/:filename", authMiddleware.verifyToken, async (req, res, next) => {
-  await fileUploadController.getByDownloadFile(req, res, next);
-});
-
-// si se agrega el authMiddleware.verifyToken no se previsualiza el archivo
 FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", authMiddleware.verifyToken, async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
+//Se agrego para solucionar un tema puntual en la descarga de imágenes de los procesos de credencuales, pero no deberían existir
 FileUploadRouter.get("/downloadImg/:id/:tableForSearch/:filename",  async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
