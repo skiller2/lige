@@ -20,3 +20,4 @@ export * from './json-schema/index';
 export * from './st-widget/index';
 export * from './cell-widget/index';
 export * from './utils/cols-pipe';
+export * from './utils/url-auth-pipe';

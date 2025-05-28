@@ -14,6 +14,7 @@ import { ClienteSearchComponent } from "../../../shared/cliente-search/cliente-s
 import { ObjetivoSearchComponent } from "../../../shared/objetivo-search/objetivo-search.component";
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
 
 @Component({
   selector: 'app-documento-drawer',
@@ -28,16 +29,18 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 export class DocumentoDrawerComponent {
   tituloDrawer = signal<string>('Carga de Documento')
   visible = model<boolean>(false)
-  forceReloadId = signal<number>(Date.now());
+  randNum = signal<number>(0);
 
   onAddorUpdate = output()
   isLoading = signal(false);
+  token = signal<string>('');
   periodo = signal<any>({ anio: 0, mes: 0 })
   placement: NzDrawerPlacement = 'left';
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
   fileUploadComponent = viewChild.required(FileUploadComponent);
-
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  
 
   drawerWidth = computed(() => {
     if (this.prevFiles() && this.prevFiles().length)
@@ -106,6 +109,7 @@ Date: any;
   }
  
   async ngOnInit() {
+    this.token.set(this.tokenService.get()?.token ?? '');
     let now = new Date()
     this.periodo.set({ anio: now.getFullYear(), mes: now.getMonth() + 1 })
 
@@ -147,8 +151,7 @@ Date: any;
   handlePrevFiles(event: any[]) {
     const copia = event.map(item => ({ ...item }))
     this.prevFiles.set([...copia])
-    this.forceReloadId.set(Date.now())
-
+    this.randNum.set(Math.random())
   }
 
   // async load() {

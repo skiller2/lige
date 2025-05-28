@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe, I18nPipe } from '@delon/theme';
 import { AppFilterPipe } from './utils/filter-type';
 import { ColsFilterPipe } from './utils/cols-pipe';
-
+import { UrlAuthPipe } from './utils/url-auth-pipe';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -43,6 +43,7 @@ export const SHARED_IMPORTS = [
   I18nPipe,
   DatePipe,
   CUITPipe,
+  UrlAuthPipe,
   AGEPipe,
   AppFilterPipe,
   AppDownFileDirective,

@@ -25,11 +25,12 @@
         @if ((filesAdd.mimetype.toLowerCase() == 'jpeg' || filesAdd.mimetype.toLowerCase() == 'jpg' || filesAdd.mimetype.toLowerCase() == 'png' || forceImg()) &&
         previewFile()) {
         <img nz-image alt=""
-          nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
+          [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original') | urlauth | async"
+
           class="image-content" />
         }
         @if (filesAdd.mimetype.toLowerCase() == 'pdf' && !forceImg() && previewFile() && !filesAdd.update) {
-        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/thumb"
+        <img nz-image alt=""  [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb' | urlauth | async"
           class="image-content" />
         <a nz-icon nzType="search" nzTheme="outline"
           (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.tempfilename)"></a>
@@ -39,7 +40,7 @@
 
         @if(!filesAdd.update){
         <a nz-icon nzType="download" nzHref="filesAdd.path" target="_blank" nzTheme="outline" class="download-color"
-          app-down-file [httpMethod]="'POST'"
+          app-down-file [httpMethod]="'GET'"
           httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original">  </a>
         }
       </div>
