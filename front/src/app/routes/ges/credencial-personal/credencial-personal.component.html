@@ -47,12 +47,14 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Foto</nz-form-label>
       <nz-form-control nzHasFeedback [nzSpan]="12">
+        @if (data.PersonalFotoId>0) {
         <app-image-content
           personalImageUrl="api/file-upload/downloadFile/{{data.PersonalFotoId}}/DocumentoImagenFoto/image"
           nombreDescarga="{{ data.NRO_EMPRESA }}-{{ data.DNI }}"
           [imageCroppedDpi]="72"
           [imageCroppedX]="91"
           [imageCroppedY]="91"></app-image-content>
+        }
       </nz-form-control>
     </nz-form-item>
 

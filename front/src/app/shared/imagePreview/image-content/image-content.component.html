@@ -3,7 +3,8 @@
 <div>
     <image-cropper
         [imageChangedEvent]="imageChangedEvent"
-        [imageURL]="personalImageUrl()"
+        
+        [imageURL]="(personalImageUrl() | urlauth | async)?.toString()"
         [aspectRatio]="1"
         [resizeToWidth]="imageCroppedX"
         [resizeToHeight]="imageCroppedY"
