@@ -3,7 +3,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, output, effect } from '@angular/core';
 import { FormBuilder, FormArray } from '@angular/forms';
 import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, noop } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -40,6 +40,8 @@ export class DocumentoDrawerComponent {
   label = signal<string>('. . .');
   fileUploadComponent = viewChild.required(FileUploadComponent);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  private searchService=inject(SearchService)
+  private apiService=inject(ApiService)
   
 
   drawerWidth = computed(() => {
@@ -55,8 +57,6 @@ export class DocumentoDrawerComponent {
 Date: any;
 
   constructor(
-    private searchService: SearchService,
-    private apiService: ApiService,
   ) {
     effect(async() => { 
       const visible = this.visible()
@@ -149,6 +149,7 @@ Date: any;
   }
 
   handlePrevFiles(event: any[]) {
+    console.log('handle',event)
     const copia = event.map(item => ({ ...item }))
     this.prevFiles.set([...copia])
     this.randNum.set(Math.random())

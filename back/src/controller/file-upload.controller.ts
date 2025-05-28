@@ -72,7 +72,7 @@ export class FileUploadController extends BaseController {
     let document = ''
     let deleteFile = false
 
-    console.log('res--------------------', req.groups)
+//    console.log('res--------------------', req.groups)
 
     try {
       if (documentId == '0') throw new ClientException(`Archivo no localizado`)

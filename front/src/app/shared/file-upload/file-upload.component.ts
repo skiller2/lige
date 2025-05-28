@@ -14,6 +14,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
 import { FileSyncOutline } from '@ant-design/icons-angular/icons';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
 interface DocTipo {
   doctipo_id: string;
   detalle: string;
@@ -57,6 +58,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   files = model<any[]>([])
   prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
+
   ArchivoIdForDelete = 0
   
   idForSearh = input(0) 
@@ -128,19 +131,12 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
-
     this.modalViewerVisiable.set(false)
-
-    const res = await this.LoadArchivoPreview(documentId, tableForSearch)
-    this.src.set(res)
+    this.src.set(await fetch(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
     this.FileName.set(filename)
     this.modalViewerVisiable.set(true)
   }
 
-  async LoadArchivoPreview(documentId: string, tableForSearch: string) {
-    const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, {}, { responseType: 'blob' }))
-    return res
-  }
 
   async uploadChange(event: any, file:any) {
     switch (event.type) {
@@ -174,19 +170,20 @@ export class FileUploadComponent implements ControlValueAccessor {
           }));
 
         }else{
-          let src = await this.LoadArchivoPreview(`${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}`, 'temp')
-          this.blobUrl = URL.createObjectURL(src)
+
+//          const src = await fetch(`api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob())
+//          this.blobUrl = URL.createObjectURL(src)
           Response.data[0].tableForSearch = this.tableForSearch()
           Response.data[0].doctipo_id = this.tipoSelected()
-          Response.data[0].fileUrl = this.blobUrl
+//          Response.data[0].fileUrl = this.blobUrl
+//          Response.data[0].fileUrl = `api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`
           Response.data[0].persona_id = 0
           Response.data[0].den_documento = ""
           Response.data[0].objetivo_id = 0
           Response.data[0].cliente_id = 0
           Response.data[0].fec_doc_ven = null
-          Response.data[0].path = ""
           Response.data[0].nombre_archivo = ""
-          Response.data[0].TipoArchivo = "pdf"
+
           this.files.set([...this.files(), Response.data[0]])
 
         }
@@ -229,11 +226,13 @@ export class FileUploadComponent implements ControlValueAccessor {
 }
 
   ngOnDestroy() {
+    /*
     this.files().forEach(file => {
       if (file.fileUrl) {
         URL.revokeObjectURL(file.fileUrl)
       }
     })
+      */
   }
 
   private propagateChange: (_: any) => void = noop
