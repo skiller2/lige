@@ -1533,6 +1533,12 @@ export class ApiService {
     );
   }
 
+  addPersonalActa(personalId:number, acta:any){
+    return this.http.post<ResponseJSON<any>>(`/api/personal/acta/add/${personalId}`, acta).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

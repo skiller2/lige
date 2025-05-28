@@ -39,7 +39,8 @@ export class PersonalActaDrawerComponent {
 
     fb = inject(FormBuilder)
     formActa = this.fb.group({
-        ActaId:0, TipoActa:0, PersonalActaDescripcion:''
+        ActaId:0, TipoActa:0, PersonalActaDescripcion:'',
+        ActaFechaActa:'', ActaFechaHasta:'',
         // SituacionId: 0, Motivo:'', Desde:new Date()
     })
 
@@ -86,16 +87,16 @@ export class PersonalActaDrawerComponent {
 
     async save() {
         this.isLoading.set(true)
-        // let values = this.formSitRevista.value
-        // try {
-        //     await firstValueFrom(this.apiService.setSitRevista(this.PersonalId(), values))
-        //     this.selectedPersonalIdChange$.next('')
-        //     this.formSitRevista.markAsUntouched()
-        //     this.formSitRevista.markAsPristine()
-        // } catch (e) {
+        let values = this.formActa.value
+        try {
+            await firstValueFrom(this.apiService.addPersonalActa(this.PersonalId(), values))
+            this.selectedPersonalIdChange$.next('')
+            this.formActa.markAsUntouched()
+            this.formActa.markAsPristine()
+        } catch (e) {
 
-        // }
-        // this.isLoading.set(false)
+        }
+        this.isLoading.set(false)
     }
 
 }

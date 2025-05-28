@@ -2835,21 +2835,21 @@ cuit.PersonalCUITCUILCUIT,
       await queryRunner.startTransaction();
 
       const PersonaActaList = await queryRunner.query(`
-         SELECT act.ActaId, act.ActaNroActa as NroActa
-              , act.ActaDescripcion as DescriocionActa
-              , act.ActaFechaActa as Desde
-              , act.ActaFechaHasta as Hasta
-              , peract.PersonalId
-              , tipperact.TipoPersonalActaDescripcion as TipoActa
-              , peract.PersonalActaDescripcion
+        SELECT act.ActaId, act.ActaNroActa AS NroActa
+        , CONCAT(TRIM(act.ActaDescripcion),' - ',TRIM(peract.PersonalActaDescripcion)) AS DescripcionActa
+        , act.ActaFechaActa AS Desde
+        , act.ActaFechaHasta AS Hasta
+        , peract.PersonalId
+        , tipperact.TipoPersonalActaDescripcion AS TipoActa
+        , peract.PersonalActaDescripcion
 
         FROM PersonalActa peract
         LEFT JOIN Acta act ON act.ActaId=peract.ActaId
         LEFT JOIN TipoPersonalActa tipperact ON tipperact.TipoPersonalActaCodigo=peract.TipoPersonalActaCodigo
         WHERE peract.PersonalId IN (@0)
         ORDER BY act.ActaFechaActa desc
-        `, [personalId])
-
+      `, [personalId])
+        
       await queryRunner.commitTransaction();
 
       this.jsonRes(PersonaActaList, res);
@@ -2888,6 +2888,22 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
+  async addPersonalActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId = Number(req.params.personalId);
+    const acta: number = req.body;
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
+      await queryRunner.query(``, [])
+
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({}, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
 
 }

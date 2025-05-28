@@ -6,16 +6,16 @@ import multer, { FileFilterCallback } from "multer";
 export const personalRouter = Router();
 const base = "";
 
-personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal', 'gComercial'])], (req, res, next) => {
+personalRouter.post(`${base}/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`, `gComercial`])], (req, res, next) => {
   personalController.getGridList(req, res, next)
 });
 
-personalRouter.post('/listfull', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/listfull`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`])], (req, res, next) => {
   personalController.getListFull(req, res, next)
 });
 
 
-personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/deleteArchivo`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`])], (req, res, next) => {
   personalController.deleteArchivo(req, res, next)
 });
 
@@ -27,7 +27,7 @@ personalRouter.post(
   }
 );
 
-personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`])], (req, res, next) => {
   personalController.addPersonal(req, res, next);
 });
 
@@ -35,71 +35,71 @@ personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken,], (req, r
   personalController.updatePersonal(req, res, next);
 });
 
-personalRouter.post('/setsitrevista/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/setsitrevista/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`])], (req, res, next) => {
   personalController.setSituacionRevista(req, res, next)
 });
 
-personalRouter.post('/categorias', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.post(`${base}/categorias`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getCategoriasByTipoAsociado(req, res, next)
 });
 
-personalRouter.post('/setcategoria/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/setcategoria/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`])], (req, res, next) => {
   personalController.setCategoria(req, res, next)
 });
 
-personalRouter.post('/setgrupactividad/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/setgrupactividad/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`])], (req, res, next) => {
   personalController.setGrupoActividadPersonal(req, res, next)
 });
 
-personalRouter.post('/setbanco/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+personalRouter.post(`${base}/setbanco/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
   personalController.setPersonalBanco(req, res, next)
 });
 
-personalRouter.post('/unsubscribe/cbu', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/unsubscribe/cbu`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`, `gPersonal`])], (req, res, next) => {
   personalController.unsubscribeCBUs(req, res, next)
 });
 
-personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`])], (req, res, next) => {
   personalController.getFormDataById(req, res, next);
 });
 
-personalRouter.get(`/nacionalidad/options`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/nacionalidad/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getNacionalidadList(req, res, next);
 });
 
-personalRouter.get('/sitrevista/options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/sitrevista/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getSituacionRevista(req, res, next)
 });
 
-personalRouter.get('/tipo-asociado/options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/tipo-asociado/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getTipoAsociado(req, res, next)
 });
 
-personalRouter.get('/sitrevista/no-options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/sitrevista/no-options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getSituacionRevistaInvalidos(req, res, next)
 });
 
-personalRouter.get('/tipo-parentesco/options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/tipo-parentesco/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getTipoParentesco(req, res, next)
 });
 
-personalRouter.get('/bancos/options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/bancos/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getBancos(req, res, next)
 });
 
-personalRouter.get('/estado-civil/options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/estado-civil/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getEstadoCivil(req, res, next)
 });
 
-personalRouter.get('/tipo-documento/options', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/tipo-documento/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getTipoDocumento(req, res, next)
 });
 
-personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/cols`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getGridColumns(req, res, next)
 });
 
@@ -109,11 +109,11 @@ personalRouter.get(`${base}/telefonos/:id`, authMiddleware.verifyToken, (req, re
 });
 
 personalRouter.get(`${base}/banco/:id`, [authMiddleware.verifyToken], (req, res, next) => {
-  //TODO: Revisar porque lleva permiso de authMiddleware.hasGroup(['Liquidaciones'])
+  //TODO: Revisar porque lleva permiso de authMiddleware.hasGroup([`Liquidaciones`])
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`])], (req, res, next) => {
   personalController.getResponsablesListByPersonal(req, res, next);
 });
 
@@ -125,7 +125,7 @@ personalRouter.get(`${base}/lugarhabilitacion/options`, authMiddleware.verifyTok
   personalController.getLugarHabilitacion(req, res, next);
 });
 
-personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Administrativo`, `gPersonal`])], (req, res, next) => {
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
@@ -159,7 +159,7 @@ personalRouter.get(
 
 personalRouter.get(
   `${base}/historial/banco/:personalId`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])],
   (req, res, next) => {
     personalController.getHistoryPersonalBanco(req, res, next);
   }
@@ -189,14 +189,18 @@ personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) =
   personalController.getById(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/historial/acta/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+personalRouter.get(`${base}/historial/acta/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   personalController.getPersonalActa(req, res, next);
 });
 
-personalRouter.get(`${base}/acta/nro-acta-options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+personalRouter.get(`${base}/acta/nro-acta-options`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   personalController.getNroActa(req, res, next);
 });
 
-personalRouter.get(`${base}/acta/tipo-acta-options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+personalRouter.get(`${base}/acta/tipo-acta-options`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   personalController.getTipoPersonalActa(req, res, next);
+});
+
+personalRouter.post(`${base}/acta/add/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
+  personalController.addPersonalActa(req, res, next);
 });
