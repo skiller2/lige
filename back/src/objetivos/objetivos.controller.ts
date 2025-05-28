@@ -998,31 +998,31 @@ export class ObjetivosController extends BaseController {
         fechaAyer.setHours(0, 0, 0, 0)
         const coordinadoresActuales = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
         for (const old of coordinadoresActuales) {
-            const nuevo = Coordinadores.find((r: any) => (r.PersonaId == old.PersonaId))
+            const nuevo = Coordinadores.find((r: any) => (r.PersonalId == old.PersonalId))
             if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos || nuevo?.ObjetivoPersonalJerarquicoSeDescuentaTelefono != old.ObjetivoPersonalJerarquicoSeDescuentaTelefono) {
                 await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @2
                 WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
-                    [old.PersonaId, ObjetivoId, fechaAyer, Fecha])
+                    [old.PersonalId, ObjetivoId, fechaAyer, Fecha])
                 await queryRunner.query(`DELETE ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1  AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') < ObjetivoPersonalJerarquicoDesde`,
-                    [old.PersonaId, ObjetivoId])
+                    [old.PersonalId, ObjetivoId])
 
-                if (nuevo?.PersonaId) {
+                if (nuevo?.PersonalId) {
                     await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
                         ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComision,
                         ObjetivoPersonalJerarquicoDescuentos, ObjetivoPersonalJerarquicoSeDescuentaTelefono) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                        [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
+                        [ObjetivoId, nuevo.PersonalId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
                 }
             }
         }
 
-        const newPesonalIds = coordinadoresActuales.map(item => item.PersonaId);
-        const nuevos = Coordinadores.filter(item => !newPesonalIds.includes(item.PersonaId));
+        const newPesonalIds = coordinadoresActuales.map(item => item.PersonalId);
+        const nuevos = Coordinadores.filter(item => !newPesonalIds.includes(item.PersonalId));
         for (const nuevo of nuevos) {
-            if (!nuevo.PersonaId) continue
+            if (!nuevo.PersonalId) continue
             await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
                 ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComision,
                 ObjetivoPersonalJerarquicoDescuentos, ObjetivoPersonalJerarquicoSeDescuentaTelefono) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
+                [ObjetivoId, nuevo.PersonalId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
         }
         return await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
     }
