@@ -84,6 +84,10 @@ FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", authMiddlewa
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
+FileUploadRouter.get("/downloadImg/:id/:tableForSearch/:filename",  async (req, res, next) => {
+  await fileUploadController.getByDownloadFile(req, res, next);
+});
+
 FileUploadRouter.get('/select_tipo_in_file', (req, res, next) => {
   fileUploadController.getSelectTipoinFile(req, res, next)
 });
