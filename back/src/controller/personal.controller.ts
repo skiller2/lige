@@ -785,9 +785,9 @@ cuit.PersonalCUITCUILCUIT,
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
-      const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
-      if (valActas instanceof ClientException)
-        throw valActas
+      // const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
+      // if (valActas instanceof ClientException)
+      //   throw valActas
 
       //throw new ClientException('test.')
       // let  resultFile = await FileUploadController.handleDOCUpload(
@@ -1542,9 +1542,9 @@ cuit.PersonalCUITCUILCUIT,
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
-      const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
-      if (valActas instanceof ClientException)
-        throw valActas
+      // const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
+      // if (valActas instanceof ClientException)
+      //   throw valActas
 
       // throw new ClientException('test.')
       // let  resultFile = await FileUploadController.handleDOCUpload(
@@ -1588,7 +1588,6 @@ cuit.PersonalCUITCUILCUIT,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
-      per.PersonalNroActa, per.PersonalFechaActa, per.PersonalBajaNroActa, per.PersonalBajaFechaActa, per.PersonalFechaDestruccion, per.PersonalDestruccionNroActa,
       per.PersonalLeyNro LeyNro
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -1607,12 +1606,7 @@ cuit.PersonalCUITCUILCUIT,
       baja: { fecha: data[0].PersonalBajaFechaActa, numero: data[0].PersonalBajaNroActa },
       destruccion: { fecha: data[0].PersonalFechaDestruccion, numero: data[0].PersonalDestruccionNroActa }
     }
-    delete persona.PersonalNroActa
-    delete persona.PersonalFechaActa
-    delete persona.PersonalBajaNroActa
-    delete persona.PersonalBajaFechaActa
-    delete persona.PersonalFechaDestruccion
-    delete persona.PersonalDestruccionNroActa
+    
     return persona
   }
 
