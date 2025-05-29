@@ -454,63 +454,7 @@
     </nz-form-control>
   </nz-form-item>
 
-  <div class="input-container2">
-    <div class="input-label">Actas</div>
-  </div>
-
-  <div formGroupName="actas">
-    <nz-collapse nzGhost>
-      <nz-collapse-panel nzHeader="Alta" nzActive="false">
-        <div formGroupName="alta">
-          <nz-form-item class="marginElement">
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-              <nz-date-picker formControlName="fecha"></nz-date-picker>
-            </nz-form-control>
-      
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Numero</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-              <input nz-input placeholder="" formControlName="numero" type="number" />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </nz-collapse-panel>
-
-      <nz-collapse-panel nzHeader="Baja" nzActive="false">
-        <div formGroupName="baja">
-          <nz-form-item class="marginElement">
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-              <nz-date-picker formControlName="fecha"></nz-date-picker>
-            </nz-form-control>
-      
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Numero</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-              <input nz-input placeholder="" formControlName="numero" type="number" />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </nz-collapse-panel>
-
-      <nz-collapse-panel nzHeader="Destrucción" nzActive="false"
-      >
-        <div formGroupName="destruccion">
-          <nz-form-item class="marginElement">
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-              <nz-date-picker formControlName="fecha"></nz-date-picker>
-            </nz-form-control>
-      
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Numero</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-              <input nz-input placeholder="" formControlName="numero" type="number" />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </nz-collapse-panel>
-    </nz-collapse>
-  </div>
-
+  
   <nz-form-item>
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">
       <button nzType="primary" nz-button *ngIf="formPer.enabled" (click)="save()" [nzLoading]="isLoading()"

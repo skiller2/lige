@@ -42,7 +42,6 @@ export class PersonalFormComponent {
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
-  objActa = { fecha: '', numero:null }
   objBeneficiario = {Apellido:'', Nombre:'', TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:'', Desde:''}
 
   inputs = { 
@@ -57,11 +56,7 @@ export class PersonalFormComponent {
     estudios:    this.fb.array([this.fb.group({...this.objEstudio})]),
     familiares:  this.fb.array([this.fb.group({...this.objFamiliar})]),
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
-    actas:       this.fb.group({
-      alta: this.fb.group({...this.objActa}),
-      baja: this.fb.group({...this.objActa}),
-      destruccion: this.fb.group({...this.objActa})
-    }),
+    
     LeyNro:null,
     habilitacion: [],
     beneficiarios:this.fb.array([this.fb.group({...this.objBeneficiario})]),
