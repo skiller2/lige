@@ -784,10 +784,7 @@ cuit.PersonalCUITCUILCUIT,
       //Habilitacion necesaria
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
-      //Actas
-      // const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
-      // if (valActas instanceof ClientException)
-      //   throw valActas
+     
 
       //throw new ClientException('test.')
       // let  resultFile = await FileUploadController.handleDOCUpload(
@@ -1540,11 +1537,6 @@ cuit.PersonalCUITCUILCUIT,
 
       //Habilitacion Necesaria
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
-
-      //Actas
-      // const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
-      // if (valActas instanceof ClientException)
-      //   throw valActas
 
       // throw new ClientException('test.')
       // let  resultFile = await FileUploadController.handleDOCUpload(
@@ -2526,32 +2518,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  private async setActasQuerys(queryRunner: any, personalId: number, actas: any) {
-    const PersonalNroActa = actas.alta.numero
-    const PersonalFechaActa = actas.alta.fecha
-    const PersonalBajaNroActa = actas.baja.numero
-    const PersonalBajaFechaActa = actas.baja.fecha
-    const PersonalDestruccionNroActa = actas.destruccion.numero
-    const PersonalFechaDestruccion = actas.destruccion.fecha
-
-    if (((!PersonalNroActa && PersonalFechaActa) || (PersonalNroActa && !PersonalFechaActa)) ||
-      ((!PersonalBajaNroActa && PersonalBajaFechaActa) || (PersonalBajaNroActa && !PersonalBajaFechaActa)) ||
-      ((!PersonalDestruccionNroActa && PersonalFechaDestruccion) || (PersonalDestruccionNroActa && !PersonalFechaDestruccion))) {
-      return new ClientException(`Los campos Fecha y Numero de la seccion Actas deben de completarse a la par.`)
-    } else if ((PersonalNroActa && PersonalFechaActa) ||
-      (PersonalBajaNroActa && PersonalBajaFechaActa) ||
-      (PersonalDestruccionNroActa && PersonalFechaDestruccion)) {
-
-      await queryRunner.query(`
-            UPDATE Personal SET
-            PersonalNroActa = @1, PersonalFechaActa = @2, PersonalBajaNroActa = @3,
-            PersonalBajaFechaActa = @4, PersonalDestruccionNroActa = @5, PersonalFechaDestruccion = @6
-            WHERE PersonalId IN (@0)
-            `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
-    }
-
-
-  }
+ 
 
   private async getLugarHabilitacionQuery(queryRunner: any) {
     return await queryRunner.query(`
