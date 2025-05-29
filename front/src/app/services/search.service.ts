@@ -1781,6 +1781,15 @@ export class SearchService {
     );
   }
 
+  getDescuentoTableOptions() {
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/tables`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
   // Personal Acta
 

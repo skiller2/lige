@@ -40,15 +40,11 @@ export class PersonalActaDrawerComponent {
     fb = inject(FormBuilder)
     formActa = this.fb.group({
         ActaId:0, TipoActa:0, PersonalActaDescripcion:'',
-        ActaFechaActa:'', ActaFechaHasta:'',
-        // SituacionId: 0, Motivo:'', Desde:new Date()
+        ActaFechaActa:'',
     })
 
-
-    $optionsNroActa = this.searchService.getNroActaOptions(); 
+    optionsNroActa:any[] = []
     $optionsTipoActa = this.searchService.getTipoPersonalActaOptions(); 
-
-
     
     // $optionsTipoPersonalActa = this.searchService.getTipoPersonalActaOptions(); 
     $listaPersonalActa = this.selectedPersonalIdChange$.pipe(
@@ -74,10 +70,8 @@ export class PersonalActaDrawerComponent {
 
     async ngOnInit(){
         this.periodo.set(new Date())
-        
-        // const sitRevistaNoOptions = await firstValueFrom(this.searchService.getSitRevistaNoOptions())
-        // this.noOptions.set(sitRevistaNoOptions)
         this.selectedPersonalIdChange$.next('');
+        this.optionsNroActa = await firstValueFrom(this.searchService.getNroActaOptions())
     }
 
     ngOnDestroy(): void {
@@ -97,6 +91,13 @@ export class PersonalActaDrawerComponent {
 
         }
         this.isLoading.set(false)
+    }
+
+    selectedNroActaChange(event: any):void{
+        let acta = this.optionsNroActa.find(acta => acta.value == event)
+        if (acta?.ActaFechaActa) {
+            this.formActa.get('ActaFechaActa')?.setValue(acta.ActaFechaActa)
+        }
     }
 
 }

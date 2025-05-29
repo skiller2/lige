@@ -2863,8 +2863,8 @@ cuit.PersonalCUITCUILCUIT,
     try {
       const options = await queryRunner.query(`
         SELECT TOP 100 ActaId value
-            , CONCAT(ActaNroActa, ' - ', TRIM(ActaDescripcion), ' - ', ActaFechaActa) label
-            ,ActaFechaActa
+        , CONCAT(ActaNroActa, ' - ', TRIM(ActaDescripcion)) label
+        , ActaFechaActa 
         FROM Acta
         ORDER BY ActaFechaActa desc
       `)
@@ -2891,16 +2891,34 @@ cuit.PersonalCUITCUILCUIT,
   async addPersonalActa(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const personalId = Number(req.params.personalId);
-    const acta: number = req.body;
+    const ActaId: number = req.body.ActaId;
+    const TipoActa: string = req.body.TipoActa;
+    const PersonalActaDescripcion: string = req.body.PersonalActaDescripcion;
+    const now = new Date()
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
+      const usuario = res.locals.userName
+      const ip = this.getRemoteAddress(req)
 
-      await queryRunner.query(``, [])
+      await queryRunner.query(`
+      INSERT INTO PersonalActa (
+        ActaId,
+        TipoPersonalActaCodigo,
+        PersonalId,
+        PersonalActaDescripcion,
+        PersonalActaAudFechaIng,
+        PersonalActaAudUsuarioIng,
+        PersonalActaAudIpIng,
+        PersonalActaAudFechaMod,
+        PersonalActaAudUsuarioMod,
+        PersonalActaAudIpMod
+      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip])
 
       await queryRunner.commitTransaction();
 
-      this.jsonRes({}, res);
+      this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
       return next(error)
     }
