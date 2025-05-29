@@ -75,8 +75,13 @@
           </nz-form-item>
         </form>
       </div>
+      <!--
+<p>Que tengo {{formTipoDocumento.value.archivo | json}}</p>
+      formTipoDocumento.value.archivo[0[?.mimetype.includes('image')
 
-      @if (prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image') ) {
+-->
+      @if ((prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image'))
+      ) {
         <div nz-col nzFlex="350px" class="app-foto-container" >
           <img nz-image class="image-content" [src]="prevFiles()[0]?.url | urlauth | async" alt="" width="350px"/>
         </div>
