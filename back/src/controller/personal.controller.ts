@@ -2803,7 +2803,8 @@ cuit.PersonalCUITCUILCUIT,
 
       const PersonaActaList = await queryRunner.query(`
         SELECT act.ActaId, act.ActaNroActa AS NroActa
-        , CONCAT(TRIM(act.ActaDescripcion),' - ',TRIM(peract.PersonalActaDescripcion)) AS DescripcionActa
+        , CONCAT(act.ActaNroActa, ' - ',TRIM(act.ActaDescripcion)) AS Acta
+        , peract.PersonalActaDescripcion AS DescripcionPersonalActa
         , act.ActaFechaActa AS Desde
         , act.ActaFechaHasta AS Hasta
         , peract.PersonalId
