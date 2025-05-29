@@ -63,6 +63,8 @@
               <label nz-checkbox formControlName="ind_descarga_bot">Descargar por BOT</label>
             </nz-form-control>
           </nz-form-item>
+<p>value.archivo {{formTipoDocumento.value.archivo | json}}</p>
+<p>prevFiles {{prevFiles() | json}}</p>
     
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
@@ -75,9 +77,8 @@
           </nz-form-item>
         </form>
       </div>
-      <!--
-<p>Que tengo {{formTipoDocumento.value.archivo | json}}</p>
-      formTipoDocumento.value.archivo[0[?.mimetype.includes('image')
+      
+<!--      formTipoDocumento.value.archivo[0[?.mimetype.includes('image')
 
 -->
       @if ((prevFiles() && prevFiles().length > 0 && prevFiles()[0].mimetype.includes('image'))
