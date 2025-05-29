@@ -952,8 +952,8 @@ cuit.PersonalCUITCUILCUIT,
     console.log("file", file)
     if (file?.tempfilename) {
 
-      //const type = file.mimetype.split('/')[1]
-      const type = file.TipoArchivo
+      const type = file.mimetype.split('/')[1]
+      // const type = file.TipoArchivo
       //const fieldname = file.fieldname
       const fieldname = file.tempfilename
       // let foto = await queryRunner.query(`
@@ -1006,8 +1006,8 @@ cuit.PersonalCUITCUILCUIT,
     if (file.tempfilename) {
 
 
-      //const type = file.mimetype.split('/')[1]
-      const type = file.TipoArchivo
+      const type = file.mimetype.split('/')[1]
+      // const type = file.TipoArchivo
       //const fieldname = file.fieldname
       const fieldname = file.tempfilename
       // let doc = await queryRunner.query(`
