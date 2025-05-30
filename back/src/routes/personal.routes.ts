@@ -113,7 +113,7 @@ personalRouter.get(`${base}/banco/:id`, [authMiddleware.verifyToken], (req, res,
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
+personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`, ])], (req, res, next) => {
   personalController.getResponsablesListByPersonal(req, res, next);
 });
 
@@ -135,7 +135,7 @@ personalRouter.get("/download/:table/:id", authMiddleware.verifyToken, (req, res
 
 personalRouter.get(
   `${base}/responsables/:personalId/:anio/:mes`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`])],
+  [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`,'Responsables'])],
   (req, res, next) => {
     personalController.getPersonalResponsables(req, res, next);
   }
@@ -167,7 +167,7 @@ personalRouter.get(
 
 personalRouter.get(
   `${base}/sitrevista/:personalId/:anio/:mes`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`])],
+  [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`, `Responsables`])],
   (req, res, next) => {
     personalController.getPersonalSitRevista(req, res, next);
   }
@@ -185,7 +185,7 @@ personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req,
   personalController.getNameFromId(req.params.personalId, res, next);
 });
 
-personalRouter.get(`${base}/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`])], (req, res, next) => {
+personalRouter.get(`${base}/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`, 'Responsables'])], (req, res, next) => {
   personalController.getById(req.params.id, res, next);
 });
 
