@@ -784,7 +784,7 @@ cuit.PersonalCUITCUILCUIT,
       //Habilitacion necesaria
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
-     
+
 
       //throw new ClientException('test.')
       // let  resultFile = await FileUploadController.handleDOCUpload(
@@ -951,8 +951,7 @@ cuit.PersonalCUITCUILCUIT,
   async setFoto(queryRunner: any, personalId: any, file: any) {
     console.log("file", file)
     if (file?.tempfilename) {
-
-      const type = file.mimetype.split('/')[1]
+      const type = file.mimetype.split('/')[1] ? file.mimetype.split('/')[1] : file.TipoArchivo
       // const type = file.TipoArchivo
       //const fieldname = file.fieldname
       const fieldname = file.tempfilename
@@ -1006,7 +1005,8 @@ cuit.PersonalCUITCUILCUIT,
     if (file.tempfilename) {
 
 
-      const type = file.mimetype.split('/')[1]
+      const type = file.mimetype.split('/')[1] ? file.mimetype.split('/')[1] : file.TipoArchivo
+
       // const type = file.TipoArchivo
       //const fieldname = file.fieldname
       const fieldname = file.tempfilename
@@ -1598,7 +1598,7 @@ cuit.PersonalCUITCUILCUIT,
       baja: { fecha: data[0].PersonalBajaFechaActa, numero: data[0].PersonalBajaNroActa },
       destruccion: { fecha: data[0].PersonalFechaDestruccion, numero: data[0].PersonalDestruccionNroActa }
     }
-    
+
     return persona
   }
 
@@ -2518,7 +2518,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
- 
+
 
   private async getLugarHabilitacionQuery(queryRunner: any) {
     return await queryRunner.query(`
@@ -2817,7 +2817,7 @@ cuit.PersonalCUITCUILCUIT,
         WHERE peract.PersonalId IN (@0)
         ORDER BY act.ActaFechaActa desc
       `, [personalId])
-        
+
       await queryRunner.commitTransaction();
 
       this.jsonRes(PersonaActaList, res);
