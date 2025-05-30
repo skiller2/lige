@@ -562,6 +562,7 @@ cuit.PersonalCUITCUILCUIT,
       PersonalFechaSolicitudAceptada,
       PersonalFechaPreIngreso,
       PersonalFechaIngreso,
+      PersonalFechaAutorizacionIngreso,
       PersonalFechaNacimiento,
       PersonalNacionalidadId,
       PersonalSucursalIngresoSucursalId,
@@ -571,7 +572,7 @@ cuit.PersonalCUITCUILCUIT,
       PersonalLeyNro,
       EstadoCivilId
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13)
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -1162,6 +1163,7 @@ cuit.PersonalCUITCUILCUIT,
       PersonalApellidoNombre = @4,
       PersonalFechaPreIngreso = @5,
       PersonalFechaIngreso = @5,
+      PersonalFechaAutorizacionIngreso= @5,
       PersonalFechaNacimiento = @6,
       PersonalNacionalidadId = @7,
       PersonalSuActualSucursalPrincipalId = @8,
