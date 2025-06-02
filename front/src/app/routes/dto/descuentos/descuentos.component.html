@@ -17,10 +17,10 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'dto', 'descuentos', 'objetivos']">Objetivos</a>
         </li>
-        <!-- <li nz-menu-item nzMatchRouter>
+        <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'dto', 'descuentos', 'carga']">Carga</a>
-        </li> -->
+        </li>
       </ul>
       
       <nz-button-group>
@@ -47,12 +47,12 @@
         </ng-template>
       </nz-tab>
 
-      <!-- <nz-tab>
+      <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/carga">Carga</a>
         <ng-template nz-tab>
-          
+          <app-descuentos-carga-masiva-drawer [anio]="anio()" [mes]="mes()"></app-descuentos-carga-masiva-drawer>
         </ng-template>
-      </nz-tab> -->
+      </nz-tab>
   
     </nz-tabset>
 </nz-card>

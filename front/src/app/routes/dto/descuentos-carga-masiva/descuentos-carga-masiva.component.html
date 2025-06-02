@@ -1,0 +1,80 @@
+<nz-card class="small-margin">
+  <br>
+
+  <form [formGroup]="formAltaDesc">
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="4">Tipo de Carga</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          <ng-container *ngFor="let option of $tableOptions | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+      
+
+    <nz-form-item *ngIf="tableName() === 'PersonalOtroDescuento'">
+      <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          <ng-container *ngFor="let option of $descuentoOptions | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item *ngIf="tableName() === 'ObjetivoDescuento'">
+      <nz-form-label [nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          <ng-container *ngFor="let option of $descuentoOptions | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label class="inputText" [nzXs]="4">Archivo Descuento</nz-form-label>
+      <nz-form-control>
+        <nz-upload nzAccept="application/xls" nzAction="/api/gestion-descuentos/upload" [nzData]="{
+            anio: anio(),
+            mes: mes(),
+            tableName: tableName(),
+            descuentoId: DescuentoId(),
+        }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+          <button nz-button>
+            <span nz-icon nzType="upload"></span>
+            {{ 'app.btn.XLS' | i18n }}
+          </button>
+        </nz-upload>
+        </nz-form-control>
+    </nz-form-item>
+
+  </form>
+
+  <div nz-tab>
+    <div class="gridErrorPer container-fluid">
+      <angular-slickgrid *ngIf="tableName() === 'PersonalOtroDescuento'"
+        gridId="gridErrorPer" [columnDefinitions]="columnsPer  | colsFilter" [gridOptions]="gridOptionsPer"
+        [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
+      </angular-slickgrid>
+    </div>
+  </div>
+
+  <div nz-tab>
+    <div class="gridErrorObj container-fluid">
+      <angular-slickgrid *ngIf="tableName() === 'ObjetivoDescuento'"
+        gridId="gridErrorObj" [columnDefinitions]="columnsObj  | colsFilter" [gridOptions]="gridOptionsObj"
+        [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
+      </angular-slickgrid>
+    </div>
+  </div>
+    
+</nz-card>

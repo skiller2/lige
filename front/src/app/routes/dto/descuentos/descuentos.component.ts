@@ -8,6 +8,7 @@ import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/table-descuentos-personal.component';
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
+import { DescuentosCargaMasivaComponent } from '../descuentos-carga-masiva/descuentos-carga-masiva.component';
 
 @Component({
     selector: 'app-descuentos',
@@ -15,7 +16,7 @@ import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos
     styleUrls: ['./descuentos.component.less'],
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule, TableDescuentosPersonalComponent,
-        TableDescuentosObjetivosComponent],
+        TableDescuentosObjetivosComponent, DescuentosCargaMasivaComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DescuentosComponent {

@@ -1,9 +1,12 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response} from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
-import { descuentoPorDeudaAnteriorController } from "src/controller/controller.module";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
+import xlsx from 'node-xlsx';
+import { Utils } from "../liquidaciones/liquidaciones.utils";
+import { recibosController } from "src/controller/controller.module";
 
 const columnsPersonalDescuentos:any[] = [
   {
@@ -354,7 +357,20 @@ const columnsObjetivosDescuentos:any[] = [
   },
 ]
 
+const tableOptions:any[] = [
+  { label:'Personal', value:'PersonalOtroDescuento'},
+  { label:'Objetivo', value:'ObjetivoDescuento'}
+]
+
 export class GestionDescuentosController extends BaseController {
+
+  directory = process.env.PATH_DOCUMENTS || "tmp";
+  constructor() {
+    super();
+    if (!existsSync(this.directory)) {
+      mkdirSync(this.directory, { recursive: true });
+    }
+  }
 
   getTimeString(stm: Date) {
     return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}`:null
@@ -572,13 +588,18 @@ export class GestionDescuentosController extends BaseController {
     const anio:number = AplicaEl.getFullYear()
     const mes:number = AplicaEl.getMonth()+1
 
+    //Valida que el período no tenga el indicador de recibos generado
+    const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
+      return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
       FROM PersonalOtroDescuento
       WHERE PersonalId IN (@0) AND PersonalOtroDescuentoDescuentoId IN (@1) AND PersonalOtroDescuentoAnoAplica IN (@2) AND PersonalOtroDescuentoMesesAplica IN (@3)
     `, [PersonalId, DescuentoId, anio, mes])
     if (PersonalOtroDescuento.length) {
-      throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
+      return new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
     }
     
     const Personal = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
@@ -617,6 +638,11 @@ export class GestionDescuentosController extends BaseController {
 
     const anio:number = AplicaEl.getFullYear()
     const mes:number = AplicaEl.getMonth()+1
+
+    //Valida que el período no tenga el indicador de recibos generado
+    const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
+      return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
     let ObjetivoDescuento = await queryRunner.query(`
       SELECT ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica, ObjetivoDescuentoMesesAplica
@@ -661,19 +687,14 @@ export class GestionDescuentosController extends BaseController {
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
-      //Valida que el período no tenga el indicador de recibos generado
-      const AplicaEl:Date = new Date(req.body.AplicaEl)
-      const anio = AplicaEl.getFullYear()
-      const mes = AplicaEl.getMonth()+1
-      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
-      if (checkrecibos[0]?.ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
-
-
       if (PersonalId && !ObjetivoId) {
-        id = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
+        const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
+        if (result instanceof ClientException) throw result
+        else id = result
       }else if (ObjetivoId && !PersonalId) {
-        id = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+        const result = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+        if (result instanceof ClientException) throw result
+        else id = result
       }else {
         throw new ClientException('Debe de ingresar solo una Objetivo o Personal')
       }
@@ -1182,10 +1203,186 @@ export class GestionDescuentosController extends BaseController {
         FROM Descuento
         WHERE DescuentoUsadoEnObjetivo = 1
       `)
-      
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }
+  }
+
+  async getDescuentoForPersonal(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT DescuentoId value, DescuentoDescripcion label
+        FROM Descuento
+        WHERE DescuentoUsadoEnPersonal = 1
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getTableOptions(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      this.jsonRes(tableOptions, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
+    const file = req.file;
+    const anioRequest = Number(req.body.anio)
+    const mesRequest = Number(req.body.mes)
+    const descuentoIdRequest = Number(req.body.descuentoId)
+    const tableNameRequest = req.body.tableName
+    const queryRunner = dataSource.createQueryRunner();
+
+    const usuario = res.locals.userName
+    const usuarioId = await this.getUsuarioId(res, queryRunner)
+    const ip = this.getRemoteAddress(req)
+
+    let columnsnNotFound = []
+    let dataset:any = []
+    let idError:number = 0
+
+    try {
+      if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
+      if (!descuentoIdRequest) throw new ClientException("Faltó indicar Tipo de descuento");
+      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
+      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
+      const sheet1 = workSheetsFromBuffer[0];
+      const columnsName: Array<string> = sheet1.data[0]
+
+      //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
+      const columnsXLS: any = columnsName.reduce((acc, column, index) => {
+        acc[column] = index;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const data = sheet1.data.splice(1)
+
+      switch (tableNameRequest) {
+        case 'PersonalOtroDescuento':
+          //Validar que esten las columnas nesesarias
+          if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
+          if (isNaN(columnsXLS['AplicaEl'])) columnsnNotFound.push('- AplicaEl')
+          if (isNaN(columnsXLS['Cant.Cuotas'])) columnsnNotFound.push('- Cant.Cuotas')
+          if (isNaN(columnsXLS['Importe'])) columnsnNotFound.push('- Importe')
+          if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
+
+          if (columnsnNotFound.length) {
+            columnsnNotFound.unshift('A la planilla le faltan las siguientes columnas:')
+            throw new ClientException(columnsnNotFound)
+          }
+
+          for (const row of data) {
+            
+            //Finaliza cuando la fila esta vacia
+            if (
+              !row[columnsXLS['CUIT']]
+              && !row[columnsXLS['AplicaEl']]
+              && !row[columnsXLS['Cant.Cuotas']]
+              && !row[columnsXLS['Importe']]
+              && !row[columnsXLS['Detalle']]
+            ) break
+            
+            const PersonalCUITCUIL = await queryRunner.query(`
+              SELECT cuit.PersonalId
+              FROM PersonalCUITCUIL cuit 
+              WHERE cuit.PersonalCUITCUILCUIT IN (@0) AND PersonalCUITCUILHasta IS NULL
+            `, [row[columnsXLS['CUIT']]])
+            if (!PersonalCUITCUIL.length) {
+              dataset.push({id: idError++, CUIT:row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado'})
+              continue
+            }
+            const otroDescuento:any = {
+              DescuentoId: descuentoIdRequest,
+              PersonalId: PersonalCUITCUIL[0].PersonalId,
+              AplicaEl: row[columnsXLS['AplicaEl']],
+              Cuotas: row[columnsXLS['Cant.Cuotas']],
+              Importe: row[columnsXLS['Importe']],
+              Detalle: row[columnsXLS['Detalle']],
+            }
+            const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
+            if (result instanceof ClientException) {
+              dataset.push({id: idError++, CUIT:row[columnsXLS['CUIT']], Detalle: result.messageArr})
+              continue
+            }
+          }
+        break;
+        case 'ObjetivoDescuento':
+          //Validar que esten las columnas nesesarias
+          if (isNaN(columnsXLS['Codigo'])) columnsnNotFound.push('- Codigo')
+          if (isNaN(columnsXLS['AplicaEl'])) columnsnNotFound.push('- AplicaEl')
+          if (isNaN(columnsXLS['Cant.Cuotas'])) columnsnNotFound.push('- Cant.Cuotas')
+          if (isNaN(columnsXLS['Importe'])) columnsnNotFound.push('- Importe')
+          if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
+
+          if (columnsnNotFound.length) {
+            columnsnNotFound.unshift('A la planilla le faltan las siguientes columnas:')
+            throw new ClientException(columnsnNotFound)
+          }
+
+          for (const row of data) {
+            //Finaliza cuando la fila esta vacia
+            if (
+              !row[columnsXLS['Codigo']]
+              && !row[columnsXLS['AplicaEl']]
+              && !row[columnsXLS['Cant.Cuotas']]
+              && !row[columnsXLS['Importe']]
+              && !row[columnsXLS['Detalle']]
+            ) break
+
+            const Objetivo = await queryRunner.query(`
+              SELECT ObjetivoId FROM Objetivo WHERE ObjetivoId IN (@0)
+            `, [row[columnsXLS['Codigo']]])
+            if (!Objetivo.length) {
+              dataset.push({id: idError++, Codigo:row[columnsXLS['Codigo']], Detalle: 'Codigo no encontrado'})
+              continue
+            }
+            const otroDescuento:any = {
+              DescuentoId: descuentoIdRequest,
+              ObjetivoId: row[columnsXLS['Codigo']],
+              AplicaEl: row[columnsXLS['AplicaEl']],
+              Cuotas: row[columnsXLS['Cant.Cuotas']],
+              Importe: row[columnsXLS['Importe']],
+              Detalle: row[columnsXLS['Detalle']],
+            }
+            const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
+            if (result instanceof ClientException) {
+              dataset.push({id: idError++, Codigo:row[columnsXLS['Codigo']], Detalle: result.messageArr})
+              continue
+            }
+          }
+        break;
+      
+        default:
+          throw new ClientException(`Tipo de carga no identificado`)
+          break;
+      }
+      
+      if (dataset.length) {
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list: dataset})
+      }
+
+      throw new ClientException(`DEBUG.`)
+
+      await queryRunner.commitTransaction();
+      this.jsonRes(data, res, "XLS Recibido y procesado!");
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release();
+      unlinkSync(file.path);
     }
   }
 
