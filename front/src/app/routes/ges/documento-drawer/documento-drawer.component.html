@@ -72,7 +72,7 @@
               <app-file-upload formControlName="archivo" [cantMaxFiles]="1"
               [idForSearh]="doc_id()" [textForSearch]="doctipo_id()"
               [tableForSearch]="'docgeneral'" [columnForSearch]="'doc_id'"
-              [previewFile]="true" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
+              [previewFile]="false" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
             </nz-form-control>
           </nz-form-item>
         </form>

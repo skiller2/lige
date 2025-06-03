@@ -72,7 +72,7 @@ export class FileUploadController extends BaseController {
     let document = ''
     let deleteFile = false
 
-//    console.log('res--------------------', req.groups)
+    //    console.log('res--------------------', req.groups)
 
     try {
       if (documentId == '0') throw new ClientException(`Archivo no localizado`)
@@ -102,50 +102,50 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.path, docgen.nombre_archivo AS name
+          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.path, docgen.nombre_archivo AS name, doctip.json_permisos_act_dir
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
                 WHERE doc_id = @0`, [documentId]);
-          
-          await FileUploadController.verificarPermisoDocId(req, documentId, dataSource)
 
-          // ---
-          // if (document[0]["json_permisos_act_dir"]) {
-          //   const json = JSON.parse(document[0]["json_permisos_act_dir"]);
+          // Verificar permisos segun doctipo del documento
+          console.log('document-----------', document)
+          if (document[0]["json_permisos_act_dir"] && document.length > 0) {
+            console.log('entre --------------------------')
+            const json = JSON.parse(document[0]["json_permisos_act_dir"]);
 
-          //   const PermisoFullAccess = json.FullAccess;
-          //   const PermisoReadOnly = json.ReadOnly;
+            const PermisoFullAccess = json.FullAccess;
+            const PermisoReadOnly = json.ReadOnly;
 
-          //   // Verificar si alguno de los arrays tiene elementos
-          //   if (
-          //     (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
-          //     (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
-          //   ) {
-          //     let tienePermiso = false;
+            // Verificar si alguno de los arrays tiene elementos
+            if (
+              (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
+              (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
+            ) {
+              let tienePermiso = false;
 
-          //     // Verificar grupos de FullAccess
-          //     for (const grupoPermitidoFullAccess of PermisoFullAccess) {
-          //       if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
-          //         tienePermiso = true;
-          //         break;
-          //       }
-          //     }
+              // Verificar grupos de FullAccess
+              for (const grupoPermitidoFullAccess of PermisoFullAccess) {
+                if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
+                  tienePermiso = true;
+                  break;
+                }
+              }
 
-          //     // Si no tiene permiso FullAccess, verificar ReadOnly
-          //     if (!tienePermiso) {
-          //       for (const grupoPermitidoReadOnly of PermisoReadOnly) {
-          //         if (await this.hasGroup(req, grupoPermitidoReadOnly)) {
-          //           tienePermiso = true;
-          //           break;
-          //         }
-          //       }
-          //     }
+              // Si no tiene permiso FullAccess, verificar ReadOnly
+              if (!tienePermiso) {
+                for (const grupoPermitidoReadOnly of PermisoReadOnly) {
+                  if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
+                    tienePermiso = true;
+                    break;
+                  }
+                }
+              }
 
-          //     if (!tienePermiso) {
-          //       throw new ClientException(`No tiene permisos para descargar este archivo. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
-          //     }
-          //   }
-          // }
+              if (!tienePermiso) {
+                throw new ClientException(`No tiene permisos para descargar este archivo. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
+              }
+            }
+          }
 
 
 
@@ -347,10 +347,55 @@ export class FileUploadController extends BaseController {
       throw new ClientException(`No se especificó archivo a actualizar`)
     }
 
-    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo 
+    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen, json_permisos_act_dir FROM lige.dbo.doctipo tipo 
           WHERE tipo.doctipo_id = @0`, [doctipo_id])
     if (!doctipo.length)
       throw new ClientException(`Tipo de documento no existe`)
+
+    // ------------
+
+    // Verificar permisos segun doctipo ingresado
+
+    if (req && req.groups && doctipo[0]["json_permisos_act_dir"] && doctipo.length > 0) {
+      const json = JSON.parse(doctipo[0]["json_permisos_act_dir"]);
+
+      const PermisoFullAccess = json.FullAccess;
+      const PermisoReadOnly = json.ReadOnly;
+
+      // Verificar si alguno de los arrays tiene elementos
+      if (
+        (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
+        (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
+      ) {
+        let tienePermiso = false;
+
+        // Verificar grupos de FullAccess
+        for (const grupoPermitidoFullAccess of PermisoFullAccess) {
+          if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
+            tienePermiso = true;
+            break;
+          }
+        }
+
+        // Si no tiene permiso FullAccess, verificar ReadOnly
+        if (!tienePermiso) {
+          for (const grupoPermitidoReadOnly of PermisoReadOnly) {
+            if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
+              tienePermiso = true;
+              break;
+            }
+          }
+        }
+
+        if (!tienePermiso) {
+          throw new ClientException(`No tiene permisos para manipular el registro. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
+        }
+      }
+    }
+
+    //  ------------
+
+
     const folder = fecha.getFullYear() + doctipo[0]['path_origen']
     if (!folder)
       throw new ClientException(`Error subiendo archivo`)
@@ -424,12 +469,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-
-          // si recibo como parametro a req, valido permisos
-          if (req && req.groups) {
-            await this.verificarPermisoDocId(req, doc_id, queryRunner)
-          }
-
 
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file.tempfilename && file.tempfilename != '') {
@@ -828,51 +867,6 @@ export class FileUploadController extends BaseController {
 
     return detalle_documento
 
-  }
-
-  static async verificarPermisoDocId(req: any, doc_id: number, queryRunner: any) {
-    if (!doc_id) throw new ClientException(`No se especificó doc_id`)
-    const document = await queryRunner.query(`SELECT doctip.json_permisos_act_dir 
-                FROM lige.dbo.docgeneral docgen
-                LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
-                WHERE doc_id = @0`, [doc_id]);
-
-    if (document[0]["json_permisos_act_dir"] && document.length > 0) {
-      const json = JSON.parse(document[0]["json_permisos_act_dir"]);
-
-      const PermisoFullAccess = json.FullAccess;
-      const PermisoReadOnly = json.ReadOnly;
-
-      // Verificar si alguno de los arrays tiene elementos
-      if (
-        (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
-        (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
-      ) {
-        let tienePermiso = false;
-
-        // Verificar grupos de FullAccess
-        for (const grupoPermitidoFullAccess of PermisoFullAccess) {
-          if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
-            tienePermiso = true;
-            break;
-          }
-        }
-
-        // Si no tiene permiso FullAccess, verificar ReadOnly
-        if (!tienePermiso) {
-          for (const grupoPermitidoReadOnly of PermisoReadOnly) {
-            if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
-              tienePermiso = true;
-              break;
-            }
-          }
-        }
-
-        if (!tienePermiso) {
-          throw new ClientException(`No tiene permisos para descargar este archivo. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
-        }
-      }
-    }
   }
 
 
