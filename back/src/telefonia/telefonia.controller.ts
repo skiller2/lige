@@ -31,9 +31,19 @@ export class TelefoniaController extends BaseController {
     {
       name: "Teléfono Número",
       type: "string",
-      id: "TelefoniaNro",
-      field: "TelefoniaNro",
-      fieldName: "tel.TelefoniaNro",
+      id: "EfectoAtributoIngresoValor",
+      field: "EfectoAtributoIngresoValor",
+      fieldName: "efeatr.EfectoAtributoIngresoValor",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Efecto",
+      type: "string",
+      id: "EfectoEfectoIndividualDescripcion",
+      field: "EfectoEfectoIndividualDescripcion",
+      fieldName: "efeind.EfectoEfectoIndividualDescripcion",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -116,15 +126,16 @@ export class TelefoniaController extends BaseController {
     fecha.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
+      `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe,
-      per.PersonalId
+      per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId
       FROM Telefonia tel 
+      JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
+      LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
-      
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)
       
       LEFT JOIN (
@@ -291,12 +302,12 @@ export class TelefoniaController extends BaseController {
         if (TelefoniaNro === 'undefined')
           continue
 
-        if (telefonos.filter(tel => tel.TelefoniaNro.trim() === TelefoniaNro.trim()).length > 1) {
+        if (telefonos.filter(tel => tel.EfectoAtributoIngresoValor.trim() === TelefoniaNro.trim()).length > 1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` se encuentra asignado a mas de una persona` })
           continue
         }
           
-        const idx = telefonos.findIndex(tel => tel.TelefoniaNro.trim() === TelefoniaNro.trim())
+        const idx = telefonos.findIndex(tel => tel.EfectoAtributoIngresoValor.trim() === TelefoniaNro.trim())
         const fimpplanvoz = parseFloat(row[1])
         const fserviciosvoz = parseFloat(row[2])
         const fpacksms = parseFloat(row[3])
@@ -337,7 +348,7 @@ export class TelefoniaController extends BaseController {
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.TelefoniaNro, Detalle: ` sin consumos en archivo xls y sin fecha de baja (TelefonoId: ${tel.TelefoniaId})` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (TelefonoId: ${tel.TelefoniaId})` })
 //          console.log('telefonos',tel)
 
         }
