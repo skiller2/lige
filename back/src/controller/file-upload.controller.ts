@@ -65,6 +65,7 @@ export class FileUploadController extends BaseController {
 
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
+
     const documentId = req.params.id;
     const filename = req.params.filename;
     const tableForSearch = req.params.tableForSearch;
@@ -72,7 +73,6 @@ export class FileUploadController extends BaseController {
     let document = ''
     let deleteFile = false
 
-    //    console.log('res--------------------', req.groups)
 
     try {
       if (documentId == '0') throw new ClientException(`Archivo no localizado`)
@@ -102,15 +102,13 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.path, docgen.nombre_archivo AS name, doctip.json_permisos_act_dir
+          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name, doctip.json_permisos_act_dir
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
                 WHERE doc_id = @0`, [documentId]);
 
           // Verificar permisos segun doctipo del documento
-          console.log('document-----------', document)
           if (document[0]["json_permisos_act_dir"] && document.length > 0) {
-            console.log('entre --------------------------')
             const json = JSON.parse(document[0]["json_permisos_act_dir"]);
 
             const PermisoFullAccess = json.FullAccess;
@@ -139,6 +137,11 @@ export class FileUploadController extends BaseController {
                     break;
                   }
                 }
+              }
+
+              // Verificar si el documento pertenece al PersonalId del usuario
+              if (document[0]["persona_id"] && document[0]["persona_id"] == res.locals.PersonalId) {
+                tienePermiso = true;
               }
 
               if (!tienePermiso) {
@@ -357,6 +360,7 @@ export class FileUploadController extends BaseController {
     // Verificar permisos segun doctipo ingresado
 
     if (req && req.groups && doctipo[0]["json_permisos_act_dir"] && doctipo.length > 0) {
+      console.log('entre ----------------------------------- ')
       const json = JSON.parse(doctipo[0]["json_permisos_act_dir"]);
 
       const PermisoFullAccess = json.FullAccess;
