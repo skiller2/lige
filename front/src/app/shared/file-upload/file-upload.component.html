@@ -55,7 +55,7 @@
 
         @if(previewFile()){
           @if (filesAdd.mimetype.includes('image') ) {
-            <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'"/>
+<!--            <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'"/>  -->
           <img nz-image class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original' | urlauth | async"
             alt="" />
           }
