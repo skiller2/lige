@@ -78,8 +78,8 @@ export class TelefoniaComponent {
     {
       name: "Teléfono Número",
       type: "number",
-      id: "TelefoniaNro",
-      field: "TelefoniaNro",
+      id: "EfectoAtributoIngresoValor",
+      field: "EfectoAtributoIngresoValor",
       sortable: true,
       searchHidden: false,
       hidden: false,
