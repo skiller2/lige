@@ -136,6 +136,13 @@ export const GesRoutes: Routes = [
   {
     path: 'estudios/:tab',
     loadComponent: () => import('./estudios/estudios.component').then(c => c.EstudiosComponent),
+  },
+  {
+    path: 'actas', redirectTo: 'actas/listado'
+  },
+  {
+    path: 'actas/:tab',
+    loadComponent: () => import('./actas/actas.component').then(c => c.ActasComponent),
   }
   
 ];

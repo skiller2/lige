@@ -60,18 +60,18 @@
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
         <thead>
           <tr>
-            <th>Acta</th>
+            <th nzWidth="140px">Acta</th>
             <th>Tipo</th>
             <th>Descripción</th>
-            <th>Desde</th>
-            <th>Hasta</th>
+            <th nzWidth="110px">Desde</th>
+            <th nzWidth="110px">Hasta</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let data of PersonalActa.data" class="">
             <td>{{ data.Acta }}</td>
-            <td>{{ data.TipoActa }}</td>
-            <td>{{ data.DescripcionPersonalActa }}</td>
+            <td>{{ data.TipoPersonalActaDescripcion }}</td>
+            <td>{{ data.PersonalActaDescripcion }}</td>
             <td>{{ data.Desde }}</td>
             <td>{{ data.Hasta }}</td>
 

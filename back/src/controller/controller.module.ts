@@ -49,6 +49,7 @@ import { GestionDescuentosController } from "../gestion-descuentos/gestion-descu
 import { CursoController } from "../controller/curso.controller"
 import { CentroCapacitacionController } from "../controller/centro-capacitacion.controller"
 import { InstitucionesController } from "./instituciones.controller";
+import { ActasController } from "../actas/actas.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -101,3 +102,4 @@ export const gestionDescuentosController = new GestionDescuentosController();
 export const cursoController = new CursoController();
 export const centroCapacitacionController = new CentroCapacitacionController();
 export const institucionesController = new InstitucionesController();
+export const actasController = new ActasController()

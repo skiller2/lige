@@ -943,9 +943,7 @@ cuit.PersonalCUITCUILCUIT,
       mkdirSync(newFilePath, { recursive: true })
     }
 
-    console.log("antes")
     renameSync(dirFile, `${newFilePath}${newFileName}`)
-    console.log("despues")
 
   }
 
@@ -2794,7 +2792,6 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   // PersonalActas
-
   async getPersonalActa(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const personalId = Number(req.params.personalId);
@@ -2806,16 +2803,16 @@ cuit.PersonalCUITCUILCUIT,
       const PersonaActaList = await queryRunner.query(`
         SELECT act.ActaId, act.ActaNroActa AS NroActa
         , CONCAT(act.ActaNroActa, ' - ',TRIM(act.ActaDescripcion)) AS Acta
-        , peract.PersonalActaDescripcion AS DescripcionPersonalActa
+        , peract.PersonalActaDescripcion
         , act.ActaFechaActa AS Desde
         , act.ActaFechaHasta AS Hasta
         , peract.PersonalId
-        , tipperact.TipoPersonalActaDescripcion AS TipoActa
-        , peract.PersonalActaDescripcion
+        , peract.TipoPersonalActaCodigo
+        , tipperact.TipoPersonalActaDescripcion
 
         FROM PersonalActa peract
-        LEFT JOIN Acta act ON act.ActaId=peract.ActaId
-        LEFT JOIN TipoPersonalActa tipperact ON tipperact.TipoPersonalActaCodigo=peract.TipoPersonalActaCodigo
+        LEFT JOIN Acta act ON act.ActaId = peract.ActaId
+        LEFT JOIN TipoPersonalActa tipperact ON tipperact.TipoPersonalActaCodigo = peract.TipoPersonalActaCodigo
         WHERE peract.PersonalId IN (@0)
         ORDER BY act.ActaFechaActa desc
       `, [personalId])
@@ -2865,11 +2862,24 @@ cuit.PersonalCUITCUILCUIT,
     const TipoActa: string = req.body.TipoActa;
     const PersonalActaDescripcion: string = req.body.PersonalActaDescripcion;
     const now = new Date()
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+
+    // let campos_vacios:string[] = []
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      const usuario = res.locals.userName
-      const ip = this.getRemoteAddress(req)
+      
+      //Validadar que los campos no este vacios
+      // if (!personalId) campos_vacios.push("- Persona");
+      // if (!ActaId) campos_vacios.push("- Nro Acta");
+      // if (!TipoActa) campos_vacios.push("- Tipo");
+      // if (!PersonalActaDescripcion) campos_vacios.push("- Descripcion");
+
+      // if (campos_vacios.length) {
+      //   campos_vacios.unshift('Debe completar los siguientes campos: ')
+      //   throw new ClientException(campos_vacios)
+      // }
 
       await queryRunner.query(`
       INSERT INTO PersonalActa (

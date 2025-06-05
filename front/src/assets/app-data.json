@@ -32,6 +32,11 @@
           ]
         },
         {
+          "text": "Actas #",
+          "link": "/ges/actas",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Descuentos #",
           "link": "/dto/descuentos",
           "icon": "anticon-profile"
