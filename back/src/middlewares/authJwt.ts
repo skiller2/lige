@@ -100,114 +100,150 @@ export class AuthMiddleware {
 
   hasAuthRespByDocId = (skipNextonPass: boolean) => {
     return async (req, res, next) => {
-      const stmActual = new Date();
-      const ResponsablePersonalId = res.locals.PersonalId
-      const documentId = req.params.id;
+      try {
+        const stmActual = new Date();
+        const ResponsablePersonalId = res.locals.PersonalId;
+        const documentId = req.params.id;
 
-      let Documento = await dataSource.query(`SELECT docgen.persona_id FROM lige.dbo.docgeneral docgen WHERE doc_id = @0`, [documentId]);
+        // Verificar existencia del documento
+        let Documento = await dataSource.query(
+          `SELECT doc_id,persona_id FROM lige.dbo.docgeneral WHERE doc_id = @0`,
+          [documentId]
+        );
 
-      if (Documento.length > 0) {
-        var DocumentoPersonalId = Documento[0].persona_id;
-      } else {
-        return res.status(404).json({ msg: "Documento no encontrado" });
-      }
-      
-      const anio = stmActual.getFullYear()
-      const mes = stmActual.getMonth() + 1
-      if (ResponsablePersonalId == DocumentoPersonalId) {
-        res.locals.skipMiddleware = skipNextonPass
-        return next()
-      }
-      if (ResponsablePersonalId < 1) {
-        return next()
-      }
-      const queryRunner = dataSource.createQueryRunner()
+        if (Documento.length === 0) return res.status(404).json({ msg: "Documento no encontrado" });
 
-      const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-      let listGrupos = []
-      for (const row of grupos)
-        listGrupos.push(row.GrupoActividadId)
-      if (listGrupos.length > 0) {
-        let resPers = await queryRunner.query(`
-        SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
-        WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-        ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
-        UNION
-        SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
-        WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-        ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
-        AND gap.GrupoActividadJerarquicoComo = 'J'
-        `,
-          [DocumentoPersonalId, anio, mes])
-        if (resPers.length > 0) {
-          res.locals.skipMiddleware = skipNextonPass
-          return next()
+        // Si el documento no tiene persona_id, se asume que es un documento general y se permite el acceso
+        if (Documento[0].doc_id && !Documento[0].persona_id) {
+          res.locals.skipMiddleware = skipNextonPass;
+          return next();
         }
-      }
-      return next()
 
-    }
+        const DocumentoPersonalId = Documento[0].persona_id;
+        const anio = stmActual.getFullYear();
+        const mes = stmActual.getMonth() + 1;
+
+        // Es el dueño del documento
+        if (ResponsablePersonalId == DocumentoPersonalId) {
+          res.locals.skipMiddleware = skipNextonPass;
+          return next();
+        }
+
+        if (ResponsablePersonalId < 1) {
+          return next();
+        }
+
+        // Verificar permisos a través de grupos de actividad
+        const queryRunner = dataSource.createQueryRunner();
+
+        try {
+          const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+          const listGrupos = grupos.map(row => row.GrupoActividadId);
+
+          if (listGrupos.length > 0) {
+            const resPers = await queryRunner.query(`
+            SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+            WHERE gap.GrupoActividadPersonalPersonalId = @0  
+            AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+            AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+            AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+            UNION
+            SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+            WHERE gap.GrupoActividadJerarquicoPersonalId = @0  
+            AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+            AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+            AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+            AND gap.GrupoActividadJerarquicoComo = 'J'
+          `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
+
+            if (resPers.length > 0) {
+              res.locals.skipMiddleware = skipNextonPass;
+              return next();
+            }
+          }
+
+          // Si no cumple ninguna condición de autorización
+          // return res.status(403).json({ msg: "No tiene autorización para ver o descargar este documento" });
+          return next()
+
+        } finally {
+          await queryRunner.release();
+        }
+      } catch (error) {
+        return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
+      }
+    };
   }
 
   hasAuthDocumentoTipo = (skipNextonPass: boolean) => {
-    return async (req, res, next) => {
-      if (res.locals?.skipMiddleware) return next()
+    return async (req: any, res: any, next: any) => {
+      // 1) Si ya se indicó skipMiddleware, salgo inmediatamente
+      if (res.locals?.skipMiddleware) return next();
 
       const documentId = req.params.id;
 
-      let document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name, doctip.json_permisos_act_dir
-                    FROM lige.dbo.docgeneral docgen
-                    LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
-                    WHERE doc_id = @0`, [documentId]);
+      // 2) Obtener fila de docgeneral + doctipo (para JSON de permisos)
+      const document = await dataSource.query(
+        `
+      SELECT docgen.doctipo_id, doctip.json_permisos_act_dir
+      FROM lige.dbo.docgeneral docgen
+      LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
+      WHERE docgen.doc_id = @0
+      `,
+        [documentId]
+      );
 
-      // Verificar permisos segun doctipo del documento
-      if (document[0]["json_permisos_act_dir"] && document.length > 0) {
-        const json = JSON.parse(document[0]["json_permisos_act_dir"]);
+      // 3) Si no existe ninguna fila, devuelvo 404
+      if (document.length === 0) return res.status(404).json({ msg: "Documento no encontrado" });
 
-        const PermisoFullAccess = json.FullAccess;
-        const PermisoReadOnly = json.ReadOnly;
+      const documento = document[0];
+      const jsonPermisos = documento["json_permisos_act_dir"];
 
-        // Verificar si alguno de los arrays tiene elementos
-        if (
-          (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
-          (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
-        ) {
-          let tienePermiso = false;
+      // 4) Si no hay JSON de permisos, dejo pasar
+      if (!jsonPermisos) return next();
 
-          // Verificar grupos de FullAccess
-          for (const grupoPermitidoFullAccess of PermisoFullAccess) {
-            if (await BaseController.hasGroup(req, grupoPermitidoFullAccess)) {
-              res.locals.skipMiddleware = skipNextonPass
-              tienePermiso = true
-              return next()
-            }
-          }
-
-          // Si no tiene permiso FullAccess, verificar ReadOnly
-          if (!tienePermiso) {
-            for (const grupoPermitidoReadOnly of PermisoReadOnly) {
-              if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
-                res.locals.skipMiddleware = skipNextonPass
-                tienePermiso = true
-                return next()
-              }
-            }
-          }
-
-          if (!tienePermiso) {
-            return res.status(409).json({ msg: "No tiene permiso para acceder a este documento " });
-          }
-
-       
-        }
-      } else {
-        return next()
+      let parsed: { FullAccess?: string[]; ReadOnly?: string[] };
+      try {
+        parsed = JSON.parse(jsonPermisos);
+      } catch (e) {
+        // Si el JSON está mal formado, devuelvo 403
+        return res.status(403).json({ msg: "Permisos de documento mal formados" });
       }
 
+      const PermisoFullAccess = Array.isArray(parsed.FullAccess) ? parsed.FullAccess : [];
+      const PermisoReadOnly = Array.isArray(parsed.ReadOnly) ? parsed.ReadOnly : [];
 
-    }
+      // 5) Si ambos arreglos vienen vacíos, asumo que ningún grupo tiene permiso
+      if (PermisoFullAccess.length === 0 && PermisoReadOnly.length === 0) {
+        return res.status(403).json({ msg: `No tiene permiso para acceder a este documento. Este documento requiere pertenecer a alguno de los siguientes grupos: ninguno definido.` });
+      }
 
+      // 6) Iterar sobre FullAccess primero
+      for (const grupoPermitido of PermisoFullAccess) {
+        const tiene = await BaseController.hasGroup(req, grupoPermitido);
+        if (tiene) {
+          // marco skipMiddleware y dejo pasar
+          res.locals.skipMiddleware = skipNextonPass;
+          return next();
+        }
+      }
+
+      // 7) Iterar sobre ReadOnly si no hubo FullAccess
+      for (const grupoPermitido of PermisoReadOnly) {
+        const tiene = await BaseController.hasGroup(req, grupoPermitido);
+        if (tiene) {
+          // marco skipMiddleware y dejo pasar
+          res.locals.skipMiddleware = skipNextonPass;
+          return next();
+        }
+      }
+
+      // 8) Si no pertenece a ninguno de los grupos, devuelvo 403 indicando los grupos requeridos
+      const gruposRequeridos = [...PermisoFullAccess, ...PermisoReadOnly];
+      return res.status(403).json({msg: `No tiene permiso para acceder al documento. Debe contar con los siguientes permisos: ${gruposRequeridos.join(", ")}`});
+    };
   };
+
 
 
 }

@@ -1,0 +1,38 @@
+<nz-card class="small-margin">
+  <div style="align-items: end; display: flex; justify-content: space-between;">
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'actas','listado']" (click)="refreshListActas('')">Listado</a>
+      </li>
+    </ul>
+    <nz-button-group>
+      <!-- btn  add -->
+      <button nz-button nzType="default"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
+          nzTheme="outline"></span></button>
+      <!-- btn  modify -->
+      <button nz-button nzType="default" [disabled]="true"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit"
+         nzTheme="outline"></span></button>
+    </nz-button-group>
+  </div>
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/actas/listado">Listado</a>
+      <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+        <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"
+          (optionsChange)="listOptionsChange($event)" />
+        <div class="gridContainer container-fluid">
+          <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+          </angular-slickgrid>
+        </div>
+      </ng-template>
+    </nz-tab>
+  </nz-tabset>
+
+</nz-card>

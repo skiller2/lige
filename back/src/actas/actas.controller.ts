@@ -1,0 +1,97 @@
+import { BaseController, ClientException } from "../controller/baseController";
+import { dataSource } from "../data-source";
+import { NextFunction, Request, Response } from "express";
+import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL, } from "../impuestos-afip/filtros-utils/filtros";
+import { Options } from "../schemas/filtro";
+import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
+import { TextItem } from "pdfjs-dist/types/src/display/api";
+import * as path from 'path';
+import { FileUploadController } from "src/controller/file-upload.controller";
+import * as fs from 'fs';
+import { promisify } from 'util';
+
+const columnsActas:any[] = [
+  {
+    id:'id', name:'ActaId', field:'id',
+    fieldName: 'ActaId',
+    type:'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id:'ActaNroActa', name:'Nro.Acta', field:'ActaNroActa',
+    fieldName: 'ActaNroActa',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id:'ActaDescripcion', name:'Descripcion', field:'ActaDescripcion',
+    fieldName: 'ActaDescripcion',
+    type:'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id:'ActaFechaActa', name:'Desde', field:'ActaFechaActa',
+    fieldName: 'ActaFechaActa',
+    type:'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id:'ActaFechaHasta', name:'Hasta', field:'ActaFechaHasta',
+    fieldName: 'ActaFechaHasta',
+    type:'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+]
+
+export class ActasController extends BaseController {
+
+  async getActasGridColumns(req: any, res: Response, next: NextFunction) {
+      return this.jsonRes(columnsActas, res)
+  }
+
+  private async actasListQuery(queryRunner: any, filterSql: any, orderBy: any) {
+      return await queryRunner.query(`
+        SELECT ActaId AS id, ActaNroActa, ActaFechaActa, ActaFechaHasta, ActaDescripcion
+        FROM Acta
+        -- WHERE (${filterSql})
+        -- ${orderBy}
+      `)
+    }
+  
+    async getGridList(req: any, res: Response, next: NextFunction) {
+      const queryRunner = dataSource.createQueryRunner();
+      try {
+        await queryRunner.startTransaction()
+  
+        const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+        const filterSql = filtrosToSql(options.filtros, columnsActas);
+        const orderBy = orderToSQL(options.sort)
+  
+        const lista: any[] = await this.actasListQuery(queryRunner, filterSql, orderBy)
+  
+        await queryRunner.commitTransaction()
+        this.jsonRes(lista, res);
+      } catch (error) {
+        await this.rollbackTransaction(queryRunner)
+        return next(error)
+      } finally {
+        await queryRunner.release()
+      }
+    }
+
+}
