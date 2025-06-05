@@ -114,7 +114,7 @@ export class CargaLicenciasComponent {
   async deleteLicencia() {
     this.loadingDelete.set(true)
     if (this.PersonalId() && this.PersonalLicenciaId) {
-      await firstValueFrom(this.apiService.deleteLicencia({ PersonalId:this.PersonalId(), PersonalLicenciaId: this.PersonalLicenciaId }))
+      await firstValueFrom(this.apiService.deleteLicencia({ PersonalId:this.PersonalId(), PersonalLicenciaId: this.PersonalLicenciaId() }))
       this.visibleDrawer = false
       this.RefreshLicencia = true
     }

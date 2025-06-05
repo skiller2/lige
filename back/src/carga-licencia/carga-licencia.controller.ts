@@ -645,6 +645,7 @@ export class CargaLicenciaController extends BaseController {
         throw new ClientException('La fecha desde se encuentra en un rango de otra licencia')
 
 
+      await this.validateSituacionRevista(PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalId, queryRunner)
       // if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
       //   throw new ClientException('Error: ya posee una licencia en la fecha hasta seleccionada');
       // }
@@ -941,6 +942,38 @@ export class CargaLicenciaController extends BaseController {
 
   }
 
+  async validateSituacionRevista(licenciaDesde: Date,licenciaHasta: Date,personalId: number, queryRunner: QueryRunner ) {
+    const situaciones = await queryRunner.query(`
+      SELECT 
+        psr.PersonalSituacionRevistaId,
+        psr.PersonalSituacionRevistaDesde,
+        ISNULL(psr.PersonalSituacionRevistaHasta, '9999-12-31') AS PersonalSituacionRevistaHasta
+      FROM PersonalSituacionRevista psr
+      WHERE psr.PersonalId = @0
+    `, [personalId]);
+  
+    const situacionesInvalidas = situaciones.filter(sit => {
+      const id = sit.PersonalSituacionRevistaId;
+  
+      // Situaciones Resvista validas
+      const situacionesValidas = [2, 11, 12, 20];
+      if (situacionesValidas.includes(id)) return false;
+  
+      const desde = new Date(sit.PersonalSituacionRevistaDesde);
+      const hasta = new Date(sit.PersonalSituacionRevistaHasta);
+  
+      // Validar si hay superposicion con el período de la licencia
+      return !(hasta < licenciaDesde || desde > licenciaHasta);
+    });
+  
+    if (situacionesInvalidas.length > 0) {
+      throw new ClientException(
+        `La persona se encontraba en una situación de revista no permitida durante el período de la licencia.`
+      );
+    }
+  }
+  
+
   async addSituacionRevista(queryRunner: QueryRunner,
     PersonalId: number,
     PersonalSituacionRevistaId: number,
@@ -980,6 +1013,7 @@ export class CargaLicenciaController extends BaseController {
       PersonalId,
       DocumentoId
     } = req.query
+    
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
@@ -1017,7 +1051,7 @@ export class CargaLicenciaController extends BaseController {
       if (DocumentoId && Number(DocumentoId) > 0)
         await FileUploadController.deleteFile(Number(DocumentoId), 'docgeneral', queryRunner)
 
-      if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10)
+      if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10 )
         throw new ClientException(`La situación revista anterior no puede ser "Licencia", avise al administrador`)
 
       await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaSituacionId = @0, PersonalSituacionRevistaMotivo = NULL WHERE PersonalId = @1 AND PersonalSituacionRevistaId = @2`,
