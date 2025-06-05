@@ -659,7 +659,6 @@ export class CargaLicenciaController extends BaseController {
       const TipoInasistenciaDescripcion = tipoIns[0].TipoInasistenciaDescripcion.trim()
 
       if (PersonalLicenciaId) {  //UPDATE
-
         if (PersonalIdForEdit != PersonalId)
           throw new ClientException(`No puede modificar la persona`)
 
@@ -757,7 +756,6 @@ export class CargaLicenciaController extends BaseController {
         }
 
       } else {  //INSERT
-
         //Obtengo ultima situación distanta a la de Licencia
         const sitrevant = await queryRunner.query(`
           SELECT TOP 1 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
@@ -799,6 +797,7 @@ export class CargaLicenciaController extends BaseController {
             WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId])
         }
 
+  
         PersonalLicenciaUltNro++
         await queryRunner.query(`INSERT INTO PersonalLicencia (
           PersonalId, 
@@ -872,7 +871,6 @@ export class CargaLicenciaController extends BaseController {
             SET PersonalSituacionRevistaHasta = @2
             WHERE PersonalId = @0 AND PersonalSituacionRevistaDesde < @1 AND ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') > @1`, [PersonalId, PersonalLicenciaDesde, this.addDays(PersonalLicenciaDesde, -1)])
         }
-
         PersonalSituacionRevistaUltNro++
         await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaDescripcion, 10)
 
@@ -881,18 +879,22 @@ export class CargaLicenciaController extends BaseController {
           await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), PersonalSituacionRevistaHastaNuevo, '', PersonalSituacionRevistaSituacionId)
         }
       }
+
+
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
+    
+      let doc_id = 0
       if (req.body.files) {
         for (const file of req.body.files) {
-          let doc_id = 0
+          
 
           const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file, usuario, ip, queryRunner)
 
           if (result && typeof result === 'object')
             ({ doc_id } = result)
 
-
+          PersonalLicenciaId = PersonalLicenciaId ? PersonalLicenciaId : PersonalLicenciaUltNro
           if (file.tempfilename) {
             await queryRunner.query(`INSERT INTO DocumentoRelaciones (
             DocumentoId,
@@ -913,7 +915,7 @@ export class CargaLicenciaController extends BaseController {
               PersonalId,
               null,
               null,
-              PersonalLicenciaUltNro,
+              PersonalLicenciaId,
               new Date(),
               usuario,
               ip
@@ -928,9 +930,9 @@ export class CargaLicenciaController extends BaseController {
           }
         }
       }
-
+      //throw new ClientException(`test`)
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: [{DocumentoId: doc_id}] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
