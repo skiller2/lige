@@ -6,7 +6,7 @@ import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils";
-import { recibosController } from "src/controller/controller.module";
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 const columnsPersonalDescuentos:any[] = [
   {
@@ -1233,7 +1233,6 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
-    const file = req.file;
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
     const descuentoIdRequest = Number(req.body.descuentoId)
@@ -1243,6 +1242,9 @@ export class GestionDescuentosController extends BaseController {
     const usuario = res.locals.userName
     const usuarioId = await this.getUsuarioId(res, queryRunner)
     const ip = this.getRemoteAddress(req)
+    let den_documento:string = ''
+    const fechaActual:Date = new Date()
+    const file = {...req.file, doctipo_id:'DES', tableForSearch:'docgeneral'}
 
     let columnsnNotFound = []
     let dataset:any = []
@@ -1269,6 +1271,12 @@ export class GestionDescuentosController extends BaseController {
 
       const data = sheet1.data.splice(1)
 
+      //Obtengo la descripcion del descuento
+      const Descuento:any = await queryRunner.query(`
+        SELECT DescuentoId, TRIM(DescuentoDescripcion) AS Descripcion FROM Descuento WHERE DescuentoId IN (@0)
+      `, [descuentoIdRequest])
+      const DescuentoDescripcion = Descuento[0].Descripcion
+
       switch (tableNameRequest) {
         case 'PersonalOtroDescuento':
           //Validar que esten las columnas nesesarias
@@ -1283,6 +1291,8 @@ export class GestionDescuentosController extends BaseController {
             throw new ClientException(columnsnNotFound)
           }
 
+          den_documento = `Personal-${DescuentoDescripcion}`
+
           for (const row of data) {
             
             //Finaliza cuando la fila esta vacia
@@ -1294,6 +1304,7 @@ export class GestionDescuentosController extends BaseController {
               && !row[columnsXLS['Detalle']]
             ) break
             
+            //Verifica que exista el CUIT
             const PersonalCUITCUIL = await queryRunner.query(`
               SELECT cuit.PersonalId
               FROM PersonalCUITCUIL cuit 
@@ -1331,6 +1342,8 @@ export class GestionDescuentosController extends BaseController {
             throw new ClientException(columnsnNotFound)
           }
 
+          den_documento = `Objetivo-${DescuentoDescripcion}`
+
           for (const row of data) {
             //Finaliza cuando la fila esta vacia
             if (
@@ -1341,6 +1354,7 @@ export class GestionDescuentosController extends BaseController {
               && !row[columnsXLS['Detalle']]
             ) break
 
+            //Verifica que exista el Codigo del objetivo
             const Objetivo = await queryRunner.query(`
               SELECT ObjetivoId FROM Objetivo WHERE ObjetivoId IN (@0)
             `, [row[columnsXLS['Codigo']]])
@@ -1373,7 +1387,7 @@ export class GestionDescuentosController extends BaseController {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list: dataset})
       }
 
-      throw new ClientException(`DEBUG.`)
+      await FileUploadController.handleDOCUpload(0, 0, 0, 0, fechaActual, null, den_documento, file, usuario, ip, queryRunner, req)
 
       await queryRunner.commitTransaction();
       this.jsonRes(data, res, "XLS Recibido y procesado!");
