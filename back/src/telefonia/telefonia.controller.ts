@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
@@ -31,9 +31,19 @@ export class TelefoniaController extends BaseController {
     {
       name: "Teléfono Número",
       type: "string",
-      id: "TelefoniaNro",
-      field: "TelefoniaNro",
-      fieldName: "tel.TelefoniaNro",
+      id: "EfectoAtributoIngresoValor",
+      field: "EfectoAtributoIngresoValor",
+      fieldName: "efeatr.EfectoAtributoIngresoValor",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Efecto",
+      type: "string",
+      id: "EfectoEfectoIndividualDescripcion",
+      field: "EfectoEfectoIndividualDescripcion",
+      fieldName: "efeind.EfectoEfectoIndividualDescripcion",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -116,15 +126,16 @@ export class TelefoniaController extends BaseController {
     fecha.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
+      `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe,
-      per.PersonalId
+      per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId
       FROM Telefonia tel 
+      JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
+      LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
-      
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)
       
       LEFT JOIN (
@@ -291,12 +302,12 @@ export class TelefoniaController extends BaseController {
         if (TelefoniaNro === 'undefined')
           continue
 
-        if (telefonos.filter(tel => tel.TelefoniaNro.trim() === TelefoniaNro.trim()).length > 1) {
+        if (telefonos.filter(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim()).length > 1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` se encuentra asignado a mas de una persona` })
           continue
         }
-          
-        const idx = telefonos.findIndex(tel => tel.TelefoniaNro.trim() === TelefoniaNro.trim())
+
+        const idx = telefonos.findIndex(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
         const fimpplanvoz = parseFloat(row[1])
         const fserviciosvoz = parseFloat(row[2])
         const fpacksms = parseFloat(row[3])
@@ -337,10 +348,22 @@ export class TelefoniaController extends BaseController {
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.TelefoniaNro, Detalle: ` sin consumos en archivo xls y sin fecha de baja (TelefonoId: ${tel.TelefoniaId})` })
-//          console.log('telefonos',tel)
-
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
         }
+      }
+
+
+
+      const telRepeat: Record<string, number> = {};
+
+      for (const tel of telefonos) {
+        if (!tel.EfectoAtributoIngresoValor)
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin número de teléfono asignado (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+
+        telRepeat[tel.TelefoniaEfectoEfectoIndividualId] = (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] || 0) + 1;
+        if (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] > 1)
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.TelefoniaEfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+
       }
 
       if (dataset.length > 0)
@@ -352,10 +375,10 @@ export class TelefoniaController extends BaseController {
           `INSERT INTO ConsumoTelefoniaAno (ConsumoTelefoniaAnoAno, ConsumoTelefoniaAnoMesUltNro)
           VALUES (@0, @1)`,
           [
-            anioRequest,0
+            anioRequest, 0
           ])
-          anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
-//        throw new ClientException(`No existe el año ${anioRequest} `)
+        anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
+        //        throw new ClientException(`No existe el año ${anioRequest} `)
       }
       const ConsumoTelefoniaAnoId = anioDS[0].ConsumoTelefoniaAnoId
 
@@ -694,7 +717,7 @@ export class TelefoniaController extends BaseController {
         per.anio = @0 
         AND per.mes = @1 
         AND doc.doctipo_id = 'TEL'`,
-      [ Number(Anio), Number(Mes)])
+        [Number(Anio), Number(Mes)])
 
       this.jsonRes(
         {
@@ -710,13 +733,13 @@ export class TelefoniaController extends BaseController {
     }
   }
 
-  private async getLugarTelefonoQuery(queryRunner:any){
+  private async getLugarTelefonoQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT lug.LugarTelefonoId value, TRIM(lug.LugarTelefonoDescripcion) label
         FROM LugarTelefono lug`)
   }
 
-  async getLugarTelefono(req: any, res: Response, next: NextFunction){
+  async getLugarTelefono(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await this.getLugarTelefonoQuery(queryRunner)
@@ -727,13 +750,13 @@ export class TelefoniaController extends BaseController {
     }
   }
 
-  private async getTipoTelefonoQuery(queryRunner:any){
+  private async getTipoTelefonoQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT tipo.TipoTelefonoId value, TRIM(tipo.TipoTelefonoDescripcion) label
         FROM TipoTelefono tipo`)
   }
 
-  async getTipoTelefono(req: any, res: Response, next: NextFunction){
+  async getTipoTelefono(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await this.getTipoTelefonoQuery(queryRunner)

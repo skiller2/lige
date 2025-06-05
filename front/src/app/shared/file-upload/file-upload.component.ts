@@ -12,9 +12,10 @@ import { HttpClient } from '@angular/common/http';
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
-import { FileSyncOutline } from '@ant-design/icons-angular/icons';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { ImageLoaderComponent } from '../image-loader/image-loader.component';
+
 interface DocTipo {
   doctipo_id: string;
   detalle: string;
@@ -22,7 +23,7 @@ interface DocTipo {
 
 @Component({
   selector: 'app-file-upload',
-  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule],
+  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule,ImageLoaderComponent],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.less',
   providers: [

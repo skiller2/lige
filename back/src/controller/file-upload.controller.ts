@@ -107,49 +107,6 @@ export class FileUploadController extends BaseController {
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
                 WHERE doc_id = @0`, [documentId]);
 
-          // Verificar permisos segun doctipo del documento
-          if (document[0]["json_permisos_act_dir"] && document.length > 0) {
-            const json = JSON.parse(document[0]["json_permisos_act_dir"]);
-
-            const PermisoFullAccess = json.FullAccess;
-            const PermisoReadOnly = json.ReadOnly;
-
-            // Verificar si alguno de los arrays tiene elementos
-            if (
-              (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
-              (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
-            ) {
-              let tienePermiso = false;
-
-              // Verificar grupos de FullAccess
-              for (const grupoPermitidoFullAccess of PermisoFullAccess) {
-                if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
-                  tienePermiso = true;
-                  break;
-                }
-              }
-
-              // Si no tiene permiso FullAccess, verificar ReadOnly
-              if (!tienePermiso) {
-                for (const grupoPermitidoReadOnly of PermisoReadOnly) {
-                  if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
-                    tienePermiso = true;
-                    break;
-                  }
-                }
-              }
-
-              // Verificar si el documento pertenece al PersonalId del usuario
-              if (document[0]["persona_id"] && document[0]["persona_id"] == res.locals.PersonalId) {
-                tienePermiso = true;
-              }
-
-              if (!tienePermiso) {
-                throw new ClientException(`No tiene permisos para descargar este archivo. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
-              }
-            }
-          }
-
 
 
           finalurl = path.join(this.pathDocuments, document[0]["path"])

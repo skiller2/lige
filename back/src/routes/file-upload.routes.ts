@@ -75,7 +75,7 @@ const uploadPdf = multer({
 
 export const FileUploadRouter = Router();
 
-FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", authMiddleware.verifyToken, async (req, res, next) => {
+FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasAuthRespByDocId(true),authMiddleware.hasAuthDocumentoTipo(true)], async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
