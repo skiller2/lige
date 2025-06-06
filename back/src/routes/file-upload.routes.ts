@@ -75,7 +75,7 @@ const uploadPdf = multer({
 
 export const FileUploadRouter = Router();
 
-FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasAuthRespByDocId(true),authMiddleware.hasAuthDocumentoTipo(true)], async (req, res, next) => {
+FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId()], async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
@@ -138,7 +138,7 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
   });
 });
 
-FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
+FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId(), authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
   await fileUploadController.deleteImage(req, res, next);
 });
 
