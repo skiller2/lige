@@ -830,6 +830,34 @@ export class FileUploadController extends BaseController {
 
   }
 
+  static async getDocumentoIdRecibo(PersonalId: number, anio: number, mes: number) {
+    if (!PersonalId || !anio || !mes) throw new ClientException('Campos incompletos para obeter informacion del recibo: Personal, Anio y Mes')
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+      const doc = await queryRunner.query(`
+        SELECT docgen.doc_id
+        FROM lige.dbo.docgeneral docgen
+        LEFT JOIN lige.dbo.liqmaperiodo perliq ON perliq.periodo_id=docgen.periodo
+        WHERE docgen.persona_id=@0 AND docgen.doctipo_id='REC' and perliq.anio=@1 and perliq.mes=@2
+      `, [PersonalId, anio, mes])
+      if (doc.length > 0) {
+        await queryRunner.commitTransaction()
+        return doc[0].doc_id
+      } else {
+        await queryRunner.commitTransaction()
+        return 0
+      }
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      throw new ClientException('Error al obtener el documento de recibo: ' + error.message);
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+
 
 }
 

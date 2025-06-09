@@ -102,7 +102,8 @@
                   listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
                   listaAsistenciaObj.totalHoras | currency }}</span></li>
               <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas
-                  capacitación:{{listaAsistenciaObj.totalHorasC}}, no facturable:{{listaAsistenciaObj.totalHorasR}}</span></li>
+                  capacitación:{{listaAsistenciaObj.totalHorasC}}, no
+                  facturable:{{listaAsistenciaObj.totalHorasR}}</span></li>
             </nz-form-control>
           </nz-form-item>
 
@@ -232,33 +233,33 @@
         </ng-container>
 
         @if ($listaDescuentosObj | async; as listaDescuentosObj ) { @if (listaDescuentosObj.descuentos?.length) {
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Descuentos Objetivo</nz-form-label>
-            <nz-form-control>
-              <nz-table #descObj [nzData]="listaDescuentosObj.descuentos" nzSize="small" [nzPageSize]="100000000"
-                [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-                <thead>
-                  <tr>
-                    <th>Tipo Movimiento</th>
-                    <th>Detalle</th>
-                    <th>Descontar Coordinador</th>
-                    <th>Cuota</th>
-                    <th>Importe</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let data of descObj.data" class="">
-                    <td>{{ data.tipomov }}</td>
-                    <td>{{ data.desmovimiento }}</td>
-                    <td>{{ data.ObjetivoDescuentoDescontarCoordinador=='S'?'Si':'No' }}</td>
-                    <td>
-                      <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
-                        | currency }}</div>
-                    </td>
-                    <td class="text-right">{{ data.importe | currency }}</td>
-                  </tr>
-                </tbody>
-                <tfoot nzSummary>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Descuentos Objetivo</nz-form-label>
+          <nz-form-control>
+            <nz-table #descObj [nzData]="listaDescuentosObj.descuentos" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+              <thead>
+                <tr>
+                  <th>Tipo Movimiento</th>
+                  <th>Detalle</th>
+                  <th>Descontar Coordinador</th>
+                  <th>Cuota</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of descObj.data" class="">
+                  <td>{{ data.tipomov }}</td>
+                  <td>{{ data.desmovimiento }}</td>
+                  <td>{{ data.ObjetivoDescuentoDescontarCoordinador=='S'?'Si':'No' }}</td>
+                  <td>
+                    <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                      | currency }}</div>
+                  </td>
+                  <td class="text-right">{{ data.importe | currency }}</td>
+                </tr>
+              </tbody>
+              <tfoot nzSummary>
                 <tr>
                   <td></td>
                   <td></td>
@@ -267,11 +268,11 @@
                   <td class="text-right">{{listaDescuentosObjTotal | currency}}</td>
                 </tr>
               </tfoot>
-              </nz-table>
-            </nz-form-control>
-          </nz-form-item>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
         }}
-        
+
 
 
         <nz-form-item>
@@ -328,17 +329,20 @@
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
 
           <nz-form-control [nzSpan]="19">
-              <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
-                (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"  />
+            <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
+              (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel [anio]="selectedPeriod().year"
+              [mes]="selectedPeriod().month" />
           </nz-form-control>
         </nz-form-item>
         <nz-form-item
           *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotalG + listaCustodiasPerTotal > 0 || listaDescuentosPerTotalG > 0">
           <nz-form-label [nzSpan]="5">Retiro General</nz-form-label>
           <nz-form-control>
-            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal +  listaIngresosExtraPerTotalG -
+            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal +
+              listaIngresosExtraPerTotalG -
               listaDescuentosPerTotalG | currency }} </span>
-            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal + listaIngresosExtraPerTotalG | currency }} - {{
+            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal +
+              listaIngresosExtraPerTotalG | currency }} - {{
               listaDescuentosPerTotalG |
               currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras + listaCustodiasPerTotalHoras +
               listaIngresosPerTotalHoras}}</span>
@@ -364,11 +368,12 @@
                     nz-icon nzType="download"></span>Monotributo
                   {{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}</a></nz-list-item>
             </nz-list>
+           
             <nz-list nzBordered nzSize="small">
-              <nz-list-item *ngIf="selectedPersonalId > 0">
+              <nz-list-item *ngIf="selectedPersonalId > 0 && selectedDocumentoId > 0">
                 <a app-down-file
-                  httpUrl="/api/recibos/download/{{selectedPeriod().year}}/{{selectedPeriod().month}}/{{PersonalId}}"><span
-                    nz-icon nzType="download"></span>Recibo</a></nz-list-item>
+                  httpUrl="/api/file-upload/downloadFile/{{selectedDocumentoId}}/docgeneral/original"><span nz-icon
+                    nzType="download"></span>Recibo</a></nz-list-item>
             </nz-list>
           </nz-form-control>
         </nz-form-item>
@@ -403,7 +408,7 @@
           </nz-form-control>
         </nz-form-item>
 
-@if ($listaExcepcionesPer | async; as listaExcepcionesPer ) { @if (listaExcepcionesPer?.length) {
+        @if ($listaExcepcionesPer | async; as listaExcepcionesPer ) { @if (listaExcepcionesPer?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Excepción</nz-form-label>
@@ -463,8 +468,8 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-      }}
-@if ($listaAsistenciaPer | async; as listaAsistenciaPer ) { @if (listaAsistenciaPer.asistencia?.length) {
+        }}
+        @if ($listaAsistenciaPer | async; as listaAsistenciaPer ) { @if (listaAsistenciaPer.asistencia?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
@@ -533,13 +538,13 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-  }}
-@if ($listaIngresosPer | async; as listaIngresosPer ) { @if (listaIngresosPer.ingresos?.length) {
+        }}
+        @if ($listaIngresosPer | async; as listaIngresosPer ) { @if (listaIngresosPer.ingresos?.length) {
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Licencias</nz-form-label>
           <nz-form-control>
-            <nz-table #art42adminPer [nzData]="listaIngresosPer.ingresos" nzSize="small"
-              [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+            <nz-table #art42adminPer [nzData]="listaIngresosPer.ingresos" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
                   <th>Sucursal</th>
@@ -573,11 +578,11 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-      }}
-@if ($listaCustodiasPer | async; as listaCustodiasPer ) { @if (listaCustodiasPer.custodias?.length) {
+        }}
+        @if ($listaCustodiasPer | async; as listaCustodiasPer ) { @if (listaCustodiasPer.custodias?.length) {
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Custodias</nz-form-label>
-          <nz-form-control >
+          <nz-form-control>
             <nz-table #custPer [nzData]="listaCustodiasPer.custodias" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
@@ -614,14 +619,14 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-}}
-@if ($listaIngresosExtraPer | async; as listaIngresosExtraPer ) { @if (listaIngresosExtraPer.ingresos?.length) {
+        }}
+        @if ($listaIngresosExtraPer | async; as listaIngresosExtraPer ) { @if (listaIngresosExtraPer.ingresos?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Ingresos Extra</nz-form-label>
           <nz-form-control>
-            <nz-table #ingextraPer [nzData]="listaIngresosExtraPer.ingresos" nzSize="small"
-              [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+            <nz-table #ingextraPer [nzData]="listaIngresosExtraPer.ingresos" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
                   <th>Descripción
@@ -644,9 +649,9 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-      }}
+        }}
 
-@if ($listaDescuentosPer | async; as listaDescuentosPer ) { @if (listaDescuentosPer.descuentos?.length) {
+        @if ($listaDescuentosPer | async; as listaDescuentosPer ) { @if (listaDescuentosPer.descuentos?.length) {
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos General</nz-form-label>
           <nz-form-control>
@@ -683,9 +688,9 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-}}
+        }}
 
-@if ($listaDescuentosCoord | async; as listaDescuentosCoord ) { @if (listaDescuentosCoord.descuentos?.length) {
+        @if ($listaDescuentosCoord | async; as listaDescuentosCoord ) { @if (listaDescuentosCoord.descuentos?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos Coordinador</nz-form-label>
@@ -723,7 +728,7 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
-      }}
+        }}
 
       </form>
     </nz-tab>

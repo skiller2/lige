@@ -78,6 +78,9 @@ export class DetalleAsistenciaComponent {
 
   personalIdlist = signal([])
 
+  selectedDocumentoId = 0
+
+
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
@@ -212,7 +215,7 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras })
+        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras; this.selectedDocumentoId= data.documentoId })
 
 
         )))
