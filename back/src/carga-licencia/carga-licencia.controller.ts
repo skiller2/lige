@@ -956,16 +956,16 @@ export class CargaLicenciaController extends BaseController {
       const id = sit.PersonalSituacionRevistaId;
   
       // Situaciones Resvista validas
-      const situacionesValidas = [2, 11, 12, 20];
-      if (situacionesValidas.includes(id)) return false;
+      const situacionesValidas = [2, 11, 12, 20, 10];
+      if (!situacionesValidas.includes(id)) return false;
   
       const desde = new Date(sit.PersonalSituacionRevistaDesde);
       const hasta = new Date(sit.PersonalSituacionRevistaHasta);
-  
+    
       // Validar si hay superposicion con el período de la licencia
       return !(hasta < licenciaDesde || desde > licenciaHasta);
     });
-  
+
     if (situacionesInvalidas.length > 0) {
       throw new ClientException(
         `La persona se encontraba en una situación de revista no permitida durante el período de la licencia.`
