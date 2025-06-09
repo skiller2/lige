@@ -71,9 +71,6 @@ documentoRouter.post('/update', [
   documentoController.updateDocumento(req, res, next)
 })
 
-documentoRouter.delete('/delete', [
-  authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gSistemas'])
-], (req, res, next) => {
+documentoRouter.delete('/delete', [ authMiddleware.verifyToken, authMiddleware.hasAuthByDocId()], (req, res, next) => {
   documentoController.deleteArchivo(req, res, next)
 })
