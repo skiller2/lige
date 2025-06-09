@@ -249,25 +249,31 @@ export class FileUploadController extends BaseController {
   }
 
   static async getArchivosAnterioresBydocgeneral(queryRunner: QueryRunner, columnSearch: any, TipoSearch: any, id: any) {
+    const ids = id.split(',').map(x => x.trim())
+    let ArchivosAnteriores: any[] = []
 
-    let ArchivosAnteriores = await queryRunner.query(`
-          SELECT 
-                doc.doc_id AS id, 
-              doc.doctipo_id,
-              doc.persona_id,
-              doc.den_documento,
-              doc.objetivo_id,
-              doc.cliente_id,
-              doc.fec_doc_ven,
-              doc.path, 
-              'docgeneral' AS tableForSearch,
-              doc.nombre_archivo AS nombre
-          FROM lige.dbo.docgeneral doc
-          JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
-          WHERE 
-              doc.${columnSearch} = @0 AND
-              ('${columnSearch}'='doc_id' OR tipo.doctipo_id = @1) `,
-      [id, TipoSearch])
+    for (const singleId of ids) {
+      const result = await queryRunner.query(`
+        SELECT 
+            doc.doc_id AS id, 
+            doc.doctipo_id,
+            doc.persona_id,
+            doc.den_documento,
+            doc.objetivo_id,
+            doc.cliente_id,
+            doc.fec_doc_ven,
+            doc.path, 
+            'docgeneral' AS tableForSearch,
+            doc.nombre_archivo AS nombre
+        FROM lige.dbo.docgeneral doc
+        JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
+        WHERE 
+            doc.${columnSearch} = @0 AND
+            ('${columnSearch}' = 'doc_id' OR tipo.doctipo_id = @1)
+      `, [singleId, TipoSearch])
+
+      ArchivosAnteriores.push(...result)
+}
 
     return ArchivosAnteriores
 
@@ -395,7 +401,8 @@ export class FileUploadController extends BaseController {
       default:
         if (!doc_id) {
           // INSERT DOCUMENTO
-
+          console.log("entre insert.............. ", doc_id)
+          console.log("file", file)
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
@@ -406,7 +413,8 @@ export class FileUploadController extends BaseController {
           }
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-
+          console.log("newFilePath", newFilePath)
+          console.log("file.tempfilename", file.tempfilename)
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`

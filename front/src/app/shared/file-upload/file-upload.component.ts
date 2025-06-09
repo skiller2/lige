@@ -109,13 +109,12 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.textForSearchSelected.set( await firstValueFrom(this.apiService.getSelectTipoinFile()))
   }
 
-  async LoadArchivosAnteriores(idForSearh: number) {
+  async LoadArchivosAnteriores(idForSearh: any) {
 
     if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "") 
       this.tipoSelected.set(this.docTiposValidos()[0])
 
-    if (idForSearh> 0 && this.tipoSelected() != "" && this.tableForSearch() != "") {
-
+    if (idForSearh && this.tipoSelected() != "" && this.tableForSearch() != "") {
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
     
