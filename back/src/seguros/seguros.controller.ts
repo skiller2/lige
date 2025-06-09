@@ -744,7 +744,7 @@ UNION
         ps.PolizaSeguroFechaEndoso,
         ps.PolizaSeguroAnio,
         ps.PolizaSeguroMes
-      FROM PolizaSeguroNew ps
+      FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
        AND ${filterSql}
        ${orderBy}
@@ -773,11 +773,11 @@ UNION
       let result = await dataSource.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCod,per.PersonalId,per.PersonalApellidoNombre,
       cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso, tipseg.TipoSeguroCodigo,poliz.PolizaSeguroNroPoliza, tipseg.TipoSeguroNombre
-      FROM PersonalPolizaSeguroNew AS perpoliz
+      FROM PersonalPolizaSeguro AS perpoliz
       JOIN Personal per ON per.PersonalId = perpoliz.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId     
       AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      LEFT JOIN PolizaSeguroNew poliz ON      poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCod
+      LEFT JOIN PolizaSeguro poliz ON      poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCod
       LEFT JOIN TipoSeguro tipseg ON tipseg.TipoSeguroCodigo = poliz.TipoSeguroCodigo
       WHERE (1=1)
       AND ${filterSql}
@@ -815,7 +815,7 @@ UNION
         cs.CompaniaSeguroDescripcion,
         ps.PolizaSeguroAnio,
         ps.PolizaSeguroMes
-      FROM PolizaSeguroNew ps
+      FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
       WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
@@ -909,7 +909,7 @@ UNION
       //No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
       if (ind_recibos_generados[0].ind_recibos_generados == 1) {
 
-        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguroNew WHERE PolizaSeguroAnio = @0 and PolizaSeguroMes = @1 and TipoSeguroCodigo = @2`, [anio, mes, TipoSeguroCodigo])
+        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguro WHERE PolizaSeguroAnio = @0 and PolizaSeguroMes = @1 and TipoSeguroCodigo = @2`, [anio, mes, TipoSeguroCodigo])
         const polizaDocumentoId = existPolizaInPeriodo[0]?.DocumentoId
 
         //si existe un documento en el periodo cerrado, no se puede reprocesar
@@ -920,7 +920,7 @@ UNION
       }
 
       // Validar que no exista una póliza del mismo tipo en el periodo
-      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguroNew WHERE TipoSeguroCodigo = @0 AND PolizaSeguroAnio = @1 AND PolizaSeguroMes = @2`, [TipoSeguroCodigo, anio, mes])
+      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE TipoSeguroCodigo = @0 AND PolizaSeguroAnio = @1 AND PolizaSeguroMes = @2`, [TipoSeguroCodigo, anio, mes])
 
       if (polizaExistente[0].count > 0) {
         throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} para el periodo seleccionado. Solo se permite una póliza por tipo por periodo.`)
@@ -935,7 +935,7 @@ UNION
       resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
 
         await queryRunner.query(`
-          UPDATE PolizaSeguroNew SET
+          UPDATE PolizaSeguro SET
             TipoSeguroCodigo = @0,
             DocumentoId = @1,
             PolizaSeguroNroPoliza = @2,
@@ -972,7 +972,7 @@ UNION
       // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
       const result = await queryRunner.query(`
         SELECT COUNT(*) as count 
-        FROM PolizaSeguroNew ps
+        FROM PolizaSeguro ps
         WHERE ps.TipoSeguroCodigo = @0 
         AND ps.PolizaSeguroFechaEndoso = @1`, 
         [TipoSeguroCodigo, PolizaSeguroFechaEndoso])
@@ -987,14 +987,14 @@ UNION
 
          resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCodigo}-${polizaEndoso[0]}-${endoso[1]}`
 
-        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguroNew WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
         if(existPoliza[0]?.PolizaSeguroCodigo) {
           throw new ClientException(`Ya existe una póliza con este documento.`)
         }
 
         await queryRunner.query(`
-          INSERT INTO PolizaSeguroNew (
+          INSERT INTO PolizaSeguro (
             PolizaSeguroCodigo,
             TipoSeguroCodigo,
             DocumentoId,
@@ -1035,7 +1035,7 @@ UNION
 
       const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip)
 
-      const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguroNew WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+      const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
       resultPolizaSeguroCodigo  = PolizaSeguroCodigo ? PolizaSeguroCodigo : resultPolizaSeguroCodigo
@@ -1068,7 +1068,7 @@ UNION
 
   async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string,resultPolizaSeguroCodigo:string, usuario:string, ip:string){
 
-    await queryRunner.query(`DELETE FROM PersonalPolizaSeguroNew WHERE PolizaSeguroCod = @0`, [resultPolizaSeguroCodigo])
+    await queryRunner.query(`DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
     const notFoundInPersonalTable: number[] = [];
     const notFoundInPersonalSeguro: number[] = [];
@@ -1154,14 +1154,14 @@ UNION
   async addPersonalPolizaSeguro(resultPolizaSeguroCodigo:string, personalId:number, queryRunner:QueryRunner, usuario:string, ip:string){
 
 
-    await queryRunner.query(`INSERT into PersonalPolizaSeguroNew (
-      PolizaSeguroCod,
-      PersonalId,
-      PersonalPolizaAudFechaIng,
-      PersonalPolizaAudUsuarioIng,
-      PersonalPolizaAudIpIng
+    await queryRunner.query(`INSERT into PersonalPolizaSeguro (
+      PolizaSeguroCodigo,
+      PersonalPolizaSeguroPersonalId,
+      PersonalPolizaSeguroAudFechaIng,
+      PersonalPolizaSeguroAudUsuarioIng,
+      PersonalPolizaSeguroAudIpIng
     ) values (@0, @1, @2, @3, @4)`, [
-      resultPolizaSeguroCodigo,
+      resultPolizaSeguroCodigo.replace(/ /g, ''),
       personalId,
       new Date(),
       usuario,
