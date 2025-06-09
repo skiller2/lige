@@ -10,6 +10,8 @@ import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
 import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
+import {FileUploadController} from "./file-upload.controller";
+import { fileUploadController } from "./controller.module";
 
 interface DigestAuthOptions {
   username: string;
@@ -403,7 +405,7 @@ export class AsistenciaController extends BaseController {
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[], filterSql: any, PersonalLicenciaSePaga: boolean, ishistory: boolean) {
     if (anio == 0 || mes == 0)
       return []
-      
+
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
     let selectquery = `SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
@@ -1453,10 +1455,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
 
       let categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
-      if (ObjetivoId && ![1102,1646].includes(ObjetivoId)) {
+      if (ObjetivoId && ![1102, 1646].includes(ObjetivoId)) {
         categorias = categorias.filter((i: any) => i.TipoAsociadoId === 1)
       }
-console.log("categorias",categorias)
+      console.log("categorias", categorias)
       this.jsonRes({ categorias: categorias }, res);
     } catch (error) {
       return next(error)
@@ -1765,7 +1767,10 @@ console.log("categorias",categorias)
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.PersonalLicenciaAplicaPeriodoHorasMensuales).reduce((prev, curr) => prev + curr, 0)
 
-      this.jsonRes({ ingresos: result, total, totalHoras }, res);
+      // Objetngo el id del documento de recibo
+      const documentoId = await FileUploadController.getDocumentoIdByPeriodo(personalId, anio, mes, 'REC')
+
+      this.jsonRes({ ingresos: result, total, totalHoras, documentoId }, res);
     } catch (error) {
       return next(error)
     }
