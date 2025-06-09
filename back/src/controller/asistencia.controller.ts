@@ -1768,7 +1768,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const totalHoras = result.map(row => row.PersonalLicenciaAplicaPeriodoHorasMensuales).reduce((prev, curr) => prev + curr, 0)
 
       // Objetngo el id del documento de recibo
-      const documentoId = await FileUploadController.getDocumentoIdRecibo(personalId, anio, mes)
+      const documentoId = await FileUploadController.getDocumentoIdByPeriodo(personalId, anio, mes, 'REC')
 
       this.jsonRes({ ingresos: result, total, totalHoras, documentoId }, res);
     } catch (error) {
