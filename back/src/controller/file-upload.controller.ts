@@ -305,14 +305,14 @@ export class FileUploadController extends BaseController {
     const tableForSearch = file.tableForSearch
     const ind_descarga_bot: number = file.ind_descarga_bot ? 1 : 0
     let ArchivosAnteriores = []
-    let fileupate = null
-    console.log("file...", file)
+
+
     if (!tableForSearch)
       throw new ClientException(`No se especificó destino -tableForSearch-`)
     if (!doctipo_id)
       throw new ClientException(`No se especificó destino -doctipo_id-`)
 
-    if (file.update && (!file.tempfilename || file.tempfilename === '')) {
+    if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
       throw new ClientException(`No se especificó archivo a actualizar`)
     }
 
