@@ -249,7 +249,7 @@ export class FileUploadController extends BaseController {
   }
 
   static async getArchivosAnterioresBydocgeneral(queryRunner: QueryRunner, columnSearch: any, TipoSearch: any, id: any) {
-    const ids = id.split(',').map(x => x.trim())
+    const ids = String(id).split(',').map(x => x.trim())
     let ArchivosAnteriores: any[] = []
 
     for (const singleId of ids) {
@@ -438,7 +438,8 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-
+          console.log("entre update.............. ", doc_id)
+          console.log("file", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file.tempfilename && file.tempfilename != '') {
 
@@ -472,6 +473,7 @@ export class FileUploadController extends BaseController {
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner, 'doc_id', doctipo_id, doc_id)
 
         }
+        //throw new ClientException(`Error al actualizar el documento test`)
         return { doc_id, ArchivosAnteriores }
         break;
     }
