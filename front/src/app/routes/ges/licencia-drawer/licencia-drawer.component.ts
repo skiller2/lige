@@ -130,7 +130,11 @@ export class LicenciaDrawerComponent {
       vals.PersonalLicenciaAplicaPeriodoHorasMensuales = this.PersonalLicenciaAplicaPeriodoHorasMensuales()
 
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
-      this.fileUploadComponent().LoadArchivosAnteriores(vals.DocumentoId ? vals.DocumentoId + ',' + res.data?.list[0]?.DocumentoId : res.data?.list[0]?.DocumentoId)
+      const result = vals.DocumentoId ? vals.DocumentoId + ',' + res.data?.list[0]?.DocumentoId : res.data?.list[0]?.DocumentoId
+      vals.DocumentoId = result
+    
+      this.fileUploadComponent().LoadArchivosAnteriores(result)
+      this.ngForm().form.patchValue(vals)
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       //this.fileUploaded = false
