@@ -111,7 +111,6 @@ export class FileUploadController extends BaseController {
 
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
- 
           break;
         case 'temp':
           finalurl = `${process.env.PATH_DOCUMENTS}/temp/${documentId}`
@@ -134,8 +133,8 @@ export class FileUploadController extends BaseController {
       if (finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'thumb') {
 
         //finalurl = await this.pdfThumb(finalurl)
-        deleteFile = true
-        docname = docname.replace('.pdf', '.png')
+        ////deleteFile = true
+        //docname = docname.replace('.pdf', '.png')
       }
 
       res.download(finalurl, docname, async (error) => {
@@ -252,6 +251,7 @@ export class FileUploadController extends BaseController {
 
   static async getArchivosAnterioresBydocgeneral(queryRunner: QueryRunner, columnSearch: any, TipoSearch: any, id: any) {
 
+    console.log(".............................................id", id)
     const ids = String(id).split(',').map(x => x.trim())
     let ArchivosAnteriores: any[] = []
 
@@ -404,7 +404,6 @@ export class FileUploadController extends BaseController {
       default:
         if (!doc_id) {
           // INSERT DOCUMENTO
-          console.log("entre insert.............. ", doc_id)
           console.log("file", file)
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
 
@@ -441,7 +440,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("entre update.............. ", doc_id)
           console.log("file", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file.tempfilename && file.tempfilename != '') {
