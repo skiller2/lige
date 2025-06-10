@@ -72,24 +72,7 @@ const importeMontoRegex = [
 ];
 
 export class ImpuestosAfipController extends BaseController {
-  directory = process.env.PATH_MONOTRIBUTO || "tmp";
-  constructor() {
-    super();
-    if (!existsSync(this.directory)) {
-      mkdirSync(this.directory, { recursive: true });
-    }
-  }
-
-  async handleDownloadInformeByFiltro(req: Request, res: Response, next: NextFunction) {
-    try {
-      const periodo = getPeriodoFromRequest(req);
-      const filtro = getFiltroFromRequest(req);
-
-      const filesPath = this.directory + '/' + String(periodo.year)
-    } catch (error) {
-      return next(error)
-    }
-  }
+//  directory = process.env.PATH_MONOTRIBUTO || "tmp";
 
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
@@ -102,7 +85,6 @@ export class ImpuestosAfipController extends BaseController {
       const cantxpag = req.body.cantxpag
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const filesPath = this.directory + '/' + String(periodo.year)
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: String(periodo.year),
@@ -117,12 +99,14 @@ export class ImpuestosAfipController extends BaseController {
         .map((descuento, index) => {
           return {
             name: `${periodo.year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
+            doc_id:descuento.doc_id,
+            path:descuento.path,
             apellidoNombre: descuento.ApellidoNombre,
             GrupoActividadDetalle: descuento.GrupoActividadDetalle,
           };
         });
 
-      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, cantxpag);
+      const responsePDFBuffer = await this.PDFmergeFromFiles(files, cantxpag);
       const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
 
       SendFileToDownload(res, filename, responsePDFBuffer);
@@ -230,12 +214,18 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       des.PersonalOtroDescuentoImporteVariable montodescuento, 
     excep.PersonalExencionCUIT, 
  	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
+ 	 doc.doc_id, doc.path,
     2
      FROM PersonalImpuestoAFIP imp
 
       JOIN Personal per ON per.PersonalId = imp.PersonalId
      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
      LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
+
+     LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
+     LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = com.PersonalId AND doc.doctipo_id='MONOT' AND doc.periodo = peri.periodo_id
+
+     
 	
   
   
@@ -446,7 +436,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     let PersonalOtroDescuentoUltNro = Number(personalIDQuery.PersonalOtroDescuentoUltNro);
 
     const alreadyExists = await queryRunner.query(
-      `SELECT pag.PersonalComprobantePagoAFIPId, pag.PersonalComprobantePagoAFIPImporte  FROM PersonalComprobantePagoAFIP pag WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2`,
+      `SELECT pag.PersonalComprobantePagoAFIPId, pag.PersonalComprobantePagoAFIPImporte, pag.PersonalComprobantePagoAFIPAno,pag.PersonalComprobantePagoAFIPMes,doc.doc_id
+        FROM PersonalComprobantePagoAFIP pag 
+        LEFT JOIN lige.dbo.liqmaperiodo per ON per.anio = @1 AND per.mes = @2
+        LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = pag.PersonalId AND doc.doctipo_id='MONOT' AND doc.periodo = per.periodo_id
+        WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2
+`,
       [
         personalID,
         anioRequest,
@@ -455,9 +450,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
 
+    const doc_id = alreadyExists[0]?.doc_id    
+
+
     updateFile=false
     if (alreadyExists.length == 0) {
       const now = new Date();
+
+
 
       PersonalComprobantePagoAFIPUltNro++
       await queryRunner.query(
@@ -509,9 +509,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       updateFile=true
 
     } else {  //Hay uno cargado
-
-
-
       const PersonalComprobantePagoAFIPId = alreadyExists[0].PersonalComprobantePagoAFIPId    
       const PersonalComprobantePagoAFIPImporte = alreadyExists[0].PersonalComprobantePagoAFIPImporte
       if (PersonalComprobantePagoAFIPImporte != importeMonto) {
@@ -537,11 +534,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           tableForSearch: "docgeneral", 
           ind_descarga_bot: 1, 
           tempfilename: file.path, 
-          originalname: '', 
+          originalname: file.originalname, 
           fielname: '',
-          mimetype: 'content/pdf'
+          mimetype: file.mimetype
         } 
-
+/*
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
       const newFilePath = `${this.directory
         }/${anioRequest}/${anioRequest}-${mesRequest
@@ -551,13 +548,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (existsSync(newFilePath)) {
         unlinkSync(newFilePath)
       }
+*/
 
       if (pagenum == null) {
 //        copyFileSync(file.path, newFilePath);
-        await FileUploadController.handleDOCUpload(personalID, 0, 0, 0, new Date(), null, CUIT, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, CUIT, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
-
+        const fileUploadController = new FileUploadController()
         const pdfDoc = await PDFDocument.create();
         const srcDoc = await PDFDocument.load(currentFileBuffer);
 
@@ -566,7 +564,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         pdfDoc.addPage(copiedPage);
         const buffer = await pdfDoc.save();
-        writeFileSync(newFilePath, buffer);
+
+        fileObj.tempfilename = fileUploadController.getRandomTempFileName('')
+
+        writeFileSync(fileObj.tempfilename, buffer);
+        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, CUIT, fileObj, usuario, ip, queryRunner)
+
       }
     }
   }
@@ -771,7 +774,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
   ) {
     try {
       const formattedMonth = month.padStart(2, "0");
-      const filesPath = this.directory + '/' + year
 
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
@@ -796,10 +798,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
             apellidoNombre: descuento.ApellidoNombre,
             GrupoActividadDetalle: descuento.GrupoActividadDetalle,
+            path: descuento.path
           };
         });
 
-      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, 4);
+      const responsePDFBuffer = await this.PDFmergeFromFiles(files, 4);
 
       const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
       const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
@@ -820,8 +823,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       name: string;
       apellidoNombre: string;
       GrupoActividadDetalle: string;
+      path:string
     }[],
-    filesPath: string,
     cantxpag: number
   ) {
     const newDocument = await PDFDocument.create();
@@ -838,14 +841,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const filePath = filesPath + '/' + file.name
-      const fileExists = existsSync(filePath);
+      const fileExists = existsSync(file.path);
 
       const pageWidth = lastPage.getWidth();
       const pageHeight = lastPage.getHeight();
 
       if (fileExists) {
-        currentFileBuffer = readFileSync(filePath);
+        currentFileBuffer = readFileSync(file.path);
         currentFilePDF = await PDFDocument.load(currentFileBuffer);
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
@@ -1048,10 +1050,15 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         `SELECT DISTINCT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
-        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, doc.doc_id, doc.path,
         1
         FROM Personal per
         JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
+
+        LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
+        LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = com.PersonalId AND doc.doctipo_id='MONOT' AND doc.periodo = peri.periodo_id
+
+
         LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
         LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
@@ -1063,17 +1070,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
+      const path = comprobante.path
 
-      const filename = `${year}-${month.padStart(
-        2,
-        "0"
-      )}-${cuit}-${personalId}.pdf`;
-      const downloadPath = `${this.directory}/${year}/${filename}`;
+      const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
 
-      if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo no existe (${downloadPath}).`);
+      if (!existsSync(path))
+        throw new ClientException(`El archivo de monotributo no existe ${month}/${year}, CUIT:${cuit} .`);
 
-      const uint8Array = readFileSync(downloadPath);
+      const uint8Array = readFileSync(path);
 
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);

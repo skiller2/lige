@@ -184,10 +184,3 @@ impuestosAfipRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.ha
   impuestosAfipController.getDescuentosGridList(req, res, next);
 });
 
-impuestosAfipRouter.post(
-  "/download/informe",
-  [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','responsables'])],
-  (req, res, next) => {
-    impuestosAfipController.handleDownloadInformeByFiltro(req, res, next);
-  }
-);
