@@ -79,7 +79,7 @@ FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddlew
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
-//Se agrego para solucionar un tema puntual en la descarga de imágenes de los procesos de credencuales, pero no deberían existir
+//Se agrego para solucionar un tema puntual en la descarga de imágenes de los procesos de credencuales y descarga de documentos en el BOT, pero no deberían existir, hay que revisar
 FileUploadRouter.get("/downloadImg/:id/:tableForSearch/:filename",  async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });

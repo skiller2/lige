@@ -25,6 +25,9 @@
           <li nz-menu-item>
             <span app-reporte="Descargas Documentos Bot Por CUIT"></span>
           </li>
+          <li nz-menu-item>
+            <span app-reporte="Descarga Recibos Bot"></span>
+          </li>
         </ul>
       </li>
     </ul>
@@ -37,8 +40,9 @@
       <button nz-button nzType="default" (click)="openDrawerforDetalle()" [disabled]="docId() == 0" nz-tooltip
         nzTooltipTitle="{{ 'app.detail' | i18n }}"><span nz-icon nzType="file" nzTheme="outline"></span></button>
       <button nz-button nzType="default" [disabled]="docId() == 0" nz-tooltip [nzLoading]="loadingDelete()"
-        nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?" (nzOnConfirm)="deleteDocumento()"
-        nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
+        nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
+        (nzOnConfirm)="deleteDocumento()" nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete"
+          nzTheme="outline"></span></button>
     </nz-button-group>
   </div>
 
@@ -49,9 +53,10 @@
       <ng-template nz-tab>
         @if(columns$ | async; as columnas) {
 
-        <shared-filtro-builder [startFilters]="startFilters()"  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+        <shared-filtro-builder [startFilters]="startFilters()" [fieldsToSelect]="columnas"
+          (optionsChange)="listOptionsChange($event)" />
 
-        <div class="gridContainer container-fluid" >
+        <div class="gridContainer container-fluid">
           <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReady($event)"
@@ -81,13 +86,14 @@
 </nz-card>
 
 @defer( when visibleAlta()){
-  <app-documento-drawer [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-documento-drawer>
+<app-documento-drawer [(visible)]="visibleAlta" (onAddorUpdate)="onAddorUpdate($event)"></app-documento-drawer>
 }
 
 @defer( when visibleDetalle()){
-  <app-documento-drawer [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-documento-drawer>
+<app-documento-drawer [(visible)]="visibleDetalle" [docId]=docId() [disabled]=true></app-documento-drawer>
 }
 
 @defer( when visibleEdit()){
-  <app-documento-drawer [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)" [docId]=docId()></app-documento-drawer>
+<app-documento-drawer [(visible)]="visibleEdit" (onAddorUpdate)="onAddorUpdate($event)"
+  [docId]=docId()></app-documento-drawer>
 }

@@ -4,7 +4,7 @@ import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON
 import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { formatDate, formatNumber } from '@angular/common';
-import { collectionFormatter, ExternalResource, FieldType, Formatters,Column, Editors } from '@slickgrid-universal/common';
+import { collectionFormatter, ExternalResource, FieldType, Formatters, Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
@@ -18,9 +18,9 @@ export class ApiService {
   private http = inject(_HttpClient)
   private injector = inject(Injector)
   private locale = inject(LOCALE_ID)
-  
+
   processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files,fechaDesde,banco_id }).pipe(
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files, fechaDesde, banco_id }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -40,7 +40,7 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
-  
+
 
   getTipoMovimientoById(TipoMovimiento: string) {
     return this.http.get(`/api/liquidaciones/tipo_movimiento_by_id/${TipoMovimiento}`).pipe(
@@ -76,7 +76,7 @@ export class ApiService {
 
 
 
-  getArchivosAnteriores(id:number, TipoSearch:string, keyField:string ,TableSearch:string) {
+  getArchivosAnteriores(id: number, TipoSearch: string, keyField: string, TableSearch: string) {
     return this.http.get(`/api/file-upload/archivos_anteriores/${id}/${TipoSearch}/${keyField}/${TableSearch}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
@@ -87,7 +87,7 @@ export class ApiService {
   }
 
   getSelectTipoinFile() {
-    return  this.http.get(`/api/file-upload/select_tipo_in_file`).pipe(
+    return this.http.get(`/api/file-upload/select_tipo_in_file`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -142,7 +142,7 @@ export class ApiService {
       autoCommitEdit: false,
       //    presets: { columns: [{ columnId: '', width: 0 }]},
       autoResize: {
-        autoHeight:false,
+        autoHeight: false,
         container,
         rightPadding: 1,    // defaults to 0
         bottomPadding: 45,  // defaults to 20
@@ -324,13 +324,13 @@ export class ApiService {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
         const mapped = res.data.map((col: Column) => {
-          col.editor =  { model: Editors['text'] }
+          col.editor = { model: Editors['text'] }
 
-          if(String(col.formatter)=='collectionFormatter')
+          if (String(col.formatter) == 'collectionFormatter')
             col.formatter = collectionFormatter
 
-            if (String(col.formatter) == 'complexObject')
-            col.formatter= Formatters['complexObject']
+          if (String(col.formatter) == 'complexObject')
+            col.formatter = Formatters['complexObject']
 
           if (col.type == 'dateTime') {
             // col.formatter = Formatters['dateTimeShortEuro']
@@ -352,7 +352,7 @@ export class ApiService {
             col.type = 'float'
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
-            
+
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [Formatters['decimal']], thousandSeparator: '.', decimalSeparator: ',' }
@@ -419,31 +419,31 @@ export class ApiService {
 
   getValidateCuit(cuit: any) {
     return this.http.get(`/api/acceso-bot/validatecuit/${cuit}`,
-      {},{context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+      {}, { context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
         map((res: any) => res.data)
       )
   }
 
-  getValidateRecibo(recibo: any, cuit:any) {
-    return this.http.get(`/api/acceso-bot/validaterecibo/${recibo}/${cuit}`, {}, {context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+  getValidateRecibo(recibo: any, cuit: any) {
+    return this.http.get(`/api/acceso-bot/validaterecibo/${recibo}/${cuit}`, {}, { context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: any) => res.data)
     );
   }
 
   getValidateCBU(cbu: any, cuit: any, encTelNro: any) {
-    return this.http.get(`/api/acceso-bot/validatecbu/${cbu}/${cuit}/${encTelNro}`,{}, {context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+    return this.http.get(`/api/acceso-bot/validatecbu/${cbu}/${cuit}/${encTelNro}`, {}, { context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: any) => res.data)
     )
   }
 
   getValidateEncoded(encTelNro: any) {
-    return this.http.get(`/api/acceso-bot/validateencoded/${encTelNro}`,{}, {context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+    return this.http.get(`/api/acceso-bot/validateencoded/${encTelNro}`, {}, { context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: any) => res.data)
     )
   }
 
   sendMessage(dst: string, msg: string) {
-    console.log('envio',dst,msg)
+    console.log('envio', dst, msg)
     return this.http.post<ResponseJSON<any>>(`mess/api/personal/sendmsg`, { dst, msg }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -452,7 +452,7 @@ export class ApiService {
 
 
   getIdentCode(identData: string, encTelNro: string): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, { identData, encTelNro },{observe:'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+    return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, { identData, encTelNro }, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -586,7 +586,7 @@ export class ApiService {
   }
 
   getListSeguros(filters: any) {
-    const parameter = filters 
+    const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/seguros/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -595,7 +595,7 @@ export class ApiService {
   }
 
 
-  getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId:any) {
+  getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId: any) {
     console.log("personalId ", personalId)
     const parameter = { filters, anio, mes, personalId }
     return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listHistory', parameter).pipe(
@@ -603,10 +603,10 @@ export class ApiService {
       catchError(() => of([]))
     );
 
-    
+
   }
 
-  getListCursosHistory(filters: any, anio: any, mes: any, CursoHabilitacionId:any, CentroCapacitacionSedeId:any) {
+  getListCursosHistory(filters: any, anio: any, mes: any, CursoHabilitacionId: any, CentroCapacitacionSedeId: any) {
 
     const parameter = { filters, anio, mes, CursoHabilitacionId, CentroCapacitacionSedeId }
     return this.http.post<ResponseJSON<any>>('/api/curso/listHistory', parameter).pipe(
@@ -614,10 +614,10 @@ export class ApiService {
       catchError(() => of([]))
     );
 
-    
+
   }
 
-  getListInstitucionesHistory(filters: any, CentroCapacitacionId:any) {
+  getListInstitucionesHistory(filters: any, CentroCapacitacionId: any) {
 
     const parameter = { filters, CentroCapacitacionId }
     return this.http.post<ResponseJSON<any>>('/api/instituciones/listHistory', parameter).pipe(
@@ -625,22 +625,22 @@ export class ApiService {
       catchError(() => of([]))
     );
 
-    
+
   }
 
   getListGrupoActividadGrupos(filters: any) {
-    const parameter =  filters 
+    const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listGrupos', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
-    
+
   }
 
-  getListCargaContratoHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
+  getListCargaContratoHistory(filters: any, anio: any, mes: any, ObjetivoId: any, ClienteElementoDependienteId: any, ClienteId: any) {
 
-    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
+    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId, ClienteId }
     return this.http.post<ResponseJSON<any>>('/api/objetivos/listHistoryContrato', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -648,9 +648,9 @@ export class ApiService {
 
   }
 
-  getListCargaGrupoActividadHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
+  getListCargaGrupoActividadHistory(filters: any, anio: any, mes: any, ObjetivoId: any, ClienteElementoDependienteId: any, ClienteId: any) {
 
-    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
+    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId, ClienteId }
     return this.http.post<ResponseJSON<any>>('/api/objetivos/listHistoryGrupoActividad', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -658,9 +658,9 @@ export class ApiService {
 
   }
 
-  getListCargaDomicilioHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
+  getListCargaDomicilioHistory(filters: any, anio: any, mes: any, ObjetivoId: any, ClienteElementoDependienteId: any, ClienteId: any) {
 
-    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
+    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId, ClienteId }
     return this.http.post<ResponseJSON<any>>('/api/objetivos/listHistoryDomicilio', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -668,7 +668,7 @@ export class ApiService {
 
   }
 
-  
+
   getListHorasLicencia(filters: any, anio: any, mes: any) {
     const parameter = { filters, anio, mes }
     return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listhoras', parameter).pipe(
@@ -685,11 +685,11 @@ export class ApiService {
   }
 
   getDocumentos(options: any) {
-    if (!options.filtros.length){
+    if (!options.filtros.length) {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
-    const parameter = {options}
+    const parameter = { options }
     return this.http.post<ResponseJSON<any>>('/api/documento/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -707,8 +707,8 @@ export class ApiService {
 
   }
 
-  setDeleteImportacion(deleteId: any, anio:number,mes:number) {
-    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', {deleteId, anio,mes}).pipe(
+  setDeleteImportacion(deleteId: any, anio: number, mes: number) {
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', { deleteId, anio, mes }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -739,7 +739,7 @@ export class ApiService {
 
   }
 
-  
+
 
   setmovimientosAutomaticos(anio: number, mes: number) {
     const parameter = { anio, mes }
@@ -761,7 +761,7 @@ export class ApiService {
     )
 
   }
-  
+
   setingresoPorCustodia(anio: number, mes: number) {
     const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Ingreso por Custodia`);
@@ -960,7 +960,7 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`/mess/api/chatbot/delay`, { ms }).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
-  addAdelanto(adelanto: { PersonalId: string; monto: number, anio:number,mes:number }) {
+  addAdelanto(adelanto: { PersonalId: string; monto: number, anio: number, mes: number }) {
     return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
@@ -1031,7 +1031,7 @@ export class ApiService {
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
 
-    ) 
+    )
 
   }
 
@@ -1055,12 +1055,12 @@ export class ApiService {
     )
 
   }
-  
+
   getUrlTest(url: any): Observable<Blob> {
     console.log("Solicitando archivo para URL:", url);
-  
+
     return this.http.get(`/api/acceso-bot/downloadImagenDni/${url}`, {
-      responseType: 'blob', 
+      responseType: 'blob',
     }).pipe(
       tap(() => console.log("Archivo recibido con éxito")),
       catchError((error) => {
@@ -1078,27 +1078,27 @@ export class ApiService {
   }
 
   deleteLicencia(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/carga-licencia`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/carga-licencia`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
 
   }
 
   deleteEstudio(vals: any) {
-  
+
     return this.http.post<ResponseJSON<any>>(`/api/estudio/detele`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
   deleteCurso(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/curso`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/curso`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
 
   deleteCliente(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/clientes`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/clientes`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
@@ -1114,7 +1114,7 @@ export class ApiService {
 
 
   deleteObjetivos(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/objetivos`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/objetivos`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
@@ -1122,14 +1122,14 @@ export class ApiService {
 
 
   deleteProducto(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/precios-productos`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/precios-productos`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
 
   deleteGrupoActividadGrupo(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/grupo`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/grupo`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
@@ -1138,16 +1138,16 @@ export class ApiService {
 
   deleteSede(CentroCapacitacionId: any, CentroCapacitacionSedeId: any) {
     let vals = [CentroCapacitacionId, CentroCapacitacionSedeId]
-    return this.http.delete<ResponseJSON<any>>(`/api/instituciones/deletesede`,  vals ).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/instituciones/deletesede`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
 
-  deleteGrupoActividadResponsables(GrupoActividadJerarquicoId: any, GrupoActividadId:any) {
+  deleteGrupoActividadResponsables(GrupoActividadJerarquicoId: any, GrupoActividadId: any) {
 
-    let vals = [GrupoActividadJerarquicoId,GrupoActividadId]
-    return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/responsables`,  vals ).pipe(
+    let vals = [GrupoActividadJerarquicoId, GrupoActividadId]
+    return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/responsables`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
@@ -1158,12 +1158,12 @@ export class ApiService {
     const parameter = [deleteId]
 
     return this.http.delete<ResponseJSON<any>>('/api/estudio/deleteArchivo', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),                
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  deleteArchivosImagen(deleteId: number, tableSearch:string) {
-    const parameter:any[] = [deleteId, tableSearch]
+  deleteArchivosImagen(deleteId: number, tableSearch: string) {
+    const parameter: any[] = [deleteId, tableSearch]
 
     return this.http.delete<ResponseJSON<any>>('/api/file-upload/deleteImage', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1240,7 +1240,7 @@ export class ApiService {
     )
   }
 
-  updateAccess(parameters:any) {
+  updateAccess(parameters: any) {
     return this.http.post<ResponseJSON<any>>(`/api/acceso-bot`, parameters).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1292,44 +1292,44 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, personalId).pipe(map(res => res.data));
   }
 
-  setEstado(parameter: any){
+  setEstado(parameter: any) {
     return this.http.post<ResponseJSON<any>>('/api/custodia/setestado', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  deleteArchivoPersonal(personalId: any, tipo:number) {
-    return this.http.delete<ResponseJSON<any>>('/api/personal/deleteArchivo', {personalId, tipo}).pipe(
+  deleteArchivoPersonal(personalId: any, tipo: number) {
+    return this.http.delete<ResponseJSON<any>>('/api/personal/deleteArchivo', { personalId, tipo }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
 
-  addPersonal(parameter: any){
+  addPersonal(parameter: any) {
     return this.http.post<ResponseJSON<any>>('/api/personal/add', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     );
   }
 
-  updatePersonal(id:number, parameter: any){
+  updatePersonal(id: number, parameter: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/update/${id}`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     );
   }
 
-  getListaObjetivoCustodia(options: any, periodo:Date){
-    if (!periodo && !options.filtros.length){
+  getListaObjetivoCustodia(options: any, periodo: Date) {
+    if (!periodo && !options.filtros.length) {
       this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<any>>(`api/custodia/list`, {options, periodo})
+      .post<ResponseJSON<any>>(`api/custodia/list`, { options, periodo })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
-  
-  setSitRevista(PersonalId:number, values:any){
+
+  setSitRevista(PersonalId: number, values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/setsitrevista/${PersonalId}`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
@@ -1348,69 +1348,69 @@ export class ApiService {
     );
   }
 
-  setCategoria(personalId:number, values:any){
+  setCategoria(personalId: number, values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/setcategoria/${personalId}`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  setGrupoActividadPersonal(PersonalId:number, values:any){
+  setGrupoActividadPersonal(PersonalId: number, values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/setgrupactividad/${PersonalId}`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  setPersonalBanco(PersonalId:number, values:any){
+  setPersonalBanco(PersonalId: number, values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/setbanco/${PersonalId}`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  addDocumento( values:any){
+  addDocumento(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/documento/add`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  updateDocumento( values:any){
+  updateDocumento(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/documento/update`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  getDescuentosPersonal(options: any, anio:number, mes:number){
-    if (!anio && !mes && !options.filtros.length){
+  getDescuentosPersonal(options: any, anio: number, mes: number) {
+    if (!anio && !mes && !options.filtros.length) {
       this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/personal`, {options, anio, mes})
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/personal`, { options, anio, mes })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
 
-  getDescuentosObjetivos(options: any, anio:number, mes:number){
+  getDescuentosObjetivos(options: any, anio: number, mes: number) {
     if (!anio && !mes) return of([]);
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/objetivos`, {options, anio, mes})
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/objetivos`, { options, anio, mes })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
 
-  getDescuentosPrepaga(options: any, anio:number, mes:number){
+  getDescuentosPrepaga(options: any, anio: number, mes: number) {
     if (!anio && !mes) return of([]);
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, {options, anio, mes})
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, { options, anio, mes })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
 
-  getDescuentosStock(options: any, anio:number, mes:number){
+  getDescuentosStock(options: any, anio: number, mes: number) {
     if (!anio && !mes) return of([]);
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, {options, anio, mes})
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, { options, anio, mes })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
@@ -1428,7 +1428,7 @@ export class ApiService {
   getListPolizaSeguro(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/seguros/list-poliza', parameter).pipe(
-      map((res: { data: any; }) => res.data), 
+      map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
   }
@@ -1440,7 +1440,7 @@ export class ApiService {
       catchError(() => of([]))
     );
   }
-  
+
 
   getListInstituciones(filters: any) {
     const parameter = filters
@@ -1450,38 +1450,38 @@ export class ApiService {
     );
   }
 
-  setEstudio( values:any){
+  setEstudio(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/estudio/setestudio`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
-  
-  setCursos( values:any){
+
+  setCursos(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/curso/setcurso`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  
-  setInstituciones( values:any){
+
+  setInstituciones(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/instituciones/setinstitucion`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  setPolizaSeguro( values:any){
+  setPolizaSeguro(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/seguros/setpoliza`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  setInstitucionesSedes( values:any){
+  setInstitucionesSedes(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/instituciones/setsede`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
-  
-  setListCursos( filters:any){
+
+  setListCursos(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/curso/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
@@ -1489,21 +1489,20 @@ export class ApiService {
     );
   }
 
-  deleteDocumento(deleteId: any) {
-    const parameter = [deleteId]
-
-    return this.http.delete<ResponseJSON<any>>('/api/documento/delete', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
+  deleteDocumento(deleteId: number) {
+    const url = `/api/documento/delete/${deleteId}`;
+    return this.http.delete<ResponseJSON<any>>(url).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
   }
 
-  unsubscribeCBUs(PersonalId:number){
-    return this.http.post<ResponseJSON<any>>(`/api/personal/unsubscribe/cbu`, {PersonalId}).pipe(
+  unsubscribeCBUs(PersonalId: number) {
+    return this.http.post<ResponseJSON<any>>(`/api/personal/unsubscribe/cbu`, { PersonalId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  addDescuento(values:any){
+  addDescuento(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/add`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
@@ -1515,25 +1514,25 @@ export class ApiService {
     )
   }
 
-  updateDescuento(values:any){
+  updateDescuento(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/update`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  cancellationPersonalOtroDescuento(id:number, PersonalId:number){
-    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/personal/`, {id, PersonalId}).pipe(
+  cancellationPersonalOtroDescuento(id: number, PersonalId: number) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/personal/`, { id, PersonalId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  cancellationObjetivoDescuento(id:number, ObjetivoId:number){
-    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/objetivo/`, {id, ObjetivoId}).pipe(
+  cancellationObjetivoDescuento(id: number, ObjetivoId: number) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/objetivo/`, { id, ObjetivoId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  addPersonalActa(personalId:number, acta:any){
+  addPersonalActa(personalId: number, acta: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/acta/add/${personalId}`, acta).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
@@ -1542,7 +1541,7 @@ export class ApiService {
   getActas(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/actas/list', parameter).pipe(
-      map((res: { data: any; }) => res.data), 
+      map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
   }
