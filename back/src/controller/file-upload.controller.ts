@@ -111,6 +111,7 @@ export class FileUploadController extends BaseController {
 
           finalurl = path.join(this.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
+ 
           break;
         case 'temp':
           finalurl = `${process.env.PATH_DOCUMENTS}/temp/${documentId}`
@@ -131,7 +132,8 @@ export class FileUploadController extends BaseController {
       }
 
       if (finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'thumb') {
-        finalurl = await this.pdfThumb(finalurl)
+
+        //finalurl = await this.pdfThumb(finalurl)
         deleteFile = true
         docname = docname.replace('.pdf', '.png')
       }
@@ -249,6 +251,7 @@ export class FileUploadController extends BaseController {
   }
 
   static async getArchivosAnterioresBydocgeneral(queryRunner: QueryRunner, columnSearch: any, TipoSearch: any, id: any) {
+
     const ids = String(id).split(',').map(x => x.trim())
     let ArchivosAnteriores: any[] = []
 
