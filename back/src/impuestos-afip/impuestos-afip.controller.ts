@@ -44,6 +44,7 @@ import {
   getPeriodoFromRequest,
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 
 
@@ -413,7 +414,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     pagenum,
     forzado: boolean,
     ip:string,
-    usuarioId:number
+    usuarioId:number,
+    usuario:string
   ) {
     let updateFile = false
   
@@ -469,6 +471,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           importeMonto
         ]
       );
+
+      
 
       if (PersonalExencionCUIT != 1) {
         PersonalOtroDescuentoUltNro++
@@ -528,6 +532,16 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     }
 
     if (updateFile || forzado) {
+        const fileObj = {
+          doctipo_id: "MONOT", 
+          tableForSearch: "docgeneral", 
+          ind_descarga_bot: 1, 
+          tempfilename: file.path, 
+          originalname: '', 
+          fielname: '',
+          mimetype: 'content/pdf'
+        } 
+
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
       const newFilePath = `${this.directory
         }/${anioRequest}/${anioRequest}-${mesRequest
@@ -539,7 +553,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       }
 
       if (pagenum == null) {
-        copyFileSync(file.path, newFilePath);
+//        copyFileSync(file.path, newFilePath);
+        await FileUploadController.handleDOCUpload(personalID, 0, 0, 0, new Date(), null, CUIT, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
 
@@ -586,7 +601,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         await queryRunner.startTransaction()
         const usuarioId = await this.getUsuarioId(res,queryRunner)
         const ip = this.getRemoteAddress(req)
-   
+        const usuario = res.locals.userName
+
         await this.insertPDF(
           queryRunner,
           CUIT,
@@ -597,7 +613,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           null,
           forzado,
           ip,
-          usuarioId
+          usuarioId,
+          usuario
         );
         await queryRunner.commitTransaction()
 
@@ -673,6 +690,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             await queryRunner.startTransaction()
             const usuarioId = await this.getUsuarioId(res,queryRunner)
             const ip = this.getRemoteAddress(req)
+            const usuario = res.locals.userName
+
         
             await this.insertPDF(
               queryRunner,
@@ -683,7 +702,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               file,
               pagenum,
               forzado,
-              ip,usuarioId
+              ip,usuarioId,usuario
             );
             await queryRunner.commitTransaction()
           } catch (err: any) {
