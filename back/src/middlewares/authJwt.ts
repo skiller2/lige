@@ -104,45 +104,42 @@ export class AuthMiddleware {
       await queryRunner.connect();
       await queryRunner.startTransaction();
       try {
-        
+
         const stmActual = new Date();
         const ResponsablePersonalId = res.locals.PersonalId;
         const documentId = req.params.id;
-
-        // console.log('documentId', documentId, 'params -----', req);
-        // if (!documentId) return res.status(400).json({ msg: "Falta el id del documento" });
-
-        // Verificar existencia del documento
-        const Documento = await queryRunner.query(
-          ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir
+        if (documentId) {
+          // Verificar existencia del documento
+          const Documento = await queryRunner.query(
+            ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir
             FROM lige.dbo.docgeneral docgen
             LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
             WHERE docgen.doc_id = @0`,
-          [documentId]
-        );
+            [documentId]
+          );
 
-        if (Documento.length === 0) return next();
+          if (Documento.length === 0) return next();
 
-        const doc = Documento[0];
+          const doc = Documento[0];
 
-        // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
-        if (doc.doc_id && !doc.persona_id && !doc.json_permisos_act_dir) return next();
+          // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
+          if (doc.doc_id && !doc.persona_id && !doc.json_permisos_act_dir) return next();
 
-        const DocumentoPersonalId = doc.persona_id;
-        const anio = stmActual.getFullYear();
-        const mes = stmActual.getMonth() + 1;
+          const DocumentoPersonalId = doc.persona_id;
+          const anio = stmActual.getFullYear();
+          const mes = stmActual.getMonth() + 1;
 
-        // Es el dueño del documento
-        if (ResponsablePersonalId == DocumentoPersonalId) return next();
-        if (ResponsablePersonalId < 1) return next();
+          // Es el dueño del documento
+          if (ResponsablePersonalId == DocumentoPersonalId) return next();
+          if (ResponsablePersonalId < 1) return next();
 
-        // Verificar permisos a través de grupos de actividad
+          // Verificar permisos a través de grupos de actividad
 
-        const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
-        const listGrupos = grupos.map(row => row.GrupoActividadId);
+          const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+          const listGrupos = grupos.map(row => row.GrupoActividadId);
 
-        if (listGrupos.length > 0) {
-          const resPers = await queryRunner.query(`
+          if (listGrupos.length > 0) {
+            const resPers = await queryRunner.query(`
             SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
             WHERE gap.GrupoActividadPersonalPersonalId = @0  
             AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
@@ -157,40 +154,48 @@ export class AuthMiddleware {
             AND gap.GrupoActividadJerarquicoComo = 'J'
           `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
 
-          if (resPers.length > 0) return next();
-        }
-
-        // Si no cumple ninguna condición de autorización
-        // return res.status(403).json({ msg: "No tiene autorización para ver o descargar este documento" });
-
-        // Verificar permisos por tipo de documento
-
-        if (doc.json_permisos_act_dir) {
-          let parsed: { FullAccess?: string[]; ReadOnly?: string[] };
-          try {
-            parsed = JSON.parse(doc.json_permisos_act_dir);
-          } catch (e) {
-            // Si el JSON está mal formado, devuelvo 403
-            return res.status(403).json({ msg: "Permisos del tipo de documento mal formados" });
+            if (resPers.length > 0) return next();
           }
 
-          const PermisoFullAccess = Array.isArray(parsed.FullAccess) ? parsed.FullAccess : [];
-          const PermisoReadOnly = Array.isArray(parsed.ReadOnly) ? parsed.ReadOnly : [];
+          // Si no cumple ninguna condición de autorización
+          // return res.status(403).json({ msg: "No tiene autorización para ver o descargar este documento" });
 
-          const gruposRequeridos = [...PermisoFullAccess, ...PermisoReadOnly];
+          // Verificar permisos por tipo de documento
 
-          if (gruposRequeridos.length === 0) return res.status(403).json({ msg: `No tiene permiso para acceder a este documento. Este documento requiere pertenecer a alguno de los siguientes grupos: ninguno definido.` });
+          if (doc.json_permisos_act_dir) {
+            let parsed: { FullAccess?: string[]; ReadOnly?: string[] };
+            try {
+              parsed = JSON.parse(doc.json_permisos_act_dir);
+            } catch (e) {
+              // Si el JSON está mal formado, devuelvo 403
+              return res.status(403).json({ msg: "Permisos del tipo de documento mal formados" });
+            }
 
-          for (const grupo of gruposRequeridos) {
-            const tiene = await BaseController.hasGroup(req, grupo);
-            if (tiene) return next();
-          }
+            const PermisoFullAccess = Array.isArray(parsed.FullAccess) ? parsed.FullAccess : [];
+            const PermisoReadOnly = Array.isArray(parsed.ReadOnly) ? parsed.ReadOnly : [];
 
-          return res.status(403).json({ msg: `No tiene permiso para acceder al documento. Debe contar con los siguientes permisos: ${gruposRequeridos.join(", ")}` });
-        } else next(); // TODO: En caso de que no haya json_permisos_act_dir y no sea responsable, se deja pasar el acceso?
+            const gruposRequeridos = [...PermisoFullAccess, ...PermisoReadOnly];
 
-        // Si no se cumplen las condiciones anteriores, se niega el acceso
-        // return res.status(403).json({ msg: "No tiene autorización para ver o descargar este documento" });
+            if (gruposRequeridos.length === 0) return res.status(403).json({ msg: `No tiene permiso para acceder a este documento. Este documento requiere pertenecer a alguno de los siguientes grupos: ninguno definido.` });
+
+            for (const grupo of gruposRequeridos) {
+              const tiene = await BaseController.hasGroup(req, grupo);
+              if (tiene) return next();
+            }
+
+            return res.status(403).json({ msg: `No tiene permiso para acceder al documento. Debe contar con los siguientes permisos: ${gruposRequeridos.join(", ")}` });
+          } else next(); // TODO: En caso de que no haya json_permisos_act_dir y no sea responsable, se deja pasar el acceso?
+
+          // Si no se cumplen las condiciones anteriores, se niega el acceso
+          // return res.status(403).json({ msg: "No tiene autorización para ver o descargar este documento" });
+
+
+        } else {
+        return res.status(400).json({ msg: "Error en la authenticacion por id del documento" });
+                }
+        // console.log('documentId', documentId, 'params -----', req);
+        // if (!documentId) return res.status(400).json({ msg: "Falta el id del documento" });
+
 
       } catch (error) {
         return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });

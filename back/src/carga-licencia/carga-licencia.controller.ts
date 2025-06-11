@@ -645,7 +645,6 @@ export class CargaLicenciaController extends BaseController {
         throw new ClientException('La fecha desde se encuentra en un rango de otra licencia')
 
 
-      await this.validateSituacionRevista(PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalId, queryRunner)
       // if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
       //   throw new ClientException('Error: ya posee una licencia en la fecha hasta seleccionada');
       // }
@@ -763,7 +762,7 @@ export class CargaLicenciaController extends BaseController {
           FROM PersonalSituacionRevista
           WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
           ORDER BY PersonalSituacionRevistaDesde DESC, ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') DESC
-      `, [PersonalId])
+        `, [PersonalId])
         const PersonalSituacionRevistaSituacionIdNot10 = sitrevant[0].PersonalSituacionRevistaSituacionId
 
 
@@ -773,7 +772,7 @@ export class CargaLicenciaController extends BaseController {
           FROM PersonalSituacionRevista
           WHERE PersonalId = @0 
           ORDER BY PersonalSituacionRevistaDesde DESC, ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') DESC
-      `, [PersonalId, PersonalLicenciaDesde])
+       `, [PersonalId, PersonalLicenciaDesde])
 
         const { PersonalSituacionRevistaId, PersonalSituacionRevistaSituacionId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaHasta, PersonalSituacionRevistaDesde } = sitrev[0]
 
@@ -886,17 +885,22 @@ export class CargaLicenciaController extends BaseController {
 
     
       let doc_id = 0
+      let array_id = []
       if (req.body.files) {
         for (const file of req.body.files) {
           
+          const docid = file.id ? file.id : 0
+          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, '', file, usuario, ip, queryRunner)
 
-          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, 0, new Date(), null, '', file, usuario, ip, queryRunner)
-
-          if (result && typeof result === 'object')
+          if (result && typeof result === 'object'){
             ({ doc_id } = result)
+            array_id.push(doc_id)
+          }
+           
 
           PersonalLicenciaId = PersonalLicenciaId ? PersonalLicenciaId : PersonalLicenciaUltNro
-          if (file.tempfilename) {
+
+          if (file.tempfilename && !file.id) {
             await queryRunner.query(`INSERT INTO DocumentoRelaciones (
             DocumentoId,
             PersonalId,
@@ -932,8 +936,9 @@ export class CargaLicenciaController extends BaseController {
         }
       }
       //throw new ClientException(`test`)
+      console.log("array_id", array_id)
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [{DocumentoId: doc_id}] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: [{DocumentoId: array_id}] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -942,37 +947,6 @@ export class CargaLicenciaController extends BaseController {
 
   }
 
-  async validateSituacionRevista(licenciaDesde: Date,licenciaHasta: Date,personalId: number, queryRunner: QueryRunner ) {
-    const situaciones = await queryRunner.query(`
-      SELECT 
-        psr.PersonalSituacionRevistaId,
-        psr.PersonalSituacionRevistaDesde,
-        ISNULL(psr.PersonalSituacionRevistaHasta, '9999-12-31') AS PersonalSituacionRevistaHasta
-      FROM PersonalSituacionRevista psr
-      WHERE psr.PersonalId = @0
-    `, [personalId]);
-  
-    const situacionesInvalidas = situaciones.filter(sit => {
-      const id = sit.PersonalSituacionRevistaId;
-  
-      // Situaciones Resvista validas
-      const situacionesValidas = [2, 11, 12, 20, 10];
-      if (!situacionesValidas.includes(id)) return false;
-  
-      const desde = new Date(sit.PersonalSituacionRevistaDesde);
-      const hasta = new Date(sit.PersonalSituacionRevistaHasta);
-    
-      // Validar si hay superposicion con el período de la licencia
-      return !(hasta < licenciaDesde || desde > licenciaHasta);
-    });
-
-    if (situacionesInvalidas.length > 0) {
-      throw new ClientException(
-        `La persona se encontraba en una situación de revista no permitida durante el período de la licencia.`
-      );
-    }
-  }
-  
 
   async addSituacionRevista(queryRunner: QueryRunner,
     PersonalId: number,

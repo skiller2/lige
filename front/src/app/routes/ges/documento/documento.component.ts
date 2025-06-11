@@ -224,13 +224,22 @@ export class DocumentoComponent {
     }
   }
 
-  async deleteDocumento(){
-    this.loadingDelete.set(true)
-    if (this.docId()) {
-      await firstValueFrom(this.apiService.deleteDocumento(this.docId()))
-      this.formChange$.next('')
+  async deleteDocumento() {
+  this.loadingDelete.set(true);
+
+  try {
+    const id = this.docId();
+    if (id != null) {
+      await firstValueFrom(this.apiService.deleteDocumento(id));
+      // Emito cambio para refrescar la lista, el grid, etc.
+      this.formChange$.next('');
     }
-    this.loadingDelete.set(false)
+  } catch (error) {
+    // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
+    console.error('Error borrando documento', error);
+  } finally {
+    this.loadingDelete.set(false);
   }
+}
 
 }

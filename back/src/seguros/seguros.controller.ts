@@ -771,13 +771,13 @@ UNION
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       let result = await dataSource.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCod,per.PersonalId,per.PersonalApellidoNombre,
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCodigo,per.PersonalId,per.PersonalApellidoNombre,
       cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso, tipseg.TipoSeguroCodigo,poliz.PolizaSeguroNroPoliza, tipseg.TipoSeguroNombre
       FROM PersonalPolizaSeguro AS perpoliz
-      JOIN Personal per ON per.PersonalId = perpoliz.PersonalId
+      JOIN Personal per ON per.PersonalId = perpoliz.PersonalPolizaSeguroPersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId     
       AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      LEFT JOIN PolizaSeguro poliz ON      poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCod
+      LEFT JOIN PolizaSeguro poliz ON      poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCodigo
       LEFT JOIN TipoSeguro tipseg ON tipseg.TipoSeguroCodigo = poliz.TipoSeguroCodigo
       WHERE (1=1)
       AND ${filterSql}

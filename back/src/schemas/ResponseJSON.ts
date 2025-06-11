@@ -14,6 +14,8 @@ export interface DescuentoJSON {
   PersonalComprobantePagoAFIPMes: null | number;
   PersonalComprobantePagoAFIPId: null | number;
   clicked?: boolean;
+  doc_id: number
+  path: string
 }
 
 export interface ResponseDescuentos {

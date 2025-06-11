@@ -1,10 +1,10 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
@@ -14,7 +14,7 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { log } from '@delon/util';
 
 export interface Option {
@@ -23,11 +23,11 @@ export interface Option {
 }
 
 @Component({
-    selector: 'app-licencia-drawer',
-    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule, FileUploadComponent, SituacionRevistaSearchComponent],
-    templateUrl: './licencia-drawer.component.html',
-    styleUrl: './licencia-drawer.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-licencia-drawer',
+  imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule, FileUploadComponent, SituacionRevistaSearchComponent],
+  templateUrl: './licencia-drawer.component.html',
+  styleUrl: './licencia-drawer.component.less',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 
@@ -39,8 +39,8 @@ export class LicenciaDrawerComponent {
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
   tituloDrawer = input.required<string>()
-  openDrawerForConsult =  input<boolean>(false)
-  RefreshLicencia =  model<boolean>(false)
+  openDrawerForConsult = input<boolean>(false)
+  RefreshLicencia = model<boolean>(false)
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
   private notification = inject(NzNotificationService);
@@ -52,17 +52,17 @@ export class LicenciaDrawerComponent {
   options: any[] = [];
   files = model([]);
   //fileUploaded = false;
- 
 
-  
-  isSaving= model<boolean>(false)
+
+
+  isSaving = model<boolean>(false)
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
 
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
-  
-  uploading$ = new BehaviorSubject({loading:false,event:null});
+
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
   uploadFileModel = viewChild.required(NgForm);
   constructor(
     private searchService: SearchService
@@ -72,6 +72,8 @@ export class LicenciaDrawerComponent {
 
 
     this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
+
+    
   }
 
   cambios = computed(async () => {
@@ -83,14 +85,14 @@ export class LicenciaDrawerComponent {
       if (this.PersonalLicenciaId() > 0) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
         console.log("vals ", vals)
-        vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`,categoriaId:vals.PersonalLicenciaCategoriaPersonalId,tipoId:vals.PersonalLicenciaTipoAsociadoId }
+        vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`, categoriaId: vals.PersonalLicenciaCategoriaPersonalId, tipoId: vals.PersonalLicenciaTipoAsociadoId }
         vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
         vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
         this.PersonalIdForEdit = vals.PersonalId
         this.SucursalId = vals.SucursalId
 
-        if(vals.PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
+        if (vals.PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
           vals.PersonalLicenciaDiagnosticoMedicoDiagnostico = vals.PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()
 
         this.PersonalLicenciaAplicaPeriodoHorasMensuales.set(vals.PersonalLicenciaAplicaPeriodoHorasMensuales)
@@ -106,7 +108,7 @@ export class LicenciaDrawerComponent {
           this.ngForm().form.enable()
 
         }
-    
+
         this.ngForm().form.get('PersonalLicenciaSituacionRevistaId')?.disable();
       }
     }
@@ -128,8 +130,16 @@ export class LicenciaDrawerComponent {
       vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit
       vals.PersonalLicenciaAplicaPeriodoHorasMensuales = this.PersonalLicenciaAplicaPeriodoHorasMensuales()
+
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
-      this.fileUploadComponent().LoadArchivosAnteriores(res.data?.list[0]?.DocumentoId)
+      
+      const documentoIds = res.data?.list[0]?.DocumentoId;
+      const documentoIdsStr = Array.isArray(documentoIds) ? documentoIds.join(',') : ''
+
+      vals.DocumentoId =  documentoIdsStr
+
+      this.fileUploadComponent().LoadArchivosAnteriores(documentoIdsStr)
+      this.ngForm().form.patchValue(vals)
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       //this.fileUploaded = false
@@ -149,9 +159,9 @@ export class LicenciaDrawerComponent {
   }
 
 
-  openDrawerforConsultHistory(){
+  openDrawerforConsultHistory() {
     this.PersonalId.set(this.ngForm().value.PersonalId)
     this.visibleHistorial.set(true)
   }
-  
+
 }
