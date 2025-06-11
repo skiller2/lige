@@ -54,7 +54,7 @@ export class PolizaSeguroDrawerComponent {
       if (visible) {
         if (this.PolizaSeguroCodigo()) {
           let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroCodigo()));
-          
+     
           this.PolizaSeguroResultado.set(JSON.parse(vals[0].PolizaSeguroResultado))
           this.formCli.patchValue(vals[0])
           this.formCli.markAsUntouched()
@@ -86,6 +86,7 @@ export class PolizaSeguroDrawerComponent {
     try {
 
       const res = await firstValueFrom(this.apiService.setPolizaSeguro(vals))
+    
       if(res.data?.list?.PolizaSeguroCodigo) {
 
         this.formCli.patchValue({
@@ -97,6 +98,7 @@ export class PolizaSeguroDrawerComponent {
         this.tituloDrawer.set('Editar Poliza Seguro')
       }  
 
+      this.PolizaSeguroResultado.set(res.data?.list?.notFound)
       this.onRefreshPolizaSeguro.emit()
       this.fileUploadComponent().LoadArchivosAnteriores(res.data?.list?.DocumentoId)
 

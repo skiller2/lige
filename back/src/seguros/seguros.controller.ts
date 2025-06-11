@@ -985,7 +985,7 @@ UNION
 
  //'CompaniaSeguroId'-'TipoSeguroCod'-'PolizaSeguroNroPoliza'-'PolizaSeguroNroEndoso'
 
-         resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCodigo}-${polizaEndoso[0]}-${endoso[1]}`
+         resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCodigo}-${polizaEndoso[0]}-${endoso[1]}`.replace(/ /g, '')
 
         const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
@@ -1014,7 +1014,7 @@ UNION
             @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
           )
         `, [
-          resultPolizaSeguroCodigo.replace(/ /g, ''),
+          resultPolizaSeguroCodigo,
           TipoSeguroCodigo,
           resultFile.doc_id,
           polizaEndoso[0],
@@ -1034,7 +1034,6 @@ UNION
       }
 
       const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip)
-
       const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
@@ -1053,6 +1052,8 @@ UNION
         PolizaSeguroNroEndoso: endoso[1],
         PolizaSeguroFechaEndoso: fechaDesde.toISOString().replace('Z', '')
   }
+
+  console.log("result", result)
       ///throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (req.body.PolizaSeguroCod > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
