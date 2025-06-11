@@ -5,11 +5,11 @@ import { grupoActividadController } from "../controller/controller.module";
 export const grupoActividadRouter = Router();
 
 //GRUPO
-grupoActividadRouter.get("/cols", [authMiddleware.verifyToken], (req, res) => {
+grupoActividadRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal', 'gOperaciones', 'gPersonalCon', 'gOperacionesCon'])], (req, res) => {
     grupoActividadController.getGridColsGrupos(req, res);
 });
 
-grupoActividadRouter.post('/listGrupos', [authMiddleware.verifyToken], (req, res, next) => {
+grupoActividadRouter.post('/listGrupos', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal', 'gOperaciones', 'gPersonalCon', 'gOperacionesCon'])], (req, res, next) => {
     grupoActividadController.listGrupoActividadGrupos(req, res, next)
 })
 
