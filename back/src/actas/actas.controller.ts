@@ -12,6 +12,23 @@ import { promisify } from 'util';
 
 const columnsActas:any[] = [
   {
+    id:'id', name:'id', field:'id',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id:'ActaId', name:'ActaId', field:'ActaId',
+    fieldName: 'ActaId',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
     id:'id', name:'ActaId', field:'id',
     fieldName: 'ActaId',
     type:'string',
@@ -61,37 +78,149 @@ const columnsActas:any[] = [
 export class ActasController extends BaseController {
 
   async getActasGridColumns(req: any, res: Response, next: NextFunction) {
-      return this.jsonRes(columnsActas, res)
+    return this.jsonRes(columnsActas, res)
   }
 
   private async actasListQuery(queryRunner: any, filterSql: any, orderBy: any) {
-      return await queryRunner.query(`
-        SELECT ActaId AS id, ActaNroActa, ActaFechaActa, ActaFechaHasta, ActaDescripcion
-        FROM Acta
-        -- WHERE (${filterSql})
-        -- ${orderBy}
-      `)
+    return await queryRunner.query(`
+      SELECT 
+      ROW_NUMBER() OVER (ORDER BY ActaId) AS id,
+      ActaId, ActaNroActa, ActaFechaActa, ActaFechaHasta, ActaDescripcion
+      FROM Acta
+      -- WHERE (${filterSql})
+      -- ${orderBy}
+    `)
+  }
+  
+  async getGridList(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      const filterSql = filtrosToSql(options.filtros, columnsActas);
+      const orderBy = orderToSQL(options.sort)
+
+      const lista: any[] = await this.actasListQuery(queryRunner, filterSql, orderBy)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(lista, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
-  
-    async getGridList(req: any, res: Response, next: NextFunction) {
-      const queryRunner = dataSource.createQueryRunner();
-      try {
-        await queryRunner.startTransaction()
-  
-        const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-        const filterSql = filtrosToSql(options.filtros, columnsActas);
-        const orderBy = orderToSQL(options.sort)
-  
-        const lista: any[] = await this.actasListQuery(queryRunner, filterSql, orderBy)
-  
-        await queryRunner.commitTransaction()
-        this.jsonRes(lista, res);
-      } catch (error) {
-        await this.rollbackTransaction(queryRunner)
-        return next(error)
-      } finally {
-        await queryRunner.release()
+  }
+
+  async addActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const ActaNroActa:number = req.body.ActaNroActa;
+    const ActaDescripcion:string = req.body.ActaDescripcion;
+    const ActaFechaActa:Date = req.body.ActaFechaActa? new Date(req.body.ActaFechaActa) : null;
+    const ActaFechaHasta:Date = req.body.ActaFechaHasta?new Date(req.body.ActaFechaHasta) : null;
+    try {
+      await queryRunner.startTransaction()
+
+      //Validaciones:
+      //  La FechaHasta debe de ser menor a la FechaActa
+      if (ActaFechaActa && ActaFechaHasta && (ActaFechaActa.getTime() > ActaFechaHasta.getTime())) {
+        throw new ClientException('La fecha Hasta no debe ser menor a Desde')
       }
+
+      //  El NroActa no debe coincidir con los ya registrados
+      if (ActaNroActa) {
+        const oldActa = await queryRunner.query(`
+          SELECT ActaId AS id FROM Acta WHERE ActaNroActa IN (@0)
+        `, [ActaNroActa])
+        if (oldActa.length) throw new ClientException('Ya existe un Acta con ese numero')
+      }
+
+      await queryRunner.query(`
+        INSERT INTO Acta (
+          ActaNroActa,
+          ActaDescripcion,
+          ActaFechaActa,
+          ActaFechaHasta
+        ) VALUES (@0,@1,@2,@3)
+      `, [ActaNroActa, ActaDescripcion, ActaFechaActa, ActaFechaHasta])
+
+      const Acta = await queryRunner.query(`
+        SELECT ActaId FROM Acta
+        WHERE ActaNroActa IN (@0)
+      `, [ActaNroActa])
+      const newId:number = Acta[0].ActaId
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes({ActaId: newId}, res, 'Carga de nuevo registro exitoso');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
+  }
+
+  async updateActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const ActaId = req.body.ActaId;
+    const ActaNroActa = req.body.ActaNroActa;
+    const ActaDescripcion = req.body.ActaDescripcion;
+    const ActaFechaActa:Date = req.body.ActaFechaActa? new Date(req.body.ActaFechaActa) : null;
+    const ActaFechaHasta:Date = req.body.ActaFechaHasta?new Date(req.body.ActaFechaHasta) : null;
+    try {
+      await queryRunner.startTransaction()
+
+      //Validaciones:
+      //  La FechaHasta debe de ser menor a la FechaActa
+      if (ActaFechaActa && ActaFechaHasta && (ActaFechaActa.getTime() > ActaFechaHasta.getTime())) {
+        throw new ClientException('La fecha Hasta no debe ser menor a Desde')
+      }
+
+      //  El NroActa no debe coincidir con los ya registrados
+      if (ActaNroActa) {
+        const oldActa = await queryRunner.query(`
+          SELECT ActaId AS id FROM Acta WHERE ActaNroActa IN (@0) AND ActaId NOT IN (@1)
+        `, [ActaNroActa, ActaId])
+        if (oldActa.length) throw new ClientException('Ya existe un Acta con ese numero')
+      }
+
+      await queryRunner.query(`
+        UPDATE Acta SET
+          ActaNroActa = @1,
+          ActaDescripcion = @2,
+          ActaFechaActa = @3,
+          ActaFechaHasta = @4
+        WHERE ActaId IN (@0)
+      `, [ActaId, ActaNroActa, ActaDescripcion, ActaFechaActa, ActaFechaHasta])
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Actualización de registro exitoso');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async deleteActa(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const ActaId = req.query[0]
+    try {
+      await queryRunner.startTransaction()
+
+      await queryRunner.query(`
+        DELETE FROM Acta WHERE ActaId = @0
+      `, [ActaId])
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga de nuevo registro exitoso');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
 }

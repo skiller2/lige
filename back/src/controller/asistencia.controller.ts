@@ -2798,7 +2798,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId AND EOMONTH(DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1)) >= val.ValorLiquidacionDesde AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1) <= ISNULL(val.ValorLiquidacionHasta,'9999-12-31')   
           AND val.ValorLiquidacionSucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
       WHERE objp.ObjetivoId = @0
-      ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
+      ORDER BY per.PersonalApellido
     `, [objetivoId, anio, mes])
     const formas = await this.getTiposHoraQuery()
     const data = personal.map((obj: any, index: number) => {

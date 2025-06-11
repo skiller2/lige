@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, Column, Editors, EditCommand, FieldType, SlickGlobalEditorLock } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, timer } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
@@ -40,6 +40,10 @@ export class ActasComponent {
     };
     startFilters: any[] = []
 
+    rowLocked = signal<boolean>(false);
+    selectedActaId = signal<number>(0);
+    selectedNroActa = signal<number>(0);
+
     constructor(
         private searchService: SearchService,
         private apiService: ApiService,
@@ -47,7 +51,23 @@ export class ActasComponent {
         private injector: Injector,
     ) { }
 
-    columns$ = this.apiService.getCols('/api/actas/cols')
+    columns$ = this.apiService.getCols('/api/actas/cols').pipe(map((cols: Column<any>[]) => {
+        let mapped = cols.map((col: Column) => {
+          if (col.id == 'ActaNroActa') {
+            // col.cssClass = 'text-right',
+            col.editor = {
+              model: Editors['integer'],
+              minValue: 0,
+              maxValue: 10000000,
+              alwaysSaveOnEnterKey: true,
+            //   required: true
+            }
+          }
+          return col
+        });
+        return mapped
+    }));
+
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
     gridData$ = this.listActas$.pipe(
@@ -66,6 +86,42 @@ export class ActasComponent {
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
         // this.gridOptions.enableCheckboxSelector = true
+        this.gridOptions.editable = true
+        this.gridOptions.autoEdit = true
+
+        this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
+            // this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata)
+            this.angularGrid.slickGrid.invalidate();
+            //Intento grabar si tiene error hago undo
+            try {
+                if (column.type == FieldType.number || column.type == FieldType.float)
+                    editCommand.serializedValue = Number(editCommand.serializedValue)
+
+                if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
+                
+                editCommand.execute()
+                if (row.ActaNroActa && row.ActaDescripcion.length && row.ActaFechaActa.length){
+
+                    while (this.rowLocked()) await firstValueFrom(timer(100));
+                    row = this.angularGrid.dataView.getItemById(row.id)
+                    
+                    if (row.ActaId){
+                        await firstValueFrom(this.apiService.updateActa(row))
+                    }else{
+                        this.rowLocked.set(true)
+                        const response = await firstValueFrom(this.apiService.addActa(row))
+                        row.ActaId = response.data.ActaId
+                        this.angularGrid.gridService.updateItemById(row.id, row)
+                        this.selectedActaId.set(row.ActaId)
+                        this.selectedNroActa.set(row.ActaNroActa)
+                    }
+                }
+                this.rowLocked.set(false)
+            } catch (e: any) {
+                editCommand.undo();
+                this.rowLocked.set(false)
+            }
+        }
     }
 
     async angularGridReady(angularGrid: any) {
@@ -88,8 +144,56 @@ export class ActasComponent {
         this.listActas$.next(event);
     }
 
-    handleSelectedRowsChanged(event: any) {
+    handleSelectedRowsChanged(e: any): void {
+        const selrow = e.detail.args.rows[0]
+        const row = this.angularGrid.slickGrid.getDataItem(selrow)
+        if (row) {
+            this.selectedActaId.set(row.ActaId)
+            this.selectedNroActa.set(row.ActaNroActa)
+        }
         
+    }
+
+    createNewItem(incrementIdByHowMany = 1) {
+        const dataset = this.angularGrid.dataView.getItems();
+        let highestId = 0;
+        dataset.forEach((item: any) => {
+            if (item.id > highestId) {
+                highestId = item.id;
+            }
+        });
+        const newId = highestId + incrementIdByHowMany;
+
+        return {
+            id: newId,
+            ActaId: 0,
+            ActaNroActa: 0,
+            ActaDescripcion:"",
+            ActaFechaActa:"",
+            ActaFechaHasta: "",
+        };
+    }
+
+    async addNewItem() {
+        const newItem1 = this.createNewItem(1);
+        this.angularGrid.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
+    }
+
+    // updateItemMetadata(previousItemMetadata: any) {
+    //     return (rowNumber: number) => {
+    //         const item = this.angularGrid.dataView.getItem(rowNumber)
+    //         let meta = { cssClasses: '' }
+
+    //         if (typeof previousItemMetadata === 'object')
+    //             meta = previousItemMetadata(rowNumber)
+    //     }
+    // }
+
+    async deleteItem() {
+        await firstValueFrom(this.apiService.deleteActa(this.selectedActaId()))
+        this.selectedActaId.set(0)
+        this.selectedNroActa.set(0)
+        this.refreshListActas('')
     }
 
 }
