@@ -797,7 +797,7 @@ export class CargaLicenciaController extends BaseController {
             WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId])
         }
 
-  
+
         PersonalLicenciaUltNro++
         await queryRunner.query(`INSERT INTO PersonalLicencia (
           PersonalId, 
@@ -883,20 +883,20 @@ export class CargaLicenciaController extends BaseController {
 
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
-    
+
       let doc_id = 0
       let array_id = []
       if (req.body.files) {
         for (const file of req.body.files) {
-          
-          const docid = file.id ? file.id : 0
-          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, '', file, usuario, ip, queryRunner)
 
-          if (result && typeof result === 'object'){
+          const docid = file.id ? file.id : 0
+          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, TipoInasistenciaDescripcion, file, usuario, ip, queryRunner)
+
+          if (result && typeof result === 'object') {
             ({ doc_id } = result)
             array_id.push(doc_id)
           }
-           
+
 
           PersonalLicenciaId = PersonalLicenciaId ? PersonalLicenciaId : PersonalLicenciaUltNro
 
@@ -938,7 +938,7 @@ export class CargaLicenciaController extends BaseController {
       //throw new ClientException(`test`)
       console.log("array_id", array_id)
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [{DocumentoId: array_id}] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: [{ DocumentoId: array_id }] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -987,7 +987,7 @@ export class CargaLicenciaController extends BaseController {
       PersonalId,
       DocumentoId
     } = req.query
-    
+
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
@@ -1025,7 +1025,7 @@ export class CargaLicenciaController extends BaseController {
       if (DocumentoId && Number(DocumentoId) > 0)
         await FileUploadController.deleteFile(Number(DocumentoId), 'docgeneral', queryRunner)
 
-      if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10 )
+      if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10)
         throw new ClientException(`La situación revista anterior no puede ser "Licencia", avise al administrador`)
 
       await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaSituacionId = @0, PersonalSituacionRevistaMotivo = NULL WHERE PersonalId = @1 AND PersonalSituacionRevistaId = @2`,
