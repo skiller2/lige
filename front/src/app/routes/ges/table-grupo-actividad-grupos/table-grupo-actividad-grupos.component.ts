@@ -258,8 +258,6 @@ export class TableGrupoActividadGruposComponent {
     if (row?.GrupoActividadId) {
       this.editGrupo.set([row.GrupoActividadId])
     }
-
-
   }
 
 

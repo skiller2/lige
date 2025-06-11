@@ -11,3 +11,15 @@ actasRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['g
 actasRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   actasController.getGridList(req, res, next)
 });
+
+actasRouter.post(`/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
+  actasController.addActa(req, res, next)
+});
+
+actasRouter.post(`/edit`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
+  actasController.updateActa(req, res, next)
+});
+
+actasRouter.delete('/delete', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    actasController.deleteActa(req, res, next)
+})

@@ -1546,6 +1546,26 @@ export class ApiService {
       catchError(() => of([]))
     );
   }
+
+  addActa(parameters: any) {
+    return this.http.post<ResponseJSON<any>>('/api/actas/add', parameters).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  updateActa(parameters: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/actas/edit`, parameters).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  deleteActa(deleteId: number) {
+    const parameter = [deleteId]
+    return this.http.delete<ResponseJSON<any>>(`/api/actas/delete`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

@@ -365,7 +365,7 @@ export class GrupoActividadController extends BaseController {
 
     async listGrupoActividadGrupos(req: any, res: Response, next: NextFunction) {
 
-        console.log("req.body.options.filtros ", req.body.options.filtros)
+        // console.log("req.body.options.filtros ", req.body.options.filtros)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
 
         const orderBy = orderToSQL(req.body.options.sort)
