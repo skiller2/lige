@@ -9,9 +9,7 @@ import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 
 
 import {
-  copyFileSync,
   existsSync,
-  mkdirSync,
   readFileSync,
   unlinkSync,
   writeFileSync,
@@ -45,6 +43,7 @@ import {
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
 import { FileUploadController } from "src/controller/file-upload.controller";
+import { join } from "path";
 
 
 
@@ -72,8 +71,6 @@ const importeMontoRegex = [
 ];
 
 export class ImpuestosAfipController extends BaseController {
-//  directory = process.env.PATH_MONOTRIBUTO || "tmp";
-
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
@@ -532,7 +529,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         const fileObj = {
           doctipo_id: "MONOT", 
           tableForSearch: "docgeneral", 
-          ind_descarga_bot: 1, 
+          ind_descarga_bot: 0, 
           tempfilename: file.path, 
           originalname: file.originalname, 
           fielname: '',
@@ -551,8 +548,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 */
 
       if (pagenum == null) {
-//        copyFileSync(file.path, newFilePath);
-        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
         const fileUploadController = new FileUploadController()
@@ -568,7 +564,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         fileObj.tempfilename = fileUploadController.getRandomTempFileName('.pdf')
 
         writeFileSync(fileObj.tempfilename, buffer);
-        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
 
       }
     }
@@ -803,9 +799,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         });
 
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, 4);
-
-      const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
-      const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
+      const fileUploadController = new FileUploadController()
+      const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');
       const filename = `${year}-${formattedMonth}.pdf`;
 
       writeFileSync(tmpfilename, responsePDFBuffer);
@@ -838,16 +833,17 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       currentFileBuffer = null;
       currentFilePDF = null;
       currentFilePDFPage = null;
+      const fullPath =   join(FileUploadController.pathDocuments, file.path)
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const fileExists = existsSync(file.path);
+      const fileExists = existsSync(fullPath);
 
       const pageWidth = lastPage.getWidth();
       const pageHeight = lastPage.getHeight();
 
       if (fileExists) {
-        currentFileBuffer = readFileSync(file.path);
+        currentFileBuffer = readFileSync(fullPath);
         currentFilePDF = await PDFDocument.load(currentFileBuffer);
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
@@ -1043,14 +1039,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
   ) {
     const queryRunner = dataSource.createQueryRunner();
 
-    const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
-    const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
+    const fileUploadController = new FileUploadController();
+    const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');    
     try {
       const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
-        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, doc.doc_id, doc.path,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, doc.doc_id, doc.path, doc.nombre_archivo,
         1
         FROM Personal per
         JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
@@ -1070,14 +1066,15 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
-      const path = comprobante.path
+      const fullPath = join(FileUploadController.pathDocuments,comprobante.path)
+      const nombre_archivo = comprobante.nombre_archivo
 
-      const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
+      //const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
 
-      if (!existsSync(path))
-        throw new ClientException(`El archivo de monotributo no existe ${month}/${year}, CUIT:${cuit} .`);
+      if (!existsSync(fullPath))
+        throw new ClientException(`El archivo de monotributo no se encontró ${month}/${year}, CUIT:${cuit} .`);
 
-      const uint8Array = readFileSync(path);
+      const uint8Array = readFileSync(fullPath);
 
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
@@ -1090,7 +1087,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         GrupoActividadDetalle
       );
       writeFileSync(tmpfilename, buffer);
-      res.download(tmpfilename, filename, (msg) => {
+      res.download(tmpfilename, nombre_archivo, (msg) => {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
