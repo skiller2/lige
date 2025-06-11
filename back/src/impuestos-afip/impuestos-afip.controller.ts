@@ -552,7 +552,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       if (pagenum == null) {
 //        copyFileSync(file.path, newFilePath);
-        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, CUIT, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
         const fileUploadController = new FileUploadController()
@@ -565,10 +565,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         pdfDoc.addPage(copiedPage);
         const buffer = await pdfDoc.save();
 
-        fileObj.tempfilename = fileUploadController.getRandomTempFileName('')
+        fileObj.tempfilename = fileUploadController.getRandomTempFileName('.pdf')
 
         writeFileSync(fileObj.tempfilename, buffer);
-        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, CUIT, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, 0, 0, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
 
       }
     }
