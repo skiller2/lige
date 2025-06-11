@@ -762,7 +762,7 @@ export class CargaLicenciaController extends BaseController {
           FROM PersonalSituacionRevista
           WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
           ORDER BY PersonalSituacionRevistaDesde DESC, ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') DESC
-      `, [PersonalId])
+        `, [PersonalId])
         const PersonalSituacionRevistaSituacionIdNot10 = sitrevant[0].PersonalSituacionRevistaSituacionId
 
 
@@ -772,7 +772,7 @@ export class CargaLicenciaController extends BaseController {
           FROM PersonalSituacionRevista
           WHERE PersonalId = @0 
           ORDER BY PersonalSituacionRevistaDesde DESC, ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') DESC
-      `, [PersonalId, PersonalLicenciaDesde])
+       `, [PersonalId, PersonalLicenciaDesde])
 
         const { PersonalSituacionRevistaId, PersonalSituacionRevistaSituacionId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaHasta, PersonalSituacionRevistaDesde } = sitrev[0]
 
@@ -895,7 +895,8 @@ export class CargaLicenciaController extends BaseController {
             ({ doc_id } = result)
 
           PersonalLicenciaId = PersonalLicenciaId ? PersonalLicenciaId : PersonalLicenciaUltNro
-          if (file.tempfilename) {
+
+          if (file.tempfilename && !file.id) {
             await queryRunner.query(`INSERT INTO DocumentoRelaciones (
             DocumentoId,
             PersonalId,
