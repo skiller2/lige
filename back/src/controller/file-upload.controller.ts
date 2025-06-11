@@ -306,15 +306,15 @@ export class FileUploadController extends BaseController {
     const ind_descarga_bot: number = file.ind_descarga_bot ? 1 : 0
     let ArchivosAnteriores = []
 
-
     if (!tableForSearch)
       throw new ClientException(`No se especificó destino -tableForSearch-`)
     if (!doctipo_id)
       throw new ClientException(`No se especificó destino -doctipo_id-`)
 
-    if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
-      throw new ClientException(`No se especificó archivo a actualizar`)
-    }
+    //throw new ClientException(`test`)
+    //if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
+    //  throw new ClientException(`No se especificó archivo a actualizar`)
+    //}
 
     const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen, json_permisos_act_dir FROM lige.dbo.doctipo tipo 
           WHERE tipo.doctipo_id = @0`, [doctipo_id])
