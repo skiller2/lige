@@ -72,6 +72,8 @@ export class LicenciaDrawerComponent {
 
 
     this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
+
+    
   }
 
   cambios = computed(async () => {
@@ -131,16 +133,12 @@ export class LicenciaDrawerComponent {
 
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
       
-      let nuevoId = res.data?.list[0]?.DocumentoId;
-      let existentes = vals.DocumentoId ? vals.DocumentoId.split(',') : [];
+      const documentoIds = res.data?.list[0]?.DocumentoId;
+      const documentoIdsStr = Array.isArray(documentoIds) ? documentoIds.join(',') : ''
 
-      if (nuevoId && !existentes.includes(String(nuevoId))) {
-        existentes.push(String(nuevoId));
-      }
+      vals.DocumentoId =  documentoIdsStr
 
-      const result = existentes.join(','); vals.DocumentoId = result
-
-      this.fileUploadComponent().LoadArchivosAnteriores(result)
+      this.fileUploadComponent().LoadArchivosAnteriores(documentoIdsStr)
       this.ngForm().form.patchValue(vals)
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()

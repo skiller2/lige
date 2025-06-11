@@ -885,14 +885,18 @@ export class CargaLicenciaController extends BaseController {
 
     
       let doc_id = 0
+      let array_id = []
       if (req.body.files) {
         for (const file of req.body.files) {
           
           const docid = file.id ? file.id : 0
           const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, '', file, usuario, ip, queryRunner)
 
-          if (result && typeof result === 'object')
+          if (result && typeof result === 'object'){
             ({ doc_id } = result)
+            array_id.push(doc_id)
+          }
+           
 
           PersonalLicenciaId = PersonalLicenciaId ? PersonalLicenciaId : PersonalLicenciaUltNro
 
@@ -932,8 +936,9 @@ export class CargaLicenciaController extends BaseController {
         }
       }
       //throw new ClientException(`test`)
+      console.log("array_id", array_id)
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [{DocumentoId: doc_id}] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: [{DocumentoId: array_id}] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
