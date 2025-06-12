@@ -1,6 +1,6 @@
 import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
-import { recibosController } from "../controller/controller.module";
+import { documentosController } from "../controller/controller.module";
 import { ClientException } from "src/controller/base.controller";
 import { chatBotController } from "../controller/controller.module";
 import { botServer } from "src";
@@ -14,7 +14,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         console.log('myState',myState)
         const personalId = myState.personalId
-        const periodosArray: any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array => { return array })
+        const periodosArray: any[] = await documentosController.getLastPeriodoOfComprobantes(personalId, 3).then(array => { return array })
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {
@@ -48,7 +48,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             const anio = periodosArray[parseInt(msj) - 1]?.anio
             const personalId = myState.personalId
             // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
-            const urlDocRecibo = await recibosController.getURLDocRecibo(personalId, anio, mes)
+            const urlDocRecibo = await documentosController.getURLDocumento(personalId, anio, mes,'REC')
 
             if (urlDocRecibo instanceof Error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])

@@ -21,8 +21,8 @@ const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
 
 export class FileUploadController extends BaseController {
-  static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
-  pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+  static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
+  pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'   //Los archivos de Genexus
   tempFolderPath = path.join(FileUploadController.pathDocuments, 'temp');
 
   static async hashFile(filePath: string): Promise<string> {

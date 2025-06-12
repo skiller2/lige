@@ -1,5 +1,8 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { existsSync } from "node:fs";
+import { performance } from "node:perf_hooks";
 import { DataSource, QueryRunner } from "typeorm";
+import { dbServer } from "src";
 
 export class ClientException extends Error {
   messageArr: string[]
@@ -34,10 +37,10 @@ export class BaseController {
   }
 
   getRemoteAddress(req: any) {
-    if (req?.headers) 
+    if (req?.headers)
       return req.headers['x-origin-ip'] ??
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
-      req.socket.remoteAddress
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
+        req.socket.remoteAddress
     else
       return '127.0.0.1'
   }
@@ -51,7 +54,7 @@ export class BaseController {
   dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
   dateOutputFormat(date: Date, defaultText = 'sin fecha') {
-    if (!date || date.getFullYear()==9999) return defaultText
+    if (!date || date.getFullYear() == 9999) return defaultText
     return this.dateFormatter.format(date)
   }
 
@@ -182,7 +185,7 @@ export class BaseController {
   }
 
   getTimeString(stm: Date) {
-    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}`:null
+    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}` : null
   }
 
   async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
@@ -273,7 +276,7 @@ export class BaseController {
     let resultAuth = await queryRunner.query(
       `SELECT aut.* FROM lige.dbo.percargadirecta aut 
         WHERE aut.persona_id = @0 AND aut.objetivo_id = @1`,
-      [PersonalId,ObjetivoId]
+      [PersonalId, ObjetivoId]
     );
 
     if (resultAuth.length > 0)
@@ -320,4 +323,72 @@ export class BaseController {
     return (value == null || (typeof value === "string" && value.trim().length === 0));
   }
 
+
+  async getRutaFile(queryRunner: QueryRunner, PersonalId: number, year: number, month: number, doctipo_id: string) {
+    return queryRunner.query(`
+      SELECT * from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE per.anio =@1 AND per.mes=@2 AND doc.persona_id = @0  AND doctipo_id = @3`,
+      [PersonalId, year, month, doctipo_id]
+    )
+  }
+
+
+  pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
+  apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
+  
+  async getURLDocumento(
+    personalId: number,
+    year: number,
+    month: number,
+    tipoDoc:string
+  ) {
+    const queryRunner = dbServer.dataSource.createQueryRunner();
+//    const queryRunner = dataSource.createQueryRunner()
+    const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month, tipoDoc)
+    let tmpURL = ''
+    if (gettmpfilename[0] && gettmpfilename[0].doc_id && existsSync(this.pathDocuments + '/' + gettmpfilename[0].path)) {
+      tmpURL = `${this.apiPath}/documentos/download/${gettmpfilename[0].doc_id}/${gettmpfilename[0].doctipo_id}-${gettmpfilename[0].nombre_archivo}`;
+console.log('URL',tmpURL)
+
+    } else {
+      throw new ClientException(`Documento no localizado`,this.pathDocuments + '/' + gettmpfilename[0].path)
+    }
+    return { URL: tmpURL, doc_id: gettmpfilename[0].doc_id }
+  }
+
+
+  async downloadDocument(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const doc_id = req.params.doc_id
+    const queryRunner = dbServer.dataSource.createQueryRunner();
+//    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const data = await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE doc.doc_id=@0`,
+        [doc_id]
+      )
+
+      if (!data[0])
+        throw new ClientException(`Documento no localizado`)
+
+
+
+      res.download(this.pathDocuments + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
+        if (error) {
+          console.error('Error al descargar el archivo:', error);
+          throw new ClientException(`Error al descargar el archivo`, error)
+        }
+      });
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+  }
 }
