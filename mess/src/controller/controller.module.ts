@@ -1,9 +1,7 @@
 import { PersonalController } from "./personal.controller";
-import { RecibosController } from "./recibos.controller";
-import { ImpuestosAfipController } from "./impuestos-afip.controller";
+import { DocumentosController } from "./documentos.controller";
 import { ChatBotController } from "./chatbot.controller";
 
 export const personalController = new PersonalController();
-export const recibosController = new RecibosController();
-export const impuestosAfipController = new ImpuestosAfipController();
+export const documentosController = new DocumentosController();
 export const chatBotController = new ChatBotController();

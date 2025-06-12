@@ -1,4 +1,4 @@
-import { impuestosAfipController } from "../controller/controller.module";
+import { documentosController } from "../controller/controller.module";
 import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
 import { chatBotController } from "../controller/controller.module";
@@ -24,7 +24,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         await flowDynamic([{ body:`⏱️ Buscando comprobantes`, delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
-        const periodosArray : any[] = await impuestosAfipController.getLastPeriodosOfComprobantes(personalId, 3).then(array =>{return array})
+        const periodosArray : any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3).then(array =>{return array})
         // console.log('periodos', periodosArray);
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
@@ -61,7 +61,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const anio = periodosArray[parseInt(msj)-1]?.anio
         const personalId = myState.personalId
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
-        const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
+            //const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
+            const urlDoc = await documentosController.getURLDocumento(personalId, anio, mes,'MONOT')
+            
 
             if (urlDoc instanceof Error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])

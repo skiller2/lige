@@ -12,14 +12,14 @@ export class PersonalController extends BaseController {
   async getDocsPendDescarga(PersonalId: number) {
     const result = await dbServer.dataSource.query(
       `SELECT doc.persona_id PersonalId, 
-        doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, tip.des_den_documento, doc.den_documento, pr.anio, pr.mes,
+        doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, tip.des_den_documento, doc.den_documento, pr.anio, pr.mes, doc.nombre_archivo,
         MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
         FROM lige.dbo.docgeneral doc
         JOIN lige.dbo.doctipo tip ON tip.doctipo_id = doc.doctipo_id
         LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.periodo_id = doc.periodo
         LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.doc_id AND dl.personal_id = @0
         WHERE doc.ind_descarga_bot = 1  AND dl.fecha_descarga IS NULL AND (doc.persona_id =0 OR doc.persona_id = @0) AND fecha > '2025-01-01'
-        GROUP BY doc.persona_id, doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, des_den_documento, doc.den_documento, dl.doc_id, pr.anio, pr.mes`
+        GROUP BY doc.persona_id, doc.doc_id, doc.fecha, doc.doctipo_id, tip.detalle, des_den_documento, doc.den_documento, dl.doc_id, pr.anio, pr.mes, doc.nombre_archivo`
       ,
       [PersonalId]
     )

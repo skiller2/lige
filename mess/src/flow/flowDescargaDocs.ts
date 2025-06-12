@@ -3,9 +3,11 @@ import flowMenu from './flowMenu'
 import { chatBotController, personalController } from "../controller/controller.module";
 import { reset, start, stop, stopSilence } from './flowIdle';
 import { botServer } from 'src';
+import { BaseController } from 'src/controller/base.controller';
 
 const delay = chatBotController.getDelay()
-const apiBackPath = process.env.URL_BACK_API || "http://localhost:4200/api";
+const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
+
 export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -34,7 +36,8 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 const docsPend = await state.get('docsPend')
                 const documento = docsPend.pop()
                 
-                const urlDoc =`${apiBackPath}/file-upload/downloadImg/${documento.doc_id}/docgeneral/${documento.doc_id}-${documento.doctipo_id}`
+                const urlDoc = `${apiPath}/documentos/download/${documento.doc_id}/${documento.doctipo_id}-${documento.nombre_archivo}`;
+
                 try {
                     await flowDynamic([{ body: documento.detalle, media: urlDoc, delay }])
                     await chatBotController.addToDocLog(documento.doc_id, ctx.from)

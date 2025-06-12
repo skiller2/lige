@@ -6,6 +6,7 @@ import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
 import { ChatBotController } from "./controller/chatbot.controller";
 import { exit } from "process";
+import { BaseController } from "./controller/base.controller";
 dotenv.config()
 
 // Init App
@@ -95,3 +96,4 @@ await dbServer.init()
 
 
 await botServer.init()
+
