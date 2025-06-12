@@ -16,6 +16,7 @@ import {
   switchMap,
   tap, fromEvent,
   firstValueFrom,
+  timer,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -63,7 +64,7 @@ interface PersonalLicenciaHoras {
     templateUrl: './table-horas-licencia.component.html',
     styleUrl: './table-horas-licencia.component.less'
 })
-export class TableHorasLicenciaComponent {
+export class  TableHorasLicenciaComponent {
 
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
@@ -91,7 +92,7 @@ export class TableHorasLicenciaComponent {
   }
   dataAngularGrid: any
   PersonalLicenciaHoras: PersonalLicenciaHoras[] = [];
-
+  rowLocked: boolean = false;
 
   anio = input<number>();
   mes = input<number>();
@@ -161,17 +162,56 @@ export class TableHorasLicenciaComponent {
     this.gridOptionsEdit.autoEdit = true
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
+
+
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-      if (column.id != 'PersonalLicenciaAplicaPeriodoHorasMensuales')
-        return
+
+      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+      this.angularGridEdit.slickGrid.invalidate();
+
+      const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.id))
+
+
       try {
+
+        if (column.type == FieldType.number || column.type == FieldType.float)
+          editCommand.serializedValue = Number(editCommand.serializedValue)
+
+        if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
+
         editCommand.execute()
+        while (this.rowLocked) await firstValueFrom(timer(100));
+        row = this.angularGridEdit.dataView.getItemById(row.id)
+
+
+        if (!row.dbid)
+          this.rowLocked = true
+
         const res = await firstValueFrom(this.apiService.setchangehours(row))
+        console.log(res)
         row.total = res.data?.total
         row.PersonalLicenciaAplicaPeriodoHorasMensuales = res.data?.PersonalLicenciaAplicaPeriodoHorasMensuales
-        this.angularGridEdit.gridService.updateItemById(row.id, row)
-      } catch (error) {
-        editCommand.undo();
+        this.formChange$.next('')
+        this.rowLocked = false
+      } catch (e: any) {
+
+
+        //marcar el row en rojo
+        if (row.GrupoActividadNumeroOld) {
+          const item = this.angularGridEdit.dataView.getItemById(row.id)
+          if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+            const fld = editCommand.editor.args.column.field
+            editCommand.undo();
+            item[fld] = editCommand.editor.args.item[fld]
+          }
+          this.angularGridEdit.gridService.updateItemById(row.id, item)
+        } else {
+          //marcar el row en rojo
+
+          this.angularGridEdit.slickGrid.setSelectedRows([]);
+          this.angularGridEdit.slickGrid.render();
+        }
+        this.rowLocked = false
       }
     }
   }
@@ -223,6 +263,35 @@ export class TableHorasLicenciaComponent {
     return true;
   }
 
+
+  updateItemMetadata(previousItemMetadata: any) {
+
+
+    return (rowNumber: number) => {
+      const newCssClass = 'element-add-no-complete';
+      const item = this.angularGridEdit.dataView.getItem(rowNumber);
+      let meta = {
+        cssClasses: ''
+      };
+      if (typeof previousItemMetadata === 'object') {
+        meta = previousItemMetadata(rowNumber);
+      }
+    
+      if (
+        item.GrupoActividadNumero == 0 || 
+        item.GrupoActividadDetalle === "" || 
+        item.GrupoActividadInactivo === "" || 
+        item.SucursalId === "" || 
+        item.PersonalId === ""
+      ) {
+        meta.cssClasses = 'element-add-no-complete';
+      }
+      else
+        meta.cssClasses = ''
+
+      return meta;
+    };
+  }
 
 
 }
