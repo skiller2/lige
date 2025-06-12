@@ -170,7 +170,7 @@ export class CustodiaFormComponent {
         if (personalId) {
             const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
             const catcus = categorias.categorias?.filter((c: any) => c.TipoAsociadoId == 2)
-            valorHora = catcus[0]?.ValorLiquidacionHoraNormal
+            valorHora = catcus[0]?.ValorLiquidacionHoraNormal || 0
         }
 
         persona.patchValue({ importe: persona.value.horas_trabajadas * valorHora + persona.value.importe_suma_fija, subtotal: persona.value.horas_trabajadas * valorHora}, { onlySelf: false, emitEvent: false, })
@@ -178,7 +178,7 @@ export class CustodiaFormComponent {
         persona.get('importe')?.markAsPending()
         persona.get('subtotal')?.markAsPending()
         //persona.get('subtotal')?.updateValue();
-        console.log('grabe',persona.value.horas_trabajadas * valorHora)
+        //console.log('grabe',persona.value.horas_trabajadas * valorHora)
 
         //persona.setValue( { subtotal: persona.value.horas_trabajadas * valorHora }, { onlySelf: true, emitEvent: false } )
 
