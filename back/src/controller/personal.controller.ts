@@ -787,20 +787,6 @@ cuit.PersonalCUITCUILCUIT,
 
 
 
-      //throw new ClientException('test.')
-      // let  resultFile = await FileUploadController.handleDOCUpload(
-      // PersonalId, 
-      //file.objetivo_id, 
-      //file.cliente_id, 
-      //file.id, 
-      //new Date(), 
-      //fec_doc_ven, 
-      //file.den_documento, 
-      //file, 
-      //usuario,
-      //ip,
-      //queryRunner)
-
 
       if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
 
@@ -1538,19 +1524,6 @@ cuit.PersonalCUITCUILCUIT,
       //Habilitacion Necesaria
       await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
-      // throw new ClientException('test.')
-      // let  resultFile = await FileUploadController.handleDOCUpload(
-      // PersonalId, 
-      //file.objetivo_id, 
-      //file.cliente_id, 
-      //file.id, 
-      //new Date(), 
-      //fec_doc_ven, 
-      //file.den_documento, 
-      //file, 
-      //usuario,
-      //ip,
-      //queryRunner)
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
 

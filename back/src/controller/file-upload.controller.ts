@@ -290,16 +290,21 @@ export class FileUploadController extends BaseController {
     fecha: Date,
     fec_doc_ven: Date,
     den_documento: string,
+    anio: number,
+    mes:number,
     file: any,
     usuario: any,
     ip: any,
     queryRunner: QueryRunner,
     req?: any
   ) {
-
-
+    let periodo_id = 0
     let fechaActual = new Date();
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth(), usuario, ip);
+    if (anio && mes)
+      periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+    else
+      periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth() + 1, usuario, ip)
+      
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
     const tableForSearch = file.tableForSearch
@@ -357,15 +362,17 @@ export class FileUploadController extends BaseController {
         return 0
         break;
       default:
+
         if (!doc_id) {
           // INSERT DOCUMENTO
-          console.log("inserto file", file)
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
 
           // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
           if (type == 'pdf') {
+          console.log("leo", file.tempfilename)
+
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
 

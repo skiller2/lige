@@ -38,7 +38,6 @@ import {
   orderToSQL,
 } from "./filtros-utils/filtros";
 import {
-  SendFileToDownload,
   getPeriodoFromRequest,
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
@@ -103,10 +102,20 @@ export class ImpuestosAfipController extends BaseController {
           };
         });
 
+      const fileUploadController = new FileUploadController()
+      
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, cantxpag);
       const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
+      const tmpfilename = fileUploadController.getRandomTempFileName('.pdf')
 
-      SendFileToDownload(res, filename, responsePDFBuffer);
+      writeFileSync(tmpfilename, responsePDFBuffer);
+
+      res.download(tmpfilename, filename, (msg) => {
+        unlinkSync(tmpfilename);
+      });
+
+
+      
     } catch (error) {
       return next(error)
     }
@@ -523,13 +532,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       }
 
     }
-
+console.log('file afip',doc_id,file)
     if (updateFile || forzado) {
         const fileObj = {
           doctipo_id: "MONOT", 
           tableForSearch: "docgeneral", 
           ind_descarga_bot: 0, 
-          tempfilename: file.path, 
+          tempfilename: file.filename, 
           originalname: file.originalname, 
           fielname: '',
           mimetype: file.mimetype
@@ -547,9 +556,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 */
 
       if (pagenum == null) {
-console.log('aca',fileObj)
+console.log('es actualizacion',doc_id)
 
-        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,  fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
         const fileUploadController = new FileUploadController()
@@ -565,7 +574,7 @@ console.log('aca',fileObj)
         fileObj.tempfilename = fileUploadController.getRandomTempFileName('.pdf')
 
         writeFileSync(fileObj.tempfilename, buffer);
-        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,fileObj, usuario, ip, queryRunner)
 
       }
     }

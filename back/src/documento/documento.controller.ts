@@ -366,7 +366,7 @@ export class DocumentoController extends BaseController {
         throw valsTipoDocumento
 
       archivos[0].ind_descarga_bot = ind_descarga_bot
-      const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, archivos[0], usuario, ip, queryRunner, req)
+      const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, 0, fecha, fec_doc_ven, den_documento, null, null, archivos[0], usuario, ip, queryRunner, req)
       const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
 
 
@@ -544,12 +544,9 @@ export class DocumentoController extends BaseController {
       if (req.body.archivo) {
         for (const file of req.body.archivo) {
           file.ind_descarga_bot = ind_descarga_bot
-          await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, file, usuario, ip, queryRunner, req)
+          await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, null, null, file, usuario, ip, queryRunner, req)
         }
       }
-
-      //await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, (archivo?.length) ? archivo![0] : null, usuario, ip, queryRunner)
-
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');

@@ -20,19 +20,4 @@ const getPeriodoFromRequest = (req: Request): Periodo => {
   return periodo;
 };
 
-const SendFileToDownload = (
-  res: Response,
-  fileName: string,
-  buffer: Uint8Array
-) => {
-  const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
-  const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
-
-  writeFileSync(tmpfilename, buffer);
-
-  res.download(tmpfilename, fileName, (msg) => {
-    unlinkSync(tmpfilename);
-  });
-};
-
-export { SendFileToDownload, getPeriodoFromRequest };
+export { getPeriodoFromRequest };

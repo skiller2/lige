@@ -8,7 +8,7 @@ import { tmpName } from "../server";
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FileNameCallback = (error: Error | null, filename: string) => void;
 
-const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
+const dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
 }
