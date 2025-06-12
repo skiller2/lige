@@ -102,7 +102,7 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name, doctip.json_permisos_act_dir
+          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
                 WHERE doc_id = @0`, [documentId]);
@@ -316,55 +316,10 @@ export class FileUploadController extends BaseController {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}
 
-    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen, json_permisos_act_dir FROM lige.dbo.doctipo tipo 
+    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo 
           WHERE tipo.doctipo_id = @0`, [doctipo_id])
     if (!doctipo.length)
       throw new ClientException(`Tipo de documento no existe`)
-
-    // ------------
-
-    // Verificar permisos segun doctipo ingresado
-
-    if (req && req.groups && doctipo[0]["json_permisos_act_dir"] && doctipo.length > 0) {
-      console.log('entre ----------------------------------- ')
-      const json = JSON.parse(doctipo[0]["json_permisos_act_dir"]);
-
-      const PermisoFullAccess = json.FullAccess;
-      const PermisoReadOnly = json.ReadOnly;
-
-      // Verificar si alguno de los arrays tiene elementos
-      if (
-        (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
-        (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
-      ) {
-        let tienePermiso = false;
-
-        // Verificar grupos de FullAccess
-        for (const grupoPermitidoFullAccess of PermisoFullAccess) {
-          if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
-            tienePermiso = true;
-            break;
-          }
-        }
-
-        // Si no tiene permiso FullAccess, verificar ReadOnly
-        if (!tienePermiso) {
-          for (const grupoPermitidoReadOnly of PermisoReadOnly) {
-            if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
-              tienePermiso = true;
-              break;
-            }
-          }
-        }
-
-        if (!tienePermiso) {
-          throw new ClientException(`No tiene permisos para manipular el registro. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
-        }
-      }
-    }
-
-    //  ------------
-
 
     const folder = fecha.getFullYear() + doctipo[0]['path_origen']
     if (!folder)
