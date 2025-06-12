@@ -129,15 +129,15 @@ export class AuthMiddleware {
           const doc = Documento[0];
           // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
+          console.log('Documento', doc);
           if (Documento.length === 0 || !doc.persona_id || !doc.json_permisos_act_dir) return next();
-
 
           const DocumentoPersonalId = doc.persona_id;
           const anio = stmActual.getFullYear();
           const mes = stmActual.getMonth() + 1;
 
           // Es el dueño del documento
-          if (ResponsablePersonalId == DocumentoPersonalId || ResponsablePersonalId < 1) return next();
+          if (ResponsablePersonalId == DocumentoPersonalId) return next();
 
           const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
           const listGrupos = grupos.map(row => row.GrupoActividadId);
