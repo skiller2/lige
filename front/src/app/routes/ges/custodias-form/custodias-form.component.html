@@ -82,11 +82,22 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
-        <app-personal-search formControlName="personalId" [anio]="anio()" [mes]="mes()"/>
+        <app-personal-search formControlName="personalId" [anio]="anio()" [mes]="mes()" (blur)="onChangeCosto()"/>
       </nz-form-control> 
-        
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" >
+
+      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Horas</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="1">
+          <input nz-input placeholder="" formControlName="horas_trabajadas" type="number" (blur)="onChangeCosto()" />
+      </nz-form-control> 
+    
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="1">
+          <span>{{control.value.subtotal | currency}}</span>
+
+      </nz-form-control> 
+
+
+      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Suma Fija</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
         <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
           <input nz-input placeholder="" formControlName="importe" type="number" (blur)="onChangeCosto()" />
         </nz-input-group>

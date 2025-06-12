@@ -496,13 +496,14 @@ export class CustodiaController extends BaseController {
     async addRegistroPersonalCustodiaQuery(queryRunner: any, objetivo_custodia_id: number, infoPersonal: any, usuario: any, ip: any) {
         const personal_id = infoPersonal.personalId
         const importe_personal = infoPersonal.importe ? infoPersonal.importe : null
+        const horas_trabajadas = infoPersonal.horas_trabajadas ? infoPersonal.horas_trabajadas : null
         const fechaActual = new Date()
         return await queryRunner.query(`INSERT lige.dbo.regpersonalcustodia(
-            personal_id, objetivo_custodia_id, importe_personal, 
+            personal_id, objetivo_custodia_id, importe_personal, horas_trabajadas,
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
         )
-        VALUES (@0, @1, @2, @3, @4, @5, @3, @4, @5)`,
-            [personal_id, objetivo_custodia_id, importe_personal, usuario, ip, fechaActual])
+        VALUES (@0, @1, @2, @3, @4, @4, @6, @4, @5, @6)`,
+            [personal_id, objetivo_custodia_id, importe_personal, horas_trabajadas, usuario, ip, fechaActual])
     }
 
     async addRegistroVehiculoCustodiaQuery(queryRunner: any, objetivo_custodia_id: number, infoVehiculo: any, usuario: any, ip: any) {
@@ -625,12 +626,13 @@ export class CustodiaController extends BaseController {
         const personal_id = infoPersonal.personalId
         const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
         const importe_personal = infoPersonal.importe ? infoPersonal.importe : null
+        const horas_trabajadas = infoPersonal.horas_trabajadas ? infoPersonal.horas_trabajadas : null
         const fechaActual = new Date()
         return await queryRunner.query(`
         UPDATE lige.dbo.regpersonalcustodia
-        SET personal_id = @1, importe_personal =@2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
+        SET personal_id = @1, importe_personal =@2, horas_trabajadas=@6, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
         WHERE objetivo_custodia_id = @0`,
-            [objetivo_custodia_id, personal_id, importe_personal, usuario, ip, fechaActual])
+            [objetivo_custodia_id, personal_id, importe_personal, usuario, ip, fechaActual, horas_trabajadas])
     }
 
     async updateRegistroVehiculoCustodiaQuery(queryRunner: any, infoVehiculo: any, usuario: any, ip: any) {

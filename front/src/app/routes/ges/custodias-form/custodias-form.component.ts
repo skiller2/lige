@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, computed, } from '@angular/core';
-import { SHARED_IMPORTS} from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
@@ -24,7 +24,7 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 export class CustodiaFormComponent {
 
     isLoading = signal(false);
-    objPersonal = { personalId: 0, importe: null }
+    objPersonal = { personalId: 0, horas_trabajadas: null, importe: null, subtotal: null }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
@@ -32,8 +32,8 @@ export class CustodiaFormComponent {
     costo = signal(0)
     facturacion = signal(0)
     diferencia = computed(() => {
-        if (this.costo()||this.facturacion())
-            return (this.facturacion() > 0) ? 100-this.costo() * 100 / this.facturacion() : 0
+        if (this.costo() || this.facturacion())
+            return (this.facturacion() > 0) ? 100 - this.costo() * 100 / this.facturacion() : 0
         else
             return 0
     });
@@ -47,21 +47,35 @@ export class CustodiaFormComponent {
     private searchService = inject(SearchService)
     private injector = inject(Injector)
 
+    private destroy$ = new Subject<void>();
+
+
+
     fb = inject(FormBuilder)
-    formCus = this.fb.group({ id: 0, responsable: '', clienteId: 0, descRequirente: '',
+
+    newRowPersonal() {
+        const row = this.fb.group({ ...this.objPersonal })
+        row.valueChanges
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => this.updatePersonaImporte(row))
+        return row
+    }
+
+    formCus = this.fb.group({
+        id: 0, responsable: '', clienteId: 0, descRequirente: '',
         descripcion: '', fechaInicio: '', origen: '', fechaFinal: '', destino: '',
-        personal: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),
-        vehiculos: this.fb.array([this.fb.group({...this.objVehiculo})]),
+        personal: this.fb.array([this.newRowPersonal()]),
+        vehiculos: this.fb.array([this.fb.group({ ...this.objVehiculo })]),
         cantModulos: null, impoModulos: null, cantHorasExced: null, impoHorasExced: null, cantKmExced: null,
-        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0, desc_facturacion: '', fecha_liquidacion:''
+        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0, desc_facturacion: '', fecha_liquidacion: ''
     })
-    personal():FormArray {
+    personal(): FormArray {
         return this.formCus.get("personal") as FormArray
     }
-    vehiculos():FormArray {
+    vehiculos(): FormArray {
         return this.formCus.get("vehiculos") as FormArray
     }
-    numFactura():boolean {
+    numFactura(): boolean {
         const value = this.formCus.get("estado")?.value
         return (value == 4)
     }
@@ -76,30 +90,31 @@ export class CustodiaFormComponent {
 
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
-    
+
     ngOnInit() {
+        console.log('INIT')
     }
 
     async load() {
         if (this.custodiaId()) {
-            let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
+            let infoCust = await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
             infoCust.fechaInicio = new Date(infoCust.fechaInicio)
             if (infoCust.fechaFinal)
                 infoCust.fechaFinal = new Date(infoCust.fechaFinal)
             this.personal().clear()
             this.vehiculos().clear()
 
-            infoCust.personal.forEach((obj:any) => {
-                this.personal().push(this.fb.group({...this.objPersonal}))
+            infoCust.personal.forEach((obj: any) => {
+                this.personal().push(this.newRowPersonal())
             });
             if (this.personal().length == 0)
-                this.personal().push(this.fb.group({...this.objPersonal}))
-            
-            infoCust.vehiculos.forEach((obj:any) => {
-                this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+                this.personal().push(this.newRowPersonal())
+
+            infoCust.vehiculos.forEach((obj: any) => {
+                this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
             });
             if (this.vehiculos().length == 0)
-                this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+                this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
 
             this.formCus.reset(infoCust)
             setTimeout(() => {
@@ -107,51 +122,63 @@ export class CustodiaFormComponent {
                 this.onChangeImpo()
             }, 100)
         }
-        
+
         if (this.edit()) {
             this.formCus.enable()
-        }else{
+        } else {
             this.formCus.disable()
         }
 
 
     }
-    async reset(){
+    async reset() {
         this.personal().clear()
         this.vehiculos().clear()
-        this.personal().push(this.fb.group({...this.objPersonal}))
-        this.vehiculos().push(this.fb.group({...this.objVehiculo}))
-        this.formCus.reset({estado: 0})
+        this.personal().push(this.newRowPersonal())
+        this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
+        this.formCus.reset({ estado: 0 })
 
         if (this.edit()) {
             this.formCus.enable()
-        }else{
+        } else {
             this.formCus.disable()
         }
     }
 
     onChangePeriodo(result: Date): void {
-/*
-        if (result) {
-            const date = new Date(result)
-            const year = date.getFullYear()
-            const month = date.getMonth() + 1
-            this.periodo.set({ year, month })
-        }
-*/
+        /*
+                if (result) {
+                    const date = new Date(result)
+                    const year = date.getFullYear()
+                    const month = date.getMonth() + 1
+                    this.periodo.set({ year, month })
+                }
+        */
     }
 
     addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
         if (this.edit()) {
-            this.personal().push((this.fb.group({...this.objPersonal})))
+            this.personal().push(this.newRowPersonal())
         }
+    }
+
+    async updatePersonaImporte(persona: any): Promise<void> {
+        let valorHora = 0
+        if (persona.value.personalId) {
+            const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(persona.value.personalId, this.anio(), this.mes(), 1, 0))
+            const catcus = categorias.categorias.filter((c: any) => c.TipoAsociadoId == 2)
+            valorHora = catcus[0]?.ValorLiquidacionHoraNormal
+        }
+        persona.patchValue({ subtotal: persona.value.horas_trabajadas * valorHora }, { emitEvent: false })
+        //        persona.get('subtotal')!.setValue(persona.value.horas_trabajadas*2, { emitEvent: false });
+
     }
 
     addVehiculo(e?: MouseEvent): void {
         e?.preventDefault();
         if (this.edit()) {
-            this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+            this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
         }
     }
 
@@ -175,12 +202,12 @@ export class CustodiaFormComponent {
 
         try {
             if (this.custodiaId()) {
-                await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
+                await firstValueFrom(this.apiService.updateObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }, this.custodiaId()))
             } else {
-                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }))
+                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }))
                 if (res.data.custodiaId) {
                     this.custodiaId.set(Number(res.data.custodiaId))
-                    this.formCus.patchValue({ id: res.data.custodiaId, responsable:res.data.responsable })
+                    this.formCus.patchValue({ id: res.data.custodiaId, responsable: res.data.responsable })
 
                 }
             }
@@ -188,16 +215,16 @@ export class CustodiaFormComponent {
             this.formCus.markAsUntouched()
             this.formCus.markAsPristine()
         } catch (e) {
-            
+
         }
         this.isLoading.set(false)
     }
 
     onChangeImpo() {
-        const facturacion = parseFloat(( (this.formCus.value.cantModulos ?? 0) * (this.formCus.value.impoModulos ?? 0) +
-                            (this.formCus.value.cantHorasExced ?? 0) * (this.formCus.value.impoHorasExced ?? 0) +
-                            (this.formCus.value.cantKmExced ?? 0) * (this.formCus.value.impoKmExced ?? 0) +
-                            (this.formCus.value.impoPeaje ?? 0)).toFixed(2))
+        const facturacion = parseFloat(((this.formCus.value.cantModulos ?? 0) * (this.formCus.value.impoModulos ?? 0) +
+            (this.formCus.value.cantHorasExced ?? 0) * (this.formCus.value.impoHorasExced ?? 0) +
+            (this.formCus.value.cantKmExced ?? 0) * (this.formCus.value.impoKmExced ?? 0) +
+            (this.formCus.value.impoPeaje ?? 0)).toFixed(2))
         this.formCus.controls['facturacion'].patchValue(facturacion)
         this.facturacion.set(facturacion)
     }
@@ -228,9 +255,14 @@ export class CustodiaFormComponent {
         let costo = 0
         let personal = this.personal()
         let vehiculos = this.vehiculos()
-        personal.value.forEach((obj:any)=>{costo += obj.importe})
-        vehiculos.value.forEach((obj:any)=>{costo += (obj.importe + obj.peaje)})
+        personal.value.forEach((obj: any) => { costo += obj.importe + obj.subtotal })
+        vehiculos.value.forEach((obj: any) => { costo += (obj.importe + obj.peaje) })
         this.costo.set(costo)
+    }
+
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
 
