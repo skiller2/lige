@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { SHARED_IMPORTS } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
-import { NgForm, FormArray, FormBuilder } from '@angular/forms';
+import { NgForm, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
@@ -24,7 +24,7 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 export class CustodiaFormComponent {
 
     isLoading = signal(false);
-    objPersonal = { personalId: 0, horas_trabajadas: null, importe: null, subtotal: null }
+    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija:0, importe: 0 }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
@@ -163,14 +163,26 @@ export class CustodiaFormComponent {
         }
     }
 
-    async updatePersonaImporte(persona: any): Promise<void> {
+    async updatePersonaImporte(persona: FormGroup): Promise<void> {
         let valorHora = 0
-        if (persona.value.personalId) {
-            const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(persona.value.personalId, this.anio(), this.mes(), 1, 0))
-            const catcus = categorias.categorias.filter((c: any) => c.TipoAsociadoId == 2)
+        const personalId = persona.get('personalId')?.value
+
+        if (personalId) {
+            const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
+            const catcus = categorias.categorias?.filter((c: any) => c.TipoAsociadoId == 2)
             valorHora = catcus[0]?.ValorLiquidacionHoraNormal
         }
-        persona.patchValue({ subtotal: persona.value.horas_trabajadas * valorHora }, { emitEvent: false })
+
+        persona.patchValue({ importe: persona.value.horas_trabajadas * valorHora + persona.value.importe_suma_fija, subtotal: persona.value.horas_trabajadas * valorHora}, { onlySelf: false, emitEvent: false, })
+        persona.get('personalId')?.markAsPending()
+        persona.get('importe')?.markAsPending()
+        persona.get('subtotal')?.markAsPending()
+        //persona.get('subtotal')?.updateValue();
+        console.log('grabe',persona.value.horas_trabajadas * valorHora)
+
+        //persona.setValue( { subtotal: persona.value.horas_trabajadas * valorHora }, { onlySelf: true, emitEvent: false } )
+
+        //console.log('grabé',persona.value.horas_trabajadas * valorHora)
         //        persona.get('subtotal')!.setValue(persona.value.horas_trabajadas*2, { emitEvent: false });
 
     }

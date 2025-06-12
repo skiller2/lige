@@ -404,7 +404,7 @@ export class FileUploadController extends BaseController {
       default:
         if (!doc_id) {
           // INSERT DOCUMENTO
-          console.log("file", file)
+          console.log("inserto file", file)
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
@@ -440,9 +440,9 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file", file)
+          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
-          if (file.tempfilename && file.tempfilename != '') {
+          if (file?.tempfilename != '') {
 
             const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
 

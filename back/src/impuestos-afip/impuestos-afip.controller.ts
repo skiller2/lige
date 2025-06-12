@@ -449,7 +449,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
     const doc_id = alreadyExists[0]?.doc_id    
 
-
     updateFile=false
     if (alreadyExists.length == 0) {
       const now = new Date();
@@ -548,6 +547,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 */
 
       if (pagenum == null) {
+console.log('aca',fileObj)
+
         await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(), null, `${CUIT}-${anioRequest}-${mesRequest}`, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
