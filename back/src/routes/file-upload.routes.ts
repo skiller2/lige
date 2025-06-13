@@ -138,8 +138,8 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
   });
 });
 
-FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId(), authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
-  await fileUploadController.deleteImage(req, res, next);
+FileUploadRouter.delete("/delete", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId(), authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
+  await fileUploadController.deleteDocumento(req, res, next);
 });
 
 

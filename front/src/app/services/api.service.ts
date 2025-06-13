@@ -1162,10 +1162,10 @@ export class ApiService {
     )
   }
 
-  deleteArchivosImagen(deleteId: number, tableSearch: string) {
+  deleteDocumento(deleteId: number, tableSearch: string) {
     const parameter: any[] = [deleteId, tableSearch]
 
-    return this.http.delete<ResponseJSON<any>>('/api/file-upload/deleteImage', parameter).pipe(
+    return this.http.delete<ResponseJSON<any>>('/api/file-upload/delete', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
@@ -1489,12 +1489,6 @@ export class ApiService {
     );
   }
 
-  deleteDocumento(deleteId: number) {
-    const url = `/api/documento/delete/${deleteId}`;
-    return this.http.delete<ResponseJSON<any>>(url).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res))
-    );
-  }
 
   unsubscribeCBUs(PersonalId: number) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/unsubscribe/cbu`, { PersonalId }).pipe(

@@ -65,6 +65,3 @@ documentoRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasG
   documentoController.updateDocumento(req, res, next)
 })
 
-documentoRouter.delete('/delete/:id', [ authMiddleware.verifyToken, authMiddleware.hasAuthByDocId()], (req, res, next) => {
-  documentoController.deleteArchivo(req, res, next)
-})

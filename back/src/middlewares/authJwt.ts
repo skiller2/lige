@@ -109,11 +109,12 @@ export class AuthMiddleware {
         const ResponsablePersonalId = res.locals.PersonalId;
 
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
-        const documentId = req.params.id || req.body.doc_id
+        const documentId = req.params.id || req.body.doc_id || req.query[0];
         const documentType = req.body.doctipo_id //|| req.params.doctipo_id || req.query.doctipo_id;
 
-        console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
-        console.log('documentType', documentType);
+        // console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
+        // console.log('query', req.query);
+        // console.log('documentType', documentType);
 
         if (!documentId && !documentType) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
 
@@ -129,7 +130,6 @@ export class AuthMiddleware {
           const doc = Documento[0];
           // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
-          console.log('Documento', doc);
           if (Documento.length === 0 || !doc.persona_id || !doc.json_permisos_act_dir) return next();
 
           const DocumentoPersonalId = doc.persona_id;
