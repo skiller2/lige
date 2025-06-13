@@ -31,6 +31,7 @@ export class CustodiaFormComponent {
     edit = model(true)
     costo = signal(0)
     facturacion = signal(0)
+    horaspopover = signal('test')
     diferencia = computed(() => {
         if (this.costo() || this.facturacion())
             return (this.facturacion() > 0) ? 100 - this.costo() * 100 / this.facturacion() : 0
@@ -90,10 +91,6 @@ export class CustodiaFormComponent {
 
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
-
-    ngOnInit() {
-        console.log('INIT')
-    }
 
     async load() {
         if (this.custodiaId()) {
@@ -166,6 +163,7 @@ export class CustodiaFormComponent {
     async updatePersonaImporte(persona: FormGroup): Promise<void> {
         let valorHora = 0
         const personalId = persona.get('personalId')?.value
+        const horas_trabajadas = persona.value.horas_trabajadas || 0
 
         if (personalId) {
             const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
@@ -173,18 +171,15 @@ export class CustodiaFormComponent {
             valorHora = catcus[0]?.ValorLiquidacionHoraNormal || 0
         }
 
-        persona.patchValue({ importe: persona.value.horas_trabajadas * valorHora + persona.value.importe_suma_fija, subtotal: persona.value.horas_trabajadas * valorHora}, { onlySelf: false, emitEvent: false, })
+        persona.patchValue({ importe: horas_trabajadas * valorHora + persona.value.importe_suma_fija }, { onlySelf: false, emitEvent: false, })
         persona.get('personalId')?.markAsPending()
         persona.get('importe')?.markAsPending()
         persona.get('subtotal')?.markAsPending()
         //persona.get('subtotal')?.updateValue();
-        //console.log('grabe',persona.value.horas_trabajadas * valorHora)
-
+        this.horaspopover.set(`Valor hora: ${valorHora} * Trabajadas: ${horas_trabajadas} = ${horas_trabajadas * valorHora}`)
+        
         //persona.setValue( { subtotal: persona.value.horas_trabajadas * valorHora }, { onlySelf: true, emitEvent: false } )
-
-        //console.log('grabé',persona.value.horas_trabajadas * valorHora)
         //        persona.get('subtotal')!.setValue(persona.value.horas_trabajadas*2, { emitEvent: false });
-
     }
 
     addVehiculo(e?: MouseEvent): void {
@@ -267,8 +262,9 @@ export class CustodiaFormComponent {
         let costo = 0
         let personal = this.personal()
         let vehiculos = this.vehiculos()
-        personal.value.forEach((obj: any) => { costo += obj.importe + obj.subtotal })
+        personal.value.forEach((obj: any) => { costo += obj.importe })
         vehiculos.value.forEach((obj: any) => { costo += (obj.importe + obj.peaje) })
+
         this.costo.set(costo)
     }
 
