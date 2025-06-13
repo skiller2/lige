@@ -24,7 +24,7 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 export class CustodiaFormComponent {
 
     isLoading = signal(false);
-    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija:0, importe: 0 }
+    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '' }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
@@ -161,25 +161,26 @@ export class CustodiaFormComponent {
     }
 
     async updatePersonaImporte(persona: FormGroup): Promise<void> {
-        let valorHora = 0
+        let valorHora = 0, fullName = ''
         const personalId = persona.get('personalId')?.value
         const horas_trabajadas = persona.value.horas_trabajadas || 0
+        const importe_suma_fija = persona.value.importe_suma_fija || 0
 
         if (personalId) {
             const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
             const catcus = categorias.categorias?.filter((c: any) => c.TipoAsociadoId == 2)
             valorHora = catcus[0]?.ValorLiquidacionHoraNormal || 0
+            fullName = catcus[0]?.fullName || ''
         }
 
-        persona.patchValue({ importe: horas_trabajadas * valorHora + persona.value.importe_suma_fija }, { onlySelf: false, emitEvent: false, })
-        persona.get('personalId')?.markAsPending()
-        persona.get('importe')?.markAsPending()
-        persona.get('subtotal')?.markAsPending()
-        //persona.get('subtotal')?.updateValue();
-        this.horaspopover.set(`Valor hora: ${valorHora} * Trabajadas: ${horas_trabajadas} = ${horas_trabajadas * valorHora}`)
-        
-        //persona.setValue( { subtotal: persona.value.horas_trabajadas * valorHora }, { onlySelf: true, emitEvent: false } )
-        //        persona.get('subtotal')!.setValue(persona.value.horas_trabajadas*2, { emitEvent: false });
+        if (persona.enabled) {
+            persona.patchValue({
+                importe: horas_trabajadas * valorHora + importe_suma_fija,
+                detalle: `${fullName} \n Valor: ${valorHora} * Trabajadas: ${horas_trabajadas} = ${horas_trabajadas * valorHora}`
+            }, { onlySelf: false, emitEvent: false, })
+            persona.get('personalId')?.markAsPending()
+        }
+
     }
 
     addVehiculo(e?: MouseEvent): void {

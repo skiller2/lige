@@ -81,7 +81,7 @@
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Horas</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="2" nz-popover [nzPopoverContent]="horaspopover()">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="2" nz-popover [nzPopoverContent]="control.value.detalle">
           <input nz-input placeholder="" formControlName="horas_trabajadas" type="number" (input)="onChangeCosto()"  />
         </nz-form-control>
 
@@ -91,9 +91,9 @@
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Retiro</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
           <nz-input-group style="width: 100%" [nzAddOnAfter]="controlPersonalButton" nzSearch>
-            <span nz-input class="ant-input">{{control.value.importe|currency}} </span>
+            <p nz-input class="ant-input">{{control.value.importe|currency}} </p>
           </nz-input-group>
           <ng-template #controlPersonalButton>
             <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary"
@@ -193,7 +193,7 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3">Importe a Facturar</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-      <input nz-input placeholder="" formControlName="facturacion" type="number" readonly />
+      <p nz-input class="ant-input">{{formCus.value.facturacion|currency}} </p>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Diferencia</nz-form-label>
