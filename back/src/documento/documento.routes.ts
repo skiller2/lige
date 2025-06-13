@@ -57,17 +57,11 @@ documentoRouter.post('/list-no-download', [
   documentoController.getPersonalNoDescarga(req, res, next)
 })
 
-documentoRouter.post('/add', [
-  authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gSistemas'])
-], (req, res, next) => {
+documentoRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas']), authMiddleware.hasAuthByDocId()], (req, res, next) => {
   documentoController.addDocumento(req, res, next)
 })
 
-documentoRouter.post('/update', [
-  authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gSistemas'])
-], (req, res, next) => {
+documentoRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas']),  authMiddleware.hasAuthByDocId()], (req, res, next) => {
   documentoController.updateDocumento(req, res, next)
 })
 

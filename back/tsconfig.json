@@ -37,6 +37,6 @@
     ]
   },
   
-  "exclude": ["scripts/**","dist/**"]
+  "exclude": ["scripts/**","dist/**","node_modules/**"]
   
 }

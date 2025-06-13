@@ -890,7 +890,7 @@ export class CargaLicenciaController extends BaseController {
         for (const file of req.body.files) {
 
           const docid = file.id ? file.id : 0
-          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, TipoInasistenciaDescripcion, file, usuario, ip, queryRunner)
+          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, TipoInasistenciaDescripcion, null, null, file, usuario, ip, queryRunner)
 
           if (result && typeof result === 'object') {
             ({ doc_id } = result)
@@ -1060,67 +1060,73 @@ export class CargaLicenciaController extends BaseController {
 
   async getLicenciaQuery(queryRunner: QueryRunner, anio: any, mes: any, PersonalId: any, PersonalLicenciaId: any) {
     let selectquery = `SELECT 
-      suc.SucursalId,
-      suc.SucursalDescripcion,
-      persona.PersonalId,
-      lic.PersonalLicenciaId,
-      persona.PersonalApellido,
-      persona.PersonalNombre,
-      PARSENAME(lic.PersonalLicenciaHorasMensuales,2)+ CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
-      val.ValorLiquidacionHoraNormal,
-      PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
-      (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,
+    suc.SucursalId,
+    suc.SucursalDescripcion,
+    persona.PersonalId,
+    lic.PersonalLicenciaId,
+    persona.PersonalApellido,
+    persona.PersonalNombre,
 
-      lic.PersonalLicenciaSePaga,
-      tli.TipoInasistenciaId,
-      tli.TipoInasistenciaDescripcion,
-      tli.TipoInasistenciaApartado,
-      lic.PersonalLicenciaDesde,
-      lic.PersonalLicenciaSituacionRevistaId,
-      ISNULL(lic.PersonalLicenciaTermina, lic.PersonalLicenciaHasta) AS PersonalLicenciaHasta,      
-      cat.CategoriaPersonalDescripcion,
-      lic.PersonalLicenciaObservacion,
-      lic.PersonalLicenciaTipoAsociadoId,
-      lic.PersonalLicenciaCategoriaPersonalId,
-      med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
-      med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+    PARSENAME(lic.PersonalLicenciaHorasMensuales,2) + CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
 
-      STRING_AGG(CAST(doc.DocumentoId AS VARCHAR), ',') AS DocumentoId,
+    val.ValorLiquidacionHoraNormal,
+    PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2) + CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
+    (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2) + CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,
 
-      1
+    lic.PersonalLicenciaSePaga,
+    tli.TipoInasistenciaId,
+    tli.TipoInasistenciaDescripcion,
+    tli.TipoInasistenciaApartado,
+    lic.PersonalLicenciaDesde,
+    lic.PersonalLicenciaSituacionRevistaId,
+    ISNULL(lic.PersonalLicenciaTermina, lic.PersonalLicenciaHasta) AS PersonalLicenciaHasta,
+    cat.CategoriaPersonalDescripcion,
+    lic.PersonalLicenciaObservacion,
+    lic.PersonalLicenciaTipoAsociadoId,
+    lic.PersonalLicenciaCategoriaPersonalId,
+    med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
+    med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+
+    STRING_AGG(CAST(doc.DocumentoId AS VARCHAR), ',') AS DocumentoId,
+
+        1 AS constante
     FROM PersonalLicencia lic
     JOIN Personal persona ON persona.PersonalId = lic.PersonalId
-    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId       
-    LEFT JOIN PersonalSucursalPrincipal sucper 
-      ON sucper.PersonalId = persona.PersonalId 
-      AND sucper.PersonalSucursalPrincipalId = (
-        SELECT MAX(a.PersonalSucursalPrincipalId) 
-        FROM PersonalSucursalPrincipal a 
-        WHERE a.PersonalId = persona.PersonalId
-      )
+    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = persona.PersonalId 
+        AND sucper.PersonalSucursalPrincipalId = (
+            SELECT MAX(a.PersonalSucursalPrincipalId) 
+            FROM PersonalSucursalPrincipal a 
+            WHERE a.PersonalId = persona.PersonalId
+        )
     LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId 
-      AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId 
-      AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@1 AS VARCHAR(2)),2),'/',@3)
+        AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId 
+        AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucper.PersonalSucursalPrincipalSucursalId,1)
-    LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
-    LEFT JOIN ValorLiquidacion val 
-      ON val.ValorLiquidacionSucursalId = suc.SucursalId 
-      AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId 
-      AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId 
-      AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1, @2, 1)) 
-      AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1, @2, 1)
+    LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId 
+        AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
+    LEFT JOIN ValorLiquidacion val  ON val.ValorLiquidacionSucursalId = suc.SucursalId 
+        AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId 
+        AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId 
+        AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+        AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId = persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
-    LEFT JOIN DocumentoRelaciones doc ON doc.PersonalLicenciaId = lic.PersonalLicenciaId AND persona.PersonalId = doc.PersonalId
+    LEFT JOIN DocumentoRelaciones doc ON doc.PersonalLicenciaId = lic.PersonalLicenciaId  AND persona.PersonalId = doc.PersonalId
     WHERE lic.PersonalId = @3 AND lic.PersonalLicenciaId = @4
-
     GROUP BY 
-      suc.SucursalId,suc.SucursalDescripcion,persona.PersonalId,lic.PersonalLicenciaId,
-      persona.PersonalApellido,persona.PersonalNombre,lic.PersonalLicenciaHorasMensuales,val.ValorLiquidacionHoraNormal,
-      licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,lic.PersonalLicenciaSePaga,tli.TipoInasistenciaId,
-      tli.TipoInasistenciaDescripcion,tli.TipoInasistenciaApartado,lic.PersonalLicenciaDesde,lic.PersonalLicenciaSituacionRevistaId,
-      lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta,cat.CategoriaPersonalDescripcion,
-      lic.PersonalLicenciaObservacion,lic.PersonalLicenciaTipoAsociadoId,lic.PersonalLicenciaCategoriaPersonalId,
-      med.PersonalLicenciaDiagnosticoMedicoDiagnostico,med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico `
+        suc.SucursalId,suc.SucursalDescripcion,
+        persona.PersonalId,lic.PersonalLicenciaId,
+        persona.PersonalApellido,persona.PersonalNombre,
+        lic.PersonalLicenciaHorasMensuales,val.ValorLiquidacionHoraNormal,
+        licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,lic.PersonalLicenciaSePaga,
+        tli.TipoInasistenciaId,tli.TipoInasistenciaDescripcion,
+        tli.TipoInasistenciaApartado,lic.PersonalLicenciaDesde,
+        lic.PersonalLicenciaSituacionRevistaId,lic.PersonalLicenciaTermina,
+        lic.PersonalLicenciaHasta,cat.CategoriaPersonalDescripcion,
+        lic.PersonalLicenciaObservacion,lic.PersonalLicenciaTipoAsociadoId,
+        lic.PersonalLicenciaCategoriaPersonalId,med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
+        med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico
+    `
 
     const result = await queryRunner.query(selectquery, [null, anio, mes, PersonalId, PersonalLicenciaId])
 

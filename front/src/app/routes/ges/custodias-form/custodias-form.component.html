@@ -1,240 +1,261 @@
 <form [formGroup]="formCus">
 
-    <br>
-    <nz-form-item class="marginElement" *ngIf="custodiaId()">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Código</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="id" type="number" readonly/>
+  <br>
+  <nz-form-item class="marginElement" *ngIf="custodiaId()">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Código</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="id" type="number" readonly />
+    </nz-form-control>
+
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Responsable</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="responsable" type="text" readonly />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <app-cliente-search formControlName="clienteId" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Solicitado por</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <nz-input-group style="width: 100%">
+        <input nz-input placeholder="" formControlName="descRequirente" type="text" (focus)="searchDescRequirente()"
+          [nzAutocomplete]="auto" />
+        <nz-autocomplete #auto>
+          <nz-auto-option *ngFor="let option of optionsDescRequirente" [nzValue]="option.descRequirente">
+            {{ option.descRequirente }}
+          </nz-auto-option>
+        </nz-autocomplete>
+      </nz-input-group>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripción</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <textarea rows="5" nz-input formControlName="descripcion"></textarea>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Inicial</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <nz-date-picker [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm"
+        formControlName="fechaInicio"></nz-date-picker>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Origen</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <input nz-input placeholder="Direccion" formControlName="origen" type="text" autocomplete="on" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Final</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <nz-date-picker [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm"
+        formControlName="fechaFinal"></nz-date-picker>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Destino</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <input nz-input placeholder="Direccion" formControlName="destino" type="text" autocomplete="on" />
+    </nz-form-control>
+  </nz-form-item>
+  <br>
+  <div formArrayName="personal">
+    <nz-form-item class="marginElement" *ngFor="let control of personal().controls; let i = index" [formGroupName]="i">
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+          <app-personal-search formControlName="personalId" [anio]="anio()" [mes]="mes()" (blur)="onChangeCosto()" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzXs]="5" [nzSm]="5" [nzMd]="5">Horas</nz-form-label>
+        <nz-form-control [nzXs]="5" [nzSm]="5" [nzMd]="5" [nzLg]="5">
+          <input nz-input placeholder="" formControlName="horas_trabajadas" type="number" (blur)="onChangeCosto()" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control [nzXs]="5" [nzSm]="5" [nzMd]="5" [nzLg]="5">
+          <span>Subtotal: {{control.value.subtotal | currency}}</span>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Suma Fija</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+        <input nz-input placeholder="" formControlName="importe_suma_fija" type="number" (blur)="onChangeCosto()" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Responsable</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="responsable" type="text" readonly/>
-      </nz-form-control>
-    </nz-form-item>
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <app-cliente-search formControlName="clienteId" />
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Solicitado por</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" formControlName="descRequirente" type="text" (focus)="searchDescRequirente()" [nzAutocomplete]="auto" />
-          <nz-autocomplete #auto>
-            <nz-auto-option *ngFor="let option of optionsDescRequirente" [nzValue]="option.descRequirente">
-              {{ option.descRequirente }}
-            </nz-auto-option>
-          </nz-autocomplete>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlPersonalButton" nzSearch>
+          <span>{{control.value.importe | currency}}</span>
         </nz-input-group>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripción</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <textarea rows="5" nz-input formControlName="descripcion" ></textarea>
-      </nz-form-control>
-    </nz-form-item>
-    
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Inicial</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <nz-date-picker
-          [nzShowTime]="{ nzFormat: 'HH:mm' }"
-          nzFormat="yyyy-MM-dd HH:mm"
-          formControlName="fechaInicio"
-        ></nz-date-picker>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Origen</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <input nz-input placeholder="Direccion" formControlName="origen" type="text" autocomplete="on"/>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Final</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <nz-date-picker
-          [nzShowTime]="{ nzFormat: 'HH:mm' }"
-          nzFormat="yyyy-MM-dd HH:mm"
-          formControlName="fechaFinal"
-        ></nz-date-picker>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Destino</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <input nz-input placeholder="Direccion" formControlName="destino" type="text" autocomplete="on"/>
-      </nz-form-control>
-    </nz-form-item>
-    <br>
-    <div formArrayName="personal">
-    <nz-form-item class="marginElement" *ngFor="let control of personal().controls; let i = index" [formGroupName]="i" >
-
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
-        <app-personal-search formControlName="personalId" [anio]="anio()" [mes]="mes()"/>
-      </nz-form-control> 
-        
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" >
-        <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
-          <input nz-input placeholder="" formControlName="importe" type="number" (blur)="onChangeCosto()" />
-        </nz-input-group>
-        <ng-template #controlPersonalButton >
-          <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addPersonal($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <ng-template #controlPersonalButton>
+          <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary"
+            class="add-button" (click)="addPersonal($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus"></span>
           </button>
-          <button nz-button *ngIf="formCus.enabled"  nzType="default" (click)="removePersonal(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          <button nz-button *ngIf="formCus.enabled" nzType="default" (click)="removePersonal(i, $event)" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
           </button>
         </ng-template>
       </nz-form-control>
 
     </nz-form-item>
-    </div>
-    <br>
-    <div formArrayName="vehiculos">
+  </div>
+  <br>
+  <div formArrayName="vehiculos">
     <nz-form-item class="marginElement" *ngFor="let control of vehiculos().controls; let i = index" [formGroupName]="i">
 
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Patente </nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Patente </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
         <input nz-input placeholder="" formControlName="patente" type="text" (blur)="searchDueno(i)" />
       </nz-form-control>
 
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Dueño </nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Dueño </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <app-personal-search formControlName="duenoId" [anio]="anio()" [mes]="mes()"/>
+        <app-personal-search formControlName="duenoId" [anio]="anio()" [mes]="mes()" />
       </nz-form-control>
 
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
-        <input nz-input placeholder="" formControlName="importe" type="number" (blur)="onChangeCosto()"/>
+        <input nz-input placeholder="" formControlName="importe" type="number" (blur)="onChangeCosto()" />
       </nz-form-control>
 
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Peaje</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Peaje</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlVehiculoButton" nzSearch>
-          <input nz-input placeholder="" formControlName="peaje" type="number" (blur)="onChangeCosto()"/>
+          <input nz-input placeholder="" formControlName="peaje" type="number" (blur)="onChangeCosto()" />
         </nz-input-group>
-        <ng-template #controlVehiculoButton >
-          <button nz-button *ngIf="vehiculos().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addVehiculo($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <ng-template #controlVehiculoButton>
+          <button nz-button *ngIf="vehiculos().controls.length == i+1 && formCus.enabled" nzType="primary"
+            class="add-button" (click)="addVehiculo($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus"></span>
           </button>
-          <button nz-button nzType="default" *ngIf="formCus.enabled" (click)="removeVehiculo(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
-            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          <button nz-button nzType="default" *ngIf="formCus.enabled" (click)="removeVehiculo(i, $event)" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
           </button>
         </ng-template>
-      </nz-form-control> 
-      
+      </nz-form-control>
+
     </nz-form-item>
-    </div>
-      
-    <br>
+  </div>
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cant. módulos</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="cantModulos" type="number" (blur)="onChangeImpo()"/>
-      </nz-form-control>
+  <br>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe módulo - Facturación</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" >
-        <input nz-input placeholder="" formControlName="impoModulos" type="number" (blur)="onChangeImpo()" />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cant. módulos</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="cantModulos" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
 
-    <nz-form-item class="marginElement" >
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cant. Horas excedentes</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="cantHorasExced" type="number" (blur)="onChangeImpo()"/>
-      </nz-form-control>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe módulo - Facturación</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="impoModulos" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
+  </nz-form-item>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe hora excedente - Facturación</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="impoHorasExced" type="number" (blur)="onChangeImpo()" />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cant. Horas excedentes</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="cantHorasExced" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cant. Km excedentes</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="cantKmExced" type="number" (blur)="onChangeImpo()" />
-      </nz-form-control>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe hora excedente - Facturación</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="impoHorasExced" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
+  </nz-form-item>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe Km excedente - Facturación</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="impoKmExced" type="number" (blur)="onChangeImpo()" />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cant. Km excedentes</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="cantKmExced" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Peajes - Facturación</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="impoPeaje" type="number" (blur)="onChangeImpo()" />
-      </nz-form-control>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe Km excedente - Facturación</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="impoKmExced" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
+  </nz-form-item>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3">Importe a Facturar</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-        <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/>
-      </nz-form-control>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Peajes - Facturación</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="impoPeaje" type="number" (blur)="onChangeImpo()" />
+    </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Diferencia</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
-        <p [ngClass]="diferencia() < 0? 'negative' : 'positive'">%{{diferencia()|number : '1.2-2'}}</p>
-        <!-- <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/> -->
-      </nz-form-control>
-    </nz-form-item>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3">Importe a Facturar</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      <input nz-input placeholder="" formControlName="facturacion" type="number" readonly />
+    </nz-form-control>
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Despacho/Operación/Referencia</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <input nz-input placeholder="" formControlName="desc_facturacion"/>
-      </nz-form-control>
-    </nz-form-item>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Diferencia</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
+      <p [ngClass]="diferencia() < 0? 'negative' : 'positive'">%{{diferencia()|number : '1.2-2'}}</p>
+      <!-- <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/> -->
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Estado</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-          <ng-container *ngFor="let option of $optionsEstadoCust | async" >
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
-          </ng-container>
-        </nz-select> 
-        @if (!formCus.value.fecha_liquidacion) { 
-          @if (mesLiquidacion() != mes() || anioLiquidacion() != anio()) {
-            <span nz-typography nzType="warning"><strong>Atención, a liquidar en {{mes()}}/{{ anio()}}</strong></span>
-          } @else {
-            <span>A liquidar en {{mes()}}/{{anio()}}</span>
-          }
-        } @else { 
-          <span> Periodo liquidación {{formCus.value.fecha_liquidacion|date:'MM/yyyy'}}</span> 
-        }
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Despacho/Operación/Referencia</nz-form-label>
+    <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <input nz-input placeholder="" formControlName="desc_facturacion" />
+    </nz-form-control>
+  </nz-form-item>
 
-      </nz-form-control>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Estado</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear [nzDropdownMatchSelectWidth]="false"
+        style="width: 100%">
+        <ng-container *ngFor="let option of $optionsEstadoCust | async">
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </ng-container>
+      </nz-select>
+      @if (!formCus.value.fecha_liquidacion) {
+      @if (mesLiquidacion() != mes() || anioLiquidacion() != anio()) {
+      <span nz-typography nzType="warning"><strong>Atención, a liquidar en {{mes()}}/{{ anio()}}</strong></span>
+      } @else {
+      <span>A liquidar en {{mes()}}/{{anio()}}</span>
+      }
+      } @else {
+      <span> Periodo liquidación {{formCus.value.fecha_liquidacion|date:'MM/yyyy'}}</span>
+      }
+
+    </nz-form-control>
     @if (numFactura()){
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" >Número de Factura</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input  placeholder="" formControlName="numFactura" type="number" />
-      </nz-form-control>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Número de Factura</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input placeholder="" formControlName="numFactura" type="number" />
+    </nz-form-control>
     }
-    </nz-form-item>
-    <br>
-    <nz-form-item>
-      <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-        <button nzType="primary" nz-button *ngIf="formCus.enabled"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCus.pristine" >
-          {{ 'app.btn.save' | i18n }}
-        </button>
-      </nz-form-control>
-    </nz-form-item>
-    <br>
+  </nz-form-item>
+  <br>
+  <nz-form-item>
+    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+      <button nzType="primary" nz-button *ngIf="formCus.enabled" (click)="save()" [nzLoading]="isLoading()"
+        [disabled]="formCus.pristine">
+        {{ 'app.btn.save' | i18n }}
+      </button>
+    </nz-form-control>
+  </nz-form-item>
+  <br>
 </form>

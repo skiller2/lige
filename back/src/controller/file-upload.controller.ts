@@ -102,7 +102,7 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name, doctip.json_permisos_act_dir
+          document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
                 WHERE doc_id = @0`, [documentId]);
@@ -290,16 +290,21 @@ export class FileUploadController extends BaseController {
     fecha: Date,
     fec_doc_ven: Date,
     den_documento: string,
+    anio: number,
+    mes:number,
     file: any,
     usuario: any,
     ip: any,
     queryRunner: QueryRunner,
     req?: any
   ) {
-
-
+    let periodo_id = 0
     let fechaActual = new Date();
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth(), usuario, ip);
+    if (anio && mes)
+      periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+    else
+      periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth() + 1, usuario, ip)
+      
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
     const tableForSearch = file.tableForSearch
@@ -316,55 +321,10 @@ export class FileUploadController extends BaseController {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}
 
-    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen, json_permisos_act_dir FROM lige.dbo.doctipo tipo 
+    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo 
           WHERE tipo.doctipo_id = @0`, [doctipo_id])
     if (!doctipo.length)
       throw new ClientException(`Tipo de documento no existe`)
-
-    // ------------
-
-    // Verificar permisos segun doctipo ingresado
-
-    if (req && req.groups && doctipo[0]["json_permisos_act_dir"] && doctipo.length > 0) {
-      console.log('entre ----------------------------------- ')
-      const json = JSON.parse(doctipo[0]["json_permisos_act_dir"]);
-
-      const PermisoFullAccess = json.FullAccess;
-      const PermisoReadOnly = json.ReadOnly;
-
-      // Verificar si alguno de los arrays tiene elementos
-      if (
-        (Array.isArray(PermisoFullAccess) && PermisoFullAccess.length > 0) ||
-        (Array.isArray(PermisoReadOnly) && PermisoReadOnly.length > 0)
-      ) {
-        let tienePermiso = false;
-
-        // Verificar grupos de FullAccess
-        for (const grupoPermitidoFullAccess of PermisoFullAccess) {
-          if (await this.hasGroup(req, grupoPermitidoFullAccess)) {
-            tienePermiso = true;
-            break;
-          }
-        }
-
-        // Si no tiene permiso FullAccess, verificar ReadOnly
-        if (!tienePermiso) {
-          for (const grupoPermitidoReadOnly of PermisoReadOnly) {
-            if (await BaseController.hasGroup(req, grupoPermitidoReadOnly)) {
-              tienePermiso = true;
-              break;
-            }
-          }
-        }
-
-        if (!tienePermiso) {
-          throw new ClientException(`No tiene permisos para manipular el registro. Debe contar con el grupo ${PermisoFullAccess} o ${PermisoReadOnly}`);
-        }
-      }
-    }
-
-    //  ------------
-
 
     const folder = fecha.getFullYear() + doctipo[0]['path_origen']
     if (!folder)
@@ -402,15 +362,17 @@ export class FileUploadController extends BaseController {
         return 0
         break;
       default:
+
         if (!doc_id) {
           // INSERT DOCUMENTO
-          console.log("file", file)
           doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
 
           // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
           if (type == 'pdf') {
+          console.log("leo", file.tempfilename)
+
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
 
@@ -440,9 +402,9 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file", file)
+          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
-          if (file.tempfilename && file.tempfilename != '') {
+          if (file?.tempfilename != '') {
 
             const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
 
