@@ -497,8 +497,9 @@ export class CustodiaController extends BaseController {
         const personal_id = infoPersonal.personalId
         const importe_personal = infoPersonal.importe ? infoPersonal.importe : null
         const horas_trabajadas = infoPersonal.horas_trabajadas ? infoPersonal.horas_trabajadas : null
-        const importe_suma_fija = infoPersonal.horas_trabajadas ? infoPersonal.importe_suma_fija : null
+        const importe_suma_fija = infoPersonal.importe_suma_fija ? infoPersonal.importe_suma_fija : null
         const fechaActual = new Date()
+
         return await queryRunner.query(`INSERT lige.dbo.regpersonalcustodia(
             personal_id, objetivo_custodia_id, importe_personal, horas_trabajadas, importe_suma_fija,
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
@@ -668,7 +669,7 @@ export class CustodiaController extends BaseController {
 
     async getRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any) {
         return await queryRunner.query(`
-        SELECT reg.personal_id personalId, reg.importe_personal importe
+        SELECT reg.personal_id personalId, reg.importe_personal importe, reg.importe_suma_fija, reg.horas_trabajadas
         FROM lige.dbo.regpersonalcustodia reg
         INNER JOIN Personal per ON per.PersonalId = reg.personal_id
         WHERE objetivo_custodia_id = @0`,
@@ -1006,8 +1007,6 @@ export class CustodiaController extends BaseController {
 
                     const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner);
                     errores = [...errores, ...erroresPersona]
-
-
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
                 }
