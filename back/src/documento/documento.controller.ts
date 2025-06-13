@@ -606,47 +606,4 @@ export class DocumentoController extends BaseController {
     }
   }
 
-  async deleteArchivo(req: Request, res: Response, next: NextFunction) {
-
-    let doc_id = req.params.id
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      //Validaciones
-      const telefonos = await dataSource.query(`
-          SELECT telefono
-          FROM lige.dbo.doc_descaga_log
-          WHERE doc_id IN (@0)
-          `, [doc_id])
-      if (telefonos.length)
-        throw new ClientException('No se puede eliminar Documentos que tienen movimientos de descarga.')
-
-      //Busca el path del archivo
-      const document = await dataSource.query(`
-          SELECT doc_id AS id, path, nombre_archivo AS name
-          FROM lige.dbo.docgeneral
-          WHERE doc_id = @0
-          `, [doc_id])
-      const finalurl = `${document[0]["path"]}`
-
-      if (document.length > 0) {
-        if (existsSync(finalurl))
-          await unlink(finalurl)
-
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
-
-        await queryRunner.commitTransaction();
-      }
-
-      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
-
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    }
-
-  }
-
 }

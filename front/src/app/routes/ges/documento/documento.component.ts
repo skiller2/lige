@@ -38,16 +38,16 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-    selector: 'documento',
-    templateUrl: './documento.component.html',
-    imports: [
-        SHARED_IMPORTS, CommonModule, NzAffixModule,
-        FiltroBuilderComponent, DocumentoDrawerComponent,
-        TablePendientesDescargasComponent, TableHistorialDescargasComponent,
-        ReporteComponent
-    ],
-    styleUrls: ['./documento.component.less'],
-    providers: [AngularUtilService]
+  selector: 'documento',
+  templateUrl: './documento.component.html',
+  imports: [
+    SHARED_IMPORTS, CommonModule, NzAffixModule,
+    FiltroBuilderComponent, DocumentoDrawerComponent,
+    TablePendientesDescargasComponent, TableHistorialDescargasComponent,
+    ReporteComponent
+  ],
+  styleUrls: ['./documento.component.less'],
+  providers: [AngularUtilService]
 })
 export class DocumentoComponent {
   startFilters = signal<any[]>([])
@@ -56,13 +56,13 @@ export class DocumentoComponent {
     private settingService: SettingsService,
     public apiService: ApiService,
     private angularUtilService: AngularUtilService,
-    public searchService:SearchService
+    public searchService: SearchService
   ) { }
-  
+
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   columnDefinitions: Column[] = [];
-  
+
   columns$ = this.apiService.getCols('/api/documento/cols').pipe(map((cols) => {
     return cols
   }));
@@ -80,7 +80,7 @@ export class DocumentoComponent {
   visibleDetalle = model<boolean>(false)
   refresh = signal(0)
   loadingDelete = signal<boolean>(false)
-  
+
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -89,8 +89,8 @@ export class DocumentoComponent {
 
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
-  
-  onAddorUpdate(_e:any) {
+
+  onAddorUpdate(_e: any) {
     this.formChanged('')
   }
 
@@ -135,7 +135,7 @@ export class DocumentoComponent {
         // }
       }
     ]
-   
+
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = false
     this.gridOptions.showFooterRow = true
@@ -179,7 +179,7 @@ export class DocumentoComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
- 
+
   }
 
   // exportGrid() {
@@ -190,7 +190,7 @@ export class DocumentoComponent {
   // }
 
   handleSelectedRowsChanged(e: any): void {
-    if (e.detail.args.changedSelectedRows.length ==1) {
+    if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
       const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
       this.docId.set(docId)
@@ -199,15 +199,15 @@ export class DocumentoComponent {
     }
   }
 
-  openDrawerforAlta(): void{
-    this.visibleAlta.set(true) 
+  openDrawerforAlta(): void {
+    this.visibleAlta.set(true)
   }
 
-  openDrawerforEdit(): void{
+  openDrawerforEdit(): void {
     this.visibleEdit.set(true)
   }
 
-  openDrawerforDetalle(): void{
+  openDrawerforDetalle(): void {
     this.visibleDetalle.set(true)
   }
 
@@ -225,21 +225,21 @@ export class DocumentoComponent {
   }
 
   async deleteDocumento() {
-  this.loadingDelete.set(true);
+    this.loadingDelete.set(true);
 
-  try {
-    const id = this.docId();
-    if (id != null) {
-      await firstValueFrom(this.apiService.deleteDocumento(id));
-      // Emito cambio para refrescar la lista, el grid, etc.
-      this.formChange$.next('');
+    try {
+      const id = this.docId();
+      if (id != null) {
+        await firstValueFrom(this.apiService.deleteDocumento(id, 'docgeneral'));
+        // Emito cambio para refrescar la lista, el grid, etc.
+        this.formChange$.next('');
+      }
+    } catch (error) {
+      // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
+      console.error('Error borrando documento', error);
+    } finally {
+      this.loadingDelete.set(false);
     }
-  } catch (error) {
-    // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
-    console.error('Error borrando documento', error);
-  } finally {
-    this.loadingDelete.set(false);
   }
-}
 
 }

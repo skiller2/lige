@@ -276,7 +276,7 @@ export class FileUploadController extends BaseController {
       `, [singleId, TipoSearch])
 
       ArchivosAnteriores.push(...result)
-}
+    }
 
     return ArchivosAnteriores
 
@@ -291,7 +291,7 @@ export class FileUploadController extends BaseController {
     fec_doc_ven: Date,
     den_documento: string,
     anio: number,
-    mes:number,
+    mes: number,
     file: any,
     usuario: any,
     ip: any,
@@ -304,7 +304,7 @@ export class FileUploadController extends BaseController {
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
     else
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fecha.getFullYear(), fecha.getMonth() + 1, usuario, ip)
-      
+
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
     const tableForSearch = file.tableForSearch
@@ -371,7 +371,7 @@ export class FileUploadController extends BaseController {
 
           // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
           if (type == 'pdf') {
-          console.log("leo", file.tempfilename)
+            console.log("leo", file.tempfilename)
 
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
@@ -529,17 +529,116 @@ export class FileUploadController extends BaseController {
     }
   }
 
-  async deleteImage(req, res, next) {
+  async deleteDocumento(req, res, next) {
     const deleteId = Number(req.query[0])
     const tableForSearch = req.query[1];
     const queryRunner = dataSource.createQueryRunner();
-    try {
 
+    let document: any
+    let finalurl: any
+
+    // console.log('deleteId', deleteId, 'req.query', req.query)
+    // console.log('tableForSearch', tableForSearch)
+
+    if (!deleteId || !tableForSearch) throw new ClientException(`No se ha proporcionado un id o tabla para eliminar el archivo.`);
+
+    try {
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      await FileUploadController.deleteFile(deleteId, tableForSearch, queryRunner)
+      // Verificar si el documento tiene descargas asociadas
+      const telefonos = await dataSource.query(`
+          SELECT telefono
+          FROM lige.dbo.doc_descaga_log
+          WHERE doc_id IN (@0)
+          `, [deleteId])
+
+      if (telefonos.length) throw new ClientException('No se puede eliminar Documentos que tienen movimientos de descarga.')
+
+      // 
+      switch (tableForSearch) {
+        case 'docgeneral':
+          document = await dataSource.query(`
+                  SELECT doc_id AS id, path, nombre_archivo AS name
+                  FROM lige.dbo.docgeneral
+                  WHERE doc_id = @0
+                  `, [deleteId])
+          finalurl = `${document[0]["path"]}`
+
+          if (document.length === 0 && !finalurl) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
+
+          if (!existsSync(finalurl)) {
+            console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+          } else {
+            await unlink(finalurl)
+          }
+
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
+
+          break;
+        default:
+          document = await queryRunner.query(`
+            SELECT doc.${tableForSearch}Id AS id, 
+            CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
+            doc.${tableForSearch}BlobNombreArchivo AS name,
+            doc.PersonalId, doc.DocumentoImagenParametroId
+            FROM ${tableForSearch} doc
+            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            WHERE doc.${tableForSearch}Id = @0`, [deleteId])
+          finalurl = `${document[0]["path"]}`
+          const PersonalId = document[0]["PersonalId"]
+          const DocumentoImagenParametroId = document[0]["DocumentoImagenParametroId"]
+
+          if (document.length > 0) {
+            if (!existsSync(finalurl)) {
+              console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+            } else {
+              await unlink(finalurl);
+            }
+
+            await queryRunner.query(`
+              DELETE FROM ${tableForSearch}
+              WHERE ${tableForSearch}Id = @0 AND PersonalId = @1
+              `, [deleteId, PersonalId]
+            )
+
+            switch (tableForSearch) {
+              case 'DocumentoImagenFoto':
+                await queryRunner.query(`
+                  UPDATE Personal SET
+                  PersonalFotoId = NULL
+                  WHERE PersonalId = @0`, [PersonalId])
+                break;
+              case 'DocumentoImagenDocumento':
+                if (DocumentoImagenParametroId == 12) {
+                  await queryRunner.query(`
+                    UPDATE PersonalDocumento SET
+                    PersonalDocumentoFrenteId = NULL
+                    WHERE PersonalId = @0`, [PersonalId])
+                }
+                if (DocumentoImagenParametroId == 13) {
+                  await queryRunner.query(`
+                    UPDATE PersonalDocumento SET
+                    PersonalDocumentoDorsoId = NULL
+                    WHERE PersonalId = @0`, [PersonalId])
+                }
+                break;
+              case 'DocumentoImagenEstudio':
+                await queryRunner.query(`
+                  UPDATE PersonalEstudio SET  
+                  PersonalEstudioPagina1Id = NULL
+                  WHERE PersonalId = @0 AND PersonalEstudioPagina1Id = @1`, [PersonalId, deleteId])
+                break;
+              default:
+                throw new ClientException(`Falla en busqueda de Archivo`)
+                break;
+            }
+
+          }
+          break;
+      }
+      // 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
 
@@ -550,7 +649,6 @@ export class FileUploadController extends BaseController {
   }
 
   static async deleteFile(deleteId: number, tableForSearch: string, queryRunner: QueryRunner) {
-
 
     try {
 
@@ -815,7 +913,7 @@ export class FileUploadController extends BaseController {
         LEFT JOIN lige.dbo.liqmaperiodo perliq ON perliq.periodo_id=docgen.periodo
         WHERE docgen.persona_id=@0 AND docgen.doctipo_id=@3 and perliq.anio=@1 and perliq.mes=@2
       `, [PersonalId, anio, mes, DocumentoTipoId])
-      
+
       if (doc.length > 0) {
         await queryRunner.commitTransaction()
         return doc[0].doc_id
