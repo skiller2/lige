@@ -535,44 +535,81 @@ cuit.PersonalCUITCUILCUIT,
 
   private async addPersonalQuery(
     queryRunner: any,
-    NroLegajo: number,
-    Apellido: string,
-    Nombre: string,
-    now: Date,
-    FechaIngreso: Date,
-    FechaNacimiento: Date,
-    NacionalidadId: number,
-    EstadoCivilId: number,
-    SucusalId: number,
-    CUIT: number,
-    LeyNro: number
+    infoPersonal:any
   ) {
+    let Nombre: string = infoPersonal.Nombre
+    let Apellido: string = infoPersonal.Apellido
+    const CUIT: number = infoPersonal.CUIT
+    const NroLegajo: number = infoPersonal.NroLegajo
+    const SucursalId: number = infoPersonal.SucursalId
+    let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
+    let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
+    const NacionalidadId: number = infoPersonal.NacionalidadId
+    const Sexo: string = infoPersonal.Sexo
+    const EstadoCivilId: number = infoPersonal.EstadoCivilId
+    const LeyNro: number = infoPersonal.LeyNro
+    const PaisId: number = infoPersonal.PaisId
+    const ProvinciaId: number = infoPersonal.ProvinciaId
+    const LocalidadId: number = infoPersonal.LocalidadId
+
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
+    let now = new Date()
+    now.setHours(0, 0, 0, 0)
+    let errors: string[] = []
+
+    //Validaciones
+    if (NroLegajo) {
+      let validacionNroLegajo = await queryRunner.query(`
+        SELECT per.PersonalId
+        FROM Personal per
+        WHERE per.PersonalNroLegajo IN (@0)
+      `, [NroLegajo])
+      if (validacionNroLegajo.length) {
+        errors.push(`El NroLegajo esta en uso.`);
+      }
+    }
+
+    let validacionCUIT = await queryRunner.query(`
+      SELECT cuit.PersonalId
+      FROM PersonalCUITCUIL cuit 
+      WHERE cuit.PersonalCUITCUILCUIT IN (@0)
+    `, [CUIT])
+    if (validacionCUIT.length) {
+      errors.push(`El CUIT ya fue registrado.`);
+    }
+
+    if (errors.length)
+      throw new ClientException(errors)
+
     let newId = await queryRunner.query(`
       INSERT INTO Personal (
-      PersonalClasePersonal,
-      PersonalNroLegajo,
-      PersonalApellido,
-      PersonalNombre,
-      PersonalApellidoNombre,
-      PersonalFechaSolicitudIngreso,
-      PersonalFechaSolicitudAceptada,
-      PersonalFechaPreIngreso,
-      PersonalFechaIngreso,
-      PersonalFechaAutorizacionIngreso,
-      PersonalFechaNacimiento,
-      PersonalNacionalidadId,
-      PersonalSucursalIngresoSucursalId,
-      PersonalSuActualSucursalPrincipalId,
-      PersonalApellidoNombreDNILegajo,
-      PersonalCUITCUILUltNro,
-      PersonalLeyNro,
-      EstadoCivilId
+        PersonalClasePersonal,
+        PersonalNroLegajo,
+        PersonalApellido,
+        PersonalNombre,
+        PersonalApellidoNombre,
+        PersonalFechaSolicitudIngreso,
+        PersonalFechaSolicitudAceptada,
+        PersonalFechaPreIngreso,
+        PersonalFechaIngreso,
+        PersonalFechaAutorizacionIngreso,
+        PersonalFechaNacimiento,
+        PersonalNacionalidadId,
+        PersonalSucursalIngresoSucursalId,
+        PersonalSuActualSucursalPrincipalId,
+        PersonalApellidoNombreDNILegajo,
+        PersonalCUITCUILUltNro,
+        PersonalLeyNro,
+        EstadoCivilId,
+        PersonalSexo,
+        PersonalPaisId,
+        PersonalProvinciaId,
+        PersonalLocalidadId
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13)
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -585,11 +622,15 @@ cuit.PersonalCUITCUILCUIT,
       FechaIngreso,
       FechaNacimiento,
       NacionalidadId,
-      SucusalId,
+      SucursalId,
       ApellidoNombreDNILegajo,
       1,
       LeyNro,
-      EstadoCivilId
+      EstadoCivilId,
+      Sexo,
+      PaisId,
+      ProvinciaId,
+      LocalidadId
     ])
     // console.log('newId:',newId);
     let PersonalId = newId[0].id
@@ -666,31 +707,21 @@ cuit.PersonalCUITCUILCUIT,
 
   async addPersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    let Nombre: string = req.body.Nombre
-    let Apellido: string = req.body.Apellido
     const CUIT: number = req.body.CUIT
-    const NroLegajo: number = req.body.NroLegajo
     const SucursalId: number = req.body.SucursalId
     const Email = req.body.Email
-    let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : null
-    let FechaNacimiento: Date = req.body.FechaNacimiento ? new Date(req.body.FechaNacimiento) : null
     const foto = req.body.Foto
-    const NacionalidadId: number = req.body.NacionalidadId
-    const EstadoCivilId: number = req.body.EstadoCivilId
-    const LeyNro: number = req.body.LeyNro
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
+    const domicilio = req.body.domicilio
     const telefonos = req.body.telefonos
     const estudios = req.body.estudios
     const familiares = req.body.familiares
-    const actas = req.body.actas
     const habilitacion: number[] = (req.body.habilitacion) ? req.body.habilitacion : []
     const beneficiarios = req.body.beneficiarios
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    FechaIngreso?.setHours(0, 0, 0, 0)
-    FechaNacimiento?.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.startTransaction()
@@ -702,33 +733,7 @@ cuit.PersonalCUITCUILCUIT,
       if (valForm instanceof ClientException)
         throw valForm
 
-      if (NroLegajo) {
-        let validacionNroLegajo = await queryRunner.query(`
-          SELECT per.PersonalId
-          FROM Personal per
-          WHERE per.PersonalNroLegajo IN (@0)
-        `, [NroLegajo])
-        if (validacionNroLegajo.length) {
-          errors.push(`El NroLegajo esta en uso.`);
-        }
-      }
-
-      let validacionCUIT = await queryRunner.query(`
-        SELECT cuit.PersonalId
-        FROM PersonalCUITCUIL cuit 
-        WHERE cuit.PersonalCUITCUILCUIT IN (@0)
-      `, [CUIT])
-      if (validacionCUIT.length) {
-        errors.push(`El CUIT ya fue registrado.`);
-      }
-
-      if (errors.length)
-        throw new ClientException(errors)
-
-
-      const PersonalId = await this.addPersonalQuery(
-        queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, EstadoCivilId, SucursalId, CUIT, LeyNro
-      )
+      const PersonalId = await this.addPersonalQuery(queryRunner, req.body)
 
       if (Number.isNaN(PersonalId)) {
         throw new ClientException('No se pudo generar un identificador.')
@@ -739,7 +744,7 @@ cuit.PersonalCUITCUILCUIT,
       const DNI = parseInt(CUIT.toString().slice(2, -1))
       await this.addPersonalDocumentoQuery(queryRunner, PersonalId, DNI)
 
-      await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
+      await this.updatePersonalDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
@@ -1123,7 +1128,7 @@ cuit.PersonalCUITCUILCUIT,
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro,
-      EstadoCivilId 
+      EstadoCivilId, PersonalSexo Sexo, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId, PersonalLocalidadId LocalidadId
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1140,6 +1145,7 @@ cuit.PersonalCUITCUILCUIT,
     let Nombre: string = infoPersonal.Nombre
     let Apellido: string = infoPersonal.Apellido
     const NacionalidadId: number = infoPersonal.NacionalidadId
+    const Sexo: string = infoPersonal.Sexo
     const EstadoCivilId: number = infoPersonal.EstadoCivilId
     const NroLegajo: number = infoPersonal.NroLegajo
     const SucursalId: number = infoPersonal.SucursalId
@@ -1147,12 +1153,17 @@ cuit.PersonalCUITCUILCUIT,
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
     const LeyNro: number = infoPersonal.LeyNro
+    const PaisId: number = infoPersonal.PaisId
+    const ProvinciaId: number = infoPersonal.ProvinciaId
+    const LocalidadId: number = infoPersonal.LocalidadId
+
     FechaIngreso?.setHours(0, 0, 0, 0)
     FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
+
     await queryRunner.query(`
       UPDATE Personal SET
       PersonalNroLegajo = @1,
@@ -1167,10 +1178,14 @@ cuit.PersonalCUITCUILCUIT,
       PersonalSuActualSucursalPrincipalId = @8,
       PersonalApellidoNombreDNILegajo = @9,
       PersonalLeyNro = @10,
-      EstadoCivilId = @11
+      EstadoCivilId = @11,
+      PersonalSexo = @12,
+      PersonalPaisId = @13,
+      PersonalProvinciaId = @14,
+      PersonalLocalidadId = @15
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
-      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId
+      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, PaisId, ProvinciaId, LocalidadId
     ])
   }
 
@@ -1480,6 +1495,7 @@ cuit.PersonalCUITCUILCUIT,
     const Foto = req.body.Foto
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
+    const domicilio: any = req.body.domicilio
     const telefonos: any[] = req.body.telefonos
     const estudios: any[] = req.body.estudios
     const familiares: any[] = req.body.familiares
@@ -1513,7 +1529,7 @@ cuit.PersonalCUITCUILCUIT,
         const DNI = parseInt(CUIT.toString().slice(2, -1))
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
-      await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
+      await this.updatePersonalDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
@@ -1573,11 +1589,8 @@ cuit.PersonalCUITCUILCUIT,
       SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
       cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
       per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId,
-      TRIM(nac.NacionalidadDescripcion), per.EstadoCivilId,
-      TRIM(dom.PersonalDomicilioDomCalle) Calle, TRIM(dom.PersonalDomicilioDomNro) Nro, TRIM(dom.PersonalDomicilioDomPiso) Piso,
-      TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioCodigoPostal) CodigoPostal, dom.PersonalDomicilioPaisId PaisId,
-      dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId,
-      email.PersonalEmailEmail Email, email.PersonalEmailId,
+      TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId,
+      PersonalLocalidadId LocalidadId, email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro
@@ -1610,6 +1623,19 @@ cuit.PersonalCUITCUILCUIT,
   //     `, [personalId]
   //   )
   // }
+  
+  private async getFormDomicilioByPersonalIdQuery(queryRunner: any, personalId: any) {
+    const PersonalDomicilio = await queryRunner.query(`
+        SELECT 
+          TRIM(dom.PersonalDomicilioDomCalle) Calle, TRIM(dom.PersonalDomicilioDomNro) Nro, TRIM(dom.PersonalDomicilioDomPiso) Piso,
+          TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioCodigoPostal) CodigoPostal, dom.PersonalDomicilioPaisId PaisId,
+          dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId
+        FROM PersonalDomicilio dom
+        WHERE dom.PersonalId IN (@0) AND dom.PersonalDomicilioActual IN (1)
+      `, [personalId]
+    )
+    return PersonalDomicilio[0]
+  }
 
   private async getFormTelefonosByPersonalIdQuery(queryRunner: any, personalId: any) {
     return await queryRunner.query(`
@@ -1682,12 +1708,14 @@ cuit.PersonalCUITCUILCUIT,
     try {
       let data = await this.getFormPersonByIdQuery(queryRunner, personalId)
 
+      const domicilio = await this.getFormDomicilioByPersonalIdQuery(queryRunner, personalId)
       const telefonos = await this.getFormTelefonosByPersonalIdQuery(queryRunner, personalId)
       const estudios = await this.getFormEstudiosByPersonalIdQuery(queryRunner, personalId)
       const familiares = await this.getFormFamiliaresByPersonalIdQuery(queryRunner, personalId)
       const habilitacion = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
       const beneficiarios = await this.getFormBeneficiariosByPersonalIdQuery(queryRunner, personalId)
 
+      data.domicilio = domicilio
       data.telefonos = telefonos
       data.estudios = estudios
       data.familiares = familiares
@@ -1977,6 +2005,16 @@ cuit.PersonalCUITCUILCUIT,
     }
     if (action == 'I' && !personalForm.SituacionId) {
       campos_vacios.push(`- Situacion de Revista`)
+    }
+    
+    //Validaciones de Lugar de nacimiento
+    const algunIncomleto = personalForm.PaisId || personalForm.ProvinciaId || personalForm.LocalidadId;
+    const todosCompletos = personalForm.PaisId && personalForm.ProvinciaId && personalForm.LocalidadId;
+    if (algunIncomleto && !todosCompletos) {
+      campos_vacios.push('Sección - Lugar de nacimiento:')
+      if (!personalForm.PaisId) campos_vacios.push('- Pais')
+      if (!personalForm.ProvinciaId) campos_vacios.push('- Provincia')
+      if (!personalForm.LocalidadId) campos_vacios.push('- Localidad')
     }
 
     if (campos_vacios.length) {

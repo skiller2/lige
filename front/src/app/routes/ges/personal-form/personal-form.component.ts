@@ -4,7 +4,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
-import { FormArray, FormBuilder } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
 import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -43,14 +43,14 @@ export class PersonalFormComponent {
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
   objBeneficiario = {Apellido:'', Nombre:'', TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:'', Desde:''}
+  objDomicilio = {Calle:'', Nro:'', Piso:'', Dpto:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,}
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
-    FechaIngreso:'', FechaNacimiento:'', NacionalidadId:0, EstadoCivilId:0,
+    FechaIngreso:'', FechaNacimiento:'', NacionalidadId:0, Sexo:'', EstadoCivilId:0,
     FotoId:0, Foto:[], docDorsoId:0, docDorso:[], docFrenteId: 0, docFrente:[],
-    Calle:'', Nro:'', Piso:'', Dpto:'', //Domicilio
-    CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
-    LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
+    domicilio:   this.fb.group({ ...this.objDomicilio }),
+    PaisId:0, ProvinciaId:0, LocalidadId:0, //Lugar de nacimiento
     PersonalEmailId:0, Email:'', //Email
     telefonos:   this.fb.array([this.fb.group({...this.objTelefono})]),
     estudios:    this.fb.array([this.fb.group({...this.objEstudio})]),
@@ -68,6 +68,7 @@ export class PersonalFormComponent {
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
   $optionsEstadoCivil = this.searchService.getEstadoCivilOptions();
+  optionsSexo = [{value:'M', label:'MASCULINO'}, {value:'F', label:'FEMENINO'}]
 
   fotoId():number {
     const value = this.formPer.value.FotoId
@@ -91,13 +92,21 @@ export class PersonalFormComponent {
     if(value) return value
     else return 0
   }
-  provinciaId():number {
-      const value = this.formPer.get("ProvinciaId")?.value
+  domicilio():FormGroup {
+    return this.formPer.get("domicilio") as FormGroup
+  }
+  domicilioPaisId():number {
+    const value = this.domicilio().get("PaisId")?.value
+    if(value) return value
+    else return 0
+  }
+  domicilioProvinciaId():number {
+      const value = this.domicilio().get("ProvinciaId")?.value
       if(value) return value
       else return 0
   }
-  localidadId():number {
-      const value = this.formPer.get("LocalidadId")?.value
+  domicilioLocalidadId():number {
+      const value = this.domicilio().get("LocalidadId")?.value
       if(value) return value
       else return 0
   }
@@ -114,30 +123,33 @@ export class PersonalFormComponent {
     return this.formPer.get("beneficiarios") as FormArray
   }
 
-  $selectedLocalidadIdChange = new BehaviorSubject('');
-  $selectedProvinciaIdChange = new BehaviorSubject('');
-  $selectedPaisIdChange = new BehaviorSubject('');
-
   $optionsPais = this.searchService.getPaises();
 
-  $optionsProvincia = this.$selectedPaisIdChange.pipe(
-    debounceTime(500),
-    switchMap(() =>{
-      return this.searchService.getProvinciasByPais(this.paisId())
-    })
-  );
-  $optionsLocalidad = this.$selectedProvinciaIdChange.pipe(
-    debounceTime(500),
-    switchMap(() =>{
-      return this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId())
-    })
-  );
-  $optionsBarrio = this.$selectedLocalidadIdChange.pipe(
-    debounceTime(500),
-    switchMap(() =>{
-        return this.searchService.getBarriosByLocalidad(this.paisId(), this.provinciaId(), this.localidadId())
-    })
-  );
+  optionsDomicilioProvincia = signal<any[]>([])
+  optionsDomicilioLocalidad = signal<any[]>([])
+  optionsDomicilioBarrio = signal<any[]>([])
+
+  optionsProvincia = signal<any[]>([])
+  optionsLocalidad = signal<any[]>([])
+
+  // $optionsProvincia = this.$selectedPaisIdChange.pipe(
+  //   debounceTime(500),
+  //   switchMap(() =>{
+  //     return this.searchService.getProvinciasByPais(this.paisId())
+  //   })
+  // );
+  // $optionsLocalidad = this.$selectedProvinciaIdChange.pipe(
+  //   debounceTime(500),
+  //   switchMap(() =>{
+  //     return this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId())
+  //   })
+  // );
+  // $optionsBarrio = this.$selectedLocalidadIdChange.pipe(
+  //   debounceTime(500),
+  //   switchMap(() =>{
+  //       return this.searchService.getBarriosByLocalidad(this.paisId(), this.provinciaId(), this.localidadId())
+  //   })
+  // );
 
   async ngOnInit(){
     let now : Date = new Date()
@@ -230,30 +242,51 @@ export class PersonalFormComponent {
     this.isLoading.set(false)
   }
 
-  selectedPaisChange(event: any):void{
+  async selectedDomicilioPaisChange(event: any){
+    if (this.enableSelectReset()){
+      this.domicilio().get('ProvinciaId')?.reset()
+      this.domicilio().get('LocalidadId')?.reset()
+      this.domicilio().get('BarrioId')?.reset()
+    }
+    const Provincias = await firstValueFrom(this.searchService.getProvinciasByPais(event))
+    this.optionsDomicilioProvincia.set(Provincias)
+    this.optionsDomicilioLocalidad.set([])
+    this.optionsDomicilioBarrio.set([])
+  }
+
+  async selectedDomicilioProvinciaChange(event: any){
+    if (this.enableSelectReset()){
+      this.domicilio().get('LocalidadId')?.reset()
+      this.domicilio().get('BarrioId')?.reset()
+    }
+    const Localidades = await firstValueFrom(this.searchService.getLocalidadesByProvincia(this.domicilioPaisId(), event))
+    this.optionsDomicilioLocalidad.set(Localidades)
+    this.optionsDomicilioBarrio.set([])
+  }
+
+  async selectedDomicilioLocalidadChange(event: any){
+    if (this.enableSelectReset()) 
+      this.domicilio().get('BarrioId')?.reset()
+    const Barrios = await firstValueFrom(this.searchService.getBarriosByLocalidad(this.domicilioPaisId(), this.domicilioProvinciaId(), event))
+    this.optionsDomicilioBarrio.set(Barrios)
+  }
+
+  async selectedPaisChange(event: any){
     if (this.enableSelectReset()){
       this.formPer.get('ProvinciaId')?.reset()
       this.formPer.get('LocalidadId')?.reset()
-      this.formPer.get('BarrioId')?.reset()
     }
-    this.$selectedPaisIdChange.next('')
-    this.$selectedProvinciaIdChange.next('')
-    this.$selectedLocalidadIdChange.next('')
+    const Provincias = await firstValueFrom(this.searchService.getProvinciasByPais(event))
+    this.optionsProvincia.set(Provincias)
+    this.optionsLocalidad.set([])
   }
 
-  selectedProvinciaChange(event: any):void{
+  async selectedProvinciaChange(event: any){
     if (this.enableSelectReset()){
       this.formPer.get('LocalidadId')?.reset()
-      this.formPer.get('BarrioId')?.reset()
     }
-    this.$selectedProvinciaIdChange.next('')
-    this.$selectedLocalidadIdChange.next('')
-  }
-
-  selectedLocalidadChange(event: any):void{
-    if (this.enableSelectReset()) 
-      this.formPer.get('BarrioId')?.reset()
-    this.$selectedLocalidadIdChange.next('')
+    const Localidades = await firstValueFrom(this.searchService.getLocalidadesByProvincia(this.paisId(), event))
+    this.optionsLocalidad.set(Localidades)
   }
 
   addTelefono(e?: MouseEvent): void {
