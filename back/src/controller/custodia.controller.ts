@@ -6,6 +6,7 @@ import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
 import { AsistenciaController } from "./asistencia.controller";
 import { error } from "pdf-lib";
+import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 
 const columnsObjCustodia: any[] = [
     {
@@ -710,7 +711,7 @@ export class CustodiaController extends BaseController {
             [custodiaId, patente])
     }
 
-    async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner) {
+    async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner, usuario:string,ip:string) {
         let errores: string[] = []
         const sitrev = await queryRunner.query(`SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, ps.PersonalSituacionRevistaSituacionId, ps.PersonalSituacionRevistaDesde, ps.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion
             FROM Personal per
@@ -729,10 +730,28 @@ export class CustodiaController extends BaseController {
         const mes = fechaDesde.getMonth() + 1
         const asistenciaController = new AsistenciaController()
         const categorias = await asistenciaController.getCategoriasPorPersonaQuery(anio, mes, PersonalId, 1, queryRunner);
-
+        
         const categoria = categorias.filter((cat: any) => cat.TipoAsociadoId == 2) //CUSTODIA
         if (categoria.length == 0)
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
+
+      const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+
+      const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [PersonalId])
+
+      if (bot[0].visto != 1 && bot[0].doc_id > 0) {
+
+        if (bot[0].registrado == 0) {
+          errores.push(`${sitrev[0].ApellidoNombre} no se encuentra registro en el Bot`)
+        } else {
+
+          errores.push(`${sitrev[0].ApellidoNombre} el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por la persona`)
+
+          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+          if (sendit) errores.push(`${sitrev[0].ApellidoNombre} Se envió notificación recordando que descargue el recibo`)
+        }
+
+      }
 
         return errores
     };
@@ -810,7 +829,7 @@ export class CustodiaController extends BaseController {
 
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
-                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner);
+                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario,ip);
                     errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
@@ -1014,7 +1033,7 @@ export class CustodiaController extends BaseController {
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
 
 
-                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner);
+                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario,ip);
                     errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
