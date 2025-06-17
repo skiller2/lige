@@ -177,8 +177,8 @@ export class CustodiaFormComponent {
         if (persona.enabled) {
             persona.patchValue({
                 importe: horas_trabajadas * valorHora + importe_suma_fija,
-                detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs = ${this.currencyPipe.transform(horas_trabajadas * valorHora)}`,
-                detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs + ${this.currencyPipe.transform(importe_suma_fija)}`
+                detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs = ${this.currencyPipe.transform(horas_trabajadas * valorHora)} (Valor Hora Cat * Horas Trabajadas)`,
+                detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs + ${this.currencyPipe.transform(importe_suma_fija)} (Cat Valor Hora * Horas Trabajadas + Suma fija)`
             }, { onlySelf: false, emitEvent: false, })
             persona.get('personalId')?.markAsPending()
         }
