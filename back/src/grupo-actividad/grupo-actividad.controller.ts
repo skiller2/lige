@@ -431,7 +431,8 @@ export class GrupoActividadController extends BaseController {
                 FROM GrupoActividadJerarquico jer
                 INNER JOIN GrupoActividad ga ON jer.GrupoActividadId = ga.GrupoActividadId
                 INNER JOIN Personal per ON per.PersonalId = jer.GrupoActividadJerarquicoPersonalId
-                WHERE ${filterSql}`
+                WHERE ${filterSql}
+                ${orderBy ? orderBy.replace('fullName', 'CONCAT(TRIM(per.PersonalApellido),\', \',TRIM(per.PersonalNombre))') : ''}`
             );
 
             const formattedData = GrupoActividadResponsables.map((item: any) => ({
