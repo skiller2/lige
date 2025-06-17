@@ -4,9 +4,10 @@
     @if ((personalDetalle$ | async); as personalDetalle){
     <div nz-row>
       <div nz-col nzFlex="100px" class="app-foto-container">
-        <img class="app-foto" nz-image 
+        <app-image-loader class="app-foto" [src]="'api/file-upload/downloadFile/'+personalDetalle.PersonalFotoId+'/DocumentoImagenFoto/image'" fallback="./assets/dummy-person-image.jpg"/>
+<!--        <img class="app-foto" nz-image 
         [src]="'api/file-upload/downloadFile/'+personalDetalle.PersonalFotoId+'/DocumentoImagenFoto/image' | urlauth | async"
-        nzFallback="./assets/dummy-person-image.jpg" />
+        nzFallback="./assets/dummy-person-image.jpg" /> -->
       </div>
       <div nz-col nzFlex="240px" class="app-info-pers">
         <li><span class="app-bold-text">{{personalDetalle.PersonalApellido}}, {{personalDetalle.PersonalNombre}}</span>
