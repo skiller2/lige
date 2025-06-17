@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, computed, } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 // import { Observable } from 'rxjs';
@@ -19,12 +19,14 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
     styleUrls: ['./custodias-form.component.less'],
     encapsulation: ViewEncapsulation.None,
     imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers:[CurrencyPipe]
 })
 export class CustodiaFormComponent {
+    private currencyPipe = inject(CurrencyPipe)
 
     isLoading = signal(false);
-    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '' }
+    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '',detalleRetiro:'' }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
@@ -49,8 +51,6 @@ export class CustodiaFormComponent {
     private injector = inject(Injector)
 
     private destroy$ = new Subject<void>();
-
-
 
     fb = inject(FormBuilder)
 
@@ -128,6 +128,7 @@ export class CustodiaFormComponent {
 
 
     }
+
     async reset() {
         this.personal().clear()
         this.vehiculos().clear()
@@ -176,7 +177,8 @@ export class CustodiaFormComponent {
         if (persona.enabled) {
             persona.patchValue({
                 importe: horas_trabajadas * valorHora + importe_suma_fija,
-                detalle: `${fullName} \n Valor: ${valorHora} * Trabajadas: ${horas_trabajadas} = ${horas_trabajadas * valorHora}`
+                detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs = ${this.currencyPipe.transform(horas_trabajadas * valorHora)}`,
+                detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs + ${this.currencyPipe.transform(importe_suma_fija)}`
             }, { onlySelf: false, emitEvent: false, })
             persona.get('personalId')?.markAsPending()
         }
