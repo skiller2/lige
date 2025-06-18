@@ -1,0 +1,97 @@
+import { NextFunction, Request, Response } from "express";
+import { BaseController, ClientException } from "../controller/baseController";
+import { dataSource } from "../data-source";
+import { QueryFailedError } from "typeorm";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { Options } from "../schemas/filtro";
+
+
+  
+export class AdministradoresController extends BaseController {
+
+  listaColumnas: any[] = [
+    
+    {
+        id: "id",
+        name: "ID Administrador",
+        field: "id",
+        fieldName: "adm.AdministradorId",
+        type: "number",
+        sortable: true,
+        searchHidden: false
+      },
+      {
+        name: "Denominación",
+        type: "string",
+        id: "AdministradorDenominacion",
+        field: "AdministradorDenominacion",
+        fieldName: "adm.AdministradorDenominacion",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+      },
+      {
+        name: "Administrador",
+        type: "string",
+        id: "AdministradorId",
+        field: "AdministradorId",
+        fieldName: "adm.AdministradorId",
+        searchComponent:"inpurForAdministradorSearch",
+        sortable: true,
+        searchHidden: false,
+        hidden: true,
+      },
+      {
+        name: "Inactivo",
+        type: "string",
+        id: "AdministradorInactivo",
+        field: "AdministradorInactivo",
+        fieldName: "adm.AdministradorInactivo",
+        searchComponent: "inpurForInactivoBoolean",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+      }
+
+  ];
+
+
+
+  async getAdministradoresCols(req: Request, res: Response) {
+    this.jsonRes(this.listaColumnas, res);
+  }
+
+  async listAdministradores(req: any, res: Response, next: NextFunction) {
+
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    const queryRunner = dataSource.createQueryRunner();
+    const fechaActual = new Date()
+
+    try {
+
+        const administradores = await queryRunner.query(
+            `SELECT adm.AdministradorId as id,adm.AdministradorDenominacion,
+                CASE WHEN AdministradorInactivo = 1 THEN 'Sí' ELSE 'No'
+                END AS AdministradorInactivo
+            FROM Administrador adm
+            WHERE ${filterSql}
+            ${orderBy}`, [fechaActual])
+
+        this.jsonRes(
+            {
+                total: administradores.length,
+                list: administradores,
+            },
+            res
+        );
+
+    } catch (error) {
+        return next(error)
+    }
+
+}
+
+  }
+
+

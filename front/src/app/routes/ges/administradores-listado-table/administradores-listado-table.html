@@ -1,0 +1,18 @@
+<nz-card #tabestudio class="small-margin">
+    @if (cambios()|async) {}
+    <ng-container>
+      <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+  
+      @if(columns$ | async; as columnas) {
+        <div class="gridContainerAdministradores container-fluid">
+          <angular-slickgrid 
+            gridId="gridAdministradores" 
+            [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" 
+            [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+        </div>
+      }
+    </ng-container>
+  </nz-card> 

@@ -13,8 +13,8 @@ const getOptions: any[] = [
 
 
 const getOptionsBoolean: any[] = [
-    { label: 'No', value: false },
-    { label: 'Si', value: true },
+    { label: 'No', value: '0' },
+    { label: 'Si', value: '1' }
 ]
 
 const getTipos: any[] = [
@@ -37,7 +37,7 @@ export class GrupoActividadController extends BaseController {
         },
         {
             name: "Código",
-            type: "string",
+            type: "number",
             id: "GrupoActividadNumero",
             field: "GrupoActividadNumero",
             fieldName: "grup.GrupoActividadNumero",

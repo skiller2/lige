@@ -143,6 +143,10 @@ export const GesRoutes: Routes = [
   {
     path: 'actas/:tab',
     loadComponent: () => import('./actas/actas.component').then(c => c.ActasComponent),
+  },
+  {
+    path: 'administradores-listado',
+    loadComponent: () => import('./administradores-listado/administradores-listado').then(c => c.AdministradoresListadoComponent),
   }
   
 ];
