@@ -70,7 +70,7 @@ export class TableGrupoActividadResponsablesComponent {
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
               col.sortable = true,
-              col.field = 'fullName',
+              col.field = 'ApellidoNombrePersona.fullName',
               col.editor = {
                 model: CustomInputEditor,
                 collection: [],
@@ -88,7 +88,7 @@ export class TableGrupoActividadResponsablesComponent {
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
               col.sortable = true,
-              col.field = 'fullName',
+              col.field = 'GrupoActividadDetalle.fullName',
               col.editor = {
                 model: CustomInputEditor,
                 collection: [],
