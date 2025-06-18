@@ -23,20 +23,22 @@
        
         }
         @if (previewFile()){
-          @if ((filesAdd.mimetype.toLowerCase() == 'jpeg' || filesAdd.mimetype.toLowerCase() == 'jpg' || filesAdd.mimetype.toLowerCase() == 'png' || forceImg()) ) {
-          <img nz-image alt=""
-            [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original') | urlauth | async"
+          @if ((filesAdd.mimetype.includes('image') || forceImg()) ) {
+            <app-image-loader class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original')" />  
+          <!-- <img nz-image alt=""
+            [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original') | urlauth | async" 
 
-            class="image-content" />
+            class="image-content" /> --> 
           }
           @if (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update) {
-          <img nz-image alt=""  [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb' | urlauth | async"
-            class="image-content" />
+            <app-image-loader class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb'" />
+         <!-- <img nz-image alt=""  [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb' | urlauth | async"
+            class="image-content" /> -->
           <a nz-icon nzType="search" nzTheme="outline"
             (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.tempfilename)"></a>
           }
         }
-        {{filesAdd.nombre}}
+        <p>{{filesAdd.nombre}}</p>
 
         @if(!filesAdd.update){
         <a nz-icon nzType="download" nzHref="filesAdd.path" target="_blank" nzTheme="outline" class="download-color"
@@ -55,9 +57,9 @@
 
         @if(previewFile()){
           @if (filesAdd.mimetype.includes('image') ) {
-<!--            <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'"/>  -->
-          <img nz-image class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original' | urlauth | async"
-            alt="" />
+            <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'"/>  
+          <!-- <img nz-image class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original' | urlauth | async"
+            alt="" /> -->
           }
           @if (filesAdd.mimetype.includes('pdf') ) {
           <a nz-icon nzType="search" nzTheme="outline"

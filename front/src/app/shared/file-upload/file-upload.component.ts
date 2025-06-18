@@ -1,4 +1,4 @@
-import { Component, computed, effect, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
+import { Component, computed, effect, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map, of } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from '../../services/api.service';
@@ -32,7 +32,9 @@ interface DocTipo {
       useExisting: forwardRef(() => FileUploadComponent),
       multi: true
     },
-  ]
+  ],
+  encapsulation: ViewEncapsulation.None
+
 })
 export class FileUploadComponent implements ControlValueAccessor {
   public src = signal<Blob>(new Blob())

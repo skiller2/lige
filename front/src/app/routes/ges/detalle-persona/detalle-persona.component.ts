@@ -1,17 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewEncapsulation, inject } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { AGEPipe } from "../../../shared/utils/age-pipe";
+import { ImageLoaderComponent } from 'src/app/shared/image-loader/image-loader.component';
 
 @Component({
     selector: 'app-detalle-persona',
     templateUrl: './detalle-persona.component.html',
     styleUrl: './detalle-persona.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, ViewResponsableComponent, AGEPipe]
+  imports: [...SHARED_IMPORTS, CommonModule, ViewResponsableComponent, AGEPipe, ImageLoaderComponent],
+    encapsulation: ViewEncapsulation.None
+  
 })
 export class DetallePersonaComponent {
   personalDetalleCategorias$: Observable<any> | undefined
@@ -27,6 +30,7 @@ export class DetallePersonaComponent {
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
   visibleDrawer: boolean = false
+  
   
   @Output() onClose = new EventEmitter<boolean>();
 
