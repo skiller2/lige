@@ -122,7 +122,7 @@ export class PolizaSeguroDrawerComponent {
   async enableForm(){
     this.formCli.get('PolizaSeguroNroPoliza')?.disable()
     this.formCli.get('PolizaSeguroNroEndoso')?.disable()
-    this.formCli.get('PolizaSeguroFechaEndoso')?.disable()
+    //this.formCli.get('PolizaSeguroFechaEndoso')?.disable()
   }
 
 

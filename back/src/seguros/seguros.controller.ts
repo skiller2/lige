@@ -850,7 +850,7 @@ UNION
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     let resultPolizaSeguroCodigo
-    //throw new ClientException(`test.`)
+   // throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -871,10 +871,10 @@ UNION
 
 
 
-      const dniRegex = new RegExp(regex.DNILista, "mg");
-      const polizaRegex = new RegExp(regex.Poliza, "m");
-      const endosoRegex = new RegExp(regex.Endoso, "m");
-      const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m");
+      const dniRegex = new RegExp(regex.DNILista, "mg")
+      const polizaRegex = new RegExp(regex.Poliza, "m")
+      const endosoRegex = new RegExp(regex.Endoso, "m")
+      const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m")
 
       //const dniRegex = new RegExp(/DNI ([\d.]{9,10})$/mg);
       //const polizaRegex = new RegExp(/(\d{9}) (?=\d{6})/m);
@@ -885,12 +885,14 @@ UNION
       const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
       const polizaEndoso = detalle_documento.match(polizaRegex)
       const endoso = detalle_documento.match(endosoRegex)
-      const fechaDesdeEndoso = detalle_documento.match(fechaDesdeRegex)
 
-      const fechaTexto = fechaDesdeEndoso[0];
-      const [dia, mes, anio] = fechaTexto.split(".")
-      let fechaDesde = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia)))
-
+      //const fechaDesdeEndoso = detalle_documento.match(fechaDesdeRegex)
+      //const fechaTexto = fechaDesdeEndoso[0];
+      //const [dia, mes, anio] = fechaTexto.split(".")
+      //let fechaDesde = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia)))
+      let fechaDesde = new Date(PolizaSeguroFechaEndoso)
+      const anio = fechaDesde.getFullYear()
+      const mes = fechaDesde.getMonth() + 1
   
       if (!dni || !polizaEndoso) {
         throw new ClientException(`Error al procesar el Documento.`)
@@ -899,7 +901,7 @@ UNION
 
       //throw new ClientException(`test`)
       //optiene periodo del documento
-      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), parseInt(anio), parseInt(mes), usuario, ip);
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
       console.log("periodo_id", periodo_id)
 
       //busca si el periodo esta cerrado
@@ -953,7 +955,7 @@ UNION
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
-          fechaDesde.toISOString().replace('Z', '') ,
+          fechaDesde, 
           CompaniaSeguroId,
           new Date(),
           usuario,
@@ -1019,7 +1021,7 @@ UNION
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
-          fechaDesde.toISOString().replace('Z', ''),
+          fechaDesde,
           CompaniaSeguroId,
           new Date(),
           usuario,
@@ -1050,7 +1052,7 @@ UNION
         DocumentoId: resultFile.doc_id,
         PolizaSeguroNroPoliza: polizaEndoso[0],
         PolizaSeguroNroEndoso: endoso[1],
-        PolizaSeguroFechaEndoso: fechaDesde.toISOString().replace('Z', '')
+        PolizaSeguroFechaEndoso: fechaDesde
   }
 
   console.log("result", result)
@@ -1288,7 +1290,9 @@ UNION
       if(params.files.length > 1){
         throw new ClientException(`Debe subir un solo archivo.`)
       }
-
+      if(!params.PolizaSeguroFechaEndoso){
+        throw new ClientException(`Debe completar el campo Fecha de Endoso.`)
+      }
 
       // No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
       // en caso de que el periodo que desea cargar el endoso tenga cerrada la liquidación pero no tenga póliza asociada, se podrá cargada el endoso de la poliza (esto para cada tipo)
