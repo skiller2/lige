@@ -223,4 +223,20 @@ export class ActasController extends BaseController {
     }
   }
 
+  async getNrosActas(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT TOP 100 ActaId value
+        , CONCAT(ActaNroActa, ' - ', TRIM(ActaDescripcion)) label
+        , ActaFechaActa 
+        FROM Acta
+        ORDER BY ActaFechaActa desc
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

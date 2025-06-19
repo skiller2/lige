@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import path from "node:path";
 import { BaseController } from "src/controller/baseController";
 import { dataSource } from "src/data-source";
 //import { TokenExpiredError } from "jsonwebtoken";
@@ -44,8 +45,7 @@ export class AuthMiddleware {
         for (const rowgroup of req?.groups) {
           const myGrp: string = rowgroup.match(/CN=([^,]+)/)![1]
           for (const grp of group) {
-            if (myGrp.toLowerCase() == grp.toLowerCase())
-              return next()
+            if (myGrp.toLowerCase() === grp.toLowerCase()) return next()
           }
         }
       }
@@ -112,42 +112,60 @@ export class AuthMiddleware {
         const documentId = req.params.id || req.body.doc_id || req.query[0];
         const documentType = req.body.doctipo_id //|| req.params.doctipo_id || req.query.doctipo_id;
 
+        const path = req.route.path
+
         // console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
         // console.log('query', req.query);
         // console.log('documentType', documentType);
         // console.log('req -------------------- ', req);
-        // // console.log('res -------------------- ', res);
-        // // console.log('res.locals -------------------- ', res.locals);
-        // console.log('method ----', req.method);
+        // console.log('req.url -------------------- ', req.url);
+        // console.log('res -------------------- ', res);
+        // console.log('res.locals -------------------- ', res.locals);
 
         if (!documentId && !documentType) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
 
         if (documentId) {
           // Verificar existencia del documento
           const Documento = await queryRunner.query(
-            ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir
+            ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir, doctip.doctipo_id
             FROM lige.dbo.docgeneral docgen
             LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
             WHERE docgen.doc_id = @0`,
             [documentId]
           );
           const doc = Documento[0];
+          const DocumentoPersonalId = doc.persona_id;
+
           // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
-          if (Documento.length === 0 || !doc.persona_id || !doc.json_permisos_act_dir) return next();
+          if (Documento.length === 0) return next();
+          if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
 
-          const DocumentoPersonalId = doc.persona_id;
-          const anio = stmActual.getFullYear();
-          const mes = stmActual.getMonth() + 1;
+          const documentoTipoIdOld = doc.doctipo_id
+          const documentoTipoIdNew = req.body.doctipo_id
+          // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
+          if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
+            const permisosADDocumentoTipo = await queryRunner.query(
+              ` SELECT json_permisos_act_dir
+                FROM lige.dbo.doctipo
+                WHERE doctipo_id = @0`,
+              [documentoTipoIdNew]
+            );
+            // Si el tipo de documento tiene permisos, se valida
+            if (permisosADDocumentoTipo[0].json_permisos_act_dir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+          }
 
-          // Es el dueño del documento
-          if (ResponsablePersonalId == DocumentoPersonalId) return next();
+          if (!doc.persona_id && !doc.json_permisos_act_dir || !doc.json_permisos_act_dir) return next();
 
-          const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
-          const listGrupos = grupos.map(row => row.GrupoActividadId);
+          // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
+          if (doc.PersonalId && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
+            const anio = stmActual.getFullYear();
+            const mes = stmActual.getMonth() + 1;
+            const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+            const listGrupos = grupos.map(row => row.GrupoActividadId);
 
-          if (listGrupos.length > 0) {
-            const resPers = await queryRunner.query(`
+            if (listGrupos.length > 0) {
+              const resPers = await queryRunner.query(`
             SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
             WHERE gap.GrupoActividadPersonalPersonalId = @0  
             AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
@@ -161,15 +179,12 @@ export class AuthMiddleware {
             AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
             AND gap.GrupoActividadJerarquicoComo = 'J'
           `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
-
-            if (resPers.length > 0) return next();
+              if (resPers.length > 0) return next();
+            }
           }
 
           // Si el documento tiene json_permisos_act_dir, se valida
           return this.validateJsonPermisosActDir(doc.json_permisos_act_dir)(req, res, next);
-
-          // TODO: En caso de que no haya json_permisos_act_dir y no sea responsable, se deja pasar el acceso?
-
         }
 
         if (documentType) {
@@ -180,22 +195,20 @@ export class AuthMiddleware {
               WHERE doctipo_id = @0`,
             [documentType]
           );
-
-          if (!DocumentoTipo[0].json_permisos_act_dir) return next();
-
+          
           // Si el tipo de documento tiene permisos, se valida
+          if (!DocumentoTipo[0].json_permisos_act_dir) return next();
           return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
         }
-
+       
+        return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
 
       } catch (error) {
         return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
         await queryRunner.release();
       }
-
     };
-
   }
 
   validateJsonPermisosActDir = (data: any) => {
@@ -214,15 +227,18 @@ export class AuthMiddleware {
 
       const gruposRequeridos = [...PermisoFullAccess, ...PermisoReadOnly];
 
-      if (gruposRequeridos.length === 0) return res.status(403).json({ msg: `No tiene permiso para acceder a este documento. Este documento requiere pertenecer a alguno de los siguientes grupos: ninguno definido.` });
+      if (gruposRequeridos.length === 0) return next();
 
-      for (const grupo of gruposRequeridos) {
-        const tiene = await BaseController.hasGroup(req, grupo);
-        if (tiene) return next();
+      const path = req.route.path;
+
+      if (path.includes('downloadFile')) {
+        return this.hasGroup(gruposRequeridos)(req, res, next);
       }
 
-      return res.status(403).json({ msg: `No tiene permiso para manipular al documento. Debe contar con los siguientes permisos: ${gruposRequeridos.join(", ")}` });
+      const writePaths = ["/add", "/update", "/delete"];
+      if (writePaths.includes(path)) {
+        return this.hasGroup(PermisoFullAccess)(req, res, next);
+      }
     }
   }
-
 }

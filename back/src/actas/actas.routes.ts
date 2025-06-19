@@ -8,6 +8,10 @@ actasRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['g
     actasController.getActasGridColumns(req, res, next);
 });
 
+actasRouter.get(`/nro-acta-options`, [authMiddleware.verifyToken], (req, res, next) => {
+  actasController.getNrosActas(req, res, next);
+});
+
 actasRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   actasController.getGridList(req, res, next)
 });

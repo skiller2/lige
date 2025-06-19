@@ -1815,7 +1815,7 @@ export class SearchService {
   }
 
    getNroActaOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/personal/acta/nro-acta-options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/actas/nro-acta-options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

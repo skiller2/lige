@@ -346,7 +346,6 @@ export class DocumentoController extends BaseController {
   }
 
   async addDocumento(req: any, res: Response, next: NextFunction) {
-    const doctipo_id: string = req.body.doctipo_id
     const den_documento: string = req.body.den_documento
     const persona_id: number = req.body.persona_id
     const cliente_id: number = req.body.cliente_id

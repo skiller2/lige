@@ -1,4 +1,4 @@
-import { Component, inject, signal, model, computed, ViewEncapsulation, input } from '@angular/core';
+import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -10,12 +10,15 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NgForm, FormArray, FormBuilder } from '@angular/forms';
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
+import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 
 @Component({
     selector: 'app-personal-documentos-drawer',
     templateUrl: './personal-documentos-drawer.component.html',
     styleUrl: './personal-documentos-drawer.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, FileUploadComponent, NgxExtendedPdfViewerModule],
     providers: [AngularUtilService]
 })
   
@@ -25,14 +28,49 @@ export class PersonalDocumentosDrawerComponent {
     isLoading = signal(false);
     visibleDocumentos = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
+    optionsLabels = signal<any[]>([]);
+    label = signal<string>('. . .');
+    modalViewerVisiable = signal<boolean>(false)
+    fileName = signal<string>('')
+    tableName = signal<string>('')
+    public src = signal<Blob>(new Blob())
 
     constructor(
         private searchService: SearchService,
-    ) { }
+        private apiService: ApiService,
+    ) {
+        effect(async () => {
+            const newId:number = this.PersonalId()
+            if (newId > 0) {
+                this.formDocumento.reset()
+                this.formDocumento.get('persona_id')?.setValue(newId)
+            }
+        });
+    }
     private destroy$ = new Subject();
+    private readonly tokenService = inject(DA_SERVICE_TOKEN);
+
+    fb = inject(FormBuilder)
+    formDocumento = this.fb.group({ 
+        doc_id:0, persona_id:0, doctipo_id: '', den_documento: null, fecha: null, fec_doc_ven: null, archivo: [] 
+    })
+
+    doc_id(): number {
+        const value = this.formDocumento.get("doc_id")?.value
+        if (value)
+            return value
+        return 0
+    }
+    doctipo_id(): string {
+        const value = this.formDocumento.get("doctipo_id")?.value
+        if (value)
+            return value
+        return ''
+    }
 
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
+    $optionsTipos = this.searchService.getDocumentoTipoOptions();
     $listaDocumentosPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
         switchMap(() =>{
@@ -46,10 +84,72 @@ export class PersonalDocumentosDrawerComponent {
 
     async ngOnInit(){
         this.selectedPersonalIdChange$.next('');
+        const options:any = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
+        
+        const opcionsPersonal = options.filter((obj:any) => obj.descripcion.includes("Personal"));
+
+        this.optionsLabels.set(opcionsPersonal)
     }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
     }
+
+    selectLabel(val: any) {
+        const tipoDoc = val
+        const find = this.optionsLabels().find((obj: any) => { return tipoDoc == obj.value })
+        if (find && find.des_den_documento) {
+            this.label.set(`${find.des_den_documento}`)
+        } else if (find) {
+            this.label.set(`Denominacion de ${find.label}`)
+        } else
+            this.label.set('. . .')
+    }
+
+    async save() {
+        this.isLoading.set(true)
+        const values = this.formDocumento.value
+        try {
+            if (values.doc_id){
+                await firstValueFrom(this.apiService.updateDocumento(values))
+            } else {
+                const res = await firstValueFrom(this.apiService.addDocumento(values))
+                if (res.data.doc_id){
+                    this.formDocumento.patchValue({ doc_id: res.data.doc_id })
+                }
+            }
+            this.selectedPersonalIdChange$.next('');
+            this.formDocumento.markAsUntouched()
+            this.formDocumento.markAsPristine()
+        } catch (e) {
+
+        }
+
+        this.isLoading.set(false)
+    }
+
+    async LoadArchivo(url: string, filename: string) {
+        this.modalViewerVisiable.set(false)
+        this.src.set(await fetch(`${url}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
+        this.fileName.set(filename)
+        this.modalViewerVisiable.set(true)
+    }
+
+    handleCancel(): void {
+        this.modalViewerVisiable.set(false)
+    }
+
+    // async ChangeDocId(docId:number, tableName:string){
+    //     console.log('docId: ', docId);
+    //     //Problemas al buscar el documento, debido a que hay que buscar en diferentes tablas
+    //     if (docId && tableName === 'docgeneral') {
+    //         //Solo busca en la tabla docgeneral
+    //         let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(docId))
+    //         this.tableName.set(tableName)
+    //         this.formDocumento.reset(infoDoc)
+    //         console.log('infoDoc: ', infoDoc);
+    //     }
+        
+    // }
 }
