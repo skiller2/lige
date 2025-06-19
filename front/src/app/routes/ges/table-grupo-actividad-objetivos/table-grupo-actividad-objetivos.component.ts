@@ -65,8 +65,6 @@ export class TableGrupoActividadObjetivosComponent {
           case 'GrupoActividadDetalle':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
-              col.sortable = true,
-              col.field = 'GrupoActividadDetalle.fullName',
               col.editor = {
                 model: CustomInputEditor,
                 collection: [],
@@ -84,8 +82,6 @@ export class TableGrupoActividadObjetivosComponent {
           case 'GrupoObjetivoDetalle':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
-              col.sortable = true,
-              col.field = 'GrupoObjetivoDetalle.fullName',
               col.editor = {
                 model: CustomInputEditor,
                 collection: [],
