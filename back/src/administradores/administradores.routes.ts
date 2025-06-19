@@ -13,4 +13,11 @@ AdministradoresRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.h
 AdministradoresRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   administradoresController.listAdministradores(req, res, next);
 });
+AdministradoresRouter.get("/cols-clientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+  administradoresController.getAdministradoresColsClientes(req, res);
+});
+
+AdministradoresRouter.post("/list-clientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  administradoresController.listAdministradoresClientes(req, res, next);
+});
 

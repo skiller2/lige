@@ -1,3 +1,5 @@
+
+
 import { Component, Inject, LOCALE_ID, model, Output, EventEmitter, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
@@ -18,7 +20,7 @@ interface ListOptions {
 }
 
 @Component({
-  selector: 'app-administradores-listado-table',
+  selector: 'app-administradores-clientes-table',
   imports: [
     SHARED_IMPORTS,
     CommonModule,
@@ -26,22 +28,22 @@ interface ListOptions {
     FiltroBuilderComponent,
   ],
   providers: [AngularUtilService],
-  templateUrl: './administradores-listado-table.html',
-  styleUrls: ['./administradores-listado-table.less'],
+  templateUrl: './administradores-clientes-table.html',
+  styleUrls: ['./administradores-clientes-table.less'],
   standalone: true
 })
-export class AdministradoresListadoTableComponent {
-
+export class AdministradoresClientesTableComponent {
 
 
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
-  columns$ = this.apiService.getCols('/api/administradores/cols');
+  columns$ = this.apiService.getCols('/api/administradores/cols-clientes');
   private angularGridEdit!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
-  private dataAngularGrid: any[] = [];
+    private dataAngularGrid: any[] = [];
+    private personalEstudios: any[] = [];
   private excelExportService = new ExcelExportService();
 
   private listOptions: ListOptions = {
@@ -61,7 +63,7 @@ export class AdministradoresListadoTableComponent {
 
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
-    switchMap(() => this.apiService.setListAdministradores({ options: this.listOptions }).pipe(
+    switchMap(() => this.apiService.setListAdministradoresClientes({ options: this.listOptions }).pipe(
       map(data => {
         this.dataAngularGrid = data.list;
         return data.list;
@@ -77,13 +79,12 @@ export class AdministradoresListadoTableComponent {
 
   cambios = computed(async () => {
     this.formChange$.next('');
-    
   });
 
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
-      '.gridContainerAdministradores',
+      '.gridContainerAdministradoresClientes',
       this.detailViewRowCount,
       this.excelExportService,
       this.angularUtilService,
@@ -114,7 +115,7 @@ export class AdministradoresListadoTableComponent {
 
   exportGrid(): void {
     this.excelExportService.exportToExcel({
-      filename: 'lista-administradores',
+      filename: 'lista-administradores-clientes',
       format: 'xlsx'
     });
   }

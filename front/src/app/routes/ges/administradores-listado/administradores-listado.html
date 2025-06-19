@@ -1,2 +1,71 @@
+<nz-card class="small-margin">
+    <div nz-row>
+      <div nz-col nzSpan="12">
+        <nz-form-control>
+        
+        </nz-form-control>
+      </div>
+      <div nz-col nzSpan="12" style="display: flex;flex-direction: row-reverse;">
+        <nz-button-group style="text-align: right;">
+  
+          <button nz-button nzType="default" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+          <button nz-button nzType="default"  nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
+              nzTheme="outline"></span></button>
+          <button nz-button nzType="default"nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+          <button nz-button nzType="default"  
+            nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
+              nzTheme="outline"></span></button>
+    
+        </nz-button-group>
+  
+      </div>
+  
+    </div>
+    <div nz-row class="contentStyle">
+      <div nz-col nzSpan="13" class="listStyle">
+        <ul nz-menu nzMode="horizontal" style="display: flex;">
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'administradores-listado','listado']">Listado</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'administradores-listado','clientes']" >Clientes</a>
+          </li>
+        </ul>
+      </div>
+    
+    </div>
+  
+<nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab></nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/administradores-listado/listado">Listado</a>
+        <ng-template nz-tab>
+  
+            <app-administradores-listado-table></app-administradores-listado-table>
 
-<app-administradores-listado-table></app-administradores-listado-table>
+  
+        </ng-template>
+      </nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/administradores-listado/clientes">Clientes</a>
+        <ng-template nz-tab>
+  
+          <app-administradores-clientes-table></app-administradores-clientes-table>
+
+        </ng-template>
+      </nz-tab>
+  
+    </nz-tabset>
+  </nz-card>
+
+
+
+
+
+  
+  

@@ -55,10 +55,93 @@ export class AdministradoresController extends BaseController {
 
   ];
 
+  listaColumnasClientes: any[] = [
+    
+    {
+        id: "id",
+        name: "ID",
+        field: "id",
+        fieldName: "id",
+        type: "number",
+        sortable: true,
+        searchHidden: true,
+        hidden: true,
+      },
+      {
+        name: "Administrador",
+        type: "number",
+        id: "AdministradorId",
+        field: "AdministradorId",
+        fieldName: "adm.AdministradorId",
+        searchComponent:"inpurForAdministradorSearch",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+      },
+      {
+        name: "Denominación",
+        type: "string",
+        id: "AdministradorDenominacion",
+        field: "AdministradorDenominacion",
+        fieldName: "adm.AdministradorDenominacion",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+      },
+      {
+        name: "Desde",
+        type: "date",
+        id: "ClienteAdministradorDesde",
+        field: "ClienteAdministradorDesde",
+        fieldName: "ca.ClienteAdministradorDesde",
+        searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+      },
+      {
+        name: "Hasta",
+        type: "date",
+        id: "ClienteAdministradorHasta",
+        field: "ClienteAdministradorHasta",
+        fieldName: "ca.ClienteAdministradorHasta",
+        searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+      },
+      {
+        name: "Cliente",
+        type: "string",
+        id: "ClienteId",
+        field: "ClienteId",
+        fieldName: "cli.ClienteId",
+        searchComponent: "inpurForClientSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+      },
+      {
+        name: "Cliente",
+        type: "string",
+        id: "ClienteDenominacion",
+        field: "ClienteDenominacion",
+        fieldName: "cli.ClienteDenominacion",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+      }
+
+  ];
+
 
 
   async getAdministradoresCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
+  }
+
+  async getAdministradoresColsClientes(req: Request, res: Response) {
+    this.jsonRes(this.listaColumnasClientes, res);
   }
 
   async listAdministradores(req: any, res: Response, next: NextFunction) {
@@ -89,6 +172,39 @@ export class AdministradoresController extends BaseController {
     } catch (error) {
         return next(error)
     }
+
+}
+
+async listAdministradoresClientes(req: any, res: Response, next: NextFunction) {
+console.log("filtros",req.body.options.filtros)
+  const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnasClientes);
+  const orderBy = orderToSQL(req.body.options.sort)
+  const queryRunner = dataSource.createQueryRunner();
+  const fechaActual = new Date()
+
+  try {
+
+      const administradoresClientes = await queryRunner.query(
+          `SELECT  ROW_NUMBER() OVER (ORDER BY adm.AdministradorId, ca.ClienteId) AS id, 
+            adm.AdministradorId,adm.AdministradorDenominacion,adm.AdministradorInactivo,ca.ClienteAdministradorDesde,
+            ca.ClienteAdministradorHasta,ca.ClienteId,cli.ClienteDenominacion
+          FROM Administrador adm
+          LEFT JOIN ClienteAdministrador ca ON ca.ClienteAdministradorAdministradorId = adm.AdministradorId
+          LEFT JOIN Cliente cli ON cli.ClienteId = ca.ClienteId
+          WHERE ${filterSql}
+          ${orderBy}`)
+
+      this.jsonRes(
+          {
+              total: administradoresClientes.length,
+              list: administradoresClientes,
+          },
+          res
+      );
+
+  } catch (error) {
+      return next(error)
+  }
 
 }
 
