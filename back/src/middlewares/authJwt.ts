@@ -195,12 +195,12 @@ export class AuthMiddleware {
               WHERE doctipo_id = @0`,
             [documentType]
           );
-          
+
           // Si el tipo de documento tiene permisos, se valida
           if (!DocumentoTipo[0].json_permisos_act_dir) return next();
           return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
         }
-       
+
         return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
 
       } catch (error) {
@@ -231,10 +231,13 @@ export class AuthMiddleware {
 
       const path = req.route.path;
 
+      if (path.includes('downloadFile') && PermisoReadOnly.length === 0) {
+        // no tiene detallado permisos de lectura, por lo que se asume que tiene acceso total
+        return next();
+      }
       if (path.includes('downloadFile')) {
         return this.hasGroup(gruposRequeridos)(req, res, next);
       }
-
       const writePaths = ["/add", "/update", "/delete"];
       if (writePaths.includes(path)) {
         return this.hasGroup(PermisoFullAccess)(req, res, next);
