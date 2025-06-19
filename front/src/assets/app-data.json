@@ -196,6 +196,17 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Administradores",
+          "icon": "anticon-profile",
+          "children": [
+            {
+              "text": "Listado",
+              "link": "/ges/administradores-listado",
+              "icon": "anticon-profile"
+            }
+          ]
+        },
+        {
           "text": "Grupo actividad",
           "icon": "anticon-profile",
           "link": "/ges/grupo-actividad"

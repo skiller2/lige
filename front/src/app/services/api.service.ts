@@ -1490,6 +1490,15 @@ export class ApiService {
   }
 
 
+  setListAdministradores(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/administradores/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+
   unsubscribeCBUs(PersonalId: number) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/unsubscribe/cbu`, { PersonalId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

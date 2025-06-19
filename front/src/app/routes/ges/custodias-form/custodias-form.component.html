@@ -91,7 +91,7 @@
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Retiro</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" nz-popover [nzPopoverContent]="control.value.detalleRetiro">
           <nz-input-group style="width: 100%" [nzAddOnAfter]="controlPersonalButton" nzSearch>
             <p nz-input class="ant-input">{{control.value.importe|currency}} </p>
           </nz-input-group>

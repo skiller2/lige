@@ -1,4 +1,3 @@
-
 import { CommonModule } from '@angular/common';
 //import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
@@ -70,6 +69,8 @@ export class TableGrupoActividadResponsablesComponent {
           case 'ApellidoNombrePersona':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
+              col.sortable = true,
+              col.field = 'ApellidoNombrePersona.fullName',
               col.editor = {
                 model: CustomInputEditor,
                 collection: [],
@@ -86,6 +87,8 @@ export class TableGrupoActividadResponsablesComponent {
           case 'GrupoActividadDetalle':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
+              col.sortable = true,
+              col.field = 'GrupoActividadDetalle.fullName',
               col.editor = {
                 model: CustomInputEditor,
                 collection: [],

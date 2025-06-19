@@ -225,7 +225,6 @@ export class ClientesFormComponent {
     try {
       if (this.ClienteId()) {
         let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
-
         this.formCli.patchValue({
           infoClienteContacto: result.data.infoClienteContacto,
           infoDomicilio: result.data.infoDomicilio,
@@ -234,15 +233,8 @@ export class ClientesFormComponent {
       } else {
         //este es para cuando es un nuevo registro
         let result = await firstValueFrom(this.apiService.addCliente(form))
-        this.formCli.patchValue({
-          id: result.data.ClienteId,
-          infoClienteContacto: result.data.infoClienteContacto,
-          infoDomicilio: result.data.infoDomicilio,
-          codigo: result.data.ClienteId,
-          ClienteFacturacionId: result.data.ClienteFacturacionId
-        });
-
-        this.ClienteId.set(result.data.ClienteNewId)
+        this.formCli.patchValue(result.data);
+        this.ClienteId.set(result.data.ClienteId)
 
 
       }

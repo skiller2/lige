@@ -362,6 +362,25 @@ ${orderBy}`, [fechaActual])
 
     }
 
+    async getQueryCliente(queryRunner: any, clienteId: any)
+     {
+            let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
+            let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
+            let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
+
+            if (domiclio) {
+                infoCliente = { ...infoCliente[0], ...domiclio[0] }
+            } else {
+                infoCliente = infoCliente[0]
+            }
+            infoCliente.infoDomicilio = domiclio
+            infoCliente.infoDomicilioOriginal = domiclio
+            infoCliente.infoClienteContacto = infoClienteContacto
+            infoCliente.infoClienteContactoOriginal = infoClienteContacto
+
+            return infoCliente
+    }
+
 
     async updateCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
@@ -663,8 +682,10 @@ ${orderBy}`, [fechaActual])
                 }
             }
 
+            let ObjClienteNewQuery = await this.getQueryCliente(queryRunner, ClienteId)
+
             await queryRunner.commitTransaction()
-            return this.jsonRes(ObjClienteNew, res, 'Carga  de nuevo registro exitoso');
+            return this.jsonRes(ObjClienteNewQuery, res, 'Carga  de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)

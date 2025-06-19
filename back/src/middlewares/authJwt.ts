@@ -115,6 +115,10 @@ export class AuthMiddleware {
         // console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
         // console.log('query', req.query);
         // console.log('documentType', documentType);
+        // console.log('req -------------------- ', req);
+        // // console.log('res -------------------- ', res);
+        // // console.log('res.locals -------------------- ', res.locals);
+        // console.log('method ----', req.method);
 
         if (!documentId && !documentType) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
 

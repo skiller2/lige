@@ -15,6 +15,7 @@ import { ObjetivoSearchComponent } from "../../../shared/objetivo-search/objetiv
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { ImageLoaderComponent } from 'src/app/shared/image-loader/image-loader.component';
 
 @Component({
   selector: 'app-documento-drawer',
@@ -22,7 +23,7 @@ import { DA_SERVICE_TOKEN } from '@delon/auth';
   styleUrl: './documento-drawer.component.less',
   imports: [SHARED_IMPORTS, ReactiveFormsModule, PersonalSearchComponent,
     CommonModule, FileUploadComponent, ClienteSearchComponent, ObjetivoSearchComponent,
-    NgxExtendedPdfViewerModule, NzImageModule],
+    NgxExtendedPdfViewerModule, NzImageModule,ImageLoaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
