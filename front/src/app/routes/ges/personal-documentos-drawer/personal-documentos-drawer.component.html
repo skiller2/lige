@@ -39,7 +39,7 @@
         <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
         <nz-form-control>
           <app-file-upload formControlName="archivo" [cantMaxFiles]="1"
-          [idForSearh]="doc_id()" [textForSearch]="doctipo_id()"
+          [idForSearh]="0" [textForSearch]="doctipo_id()"
           [tableForSearch]="tableName()" [columnForSearch]="'doc_id'"
           [previewFile]="false"></app-file-upload>
         </nz-form-control>
@@ -58,13 +58,12 @@
           <tbody>
             <tr *ngFor="let data of asistPer.data" class="">
               <td>{{ data.Descripcion }}</td>
-              <td>{{ data.NombreArchivo }}
-                <!-- <a *ngIf="data.tableName == 'docgeneral'" nz-icon nzType="edit" nzTheme="outline"
-                  (click)="ChangeDocId(data.docId, data.tableName)"></a> -->
-                <!-- <a *ngIf="data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg'" nz-icon nzType="search" nzTheme="outline"
-                  (click)="LoadArchivo(data.url, data.NombreArchivo)"></a> -->
+              <td>
+                <a *ngIf="data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg'" nz-icon nzType="search" nzTheme="outline"
+                  (click)="LoadImage(data.url, data.NombreArchivo)"></a>
                 <a *ngIf="data.TipoArchivo == 'pdf'" nz-icon nzType="search" nzTheme="outline"
                   (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
+                {{ data.NombreArchivo }}
               </td>
             </tr>
           </tbody>
@@ -73,12 +72,19 @@
   </ng-container>
 </nz-drawer>
 
-<nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true"
+<nz-modal [(nzVisible)]="modalViewerVisiable1" nzTitle="" nzWidth="700" nzOkDisabled="true"
   (nzOnCancel)="handleCancel()">
   <ng-container *nzModalContent>
     <ngx-extended-pdf-viewer [src]="src()" [height]="'auto'" [textLayer]="true" [showHandToolButton]="false"
       [filenameForDownload]="fileName()">
     </ngx-extended-pdf-viewer>
 
+  </ng-container>
+</nz-modal>
+
+<nz-modal [(nzVisible)]="modalViewerVisiable2" nzTitle="" nzWidth="700" nzOkDisabled="true"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <app-image-loader [src]="srcImg()"/>
   </ng-container>
 </nz-modal>

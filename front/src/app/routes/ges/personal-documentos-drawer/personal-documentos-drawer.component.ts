@@ -13,12 +13,14 @@ import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 
 @Component({
     selector: 'app-personal-documentos-drawer',
     templateUrl: './personal-documentos-drawer.component.html',
     styleUrl: './personal-documentos-drawer.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, FileUploadComponent, NgxExtendedPdfViewerModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, FileUploadComponent,
+        NgxExtendedPdfViewerModule, ImageLoaderComponent],
     providers: [AngularUtilService]
 })
   
@@ -30,10 +32,12 @@ export class PersonalDocumentosDrawerComponent {
     placement: NzDrawerPlacement = 'left';
     optionsLabels = signal<any[]>([]);
     label = signal<string>('. . .');
-    modalViewerVisiable = signal<boolean>(false)
+    modalViewerVisiable1 = signal<boolean>(false)
+    modalViewerVisiable2 = signal<boolean>(false)
     fileName = signal<string>('')
     tableName = signal<string>('')
     public src = signal<Blob>(new Blob())
+    public srcImg = signal<string>('')
 
     constructor(
         private searchService: SearchService,
@@ -55,12 +59,12 @@ export class PersonalDocumentosDrawerComponent {
         doc_id:0, persona_id:0, doctipo_id: '', den_documento: null, fecha: null, fec_doc_ven: null, archivo: [] 
     })
 
-    doc_id(): number {
-        const value = this.formDocumento.get("doc_id")?.value
-        if (value)
-            return value
-        return 0
-    }
+    // doc_id(): number {
+    //     const value = this.formDocumento.get("doc_id")?.value
+    //     if (value)
+    //         return value
+    //     return 0
+    // }
     doctipo_id(): string {
         const value = this.formDocumento.get("doctipo_id")?.value
         if (value)
@@ -130,14 +134,22 @@ export class PersonalDocumentosDrawerComponent {
     }
 
     async LoadArchivo(url: string, filename: string) {
-        this.modalViewerVisiable.set(false)
+        this.modalViewerVisiable1.set(false)
         this.src.set(await fetch(`${url}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
         this.fileName.set(filename)
-        this.modalViewerVisiable.set(true)
+        this.modalViewerVisiable1.set(true)
+    }
+
+    async LoadImage(url: string, filename: string) {
+        this.modalViewerVisiable2.set(false)
+        this.srcImg.set(url)
+        this.fileName.set(filename)
+        this.modalViewerVisiable2.set(true)
     }
 
     handleCancel(): void {
-        this.modalViewerVisiable.set(false)
+        this.modalViewerVisiable1.set(false)
+        this.modalViewerVisiable2.set(false)
     }
 
     // async ChangeDocId(docId:number, tableName:string){
