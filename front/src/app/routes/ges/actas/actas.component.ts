@@ -90,7 +90,7 @@ export class ActasComponent {
         this.gridOptions.autoEdit = true
 
         this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-            // this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata)
+            this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata)
             this.angularGrid.slickGrid.invalidate();
             //Intento grabar si tiene error hago undo
             try {
@@ -100,25 +100,33 @@ export class ActasComponent {
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
                 
                 editCommand.execute()
-                if (row.ActaNroActa && row.ActaDescripcion.length && row.ActaFechaActa.length){
-
-                    while (this.rowLocked()) await firstValueFrom(timer(100));
-                    row = this.angularGrid.dataView.getItemById(row.id)
-                    
-                    if (row.ActaId){
-                        await firstValueFrom(this.apiService.updateActa(row))
-                    }else{
-                        this.rowLocked.set(true)
-                        const response = await firstValueFrom(this.apiService.addActa(row))
-                        row.ActaId = response.data.ActaId
-                        this.angularGrid.gridService.updateItemById(row.id, row)
-                        this.selectedActaId.set(row.ActaId)
-                        this.selectedNroActa.set(row.ActaNroActa)
-                    }
+                
+                while (this.rowLocked()) await firstValueFrom(timer(100));
+                row = this.angularGrid.dataView.getItemById(row.id)
+                
+                if (row.ActaId){
+                    this.rowLocked.set(true)
+                    await firstValueFrom(this.apiService.updateActa(row))
+                }else{
+                    this.rowLocked.set(true)
+                    const response = await firstValueFrom(this.apiService.addActa(row))
+                    row.ActaId = response.data.ActaId
+                    this.angularGrid.gridService.updateItemById(row.id, row)
+                    this.selectedActaId.set(row.ActaId)
+                    this.selectedNroActa.set(row.ActaNroActa)
                 }
                 this.rowLocked.set(false)
             } catch (e: any) {
-                editCommand.undo();
+                console.log('Error :' , e);
+                
+                //marcar el row en rojo
+                if (row.ActaId) {
+                    if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
+                        editCommand.undo();
+                } else {
+                    this.angularGrid.slickGrid.setSelectedRows([]);
+                    this.angularGrid.slickGrid.render();
+                }
                 this.rowLocked.set(false)
             }
         }
@@ -179,15 +187,38 @@ export class ActasComponent {
         this.angularGrid.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
     }
 
-    // updateItemMetadata(previousItemMetadata: any) {
-    //     return (rowNumber: number) => {
-    //         const item = this.angularGrid.dataView.getItem(rowNumber)
-    //         let meta = { cssClasses: '' }
 
-    //         if (typeof previousItemMetadata === 'object')
-    //             meta = previousItemMetadata(rowNumber)
-    //     }
-    // }
+    updateItemMetadata(previousItemMetadata: any) {
+        return (rowNumber: number) => {
+        // const newCssClass = 'element-add-no-complete';
+        const item = this.angularGrid.dataView.getItem(rowNumber);
+        let meta = {
+            cssClasses: ''
+        };
+        if (typeof previousItemMetadata === 'object') {
+            meta = previousItemMetadata(rowNumber);
+        }
+        
+        if (
+            //item.ActaId === 0 || 
+            item.ActaNroActa === 0 || 
+            item.ActaDescripcion === "" || 
+            item.ActaFechaActa === "" || 
+            item.ActaFechaHasta === ""
+        ) {
+            meta.cssClasses = 'element-add-no-complete';
+        } else
+            meta.cssClasses = ''
+    
+        const fechaActa:Date = new Date(item.ActaFechaActa)
+        const fechaHasta:Date = new Date(item.ActaFechaHasta)
+        //  La FechaHasta debe de ser mayor a la FechaActa
+        if (item.ActaFechaActa && item.ActaFechaHasta && (fechaActa.getTime() > fechaHasta.getTime()))
+            meta.cssClasses = 'element-add-no-complete';
+
+      return meta;
+    };
+  }
 
     async deleteItem() {
         await firstValueFrom(this.apiService.deleteActa(this.selectedActaId()))

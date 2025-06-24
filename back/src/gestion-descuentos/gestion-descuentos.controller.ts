@@ -1387,7 +1387,7 @@ export class GestionDescuentosController extends BaseController {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list: dataset})
       }
 
-      await FileUploadController.handleDOCUpload(0, 0, 0, 0, fechaActual, null, den_documento, file, usuario, ip, queryRunner, req)
+      await FileUploadController.handleDOCUpload(0, 0, 0, 0, fechaActual, null, den_documento, anioRequest, mesRequest, file, usuario, ip, queryRunner)
 
       await queryRunner.commitTransaction();
       this.jsonRes(data, res, "XLS Recibido y procesado!");
