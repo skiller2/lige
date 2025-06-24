@@ -21,10 +21,11 @@
                         *ngIf="gridDataInsert.length <= 1 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
                             nzTheme="outline"></span>{{'app.btn.copi.previous.month' | i18n }}</button>
                     <button nz-button nzType="default" nz-popconfirm [disabled]="controlAccesoDisabled()"
-                    nzPopconfirmTitle="Leo registros desde el reloj de asistencia?" (nzOnConfirm)="leerControlAcceso()"
-                    *ngIf="selectedObjetivoId == 1102 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
-                        nzTheme="outline"></span>{{'app.btn.control.acceso' | i18n }}</button>
-                             
+                        nzPopconfirmTitle="Leo registros desde el reloj de asistencia?"
+                        (nzOnConfirm)="leerControlAcceso()"
+                        *ngIf="selectedObjetivoId == 1102 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
+                            nzTheme="outline"></span>{{'app.btn.control.acceso' | i18n }}</button>
+
                     <button nz-button nzType="primary" nz-popconfirm
                         *ngIf="(periodos && (periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null || periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null))"
                         nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]=""
@@ -32,54 +33,77 @@
                             nzTheme="outline"></span>{{ 'app.btn.starloading' | i18n }}</button>
                     <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
                         *ngIf="periodos &&  periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null && periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null"
-                        [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()" [disabled]="isLoadingCheck" ><span
-                            nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading' | i18n }} </button>
+                        [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"
+                        [disabled]="isLoadingCheck"><span nz-icon nzType="check"
+                            nzTheme="outline"></span>{{'app.btn.endloading' | i18n }} </button>
                 </nz-button-group>
             </nz-form-control>
         </nz-form-item>
         <nz-form-item>
-            <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
-            <nz-form-control [nzSpan]="21">
-                <ng-template #suffixReloadTpl>
-                    <a (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload"
-                            nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></a>
-                </ng-template>
-                <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
+            <nz-form-label [nzSpan]="2">Objetivo</nz-form-label>
+            <nz-form-control [nzSpan]="10">
                     <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                        (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo" ngModel />
+                        (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo"
+                        ngModel />
 
-                </nz-input-group>
             </nz-form-control>
-        </nz-form-item>
-        <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
-            <nz-form-item>
-                <nz-form-label [nzSpan]="3">Responsable</nz-form-label>
-                <nz-form-control [nzSpan]="21">
-                    @if (objetivoDetalle.responsable.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
-                    <app-view-responsable [list]="objetivoDetalle.responsable"  (changeSize)="collapseChange($event)" ></app-view-responsable>
-                </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-                <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
-                <nz-form-control [nzSpan]="10">
-                    @if (contratos.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert> }
-                    <ng-container *ngFor="let contrato of contratos">
-                        <li>Desde {{contrato.ContratoFechaDesde | date}} <span
-                                *ngIf="contrato.ContratoFechaHasta">hasta</span>
-                            {{ contrato.ContratoFechaHasta | date}} </li>
-                    </ng-container>
-                </nz-form-control>
-                <nz-form-control [nzSpan]="11" style="text-align: right;">
-                    <nz-button-group>
-                        <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
-                                nzTheme="outline"   nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
-                        <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" 
-                                nzTheme="outline"  nz-tooltip nzTooltipTitle="{{ 'app.icon.validar' | i18n }}"></span></button>
-                    </nz-button-group>
-                </nz-form-control>
 
-            </nz-form-item>
-        </ng-container>
+            <nz-form-label [nzSpan]="2">Responsable</nz-form-label>
+            <nz-form-control [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
+                @if (objetivoDetalle.responsable.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon
+                    nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
+                <app-view-responsable [list]="objetivoDetalle.responsable"
+                    (changeSize)="collapseChange($event)"></app-view-responsable>
+            </nz-form-control>
+
+            <nz-form-control [nzSpan]="1" style="text-align: right;">
+                <nz-button-group>
+                    <button nz-button nzType="default" (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload"
+                            nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+                </nz-button-group>
+            </nz-form-control>
+
+
+        </nz-form-item>
+        <nz-form-item>
+            <nz-form-label [nzSpan]="2">Contrato</nz-form-label>
+            <nz-form-control [nzSpan]="5">
+                @if (contratos.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon nzType="error"
+                    nzMessage="Sin contrato" class="app-small"></nz-alert> }
+                <ng-container *ngFor="let contrato of contratos">
+                    <li><span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}} <span
+                            *ngIf="contrato.ContratoFechaHasta">-</span>
+                        {{ contrato.ContratoFechaHasta | date}} </li>
+                </ng-container>
+            </nz-form-control>
+            <nz-form-label [nzSpan]="3">Facturación Hora</nz-form-label>
+            <nz-form-control [nzSpan]="2">
+              <nz-input-number name="ImporteHora" [nzDisabled]="!(gridOptionsEdit.editable ?? false)" [nzPrecision]="2" [nzControls]="false" ngModel (ngModelChange)="setValFact()" [ngModelOptions]="{updateOn: 'blur'}"/>
+            </nz-form-control>
+            <nz-form-label [nzSpan]="3">Facturación Fijo</nz-form-label>
+            <nz-form-control [nzSpan]="2">
+              <nz-input-number name="ImporteFijo" [nzDisabled]="!(gridOptionsEdit.editable ?? false)" [nzPrecision]="2" [nzControls]="false" ngModel (ngModelChange)="setValFact()" [ngModelOptions]="{updateOn: 'blur'}"/>
+            </nz-form-control>
+            <nz-form-label [nzSpan]="3">Total Horas</nz-form-label>
+            <nz-form-control [nzSpan]="2">
+              <nz-input-number name="TotalHorasReal" [nzDisabled]="true" [nzPrecision]="1" [nzControls]="false" />
+            </nz-form-control>
+
+
+
+            <nz-form-control [nzSpan]="2" style="text-align: right;">
+                <nz-button-group>
+                    <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
+                            nzTheme="outline" nz-tooltip
+                            nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
+                    <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span
+                            nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" nzTheme="outline" nz-tooltip
+                            nzTooltipTitle="{{ 'app.icon.validar' | i18n }}"></span></button>
+                </nz-button-group>
+            </nz-form-control>
+
+        </nz-form-item>
+
     </form>
     <div class="grid-container-asis container-fluid">
         <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsEdit"
@@ -88,5 +112,5 @@
         </angular-slickgrid>
     </div>
 </nz-card>
-<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
-[SucursalId]="selectedSucursalId" [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId"
+    [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
