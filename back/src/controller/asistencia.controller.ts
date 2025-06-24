@@ -201,6 +201,35 @@ const columnasPersonalxResponsableDesc: any[] = [
 
 
 export class AsistenciaController extends BaseController {
+  async setValorFacturacion(req: any, res: Response, next: NextFunction) {
+    const {
+      anio,
+      mes,
+      ObjetivoId,
+      ImporteHora,
+      ImporteFijo
+    } = req.body
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para cargar valores de facturación`)
+
+
+      await queryRunner.startTransaction()
+
+      await queryRunner.commitTransaction();
+      this.jsonRes([], res, `Valores Actualizados`);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+
+  }
   async addAsistenciaPeriodoResJson(req: any, res: Response, next: NextFunction) {
     const {
       anio,
@@ -596,6 +625,7 @@ export class AsistenciaController extends BaseController {
       clidep.ClienteElementoDependienteDescripcion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
+      -- val.ImporteHora, val.ImporteFijo,
       1 as last
       
       
@@ -604,9 +634,9 @@ export class AsistenciaController extends BaseController {
       LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1 
       LEFT JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoId = obj.ObjetivoId AND objm.ObjetivoAsistenciaAnoId = obja.ObjetivoAsistenciaAnoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-              
+      -- LEFT JOIN ValorVenta val ON val.ClienteId = obj.ClienteId AND val.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND val.Anio = obja.ObjetivoAsistenciaAnoAno AND val.Mes = objm.ObjetivoAsistenciaAnoMesMes
         WHERE obj.ObjetivoId = @0
       `, [objetivoId, anio, mes]
     );
@@ -1854,7 +1884,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const cleanFilters = extraFilters.filter(r => r != '')
     const extraFiltersStr = `${(cleanFilters.length > 0) ? 'AND' : ''} ${cleanFilters.join(' AND ')}`
 
-    const result = await queryRunner.query(
+    const asistencia = await queryRunner.query(
       `
       SELECT DISTINCT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
       persona.PersonalId,
@@ -2011,16 +2041,18 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       [, anio, mes]
     );
 
-    for (const row of result) {
+    const TotalHorasReal = asistencia.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
+
+    for (const row of asistencia) {
     }
-    return result
+    return { asistencia, TotalHorasReal }
   }
 
   static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'objd.ObjetivoAsistenciaMesPersonalId IN (' + personalId.join(',') + ')'
     const queryRunner = dataSource.createQueryRunner();
     const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
-    return result
+    return result.asistencia
   }
 
   async getAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {
@@ -2146,11 +2178,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${objetivoId}`], queryRunner)
 
-      const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
-      const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
-      const totalHorasN = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
-      const totalHorasC = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'C') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
-      const totalHorasR = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'R') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
+      const totalImporte = result.asistencia.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = result.asistencia.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasN = result.asistencia.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasC = result.asistencia.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'C') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasR = result.asistencia.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'R') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
 
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC, totalHorasR }, res);

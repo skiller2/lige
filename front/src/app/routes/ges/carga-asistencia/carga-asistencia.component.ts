@@ -108,7 +108,7 @@ export class CargaAsistenciaComponent {
                 []]
                 
                 this.angularGridEdit.resizerService.resizeGrid();
-
+                //this.carasistForm.form.get('TotalHorasReal')?.setValue(data[3].TotalHorasReal)   
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -657,6 +657,12 @@ export class CargaAsistenciaComponent {
             await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
         } catch (_e) { }
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
+    }
+    async setValFact() {
+        console.log('seteo')
+        try {
+            await firstValueFrom(this.apiService.setValorFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('ImporteHora')?.value, this.carasistForm.form.get('ImporteFijo')?.value))
+        } catch (_e) { }
     }
 
     collapseChange($event: any) {

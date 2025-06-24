@@ -29,6 +29,11 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHora:number, ImporteFijo:number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHora, ImporteFijo}).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
   endAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number) {
     return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/fin', { anio, mes, ObjetivoId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))

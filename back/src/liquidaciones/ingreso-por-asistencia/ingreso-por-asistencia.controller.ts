@@ -54,7 +54,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
-      for (const row of result) {
+      for (const row of result.asistencia) {
  //        const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
 
         const detalle = `Horas ${row.totalhorascalc}, Categoría ${row.CategoriaPersonalDescripcion.trim()}`
@@ -183,7 +183,7 @@ export class IngresoPorAsistenciaController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
+      this.jsonRes({ list: [] }, res, `Se procesaron ${result.asistencia.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
