@@ -135,6 +135,12 @@ export class CargaAsistenciaComponent {
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
 
+                this.carasistForm.control.patchValue({
+                    ImporteFijo: isNaN(Number(data[2].ImporteFijo)) ? 0 : Number(data[2].ImporteFijo),
+                    ImporteHora: isNaN(Number(data[2].ImporteHora)) ? 0:Number(data[2].ImporteHora),
+                    TotalHoras: isNaN(Number(data[2].TotalHoras)) ? 0: Number(data[2].TotalHoras),
+                    TotalHorasReales: isNaN(Number(data[2].TotalHorasReales)) ? 0:Number(data[2].TotalHorasReales)
+                }, { emitEvent: false })
                 this.loadingSrv.close()
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
             })
@@ -841,7 +847,7 @@ export class CargaAsistenciaComponent {
             grupos.forEach((obj, index, arr) => {
                 if (obj.value != "TOTALES") {
                     totalHoras += obj.totals.sum.total
-                    totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: obj.totals.sum.total, metadata: { style: totalId.id } }, { value: '' }])
+                    totalHeader = totalHeader.concat([{ value: `Horas ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: obj.totals.sum.total, metadata: { style: totalId.id } }, { value: '' }])
                     delete arr[index].totals.sum.total
                 }
             })

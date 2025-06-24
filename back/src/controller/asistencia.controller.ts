@@ -228,8 +228,8 @@ export class AsistenciaController extends BaseController {
       const objetivo = await queryRunner.query(
         `SELECT val.ImporteHora, val.ImporteFijo, val.TotalHoras, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
-       LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId
-       WHERE obj.ObjetivoId = @0 AND val.Anio = @1 AND val.Mes = @2
+       LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
+       WHERE obj.ObjetivoId = @0
        `, [ObjetivoId, anio, mes ])
 
       if (objetivo.length == 0)
@@ -245,7 +245,7 @@ export class AsistenciaController extends BaseController {
           [ClienteId, anio, mes, ClienteElementoDependienteId, ImporteFijo, ImporteHora, asistencia.TotalHorasReal, TotalHoras, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
-        `INSERT INTO ObjetivoImporteVenta (ClienteId,Mes,Anio,ClienteElementoDependienteId,TotalHorasReal,TotalHoras,ImporteHora,ImporteFijo,
+        `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoras,ImporteHora,ImporteFijo,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@8,@9,@10)`,
           [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoras, ImporteFijo, ImporteHora, fechaActual, usuario, ip])
@@ -658,7 +658,7 @@ export class AsistenciaController extends BaseController {
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
       val.ImporteHora, val.ImporteFijo, val.TotalHoras,
-      1 as last
+      2 as last
       
       FROM Objetivo obj 
 
