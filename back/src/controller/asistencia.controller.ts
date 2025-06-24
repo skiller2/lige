@@ -230,19 +230,25 @@ export class AsistenciaController extends BaseController {
        FROM Objetivo obj 
        LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
        WHERE obj.ObjetivoId = @0
-       `, [ObjetivoId, anio, mes ])
+       `, [ObjetivoId, anio, mes])
 
       if (objetivo.length == 0)
-        throw new ClientException(`No se encontró el objetivo `)
+        throw new ClientException(`No se encontró el objetivo`)
       
       const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
       const ClienteId = objetivo[0].ClienteId
       const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
+      if (ImporteFijo * ImporteHora > 0) {
+        throw new ClientException(`No puede poseer importe mayor a 0 en ImporteFijo e ImporteHora`)
+      }
+
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHoras=@4, ImporteFijo=@5, TotalHorasReal = @6, TotalHoras=@7, AudFechaMod@8, AudUsuarioMod=@9, AudIpMod=@10  WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, ImporteFijo, ImporteHora, asistencia.TotalHorasReal, TotalHoras, fechaActual, usuario, ip])
+          `UPDATE ObjetivoImporteVenta SET TotalHoras=@4, ImporteFijo=@5, ImporteHora=@6, TotalHorasReal = @7, 
+           AudFechaMod=@8, AudUsuarioMod=@9, AudIpMod=@10
+           WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoras, ImporteFijo, ImporteHora, asistencia.TotalHorasReal,  fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
         `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoras,ImporteHora,ImporteFijo,
@@ -2818,6 +2824,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
+
       //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {

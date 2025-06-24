@@ -29,8 +29,8 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHora:number, ImporteFijo:number) {
-    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHora, ImporteFijo}).pipe(
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHora:number, ImporteFijo:number, TotalHoras:number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHora, ImporteFijo,TotalHoras}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

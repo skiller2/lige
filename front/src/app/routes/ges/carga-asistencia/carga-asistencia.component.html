@@ -43,7 +43,11 @@
             <nz-form-label [nzSpan]="2">Objetivo</nz-form-label>
             <nz-form-control [nzSpan]="10">
                 <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                    (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo" ngModel />
+                    (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo" ngModel
+                    style="display: inline-block; width: 92%;" />
+                <button nz-button nzType="default" (click)="formChange('', Busqueda.Objetivo)"><span nz-icon
+                        nzType="reload" nzTheme="outline" nz-tooltip
+                        nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
 
             </nz-form-control>
 
@@ -57,10 +61,14 @@
 
             <nz-form-control [nzSpan]="1" style="text-align: right;">
                 <nz-button-group>
-                    <button nz-button nzType="default" (click)="formChange('', Busqueda.Objetivo)"><span nz-icon
-                            nzType="reload" nzTheme="outline" nz-tooltip
-                            nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+                    <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
+                            nzTheme="outline" nz-tooltip
+                            nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
+                    <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span
+                            nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" nzTheme="outline" nz-tooltip
+                            nzTooltipTitle="{{ 'app.icon.validar' | i18n }}"></span></button>
                 </nz-button-group>
+
             </nz-form-control>
 
 
@@ -73,42 +81,29 @@
                 <ng-container *ngFor="let contrato of contratos">
                     <li><span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}}
                         <span *ngIf="contrato.ContratoFechaHasta">-</span>
-                        {{ contrato.ContratoFechaHasta | date}} </li>
+                        {{ contrato.ContratoFechaHasta | date}}
+                    </li>
                 </ng-container>
             </nz-form-control>
             <nz-form-label [nzSpan]="3">Facturación Hora</nz-form-label>
             <nz-form-control [nzSpan]="3">
-                <nz-input-number name="ImporteHora" [nzDisabled]="!(gridOptionsEdit.editable ?? false)"
-                    [nzPrecision]="2" [nzControls]="false" ngModel (ngModelChange)="setValFact()"
-                    [ngModelOptions]="{updateOn: 'blur'}" />
+                <input nz-input name="ImporteHora" [disabled]="!(gridOptionsEdit.editable ?? false)" type="number"
+                    ngModel (blur)="setValFact()" />
             </nz-form-control>
             <nz-form-label [nzSpan]="3">Facturación Fijo</nz-form-label>
             <nz-form-control [nzSpan]="3">
-                <nz-input-number name="ImporteFijo" [nzDisabled]="!(gridOptionsEdit.editable ?? false)"
-                    [nzPrecision]="2" [nzControls]="false" ngModel (ngModelChange)="setValFact()"
-                    [ngModelOptions]="{updateOn: 'blur'}" />
+                <input nz-input name="ImporteFijo" [disabled]="!(gridOptionsEdit.editable ?? false)" type="number"
+                    ngModel (blur)="setValFact()" />
             </nz-form-control>
-            <nz-form-label [nzSpan]="3">Total Horas</nz-form-label>
+            <nz-form-label [nzSpan]="3">Horas a facturar</nz-form-label>
             <nz-form-control [nzSpan]="2">
-                <nz-input-number name="TotalHoras" [nzDisabled]="!(gridOptionsEdit.editable ?? false)" [nzPrecision]="1" [nzControls]="false" ngModel (ngModelChange)="setValFact()"
-                    [ngModelOptions]="{updateOn: 'blur'}"/>
-                <nz-input-number name="TotalHorasReales" [nzDisabled]="true" [nzPrecision]="1" [nzControls]="false" />
+                <input nz-input name="TotalHoras" [disabled]="!(gridOptionsEdit.editable ?? false)" type="number"
+                    ngModel (blur)="setValFact()" />
 
             </nz-form-control>
-
-
-
-            <nz-form-control [nzSpan]="2" style="text-align: right;">
-                <nz-button-group>
-                    <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
-                            nzTheme="outline" nz-tooltip
-                            nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
-                    <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span
-                            nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" nzTheme="outline" nz-tooltip
-                            nzTooltipTitle="{{ 'app.icon.validar' | i18n }}"></span></button>
-                </nz-button-group>
+            <nz-form-control [nzSpan]="2">
+                <input nz-input name="TotalHorasReales" [disabled]="true" ngModel />
             </nz-form-control>
-
         </nz-form-item>
 
     </form>

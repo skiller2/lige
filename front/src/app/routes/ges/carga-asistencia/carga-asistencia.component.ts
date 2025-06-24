@@ -87,6 +87,12 @@ export class CargaAsistenciaComponent {
     isLoadingCheck = false;
     customHeaderExcel: any[] = []
 
+    getHorasNormales(data:any) {
+        const totalHorasN = data.map((row: { forma: { id: string; }; total: any; }) => { return (row.forma.id == 'N') ? row.total : 0 }).reduce((prev: number, curr: number) => prev + curr, 0)
+        this.carasistForm.controls['TotalHorasReales'].setValue(totalHorasN);
+
+    }
+
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
         return forkJoin([
@@ -108,7 +114,7 @@ export class CargaAsistenciaComponent {
                 []]
                 
                 this.angularGridEdit.resizerService.resizeGrid();
-                //this.carasistForm.form.get('TotalHorasReal')?.setValue(data[3].TotalHorasReal)   
+  
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -134,13 +140,15 @@ export class CargaAsistenciaComponent {
                     if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
+                this.getHorasNormales(this.gridDataInsert)
 
-                this.carasistForm.control.patchValue({
-                    ImporteFijo: isNaN(Number(data[2].ImporteFijo)) ? 0 : Number(data[2].ImporteFijo),
-                    ImporteHora: isNaN(Number(data[2].ImporteHora)) ? 0:Number(data[2].ImporteHora),
-                    TotalHoras: isNaN(Number(data[2].TotalHoras)) ? 0: Number(data[2].TotalHoras),
-                    TotalHorasReales: isNaN(Number(data[2].TotalHorasReales)) ? 0:Number(data[2].TotalHorasReales)
-                }, { emitEvent: false })
+                this.carasistForm.controls['ImporteFijo'].setValue(data[2][0]?.ImporteFijo);
+                this.carasistForm.controls['ImporteHora'].setValue(data[2][0]?.ImporteHora);
+                this.carasistForm.controls['TotalHoras'].setValue(data[2][0]?.TotalHoras);
+                this.carasistForm.form.get('ImporteHora')?.markAsPristine()
+                this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
+                this.carasistForm.form.get('TotalHoras')?.markAsPristine()
+
                 this.loadingSrv.close()
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
             })
@@ -417,6 +425,7 @@ export class CargaAsistenciaComponent {
         if (columnId.indexOf('day') != -1) columnTotal(columnId, angularGrid)
         totalRecords(angularGrid, 'apellidoNombre')
         columnTotal('total', angularGrid)
+        this.getHorasNormales(angularGrid.dataView.getItems())
     }
 
     sumTotalsFormatterCustom(totals: any, columnDef: any) {
@@ -627,6 +636,7 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
+            await this.setValFact()
             const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
                 finally(() => { this.isLoadingCheck = false })
             this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
@@ -665,10 +675,19 @@ export class CargaAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
     async setValFact() {
-        console.log('seteo')
-        try {
-            await firstValueFrom(this.apiService.setValorFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('ImporteHora')?.value, this.carasistForm.form.get('ImporteFijo')?.value))
-        } catch (_e) { }
+        if (!this.carasistForm.form.get('ImporteHora')?.pristine || !this.carasistForm.form.get('ImporteFijo')?.pristine || !this.carasistForm.form.get('TotalHoras')?.pristine) {
+            try {
+                await firstValueFrom(this.apiService.setValorFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('ImporteHora')?.value, this.carasistForm.form.get('ImporteFijo')?.value, this.carasistForm.form.get('TotalHoras')?.value))
+                this.carasistForm.form.get('ImporteHora')?.markAsPristine()
+                this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
+                this.carasistForm.form.get('TotalHoras')?.markAsPristine()
+
+            } catch (_e) {
+//                this.carasistForm.form.get('ImporteHora')?.reset()
+//                this.carasistForm.form.get('ImporteFijo')?.reset()
+//                this.carasistForm.form.get('TotalHoras')?.reset()
+             }
+        }
     }
 
     collapseChange($event: any) {
