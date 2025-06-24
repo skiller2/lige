@@ -10,7 +10,7 @@ import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
 import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
-import {FileUploadController} from "./file-upload.controller";
+import { FileUploadController } from "./file-upload.controller";
 import { fileUploadController } from "./controller.module";
 
 interface DigestAuthOptions {
@@ -199,7 +199,6 @@ const columnasPersonalxResponsableDesc: any[] = [
 
 ];
 
-
 export class AsistenciaController extends BaseController {
   async setValorFacturacion(req: any, res: Response, next: NextFunction) {
     const {
@@ -207,17 +206,50 @@ export class AsistenciaController extends BaseController {
       mes,
       ObjetivoId,
       ImporteHora,
-      ImporteFijo
+      ImporteFijo,
+      TotalHoras
     } = req.body
-
+//    console.log('todo', req.body)
+//        throw new ClientException(`Debug`)
+    
     const queryRunner = dataSource.createQueryRunner();
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date()
 
+    
     try {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para cargar valores de facturación`)
 
 
       await queryRunner.startTransaction()
+
+      const objetivo = await queryRunner.query(
+        `SELECT val.ImporteHora, val.ImporteFijo, val.TotalHoras, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+       FROM Objetivo obj 
+       LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId
+       WHERE obj.ObjetivoId = @0 AND val.Anio = @1 AND val.Mes = @2
+       `, [ObjetivoId, anio, mes ])
+
+      if (objetivo.length == 0)
+        throw new ClientException(`No se encontró el objetivo `)
+      
+      const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+      const ClienteId = objetivo[0].ClienteId
+      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
+
+      if (objetivo[0].ClienteIdImporteVenta) {
+        await queryRunner.query(
+          `UPDATE ObjetivoImporteVenta SET TotalHoras=@4, ImporteFijo=@5, TotalHorasReal = @6, TotalHoras=@7, AudFechaMod@8, AudUsuarioMod=@9, AudIpMod=@10  WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, ImporteFijo, ImporteHora, asistencia.TotalHorasReal, TotalHoras, fechaActual, usuario, ip])
+      } else {
+        await queryRunner.query(
+        `INSERT INTO ObjetivoImporteVenta (ClienteId,Mes,Anio,ClienteElementoDependienteId,TotalHorasReal,TotalHoras,ImporteHora,ImporteFijo,
+         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@8,@9,@10)`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoras, ImporteFijo, ImporteHora, fechaActual, usuario, ip])
+      }
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Valores Actualizados`);
@@ -614,29 +646,28 @@ export class AsistenciaController extends BaseController {
       `SELECT obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, 
       obj.ObjetivoId, 
       obja.ObjetivoAsistenciaAnoId, 
-    objm.ObjetivoAsistenciaAnoMesId,
-    obj.ObjetivoAsistenciaAnoUltNro,
-    objm.ObjetivoAsistenciaAnoMesPersonalUltNro,
-    objm.ObjetivoAsistenciaAnoMesDiasPersonalUltNro,
-    objm.ObjetivoAsistenciaAnoMesPersonalDiasUltNro,
-    suc.SucursalId,
+      objm.ObjetivoAsistenciaAnoMesId,
+      obj.ObjetivoAsistenciaAnoUltNro,
+      objm.ObjetivoAsistenciaAnoMesPersonalUltNro,
+      objm.ObjetivoAsistenciaAnoMesDiasPersonalUltNro,
+      objm.ObjetivoAsistenciaAnoMesPersonalDiasUltNro,
+      suc.SucursalId,
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       clidep.ClienteElementoDependienteDescripcion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
-      -- val.ImporteHora, val.ImporteFijo,
+      val.ImporteHora, val.ImporteFijo, val.TotalHoras,
       1 as last
       
-      
       FROM Objetivo obj 
-          
+
       LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1 
-      LEFT JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoId = obj.ObjetivoId AND objm.ObjetivoAsistenciaAnoId = obja.ObjetivoAsistenciaAnoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoId = obj.ObjetivoId AND objm.ObjetivoAsistenciaAnoId = obja.ObjetivoAsistenciaAnoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-      -- LEFT JOIN ValorVenta val ON val.ClienteId = obj.ClienteId AND val.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND val.Anio = obja.ObjetivoAsistenciaAnoAno AND val.Mes = objm.ObjetivoAsistenciaAnoMesMes
+      LEFT JOIN ObjetivoImporteVenta val ON val.ClienteId = obj.ClienteId AND val.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND val.Anio = obja.ObjetivoAsistenciaAnoAno AND val.Mes = objm.ObjetivoAsistenciaAnoMesMes
         WHERE obj.ObjetivoId = @0
       `, [objetivoId, anio, mes]
     );

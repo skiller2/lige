@@ -99,6 +99,22 @@ export class ClientesController extends BaseController {
         this.jsonRes(this.listaColumnas, res);
     }
 
+    validarCUIT(cuit: string): boolean {
+        const cleanCUIT = cuit.replace(/[-\s]/g, '');
+
+        if (!/^\d{11}$/.test(cleanCUIT)) return false;
+
+        const digits = cleanCUIT.split('').map(Number);
+        const multipliers = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+
+        const sum = multipliers.reduce((acc, mult, i) => acc + digits[i] * mult, 0);
+        let checkDigit = 11 - (sum % 11);
+
+        if (checkDigit === 11) checkDigit = 0;
+        else if (checkDigit === 10) checkDigit = 9;
+
+        return checkDigit === digits[10];
+    }
 
     async listClientes(req: any, res: Response, next: NextFunction) {
 
@@ -362,23 +378,22 @@ ${orderBy}`, [fechaActual])
 
     }
 
-    async getQueryCliente(queryRunner: any, clienteId: any)
-     {
-            let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
-            let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
-            let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
+    async getQueryCliente(queryRunner: any, clienteId: any) {
+        let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
+        let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
+        let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
 
-            if (domiclio) {
-                infoCliente = { ...infoCliente[0], ...domiclio[0] }
-            } else {
-                infoCliente = infoCliente[0]
-            }
-            infoCliente.infoDomicilio = domiclio
-            infoCliente.infoDomicilioOriginal = domiclio
-            infoCliente.infoClienteContacto = infoClienteContacto
-            infoCliente.infoClienteContactoOriginal = infoClienteContacto
+        if (domiclio) {
+            infoCliente = { ...infoCliente[0], ...domiclio[0] }
+        } else {
+            infoCliente = infoCliente[0]
+        }
+        infoCliente.infoDomicilio = domiclio
+        infoCliente.infoDomicilioOriginal = domiclio
+        infoCliente.infoClienteContacto = infoClienteContacto
+        infoCliente.infoClienteContactoOriginal = infoClienteContacto
 
-            return infoCliente
+        return infoCliente
     }
 
 
@@ -629,7 +644,6 @@ ${orderBy}`, [fechaActual])
         const ObjCliente = { ...req.body };
         let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId: 0 }
         try {
-            console.log("ObjCliente ", ObjCliente)
             await this.FormValidations(ObjCliente, queryRunner)
             await queryRunner.startTransaction()
 
@@ -838,6 +852,11 @@ ${orderBy}`, [fechaActual])
         if (valCuit.length > 0 && idCliente !== valCuit[0].ClienteId) {
             throw new ClientException(`El CUIT ingresado ya existe.`);
         }
+
+        if (!this.validarCUIT(CUIT)) {
+            throw new ClientException(`El Nro de CUIT no pasa el control de integridad, verifique el dato`);
+        }
+
 
         if (!form.ClienteFechaAlta) {
             throw new ClientException(`Debe completar el campo Fecha Inicial.`);
