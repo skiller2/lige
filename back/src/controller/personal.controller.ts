@@ -1814,7 +1814,7 @@ cuit.PersonalCUITCUILCUIT,
         FROM PersonalSituacionRevista sitrev 
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
         WHERE sitrev.PersonalId IN (@0)
-        ORDER BY sitrev.PersonalSituacionRevistaId DESC
+        ORDER BY sitrev.PersonalSituacionRevistaDesde DESC
         `, [personalId])
 
       this.jsonRes(listSitRevista, res);

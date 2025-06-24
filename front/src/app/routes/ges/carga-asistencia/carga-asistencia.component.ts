@@ -108,7 +108,7 @@ export class CargaAsistenciaComponent {
                 []]
                 
                 this.angularGridEdit.resizerService.resizeGrid();
-
+                //this.carasistForm.form.get('TotalHorasReal')?.setValue(data[3].TotalHorasReal)   
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -135,6 +135,12 @@ export class CargaAsistenciaComponent {
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
 
+                this.carasistForm.control.patchValue({
+                    ImporteFijo: isNaN(Number(data[2].ImporteFijo)) ? 0 : Number(data[2].ImporteFijo),
+                    ImporteHora: isNaN(Number(data[2].ImporteHora)) ? 0:Number(data[2].ImporteHora),
+                    TotalHoras: isNaN(Number(data[2].TotalHoras)) ? 0: Number(data[2].TotalHoras),
+                    TotalHorasReales: isNaN(Number(data[2].TotalHorasReales)) ? 0:Number(data[2].TotalHorasReales)
+                }, { emitEvent: false })
                 this.loadingSrv.close()
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
             })
@@ -658,6 +664,12 @@ export class CargaAsistenciaComponent {
         } catch (_e) { }
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
+    async setValFact() {
+        console.log('seteo')
+        try {
+            await firstValueFrom(this.apiService.setValorFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('ImporteHora')?.value, this.carasistForm.form.get('ImporteFijo')?.value))
+        } catch (_e) { }
+    }
 
     collapseChange($event: any) {
         setTimeout(() => {
@@ -835,7 +847,7 @@ export class CargaAsistenciaComponent {
             grupos.forEach((obj, index, arr) => {
                 if (obj.value != "TOTALES") {
                     totalHoras += obj.totals.sum.total
-                    totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: obj.totals.sum.total, metadata: { style: totalId.id } }, { value: '' }])
+                    totalHeader = totalHeader.concat([{ value: `Horas ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: obj.totals.sum.total, metadata: { style: totalId.id } }, { value: '' }])
                     delete arr[index].totals.sum.total
                 }
             })

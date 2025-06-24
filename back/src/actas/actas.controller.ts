@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "../controller/baseController";
+import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL, } from "../impuestos-afip/filtros-utils/filtros";
@@ -24,15 +24,6 @@ const columnsActas:any[] = [
     fieldName: 'ActaId',
     type:'number',
     searchType: 'number',
-    sortable: true,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id:'id', name:'ActaId', field:'id',
-    fieldName: 'ActaId',
-    type:'string',
-    searchType: 'string',
     sortable: true,
     hidden: true,
     searchHidden: true
@@ -123,18 +114,7 @@ export class ActasController extends BaseController {
       await queryRunner.startTransaction()
 
       //Validaciones:
-      //  La FechaHasta debe de ser menor a la FechaActa
-      if (ActaFechaActa && ActaFechaHasta && (ActaFechaActa.getTime() > ActaFechaHasta.getTime())) {
-        throw new ClientException('La fecha Hasta no debe ser menor a Desde')
-      }
-
-      //  El NroActa no debe coincidir con los ya registrados
-      if (ActaNroActa) {
-        const oldActa = await queryRunner.query(`
-          SELECT ActaId AS id FROM Acta WHERE ActaNroActa IN (@0)
-        `, [ActaNroActa])
-        if (oldActa.length) throw new ClientException('Ya existe un Acta con ese numero')
-      }
+      await this.validateFormActa(req.body, 'I', queryRunner)
 
       await queryRunner.query(`
         INSERT INTO Acta (
@@ -170,20 +150,9 @@ export class ActasController extends BaseController {
     const ActaFechaHasta:Date = req.body.ActaFechaHasta?new Date(req.body.ActaFechaHasta) : null;
     try {
       await queryRunner.startTransaction()
-
+      
       //Validaciones:
-      //  La FechaHasta debe de ser menor a la FechaActa
-      if (ActaFechaActa && ActaFechaHasta && (ActaFechaActa.getTime() > ActaFechaHasta.getTime())) {
-        throw new ClientException('La fecha Hasta no debe ser menor a Desde')
-      }
-
-      //  El NroActa no debe coincidir con los ya registrados
-      if (ActaNroActa) {
-        const oldActa = await queryRunner.query(`
-          SELECT ActaId AS id FROM Acta WHERE ActaNroActa IN (@0) AND ActaId NOT IN (@1)
-        `, [ActaNroActa, ActaId])
-        if (oldActa.length) throw new ClientException('Ya existe un Acta con ese numero')
-      }
+      await this.validateFormActa(req.body, 'U', queryRunner)
 
       await queryRunner.query(`
         UPDATE Acta SET
@@ -237,6 +206,47 @@ export class ActasController extends BaseController {
     } catch (error) {
       return next(error)
     }
+  }
+
+  async validateFormActa(acta: any, action:string, queryRunner: any) {
+    let error:string[] = []
+    if (!acta.ActaNroActa) {
+      error.push(` Nro.Acta`)
+    }
+    if (!acta.ActaDescripcion) {
+      error.push(` Descripcion`)
+    }
+    if (!acta.ActaFechaActa) {
+      error.push(` Desde`)
+    }
+
+    if (error.length) {
+      error.unshift('Deben completar los siguientes campos:')
+      throw new ClientWarning(error)
+    }
+
+    const fechaActa:Date = new Date(acta.ActaFechaActa)
+    const fechaHasta:Date = new Date(acta.ActaFechaHasta)
+    //  La FechaHasta debe de ser mayor a la FechaActa
+    if (acta.ActaFechaActa && acta.ActaFechaHasta && (fechaActa.getTime() > fechaHasta.getTime())) {
+      throw new ClientException('La fecha Hasta no debe ser menor a Desde')
+    }
+
+    //  El NroActa no debe coincidir con los ya registrados
+      if (action == 'I' && acta.ActaNroActa) {
+        const oldActa = await queryRunner.query(`
+          SELECT ActaId AS id FROM Acta WHERE ActaNroActa IN (@0)
+        `, [acta.ActaNroActa])
+        if (oldActa.length) throw new ClientException('Ya existe un Acta con ese numero')
+      }
+    //  El NroActa no debe coincidir con los ya registrados
+      if (action == 'U' && acta.ActaNroActa) {
+        const oldActa = await queryRunner.query(`
+          SELECT ActaId AS id FROM Acta WHERE ActaNroActa IN (@0) AND ActaId NOT IN (@1)
+        `, [acta.ActaNroActa, acta.ActaId])
+        if (oldActa.length) throw new ClientException('Ya existe un Acta con ese numero')
+      }
+
   }
 
 }
