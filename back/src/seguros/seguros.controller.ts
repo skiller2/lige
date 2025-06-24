@@ -934,7 +934,7 @@ UNION
         // is edit
       console.log("is edit")
 
-      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
+      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1]);
 
         await queryRunner.query(`
           UPDATE PolizaSeguro SET
@@ -984,6 +984,7 @@ UNION
       }
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
+    
 
  //'CompaniaSeguroId'-'TipoSeguroCod'-'PolizaSeguroNroPoliza'-'PolizaSeguroNroEndoso'
 
@@ -994,6 +995,7 @@ UNION
         if(existPoliza[0]?.PolizaSeguroCodigo) {
           throw new ClientException(`Ya existe una póliza con este documento.`)
         }
+
 
         await queryRunner.query(`
           INSERT INTO PolizaSeguro (
@@ -1185,7 +1187,6 @@ UNION
         
         let cliente_id = file.cliente_id > 0 ? file.cliente_id : null
         let objetivo_id = file.objetivo_id > 0 ? file.objetivo_id : null
-        console.log("file", file)
         //throw new ClientException(`Debe subir un solo archivo.`)
          resultFile = await FileUploadController.handleDOCUpload(
           PersonalId, 
@@ -1200,9 +1201,6 @@ UNION
           usuario,
           ip,
           queryRunner)
-
-       //maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
-       
       
       }
       return resultFile
