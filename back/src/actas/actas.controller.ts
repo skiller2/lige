@@ -78,8 +78,9 @@ export class ActasController extends BaseController {
       ROW_NUMBER() OVER (ORDER BY ActaId) AS id,
       ActaId, ActaNroActa, ActaFechaActa, ActaFechaHasta, ActaDescripcion
       FROM Acta
-      -- WHERE (${filterSql})
-      -- ${orderBy}
+      WHERE (1=1) 
+      AND (${filterSql})
+      ${orderBy}
     `)
   }
   

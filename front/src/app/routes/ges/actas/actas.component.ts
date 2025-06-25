@@ -73,7 +73,7 @@ export class ActasComponent {
     gridData$ = this.listActas$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.apiService.getActas(this.listOptions)
+            return this.apiService.getActas({ options: this.listOptions })
                 .pipe(map(data => { return data }))
         })
     )
