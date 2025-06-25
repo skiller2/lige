@@ -437,6 +437,21 @@ export class AsistenciaController extends BaseController {
       if (valGrid instanceof ClientException)
         throw valGrid
 
+//            val.ImporteHora, val.ImporteFijo, val.TotalHoras,
+
+      if (cabecera[0].TotalHoras <1) {
+        throw new ClientException('Horas a facturar debe ser mayor a 0 ')
+      }
+
+      if (cabecera[0].ImporteHora <1 && cabecera[0].ImporteFijo<1) {
+        throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
+      }
+
+      if (cabecera[0].ImporteHora >0 && cabecera[0].ImporteFijo>0) {
+        throw new ClientException('Solo Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
+      }
+
+
       //TODO incorporar validaciones de todo la carga.
 
       if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
