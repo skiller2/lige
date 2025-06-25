@@ -29,11 +29,6 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHora:number, ImporteFijo:number, TotalHoras:number) {
-    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHora, ImporteFijo,TotalHoras}).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-  }
   endAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number) {
     return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/fin', { anio, mes, ObjetivoId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
@@ -982,6 +977,11 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
+
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHora: number, ImporteFijo: number, TotalHoras: number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHora, ImporteFijo, TotalHoras }).pipe(map(res => res.data))
+  }
+
   addAsistencia(asistencia: any) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
@@ -1503,7 +1503,7 @@ export class ApiService {
     );
   }
 
-  
+
   setListAdministradoresClientes(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/administradores/list-clientes', parameter).pipe(

@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, signal } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { Component, ViewChild, ViewEncapsulation, inject, signal } from '@angular/core';
+import { AbstractControl, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { EditController, ExcelExportOption, SlickGroup, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
-import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap, timer } from 'rxjs';
+import { ExcelExportOption, SlickGroup } from '@slickgrid-universal/common';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, Aggregators } from 'angular-slickgrid';
+import { BehaviorSubject, Observable, debounceTime, firstValueFrom, forkJoin, map, pairwise, startWith, switchMap, tap, timer } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS } from '@shared';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
@@ -52,7 +51,7 @@ export class CargaAsistenciaComponent {
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private settingsService = inject(SettingsService)
-
+    private formPrevVals: any = {}
 
     columnDefinitions: Column[] = [];
     columnas: Column[] = [];
@@ -87,7 +86,7 @@ export class CargaAsistenciaComponent {
     isLoadingCheck = false;
     customHeaderExcel: any[] = []
 
-    getHorasNormales(data:any) {
+    getHorasNormales(data: any) {
         const totalHorasN = data.map((row: { forma: { id: string; }; total: any; }) => { return (row.forma.id == 'N') ? row.total : 0 }).reduce((prev: number, curr: number) => prev + curr, 0)
         this.carasistForm.controls['TotalHorasReales'].setValue(totalHorasN);
 
@@ -112,9 +111,9 @@ export class CargaAsistenciaComponent {
                 [{ value: `Objetivo: ${data[2][0]?.ClienteElementoDependienteDescripcion}` }],
                 [{ value: `Grupo: ${data[0][0]?.detalle}` }],
                 []]
-                
+
                 this.angularGridEdit.resizerService.resizeGrid();
-  
+
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -132,7 +131,7 @@ export class CargaAsistenciaComponent {
                 this.angularGridEdit.slickGrid.invalidate();
                 this.angularGridEdit.slickGrid.render();
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
-                
+
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
 
@@ -142,12 +141,18 @@ export class CargaAsistenciaComponent {
                 columnTotal('total', this.angularGridEdit)
                 this.getHorasNormales(this.gridDataInsert)
 
-                this.carasistForm.controls['ImporteFijo'].setValue(data[2][0]?.ImporteFijo);
-                this.carasistForm.controls['ImporteHora'].setValue(data[2][0]?.ImporteHora);
-                this.carasistForm.controls['TotalHoras'].setValue(data[2][0]?.TotalHoras);
-                this.carasistForm.form.get('ImporteHora')?.markAsPristine()
-                this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
-                this.carasistForm.form.get('TotalHoras')?.markAsPristine()
+                //this.carasistForm.controls['ImporteFijo'].setValue(data[2][0]?.ImporteFijo);
+                //this.carasistForm.controls['ImporteHora'].setValue(data[2][0]?.ImporteHora);
+                //this.carasistForm.controls['TotalHoras'].setValue(data[2][0]?.TotalHoras);
+
+                this.carasistForm.form.patchValue({ ImporteFijo: data[2][0]?.ImporteFijo, ImporteHora: data[2][0]?.ImporteHora, TotalHoras: data[2][0]?.TotalHoras }, { emitEvent: false })
+                this.carasistForm.form.markAsPristine()
+                this.formPrevVals = this.carasistForm.form.value
+
+
+                //this.carasistForm.form.get('ImporteHora')?.markAsPristine()
+                //this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
+                //this.carasistForm.form.get('TotalHoras')?.markAsPristine()
 
                 this.loadingSrv.close()
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
@@ -273,7 +278,7 @@ export class CargaAsistenciaComponent {
                 font: { color: 'black', size: 10, bold: true },
                 fill: { type: 'pattern', patternType: 'solid', fgColor: '6A9BCC' },
             },
-            exportWithFormatter : true
+            exportWithFormatter: true
         }
         this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
@@ -306,9 +311,9 @@ export class CargaAsistenciaComponent {
                 if (column.type == FieldType.number || column.type == FieldType.float)
                     editCommand.serializedValue = Number(editCommand.serializedValue)
 
-//                console.log('dif',JSON.stringify(editCommand.serializedValue), JSON.stringify(editCommand.prevSerializedValue))
+                //                console.log('dif',JSON.stringify(editCommand.serializedValue), JSON.stringify(editCommand.prevSerializedValue))
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
-//                editCommand.serializedValue == editCommand.prevSerializedValue) return
+                //                editCommand.serializedValue == editCommand.prevSerializedValue) return
                 editCommand.execute()
                 while (this.rowLocked) await firstValueFrom(timer(500));
                 row = this.angularGridEdit.dataView.getItemById(row.id)
@@ -319,8 +324,8 @@ export class CargaAsistenciaComponent {
                     (totalhs > 0)) {
                     if (!row.dbid)
                         this.rowLocked = true
-                
-                    const response:any = await this.insertDB(row)
+
+                    const response: any = await this.insertDB(row)
                     if (response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
                     else if (response.categoria || response.forma || response.newRowId) {
@@ -333,7 +338,7 @@ export class CargaAsistenciaComponent {
                     this.rowLocked = false
 
                 }
-   
+
             } catch (e: any) {
                 const item = this.angularGridEdit.dataView.getItemById(row.id)
                 console.log('error', e)
@@ -344,7 +349,7 @@ export class CargaAsistenciaComponent {
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     const fld = editCommand.editor.args.column.field
-                    if (!e.error.data.keepvalue || item[fld]!='') {
+                    if (!e.error.data.keepvalue || item[fld] != '') {
                         editCommand.undo();
                         item[fld] = editCommand.editor.args.item[fld]
                     }
@@ -508,9 +513,9 @@ export class CargaAsistenciaComponent {
             minWidth: 50,
             cssClass: 'text-right',
             excelExportOptions: {
-                style: { 
+                style: {
                     font: { bold: true },
-                    fill: { type: 'pattern', patternType: 'solid', fgColor: 'ffd5d5d5',}
+                    fill: { type: 'pattern', patternType: 'solid', fgColor: 'ffd5d5d5', }
                 },
                 width: 6,
             },
@@ -636,7 +641,7 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            await this.setValFact()
+            await this.setValFact(null)
             const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
                 finally(() => { this.isLoadingCheck = false })
             this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
@@ -674,19 +679,19 @@ export class CargaAsistenciaComponent {
         } catch (_e) { }
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
-    async setValFact() {
+    async setValFact(e: any) {
         if (!this.carasistForm.form.get('ImporteHora')?.pristine || !this.carasistForm.form.get('ImporteFijo')?.pristine || !this.carasistForm.form.get('TotalHoras')?.pristine) {
             try {
                 await firstValueFrom(this.apiService.setValorFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('ImporteHora')?.value, this.carasistForm.form.get('ImporteFijo')?.value, this.carasistForm.form.get('TotalHoras')?.value))
-                this.carasistForm.form.get('ImporteHora')?.markAsPristine()
-                this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
-                this.carasistForm.form.get('TotalHoras')?.markAsPristine()
-
+                this.formPrevVals = this.carasistForm.form.value
             } catch (_e) {
-//                this.carasistForm.form.get('ImporteHora')?.reset()
-//                this.carasistForm.form.get('ImporteFijo')?.reset()
-//                this.carasistForm.form.get('TotalHoras')?.reset()
-             }
+                this.carasistForm.form.get('ImporteHora')?.setValue(this.formPrevVals.ImporteHora)
+                this.carasistForm.form.get('ImporteFijo')?.setValue(this.formPrevVals.ImporteFijo)
+                this.carasistForm.form.get('TotalHoras')?.setValue(this.formPrevVals.TotalHoras)
+            }
+            this.carasistForm.form.get('ImporteHora')?.markAsPristine()
+            this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
+            this.carasistForm.form.get('TotalHoras')?.markAsPristine()
         }
     }
 
@@ -742,7 +747,7 @@ export class CargaAsistenciaComponent {
             const anio = this.selectedPeriod.year
             const mes = this.selectedPeriod.month
 
-            const list:any = await firstValueFrom(this.searchService.getListaAsistenciaPersonalAsignadoAnterior(objetivoId, anio, mes))
+            const list: any = await firstValueFrom(this.searchService.getListaAsistenciaPersonalAsignadoAnterior(objetivoId, anio, mes))
             if (list.length) {
                 this.angularGridEdit.dataView.setItems(list)
                 this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -820,7 +825,7 @@ export class CargaAsistenciaComponent {
         //     grupototal!.title = ""
         //     grupos.push(grupototal)
         // }
-        
+
     }
 
     clearGrouping() {
@@ -846,7 +851,7 @@ export class CargaAsistenciaComponent {
         //Crear el encabezado del Excel
         this.excelExportOption.customExcelHeader = (workbook, sheet) => {
             const stylesheet = workbook.getStyleSheet();
-            
+
             const aFormatDefn = {
                 font: { 'size': 12, 'fontName': 'Calibri', 'bold': true },
                 fill: {
@@ -854,7 +859,7 @@ export class CargaAsistenciaComponent {
                     patternType: 'solid',
                     fgColor: 'FF7AB573',
                 },
-                alignment: { 
+                alignment: {
                     horizontal: 'center' as const, // Forzar el tipo a "center"
                 },
             };
@@ -890,10 +895,10 @@ export class CargaAsistenciaComponent {
                 sheet.mergeCells(`${colA}${fila}`, `${colB}${fila}`);
                 colA = this.saltarLetra(colB, 3)
             }
-            
+
             sheet.setRowInstructions(4, { height: 20 })
             sheet.data = auxCustomHeaderExcel;
-            
+
         }
         this.gridOptionsEdit.excelExportOptions = this.excelExportOption;
 
@@ -921,5 +926,5 @@ export class CargaAsistenciaComponent {
             result = 'A' + result
         return result
     }
-    
+
 }
