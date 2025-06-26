@@ -196,6 +196,11 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Ordenes de Venta",
+          "link": "/ges/ordenes-de-venta",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Administradores",
           "icon": "anticon-profile",
           "link": "/ges/administradores-listado"

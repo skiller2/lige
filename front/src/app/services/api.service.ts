@@ -594,6 +594,15 @@ export class ApiService {
 
   }
 
+  getListOrdenesDeVenta(filters: any, anio: any, mes: any) {
+    const parameter = { filters, anio, mes }
+    return this.http.post<ResponseJSON<any>>('/api/ordenes-de-venta/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
 
   getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId: any) {
     console.log("personalId ", personalId)

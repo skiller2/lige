@@ -1,0 +1,42 @@
+
+  <nz-card class="small-margin">
+    <div nz-row>
+      <div nz-col nzSpan="12">
+        <nz-form-control>
+          <nz-date-picker nzMode="month"  [(ngModel)]="periodo" (ngModelChange)="dateChange($event)" />
+        </nz-form-control>
+      </div>
+      <div nz-col nzSpan="12" style="display: flex;flex-direction: row-reverse;">
+        <nz-button-group style="text-align: right;">
+          <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
+                  nzTheme="outline" ></span></button> -->
+          
+        </nz-button-group>
+  
+      </div>
+  
+    </div>
+    <div nz-row class="contentStyle">
+      <div nz-col nzSpan="13" class="listStyle">
+        <ul nz-menu nzMode="horizontal" style="display: flex;">
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'ordenes-de-venta','listado']" >{{ 'app.segurosList' | i18n }}</a>
+          </li>
+ 
+        </ul>
+      </div>
+    
+    </div>
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab></nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/ordenes-de-venta/listado">{{ 'app.segurosList' | i18n }}</a>
+        <ng-template nz-tab>
+            <app-table-ordenes-de-venta [anio]="anio()" [mes]="mes()"></app-table-ordenes-de-venta> 
+        </ng-template>
+      </nz-tab>
+
+    </nz-tabset>
+  </nz-card>
