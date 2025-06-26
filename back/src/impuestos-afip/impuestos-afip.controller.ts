@@ -54,12 +54,14 @@ const cuitRegex = [
   /control\n(\d{11})$/m,
   /CUIT\/CUIL\/CDI\s(\d{11})/m,
   /^CUIT: (\d{11})$/m,
+  /^Identificacion: (\d{11})$/m,
 ];
 const periodoRegex = [
   /PERIODO FISCAL (\d*)\/(\d*)/m,
   /^Fecha Retención\/Percepción[\s]\d{2}\/(\d{2})\/(\d{4})$/m,
   /PERIODO: (\d{2})\/(\d{4})$/m,
   /PERIODO\nFISCAL\n(\d{4})\/(\d{2})$/m,
+  /Nro.Factura: (\d{2})\/(\d{4})$/m,
   
 ];
 const importeMontoRegex = [
@@ -67,6 +69,8 @@ const importeMontoRegex = [
   /Monto de la Retención\/Percepción[\s](\d*.\d{2})/m,
   /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
   /^Importe\n\$\n(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
+  /^Importe:\s(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))/m,
+    
 ];
 
 export class ImpuestosAfipController extends BaseController {
@@ -580,6 +584,17 @@ console.log('es actualizacion',doc_id)
     }
   }
 
+
+  removeDotsExceptLast(input: string): string {
+    const lastDotIndex = input.lastIndexOf('.');
+    if (lastDotIndex === -1) return input;
+
+    const beforeLastDot = input.slice(0, lastDotIndex).replace(/\./g, '');
+    const afterLastDot = input.slice(lastDotIndex);
+    return beforeLastDot + afterLastDot;
+  }
+
+
   async handlePDFUpload(req: Request, res: Response, next: NextFunction, forzado: boolean) {
     const file = req.file;
     const anioRequest: number = req.body.anio;
@@ -667,12 +682,17 @@ console.log('es actualizacion',doc_id)
             new ClientException("No se pudo encontrar el CUIT.", textdocument)
           );
 
-          const [, importeMontoTemp] = this.getByRegexText(
+          let [, importeMontoTemp] = this.getByRegexText(
             textdocument,
             importeMontoRegex,
             new ClientException("No se pudo encontrar el monto.")
           );
-          importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
+
+          importeMontoTemp = importeMontoTemp.replace(",", ".")
+          importeMontoTemp = this.removeDotsExceptLast(importeMontoTemp)
+
+
+          importeMonto = parseFloat(importeMontoTemp);
 
           let periodoIsValid =
             Number(periodoAnio) == anioRequest &&
@@ -687,7 +707,7 @@ console.log('es actualizacion',doc_id)
           periodoIsValid =
             Number(periodoAnio) == anioRequest &&
             Number(periodoMes) == mesRequest;
-
+          
           if (!periodoIsValid)
             throw new ClientException(
               `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
