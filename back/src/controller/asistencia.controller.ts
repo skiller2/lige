@@ -444,7 +444,7 @@ export class AsistenciaController extends BaseController {
       }
 
       if (cabecera[0].ImporteHora <1 && cabecera[0].ImporteFijo<1) {
-        throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
+//        throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
       }
 
       if (cabecera[0].ImporteHora >0 && cabecera[0].ImporteFijo>0) {
