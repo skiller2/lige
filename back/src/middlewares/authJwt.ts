@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { table } from "node:console";
 import path from "node:path";
 import { BaseController } from "src/controller/baseController";
 import { dataSource } from "src/data-source";
@@ -115,6 +116,7 @@ export class AuthMiddleware {
         const path = req.route.path
 
         // console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
+        // console.log('tableforsearch', tableForSearch);
         // console.log('query', req.query);
         // console.log('documentType', documentType);
         // console.log('req -------------------- ', req);
@@ -123,63 +125,68 @@ export class AuthMiddleware {
         // console.log('res.locals -------------------- ', res.locals);
 
         if (!documentId && !documentType) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
+        if (!tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado tableForSearch" })
         let Documento = null;
-        if (documentId) {
-          // Verificar existencia del documento
-          switch (tableForSearch) {
-            case 'documento':
-               Documento = await queryRunner.query(
-                ` SELECT doc.DocumentoId, doc.PersonalId ,doctip.json_permisos_act_dir, doctip.doctipo_id
+
+        switch (tableForSearch) {
+          case 'docgeneral':
+            if (documentId) {
+              // Verificar existencia del documento
+              switch (tableForSearch) {
+
+                case 'documento':
+                  Documento = await queryRunner.query(
+                    ` SELECT doc.DocumentoId, doc.PersonalId ,doctip.json_permisos_act_dir, doctip.doctipo_id
                 FROM documento doc
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = doc.DocumentoTipoCodigo
                 WHERE doc.DocumentoId = @0`,
-                [documentId]
-              );
-              break;
-            default:
-               Documento = await queryRunner.query(
-                ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir, doctip.doctipo_id
+                    [documentId]
+                  );
+                  break;
+                default:
+                  Documento = await queryRunner.query(
+                    ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir, doctip.doctipo_id
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
                 WHERE docgen.doc_id = @0`,
-                [documentId]
-              );
-              break;
-          }
-         
-          const doc = Documento[0];
-          const DocumentoPersonalId = doc.persona_id;
+                    [documentId]
+                  );
+                  break;
+              }
 
-          // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
+              const doc = Documento[0];
+              const DocumentoPersonalId = doc.persona_id;
 
-          if (Documento.length === 0) return next();
-          if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
+              // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
-          const documentoTipoIdOld = doc.doctipo_id
-          const documentoTipoIdNew = req.body.doctipo_id
-          // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
-          if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
-            const permisosADDocumentoTipo = await queryRunner.query(
-              ` SELECT json_permisos_act_dir
+              if (Documento.length === 0) return next();
+              if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
+
+              const documentoTipoIdOld = doc.doctipo_id
+              const documentoTipoIdNew = req.body.doctipo_id
+              // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
+              if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
+                const permisosADDocumentoTipo = await queryRunner.query(
+                  ` SELECT json_permisos_act_dir
                 FROM lige.dbo.doctipo
                 WHERE doctipo_id = @0`,
-              [documentoTipoIdNew]
-            );
-            // Si el tipo de documento tiene permisos, se valida
-            if (permisosADDocumentoTipo[0].json_permisos_act_dir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].json_permisos_act_dir)(req, res, next);
-          }
+                  [documentoTipoIdNew]
+                );
+                // Si el tipo de documento tiene permisos, se valida
+                if (permisosADDocumentoTipo[0].json_permisos_act_dir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+              }
 
-          if (!doc.persona_id && !doc.json_permisos_act_dir || !doc.json_permisos_act_dir) return next();
+              if (!doc.persona_id && !doc.json_permisos_act_dir || !doc.json_permisos_act_dir) return next();
 
-          // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
-          if (doc.PersonalId && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
-            const anio = stmActual.getFullYear();
-            const mes = stmActual.getMonth() + 1;
-            const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
-            const listGrupos = grupos.map(row => row.GrupoActividadId);
+              // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
+              if (doc.PersonalId && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
+                const anio = stmActual.getFullYear();
+                const mes = stmActual.getMonth() + 1;
+                const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+                const listGrupos = grupos.map(row => row.GrupoActividadId);
 
-            if (listGrupos.length > 0) {
-              const resPers = await queryRunner.query(`
+                if (listGrupos.length > 0) {
+                  const resPers = await queryRunner.query(`
             SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
             WHERE gap.GrupoActividadPersonalPersonalId = @0  
             AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
@@ -193,29 +200,35 @@ export class AuthMiddleware {
             AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
             AND gap.GrupoActividadJerarquicoComo = 'J'
           `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
-              if (resPers.length > 0) return next();
+                  if (resPers.length > 0) return next();
+                }
+              }
+
+              // Si el documento tiene json_permisos_act_dir, se valida
+              return this.validateJsonPermisosActDir(doc.json_permisos_act_dir)(req, res, next);
             }
-          }
 
-          // Si el documento tiene json_permisos_act_dir, se valida
-          return this.validateJsonPermisosActDir(doc.json_permisos_act_dir)(req, res, next);
-        }
-
-        if (documentType) {
-          // Si no se pasa el id del documento, pero si el tipo de documento, se verifica los permisos del tipo de documento
-          const DocumentoTipo = await queryRunner.query(
-            ` SELECT json_permisos_act_dir
+            if (documentType) {
+              // Si no se pasa el id del documento, pero si el tipo de documento, se verifica los permisos del tipo de documento
+              const DocumentoTipo = await queryRunner.query(
+                ` SELECT json_permisos_act_dir
               FROM lige.dbo.doctipo
               WHERE doctipo_id = @0`,
-            [documentType]
-          );
+                [documentType]
+              );
 
-          // Si el tipo de documento tiene permisos, se valida
-          if (!DocumentoTipo[0].json_permisos_act_dir) return next();
-          return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+              // Si el tipo de documento tiene permisos, se valida
+              if (!DocumentoTipo[0].json_permisos_act_dir) return next();
+              return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+            }
+
+            return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
+
+          default:
+            return next();
+
         }
 
-        return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
 
       } catch (error) {
         return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
