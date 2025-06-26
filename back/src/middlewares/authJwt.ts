@@ -105,11 +105,6 @@ export class AuthMiddleware {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      console.log('hasAuthByDocId - req.params', req.params);
-      console.log('hasAuthByDocId - req.body', req.body);
-      console.log('hasAuthByDocId - req.query', req.query);
-      console.log('hasAuthByDocId - res.locals', res.locals);
-            
       try {
 
         const stmActual = new Date();
