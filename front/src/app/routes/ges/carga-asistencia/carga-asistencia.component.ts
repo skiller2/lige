@@ -102,7 +102,6 @@ export class CargaAsistenciaComponent {
             this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
         ]).pipe(
             map((data: any[]) => {
-                // console.log('DATA',data);
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
                 this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
@@ -134,16 +133,13 @@ export class CargaAsistenciaComponent {
 
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
-
+                    
                 for (const col of this.angularGridEdit.slickGrid.getColumns())
                     if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
+
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
                 this.getHorasNormales(this.gridDataInsert)
-
-                //this.carasistForm.controls['ImporteFijo'].setValue(data[2][0]?.ImporteFijo);
-                //this.carasistForm.controls['ImporteHora'].setValue(data[2][0]?.ImporteHora);
-                //this.carasistForm.controls['TotalHoras'].setValue(data[2][0]?.TotalHoras);
 
                 this.carasistForm.form.patchValue({ ImporteFijo: data[2][0]?.ImporteFijo, ImporteHora: data[2][0]?.ImporteHora, TotalHoras: data[2][0]?.TotalHoras }, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
@@ -311,7 +307,6 @@ export class CargaAsistenciaComponent {
                 if (column.type == FieldType.number || column.type == FieldType.float)
                     editCommand.serializedValue = Number(editCommand.serializedValue)
 
-                //                console.log('dif',JSON.stringify(editCommand.serializedValue), JSON.stringify(editCommand.prevSerializedValue))
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
                 //                editCommand.serializedValue == editCommand.prevSerializedValue) return
                 editCommand.execute()
@@ -334,19 +329,16 @@ export class CargaAsistenciaComponent {
                         item.forma = response.forma ? response.forma : item.forma
                         item.dbid = response.newRowId ? response.newRowId : item.dbid
                         this.angularGridEdit.gridService.updateItemById(row.id, item)
+
                     }
                     this.rowLocked = false
-
                 }
 
             } catch (e: any) {
-                const item = this.angularGridEdit.dataView.getItemById(row.id)
-                console.log('error', e)
+                let item = this.angularGridEdit.dataView.getItemById(row.id)
                 if (e.error.data.categoria || e.error.data.forma) {
-                    const item = this.angularGridEdit.dataView.getItemById(row.id)
                     item.categoria = e.error.data.categoria ? e.error.data.categoria : row.categoria
                     item.forma = e.error.data.forma ? e.error.data.forma : row.forma
-                    this.angularGridEdit.gridService.updateItemById(row.id, item)
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     const fld = editCommand.editor.args.column.field
                     if (!e.error.data.keepvalue || item[fld] != '') {
@@ -355,9 +347,6 @@ export class CargaAsistenciaComponent {
                     }
                 }
                 this.angularGridEdit.gridService.updateItemById(row.id, item)
-
-
-                this.updateTotals(editCommand.editor.args.column.id, this.angularGridEdit)
 
                 this.rowLocked = false
             }
@@ -408,22 +397,27 @@ export class CargaAsistenciaComponent {
         const x = this
 
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
-            x.updateTotals(String(args.column.id), x.angularGridEdit)
+
+            setTimeout(() => { //Fix par que lea el valor correcto
+                const item = args.item
+                const keysDays = Object.keys(item).filter(key => key.startsWith("day"))
+                const total = keysDays.reduce((acc, key) => {
+                    const value = parseFloat(item[key]);
+                    return isNaN(value) ? acc : acc + value;
+                }, 0)
+
+                const idItemGrid = args.item.id
+                const updateItem = {
+                    ...args.item,
+                    total: total
+                }
+
+                x.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
+                x.updateTotals(String(args.column.id), x.angularGridEdit)
+
+            }, 0);
         });
-        /*
-                this.angularGridEdit.dataView.onSetItemsCalled.subscribe((e, arg) => { 
-                    x.updateTotals('', x.angularGridEdit)
-        
-                })
-        
-                this.angularGridEdit.dataView.onRowsOrCountChanged.subscribe((e, arg) => {
-                    //            totalRecords(this.angularGridEdit)
-                    //            columnTotal('day1', this.angularGridEdit)
-                    //            columnTotal('total', this.angularGridEdit)
-                    //x.updateTotals('', x.angularGridEdit)
-        
-                })
-        */
+
     }
 
     updateTotals(columnId: string, angularGrid: AngularGridInstance) {
@@ -434,11 +428,14 @@ export class CargaAsistenciaComponent {
     }
 
     sumTotalsFormatterCustom(totals: any, columnDef: any) {
+
         const val = totals.sum && totals.sum[columnDef.field]
         if (val != null && totals.group.count > 1) {
             return val
         }
+
         return '';
+
     }
 
     addNewItem(insertPosition?: 'bottom') {
@@ -588,20 +585,6 @@ export class CargaAsistenciaComponent {
     }
 
     onHoursChange(e: Event, args: any) {
-        const item = args.dataContext
-        const keysDays = Object.keys(item).filter(key => key.startsWith("day"))
-        const total = keysDays.reduce((acc, key) => {
-            const value = parseFloat(item[key]);
-            return isNaN(value) ? acc : acc + value;
-        }, 0);
-
-        const idItemGrid = args.dataContext.id
-        const updateItem = {
-            ...args.dataContext,
-            total: total
-        }
-        this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
-        //        this.insertDB(args.dataContext.id)
     }
 
     editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
