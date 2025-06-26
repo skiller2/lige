@@ -104,11 +104,18 @@ export class AuthMiddleware {
       const queryRunner = dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
+
+      console.log('hasAuthByDocId - req.params', req.params);
+      console.log('hasAuthByDocId - req.body', req.body);
+      console.log('hasAuthByDocId - req.query', req.query);
+      console.log('hasAuthByDocId - res.locals', res.locals);
+            
       try {
 
         const stmActual = new Date();
         const ResponsablePersonalId = res.locals.PersonalId;
-        const tableForSearch = req.params.tableForSearch;
+        const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo[0].tableForSearch ;
+
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
         const documentId = req.params.id || req.body.doc_id || req.query[0];
         const documentType = req.body.doctipo_id //|| req.params.doctipo_id || req.query.doctipo_id;
@@ -117,7 +124,7 @@ export class AuthMiddleware {
 
         // console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
         // console.log('tableforsearch', tableForSearch);
-        // console.log('query', req.query);
+        // console.log('query --------- ', req.query);
         // console.log('documentType', documentType);
         // console.log('req -------------------- ', req);
         // console.log('req.url -------------------- ', req.url);
@@ -132,27 +139,15 @@ export class AuthMiddleware {
           case 'docgeneral':
             if (documentId) {
               // Verificar existencia del documento
-              switch (tableForSearch) {
 
-                case 'documento':
-                  Documento = await queryRunner.query(
-                    ` SELECT doc.DocumentoId, doc.PersonalId ,doctip.json_permisos_act_dir, doctip.doctipo_id
-                FROM documento doc
-                LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = doc.DocumentoTipoCodigo
-                WHERE doc.DocumentoId = @0`,
-                    [documentId]
-                  );
-                  break;
-                default:
-                  Documento = await queryRunner.query(
-                    ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir, doctip.doctipo_id
+              Documento = await queryRunner.query(
+                ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir, doctip.doctipo_id
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
                 WHERE docgen.doc_id = @0`,
-                    [documentId]
-                  );
-                  break;
-              }
+                [documentId]
+              );
+
 
               const doc = Documento[0];
               const DocumentoPersonalId = doc.persona_id;
@@ -231,6 +226,8 @@ export class AuthMiddleware {
 
 
       } catch (error) {
+        console.error("Error en hasAuthByDocId:", error);
+        await queryRunner.rollbackTransaction();
         return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
         await queryRunner.release();
