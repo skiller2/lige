@@ -485,7 +485,6 @@ export class CargaAsistenciaComponent {
                 //                },
                 cssClass: 'text-right',
                 editor: { model: Editors['float'], decimal: 1 },
-                onCellChange: this.onHoursChange.bind(this),
                 excelExportOptions: {
                     width: 5,
                 },
@@ -584,8 +583,6 @@ export class CargaAsistenciaComponent {
         this.addNewItem("bottom")
     }
 
-    onHoursChange(e: Event, args: any) {
-    }
 
     editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
         const idColumn = this.angularGridEdit.slickGrid.getColumnIndex(column)
