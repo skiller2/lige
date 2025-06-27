@@ -42,7 +42,7 @@ import {
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
 import { FileUploadController } from "src/controller/file-upload.controller";
-import { join } from "path";
+import { basename, join } from "path";
 
 
 
@@ -536,7 +536,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       }
 
     }
-console.log('file afip',doc_id,file)
     if (updateFile || forzado) {
         const fileObj = {
           doctipo_id: "MONOT", 
@@ -560,7 +559,6 @@ console.log('file afip',doc_id,file)
 */
 
       if (pagenum == null) {
-console.log('es actualizacion',doc_id)
 
         await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,  fileObj, usuario, ip, queryRunner)
       } else {
@@ -575,9 +573,11 @@ console.log('es actualizacion',doc_id)
         pdfDoc.addPage(copiedPage);
         const buffer = await pdfDoc.save();
 
-        fileObj.tempfilename = fileUploadController.getRandomTempFileName('.pdf')
+        const tempfilename = fileUploadController.getRandomTempFileName('.pdf')
 
         writeFileSync(fileObj.tempfilename, buffer);
+
+        fileObj.tempfilename = basename(fileObj.tempfilename)
         await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,fileObj, usuario, ip, queryRunner)
 
       }
@@ -733,12 +733,14 @@ console.log('es actualizacion',doc_id)
               forzado,
               ip,usuarioId,usuario
             );
+
             await queryRunner.commitTransaction()
           } catch (err: any) {
             await this.rollbackTransaction(queryRunner)
             errList.push(err);
           }
         }
+
         let errTxt = "";
         if (errList.length > 0) {
           errList.forEach((err) => {
