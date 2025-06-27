@@ -213,7 +213,7 @@ export class ImpuestosAfipController extends BaseController {
 
     return dataSource.query(
       `SELECT DISTINCT 
-      CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId) id,
+      CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId,'-',doc.doc_id) id,
       per.PersonalId PersonalId,
       
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -574,10 +574,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         const buffer = await pdfDoc.save();
 
         const tempfilename = fileUploadController.getRandomTempFileName('.pdf')
-
-        writeFileSync(fileObj.tempfilename, buffer);
-
-        fileObj.tempfilename = basename(fileObj.tempfilename)
+        writeFileSync(tempfilename, buffer);
+        fileObj.tempfilename = basename(tempfilename)
         await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,fileObj, usuario, ip, queryRunner)
 
       }
