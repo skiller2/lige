@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { default as ngLang } from '@angular/common/locales/zh';
-import { ApplicationConfig, DEFAULT_CURRENCY_CODE, EnvironmentProviders, Provider, importProvidersFrom } from '@angular/core';
+import { ApplicationConfig, DEFAULT_CURRENCY_CODE, EnvironmentProviders, InjectionToken, LOCALE_ID, Provider, importProvidersFrom, inject } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withHashLocation, RouterFeatures } from '@angular/router';
 import { I18NService, defaultInterceptor, provideBindAuthRefresh, provideStartup } from '@core';
@@ -22,6 +22,8 @@ import { ICONS_AUTO } from '../style-icons-auto';
 import { AngularSlickgridModule } from 'angular-slickgrid';
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { NgxMaskOptions, provideEnvironmentNgxMask } from 'ngx-mask';
+import { DEFAULT_THOUSAND_SEPARATOR, thousandSeparatorFactory } from './app.config.defaults';
 
 const defaultLang: AlainProvideLang = {
   abbr: 'zh-CN',
@@ -41,6 +43,12 @@ const alainConfig: AlainConfig = {
   auth: { login_url: '/passport/login' }
 };
 
+
+const ngxMaskConf = {
+  thousandSeparator: '.',
+  decimalMarker: ',',
+  leadZero: true,
+} as NgxMaskOptions;
 
 const ngZorroConfig: NzConfig = {
 };
@@ -73,6 +81,7 @@ const providers: Array<Provider | EnvironmentProviders> = [
 
   { provide: DEFAULT_CURRENCY_CODE, useValue: '$' },
   { provide: DATE_PIPE_DEFAULT_OPTIONS, useFactory: (i18n: I18NService) => ({ dateFormat: i18n.getDateFormat() }), deps: [I18NService] },
+  { provide: DEFAULT_THOUSAND_SEPARATOR, useFactory: thousandSeparatorFactory },
   {
     provide: NZ_CONFIG, 
     useFactory: (i18n: I18NService) => ({
@@ -82,7 +91,7 @@ const providers: Array<Provider | EnvironmentProviders> = [
     }),
     deps: [I18NService]
   },
- 
+  provideEnvironmentNgxMask(ngxMaskConf),
   ...(environment.providers || [])
 ];
 

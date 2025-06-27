@@ -17,6 +17,7 @@ import { DatePipe, I18nPipe } from '@delon/theme';
 import { AppFilterPipe } from './utils/filter-type';
 import { ColsFilterPipe } from './utils/cols-pipe';
 import { UrlAuthPipe } from './utils/url-auth-pipe';
+import { NgxMaskDirective } from 'ngx-mask';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -49,6 +50,7 @@ export const SHARED_IMPORTS = [
   AppDownFileDirective,
   ColsFilterPipe,
   AngularSlickgridModule,
+  NgxMaskDirective,
   ...SHARED_DELON_MODULES,
   ...SHARED_ZORRO_MODULES
 ];

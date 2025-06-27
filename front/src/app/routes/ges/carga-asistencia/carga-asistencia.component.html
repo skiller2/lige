@@ -87,13 +87,13 @@
             </nz-form-control>
             <nz-form-label [nzSpan]="3">Facturación Valor Hora</nz-form-label>
             <nz-form-control [nzSpan]="3">
-                <input nz-input name="ImporteHora" [disabled]="!(gridOptionsEdit.editable ?? false)" type="number"
-                    ngModel (blur)="setValFact($event)" />
+                <input nz-input name="ImporteHora" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
+                    ngModel (blur)="setValFact($event)" mask="separator.2"  prefix="$ "  />
             </nz-form-control>
             <nz-form-label [nzSpan]="3">Facturación Importe Fijo</nz-form-label>
             <nz-form-control [nzSpan]="3">
-                <input nz-input name="ImporteFijo" [disabled]="!(gridOptionsEdit.editable ?? false)" type="number"
-                    ngModel (blur)="setValFact($event)" />
+                <input nz-input name="ImporteFijo" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
+                    ngModel (blur)="setValFact($event)" mask="separator.2"  prefix="$ "  />
             </nz-form-control>
             <nz-form-label [nzSpan]="3">Horas a facturar</nz-form-label>
             <nz-form-control [nzSpan]="2">

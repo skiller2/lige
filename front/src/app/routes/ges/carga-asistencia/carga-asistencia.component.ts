@@ -21,6 +21,9 @@ import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { provideNgxMask } from 'ngx-mask';
+import { DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
+import { appConfig } from 'src/app/app.config';
 
 enum Busqueda {
     Sucursal,
@@ -178,8 +181,10 @@ export class CargaAsistenciaComponent {
         }
         return sum
     }
+            x = inject(DEFAULT_THOUSAND_SEPARATOR)
 
     async ngOnInit() {
+            console.log('TEST X',this.x)
 
 
         this.columnDefinitions = [
