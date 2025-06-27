@@ -9,7 +9,7 @@
           <nz-select formControlName="doctipo_id" nzPlaceHolder="Tipo" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
           (ngModelChange)="selectLabel($event)">
-            <ng-container *ngFor="let option of $optionsTipos | async" >
+            <ng-container *ngFor="let option of optionsLabels() || []" >
               <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
             </ng-container>
           </nz-select> 
@@ -44,8 +44,21 @@
           [previewFile]="false"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDocumento.pristine">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+          <button *ngIf="doc_id()" nzType="primary" nz-button (click)="resetForm()">
+            {{ 'app.btn.clear.form' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
     </form>
 
+    <br>
+    
     <nz-form-control *ngIf="$listaDocumentosPer | async as listaDocumentosPer ">
         <nz-table #asistPer [nzData]="listaDocumentosPer" nzSize="small" [nzPageSize]="100000000"
           [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">

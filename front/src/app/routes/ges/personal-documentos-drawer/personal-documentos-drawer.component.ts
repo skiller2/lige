@@ -59,12 +59,12 @@ export class PersonalDocumentosDrawerComponent {
         doc_id:0, persona_id:0, doctipo_id: '', den_documento: null, fecha: null, fec_doc_ven: null, archivo: [] 
     })
 
-    // doc_id(): number {
-    //     const value = this.formDocumento.get("doc_id")?.value
-    //     if (value)
-    //         return value
-    //     return 0
-    // }
+    doc_id(): number {
+        const value = this.formDocumento.get("doc_id")?.value
+        if (value)
+            return value
+        return 0
+    }
     doctipo_id(): string {
         const value = this.formDocumento.get("doctipo_id")?.value
         if (value)
@@ -73,8 +73,6 @@ export class PersonalDocumentosDrawerComponent {
     }
 
     selectedPersonalIdChange$ = new BehaviorSubject('');
-
-    $optionsTipos = this.searchService.getDocumentoTipoOptions();
     $listaDocumentosPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
         switchMap(() =>{
@@ -89,9 +87,7 @@ export class PersonalDocumentosDrawerComponent {
     async ngOnInit(){
         this.selectedPersonalIdChange$.next('');
         const options:any = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
-        
-        const opcionsPersonal = options.filter((obj:any) => obj.descripcion.includes("Personal"));
-
+        const opcionsPersonal = options.filter((obj:any) => obj.des_den_documento.includes("Personal"))
         this.optionsLabels.set(opcionsPersonal)
     }
 
@@ -133,6 +129,10 @@ export class PersonalDocumentosDrawerComponent {
         this.isLoading.set(false)
     }
 
+    resetForm() {
+        this.formDocumento.reset({persona_id: this.PersonalId()})
+    }
+
     async LoadArchivo(url: string, filename: string) {
         this.modalViewerVisiable1.set(false)
         this.src.set(await fetch(`${url}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
@@ -162,6 +162,5 @@ export class PersonalDocumentosDrawerComponent {
     //         this.formDocumento.reset(infoDoc)
     //         console.log('infoDoc: ', infoDoc);
     //     }
-        
     // }
 }
