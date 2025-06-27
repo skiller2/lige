@@ -100,7 +100,7 @@ export class ClientesController extends BaseController {
     }
 
     validarCUIT(cuit: string): boolean {
-        const cleanCUIT = cuit.replace(/[-\s]/g, '');
+        const cleanCUIT = String(cuit).replace(/[-\s]/g, '');
 
         if (!/^\d{11}$/.test(cleanCUIT)) return false;
 
