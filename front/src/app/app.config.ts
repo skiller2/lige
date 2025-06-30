@@ -23,7 +23,7 @@ import { AngularSlickgridModule } from 'angular-slickgrid';
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { NgxMaskOptions, provideEnvironmentNgxMask } from 'ngx-mask';
-import { DEFAULT_THOUSAND_SEPARATOR, thousandSeparatorFactory } from './app.config.defaults';
+import { decimalMarkerFactory, DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR, thousandSeparatorFactory } from './app.config.defaults';
 
 const defaultLang: AlainProvideLang = {
   abbr: 'zh-CN',
@@ -82,6 +82,7 @@ const providers: Array<Provider | EnvironmentProviders> = [
   { provide: DEFAULT_CURRENCY_CODE, useValue: '$' },
   { provide: DATE_PIPE_DEFAULT_OPTIONS, useFactory: (i18n: I18NService) => ({ dateFormat: i18n.getDateFormat() }), deps: [I18NService] },
   { provide: DEFAULT_THOUSAND_SEPARATOR, useFactory: thousandSeparatorFactory },
+  { provide: DEFAULT_DECIMAL_MARKER, useFactory: decimalMarkerFactory },
   {
     provide: NZ_CONFIG, 
     useFactory: (i18n: I18NService) => ({

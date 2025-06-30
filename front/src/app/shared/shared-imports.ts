@@ -18,6 +18,7 @@ import { AppFilterPipe } from './utils/filter-type';
 import { ColsFilterPipe } from './utils/cols-pipe';
 import { UrlAuthPipe } from './utils/url-auth-pipe';
 import { NgxMaskDirective } from 'ngx-mask';
+import { DotToCommaDirective } from './dot-coma/dot-coma';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -51,6 +52,7 @@ export const SHARED_IMPORTS = [
   ColsFilterPipe,
   AngularSlickgridModule,
   NgxMaskDirective,
+  DotToCommaDirective,
   ...SHARED_DELON_MODULES,
   ...SHARED_ZORRO_MODULES
 ];

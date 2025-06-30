@@ -3,43 +3,38 @@ import {
   HostListener,
   ElementRef,
   Optional,
-  Self
+  Self,
+  inject
 } from '@angular/core';
 import { NgControl } from '@angular/forms';
+import { DEFAULT_DECIMAL_MARKER } from 'src/app/app.config.defaults';
 
 @Directive({
   selector: '[appDotToComma]'
 })
 export class DotToCommaDirective {
+  decimal = inject(DEFAULT_DECIMAL_MARKER)
+  el = inject(ElementRef)
 
-  constructor(
-    private el: ElementRef,
-    @Optional() @Self() private ngControl: NgControl
-  ) {}
+//  constructor(
+//    @Optional() @Self() private ngControl: NgControl
+//  ) { }
 
-  @HostListener('input', ['$event'])
-  onInputChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const originalValue = input.value;
-    const transformedValue = originalValue.replace(/\./g, ',');
+  @HostListener('keypress', ['$event'])
+  onKeyPress(event: KeyboardEvent) {
+    if (this.decimal === ',' && event.key === '.') {
+      event.preventDefault();
 
-    if (originalValue !== transformedValue) {
-      input.value = transformedValue;
+      const input = this.el.nativeElement;
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const value = input.value;
 
-      // Update the form control if present
-      if (this.ngControl && this.ngControl.control) {
-        this.ngControl.control.setValue(transformedValue, {
-          emitEvent: false,
-          emitModelToViewChange: true,
-          emitViewToModelChange: true
-        });
-      } else {
-        // Fallback for plain input
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-        nativeInputValueSetter?.call(input, transformedValue);
-        const newEvent = new Event('input', { bubbles: true });
-        input.dispatchEvent(newEvent);
-      }
+      // Replace the dot with a comma at the cursor position
+      input.value = value.substring(0, start) + ',' + value.substring(end);
+
+      // Move the cursor after the inserted comma
+      input.setSelectionRange(start + 1, start + 1);
     }
   }
 }

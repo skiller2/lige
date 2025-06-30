@@ -9,6 +9,7 @@ import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.cont
 import { AsistenciaController } from "./controller/asistencia.controller";
 import { SegurosController } from "./seguros/seguros.controller";
 import { Temporal } from "@js-temporal/polyfill";
+import { ClientesController } from "./clientes/clientes.controller";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 //import { GlobalWorkerOptions } from "pdfjs-dist";
 
@@ -100,6 +101,8 @@ dbServer.init()
 //    segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
   
 
+ClientesController.AddContactosMigrados()
+    
   })
   .catch((error) => {
     console.error(error)
@@ -118,3 +121,4 @@ webServer.init()
 
     process.exit()
   })
+
