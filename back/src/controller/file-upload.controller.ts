@@ -405,6 +405,7 @@ export class FileUploadController extends BaseController {
 
         
         await queryRunner.query(`INSERT INTO Documento (
+          DocumentoId,
           DocumentoTipoCodigo, 
           PersonalId, 
           ObjetivoId, 
@@ -425,9 +426,10 @@ export class FileUploadController extends BaseController {
           DocumentoAnio,
           DocumentoMes
         ) VALUES (
-          @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15,@16,@17,@18
+          @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15,@16,@17,@18,@19
         )`,
           [
+            doc_id,
             doctipo_id,
             null,
             objetivo_id,
