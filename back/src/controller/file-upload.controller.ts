@@ -386,7 +386,7 @@ export class FileUploadController extends BaseController {
       if (!doc_id) {
         // INSERT DOCUMENTO
         doc_id = await this.getProxNumero(queryRunner, 'documento', usuario, ip);
-
+   
         const type = file.mimetype.split('/')[1]
 
         if (type == 'pdf') {
@@ -480,7 +480,7 @@ export class FileUploadController extends BaseController {
           den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot])
 
 
-        ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'doc_id', doctipo_id, doc_id)
+        ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'DocumentoId', doctipo_id, doc_id)
 
       }
       //throw new ClientException(`Error al actualizar el documento test`)
