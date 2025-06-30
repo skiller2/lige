@@ -21,6 +21,7 @@ import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline} from '@ant-design/icons-angular/icons';
 
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component';
+import { DotToCommaDirective } from 'src/app/shared/dot-coma/dot-coma';
 
 
 /** config ng-zorro-antd i18n **/

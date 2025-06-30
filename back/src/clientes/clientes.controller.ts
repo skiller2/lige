@@ -2,7 +2,7 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { QueryResult } from "typeorm";
+import { QueryRunner,QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 //import { info } from "pdfjs-dist/types/src/shared/util";
 
@@ -932,5 +932,43 @@ ${orderBy}`, [fechaActual])
 
     }
 
+    static async AddContactosMigrados() {
+        const queryRunner = dataSource.createQueryRunner();
+        const contactos = await queryRunner.query(`SELECT DISTINCT fac.ClienteId, 'Entrega Comprobante' ContactoApellido, mig.jurisdiccion_Impositiva ContactoNombre,  REPLACE(mig.correo,';',',') correo, mig.jurisdiccion_Impositiva ContactoJurImpositiva
+            FROM migrarcontactos mig 
+            JOIN ClienteFacturacion fac  ON fac.ClienteFacturacionCUIT= mig.numero_identificacion
+            WHERE mig.is_company != 'true'
+        `)
+        await queryRunner.startTransaction()
 
+        for (const contacto of contactos) {
+            console.log('update contacto',contacto)
+            await ClientesController.CreateContactosMigrados(contacto.ClienteId,'Entrega',contacto.ContactoApellido,contacto.ContactoNombre,contacto.ContactoJurImpositiva,contacto.correo,queryRunner)
+        }
+        
+        await queryRunner.rollbackTransaction()
+//        await queryRunner.commitTransaction()
+
+
+    }
+
+
+    static async CreateContactosMigrados(ClienteId:number,area:string,ContactoApellido:string,ContactoNombre:string,ContactoJurImpositiva:string,correo:string,queryRunner:QueryRunner) {
+        let ContactoTelefonoUltNro=0, ContactoEmailUltNro=0
+        const ContactoApellidoNombre = `${ContactoApellido} ${ContactoNombre}`  
+        await queryRunner.query(`INSERT INTO Contacto (ClienteId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoJurImpositiva )
+            VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
+            ClienteId, area, ContactoApellido, ContactoNombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre,ContactoJurImpositiva])
+        const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
+        const ContactoId = resContacto[0][''];
+
+        if (correo)
+            await queryRunner.query(`INSERT INTO ContactoEmail (ContactoEmailId,ContactoId,ContactoEmailEmail,ContactoEmailInactivo) VALUES (
+        @0,@1,@2,@3)`, [++ContactoEmailUltNro, ContactoId, correo, false])
+
+        await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
+            [ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
+
+        
+    }
 }
