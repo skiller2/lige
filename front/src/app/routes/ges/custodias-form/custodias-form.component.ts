@@ -11,14 +11,14 @@ import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-
+import { HistoryConsultCustodiaDrawerComponent } from '../history-consult-custodia-drawer/history-consult-custodia-drawer';
 
 @Component({
     selector: 'app-custodias-form',
     templateUrl: './custodias-form.component.html',
     styleUrls: ['./custodias-form.component.less'],
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, HistoryConsultCustodiaDrawerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers:[CurrencyPipe]
 })
@@ -30,8 +30,16 @@ export class CustodiaFormComponent {
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
+    visibleHistorialCustodia = model(false);
     edit = model(true)
     costo = signal(0)
+
+    aud_usuario_ins = signal('')
+    aud_fecha_ins = signal('')
+    aud_usuario_mod = signal('')
+    aud_fecha_mod = signal('')
+
+
     facturacion = signal(0)
     horaspopover = signal('test')
     diferencia = computed(() => {
@@ -95,6 +103,10 @@ export class CustodiaFormComponent {
     async load() {
         if (this.custodiaId()) {
             let infoCust = await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
+            this.aud_usuario_ins.set(infoCust.aud_usuario_ins)
+            this.aud_fecha_ins.set(infoCust.aud_fecha_ins)
+            this.aud_usuario_mod.set(infoCust.aud_usuario_mod)
+            this.aud_fecha_mod.set(infoCust.aud_fecha_mod)
             infoCust.fechaInicio = new Date(infoCust.fechaInicio)
             if (infoCust.fechaFinal)
                 infoCust.fechaFinal = new Date(infoCust.fechaFinal)
@@ -142,6 +154,12 @@ export class CustodiaFormComponent {
             this.formCus.disable()
         }
     }
+
+    
+  openDrawerforConsultHistoryCustodia(): void{
+    this.visibleHistorialCustodia.set(true)
+       
+  }
 
     onChangePeriodo(result: Date): void {
         /*

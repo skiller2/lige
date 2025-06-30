@@ -266,6 +266,54 @@ const columnsObjCustodia: any[] = [
     },
 ]
 
+const columnsObjCustodiaHistory: any[] = [
+    {
+        id: 'id', name: 'id', field: 'id',
+        // fieldName: "",
+        type: 'string',
+        searchType: "string",
+        sortable: true,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        id: 'usuario_ing', name: 'Usuario Ing', field: 'usuario_ing',
+        fieldName: "obj.usuario_ing",
+        type: 'string',
+        searchType: "string",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        id: 'fecha_ing', name: 'Fecha Ing', field: 'fecha_ing',
+        fieldName: "obj.fecha_ing",
+        type: 'dateTime',
+        searchType: "date",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        id: 'usuario_mod', name: 'Usuario Mod', field: 'usuario_mod',
+        fieldName: "obj.usuario_mod",
+        type: 'string',
+        searchType: "string",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        id: 'fecha_mod', name: 'Fecha Mod', field: 'fecha_mod',
+        fieldName: "obj.fecha_mod",
+        type: 'dateTime',
+        searchType: "date",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+]
+
 const columnsPersonalCustodia: any[] = [
     {
         id: 'id', name: 'id', field: 'id',
@@ -669,7 +717,7 @@ export class CustodiaController extends BaseController {
         obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos impoModulos, 
         obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, obj.desc_facturacion,
         obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado, obj.num_factura numFactura,
-        obj.fecha_liquidacion
+        obj.fecha_liquidacion, obj.aud_usuario_ins, obj.aud_fecha_ins, obj.aud_usuario_mod, obj.aud_fecha_mod
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
@@ -1104,6 +1152,10 @@ export class CustodiaController extends BaseController {
 
     async getGridPersonalColumns(req: any, res: Response, next: NextFunction) {
         return this.jsonRes(columnsPersonalCustodia, res)
+    }
+
+    async getGridCustodiaHistoryColumns(req: any, res: Response, next: NextFunction) {
+        return this.jsonRes(columnsObjCustodiaHistory, res)
     }
 
     async getEstados(req: any, res: Response, next: NextFunction) {
