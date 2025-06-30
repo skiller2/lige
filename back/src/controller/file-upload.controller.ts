@@ -400,6 +400,9 @@ export class FileUploadController extends BaseController {
 
         const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
 
+        var maxid = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
+        console.log("maxid..................", maxid)
+
         
         await queryRunner.query(`INSERT INTO Documento (
           DocumentoTipoCodigo, 
@@ -446,6 +449,9 @@ export class FileUploadController extends BaseController {
             mes
           ])
 
+
+          var maxid2 = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
+          console.log("maxid2..................", maxid2)
 
       } else {
         // UPDATE DOCUMENTO
