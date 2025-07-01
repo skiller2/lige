@@ -11,14 +11,14 @@ import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { HistoryConsultCustodiaDrawerComponent } from '../history-consult-custodia-drawer/history-consult-custodia-drawer';
+import { AuditoriaRegistroComponent } from '../auditoria-registro/auditoria-registro';
 
 @Component({
     selector: 'app-custodias-form',
     templateUrl: './custodias-form.component.html',
     styleUrls: ['./custodias-form.component.less'],
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, HistoryConsultCustodiaDrawerComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, AuditoriaRegistroComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers:[CurrencyPipe]
 })
@@ -30,7 +30,7 @@ export class CustodiaFormComponent {
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
-    visibleHistorialCustodia = model(false);
+    visibleHistorialAuditoria = model(false);
     edit = model(true)
     costo = signal(0)
 
@@ -154,12 +154,6 @@ export class CustodiaFormComponent {
             this.formCus.disable()
         }
     }
-
-    
-  openDrawerforConsultHistoryCustodia(): void{
-    this.visibleHistorialCustodia.set(true)
-       
-  }
 
     onChangePeriodo(result: Date): void {
         /*
@@ -287,6 +281,10 @@ export class CustodiaFormComponent {
         vehiculos.value.forEach((obj: any) => { costo += (obj.importe + obj.peaje) })
 
         this.costo.set(costo)
+    }
+
+    openHistorialAuditoria() {
+        this.visibleHistorialAuditoria.set(true)
     }
 
     ngOnDestroy() {

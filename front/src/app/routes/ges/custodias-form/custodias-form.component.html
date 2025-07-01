@@ -241,7 +241,7 @@
     }
     @defer (on immediate) {
       <nz-form-control *ngIf="custodiaId()" [nzXs]="20" [nzSm]="20" [nzMd]="20" [nzLg]="20" style="text-align: right;">
-            <button nz-button nzType="default" (click)="openDrawerforConsultHistoryCustodia()" nz-tooltip nzTooltipTitle="Historial de Custodia"><span nz-icon nzType="menu-unfold"
+            <button nz-button nzType="default" (mouseenter)="visibleHistorialAuditoria.set(true)"  nz-tooltip nzTooltipTitle="Historial de Custodia"><span nz-icon nzType="menu-unfold"
           nzTheme="outline"></span></button>
       </nz-form-control>
     }
@@ -260,4 +260,4 @@
   <br>
 </form>
 
-<app-history-consult-custodia-drawer [(visibleHistorialCustodia)]="visibleHistorialCustodia" [aud_usuario_ins]="aud_usuario_ins()" [aud_fecha_ins]="aud_fecha_ins()" [aud_usuario_mod]="aud_usuario_mod()" [aud_fecha_mod]="aud_fecha_mod()" />
+<app-auditoria-registro [(visibleHistorialAuditoria)]="visibleHistorialAuditoria" [aud_usuario_ins]="aud_usuario_ins()" [aud_fecha_ins]="aud_fecha_ins()" [aud_usuario_mod]="aud_usuario_mod()" [aud_fecha_mod]="aud_fecha_mod()" />

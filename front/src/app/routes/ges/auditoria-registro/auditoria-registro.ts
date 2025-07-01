@@ -5,13 +5,13 @@ import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 
 @Component({
-  selector: 'app-history-consult-custodia-drawer',
+  selector: 'app-auditoria-registro',
   imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-  templateUrl: './history-consult-custodia-drawer.html',
-  styleUrl: './history-consult-custodia-drawer.less'
+  templateUrl: './auditoria-registro.html',
+  styleUrl: './auditoria-registro.less'
 })
-export class HistoryConsultCustodiaDrawerComponent {
-  visibleHistorialCustodia = model<boolean>(false)
+export class AuditoriaRegistroComponent {
+  visibleHistorialAuditoria = model<boolean>(false)
   aud_usuario_ins = input<string>('')
   aud_fecha_ins = input<string>('')
   aud_usuario_mod = input<string>('')
