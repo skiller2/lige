@@ -1115,26 +1115,31 @@ UNION
     for (const doc of dniNumeros) {
       const personalId = documentoToPersonalId.get(doc);
 
+      console.log("personalId ----- ", personalId, "doc", doc) 
       // Si no está en la tabla Personal
       if (!personalId) {
+        console.log("No se encontró el PersonalId para el documento: ", doc)
         notFoundInPersonalTable.push(doc);
         continue;
       }
 
       // Si no está asegurado y debería estarlo
       if (!aseguradosSet.has(personalId)) {
+        console.log("No se encontró el PersonalId en PersonalSeguro para el documento: ", doc)
         notFoundInPersonalSeguro.push(doc);
         continue;
       }
 
       // Si ya se inserto se salta
       if (insertados.has(personalId)) {
+        console.log("Ya se insertó el PersonalId: ", personalId, "para el documento: ", doc)
         continue;
       }
 
       // EXISTE EL PERSONAL Y ESTÁ ASEGURADO → insertar
       await this.addPersonalPolizaSeguro(resultPolizaSeguroCodigo, personalId, queryRunner, usuario, ip);
       insertados.add(personalId);
+      console.log("Se insertó el PersonalId: ", personalId, "para el documento: ", doc)
     }
 
     //  Validar asegurados que no deberían estarlo
