@@ -44,11 +44,11 @@ const alainConfig: AlainConfig = {
 };
 
 
-const ngxMaskConf = {
-  thousandSeparator: '.',
-  decimalMarker: ',',
-  leadZero: true,
-} as NgxMaskOptions;
+export const maskConfigFactory = (): NgxMaskOptions => ({
+ thousandSeparator: thousandSeparatorFactory(),
+ decimalMarker: decimalMarkerFactory() as '.'|',',
+ leadZero: true,
+});
 
 const ngZorroConfig: NzConfig = {
 };
@@ -92,7 +92,7 @@ const providers: Array<Provider | EnvironmentProviders> = [
     }),
     deps: [I18NService]
   },
-  provideEnvironmentNgxMask(ngxMaskConf),
+  provideEnvironmentNgxMask(maskConfigFactory),
   ...(environment.providers || [])
 ];
 
