@@ -176,8 +176,8 @@ export class CustodiaFormComponent {
     async updatePersonaImporte(persona: FormGroup): Promise<void> {
         let valorHora = 0, fullName = ''
         const personalId = persona.get('personalId')?.value
-        const horas_trabajadas = persona.value.horas_trabajadas || 0
-        const importe_suma_fija = persona.value.importe_suma_fija || 0
+        const horas_trabajadas:number = persona.value.horas_trabajadas || 0
+        const importe_suma_fija:number = persona.value.importe_suma_fija || 0
 
         if (personalId) {
             const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
@@ -187,8 +187,10 @@ export class CustodiaFormComponent {
         }
 
         if (persona.enabled) {
+            const total:number = (horas_trabajadas * valorHora) + Number(importe_suma_fija) 
+          
             persona.patchValue({
-                importe: horas_trabajadas * valorHora + importe_suma_fija,
+                importe: total,
                 detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs = ${this.currencyPipe.transform(horas_trabajadas * valorHora)} (Valor Hora Cat * Horas Trabajadas)`,
                 detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs + ${this.currencyPipe.transform(importe_suma_fija)} (Cat Valor Hora * Horas Trabajadas + Suma fija)`
             }, { onlySelf: false, emitEvent: false, })
@@ -243,10 +245,10 @@ export class CustodiaFormComponent {
     }
 
     onChangeImpo() {
-        const facturacion = parseFloat(((this.formCus.value.cantModulos ?? 0) * (this.formCus.value.impoModulos ?? 0) +
-            (this.formCus.value.cantHorasExced ?? 0) * (this.formCus.value.impoHorasExced ?? 0) +
-            (this.formCus.value.cantKmExced ?? 0) * (this.formCus.value.impoKmExced ?? 0) +
-            (this.formCus.value.impoPeaje ?? 0)).toFixed(2))
+        const facturacion = (Number(this.formCus.value.cantModulos) ?? 0) * (Number(this.formCus.value.impoModulos) ?? 0) +
+            (Number(this.formCus.value.cantHorasExced) ?? 0) * (Number(this.formCus.value.impoHorasExced) ?? 0) +
+            (Number(this.formCus.value.cantKmExced) ?? 0) * (Number(this.formCus.value.impoKmExced) ?? 0) +
+            (Number(this.formCus.value.impoPeaje) ?? 0)
         this.formCus.controls['facturacion'].patchValue(facturacion)
         this.facturacion.set(facturacion)
     }
