@@ -1093,13 +1093,12 @@ UNION
 
 
     const personalSeguroRows = await queryRunner.query(`
-      DECLARE @Fecha date = EOMONTH(@1,-1)
       SELECT personal.PersonalId, doc.PersonalDocumentoNro
       FROM PersonalSeguro perseg
       LEFT JOIN Personal personal ON personal.PersonalId=perseg.PersonalId
       LEFT JOIN PersonalDocumento doc ON doc.PersonalId = personal.PersonalId 
           AND doc.PersonalDocumentoId = (SELECT MAX (docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = personal.PersonalId)
-      WHERE	@Fecha >= perseg.PersonalSeguroDesde AND @Fecha <= ISNULL(perseg.PersonalSeguroHasta, '9999-12-31') AND perseg.TipoSeguroCodigo = @0
+      WHERE	@1 >= perseg.PersonalSeguroDesde AND @1 <= ISNULL(perseg.PersonalSeguroHasta, '9999-12-31') AND perseg.TipoSeguroCodigo = @0
     `, [tipoSeguroCodigo, fechaDesde]);
 
     const aseguradosSet = new Set<number>();
