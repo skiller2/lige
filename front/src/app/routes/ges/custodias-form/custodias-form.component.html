@@ -232,16 +232,20 @@
       }
 
     </nz-form-control>
-    <nz-form-control *ngIf="custodiaId()" [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" style="text-align: right;">
-      <button nz-button nzType="default" (click)="openDrawerforConsultHistoryCustodia()" nz-tooltip nzTooltipTitle="Historial de Custodia"><span nz-icon nzType="menu-unfold"
-        nzTheme="outline"></span></button>
-    </nz-form-control>
+   
     @if (numFactura()){
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Número de Factura</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
       <input nz-input placeholder="" formControlName="numFactura" type="number" />
     </nz-form-control>
     }
+    @defer (on immediate) {
+      <nz-form-control *ngIf="custodiaId()" [nzXs]="20" [nzSm]="20" [nzMd]="20" [nzLg]="20" style="text-align: right;">
+            <button nz-button nzType="default" (click)="openDrawerforConsultHistoryCustodia()" nz-tooltip nzTooltipTitle="Historial de Custodia"><span nz-icon nzType="menu-unfold"
+          nzTheme="outline"></span></button>
+      </nz-form-control>
+    }
+   
   </nz-form-item>
   <br>
   <nz-form-item>
@@ -251,6 +255,7 @@
         {{ 'app.btn.save' | i18n }}
       </button>
     </nz-form-control>
+
   </nz-form-item>
   <br>
 </form>
