@@ -1037,7 +1037,7 @@ UNION
 
       }
 
-      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip)
+      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip,fechaDesde)
       const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
@@ -1071,7 +1071,7 @@ UNION
 
   }
 
-  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string,resultPolizaSeguroCodigo:string, usuario:string, ip:string){
+  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string,resultPolizaSeguroCodigo:string, usuario:string, ip:string, fechaDesde:Date){
 
     await queryRunner.query(`DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
 
@@ -1098,8 +1098,9 @@ UNION
       FROM PersonalSeguro ps
       INNER JOIN PersonalDocumento pd ON pd.PersonalId = ps.PersonalId
       WHERE ps.TipoSeguroCodigo = @0
-        AND (ps.PersonalSeguroHasta IS NULL OR ps.PersonalSeguroHasta > GETDATE())
-    `, [tipoSeguroCodigo]);
+      AND @1 >= ps.PersonalSeguroDesde 
+      AND @1 <= ISNULL(ps.PersonalSeguroHasta, '9999-12-31')
+    `, [tipoSeguroCodigo, fechaDesde]);
     
     const aseguradosSet = new Set<number>();
     const documentoAseguradosSet = new Set<number>();
