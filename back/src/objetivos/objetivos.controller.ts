@@ -1374,7 +1374,6 @@ export class ObjetivosController extends BaseController {
 
         const ultnro = await queryRunner.query(`SELECT ClienteElementoDependienteDomicilioUltNro FROM ClienteElementoDependiente WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
         const ClienteElementoDependienteDomicilioId = (ultnro[0]?.ClienteElementoDependienteDomicilioUltNro) ? ultnro[0]?.ClienteElementoDependienteDomicilioUltNro + 1 : 1
-
         await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteElementoDependienteDomicilioDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
 
         await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (

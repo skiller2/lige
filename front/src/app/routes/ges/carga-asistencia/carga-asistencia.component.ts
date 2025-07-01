@@ -21,7 +21,6 @@ import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 enum Busqueda {
@@ -54,8 +53,6 @@ export class CargaAsistenciaComponent {
     private searchService = inject(SearchService)
     private settingsService = inject(SettingsService)
     private formPrevVals: any = {}
-    private decimal_mark = inject(DEFAULT_DECIMAL_MARKER)
-    private thousand_sep = inject(DEFAULT_THOUSAND_SEPARATOR)
     columnDefinitions: Column[] = [];
     columnas: Column[] = [];
     gridOptionsEdit!: GridOption;
@@ -181,7 +178,6 @@ export class CargaAsistenciaComponent {
         }
         return sum
     }
-            x = inject(DEFAULT_THOUSAND_SEPARATOR)
 
     async ngOnInit() {
         this.columnDefinitions = [
@@ -478,14 +474,12 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.float,
                 formatter: Formatters['decimal'],
-                params : { thousandSeparator: this.thousand_sep, decimalSeparator: this.decimal_mark, maxDecimal:1,minDecimal:0  },
+                params : { maxDecimal:1,minDecimal:0  },
                 maxWidth: 55,
                 headerCssClass: (dow == 6 || dow == 0) ? 'grid-weekend' : '',
                 //                formatter : Formatters.multiple,
                 //                params: {
                 //                    formatters: [Formatters.currency],
-                //                    thousandSeparator: '.',
-                //                    decimalSeparator: ',',
                 //                },
                 cssClass: 'text-right',
                 editor: { model: CustomFloatEditor, decimal: 1,params:{} },
@@ -512,6 +506,7 @@ export class CargaAsistenciaComponent {
             type: FieldType.float,
             maxWidth: 50,
             minWidth: 50,
+            formatter: Formatters['decimal'],
             cssClass: 'text-right',
             excelExportOptions: {
                 style: {

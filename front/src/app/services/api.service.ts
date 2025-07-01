@@ -9,6 +9,7 @@ import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
 import { ALLOW_ANONYMOUS } from '@delon/auth';
+import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
 
 
 @Injectable({
@@ -18,6 +19,8 @@ export class ApiService {
   private http = inject(_HttpClient)
   private injector = inject(Injector)
   private locale = inject(LOCALE_ID)
+  private decimal_mark = inject(DEFAULT_DECIMAL_MARKER)
+  private thousand_sep = inject(DEFAULT_THOUSAND_SEPARATOR)
 
   processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files, fechaDesde, banco_id }).pipe(
@@ -288,8 +291,13 @@ export class ApiService {
       },
       excelExportOptions: {
         exportWithFormatter: true
-      }
+      },
+      formatterOptions:{ decimalSeparator: this.decimal_mark as "."|",", thousandSeparator: this.thousand_sep as "."|","|""|" "}
     };
+
+
+
+
   }
 
   getPersonaMonotributo(year: number, month: number, personalId: number) {
@@ -348,14 +356,14 @@ export class ApiService {
             col.width = 100
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['multiple']
-            col.params = { formatters: [Formatters['currency']], thousandSeparator: '.', decimalSeparator: ',' }
+            col.params = { formatters: [Formatters['currency']] }
             col.type = 'float'
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
 
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['multiple']
-            col.params = { formatters: [Formatters['decimal']], thousandSeparator: '.', decimalSeparator: ',' }
+            col.params = { formatters: [Formatters['decimal']] }
             col.type = 'float'
             col.cssClass = 'text-right'
           } else if (col.type == 'number') {
