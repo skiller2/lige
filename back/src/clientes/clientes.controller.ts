@@ -95,6 +95,21 @@ export class ClientesController extends BaseController {
         },
     ];
 
+    optionsJurImpositiva: any[] = [
+        {
+            value:'Arba',
+            label:'Arba'
+        },
+        {
+            value:'Agip',
+            label:'Agip'
+        },
+        {
+            value:'Formosa',
+            label:'Formosa'
+        },
+    ];
+
     async getGridCols(req, res) {
         this.jsonRes(this.listaColumnas, res);
     }
@@ -261,7 +276,9 @@ ${orderBy}`, [fechaActual])
             cct.ContactoTelefonoId,
             TRIM(cce.ContactoEmailEmail) AS correo ,
             TRIM(cct.ContactoTelefonoNro) AS telefono,
-            cce.ContactoEmailId
+            cce.ContactoEmailId,
+            cc.ContactoTipoCod,
+            cc.ContactoJurImpositiva
         FROM  Contacto cc
         LEFT JOIN ContactoEmail cce ON 
             cc.ContactoId = cce.ContactoId
@@ -376,6 +393,29 @@ ${orderBy}`, [fechaActual])
 
         }
 
+    }
+
+    async getTipoContacto(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const optionsContactoTipo = await queryRunner.query(`
+                SELECT ContactoTipoCod value, Descripcion label FROM ContactoTipo`
+            )
+            return this.jsonRes(optionsContactoTipo, res);
+        } catch (error) {
+            return next(error)
+        } finally {
+        }
+    }
+
+    async getJurImpositiva(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            return this.jsonRes(this.optionsJurImpositiva, res);
+        } catch (error) {
+            return next(error)
+        } finally {
+        }
     }
 
     async getQueryCliente(queryRunner: any, clienteId: any) {
@@ -521,12 +561,12 @@ ${orderBy}`, [fechaActual])
             if (contacto.ContactoId) {  //Actualizo contacto
                 await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId = @0`, [contacto.ContactoId]);
                 await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId = @0`, [contacto.ContactoId]);
-                await queryRunner.query(`UPDATE Contacto SET  ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4 WHERE ContactoId=@0 `,
-                    [contacto.ContactoId, contacto.area, contacto.ContactoApellido, contacto.nombre, ContactoApellidoNombre])
+                await queryRunner.query(`UPDATE Contacto SET  ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4,ContactoTipoCod=@5,ContactoJurImpositiva=@6 WHERE ContactoId=@0 `,
+                    [contacto.ContactoId, contacto.area, contacto.ContactoApellido, contacto.nombre, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
             } else { //Nuevo contacto
-                await queryRunner.query(`INSERT INTO Contacto (ClienteId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre )
-                    VALUES ( @0,@1,@2,@3,@4,@5,@6)`, [
-                    ClienteId, contacto.area, contacto.ContactoApellido, contacto.nombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre])
+                await queryRunner.query(`INSERT INTO Contacto (ClienteId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoTipoCod,ContactoJurImpositiva )
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
+                    ClienteId, contacto.area, contacto.ContactoApellido, contacto.nombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
                 const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
                 ContactoId = resContacto[0][''];
                 contactos[idx].ContactoId = ContactoId
@@ -914,6 +954,14 @@ ${orderBy}`, [fechaActual])
         // CLIENTE CONTACTO
 
         for (const obj of form.infoClienteContacto) {
+
+            if (!obj.ContactoTipoCod) {
+                throw new ClientException(`Debe completar el campo Tipo de contacto en cliente contacto`)
+            }
+
+            if (!obj.ContactoJurImpositiva) {
+                throw new ClientException(`Debe completar el campo Jurisdicción impositiva en cliente contacto`)
+            }
 
             if (!obj.nombre) {
                 throw new ClientException(`Debe completar el campo Nombre en cliente contacto`)

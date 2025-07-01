@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, Signal, } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -80,7 +80,8 @@ export class ClientesFormComponent {
     correo: "",
     ContactoEmailId: 0,
     ContactoTelefonoId: 0,
-
+    ContactoTipoCod:"",
+    ContactoJurImpositiva:""
   }
 
   objDomiclio = {
@@ -123,8 +124,8 @@ export class ClientesFormComponent {
   optionsLocalidad: any;
   optionsBarrio: any;
   optionsCondicionAnteIva: any;
-
-
+  $optionTipoContacto = this.searchService.getTipoContacto();
+  $optionJurImpositiva = this.searchService.getJurImpositiva();
 
   onChangePeriodo(result: Date): void {
     if (result) {

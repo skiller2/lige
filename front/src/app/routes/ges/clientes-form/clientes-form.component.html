@@ -18,7 +18,7 @@
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
       <!-- <input nz-input placeholder="" formControlName="CondicionAnteIVAId" type="number" /> -->
       <nz-select formControlName="CondicionAnteIVAId" nzPlaceHolder="Condición Ante IVA" nzAllowClear
-        [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
         <ng-container *ngFor="let option of optionsCondicionAnteIva">
           <nz-option [nzValue]="option.CondicionAnteIVAId" [nzLabel]="option.CondicionAnteIVADescripcion"></nz-option>
         </ng-container>
@@ -89,7 +89,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <!-- <input nz-input placeholder="" formControlName="domicilioprovincia" type="number" /> -->
           <nz-select formControlName="ClienteDomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
             (nzBlur)="control.patchValue({ClienteDomicilioLocalidadId:null,ClienteDomicilioBarrioId:null})">
             <ng-container *ngFor="let option of optionsProvincia">
               <nz-option [nzValue]="option.ProvinciaId" [nzLabel]="option.ProvinciaDescripcion"></nz-option>
@@ -102,7 +102,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <!-- <input nz-input placeholder="" formControlName="domiciliolocalidad" type="number" /> -->
           <nz-select formControlName="ClienteDomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
             (nzBlur)="control.patchValue({ClienteDomicilioBarrioId:null})">
             <ng-container *ngFor="let option of optionsLocalidad">
               <nz-option *ngIf="option.ProvinciaId == control.value.ClienteDomicilioProvinciaId "
@@ -117,7 +117,7 @@
 
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
           <nz-select formControlName="ClienteDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
             <ng-container *ngFor="let option of optionsBarrio">
               <nz-option
                 *ngIf="option.ProvinciaId == control.value.ClienteDomicilioProvinciaId && option.LocalidadId == control.value.ClienteDomicilioLocalidadId "
@@ -148,30 +148,54 @@
     <div class="input-label">Cliente Contacto</div>
   </div>
   <div formArrayName="infoClienteContacto">
-    <nz-form-item class="marginElement" *ngFor="let control of infoClienteContacto().controls; let i = index"
+    <div *ngFor="let control of infoClienteContacto().controls; let i = index"
       [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Nombre </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3" [ngClass]="'btn-margintop'">Tipo de contacto</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" [ngClass]="'btn-margintop'">
+          <nz-select formControlName="ContactoTipoCod" nzPlaceHolder="Tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+            <ng-container *ngFor="let option of $optionTipoContacto | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="4" [ngClass]="'btn-margintop'">Jurisdicción impositiva</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" [ngClass]="'btn-margintop'">
+          <nz-select formControlName="ContactoJurImpositiva" nzPlaceHolder="Tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+            <ng-container *ngFor="let option of $optionJurImpositiva | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Nombre </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="nombre" type="string" />
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Apellido </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="ContactoApellido" type="string" />
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Area </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="area" type="string" />
         </nz-input-group>
       </nz-form-control>
+      </nz-form-item>
 
+      <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3" [ngClass]="'btn-margintop'">Tipo
         Telefono</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [ngClass]="'btn-margintop'">
@@ -209,8 +233,9 @@
 
         </div>
       </nz-form-control>
+      </nz-form-item>
 
-    </nz-form-item>
+    </div>
   </div>
 
   <div class="input-container1">

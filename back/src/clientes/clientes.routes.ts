@@ -50,6 +50,14 @@ clientesRouter.get('/getBarrio', [authMiddleware.verifyToken, authMiddleware.has
   clientesController.getBarrioQuery(req, res, next)
 })
 
+clientesRouter.get('/getTipoContacto', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+  clientesController.getTipoContacto(req, res, next)
+})
+
+clientesRouter.get('/getJurImpositiva', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+  clientesController.getJurImpositiva(req, res, next)
+})
+
 clientesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial'])], (req, res, next) => {
   clientesController.updateCliente(req, res, next)
 })

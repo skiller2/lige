@@ -1274,6 +1274,26 @@ export class SearchService {
     );
   }
 
+  getTipoContacto(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getTipoContacto`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getJurImpositiva(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getJurImpositiva`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getLastPersonalByPatente(patente: string): Observable<any> {
     if (!patente || patente == '') {
       return of([]);
