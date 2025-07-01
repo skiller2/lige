@@ -101,7 +101,7 @@ dbServer.init()
 //    segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
   
 
-ClientesController.AddContactosMigrados()
+//ClientesController.AddContactosMigrados()
     
   })
   .catch((error) => {
