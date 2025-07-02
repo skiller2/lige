@@ -36,7 +36,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: true,
     searchHidden: false
-    },
+  },
   {
     name: "Nombre Cliente",
     type: "string",
@@ -58,7 +58,7 @@ const columnasGrilla: any[] = [
     hidden: false,
     maxWidth: 80,
   },
-  
+
   {
     name: "Objetivo",
     type: "number",
@@ -67,7 +67,7 @@ const columnasGrilla: any[] = [
     fieldName: "carg.objetivo_id",
     searchComponent: "inpurForObjetivoSearch",
     hidden: true,
-    searchHidden:false
+    searchHidden: false
   },
   {
     name: "Nombre Obj",
@@ -97,7 +97,7 @@ const columnasGrilla: any[] = [
     fieldName: "Anio",
     sortable: false,
     hidden: false,
-    searchHidden: true,  
+    searchHidden: true,
   },
   {
     name: "Total Horas Real",
@@ -119,7 +119,8 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Importe Hora",
-    type: "number",
+    type: 'currency',
+    searchType: "float",
     id: "ImporteHora",
     field: "ImporteHora",
     fieldName: "ImporteHora",
@@ -128,10 +129,22 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Importe Fijo",
-    type: "number",
+    type: 'currency',
+    searchType: "float",
     id: "ImporteFijo",
     field: "ImporteFijo",
     fieldName: "ImporteFijo",
+    sortable: true,
+    hidden: false,
+    maxWidth: 100,
+  },
+  {
+    name: "Importe a Facturar",
+    type: "currency",
+    searchType: "float",
+    id: "ImporteAFacturar",
+    field: "ImporteAFacturar",
+    fieldName: "ImporteAFacturar",
     sortable: true,
     hidden: false,
     maxWidth: 100,
@@ -157,7 +170,7 @@ const columnasGrilla: any[] = [
     hidden: false,
     maxWidth: 120,
   },
-  
+
 ];
 
 
@@ -188,16 +201,18 @@ export class OrdenesDeVentaController extends BaseController {
               cli.ClienteId,
               fac.ClienteFacturacionCUIT,
                TRIM(cli.ClienteDenominacion) ClienteDenominacion, 
-               CONCAT(cliele.ClienteId, '/',cliele.ElementoDependienteId) codObj,
+               CONCAT(cliele.ClienteId, '/',cliele.ClienteElementoDependienteId) codObj,
                cliele.ClienteElementoDependienteDescripcion,objimpven.Mes,
                 objimpven.Anio,
                  objimpven.TotalHorasReal, 
                 objimpven.TotalHoras, 
-                cliele.ElementoDependienteId,
+                cliele.ClienteElementoDependienteId,
                 objimpven.ImporteHora, 
                 objimpven.ImporteFijo,
                  ordven.NroOrdenVenta, 
-                 estordven.Descripcion EstadoOrdenVentaDescripcion
+                 estordven.Descripcion EstadoOrdenVentaDescripcion,
+         				 ((ISNULL(objimpven.TotalHoras,0)*ISNULL(objimpven.ImporteHora,0))+ ISNULL(objimpven.ImporteFijo,0)) ImporteAFacturar
+
             FROM ObjetivoImporteVenta objimpven
             LEFT JOIN ItemOrdenVenta iteordven on iteordven.ClienteElementoDependienteId=objimpven.ClienteElementoDependienteId and iteordven.ClienteId=objimpven.ClienteId and iteordven.Anio=objimpven.Anio and iteordven.Mes=objimpven.Mes
             LEFT JOIN OrdenVenta ordven ON ordven.NroOrdenVenta=iteordven.NroOrdenVenta
