@@ -109,7 +109,7 @@ export class AuthMiddleware {
 
         const stmActual = new Date();
         const ResponsablePersonalId = res.locals.PersonalId;
-        const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo[0].tableForSearch ;
+        const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo[0].tableForSearch;
 
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
         const documentId = req.params.id || req.body.doc_id || req.query[0];
@@ -125,6 +125,7 @@ export class AuthMiddleware {
         // console.log('req.url -------------------- ', req.url);
         // console.log('res -------------------- ', res);
         // console.log('res.locals -------------------- ', res.locals);
+        // console.log('req.royte.path', req.route.path);
 
         if (!documentId && !documentType) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
         if (!tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado tableForSearch" })
@@ -169,30 +170,33 @@ export class AuthMiddleware {
               if (!doc.persona_id && !doc.json_permisos_act_dir || !doc.json_permisos_act_dir) return next();
 
               // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
-              if (doc.PersonalId && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
+              if (doc.persona_id && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
                 const anio = stmActual.getFullYear();
                 const mes = stmActual.getMonth() + 1;
+
                 const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
                 const listGrupos = grupos.map(row => row.GrupoActividadId);
 
                 if (listGrupos.length > 0) {
                   const resPers = await queryRunner.query(`
-            SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
-            WHERE gap.GrupoActividadPersonalPersonalId = @0  
-            AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-            AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-            AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
-            UNION
-            SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
-            WHERE gap.GrupoActividadJerarquicoPersonalId = @0  
-            AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-            AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-            AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
-            AND gap.GrupoActividadJerarquicoComo = 'J'
+                    SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+                    WHERE gap.GrupoActividadPersonalPersonalId = @0  
+                    AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+                    AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+                    AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+                    UNION
+                    SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+                    WHERE gap.GrupoActividadJerarquicoPersonalId = @0  
+                    AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+                    AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+                    AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+                    AND gap.GrupoActividadJerarquicoComo = 'J'
           `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
                   if (resPers.length > 0) return next();
                 }
               }
+
+              console.log(' saliii');
 
               // Si el documento tiene json_permisos_act_dir, se valida
               return this.validateJsonPermisosActDir(doc.json_permisos_act_dir)(req, res, next);
