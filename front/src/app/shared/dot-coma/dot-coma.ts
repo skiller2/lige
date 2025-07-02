@@ -29,6 +29,8 @@ export class DotToCommaDirective {
       const start = input.selectionStart;
       const end = input.selectionEnd;
       const value = input.value;
+      if (input.value.indexOf(this.decimal) >= 0)
+        return
 
       // Replace the dot with a comma at the cursor position
       input.value = value.substring(0, start) + ',' + value.substring(end);

@@ -97,7 +97,7 @@
             </nz-form-control>
             <nz-form-label [nzSpan]="3">Horas a facturar</nz-form-label>
             <nz-form-control [nzSpan]="2">
-                <input nz-input name="TotalHoras" [disabled]="!(gridOptionsEdit.editable ?? false)" type="number"
+                <input nz-input name="TotalHoras" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text" appDotToComma mask="separator.1"
                     ngModel (blur)="setValFact($event)" class="text-right" />
 
             </nz-form-control>

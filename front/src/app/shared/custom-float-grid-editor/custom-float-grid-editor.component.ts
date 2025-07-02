@@ -62,8 +62,19 @@ export class CustomFloatEditor extends InputEditor {
       this._isValueTouched = true;
       this._lastInputKeyEvent = event;
 
+
+      if (this.decimal_mark === event.key && String(this._input?.value).indexOf(this.decimal_mark) >= 0) {
+        event.preventDefault();
+        return
+      }
+
       if (this.decimal_mark==',' && event.key === '.') {
         event.preventDefault();
+
+        if (String(this._input?.value).indexOf(this.decimal_mark) >= 0)
+          return
+
+
 
         const input = this._input;
         const start = Number(input?.selectionStart);
