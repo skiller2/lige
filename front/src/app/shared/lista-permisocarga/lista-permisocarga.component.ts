@@ -3,7 +3,6 @@ import {
   Component,
   ElementRef,
   Inject,
-  LOCALE_ID,
   ViewChild,
   inject,
 } from '@angular/core';
@@ -54,7 +53,7 @@ export class ListaPermisocargaComponent {
   private readonly route = inject(ActivatedRoute);
 
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
   anio = 0
   mes = 0
   formChange$ = new BehaviorSubject('');

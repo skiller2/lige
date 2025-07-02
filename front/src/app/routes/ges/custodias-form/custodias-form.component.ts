@@ -20,13 +20,13 @@ import { AuditoriaRegistroComponent } from '../auditoria-registro/auditoria-regi
     encapsulation: ViewEncapsulation.None,
     imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, AuditoriaRegistroComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers:[CurrencyPipe]
+    providers: [CurrencyPipe]
 })
 export class CustodiaFormComponent {
     private currencyPipe = inject(CurrencyPipe)
 
     isLoading = signal(false);
-    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '',detalleRetiro:'' }
+    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '', detalleRetiro: '' }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
@@ -176,8 +176,8 @@ export class CustodiaFormComponent {
     async updatePersonaImporte(persona: FormGroup): Promise<void> {
         let valorHora = 0, fullName = ''
         const personalId = persona.get('personalId')?.value
-        const horas_trabajadas:number = persona.value.horas_trabajadas || 0
-        const importe_suma_fija:number = persona.value.importe_suma_fija || 0
+        const horas_trabajadas: number = persona.value.horas_trabajadas || 0
+        const importe_suma_fija: number = persona.value.importe_suma_fija || 0
 
         if (personalId) {
             const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
@@ -187,8 +187,8 @@ export class CustodiaFormComponent {
         }
 
         if (persona.enabled) {
-            const total:number = (horas_trabajadas * valorHora) + Number(importe_suma_fija) 
-          
+            const total: number = (horas_trabajadas * valorHora) + Number(importe_suma_fija)
+
             persona.patchValue({
                 importe: total,
                 detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs = ${this.currencyPipe.transform(horas_trabajadas * valorHora)} (Valor Hora Cat * Horas Trabajadas)`,
@@ -276,13 +276,17 @@ export class CustodiaFormComponent {
     }
 
     onChangeCosto() {
-        let costo = 0
-        const personal = this.personal()
-        const vehiculos = this.vehiculos()
-        personal.value.forEach((obj: any) => { costo += Number(obj.importe) })
-        vehiculos.value.forEach((obj: any) => { costo += (Number(obj.importe) + Number(obj.peaje)) })
+        setTimeout(() => {
+            let costo = 0
+            const personal = this.personal()
+            const vehiculos = this.vehiculos()
 
-        this.costo.set(costo)
+            personal.value.forEach((obj: any) => { costo += Number(obj.importe) })
+            vehiculos.value.forEach((obj: any) => { costo += (Number(obj.importe) + Number(obj.peaje)) })
+
+            this.costo.set(costo)
+
+        }, 400);
     }
 
     openHistorialAuditoria() {

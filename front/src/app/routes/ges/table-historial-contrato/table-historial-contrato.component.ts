@@ -1,25 +1,16 @@
 import {
-  ChangeDetectorRef,
   Component,
-  ElementRef,
-  Inject,
-  LOCALE_ID,
   ViewChild,
   inject, input, SimpleChanges, EventEmitter, Output,
-  model
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import {
   BehaviorSubject,
-  Observable,
-  Subscription,
-  fromEvent,
   debounceTime,
   map,
   switchMap,
   tap,
-  firstValueFrom,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -60,7 +51,7 @@ export class TableHistorialContratoComponent {
 
   @Output() valueGridEvent = new EventEmitter();
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService: SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService: SearchService) { }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 

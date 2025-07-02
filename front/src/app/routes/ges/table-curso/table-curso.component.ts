@@ -1,4 +1,4 @@
-import { Component, Inject, LOCALE_ID, model, Output, EventEmitter, computed, input } from '@angular/core';
+import { Component, Inject, Output, EventEmitter, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
@@ -66,7 +66,6 @@ export class TableCursoComponent {
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
-    @Inject(LOCALE_ID) public locale: string,
     public searchService: SearchService
   ) { }
 

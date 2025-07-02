@@ -1,11 +1,7 @@
 import {
-  ChangeDetectorRef,
   Component,
-  ElementRef,
-  Inject,
-  LOCALE_ID,
   ViewChild,
-  inject,input,SimpleChanges,EventEmitter,Output,
+  inject,input,EventEmitter,Output,
   model,
   effect
 } from '@angular/core';
