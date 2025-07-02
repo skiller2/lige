@@ -871,9 +871,15 @@ export class CustodiaController extends BaseController {
                     errorCantPersonal = false
                     //Validaciones para fecha_liquidacion
                     if (fecha_liquidacion && !obj.importe) {
-                        errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+                        errores.push(`El campo Importe de Personal NO puede estar vacío.`)
                         break
                     }
+
+                    if (fecha_liquidacion && !obj.horas_trabajadas) {
+                        errores.push(`El campo Horas de Personal NO puede estar vacío.`)
+                        break
+                    }
+
 
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
@@ -1068,14 +1074,20 @@ export class CustodiaController extends BaseController {
                 if (obj.personalId) {
                     errorCantPersonal = false
                     //Validaciones para fecha_liquidacion
-                    if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && !obj.importe) {
-                        errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+                    if ((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion) && !obj.importe) {
+                        errores.push(`El campo Importe de Personal NO puede esta vacío.`)
                         break
                     }
                     if (infoCustodia.fecha_liquidacion && !this.comparePersonal(obj, listPersonal)) {
                         errores.push(`NO se pueden modificar los campos del Personal.`)
                         break
                     }
+
+                    if ((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion) && !obj.horas_trabajadas) {
+                        errores.push(`El campo Horas de Personal NO puede estar vacío.`)
+                        break
+                    }
+
                     //
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)

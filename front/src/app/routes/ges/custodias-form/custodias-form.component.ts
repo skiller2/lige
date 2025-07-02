@@ -277,10 +277,10 @@ export class CustodiaFormComponent {
 
     onChangeCosto() {
         let costo = 0
-        let personal = this.personal()
-        let vehiculos = this.vehiculos()
-        personal.value.forEach((obj: any) => { costo += obj.importe })
-        vehiculos.value.forEach((obj: any) => { costo += (obj.importe + obj.peaje) })
+        const personal = this.personal()
+        const vehiculos = this.vehiculos()
+        personal.value.forEach((obj: any) => { costo += Number(obj.importe) })
+        vehiculos.value.forEach((obj: any) => { costo += (Number(obj.importe) + Number(obj.peaje)) })
 
         this.costo.set(costo)
     }

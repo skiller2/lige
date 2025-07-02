@@ -1535,7 +1535,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (ObjetivoId && ![1102, 1646].includes(ObjetivoId)) {
         categorias = categorias.filter((i: any) => i.TipoAsociadoId === 1)
       }
-      console.log("categorias", categorias)
       this.jsonRes({ categorias: categorias }, res);
     } catch (error) {
       return next(error)
