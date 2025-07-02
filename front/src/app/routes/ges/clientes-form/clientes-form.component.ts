@@ -107,6 +107,7 @@ export class ClientesFormComponent {
     ClienteDenominacion: "",
     ClienteNombreFantasia: "",
     ClienteFechaAlta: "",
+    ClienteTerminoPago: 0,
     ContactoTelefonoUltNro: 0,
     ContactoEmailUltNro: 0,
     MaxContactoId: 0,
