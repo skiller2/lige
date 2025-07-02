@@ -577,7 +577,7 @@ export class CustodiaController extends BaseController {
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
         )
         VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @5, @6, @7)`,
-            [patente.toUpperCase(), objetivo_custodia_id, personal_id, importe_vehiculo, peaje_vehiculo, usuario, ip, fechaActual])
+            [patente.toUpperCase(), objetivo_custodia_id, personal_id, Number(importe_vehiculo), Number(peaje_vehiculo), usuario, ip, fechaActual])
     }
 
     async addRegistroArmaCustodiaQuery(queryRunner: any, arma_id: any, objetivoCustodiaId: any) {
