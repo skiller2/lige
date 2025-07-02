@@ -1,12 +1,9 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, Inject, inject, LOCALE_ID,EventEmitter,Output, ViewChild, SimpleChanges } from '@angular/core';
-import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
+import { Component, model, input, Inject, inject, EventEmitter,Output, ViewChild, SimpleChanges } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, firstValueFrom, debounceTime,switchMap,tap,map } from 'rxjs';
+import { BehaviorSubject, debounceTime,switchMap,tap,map } from 'rxjs';
 import { ApiService,doOnSubscribe } from 'src/app/services/api.service';
-import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -55,7 +52,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
   
     @Output()valueGridEvent = new EventEmitter();
   
-    constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+    constructor(public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
     

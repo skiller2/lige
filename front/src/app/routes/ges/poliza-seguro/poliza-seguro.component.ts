@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, LOCALE_ID, model, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, model, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -61,7 +61,6 @@ export class PolizaSeguroComponent {
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
-    @Inject(LOCALE_ID) public locale: string,
     public searchService: SearchService
   ) { }
 

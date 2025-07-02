@@ -29,7 +29,7 @@ export class ObjetivoController extends BaseController {
     const buscaObjetivo = (objetivoId != 0) ? ' AND obj.ObjetivoId=@0' : ''
     return queryRunner
       .query(
-        `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+        `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, cli.ClienteDenominacion, 
      eledep.ClienteElementoDependienteDescripcion,
     ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId,
   eledepcon.ClienteElementoDependienteContratoFechaDesde ContratoFechaDesde,

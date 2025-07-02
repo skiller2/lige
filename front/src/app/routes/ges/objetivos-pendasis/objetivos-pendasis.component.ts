@@ -1,7 +1,5 @@
 import {
   Component,
-  Inject,
-  LOCALE_ID,
   ViewChild,
   inject,
   signal,
@@ -67,7 +65,7 @@ export class ObjetivosPendAsisComponent {
   private readonly route = inject(ActivatedRoute);
 
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
   anio = 0
   mes = 0
   formChange$ = new BehaviorSubject('');

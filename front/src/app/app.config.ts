@@ -26,7 +26,7 @@ import { NgxMaskOptions, provideEnvironmentNgxMask } from 'ngx-mask';
 import { decimalMarkerFactory, DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR, thousandSeparatorFactory } from './app.config.defaults';
 
 const defaultLang: AlainProvideLang = {
-  abbr: 'zh-CN',
+  abbr: 'es-AR',
   ng: ngLang,
   zorro: zorroLang,
   date: dateLang,
@@ -52,6 +52,8 @@ export const maskConfigFactory = (): NgxMaskOptions => ({
 
 const ngZorroConfig: NzConfig = {
 };
+
+
 
 
 const routerFeatures: RouterFeatures[] = [withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })];

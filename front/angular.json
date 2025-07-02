@@ -4,6 +4,10 @@
   "newProjectRoot": "projects",
   "projects": {
     "ng-alain": {
+         "i18n": {
+        "sourceLocale": "es-AR"
+      },
+ 
       "projectType": "application",
       "root": "",
       "sourceRoot": "src",
