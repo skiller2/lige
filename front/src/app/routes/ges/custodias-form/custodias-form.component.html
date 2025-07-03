@@ -82,7 +82,7 @@
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Horas</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="2" nz-popover [nzPopoverContent]="control.value.detalle">
-          <input nz-input placeholder="" formControlName="horas_trabajadas" type="number" (input)="onChangeCosto()" class="text-right"  />
+          <input nz-input placeholder="" formControlName="horas_trabajadas" type="text"  appDotToComma mask="separator.1" (input)="onChangeCosto()" class="text-right"  />
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Suma Fija</nz-form-label>
