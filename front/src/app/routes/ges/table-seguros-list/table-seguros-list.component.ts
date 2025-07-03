@@ -1,11 +1,7 @@
 import {
-  ChangeDetectorRef,
   Component,
-  ElementRef,
-  Inject,
-  LOCALE_ID,
   ViewChild,
-  inject,input,SimpleChanges,EventEmitter,Output,
+  inject,EventEmitter,Output,
   model
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
@@ -58,7 +54,7 @@ export class TableSeguroListComponent {
   @Output()valueGridEvent = new EventEmitter();
   RefreshLicencia = model<boolean>(false)
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   

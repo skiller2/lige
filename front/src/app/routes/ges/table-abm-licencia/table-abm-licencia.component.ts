@@ -1,9 +1,5 @@
 import {
-  ChangeDetectorRef,
   Component,
-  ElementRef,
-  Inject,
-  LOCALE_ID,
   ViewChild,
   inject,input,SimpleChanges,EventEmitter,Output,
   model
@@ -15,7 +11,7 @@ import {
   debounceTime,
   map,
   switchMap,
-  tap,fromEvent,
+  tap,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -71,7 +67,7 @@ export class TableAbmLicenciaComponent {
   @Output()valueGridEvent = new EventEmitter();
   RefreshLicencia = model<boolean>(false)
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   

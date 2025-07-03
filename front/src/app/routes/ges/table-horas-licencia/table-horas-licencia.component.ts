@@ -1,9 +1,5 @@
 import {
-  ChangeDetectorRef,
   Component,
-  ElementRef,
-  Inject,
-  LOCALE_ID,
   ViewChild,
   inject, input, SimpleChanges, EventEmitter, Output
 } from '@angular/core';
@@ -14,7 +10,7 @@ import {
   debounceTime,
   map,
   switchMap,
-  tap, fromEvent,
+  tap,
   firstValueFrom,
   timer,
 } from 'rxjs';
@@ -72,7 +68,7 @@ export class  TableHorasLicenciaComponent {
   @Output() valueGridEvent = new EventEmitter();
 
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService: SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService: SearchService) { }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 

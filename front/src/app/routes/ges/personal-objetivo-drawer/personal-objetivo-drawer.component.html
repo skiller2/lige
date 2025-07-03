@@ -29,21 +29,21 @@
               <td>{{ data.totalhorascalc }}</td>
               <!-- <td>
                 <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                  data.ValorHoraNorm | currency
+                  data.ValorHoraNorm | I18NCurrency
                   }}</span>
               </td> -->
 
               <td>
-                <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | I18NCurrency
                   }}</span>
                 <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
                 <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
-                  {{ data.ValorHoraArt14Categoria | currency }}
+                  {{ data.ValorHoraArt14Categoria | I18NCurrency }}
                 </span>
                 <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
-                  {{ data.PersonalArt14AdicionalHora | currency }}</span>
+                  {{ data.PersonalArt14AdicionalHora | I18NCurrency }}</span>
               </td>
-              <!-- <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td> -->
+              <!-- <td>{{ data.totalminutoscalcimporteconart14 | I18NCurrency }}</td> -->
 
               <!-- td>
           <a>Action 一 {{data.name}}</a>

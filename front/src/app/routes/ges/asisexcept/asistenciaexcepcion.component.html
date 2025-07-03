@@ -73,7 +73,7 @@
                     {{data.PersonalCUITCUILCUIT}}</span> </td>
                 <td>
                   <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                  <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
+                  <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
                   <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                   <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                   <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
@@ -139,7 +139,7 @@
                 <ng-container *ngIf="option.ValorLiquidacionSucursalId == selectedSucursalId()">
                   <nz-option
                     [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
-                    [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + (option.ValorLiquidacionHoraNormal | currency)"></nz-option>
+                    [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + (option.ValorLiquidacionHoraNormal | I18NCurrency)"></nz-option>
                 </ng-container>
 
               </ng-container>

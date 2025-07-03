@@ -47,7 +47,7 @@
     @if (!categorias.length){ <li>Sin datos</li>}
     @for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
     <li> {{cat.CategoriaPersonalDescripcion}} @if ( cat.ValorLiquidacionHoraNormal>0 && cat.ValorLiquidacionSucursalId){
-      {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal|currency):'(Sin importe)'}} }
+      {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal| I18NCurrency):'(Sin importe)'}} }
       {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
     </li>
     }

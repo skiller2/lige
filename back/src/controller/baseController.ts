@@ -339,7 +339,7 @@ export class BaseController {
       `SELECT DISTINCT gaj.GrupoActividadId, gaj.GrupoActividadJerarquicoComo, 1
       FroM GrupoActividadJerarquico gaj 
       WHERE gaj.GrupoActividadJerarquicoPersonalId = @0
-      AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31')`,
+      AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <=  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31')`,
       [PersonalId, anio, mes])
   }
 

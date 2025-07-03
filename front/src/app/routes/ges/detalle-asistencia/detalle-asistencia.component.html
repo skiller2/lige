@@ -98,9 +98,9 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Totales</nz-form-label>
             <nz-form-control *ngIf="listaAsistenciaObj.totalImporte >0 || listaAsistenciaObj.totalHoras >0 ">
-              <li><span>{{ listaAsistenciaObj.totalImporte | currency }} </span> <span>, total horas: {{
+              <li><span>{{ listaAsistenciaObj.totalImporte | I18NCurrency }} </span> <span>, total horas: {{
                   listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
-                  listaAsistenciaObj.totalHoras | currency }}</span></li>
+                  listaAsistenciaObj.totalHoras | I18NCurrency }}</span></li>
               <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas
                   capacitación:{{listaAsistenciaObj.totalHorasC}}, no
                   facturable:{{listaAsistenciaObj.totalHorasR}}</span></li>
@@ -135,7 +135,7 @@
                     <td>{{ data.PersonalArt14Autorizado }}</td>
                     <td>
                       <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                      <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
+                      <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
                       <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                       <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                       <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
@@ -188,24 +188,24 @@
                     <td>{{ data.totalhorascalc }}</td>
                     <td class="text-right">
                       <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                        data.ValorHoraNorm | currency
+                        data.ValorHoraNorm | I18NCurrency
                         }}</span>
                     </td>
 
                     <td>
                       <span class="inline-block" *ngIf="data.PersonalArt14SumaFija">Suma fija {{
-                        data.PersonalArt14SumaFija | currency
+                        data.PersonalArt14SumaFija | I18NCurrency
                         }}</span>
                       <span class="inline-block" *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas
                         }}</span>
                       <span class="inline-block" *ngIf="data.art14CategoriaDescripcion">Equivalencia {{
                         data.art14CategoriaDescripcion }}
-                        {{ data.ValorHoraArt14Categoria | currency }}
+                        {{ data.ValorHoraArt14Categoria | I18NCurrency }}
                       </span>
                       <span class="inline-block" *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
-                        {{ data.PersonalArt14AdicionalHora | currency }}</span>
+                        {{ data.PersonalArt14AdicionalHora | I18NCurrency }}</span>
                     </td>
-                    <td class="text-right">{{ data.totalminutoscalcimporteconart14 | currency }}</td>
+                    <td class="text-right">{{ data.totalminutoscalcimporteconart14 | I18NCurrency }}</td>
 
                     <!-- td>
               <a>Action 一 {{data.name}}</a>
@@ -223,7 +223,7 @@
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td class="text-right">{{ listaAsistenciaObj.totalImporte | currency }}</td>
+                    <td class="text-right">{{ listaAsistenciaObj.totalImporte | I18NCurrency }}</td>
                   </tr>
                 </tfoot>
               </nz-table>
@@ -254,9 +254,9 @@
                   <td>{{ data.ObjetivoDescuentoDescontarCoordinador=='S'?'Si':'No' }}</td>
                   <td>
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
-                      | currency }}</div>
+                      | I18NCurrency }}</div>
                   </td>
-                  <td class="text-right">{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
@@ -265,7 +265,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right">{{listaDescuentosObjTotal | currency}}</td>
+                  <td class="text-right">{{listaDescuentosObjTotal | I18NCurrency}}</td>
                 </tr>
               </tfoot>
             </nz-table>
@@ -301,9 +301,9 @@
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     <div *ngIf="(data.cantcuotas>1) ">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
-                      | currency }}</div>
+                      | I18NCurrency }}</div>
                   </td>
-                  <td class="text-right">{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
@@ -340,9 +340,9 @@
           <nz-form-control>
             <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal +
               listaIngresosExtraPerTotalG -
-              listaDescuentosPerTotalG | currency }} </span>
+              listaDescuentosPerTotalG | I18NCurrency }} </span>
             <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal +
-              listaIngresosExtraPerTotalG | currency }} - {{
+              listaIngresosExtraPerTotalG | I18NCurrency }} - {{
               listaDescuentosPerTotalG |
               currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras + listaCustodiasPerTotalHoras +
               listaIngresosPerTotalHoras}}</span>
@@ -351,8 +351,8 @@
         <nz-form-item *ngIf="listaIngresosExtraPerTotalC > 0 || listaDescuentosPerTotalC > 0">
           <nz-form-label [nzSpan]="5">Retiro Coordinador</nz-form-label>
           <nz-form-control>
-            <span>{{ listaIngresosExtraPerTotalC - listaDescuentosPerTotalC | currency }} </span>
-            <span> ({{ listaIngresosExtraPerTotalC | currency }} - {{ listaDescuentosPerTotalC |
+            <span>{{ listaIngresosExtraPerTotalC - listaDescuentosPerTotalC | I18NCurrency }} </span>
+            <span> ({{ listaIngresosExtraPerTotalC | I18NCurrency }} - {{ listaDescuentosPerTotalC |
               currency }})</span>
           </nz-form-control>
         </nz-form-item>
@@ -438,7 +438,7 @@
                   <td>{{ data.PersonalArt14Autorizado }}</td>
                   <td>
                     <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
@@ -501,21 +501,21 @@
                   <td class="text-right">{{ data.totalhorascalc }}</td>
                   <td class="text-right">
                     <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                      data.ValorHoraNorm | currency
+                      data.ValorHoraNorm | I18NCurrency
                       }}</span>
                   </td>
 
                   <td>
-                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | I18NCurrency
                       }}</span>
                     <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
                     <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
-                      {{ data.ValorHoraArt14Categoria | currency }}
+                      {{ data.ValorHoraArt14Categoria | I18NCurrency }}
                     </span>
                     <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
-                      {{ data.PersonalArt14AdicionalHora | currency }}</span>
+                      {{ data.PersonalArt14AdicionalHora | I18NCurrency }}</span>
                   </td>
-                  <td class="text-right">{{ data.totalminutoscalcimporteconart14 | currency }}</td>
+                  <td class="text-right">{{ data.totalminutoscalcimporteconart14 | I18NCurrency }}</td>
 
                   <!-- td>
               <a>Action 一 {{data.name}}</a>
@@ -532,7 +532,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right">{{listaAsistenciaPerTotal | currency}}</td>
+                  <td class="text-right">{{listaAsistenciaPerTotal | I18NCurrency}}</td>
                 </tr>
               </tfoot>
             </nz-table>
@@ -561,8 +561,8 @@
                   <td>{{ data.CategoriaPersonalDescripcion}}</td>
                   <td>{{ data.TipoInasistenciaDescripcion}}</td>
                   <td>{{ data.PersonalLicenciaAplicaPeriodoHorasMensuales }}</td>
-                  <td>{{ data.ValorLiquidacionHoraNormal | currency}}</td>
-                  <td class="text-right">{{ data.total | currency}}</td>
+                  <td>{{ data.ValorLiquidacionHoraNormal | I18NCurrency}}</td>
+                  <td class="text-right">{{ data.total | I18NCurrency}}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
@@ -572,7 +572,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right">{{listaIngresosPerTotal | currency}}</td>
+                  <td class="text-right">{{listaIngresosPerTotal | I18NCurrency}}</td>
                 </tr>
               </tfoot>
             </nz-table>
@@ -602,7 +602,7 @@
                   <td>{{ data.cliente }}</td>
                   <td>{{ data.tipo_importe }} {{ data.patente }}</td>
                   <td>{{ data.horas }}</td>
-                  <td class="text-right">{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
@@ -612,7 +612,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right">{{ listaCustodiasPerTotal | currency }}</td>
+                  <td class="text-right">{{ listaCustodiasPerTotal | I18NCurrency }}</td>
                 </tr>
               </tfoot>
 
@@ -636,13 +636,13 @@
               <tbody>
                 <tr *ngFor="let data of ingextraPer.data" class="">
                   <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.des_movimiento }}</td>
-                  <td class="text-right">{{ data.importe | currency}}</td>
+                  <td class="text-right">{{ data.importe | I18NCurrency}}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
                 <tr>
                   <td></td>
-                  <td class="text-right">{{ listaIngresosExtraPerTotalG + listaIngresosExtraPerTotalC | currency }}</td>
+                  <td class="text-right">{{ listaIngresosExtraPerTotalG + listaIngresosExtraPerTotalC | I18NCurrency }}</td>
                 </tr>
               </tfoot>
 
@@ -671,9 +671,9 @@
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
-                      | currency }}</div>
+                      | I18NCurrency }}</div>
                   </td>
-                  <td class="text-right">{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
@@ -681,7 +681,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right">{{ listaDescuentosPerTotalG | currency }}</td>
+                  <td class="text-right">{{ listaDescuentosPerTotalG | I18NCurrency }}</td>
                 </tr>
               </tfoot>
 
@@ -711,9 +711,9 @@
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
-                      | currency }}</div>
+                      | I18NCurrency }}</div>
                   </td>
-                  <td class="text-right">{{ data.importe | currency }}</td>
+                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
                 </tr>
               </tbody>
               <tfoot nzSummary>
@@ -721,7 +721,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right">{{ listaDescuentosPerTotalC | currency }}</td>
+                  <td class="text-right">{{ listaDescuentosPerTotalC | I18NCurrency }}</td>
                 </tr>
               </tfoot>
 

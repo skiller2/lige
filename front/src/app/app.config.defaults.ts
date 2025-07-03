@@ -14,5 +14,3 @@ export function   decimalMarkerFactory(): string {
   const formattedNumber = (1.12).toLocaleString(locale)
   return formattedNumber.replace(/\d/g, '')
 }
-
-

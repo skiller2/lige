@@ -71,7 +71,7 @@
             <tbody>
               <tr *ngFor="let data of tableAdelantos.data">
                 <td>{{ data.FormaPrestamoDescripcion }}</td>
-                <td>{{ data.PersonalPrestamoMonto | currency }}</td>
+                <td>{{ data.PersonalPrestamoMonto | I18NCurrency }}</td>
                 <td>{{ data.PersonalPrestamoDia | date }}</td>
                 <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
                 <td>{{ data.PersonalPrestamoUltimaLiquidacion }}</td>
