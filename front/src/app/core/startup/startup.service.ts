@@ -6,7 +6,7 @@ import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenService, JWTTokenModel, TokenS
 import { ALAIN_I18N_TOKEN, MenuService, SettingsService, TitleService } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { Observable, zip, catchError, map, of, mergeMap } from 'rxjs';
-import { I18NService } from '../i18n/i18n.service';
+import { I18NService } from '@core';
 
 /**
  * Used for application startup

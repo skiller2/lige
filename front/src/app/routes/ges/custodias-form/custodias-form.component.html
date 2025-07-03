@@ -93,7 +93,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Retiro</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" nz-popover [nzPopoverContent]="control.value.detalleRetiro">
           <nz-input-group style="width: 100%" [nzAddOnAfter]="controlPersonalButton" nzSearch>
-            <p nz-input class="ant-input text-right">{{control.value.importe|currency}} </p>
+            <p nz-input class="ant-input text-right">{{control.value.importe|I18NCurrency}} </p>
           </nz-input-group>
           <ng-template #controlPersonalButton>
             <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary"
@@ -193,7 +193,7 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3">Importe a Facturar</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-      <p nz-input class="ant-input text-right">{{formCus.value.facturacion|currency}} </p>
+      <p nz-input class="ant-input text-right">{{formCus.value.facturacion| I18NCurrency}} </p>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Diferencia</nz-form-label>

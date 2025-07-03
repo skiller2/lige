@@ -113,7 +113,7 @@
             <p *ngIf="numFactura(i)">Razón social: {{selectedCliInfo()[i]?.razonSocial}}</p>
             <p *ngIf="numFactura(i)">Domicilio : {{selectedCliInfo()[i]?.domicilio}}</p>
             <p>Cantidad de Custodias: {{selectedCliInfo()[i]?.cantReg}}</p>
-            <p>Importe Total: {{selectedCliInfo()[i]?.total|currency}}</p>
+            <p>Importe Total: {{selectedCliInfo()[i]?.total| I18NCurrency}}</p>
 
           </nz-card>
         </div>

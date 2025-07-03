@@ -5,14 +5,11 @@ export * from './utils/yuan';
 
 export * from './utils/cuit-pipe';
 export * from './utils/age-pipe';
+export * from './utils/i18n-currency.pipe';
 export * from './utils/filter-type';
 
 export * from './down-file/down-file.directive'
 export * from './dot-coma/dot-coma'
-
-// Module
-//export * from './shared.module';
-//export * from './json-schema/json-schema.module';
 
 // Module
 export * from './shared-imports';

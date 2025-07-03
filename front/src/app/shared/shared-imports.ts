@@ -19,6 +19,7 @@ import { ColsFilterPipe } from './utils/cols-pipe';
 import { UrlAuthPipe } from './utils/url-auth-pipe';
 import { NgxMaskDirective } from 'ngx-mask';
 import { DotToCommaDirective } from './dot-coma/dot-coma';
+import { I18NCurrencyPipe } from './utils/i18n-currency.pipe';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -47,6 +48,7 @@ export const SHARED_IMPORTS = [
   CUITPipe,
   UrlAuthPipe,
   AGEPipe,
+  I18NCurrencyPipe,
   AppFilterPipe,
   AppDownFileDirective,
   ColsFilterPipe,
@@ -57,87 +59,3 @@ export const SHARED_IMPORTS = [
   ...SHARED_ZORRO_MODULES
 ];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-
-
-
-
-
-// #region your componets & directives
-const COMPONENTS: Array<Type<any>> = [
-  PersonalSearchComponent,
-  ClienteSearchComponent,
-  ObjetivoSearchComponent,
-  TipoMovimientoSearchComponent,
-  FechaSearchComponent,
-  PdfviewerComponent,
-  UploadFileComponent,
-  ViewCredentialComponent,
-  ImageContentComponent,
-  FormComponent,
-  PeriodoSelectComponent,
-];
-const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirective,ColsFilterPipe];
-// #endregion
-
-@NgModule({
-
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    ReactiveFormsModule,
-    AlainThemeModule.forChild(),
-    DelonACLModule,
-    DelonFormModule,
-    AngularSlickgridModule,
-
-    ...SHARED_DELON_MODULES,
-    ...SHARED_ZORRO_MODULES,
-    // third libs
-    ...THIRDMODULES,
-  ],
-  declarations: [
-    // your components
-    ...COMPONENTS,
-    ...DIRECTIVES,
-//    RowDetailViewComponent,
-//    RowPreloadDetailComponent,
-  ],
-  exports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    RouterModule,
-    AlainThemeModule,
-    DelonACLModule,
-    DelonFormModule,
-    
-    ...SHARED_DELON_MODULES,
-    ...SHARED_ZORRO_MODULES,
-    // third libs
-    ...THIRDMODULES,
-    // your components
-    ...COMPONENTS,
-    ...DIRECTIVES,
-  ],
-})
-export class SharedModule {}
-*/

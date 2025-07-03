@@ -1,15 +1,13 @@
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { DelonLocaleService, SettingsService } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzI18nService } from 'ng-zorro-antd/i18n';
-import { of } from 'rxjs';
 
 import { I18NService } from './i18n.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('Service: I18n', () => {
-  let injector: TestBed;
   let srv: I18NService;
   const MockSettingsService: NzSafeAny = {
     layout: {
@@ -23,27 +21,19 @@ describe('Service: I18n', () => {
   const MockDelonLocaleService = {
     setLocale: () => {}
   };
-  const MockTranslateService = {
-    getBrowserLang: jasmine.createSpy('getBrowserLang'),
-    addLangs: () => {},
-    setLocale: () => {},
-    getDefaultLang: () => '',
-    use: (lang: string) => of(lang),
-    instant: jasmine.createSpy('instant')
-  };
 
   function genModule(): void {
-    injector = TestBed.configureTestingModule({
-    imports: [],
-    providers: [
+    TestBed.configureTestingModule({
+      imports: [],
+      providers: [
         I18NService,
         { provide: SettingsService, useValue: MockSettingsService },
         { provide: NzI18nService, useValue: MockNzI18nService },
         { provide: DelonLocaleService, useValue: MockDelonLocaleService },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-    ]
-});
+      ]
+    });
     srv = TestBed.inject(I18NService);
   }
 

@@ -1,25 +1,25 @@
 // 请参考：https://ng-alain.com/docs/i18n
 import { Platform } from '@angular/cdk/platform';
 import { registerLocaleData } from '@angular/common';
-import ngEn from '@angular/common/locales/en';
 import ngEs from '@angular/common/locales/es';
+import ngEn from '@angular/common/locales/en';
 import ngZh from '@angular/common/locales/zh';
 import ngZhTw from '@angular/common/locales/zh-Hant';
 import { Injectable, inject } from '@angular/core';
 import {
   DelonLocaleService,
   en_US as delonEnUS,
+  es_ES as delonEsES,
   SettingsService,
   zh_CN as delonZhCn,
   zh_TW as delonZhTw,
-  es_ES as delonEsEs,
   _HttpClient,
   AlainI18nBaseService
 } from '@delon/theme';
 import { AlainConfigService } from '@delon/util/config';
-import { enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw, es as dfES } from 'date-fns/locale';
+import { es as dfEs,  enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw } from 'date-fns/locale';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import { en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW, es_ES as zorroEsES, NZ_DATE_LOCALE } from 'ng-zorro-antd/i18n';
+import { es_ES as zorroEsES ,en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW } from 'ng-zorro-antd/i18n';
 import { Observable } from 'rxjs';
 
 interface LangConfigData {
@@ -32,15 +32,7 @@ interface LangConfigData {
 }
 
 const DEFAULT = 'es-ES';
-const LANGS: { [key: string]: LangConfigData } = {
-  'es-ES': {
-    text: 'Español',
-    ng: ngEs,
-    zorro: zorroEsES,
-    date: dfES,
-    delon: delonEsEs,
-    abbr: 'es'
-  },
+const LANGS: Record<string, LangConfigData> = {
   'zh-CN': {
     text: '简体中文',
     ng: ngZh,
@@ -64,20 +56,24 @@ const LANGS: { [key: string]: LangConfigData } = {
     date: dfEn,
     delon: delonEnUS,
     abbr: '🇬🇧'
+  },
+  'es-ES': {
+    text: 'Español',
+    ng: ngEs,
+    zorro: zorroEsES,
+    date: dfEs,
+    delon: delonEsES,
+    abbr: '🇬🇧'
   }
 };
 
 @Injectable({ providedIn: 'root' })
 export class I18NService extends AlainI18nBaseService {
-  static getDateFormat() {
-    throw new Error('Method not implemented.');
-  }
   private readonly http = inject(_HttpClient);
   private readonly settings = inject(SettingsService);
   private readonly nzI18nService = inject(NzI18nService);
   private readonly delonLocaleService = inject(DelonLocaleService);
   private readonly platform = inject(Platform);
-  private _dateFormat = ""
 
   protected override _defaultLang = DEFAULT;
   private _langs = Object.keys(LANGS).map(code => {
@@ -85,10 +81,11 @@ export class I18NService extends AlainI18nBaseService {
     return { code, text: item.text, abbr: item.abbr };
   });
 
+  private _dateFormat = ""
+
   constructor(cogSrv: AlainConfigService) {
     super(cogSrv);
-    this._dateFormat = this.getBrowserLocaleDateFormat() 
-
+//console.log('i18n constructor')
     const defaultLang = this.getDefaultLang();
     this._defaultLang = this._langs.findIndex(w => w.code === defaultLang) === -1 ? DEFAULT : defaultLang;
   }
@@ -120,7 +117,6 @@ export class I18NService extends AlainI18nBaseService {
     this.nzI18nService.setDateLocale(item.date);
     this.delonLocaleService.setLocale(item.delon);
     this._currentLang = lang;
-    this._dateFormat = this.getBrowserLocaleDateFormat() 
     this._change$.next(lang);
   }
 
@@ -151,5 +147,4 @@ export class I18NService extends AlainI18nBaseService {
       })
       .join('');
   }
-  
 }

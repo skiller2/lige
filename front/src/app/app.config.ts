@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { default as ngLang } from '@angular/common/locales/zh';
 import { ApplicationConfig, DEFAULT_CURRENCY_CODE, EnvironmentProviders, InjectionToken, LOCALE_ID, Provider, importProvidersFrom, inject } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withHashLocation, RouterFeatures } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withHashLocation, RouterFeatures, withViewTransitions } from '@angular/router';
 import { I18NService, defaultInterceptor, provideBindAuthRefresh, provideStartup } from '@core';
 import { provideCellWidgets } from '@delon/abc/cell';
 import { provideSTWidgets } from '@delon/abc/st';
@@ -14,7 +14,7 @@ import { environment } from '@env/environment';
 import { CELL_WIDGETS, SF_WIDGETS, ST_WIDGETS } from '@shared';
 import { zhCN as dateLang } from 'date-fns/locale';
 import { NZ_CONFIG, NzConfig, provideNzConfig } from 'ng-zorro-antd/core/config';
-import { zh_CN as zorroLang } from 'ng-zorro-antd/i18n';
+import { NzI18nService, zh_CN as zorroLang } from 'ng-zorro-antd/i18n';
 
 import { routes } from './routes/routes';
 import { ICONS } from '../style-icons';
@@ -43,7 +43,6 @@ const alainConfig: AlainConfig = {
   auth: { login_url: '/passport/login' }
 };
 
-
 export const maskConfigFactory = (): NgxMaskOptions => ({
  thousandSeparator: thousandSeparatorFactory(),
  decimalMarker: decimalMarkerFactory() as '.'|',',
@@ -53,10 +52,7 @@ export const maskConfigFactory = (): NgxMaskOptions => ({
 const ngZorroConfig: NzConfig = {
 };
 
-
-
-
-const routerFeatures: RouterFeatures[] = [withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })];
+const routerFeatures: RouterFeatures[] = [withComponentInputBinding(), withViewTransitions(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })];
 if (environment.useHash) routerFeatures.push(withHashLocation());
 
 const providers: Array<Provider | EnvironmentProviders> = [
@@ -64,13 +60,18 @@ const providers: Array<Provider | EnvironmentProviders> = [
   provideAnimations(),
   provideRouter(routes, ...routerFeatures),
   provideAlain({ config: alainConfig, defaultLang, i18nClass: I18NService, icons: [...ICONS_AUTO, ...ICONS] }),
+  
   provideNzConfig(ngZorroConfig),
   provideAuth(),
   provideCellWidgets(...CELL_WIDGETS),
   provideSTWidgets(...ST_WIDGETS),
   provideSFConfig({ widgets: SF_WIDGETS }),
   provideStartup(),
+
+
   importProvidersFrom(AngularSlickgridModule.forRoot()),
+  //  {provide: LOCALE_ID, useValue: 'es-AR' },
+
 
   importProvidersFrom(
     ServiceWorkerModule.register('ngsw-worker.js', {
@@ -80,20 +81,13 @@ const providers: Array<Provider | EnvironmentProviders> = [
       registrationStrategy: 'registerWhenStable:30000',
     })
   ),
-
   { provide: DEFAULT_CURRENCY_CODE, useValue: '$' },
   { provide: DATE_PIPE_DEFAULT_OPTIONS, useFactory: (i18n: I18NService) => ({ dateFormat: i18n.getDateFormat() }), deps: [I18NService] },
   { provide: DEFAULT_THOUSAND_SEPARATOR, useFactory: thousandSeparatorFactory },
   { provide: DEFAULT_DECIMAL_MARKER, useFactory: decimalMarkerFactory },
-  {
-    provide: NZ_CONFIG, 
-    useFactory: (i18n: I18NService) => ({
-      datePicker: {
-        nzFormat: i18n.getDateFormat(), // Set the global default format here
-      },
-    }),
-    deps: [I18NService]
-  },
+
+//  { provide: NZ_CONFIG, useFactory: (i18n: I18NService) => ({ datePicker: { nzFormat: i18n.getDateFormat(), // Set the global default format here
+//      },    }), deps: [I18NService] },
   provideEnvironmentNgxMask(maskConfigFactory),
   ...(environment.providers || [])
 ];
