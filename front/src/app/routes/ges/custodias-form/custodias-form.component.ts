@@ -11,14 +11,13 @@ import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { AuditoriaRegistroComponent } from '../auditoria-registro/auditoria-registro';
 
 @Component({
     selector: 'app-custodias-form',
     templateUrl: './custodias-form.component.html',
     styleUrls: ['./custodias-form.component.less'],
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, AuditoriaRegistroComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers:[CurrencyPipe]
 })
@@ -28,16 +27,12 @@ export class CustodiaFormComponent {
     isLoading = signal(false);
     objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '',detalleRetiro:'' }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
+    objAudit = { usuario: '', fecha: '', accion: '' }
     personalId = signal(0);
     custodiaId = model(0);
-    visibleHistorialAuditoria = model(false);
     edit = model(true)
     costo = signal(0)
-
-    aud_usuario_ins = signal('')
-    aud_fecha_ins = signal('')
-    aud_usuario_mod = signal('')
-    aud_fecha_mod = signal('')
+    auditHistory = signal<any[]>([])
 
 
     facturacion = signal(0)
@@ -103,10 +98,7 @@ export class CustodiaFormComponent {
     async load() {
         if (this.custodiaId()) {
             let infoCust = await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
-            this.aud_usuario_ins.set(infoCust.aud_usuario_ins)
-            this.aud_fecha_ins.set(infoCust.aud_fecha_ins)
-            this.aud_usuario_mod.set(infoCust.aud_usuario_mod)
-            this.aud_fecha_mod.set(infoCust.aud_fecha_mod)
+
             infoCust.fechaInicio = new Date(infoCust.fechaInicio)
             if (infoCust.fechaFinal)
                 infoCust.fechaFinal = new Date(infoCust.fechaFinal)
@@ -124,6 +116,11 @@ export class CustodiaFormComponent {
             });
             if (this.vehiculos().length == 0)
                 this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
+
+            this.auditHistory.set([
+                {usuario: infoCust.aud_usuario_ins, fecha: this.formatDate(infoCust.aud_fecha_ins), accion: 'Creación'},
+                {usuario: infoCust.aud_usuario_mod, fecha: this.formatDate(infoCust.aud_fecha_mod), accion: 'Modificación'}
+            ])
 
             this.formCus.reset(infoCust)
             setTimeout(() => {
@@ -146,6 +143,7 @@ export class CustodiaFormComponent {
         this.vehiculos().clear()
         this.personal().push(this.newRowPersonal())
         this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
+        this.auditHistory.set([])
         this.formCus.reset({ estado: 0 })
 
         if (this.edit()) {
@@ -226,13 +224,20 @@ export class CustodiaFormComponent {
 
         try {
             if (this.custodiaId()) {
-                await firstValueFrom(this.apiService.updateObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }, this.custodiaId()))
+                const res = await firstValueFrom(this.apiService.updateObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }, this.custodiaId()))
+                const oldAuditHistory: any[] = this.auditHistory()
+                oldAuditHistory.pop()
+                oldAuditHistory.push({usuario: res.data.aud_usuario_mod, fecha: this.formatDate(res.data.aud_fecha_mod), accion: 'Modificación'})
+                this.auditHistory.set(oldAuditHistory)
             } else {
                 const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }))
                 if (res.data.custodiaId) {
                     this.custodiaId.set(Number(res.data.custodiaId))
                     this.formCus.patchValue({ id: res.data.custodiaId, responsable: res.data.responsable })
-
+                    this.auditHistory.set([
+                        {usuario: res.data.aud_usuario_ins, fecha: this.formatDate(res.data.aud_fecha_ins), accion: 'Creación'},
+                        {usuario: res.data.aud_usuario_ins, fecha: this.formatDate(res.data.aud_fecha_ins), accion: 'Modificación'}
+                    ])
                 }
             }
 
@@ -285,14 +290,25 @@ export class CustodiaFormComponent {
         this.costo.set(costo)
     }
 
-    openHistorialAuditoria() {
-        this.visibleHistorialAuditoria.set(true)
-    }
-
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
     }
 
+    private formatDate(dateString: string): string {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        
+        return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+    }
 
 }

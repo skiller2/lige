@@ -524,7 +524,7 @@ export class CustodiaController extends BaseController {
         const num_factura = objetivoCustodia.numFactura ? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
-        const fechaActual = new Date()
+        const fechaActual = objetivoCustodia.fechaActual? objetivoCustodia.fechaActual : new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
 
@@ -653,7 +653,7 @@ export class CustodiaController extends BaseController {
         const num_factura = objetivoCustodia.numFactura ? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
-        const fechaActual = new Date()
+        const fechaActual = objetivoCustodia.fechaActual? objetivoCustodia.fechaActual : new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
         let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4 || estado == 5)) ? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
@@ -837,7 +837,8 @@ export class CustodiaController extends BaseController {
 
             const fecha_liquidacion = (this.valByEstado(req.body.estado)) ? new Date() : null
 
-            const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId }
+            const fechaActual = new Date()
+            const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId, fechaActual }
 
 
             const periodo = await queryRunner.query(`
@@ -930,7 +931,7 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(errores.join(`\n`))
 
             await queryRunner.commitTransaction()
-            return this.jsonRes({ custodiaId: objetivoCustodiaId, responsable }, res, 'Carga Exitosa');
+            return this.jsonRes({ custodiaId: objetivoCustodiaId, responsable, aud_usuario_ins: usuario, aud_fecha_ins: fechaActual}, res, 'Carga Exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -1146,10 +1147,11 @@ export class CustodiaController extends BaseController {
 
             objetivoCustodia.fecha_liquidacion = infoCustodia.fecha_liquidacion
             objetivoCustodia.id = custodiaId
+            objetivoCustodia.fechaActual = new Date()
             await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             await queryRunner.commitTransaction()
-            return this.jsonRes([], res, 'Carga Exitosa');
+            return this.jsonRes({aud_usuario_mod: usuario, aud_fecha_mod: objetivoCustodia.fechaActual}, res, 'Carga Exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
