@@ -1071,94 +1071,99 @@ UNION
 
   }
 
-  async validateAnInsertDni(dni: any, queryRunner: QueryRunner, tipoSeguroCodigo: string, resultPolizaSeguroCodigo: string, usuario: string, ip: string, fechaDesde: Date) {
-    await queryRunner.query(`DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+  async validateAnInsertDni(dni: string[], queryRunner: QueryRunner, tipoSeguroCodigo: string, resultPolizaSeguroCodigo: string, usuario: string, ip: string, fechaDesde: Date) {
+    // 1. Limpiar registros anteriores
+    await queryRunner.query(
+      `DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroCodigo = @0`,
+      [resultPolizaSeguroCodigo]
+    );
 
-    const notFoundInPersonalTable: number[] = [];
-    const notFoundInPersonalSeguro: number[] = [];
-    const shouldNotBeInSeguro: number[] = [];
+    // 2. Inicializar reportes
+    const notFoundInPersonal: number[] = [];
+    const notInscritosEnSeguro: number[] = [];
+    const aseguradosFaltantes: number[] = [];
 
+    // 3. Normalizar DNIs
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
 
+    // 4. Obtener datos de Personal para los DNIs especificados
     const personalRows = await queryRunner.query(`
-      SELECT per.PersonalId, Nro.PersonalDocumentoNro
-      FROM dbo.Personal per
-      LEFT JOIN PersonalDocumento Nro ON Nro.PersonalId = per.PersonalId and Nro.PersonalDocumentoId=( SELECT MAX(dnimax.PersonalDocumentoId) FROM PersonalDocumento dnimax WHERE dnimax.PersonalId = per.PersonalId) 
-    `);
+        SELECT doc.PersonalDocumentoNro as dni, per.PersonalId
+        FROM dbo.Personal per
+        JOIN PersonalDocumento doc ON doc.PersonalId = per.PersonalId
+        WHERE doc.PersonalDocumentoNro IN (${dniNumeros.map((_, i) => `@${i}`).join(',')})
+          AND doc.PersonalDocumentoId = (
+              SELECT MAX(docmax.PersonalDocumentoId) 
+              FROM PersonalDocumento docmax 
+              WHERE docmax.PersonalId = per.PersonalId
+          )
+    `, dniNumeros);
 
-    const documentoToPersonalId = new Map<number, number>();
-    personalRows.forEach(row => {
-      documentoToPersonalId.set(row.PersonalDocumentoNro, row.PersonalId);
-    });
+    // 5. Mapear DNIs a PersonalId
+    const dniToPersonalId = new Map<number, number>();
+    personalRows.forEach(row => dniToPersonalId.set(row.dni, row.PersonalId));
 
-
-    const personalSeguroRows = await queryRunner.query(`
-      SELECT personal.PersonalId, doc.PersonalDocumentoNro
-      FROM PersonalSeguro perseg
-      LEFT JOIN Personal personal ON personal.PersonalId=perseg.PersonalId
-      LEFT JOIN PersonalDocumento doc ON doc.PersonalId = personal.PersonalId 
-          AND doc.PersonalDocumentoId = (SELECT MAX (docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = personal.PersonalId)
-      WHERE	@1 >= perseg.PersonalSeguroDesde AND @1 <= ISNULL(perseg.PersonalSeguroHasta, '9999-12-31') AND perseg.TipoSeguroCodigo = @0
+    // 6. Obtener asegurados activos
+    const seguroRows = await queryRunner.query(`
+        SELECT doc.PersonalDocumentoNro as dni
+        FROM PersonalSeguro ps
+        JOIN PersonalDocumento doc ON doc.PersonalId = ps.PersonalId
+        WHERE ps.TipoSeguroCodigo = @0
+          AND @1 >= ps.PersonalSeguroDesde
+          AND @1 <= ISNULL(ps.PersonalSeguroHasta, '9999-12-31')
+          AND doc.PersonalDocumentoId = (
+              SELECT MAX(docmax.PersonalDocumentoId) 
+              FROM PersonalDocumento docmax 
+              WHERE docmax.PersonalId = ps.PersonalId
+          )
     `, [tipoSeguroCodigo, fechaDesde]);
 
-    const aseguradosSet = new Set<number>();
-    const documentoAseguradosSet = new Set<number>();
+    // 7. Crear conjunto de DNIs asegurados
+    const dniAsegurados = new Set<number>();
+    seguroRows.forEach(row => dniAsegurados.add(row.dni));
 
-    personalSeguroRows.forEach(row => {
-      aseguradosSet.add(row.PersonalId);
-      documentoAseguradosSet.add(row.PersonalDocumentoNro);
-    });
-
-    // Set para evitar duplicados al insertar
+    // 8. Insertar registros y generar reportes
     const insertados = new Set<number>();
 
     for (const doc of dniNumeros) {
-      const personalId = documentoToPersonalId.get(doc);
+      const personalId = dniToPersonalId.get(doc);
 
-      console.log("personalId ----- ", personalId, "doc", doc) 
-      // Si no está en la tabla Personal
       if (!personalId) {
-        console.log("No se encontró el PersonalId para el documento: ", doc)
-        notFoundInPersonalTable.push(doc);
+        notFoundInPersonal.push(doc);
         continue;
       }
 
-      // Si no está asegurado y debería estarlo
-      if (!aseguradosSet.has(personalId)) {
-        console.log("No se encontró el PersonalId en PersonalSeguro para el documento: ", doc)
-        notFoundInPersonalSeguro.push(doc);
-        continue;
+      // Insertar solo una vez por PersonalId
+      if (!insertados.has(personalId)) {
+        await this.addPersonalPolizaSeguro(
+          resultPolizaSeguroCodigo,
+          personalId,
+          queryRunner,
+          usuario,
+          ip
+        );
+        insertados.add(personalId);
       }
 
-      // Si ya se inserto se salta
-      if (insertados.has(personalId)) {
-        console.log("Ya se insertó el PersonalId: ", personalId, "para el documento: ", doc)
-        continue;
+      // Reportar si no está asegurado
+      if (!dniAsegurados.has(doc)) {
+        notInscritosEnSeguro.push(doc);
       }
-
-      // EXISTE EL PERSONAL Y ESTÁ ASEGURADO → insertar
-      await this.addPersonalPolizaSeguro(resultPolizaSeguroCodigo, personalId, queryRunner, usuario, ip);
-      insertados.add(personalId);
-      console.log("Se insertó el PersonalId: ", personalId, "para el documento: ", doc)
     }
 
-    //  Validar asegurados que no deberían estarlo
-    for (const doc of documentoAseguradosSet) {
-
-      if (dniNumeros.includes(doc)) {
-        continue;
+    // 9. Identificar asegurados faltantes en la lista
+    const aseguradosEnSistema = seguroRows.map(row => row.dni);
+    for (const dniAsegurado of aseguradosEnSistema) {
+      if (!dniNumeros.includes(dniAsegurado)) {
+        aseguradosFaltantes.push(dniAsegurado);
       }
-
-      shouldNotBeInSeguro.push(doc);
     }
-
 
     return {
-      notFoundInPersonalTable,
-      notFoundInPersonalSeguro,
-      shouldNotBeInSeguro
-    }
-
+      notFoundInPersonal,
+      notInscritosEnSeguro,
+      aseguradosFaltantes
+    };
   }
 
   async addPersonalPolizaSeguro(resultPolizaSeguroCodigo: string, personalId: number, queryRunner: QueryRunner, usuario: string, ip: string) {
