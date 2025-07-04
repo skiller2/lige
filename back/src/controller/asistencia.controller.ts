@@ -675,6 +675,7 @@ export class AsistenciaController extends BaseController {
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       clidep.ClienteElementoDependienteDescripcion,
+      cli.ClienteDenominacion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
       val.ImporteHora, val.ImporteFijo, val.TotalHoras,
