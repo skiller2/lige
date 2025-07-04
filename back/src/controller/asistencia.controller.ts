@@ -437,6 +437,10 @@ export class AsistenciaController extends BaseController {
       if (valGrid instanceof ClientException)
         throw valGrid
 
+      if (cabecera[0].TotalHoras == 0){
+        throw new ClientException('Horas a facturar debe ser mayor a 0',cabecera[0].TotalHoras)
+      }
+
 
       if (cabecera[0].ImporteHora <1 && cabecera[0].ImporteFijo<1) {
 //        throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
@@ -3355,11 +3359,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     if (valObjetivo.length == 0) {
       errores.push(`El objetivo no se localizó`)
     } else {
-
       
-      if (TotalHorasReal > 0 && valObjetivo[0].TotalHoras == 0)
+      if (TotalHorasReal > 0 && Number(valObjetivo[0].TotalHoras) == 0)
           errores.push(`Horas a facturar debe ser mayor a 0`)
-        
+
       //Validación de Excepción de Asistencia
       const excepAsistencia = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
 

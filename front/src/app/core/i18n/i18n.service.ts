@@ -124,7 +124,7 @@ export class I18NService extends AlainI18nBaseService {
     return this._langs;
   }
 
-  getDateFormat(): string { return this._dateFormat }
+  getDateFormat(): string { return this._dateFormat || 'dd/MM/yyyy' }
 
   private getBrowserLocaleDateFormat(): string {
     const locale = navigator.language; // Get the browser's locale
