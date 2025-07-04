@@ -663,12 +663,15 @@ ${orderBy}`, [fechaActual])
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
+            throw new ClientException(`Función en desarrollo.`)
+            const  contactosIds = await queryRunner.query(`SELECT ContactoId, ClienteId FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
 
-
+            for (const contacto of contactosIds) {
+                await queryRunner.query(`DELETE FROM ContactoEmail WHERE ClienteId = @0 `, [contacto.ContactoId])
+                await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ClienteId = @0 `, [contacto.ContactoId])
+            }
             await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
-            await queryRunner.query(`DELETE FROM ContactoEmail WHERE ClienteId = @0 `, [ClienteId])
-            await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ClienteId = @0 `, [ClienteId])
-            await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI'`)
+            //await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI'`)
 
             await queryRunner.commitTransaction();
 
