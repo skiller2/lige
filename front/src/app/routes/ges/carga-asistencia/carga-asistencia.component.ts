@@ -102,13 +102,15 @@ export class CargaAsistenciaComponent {
             this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
         ]).pipe(
             map((data: any[]) => {
+                console.log('getObjetivoDetalle', data)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
-                this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ClienteDenominacion}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
+                this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[1][0]?.ClienteDenominacion}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
                 this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
                 [{ value: `Mes: ${mes}` }],
-                [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
-                [{ value: `Objetivo: ${data[2][0]?.ClienteDenominacion} ${data[2][0]?.ClienteElementoDependienteDescripcion}` }],
-                [{ value: `Grupo: ${data[0][0]?.detalle}` }],
+                [{ value: `Cliente: ${data[1][0]?.ClienteDenominacion} ` }],
+                [{ value: `Código Objetivo: ${data[2][0]?.ObjetivoCodigo}` }],
+                [{ value: `Objetivo: ${data[2][0]?.ClienteElementoDependienteDescripcion}` }],
+                [{ value: `Grupo Actividad: ${data[0][0]?.detalle}` }],
                 []]
 
                 this.angularGridEdit.resizerService.resizeGrid();
