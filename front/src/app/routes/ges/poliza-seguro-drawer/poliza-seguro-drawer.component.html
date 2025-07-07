@@ -84,58 +84,59 @@
         } -->
       </nz-form-item>
     }
-      @if (PolizaSeguroResultado()) {
+   
+    @if (PolizaSeguroResultado()) {
 
-        <div class="validation-tables-container">
-          @if (PolizaSeguroResultado()?.notFoundInPersonal?.length > 0) {
-            <table class="validation-table">
-              <thead>
-                <tr>
-                  <th class="table-header">No localizados en el sistema</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonal.join(', ') }}</td>
-                </tr>
-              </tbody>
-            </table>
-          }
+      <div class="validation-tables-container">
+        @if (PolizaSeguroResultado()?.notFoundInPersonalTable.length > 0) {
+          <table class="validation-table">
+            <thead>
+              <tr>
+                <th class="table-header">No localizados en el sistema</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalTable.join(', ') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        }
 
-          @if (PolizaSeguroResultado()?.notInscritosEnSeguro?.length > 0) {
-            <table class="validation-table">
-              <thead>
-                <tr>
-                  <th class="table-header">Estan en el sistema pero no asegurados</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="table-content">{{ PolizaSeguroResultado().notInscritosEnSeguro.join(', ') }}</td>
-                </tr>
-              </tbody>
-            </table>
-          }
+        @if (PolizaSeguroResultado()?.notFoundInPersonalSeguro.length > 0) {
+          <table class="validation-table">
+            <thead>
+              <tr>
+                <th class="table-header">Deberían estar asegurados pero no lo están</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalSeguro.join(', ') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        }
 
-          @if (PolizaSeguroResultado()?.aseguradosFaltantes?.length > 0) {
-            <table class="validation-table">
-              <thead>
-                <tr>
-                  <th class="table-header">Están asegurados, pero no deberían</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="table-content">{{ PolizaSeguroResultado().aseguradosFaltantes.join(', ') }}</td>
-                </tr>
-              </tbody>
-            </table>
-          }
-        </div>
-      }
+        @if (PolizaSeguroResultado()?.shouldNotBeInSeguro?.length > 0) {
+          <table class="validation-table">
+            <thead>
+              <tr>
+                <th class="table-header">Están asegurados pero no deberían</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="table-content">{{ PolizaSeguroResultado().shouldNotBeInSeguro.join(', ') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        }
+      </div>
+    }
 
- 
-    </form>
+
+  </form>
 
     
     <!-- <p>Debug Valores: {{formCli.value | json }}</p>   -->
