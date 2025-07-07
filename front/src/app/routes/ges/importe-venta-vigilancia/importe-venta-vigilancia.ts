@@ -6,17 +6,17 @@ import { TableOrdenesDeVentaComponent } from '../table-ordenes-de-venta/table-or
 import { SettingsService } from '@delon/theme';
 
 @Component({
-  selector: 'app-ordenes-de-venta',
+  selector: 'app-importe-venta-vigilancia',
   imports: [...SHARED_IMPORTS, NzIconModule, NzMenuModule, TableOrdenesDeVentaComponent],
-  templateUrl: './ordenes-de-venta.html',
-  styleUrl: './ordenes-de-venta.less'
+  templateUrl: './importe-venta-vigilancia.html',
+  styleUrl: './importe-venta-vigilancia.less'
 })
-export class OrdenesDeVentaComponent {
+export class ImporteVentaVigilanciaComponent {
   periodo = model<any>(new Date())
   anio = signal(0)
   mes = signal(0)
 
-    private settingsService = inject(SettingsService)
+  private settingsService = inject(SettingsService)
 
   
   ngAfterViewInit(): void {

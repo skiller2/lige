@@ -196,8 +196,8 @@
           "icon": "anticon-profile"
         },
         {
-          "text": "Ordenes de Venta",
-          "link": "/ges/ordenes-de-venta",
+          "text": "Importe Venta Vigilancia",
+          "link": "/ges/importe-venta-vigilancia",
           "icon": "anticon-profile"
         },
         {

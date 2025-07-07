@@ -17,7 +17,7 @@ import {
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs, Editors, Formatter} from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -61,7 +61,7 @@ export class TableOrdenesDeVentaComponent {
     // Effect para detectar cambios en la fecha y recargar datos
     effect(() => {
       if (this.anio() && this.mes()) {
-        console.log("Fecha cambiada:", this.anio(), this.mes())
+        // console.log("Fecha cambiada:", this.anio(), this.mes())
         this.formChange$.next('')
       }
     })
@@ -71,8 +71,21 @@ export class TableOrdenesDeVentaComponent {
   
 
   columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
-
-    return cols
+    let mapped = cols.map((col: Column) => {
+      
+      if (col.id == 'ImporteFijo' || col.id == 'ImporteHora' || col.id == 'TotalHoras') {
+        col.editor = {
+          model: Editors['float'],
+          decimal: 2,
+          minValue: 0,
+          maxValue: 10000000,
+          alwaysSaveOnEnterKey: true,
+        //   required: true
+        }
+      }
+      return col
+    });
+    return mapped
   }));
 
   excelExportService = new ExcelExportService()
@@ -115,6 +128,9 @@ export class TableOrdenesDeVentaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+    this.gridOptions.editable = true
+    this.gridOptions.autoEdit = true
+    // this.gridOptions.autoAddCustomEditorFormatter = customEditableInputFormatter
 
     const dateToday = new Date();
     this.startFilters = [{}]

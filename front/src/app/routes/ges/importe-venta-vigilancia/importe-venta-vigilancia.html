@@ -21,7 +21,7 @@
         <ul nz-menu nzMode="horizontal" style="display: flex;">
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'ordenes-de-venta','listado']" >{{ 'app.segurosList' | i18n }}</a>
+            <a [routerLink]="['/', 'ges', 'importe-venta-vigilancia','listado']" >{{ 'app.segurosList' | i18n }}</a>
           </li>
  
         </ul>
@@ -32,7 +32,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab></nz-tab>
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/ordenes-de-venta/listado">{{ 'app.segurosList' | i18n }}</a>
+        <a nz-tab-link routerLink="/ges/importe-venta-vigilancia/listado">{{ 'app.segurosList' | i18n }}</a>
         <ng-template nz-tab>
             <app-table-ordenes-de-venta [anio]="anio()" [mes]="mes()"></app-table-ordenes-de-venta> 
         </ng-template>
