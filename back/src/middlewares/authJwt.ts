@@ -104,20 +104,21 @@ export class AuthMiddleware {
       const queryRunner = dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
+      // console.log('params -----', req.params, 'body -----', req.body, 'query -----', req.query);
+
 
       try {
 
         const stmActual = new Date();
         const ResponsablePersonalId = res.locals.PersonalId;
-        const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo[0].tableForSearch;
+        const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo?.[0]?.tableForSearch || req.body.files?.[0]?.tableForSearch;
 
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
         const documentId = req.params.id || req.body.doc_id || req.query[0];
-        const documentType = req.body.doctipo_id //|| req.params.doctipo_id || req.query.doctipo_id;
+        const documentType = req.body.doctipo_id || req.body.files?.[0]?.doctipo_id//|| req.params.doctipo_id || req.query.doctipo_id;
 
         const path = req.route.path
 
-        // console.log('documentId', documentId, 'params -----', req.params, 'body -----', req.body,);
         // console.log('tableforsearch', tableForSearch);
         // console.log('query --------- ', req.query);
         // console.log('documentType', documentType);
@@ -127,7 +128,7 @@ export class AuthMiddleware {
         // console.log('res.locals -------------------- ', res.locals);
         // console.log('req.royte.path', req.route.path);
 
-        if (!documentId && !documentType) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
+        if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
         if (!tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado tableForSearch" })
         let Documento = null;
 
@@ -191,12 +192,10 @@ export class AuthMiddleware {
                     AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
                     AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
                     AND gap.GrupoActividadJerarquicoComo = 'J'
-          `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
+                `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
                   if (resPers.length > 0) return next();
                 }
               }
-
-              console.log(' saliii');
 
               // Si el documento tiene json_permisos_act_dir, se valida
               return this.validateJsonPermisosActDir(doc.json_permisos_act_dir)(req, res, next);
@@ -261,7 +260,7 @@ export class AuthMiddleware {
       if (path.includes('downloadFile')) {
         return this.hasGroup(gruposRequeridos)(req, res, next);
       }
-      const writePaths = ["/add", "/update", "/delete"];
+      const writePaths = ["/add", "/update", "/delete", "/setestudio"];
       if (writePaths.includes(path)) {
         return this.hasGroup(PermisoFullAccess)(req, res, next);
       }
