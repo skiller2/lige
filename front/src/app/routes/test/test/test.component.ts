@@ -22,6 +22,7 @@ import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOut
 
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component';
 import { DotToCommaDirective } from 'src/app/shared/dot-coma/dot-coma';
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 
 
 /** config ng-zorro-antd i18n **/
@@ -49,7 +50,8 @@ export class TestComponent {
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
   direccion = model({})
-  i18NService = inject(I18NService)
+  private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
+  
   responsable = model(0)
 
    periodo1 = { year: 2024, month: 3 }
@@ -81,7 +83,8 @@ export class TestComponent {
 
   ngOnInit(): void {
     this.responsable.set(699)
-    console.log('I18NService.getDateFormat()',this.i18NService.getDateFormat())
+    console.log('I18NService.getDateFormat()',this.i18n.getDateFormat())
+    console.log('I18NService.getDateFormat()',this.i18n)
 
     const autocomplete = new GeocoderAutocomplete(
       this.el.nativeElement ,

@@ -1,6 +1,4 @@
 import { DEFAULT_CURRENCY_CODE, LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
-import { I18NService } from '@core';
 
 @Pipe({
   name: 'I18NCurrency',
