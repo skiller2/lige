@@ -2236,7 +2236,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const totalHorasR = result.asistencia.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'R') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
 
 
-      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC, totalHorasR }, res);
+      this.jsonRes({ asistencia: result.asistencia, totalImporte, totalHoras, totalHorasN, totalHorasC, totalHorasR }, res);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
