@@ -1151,7 +1151,6 @@ UNION
       // estan asegurados y no deberian estarlo
       if (!aseguradosSet.has(personalId)) {
         notFoundInPersonalSeguro.push(doc);
-        continue;
       }
     
       // Si ya se inserto se salta
