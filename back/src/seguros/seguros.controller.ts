@@ -871,18 +871,32 @@ UNION
 
 
 
-      const dniRegex = new RegExp(regex.DNILista, "mg")
+      //const dniRegex = new RegExp(regex.DNILista, "mg")
       const polizaRegex = new RegExp(regex.Poliza, "m")
       const endosoRegex = new RegExp(regex.Endoso, "m")
       const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m")
 
-      //const dniRegex = new RegExp(/DNI ([\d.]{9,10})$/mg);
+      const dniRegex = new RegExp(/DNI\s+([\d.]+)(?!\d)/g);
       //const polizaRegex = new RegExp(/(\d{9}) (?=\d{6})/m);
       //const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
       //const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
 
+      console.log("detalle_documento", detalle_documento)
+      //const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
+      const dnis = [...detalle_documento.matchAll(dniRegex)].map(m => m[1]);
 
-      const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
+      const dnisLimpios = dnis.map(dni => {
+        const soloNumeros = dni.replace(/\./g, '');
+        const recortado = soloNumeros.slice(0, 8); // solo 8 dígitos
+        return (
+          recortado.length === 8
+            ? `${recortado.slice(0, -6)}.${recortado.slice(-6, -3)}.${recortado.slice(-3)}`
+            : dni // deja como estaba si no son 8 dígitos
+        );
+      });
+
+      //console.log("dni", dnisLimpios)
+      //throw new ClientException(`test.`)
       const polizaEndoso = detalle_documento.match(polizaRegex)
       const endoso = detalle_documento.match(endosoRegex)
 
@@ -894,7 +908,7 @@ UNION
       const anio = fechaDesde.getFullYear()
       const mes = fechaDesde.getMonth() + 1
   
-      if (!dni || !polizaEndoso) {
+      if (!dnisLimpios || !polizaEndoso) {
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
@@ -1037,9 +1051,9 @@ UNION
 
       }
 
-      const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip,fechaDesde)
-      console.log("validationDniResults", validationDniResults)
-      throw new ClientException(`test.`)
+      const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip,fechaDesde)
+      //console.log("validationDniResults", validationDniResults)
+      //throw new ClientException(`test.`)
       const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
@@ -1080,9 +1094,9 @@ UNION
     const notFoundInPersonalTable: number[] = [];
     const notFoundInPersonalSeguro: number[] = [];
     const shouldNotBeInSeguro: number[] = [];
-console.log("dni", dni)
+
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
-console.log("dniNumeros", dniNumeros)
+
     const personalRows = await queryRunner.query(`
       SELECT doc.PersonalDocumentoNro, per.PersonalId
       FROM dbo.Personal per
