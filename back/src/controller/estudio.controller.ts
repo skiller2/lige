@@ -371,7 +371,7 @@ export class EstudioController extends BaseController {
      
           resultFile = await FileUploadController.handleDOCUpload(
             PersonalId, 
-            file.objetivo_id, 
+            null, 
             file.cliente_id, 
             file.id, 
             new Date(), 
@@ -383,8 +383,8 @@ export class EstudioController extends BaseController {
             ip,
             queryRunner)
 
-          const maxId = await queryRunner.query(`SELECT MAX(doc_id) AS doc_id FROM lige.dbo.docgeneral`)
-          let PersonalEstudioPagina1Id = maxId[0].doc_id 
+         
+          let PersonalEstudioPagina1Id = resultFile.doc_id 
   
           await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId = @1 AND PersonalEstudioId = @2`,
              [PersonalEstudioPagina1Id, PersonalId, PersonalEstudioId])
