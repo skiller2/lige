@@ -1038,6 +1038,8 @@ UNION
       }
 
       const validationDniResults = await this.validateAnInsertDni(dni, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip,fechaDesde)
+      console.log("validationDniResults", validationDniResults)
+      throw new ClientException(`test.`)
       const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
@@ -1078,9 +1080,9 @@ UNION
     const notFoundInPersonalTable: number[] = [];
     const notFoundInPersonalSeguro: number[] = [];
     const shouldNotBeInSeguro: number[] = [];
-
+console.log("dni", dni)
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
-
+console.log("dniNumeros", dniNumeros)
     const personalRows = await queryRunner.query(`
       SELECT doc.PersonalDocumentoNro, per.PersonalId
       FROM dbo.Personal per
@@ -1132,7 +1134,7 @@ UNION
         continue;
       }
     
-      // Si no está asegurado y debería estarlo
+      // estan asegurados y no deberian estarlo
       if (!aseguradosSet.has(personalId)) {
         notFoundInPersonalSeguro.push(doc);
         continue;
