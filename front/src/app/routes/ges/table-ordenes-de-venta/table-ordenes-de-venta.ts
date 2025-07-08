@@ -1,7 +1,7 @@
 import {
   Component,
   ViewChild,
-  inject,input,EventEmitter,Output,
+  inject, input, EventEmitter, Output,
   model,
   effect
 } from '@angular/core';
@@ -12,12 +12,12 @@ import {
   debounceTime,
   map,
   switchMap,
-  tap,fromEvent,
+  tap, fromEvent,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs, Editors, Formatter} from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs, Editors, Formatter } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -26,6 +26,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
+import { LoadingService } from '@delon/abc/loading';
 
 type listOptionsT = {
   filtros: any[],
@@ -39,9 +40,9 @@ type listOptionsT = {
   imports: [SHARED_IMPORTS,
     CommonModule,
     NzAffixModule,
-    FiltroBuilderComponent, 
-],
-providers: [AngularUtilService],
+    FiltroBuilderComponent,
+  ],
+  providers: [AngularUtilService],
   templateUrl: './table-ordenes-de-venta.html',
   styleUrl: './table-ordenes-de-venta.less'
 })
@@ -52,12 +53,16 @@ export class TableOrdenesDeVentaComponent {
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
-  @Output()valueGridEvent = new EventEmitter();
+  @Output() valueGridEvent = new EventEmitter();
   RefreshLicencia = model<boolean>(false)
   anio = input<any>(0)
   mes = input<any>(0)
+  
+  private readonly loadingSrv = inject(LoadingService);
+  
 
-  constructor( public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { 
+  
+  constructor(public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService: SearchService) {
     // Effect para detectar cambios en la fecha y recargar datos
     effect(() => {
       if (this.anio() && this.mes()) {
@@ -68,11 +73,11 @@ export class TableOrdenesDeVentaComponent {
   }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-  
+
 
   columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
     let mapped = cols.map((col: Column) => {
-      
+
       if (col.id == 'ImporteFijo' || col.id == 'ImporteHora' || col.id == 'TotalHoras') {
         col.editor = {
           model: Editors['float'],
@@ -80,7 +85,7 @@ export class TableOrdenesDeVentaComponent {
           minValue: 0,
           maxValue: 10000000,
           alwaysSaveOnEnterKey: true,
-        //   required: true
+          //   required: true
         }
       }
       return col
@@ -99,7 +104,7 @@ export class TableOrdenesDeVentaComponent {
     sort: null,
     extra: null,
   }
-  dataAngularGrid:any
+  dataAngularGrid: any
   startFilters: any[] = []
 
   listOptionsChange(options: any) {
@@ -110,6 +115,8 @@ export class TableOrdenesDeVentaComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
+      this.loadingSrv.open({ type: 'spin', text: '' })
+
       return this.apiService
         .getListOrdenesDeVenta({ options: this.listOptions }, this.anio(), this.mes())
         .pipe(
@@ -117,8 +124,10 @@ export class TableOrdenesDeVentaComponent {
             this.dataAngularGrid = data.list
             return data.list
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => { this.tableLoading$.next(true) }),
+          tap({
+            complete: () => {
+              this.tableLoading$.next(false);  this.loadingSrv.close() } })
         );
     })
   )
@@ -147,7 +156,7 @@ export class TableOrdenesDeVentaComponent {
 
   ngOnDestroy() {
   }
-  
+
 
   angularGridReady(angularGrid: any) {
 
@@ -156,18 +165,18 @@ export class TableOrdenesDeVentaComponent {
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
-    })   
+    })
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
+    this.angularGridEdit.slickGrid.onClick.subscribe((e, args) => {
 
       // var data = this.dataAngularGrid[args.row]
 
     });
-    
-   
+
+
   }
 
-  valueRowSelectes(value:number){
+  valueRowSelectes(value: number) {
     this.dataAngularGrid
   }
 
@@ -179,5 +188,5 @@ export class TableOrdenesDeVentaComponent {
   }
 
 }
- 
+
 
