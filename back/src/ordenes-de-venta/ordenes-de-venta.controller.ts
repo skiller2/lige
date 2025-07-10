@@ -13,7 +13,8 @@ const columnasGrilla: any[] = [
     fieldName: "id",
     sortable: false,
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    selectable: false
   },
   {
     name: "CUIT Cliente",
@@ -25,6 +26,7 @@ const columnasGrilla: any[] = [
     searchHidden: true,
     hidden: false,
     // maxWidth: 120,
+    selectable: false
   },
   {
     name: "Razon social",
@@ -36,6 +38,7 @@ const columnasGrilla: any[] = [
     searchHidden: true,
     hidden: false,
     // maxWidth: 120,
+    selectable: false
   },
   // {
   //   name: "Cliente",
@@ -67,7 +70,8 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    maxWidth: 80,
+    // maxWidth: 80,
+    selectable: false
   },
   // {
   //   name: "Objetivo",
@@ -88,6 +92,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    selectable: false
   },
   {
     name: "Grupo Actividad",
@@ -98,6 +103,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    selectable: false
   },
   {
     name: "Mes",
@@ -108,6 +114,7 @@ const columnasGrilla: any[] = [
     sortable: false,
     hidden: false,
     searchHidden: true,
+    selectable: false
   },
   {
     name: "Año",
@@ -118,6 +125,7 @@ const columnasGrilla: any[] = [
     sortable: false,
     hidden: false,
     searchHidden: true,
+    selectable: false
   },
   {
     name: "Total Horas Real",
@@ -128,6 +136,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
+    selectable: false
   },
   {
     name: "Horas a facturar",
@@ -148,6 +157,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
+    selectable: false
   },
   {
     name: "Importe Hora",
@@ -179,7 +189,8 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    maxWidth: 100,
+    // maxWidth: 100,
+    selectable: false
   }
 ];
 

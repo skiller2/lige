@@ -1,23 +1,11 @@
-import {
-  Component,
-  ViewChild,
-  inject, input, EventEmitter, Output,
-  model,
-  effect
-} from '@angular/core';
+import { Component, inject, input, model, effect, signal, Injector } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
-import {
-  BehaviorSubject,
-  debounceTime,
-  map,
-  switchMap,
-  tap, fromEvent,
-} from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, firstValueFrom, timer } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs, Editors, Formatter } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, FieldType, Editors, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -48,37 +36,24 @@ type listOptionsT = {
 })
 export class TableOrdenesDeVentaComponent {
 
-  @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
-    new NgForm([], []);
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-  private readonly route = inject(ActivatedRoute);
-
-  @Output() valueGridEvent = new EventEmitter();
   RefreshLicencia = model<boolean>(false)
   anio = input<any>(0)
   mes = input<any>(0)
+  rowLocked = signal<boolean>(false);
   
   private readonly loadingSrv = inject(LoadingService);
+  private injector = inject(Injector)
+  private apiService = inject(ApiService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
   
-
-  
-  constructor(public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService: SearchService) {
-    // Effect para detectar cambios en la fecha y recargar datos
-    effect(() => {
-      if (this.anio() && this.mes()) {
-        // console.log("Fecha cambiada:", this.anio(), this.mes())
-        this.formChange$.next('')
-      }
-    })
-  }
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 
 
   columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
     let mapped = cols.map((col: Column) => {
-
-      if (col.id == 'ImporteFijo' || col.id == 'ImporteHora' || col.id == 'TotalHoras') {
+      if (col.id === 'ImporteFijo' || col.id === 'ImporteHora' || col.id === 'TotalHoras') {
         col.editor = {
           model: Editors['float'],
           decimal: 2,
@@ -139,9 +114,54 @@ export class TableOrdenesDeVentaComponent {
     this.gridOptions.createFooterRow = true
     this.gridOptions.editable = true
     this.gridOptions.autoEdit = true
-    // this.gridOptions.autoAddCustomEditorFormatter = customEditableInputFormatter
+    this.angularGridEdit
+    this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
+      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+      this.angularGridEdit.slickGrid.invalidate();
+      //Intento grabar si tiene error hago undo
+      try {
+          if (column.type == FieldType.number || column.type == FieldType.float)
+              editCommand.serializedValue = Number(editCommand.serializedValue)
 
-    const dateToday = new Date();
+          if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
+
+          if (column.id !== 'ImporteFijo' && column.id !== 'ImporteHora' && column.id !== 'TotalHoras') return
+          
+          editCommand.execute()
+          
+          while (this.rowLocked()) await firstValueFrom(timer(100));
+          row = this.angularGridEdit.dataView.getItemById(row.id)
+          
+          if (this.xorNumerico(row.ImporteFijo, row.ImporteHora) || row.TotalHoras ) {
+            this.rowLocked.set(true)
+            await firstValueFrom(this.apiService.setValorFacturacion(
+              row.ObjetivoAsistenciaAnoAno,
+              row.ObjetivoAsistenciaAnoMesMes,
+              row.ObjetivoId,
+              row.ImporteHora,
+              row.ImporteFijo, 
+              row.TotalHoras
+            ))
+          } 
+
+          this.rowLocked.set(false)
+      } catch (e: any) {
+          // console.log('Error :' , e);
+          
+          if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
+            editCommand.undo();
+
+          this.rowLocked.set(false)
+      }
+    }
+
+    // Effect para detectar cambios en la fecha y recargar datos
+    effect(async () => {
+      if (this.anio() && this.mes()) {
+        this.formChange$.next('')
+      }
+    }, { injector: this.injector });
+
     this.startFilters = [{}]
   }
 
@@ -185,6 +205,30 @@ export class TableOrdenesDeVentaComponent {
       filename: 'lista-ordenes-de-venta',
       format: FileType.xlsx
     });
+  }
+
+  updateItemMetadata(previousItemMetadata: any) {
+        return (rowNumber: number) => {
+        // const newCssClass = 'element-add-no-complete';
+        const item = this.angularGridEdit.dataView.getItem(rowNumber);
+        let meta = {
+            cssClasses: ''
+        };
+        if (typeof previousItemMetadata === 'object') {
+            meta = previousItemMetadata(rowNumber);
+        }
+        
+        if ( !this.xorNumerico(item.ImporteFijo, item.ImporteHora) || !item.TotalHoras ) {
+            meta.cssClasses = 'element-add-no-complete';
+        } else
+            meta.cssClasses = ''
+
+      return meta;
+    };
+  }
+
+  xorNumerico(a: number, b: number): boolean {
+    return (!!a !== !!b);
   }
 
 }
