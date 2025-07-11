@@ -524,7 +524,7 @@ export class CustodiaController extends BaseController {
         const num_factura = objetivoCustodia.numFactura ? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
-        const fechaActual = objetivoCustodia.fechaActual? objetivoCustodia.fechaActual : new Date()
+        const fechaActual = objetivoCustodia.fechaActual ? objetivoCustodia.fechaActual : new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
 
@@ -633,6 +633,16 @@ export class CustodiaController extends BaseController {
             ${orderBy}`, [year, month])
     }
 
+
+    getPreviousMonthYear(year: number,month: number): { year: number,month: number } {
+        if (month === 1) {
+            return { year: year - 1, month: 12 };
+        } else {
+            return { year: year, month: month - 1  };
+        }
+    }
+
+
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia: any, usuario: any, ip: any) {
         const objetivo_custodia_id = objetivoCustodia.id
         const cliente_id = objetivoCustodia.clienteId
@@ -653,7 +663,7 @@ export class CustodiaController extends BaseController {
         const num_factura = objetivoCustodia.numFactura ? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
-        const fechaActual = objetivoCustodia.fechaActual? objetivoCustodia.fechaActual : new Date()
+        const fechaActual = objetivoCustodia.fechaActual ? objetivoCustodia.fechaActual : new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
         let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4 || estado == 5)) ? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
@@ -759,7 +769,7 @@ export class CustodiaController extends BaseController {
             [custodiaId, patente])
     }
 
-    async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner, usuario:string,ip:string) {
+    async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner, usuario: string, ip: string) {
         let errores: string[] = []
         const sitrev = await queryRunner.query(`SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, ps.PersonalSituacionRevistaSituacionId, ps.PersonalSituacionRevistaDesde, ps.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion
             FROM Personal per
@@ -778,32 +788,32 @@ export class CustodiaController extends BaseController {
         const mes = fechaDesde.getMonth() + 1
         const asistenciaController = new AsistenciaController()
         const categorias = await asistenciaController.getCategoriasPorPersonaQuery(anio, mes, PersonalId, 1, queryRunner);
-        
+
         const categoria = categorias.filter((cat: any) => cat.TipoAsociadoId == 2) //CUSTODIA
         if (categoria.length == 0)
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
-      const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+        const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+        const perAntUltimo = this.getPreviousMonthYear(perUltRecibo[0].anio, perUltRecibo[0].mes)
+        const bot = await AccesoBotController.getBotStatus(perAntUltimo.year, perAntUltimo.month, queryRunner, [PersonalId])
 
-      const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [PersonalId])
+        if (bot[0].visto != 1 && bot[0].doc_id > 0) {
 
-      if (bot[0].visto != 1 && bot[0].doc_id > 0) {
+            if (bot[0].registrado == 0) {
+                errores.push(`${sitrev[0].ApellidoNombre} no se encuentra registro en el Bot`)
+            } else {
 
-        if (bot[0].registrado == 0) {
-          errores.push(`${sitrev[0].ApellidoNombre} no se encuentra registro en el Bot`)
-        } else {
+                errores.push(`${sitrev[0].ApellidoNombre} el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por la persona`)
 
-          errores.push(`${sitrev[0].ApellidoNombre} el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por la persona`)
+                const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+                if (sendit) errores.push(`${sitrev[0].ApellidoNombre} Se envió notificación recordando que descargue el recibo`)
+            }
 
-          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
-          if (sendit) errores.push(`${sitrev[0].ApellidoNombre} Se envió notificación recordando que descargue el recibo`)
         }
-
-      }
 
         return errores
     };
-                    
+
 
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
@@ -884,7 +894,7 @@ export class CustodiaController extends BaseController {
 
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
-                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario,ip);
+                    const erroresPersona = await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario, ip);
                     errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
@@ -931,7 +941,7 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(errores.join(`\n`))
 
             await queryRunner.commitTransaction()
-            return this.jsonRes({ custodiaId: objetivoCustodiaId, responsable, aud_usuario_ins: usuario, aud_fecha_ins: fechaActual}, res, 'Carga Exitosa');
+            return this.jsonRes({ custodiaId: objetivoCustodiaId, responsable, aud_usuario_ins: usuario, aud_fecha_ins: fechaActual }, res, 'Carga Exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -1094,7 +1104,7 @@ export class CustodiaController extends BaseController {
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
 
 
-                    const erroresPersona  =  await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario,ip);
+                    const erroresPersona = await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario, ip);
                     errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
@@ -1151,7 +1161,7 @@ export class CustodiaController extends BaseController {
             await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             await queryRunner.commitTransaction()
-            return this.jsonRes({aud_usuario_mod: usuario, aud_fecha_mod: objetivoCustodia.fechaActual}, res, 'Carga Exitosa');
+            return this.jsonRes({ aud_usuario_mod: usuario, aud_fecha_mod: objetivoCustodia.fechaActual }, res, 'Carga Exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
