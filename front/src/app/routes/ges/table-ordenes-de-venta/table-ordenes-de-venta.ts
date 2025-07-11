@@ -187,13 +187,6 @@ export class TableOrdenesDeVentaComponent {
       totalRecords(this.angularGridEdit)
     })
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((e, args) => {
-
-      // var data = this.dataAngularGrid[args.row]
-
-    });
-
-
   }
 
   valueRowSelectes(value: number) {
@@ -229,6 +222,11 @@ export class TableOrdenesDeVentaComponent {
 
   xorNumerico(a: number, b: number): boolean {
     return (!!a !== !!b);
+  }
+
+  handleOnBeforeEditCell(e:Event) {
+    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    return column.editable
   }
 
 }
