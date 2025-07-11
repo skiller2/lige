@@ -144,7 +144,7 @@ export class DocumentoComponent {
 
     const fisrtOfMonth = new Date(); //date
     fisrtOfMonth.setDate(1)
-    this.startFilters.set([{ field: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, forced: false }])
+    // this.startFilters.set([{ field: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, forced: false }])
   }
 
   ngAfterViewInit(): void {
