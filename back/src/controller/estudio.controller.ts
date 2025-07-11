@@ -368,7 +368,7 @@ export class EstudioController extends BaseController {
         for (const file of req.body.files) {
 
           let fec_doc_ven = file.fec_doc_ven ? file.fec_doc_ven : PersonalEstudioHasta
-     
+          let DocumentoClienteId =  null
           resultFile = await FileUploadController.handleDOCUpload(
             PersonalId, 
             null, 
@@ -381,7 +381,8 @@ export class EstudioController extends BaseController {
             file, 
             usuario,
             ip,
-            queryRunner)
+            queryRunner,
+            DocumentoClienteId)
 
          
           let PersonalEstudioPagina1Id = resultFile.doc_id 
@@ -472,11 +473,13 @@ export class EstudioController extends BaseController {
       await queryRunner.startTransaction();
 
       const PersonalEstudioPagina1Id = await queryRunner.query(`SELECT PersonalEstudioPagina1Id FROM PersonalEstudio WHERE PersonalEstudioId = @0 AND PersonalId = @1`, [PersonalEstudioId, PersonalId])
-      
+   
+      //console.log("PersonalEstudioPagina1Id", PersonalEstudioPagina1Id)
+      //throw new ClientException(`test.`)
       await queryRunner.query(`DELETE FROM PersonalEstudio  WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId, PersonalEstudioId])
 
       if(PersonalEstudioPagina1Id[0].PersonalEstudioPagina1Id) {
-        await FileUploadController.deleteFile(PersonalEstudioPagina1Id[0].PersonalEstudioPagina1Id, 'docgeneral', queryRunner)
+        await FileUploadController.deleteFile(PersonalEstudioPagina1Id[0].PersonalEstudioPagina1Id, 'Documento', queryRunner)
       }
       
       await queryRunner.commitTransaction();

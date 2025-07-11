@@ -1209,8 +1209,8 @@ UNION
       // hacer for para cada archivo
       for (const file of files) {
         let fec_doc_ven = null
-        let PersonalId = 0
-        
+        let PersonalId = null
+        let DocumentoClienteId = 934
         let cliente_id = file.cliente_id > 0 ? file.cliente_id : null
         let objetivo_id = file.objetivo_id > 0 ? file.objetivo_id : null
         //throw new ClientException(`Debe subir un solo archivo.`)
@@ -1226,7 +1226,8 @@ UNION
           file, 
           usuario,
           ip,
-          queryRunner)
+          queryRunner,
+          DocumentoClienteId)
       
       }
       return resultFile

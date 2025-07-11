@@ -339,6 +339,7 @@ export class FileUploadController extends BaseController {
     usuario: any,
     ip: any,
     queryRunner: QueryRunner,
+    DocumentoCliente?: any
   ) {
     let periodo_id = 0
     let fechaActual = new Date();
@@ -350,7 +351,7 @@ export class FileUploadController extends BaseController {
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
     }
      
-
+    let DocumentoClienteId = DocumentoCliente ? DocumentoCliente : null
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
     const tableForSearch = file.tableForSearch
@@ -394,14 +395,14 @@ export class FileUploadController extends BaseController {
         }
 
         newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-        console.log("newFilePath", newFilePath)
-        console.log("file.tempfilename", file.tempfilename)
+        //console.log("newFilePath", newFilePath)
+        //console.log("file.tempfilename", file.tempfilename)
         this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
         const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
 
         var maxid = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
-        console.log("maxid..................", maxid)
+        //console.log("maxid..................", maxid)
 
         
         await queryRunner.query(`INSERT INTO Documento (
@@ -431,7 +432,7 @@ export class FileUploadController extends BaseController {
           [
             doc_id,
             doctipo_id,
-            null,
+            personal_id,
             objetivo_id,
             den_documento,
             namefile,
@@ -446,14 +447,14 @@ export class FileUploadController extends BaseController {
             fechaActual, 
             usuario, 
             ip,
-            934,
+            DocumentoClienteId,
             anio, 
             mes
           ])
 
 
           var maxid2 = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
-          console.log("maxid2..................", maxid2)
+          //console.log("maxid2..................", maxid2)
 
       } else {
         // UPDATE DOCUMENTO
