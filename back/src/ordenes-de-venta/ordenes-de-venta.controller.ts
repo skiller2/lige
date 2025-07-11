@@ -14,7 +14,7 @@ const columnasGrilla: any[] = [
     sortable: false,
     hidden: true,
     searchHidden: true,
-    selectable: false
+    editable: false
   },
   {
     name: "CUIT Cliente",
@@ -26,7 +26,7 @@ const columnasGrilla: any[] = [
     searchHidden: true,
     hidden: false,
     // maxWidth: 120,
-    selectable: false
+    editable: false
   },
   {
     name: "Razon social",
@@ -38,7 +38,7 @@ const columnasGrilla: any[] = [
     searchHidden: true,
     hidden: false,
     // maxWidth: 120,
-    selectable: false
+    editable: false
   },
   // {
   //   name: "Cliente",
@@ -71,7 +71,7 @@ const columnasGrilla: any[] = [
     searchHidden: true,
     hidden: false,
     // maxWidth: 80,
-    selectable: false
+    editable: false
   },
   // {
   //   name: "Objetivo",
@@ -92,7 +92,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    selectable: false
+    editable: false
   },
   {
     name: "Grupo Actividad",
@@ -103,7 +103,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    selectable: false
+    editable: false
   },
   {
     name: "Mes",
@@ -114,7 +114,7 @@ const columnasGrilla: any[] = [
     sortable: false,
     hidden: false,
     searchHidden: true,
-    selectable: false
+    editable: false
   },
   {
     name: "Año",
@@ -125,7 +125,7 @@ const columnasGrilla: any[] = [
     sortable: false,
     hidden: false,
     searchHidden: true,
-    selectable: false
+    editable: false
   },
   {
     name: "Total Horas Real",
@@ -136,7 +136,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    selectable: false
+    editable: false
   },
   {
     name: "Horas a facturar",
@@ -147,6 +147,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
+    editable: true
   },
   {
     name: "Diferencia Horas",
@@ -157,7 +158,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    selectable: false
+    editable: false
   },
   {
     name: "Importe Hora",
@@ -179,6 +180,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     // maxWidth: 100,
+    editable: true
   },
   {
     name: "Total a Facturar",
@@ -190,7 +192,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     // maxWidth: 100,
-    selectable: false
+    editable: false
   }
 ];
 
