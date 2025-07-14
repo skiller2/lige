@@ -189,9 +189,9 @@ const columnasGrilla: any[] = [
   {
     name: "Total a Facturar",
     type: "currency",
-    id: "TotalAFacurar",
-    field: "TotalAFacurar",
-    fieldName: "TotalAFacurar",
+    id: "TotalAFacturar",
+    field: "TotalAFacturar",
+    fieldName: "TotalAFacturar",
     searchType: "float",
     sortable: true,
     hidden: false,
@@ -228,7 +228,7 @@ export class OrdenesDeVentaController extends BaseController {
           objasissub.sumtotalhorascalc AS AsistenciaHoras,
           objm.ObjetivoAsistenciaAnoMesHasta,
           ven.TotalHorasReal, ven.TotalHoras, (ISNULL(ven.TotalHoras,0)-ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
-          ven.ImporteHora, ven.ImporteFijo, (ISNULL(ven.TotalHoras,0)*ISNULL(ven.ImporteHora,0)+ISNULL(ven.ImporteFijo,0)) AS TotalAFacurar,
+          ven.ImporteHora, ven.ImporteFijo, (ISNULL(ven.TotalHoras,0)*ISNULL(ven.ImporteHora,0)+ISNULL(ven.ImporteFijo,0)) AS TotalAFacturar,
           1
         FROM Objetivo obj 
         LEFT JOIN ObjetivoImporteVenta ven ON ven.ClienteId =  obj.ClienteId AND ven.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND  ven.Anio = @1 AND ven.Mes = @2

@@ -142,6 +142,8 @@ export class TableOrdenesDeVentaComponent {
               row.ImporteFijo, 
               row.TotalHoras
             ))
+            row.TotalAFacturar = (row.TotalHoras * row.ImporteHora) + row.ImporteFijo
+            this.angularGridEdit.gridService.updateItemById(row.id, row)
           } 
 
           this.rowLocked.set(false)
