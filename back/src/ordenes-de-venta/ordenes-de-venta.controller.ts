@@ -144,16 +144,27 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Horas a facturar",
+    name: "Horas a facturar A",
     type: "number",
-    id: "TotalHoras",
-    field: "TotalHoras",
-    fieldName: "ven.TotalHoras",
+    id: "TotalHoraA",
+    field: "TotalHoraA",
+    fieldName: "ven.TotalHoraA",
     searchType: "float",
     sortable: true,
     hidden: false,
     editable: true
   },
+  {
+    name: "Horas a facturar B",
+    type: "number",
+    id: "TotalHoraB",
+    field: "TotalHoraB",
+    fieldName: "ven.TotalHoraB",
+    searchType: "float",
+    sortable: true,
+    hidden: false,
+    editable: true
+  },  
   {
     name: "Diferencia Horas",
     type: "number",
@@ -166,25 +177,24 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Importe Hora",
-    id: "ImporteHora",
-    field: "ImporteHora",
+    name: "Importe Hora A",
+    id: "ImporteHoraA",
+    field: "ImporteHoraA",
     type: 'currency',
-    fieldName: "ven.ImporteHora",
+    fieldName: "ven.ImporteHoraA",
     searchType: "float",
     sortable: true,
     hidden: false,
   },
   {
-    name: "Importe Fijo",
+    name: "Importe Hora B",
+    id: "ImporteHoraB",
+    field: "ImporteHoraB",
     type: 'currency',
-    id: "ImporteFijo",
-    field: "ImporteFijo",
-    fieldName: "ven.ImporteFijo",
+    fieldName: "ven.ImporteHoraB",
     searchType: "float",
     sortable: true,
     hidden: false,
-    editable: true
   },
   {
     name: "Total a Facturar",
@@ -227,8 +237,12 @@ export class OrdenesDeVentaController extends BaseController {
           gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
           objasissub.sumtotalhorascalc AS AsistenciaHoras,
           objm.ObjetivoAsistenciaAnoMesHasta,
-          ven.TotalHorasReal, ven.TotalHoras, (ISNULL(ven.TotalHoras,0)-ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
-          ven.ImporteHora, ven.ImporteFijo, (ISNULL(ven.TotalHoras,0)*ISNULL(ven.ImporteHora,0)+ISNULL(ven.ImporteFijo,0)) AS TotalAFacturar,
+
+          ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB,
+          
+          ven.TotalHorasReal, ven.TotalHoras, (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
+          ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
+
           1
         FROM Objetivo obj 
         LEFT JOIN ObjetivoImporteVenta ven ON ven.ClienteId =  obj.ClienteId AND ven.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND  ven.Anio = @1 AND ven.Mes = @2
