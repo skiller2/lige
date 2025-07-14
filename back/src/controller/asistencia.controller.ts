@@ -200,6 +200,71 @@ const columnasPersonalxResponsableDesc: any[] = [
 ];
 
 export class AsistenciaController extends BaseController {
+  async setHorasFacturacion(req: any, res: Response, next: NextFunction) {
+    const {
+      anio,
+      mes,
+      ObjetivoId,
+      TotalHorasA,
+      TotalHorasB
+    } = req.body
+
+    const queryRunner = dataSource.createQueryRunner();
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date()
+
+
+    try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para cargar valores de facturación`)
+
+
+      await queryRunner.startTransaction()
+
+      const objetivo = await queryRunner.query(
+        `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+       FROM Objetivo obj 
+       LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
+       WHERE obj.ObjetivoId = @0
+       `, [ObjetivoId, anio, mes])
+
+      if (objetivo.length == 0)
+        throw new ClientException(`No se encontró el objetivo`)
+
+      const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+      const ClienteId = objetivo[0].ClienteId
+      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
+
+      if (objetivo[0].ClienteIdImporteVenta) {
+        await queryRunner.query(
+          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, ImporteHoraA=@5, ImporteHoraB=@6,
+           AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
+           WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, 0, 0, fechaActual, usuario, ip])
+      } else {
+        await queryRunner.query(
+          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, 0, 0,
+            fechaActual, usuario, ip])
+      }
+
+      await queryRunner.commitTransaction();
+      this.jsonRes([], res, `Valores Actualizados`);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+
+  }
+
+
+
   async setValorFacturacion(req: any, res: Response, next: NextFunction) {
     const {
       anio,
@@ -242,8 +307,8 @@ export class AsistenciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, ImporteHoraA=@6, ImporteHoraB = @7, ImporteHoraA=@8,ImporteHoraB=@9,
-           AudFechaMod=@10, AudUsuarioMod=@11, AudIpMod=@12
+          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, ImporteHoraA=@5, ImporteHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
+           AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
           [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
       } else {
