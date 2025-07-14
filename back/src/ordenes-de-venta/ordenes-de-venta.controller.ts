@@ -113,10 +113,10 @@ const columnasGrilla: any[] = [
   {
     name: "Mes",
     type: "number",
-    id: "ObjetivoAsistenciaAnoMesMes",
-    field: "ObjetivoAsistenciaAnoMesMes",
-    fieldName: "objm.ObjetivoAsistenciaAnoMesMes",
-    sortable: false,
+    id: "mes",
+    field: "mes",
+    fieldName: "mes",
+    sortable: true,
     hidden: false,
     searchHidden: true,
     editable: false
@@ -124,10 +124,10 @@ const columnasGrilla: any[] = [
   {
     name: "Año",
     type: "number",
-    id: "ObjetivoAsistenciaAnoAno",
-    field: "ObjetivoAsistenciaAnoAno",
-    fieldName: "obja.ObjetivoAsistenciaAnoAno",
-    sortable: false,
+    id: "anio",
+    field: "anio",
+    fieldName: "anio",
+    sortable: true,
     hidden: false,
     searchHidden: true,
     editable: false
@@ -228,6 +228,8 @@ export class OrdenesDeVentaController extends BaseController {
 
       const listCargaLicenciaHistory = await queryRunner.query(`
         SELECT DISTINCT
+          @1 anio,
+          @2 mes,
           CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as id, 
           suc.SucursalId, suc.SucursalDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,fac.ClienteFacturacionCUIT,
           cli.ClienteDenominacion, eledep.ClienteElementoDependienteDescripcion,
