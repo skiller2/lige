@@ -1373,15 +1373,16 @@ export class GrupoActividadController extends BaseController {
     async gruposPersonas(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = dataSource.createQueryRunner();
-        const fechaCorte = new Date()
-        fechaCorte.setDate(1)
 
-        const fechaMonth = new Date()
-        fechaMonth.setDate(fechaCorte.getDate() - 1);
+        const today = new Date();
+        const fechaMonth = new Date(today.getFullYear(), today.getMonth(), 0);
         const anio = fechaMonth.getFullYear()
         const mes = fechaMonth.getMonth() + 1
-        fechaMonth.setHours(0, 0, 0, 0)
 
+
+
+
+//console.log('grupoPersonas',fechaMonth,anio,mes)
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -1394,16 +1395,16 @@ export class GrupoActividadController extends BaseController {
                 GROUP BY sitj.PersonalId
                     ) sitlast ON sitlast.PersonalId=sit.PersonalId AND sitlast.PersonalSituacionRevistaDesde = sit.PersonalSituacionRevistaDesde
 
-                JOIN GrupoActividadPersonal gru ON gru.GrupoActividadPersonalPersonalId = sit.PersonalId AND gru.GrupoActividadPersonalDesde<= @0  AND ISNULL(gru.GrupoActividadPersonalHasta,'9999-12-31')>=@0
+                JOIN GrupoActividadPersonal gru ON gru.GrupoActividadPersonalPersonalId = sit.PersonalId AND gru.GrupoActividadPersonalDesde<= @0  AND ISNULL(gru.GrupoActividadPersonalHasta,'9999-12-31')>@0
                 JOIN SituacionRevista sitdes ON sitdes.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId
-                WHERE sit.PersonalSituacionRevistaSituacionId NOT IN (2,10,11,14,21,12,26,20)
-                `, [fechaCorte, anio, mes])
+                WHERE sit.PersonalSituacionRevistaSituacionId NOT IN (2,10,11,12,14,20,21,22,28)
+                `, [fechaMonth, anio, mes])
 
             if (personal.length > 0) {
                 const personalIds = personal.map(p => p.PersonalId).join(',');
                 await queryRunner.query(`UPDATE GrupoActividadPersonal SET  GrupoActividadPersonalHasta = @0 WHERE GrupoActividadPersonalPersonalId IN (${personalIds}) AND GrupoActividadPersonalDesde <= @0 AND ISNULL(GrupoActividadPersonalHasta,'9999-12-31')>@0 `, [fechaMonth])
             }
-
+//throw new ClientException('sali')
             await queryRunner.commitTransaction();
             if (res)
                 this.jsonRes({ list: [] }, res, `Se actualizaron los grupos `);
