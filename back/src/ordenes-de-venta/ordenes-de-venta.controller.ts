@@ -1,8 +1,9 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros";
+import { Options } from "../schemas/filtro";
 import { NextFunction, Request, Response } from "express";
-import { ObjetivoController } from "src/controller/objetivo.controller";
+// import { ObjetivoController } from "src/controller/objetivo.controller";
 
 const columnasGrilla: any[] = [
   {
@@ -12,8 +13,21 @@ const columnasGrilla: any[] = [
     field: "id",
     fieldName: "id",
     sortable: false,
-    hidden: true,
     searchHidden: true,
+    hidden: true,
+    editable: false
+  },
+  {
+    name: "Cliente",
+    type: "number",
+    id: "ClienteId",
+    field: "ClienteId",
+    fieldName: "obj.ClienteId",
+    searchComponent: "inpurForClientSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
     editable: false
   },
   {
@@ -25,7 +39,6 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    // maxWidth: 120,
     editable: false
   },
   {
@@ -37,30 +50,8 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    // maxWidth: 120,
     editable: false
   },
-  // {
-  //   name: "Cliente",
-  //   type: "string",
-  //   id: "ElementoDependienteId",
-  //   field: "ElementoDependienteId",
-  //   fieldName: "cliele.ElementoDependienteId",
-  //   searchComponent: "inpurForClientSearch",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: false
-  // },
-  // {
-  //   name: "Nombre Cliente",
-  //   type: "string",
-  //   id: "ClienteDenominacion",
-  //   field: "ClienteDenominacion",
-  //   fieldName: "cli.ClienteDenominacion",
-  //   sortable: true,
-  //   searchHidden: true,
-  //   hidden: false,
-  // },
   {
     name: "Cod Obj",
     type: "string",
@@ -70,19 +61,20 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    // maxWidth: 80,
     editable: false
   },
-  // {
-  //   name: "Objetivo",
-  //   type: "number",
-  //   id: "ObjetivoCodigo",
-  //   field: "ObjetivoCodigo",
-  //   fieldName: "carg.objetivo_id",
-  //   searchComponent: "inpurForObjetivoSearch",
-  //   hidden: true,
-  //   searchHidden: false
-  // },
+  {
+    name: "Objetivo",
+    type: "number",
+    id: "ObjetivoId",
+    field: "ObjetivoId",
+    fieldName: "obj.ObjetivoId",
+    searchComponent: "inpurForObjetivoSearch",
+    searchType: "number",
+    hidden: true,
+    searchHidden: false,
+    editable: false
+  },
   {
     name: "Nombre Obj",
     type: "string",
@@ -92,6 +84,19 @@ const columnasGrilla: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    editable: false
+  },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inpurForGrupoActividadSearch',
+    searchType: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
     editable: false
   },
   {
@@ -179,7 +184,6 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    // maxWidth: 100,
     editable: true
   },
   {
@@ -191,7 +195,6 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    // maxWidth: 100,
     editable: false
   }
 ];
@@ -202,14 +205,12 @@ export class OrdenesDeVentaController extends BaseController {
     this.jsonRes(columnasGrilla, res);
   }
 
-  async getListOrdenesDeVenta(
-    req: any,
-    res: Response,
-    next: NextFunction
-  ) {
+  async getListOrdenesDeVenta(req: Request, res: Response, next: NextFunction) {
 
-    const filterSql = filtrosToSql(req.body.filters["options"].filtros, columnasGrilla);
-    //const orderBy = orderToSQL(req.body.options.sort)
+    const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+    
+    const filterSql = filtrosToSql(options.filtros, columnasGrilla);
+    const orderBy = orderToSQL(options.sort)
     const anio = req.body.anio
     const mes = req.body.mes
     const queryRunner = dataSource.createQueryRunner();
@@ -311,6 +312,8 @@ export class OrdenesDeVentaController extends BaseController {
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
+        AND (${filterSql})
+        ${orderBy}
         `, [ , anio, mes])
       this.jsonRes(
         {

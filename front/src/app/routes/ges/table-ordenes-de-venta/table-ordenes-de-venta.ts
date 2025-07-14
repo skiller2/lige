@@ -93,7 +93,7 @@ export class TableOrdenesDeVentaComponent {
       this.loadingSrv.open({ type: 'spin', text: '' })
 
       return this.apiService
-        .getListOrdenesDeVenta({ options: this.listOptions }, this.anio(), this.mes())
+        .getListOrdenesDeVenta(this.listOptions, this.anio(), this.mes())
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
