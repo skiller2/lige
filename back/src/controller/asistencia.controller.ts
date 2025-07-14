@@ -307,7 +307,7 @@ export class AsistenciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, ImporteHoraA=@5, ImporteHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
+          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
           [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
@@ -320,8 +320,19 @@ export class AsistenciaController extends BaseController {
             fechaActual, usuario, ip])
       }
 
+
+      const rec = await queryRunner.query(
+        `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHorasReal,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB,
+          ISNULL(ven.TotalHoraA,0) + ISNULL(ven.TotalHoraB,0) - ISNULL( ven.TotalHorasReal,0) AS DiferenciaHoras,
+          ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
+          1
+          FROM ObjetivoImporteVenta ven
+          WHERE ven.ClienteId=@0 AND ven.Anio=@1 AND ven.Mes=@2 AND ven.ClienteElementoDependienteId=@3`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId])
+
+
       await queryRunner.commitTransaction();
-      this.jsonRes([], res, `Valores Actualizados`);
+      this.jsonRes(rec, res, `Valores Actualizados`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)

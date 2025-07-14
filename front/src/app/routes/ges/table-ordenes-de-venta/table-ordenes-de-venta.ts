@@ -40,20 +40,20 @@ export class TableOrdenesDeVentaComponent {
   anio = input<any>(0)
   mes = input<any>(0)
   rowLocked = signal<boolean>(false);
-  
+
   private readonly loadingSrv = inject(LoadingService);
   private injector = inject(Injector)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
-  
+
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 
 
   columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
     let mapped = cols.map((col: Column) => {
-      if (col.id === 'ImporteFijo' || col.id === 'ImporteHora' || col.id === 'TotalHoras') {
+      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA' || col.id === 'TotalHoraA' || col.id === 'TotalHoraB') {
         col.editor = {
           model: Editors['float'],
           decimal: 2,
@@ -102,7 +102,9 @@ export class TableOrdenesDeVentaComponent {
           doOnSubscribe(() => { this.tableLoading$.next(true) }),
           tap({
             complete: () => {
-              this.tableLoading$.next(false);  this.loadingSrv.close() } })
+              this.tableLoading$.next(false); this.loadingSrv.close()
+            }
+          })
         );
     })
   )
@@ -116,45 +118,47 @@ export class TableOrdenesDeVentaComponent {
     this.gridOptions.autoEdit = true
     this.angularGridEdit
     this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+
+        if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA' && column.id !== 'TotalHoraA' && column.id !== 'TotalHoraB') return
+
+      //this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
       //Intento grabar si tiene error hago undo
       try {
-          if (column.type == FieldType.number || column.type == FieldType.float)
-              editCommand.serializedValue = Number(editCommand.serializedValue)
+        if (column.type == FieldType.number || column.type == FieldType.float)
+          editCommand.serializedValue = Number(editCommand.serializedValue)
 
-          if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
+        if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
 
-          if (column.id !== 'ImporteFijo' && column.id !== 'ImporteHora' && column.id !== 'TotalHoras') return
-          
-          editCommand.execute()
-          
-          while (this.rowLocked()) await firstValueFrom(timer(100));
-          row = this.angularGridEdit.dataView.getItemById(row.id)
-          
-          if (this.xorNumerico(row.ImporteFijo, row.ImporteHora) || row.TotalHoras ) {
-            this.rowLocked.set(true)
-            await firstValueFrom(this.apiService.setValorFacturacion(
-              row.ObjetivoAsistenciaAnoAno,
-              row.ObjetivoAsistenciaAnoMesMes,
-              row.ObjetivoId,
-              row.ImporteHoraA,
-              row.ImporteHoraB, 
-              row.TotalHoraA,
-              row.TotalHoraB
-            ))
-            row.TotalAFacturar = (row.TotalHoras * row.ImporteHora) + row.ImporteFijo
-            this.angularGridEdit.gridService.updateItemById(row.id, row)
-          } 
 
-          this.rowLocked.set(false)
+        editCommand.execute()
+
+        while (this.rowLocked()) await firstValueFrom(timer(100));
+        row = this.angularGridEdit.dataView.getItemById(row.id)
+
+        this.rowLocked.set(true)
+        const ret = await firstValueFrom(this.apiService.setValorFacturacion(
+          row.ObjetivoAsistenciaAnoAno,
+          row.ObjetivoAsistenciaAnoMesMes,
+          row.ObjetivoId,
+          row.ImporteHoraA,
+          row.ImporteHoraB,
+          row.TotalHoraA,
+          row.TotalHoraB
+        ))
+        //row.TotalAFacturar = (row.TotalHoras * row.ImporteHora) + row.ImporteFijo
+
+        const updRecord = {...row,...ret[0]}
+        this.angularGridEdit.gridService.updateItemById(row.id, updRecord)
+
+        this.rowLocked.set(false)
       } catch (e: any) {
-          // console.log('Error :' , e);
-          
-          if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
-            editCommand.undo();
+        // console.log('Error :' , e);
 
-          this.rowLocked.set(false)
+        if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
+          editCommand.undo();
+
+        this.rowLocked.set(false)
       }
     }
 
@@ -204,20 +208,20 @@ export class TableOrdenesDeVentaComponent {
   }
 
   updateItemMetadata(previousItemMetadata: any) {
-        return (rowNumber: number) => {
-        // const newCssClass = 'element-add-no-complete';
-        const item = this.angularGridEdit.dataView.getItem(rowNumber);
-        let meta = {
-            cssClasses: ''
-        };
-        if (typeof previousItemMetadata === 'object') {
-            meta = previousItemMetadata(rowNumber);
-        }
-        
-        if ( !this.xorNumerico(item.ImporteFijo, item.ImporteHora) || !item.TotalHoras ) {
-            meta.cssClasses = 'element-add-no-complete';
-        } else
-            meta.cssClasses = ''
+    return (rowNumber: number) => {
+      // const newCssClass = 'element-add-no-complete';
+      const item = this.angularGridEdit.dataView.getItem(rowNumber);
+      let meta = {
+        cssClasses: ''
+      };
+      if (typeof previousItemMetadata === 'object') {
+        meta = previousItemMetadata(rowNumber);
+      }
+
+      if (!this.xorNumerico(item.ImporteFijo, item.ImporteHora) || !item.TotalHoras) {
+        meta.cssClasses = 'element-add-no-complete';
+      } else
+        meta.cssClasses = ''
 
       return meta;
     };
@@ -227,7 +231,7 @@ export class TableOrdenesDeVentaComponent {
     return (!!a !== !!b);
   }
 
-  handleOnBeforeEditCell(e:Event) {
+  handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
     return column.editable
   }
