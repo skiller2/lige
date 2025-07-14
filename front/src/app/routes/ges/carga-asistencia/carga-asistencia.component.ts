@@ -73,6 +73,7 @@ export class CargaAsistenciaComponent {
     personalApellidoNombre: any;
     rowLocked: boolean = false;
     objetivoInfo: any = {}
+    diffHoras = signal(0)
 
     public get Busqueda() {
         return Busqueda;
@@ -87,9 +88,14 @@ export class CargaAsistenciaComponent {
 
     getHorasNormales(data: any) {
         const totalHorasN = data.map((row: { forma: { id: string; }; total: any; }) => { return (row.forma.id == 'N') ? row.total : 0 }).reduce((prev: number, curr: number) => prev + curr, 0)
-        this.carasistForm.controls['TotalHorasReales'].setValue(totalHorasN);
+        this.carasistForm.form.patchValue({ TotalHorasReales: Number(totalHorasN) }, { emitEvent: false })
 
+        const values = this.carasistForm.form.getRawValue()
+
+        this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - totalHorasN)
     }
+
+
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -143,6 +149,11 @@ export class CargaAsistenciaComponent {
                 this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB }, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
                 this.formPrevVals = this.carasistForm.form.value
+
+                const values = this.carasistForm.form.getRawValue()
+
+                
+                this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - Number(values.TotalHorasReales))
 
 
                 //this.carasistForm.form.get('ImporteHora')?.markAsPristine()
@@ -669,7 +680,11 @@ export class CargaAsistenciaComponent {
             }
             this.carasistForm.form.get('TotalHoraA')?.markAsPristine()
             this.carasistForm.form.get('TotalHoraB')?.markAsPristine()
+    
+            const values = this.carasistForm.form.getRawValue()
+            this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - values.TotalHorasReales)
         }
+
     }
 
     collapseChange($event: any) {

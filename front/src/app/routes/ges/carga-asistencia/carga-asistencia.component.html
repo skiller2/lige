@@ -31,7 +31,7 @@
                         nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]=""
                         [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus"
                             nzTheme="outline"></span>{{ 'app.btn.starloading' | i18n }}</button>
-                    <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
+                    <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="{{ (diffHoras()<0)?'Existe diferencia negativa entre horas a facturar y trabajadas, desea continuar con el cierre?':'Cierra carga asistencia?' }} "
                         *ngIf="periodos &&  periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null && periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null"
                         [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"
                         [disabled]="isLoadingCheck"><span nz-icon nzType="check"
