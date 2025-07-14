@@ -138,9 +138,10 @@ export class TableOrdenesDeVentaComponent {
               row.ObjetivoAsistenciaAnoAno,
               row.ObjetivoAsistenciaAnoMesMes,
               row.ObjetivoId,
-              row.ImporteHora,
-              row.ImporteFijo, 
-              row.TotalHoras
+              row.ImporteHoraA,
+              row.ImporteHoraB, 
+              row.TotalHoraA,
+              row.TotalHoraB
             ))
             row.TotalAFacturar = (row.TotalHoras * row.ImporteHora) + row.ImporteFijo
             this.angularGridEdit.gridService.updateItemById(row.id, row)

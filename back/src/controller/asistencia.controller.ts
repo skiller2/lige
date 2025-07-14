@@ -205,8 +205,8 @@ export class AsistenciaController extends BaseController {
       anio,
       mes,
       ObjetivoId,
-      TotalHorasA,
-      TotalHorasB
+      TotalHoraA,
+      TotalHoraB
     } = req.body
 
     const queryRunner = dataSource.createQueryRunner();
@@ -238,21 +238,21 @@ export class AsistenciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, ImporteHoraA=@5, ImporteHoraB=@6,
+          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, TotalHoraA=@5, TotalHoraB=@6,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, 0, 0, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, 0, 0, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
           `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, 0, 0,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, 0, 0,
             fechaActual, usuario, ip])
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes([], res, `Valores Actualizados`);
+      this.jsonRes([], res, `Horas Actualizadas`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -270,8 +270,8 @@ export class AsistenciaController extends BaseController {
       anio,
       mes,
       ObjetivoId,
-      TotalHorasA,
-      TotalHorasB,
+      TotalHoraA,
+      TotalHoraB,
       ImporteHoraA,
       ImporteHoraB
     } = req.body
@@ -310,13 +310,13 @@ export class AsistenciaController extends BaseController {
           `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, ImporteHoraA=@5, ImporteHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
           `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHorasA, TotalHorasB, ImporteHoraA, ImporteHoraB,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
             fechaActual, usuario, ip])
       }
 
