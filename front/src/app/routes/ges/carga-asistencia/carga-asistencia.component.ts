@@ -12,7 +12,6 @@ import { SHARED_IMPORTS } from '@shared';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { SearchService } from 'src/app/services/search.service';
-import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { SettingsService } from '@delon/theme';
 import { EditorTipoHoraComponent } from 'src/app/shared/editor-tipohora/editor-tipohora.component';
@@ -74,6 +73,7 @@ export class CargaAsistenciaComponent {
     personalApellidoNombre: any;
     rowLocked: boolean = false;
     objetivoInfo: any = {}
+    diffHoras = signal(0)
 
     public get Busqueda() {
         return Busqueda;
@@ -88,9 +88,14 @@ export class CargaAsistenciaComponent {
 
     getHorasNormales(data: any) {
         const totalHorasN = data.map((row: { forma: { id: string; }; total: any; }) => { return (row.forma.id == 'N') ? row.total : 0 }).reduce((prev: number, curr: number) => prev + curr, 0)
-        this.carasistForm.controls['TotalHorasReales'].setValue(totalHorasN);
+        this.carasistForm.form.patchValue({ TotalHorasReales: Number(totalHorasN) }, { emitEvent: false })
 
+        const values = this.carasistForm.form.getRawValue()
+
+        this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - totalHorasN)
     }
+
+
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -102,7 +107,6 @@ export class CargaAsistenciaComponent {
             this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
         ]).pipe(
             map((data: any[]) => {
-                console.log('getObjetivoDetalle', data)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[1][0]?.ClienteDenominacion}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
                 this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
@@ -142,10 +146,14 @@ export class CargaAsistenciaComponent {
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
                 this.getHorasNormales(this.gridDataInsert)
-
-                this.carasistForm.form.patchValue({ ImporteFijo: data[2][0]?.ImporteFijo, ImporteHora: data[2][0]?.ImporteHora, TotalHoras: data[2][0]?.TotalHoras }, { emitEvent: false })
+                this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB }, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
                 this.formPrevVals = this.carasistForm.form.value
+
+                const values = this.carasistForm.form.getRawValue()
+
+                
+                this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - Number(values.TotalHorasReales))
 
 
                 //this.carasistForm.form.get('ImporteHora')?.markAsPristine()
@@ -662,19 +670,21 @@ export class CargaAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
     async setValFact(e: any) {
-        if (!this.carasistForm.form.get('ImporteHora')?.pristine || !this.carasistForm.form.get('ImporteFijo')?.pristine || !this.carasistForm.form.get('TotalHoras')?.pristine) {
+        if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine) {
             try {
-                await firstValueFrom(this.apiService.setValorFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('ImporteHora')?.value, this.carasistForm.form.get('ImporteFijo')?.value, this.carasistForm.form.get('TotalHoras')?.value))
+                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value,this.carasistForm.form.get('TotalHoraB')?.value))
                 this.formPrevVals = this.carasistForm.form.value
             } catch (_e) {
-                this.carasistForm.form.get('ImporteHora')?.setValue(this.formPrevVals.ImporteHora)
-                this.carasistForm.form.get('ImporteFijo')?.setValue(this.formPrevVals.ImporteFijo)
-                this.carasistForm.form.get('TotalHoras')?.setValue(this.formPrevVals.TotalHoras)
+                this.carasistForm.form.get('TotalHoraA')?.setValue(this.formPrevVals.TotalHoraA)
+                this.carasistForm.form.get('TotalHoraB')?.setValue(this.formPrevVals.TotalHoraA)
             }
-            this.carasistForm.form.get('ImporteHora')?.markAsPristine()
-            this.carasistForm.form.get('ImporteFijo')?.markAsPristine()
-            this.carasistForm.form.get('TotalHoras')?.markAsPristine()
+            this.carasistForm.form.get('TotalHoraA')?.markAsPristine()
+            this.carasistForm.form.get('TotalHoraB')?.markAsPristine()
+    
+            const values = this.carasistForm.form.getRawValue()
+            this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - values.TotalHorasReales)
         }
+
     }
 
     collapseChange($event: any) {

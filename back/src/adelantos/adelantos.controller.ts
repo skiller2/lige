@@ -16,7 +16,7 @@ export class AdelantosController extends BaseController {
       fieldName: "cuit.PersonalCUITCUILCUIT",
       type: "number",
       sortable: true,
-      searchHidden: false
+      searchHidden: false,
     },
     {
       name: "Apellido Nombre",
@@ -41,13 +41,13 @@ export class AdelantosController extends BaseController {
       hidden: true,
     },
     {
-      name: "Sit Revista",
+      name: "Situación Revista",
       type: "string",
       id: "SituacionRevistaDescripcion",
       field: "SituacionRevistaDescripcion",
       fieldName: "sit.SituacionRevistaDescripcion",
       sortable: true,
-      hidden: true,
+      hidden: false,
       searchHidden: false
     },
     {
@@ -387,9 +387,9 @@ export class AdelantosController extends BaseController {
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
         pre.PersonalPrestamoId, pre.PersonalPrestamoMonto, pre.PersonalPrestamoAprobado, pre.PersonalPrestamoFechaAprobacion, pre.PersonalPrestamoCantidadCuotas, pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoLiquidoFinanzas, pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoCuotaUltNro,
-        -- pre.PersonalPrestamoJerarquicoId, pre.PersonalPrestamoPuesto, pre.PersonalPrestamoUsuarioId,
         pre.PersonalPrestamoDia, pre.PersonalPrestamoTiempo,
-        pre.FormaPrestamoId, fp.FormaPrestamoDescripcion
+        pre.FormaPrestamoId, fp.FormaPrestamoDescripcion,
+        sit.SituacionRevistaDescripcion
       
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -402,6 +402,18 @@ export class AdelantosController extends BaseController {
                -- pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
                AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) 
         LEFT JOIN FormaPrestamo fp ON fp.FormaPrestamoId = pre.FormaPrestamoId
+
+LEFT JOIN 
+		(
+		SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+		FROM PersonalSituacionRevista sitrev2 
+		WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) >=  sitrev2.PersonalSituacionRevistaDesde AND  EOMONTH(DATEFROMPARTS(@1,@2,1)) <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+		GROUP BY sitrev2.PersonalId
+      ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+   LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+
+   LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+
 
         WHERE (1=1)
        -- AND perrel.PersonalCategoriaPersonalId=@0

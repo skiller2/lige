@@ -994,9 +994,12 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
+  setHorasFacturacion(anio: number, mes: number, ObjetivoId: number, TotalHoraA: number,TotalHoraB: number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/horasFacturacion', { anio, mes, ObjetivoId, TotalHoraA, TotalHoraB }).pipe(map(res => res.data))
+  }
 
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHora: number, ImporteFijo: number, TotalHoras: number) {
-    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHora, ImporteFijo, TotalHoras }).pipe(map(res => res.data))
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA,TotalHoraB }).pipe(map(res => res.data))
   }
 
   addAsistencia(asistencia: any) {

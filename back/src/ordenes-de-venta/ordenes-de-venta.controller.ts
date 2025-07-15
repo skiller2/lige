@@ -113,10 +113,10 @@ const columnasGrilla: any[] = [
   {
     name: "Mes",
     type: "number",
-    id: "ObjetivoAsistenciaAnoMesMes",
-    field: "ObjetivoAsistenciaAnoMesMes",
-    fieldName: "objm.ObjetivoAsistenciaAnoMesMes",
-    sortable: false,
+    id: "mes",
+    field: "mes",
+    fieldName: "mes",
+    sortable: true,
     hidden: false,
     searchHidden: true,
     editable: false
@@ -124,10 +124,10 @@ const columnasGrilla: any[] = [
   {
     name: "Año",
     type: "number",
-    id: "ObjetivoAsistenciaAnoAno",
-    field: "ObjetivoAsistenciaAnoAno",
-    fieldName: "obja.ObjetivoAsistenciaAnoAno",
-    sortable: false,
+    id: "anio",
+    field: "anio",
+    fieldName: "anio",
+    sortable: true,
     hidden: false,
     searchHidden: true,
     editable: false
@@ -144,16 +144,27 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Horas a facturar",
+    name: "Horas a facturar A",
     type: "number",
-    id: "TotalHoras",
-    field: "TotalHoras",
-    fieldName: "ven.TotalHoras",
+    id: "TotalHoraA",
+    field: "TotalHoraA",
+    fieldName: "ven.TotalHoraA",
     searchType: "float",
     sortable: true,
     hidden: false,
     editable: true
   },
+  {
+    name: "Horas a facturar B",
+    type: "number",
+    id: "TotalHoraB",
+    field: "TotalHoraB",
+    fieldName: "ven.TotalHoraB",
+    searchType: "float",
+    sortable: true,
+    hidden: false,
+    editable: true
+  },  
   {
     name: "Diferencia Horas",
     type: "number",
@@ -166,32 +177,31 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Importe Hora",
-    id: "ImporteHora",
-    field: "ImporteHora",
+    name: "Importe Hora A",
+    id: "ImporteHoraA",
+    field: "ImporteHoraA",
     type: 'currency',
-    fieldName: "ven.ImporteHora",
+    fieldName: "ven.ImporteHoraA",
     searchType: "float",
     sortable: true,
     hidden: false,
   },
   {
-    name: "Importe Fijo",
+    name: "Importe Hora B",
+    id: "ImporteHoraB",
+    field: "ImporteHoraB",
     type: 'currency',
-    id: "ImporteFijo",
-    field: "ImporteFijo",
-    fieldName: "ven.ImporteFijo",
+    fieldName: "ven.ImporteHoraB",
     searchType: "float",
     sortable: true,
     hidden: false,
-    editable: true
   },
   {
     name: "Total a Facturar",
     type: "currency",
-    id: "TotalAFacurar",
-    field: "TotalAFacurar",
-    fieldName: "TotalAFacurar",
+    id: "TotalAFacturar",
+    field: "TotalAFacturar",
+    fieldName: "TotalAFacturar",
     searchType: "float",
     sortable: true,
     hidden: false,
@@ -218,6 +228,8 @@ export class OrdenesDeVentaController extends BaseController {
 
       const listCargaLicenciaHistory = await queryRunner.query(`
         SELECT DISTINCT
+          @1 anio,
+          @2 mes,
           CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as id, 
           suc.SucursalId, suc.SucursalDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,fac.ClienteFacturacionCUIT,
           cli.ClienteDenominacion, eledep.ClienteElementoDependienteDescripcion,
@@ -227,8 +239,12 @@ export class OrdenesDeVentaController extends BaseController {
           gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
           objasissub.sumtotalhorascalc AS AsistenciaHoras,
           objm.ObjetivoAsistenciaAnoMesHasta,
-          ven.TotalHorasReal, ven.TotalHoras, (ISNULL(ven.TotalHoras,0)-ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
-          ven.ImporteHora, ven.ImporteFijo, (ISNULL(ven.TotalHoras,0)*ISNULL(ven.ImporteHora,0)+ISNULL(ven.ImporteFijo,0)) AS TotalAFacurar,
+
+          ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB,
+          
+          ven.TotalHorasReal, (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
+          ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
+
           1
         FROM Objetivo obj 
         LEFT JOIN ObjetivoImporteVenta ven ON ven.ClienteId =  obj.ClienteId AND ven.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND  ven.Anio = @1 AND ven.Mes = @2

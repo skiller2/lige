@@ -42,6 +42,7 @@ asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonalId/:metodo/:
 asistenciaRouter.post('/agregarasistencia', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistencia(req, res, next)})
 asistenciaRouter.post('/periodo/inicio', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistenciaPeriodoResJson(req, res, next)})
 asistenciaRouter.post('/valorFacturacion', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.setValorFacturacion(req, res, next)})
+asistenciaRouter.post('/horasFacturacion', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.setHorasFacturacion(req, res, next)})
 asistenciaRouter.post('/periodo/fin', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.endAsistenciaPeriodo(req, res, next)})
 asistenciaRouter.get('/periodo/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getAsistenciaPeriodo(req, res, next)})
 asistenciaRouter.get('/listaperasig/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getListaAsistenciaPersonalAsignado(req, res, next)})

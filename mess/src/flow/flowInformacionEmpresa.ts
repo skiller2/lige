@@ -21,7 +21,7 @@ Mar del Plata: Av. Colón 3083 3° Piso, Mar del Plata, Pcia. de Buenos Aires
 Instagram: https://www.instagram.com/linceseguridadoficial/
 LinkedIn: https://ar.linkedin.com/company/lince-seguridad-oficial
 Facebook: https://www.facebook.com/profile.php?id=100076266804842
-Consejo de Administración (mandato hasta el 30/04/2025) 🗓
+Consejo de Administración (mandato hasta el 30/04/2028) 🗓
 Ricardo Augusto Elicabe – Presidente
 Omar Alberto Muñoz– Secretario
 Julio Marcelo Ruiz– Tesorero
