@@ -671,7 +671,6 @@ ${orderBy}`, [fechaActual])
                 await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ClienteId = @0 `, [contacto.ContactoId])
             }
             await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
-            //await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI'`)
 
             await queryRunner.commitTransaction();
 
