@@ -230,16 +230,6 @@ const listaColumnasPersonalSeguro: any[] = [
     searchHidden: true
   },
   {
-    id: "PolizaSeguroCod",
-    name: "Código de Póliza",
-    field: "PolizaSeguroCod",
-    fieldName: "perpoliz.PolizaSeguroCod",
-    type: "string",
-    sortable: false,
-    hidden: true,
-    searchHidden: true
-  },
-  {
     name: "Apellido Nombre ",
     type: "string",
     id: "PersonalId",
@@ -291,11 +281,31 @@ const listaColumnasPersonalSeguro: any[] = [
     sortable: true
   },
   {
+    id: "PolizaSeguroNroEndoso",
+    name: "Número de Endoso",
+    field: "PolizaSeguroNroEndoso",
+    fieldName: "poliz.PolizaSeguroNroEndoso",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
     id: "PolizaSeguroNroPoliza",
     name: "Número de Póliza",
     field: "PolizaSeguroNroPoliza",
     fieldName: "poliz.PolizaSeguroNroPoliza",
     type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "CompaniaSeguroId",
+    name: "Compañía",
+    field: "CompaniaSeguroId",
+    fieldName: "poliz.CompaniaSeguroId",
+    type: "number",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -752,7 +762,6 @@ UNION
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
         ps.PolizaSeguroAnio,
-        ps.TipoSeguroCodigo,
         ps.CompaniaSeguroId,
         ps.PolizaSeguroMes
       FROM PolizaSeguro ps
@@ -772,6 +781,8 @@ UNION
       return next(error)
     }
   }
+
+  
 
   async getListPersonalSeguro(
     req: any,

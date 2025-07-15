@@ -1,4 +1,4 @@
-import { Component, inject, input, signal, model, ViewChild, viewChild } from '@angular/core'
+import { Component, inject, input, signal, model, ViewChild, viewChild, effect } from '@angular/core'
 import { SHARED_IMPORTS, listOptionsT } from '@shared'
 import { NzIconModule } from 'ng-zorro-antd/icon'
 import { firstValueFrom } from 'rxjs'
@@ -28,6 +28,11 @@ export class SeguroComponent {
   selectedOption = model("APG")
   isActiveProcess = signal(true)
 
+  PolizaSeguroNroPoliza = signal<string>("")
+  PolizaSeguroNroEndoso = signal<string>("")
+  CompaniaSeguroId = signal<number>(0)
+  TipoSeguroCodigo = signal<string>("")
+
   public apiService = inject(ApiService)
   constructor() { }
 
@@ -49,6 +54,7 @@ export class SeguroComponent {
   ngOnInit(): void {
 
     this.fechaseguro.set(new Date(this.fechaActual().getFullYear(), this.fechaActual().getMonth() - 1, 1))
+
   }
 
   onTabsetChange(_event: any) {
@@ -60,12 +66,12 @@ export class SeguroComponent {
           this.isActiveProcess.set(true)
         break;
     }
-
+    window.dispatchEvent(new Event('resize'));
   }
   
-  //onTabChanged(selectedIndex: number): void {
-  //  window.dispatchEvent(new Event('resize'));
-  //}
+  //  onTabChanged(selectedIndex: number): void {
+  //   window.dispatchEvent(new Event('resize'));
+  //   }
 
 
 }

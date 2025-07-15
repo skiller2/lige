@@ -73,13 +73,13 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/poliza">Poliza</a>
       <ng-template nz-tab>
-          <app-poliza-seguro></app-poliza-seguro>
+          <app-poliza-seguro [(TipoSeguroCodigo)]="TipoSeguroCodigo" [(CompaniaSeguroId)]="CompaniaSeguroId" [(PolizaSeguroNroPoliza)]="PolizaSeguroNroPoliza" [(PolizaSeguroNroEndoso)]="PolizaSeguroNroEndoso"></app-poliza-seguro>
       </ng-template>
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/personal">Personal Seguro</a>
       <ng-template nz-tab>
-          <app-personal-seguro-poliza></app-personal-seguro-poliza>
+          <app-personal-seguro-poliza [TipoSeguroCodigo]="TipoSeguroCodigo()" [CompaniaSeguroId]="CompaniaSeguroId()" [PolizaSeguroNroPoliza]="PolizaSeguroNroPoliza()" [PolizaSeguroNroEndoso]="PolizaSeguroNroEndoso()"></app-personal-seguro-poliza>
       </ng-template>
     </nz-tab>
   </nz-tabset>

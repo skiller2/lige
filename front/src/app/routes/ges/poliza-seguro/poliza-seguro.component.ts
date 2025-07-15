@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, model, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, input, model, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -49,10 +49,10 @@ export class PolizaSeguroComponent {
   private angularGridEdit!: AngularGridInstance;
   visible = model<boolean>(false)
   angularGrid!: AngularGridInstance
-  PolizaSeguroNroPoliza = signal<string>("")
-  PolizaSeguroNroEndoso = signal<string>("")
-  CompaniaSeguroId = signal<number>(0)
-  TipoSeguroCodigo = signal<string>("")
+  PolizaSeguroNroPoliza = model<string>("")
+  PolizaSeguroNroEndoso = model<string>("")
+  CompaniaSeguroId = model<number>(0)
+  TipoSeguroCodigo = model<string>("")
   openDrawerConsult = signal<boolean>(false)
 
   private listOptions: ListOptions = {
@@ -116,8 +116,10 @@ export class PolizaSeguroComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
+   
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    console.log(row)
     if (row?.PolizaSeguroNroPoliza)
       this.PolizaSeguroNroPoliza.set(row.PolizaSeguroNroPoliza)
     if (row?.PolizaSeguroNroEndoso)
