@@ -367,7 +367,7 @@ export class ApiService {
             col.cssClass = 'text-right'
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
-            col.params = { maxDecimal: 2, minDecimal: 0 }
+            col.params = { maxDecimal: 4, minDecimal: 0 }
             col.cssClass = 'text-right'
           } else if (col.type == 'object')
             col.type = FieldType.object
