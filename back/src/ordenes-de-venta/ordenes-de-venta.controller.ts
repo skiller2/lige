@@ -134,7 +134,7 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Total Horas Real",
-    type: "number",
+    type: "float",
     id: "TotalHorasReal",
     field: "TotalHorasReal",
     fieldName: "ven.TotalHorasReal",
@@ -145,7 +145,7 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Horas a facturar A",
-    type: "number",
+    type: "float",
     id: "TotalHoraA",
     field: "TotalHoraA",
     fieldName: "ven.TotalHoraA",
@@ -156,7 +156,7 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Horas a facturar B",
-    type: "number",
+    type: "float",
     id: "TotalHoraB",
     field: "TotalHoraB",
     fieldName: "ven.TotalHoraB",
@@ -167,7 +167,7 @@ const columnasGrilla: any[] = [
   },  
   {
     name: "Diferencia Horas",
-    type: "number",
+    type: "float",
     id: "DiferenciaHoras",
     field: "DiferenciaHoras",
     fieldName: "DiferenciaHoras",

@@ -359,18 +359,14 @@ export class ApiService {
             col.type = FieldType.float
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
-
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
-//            col.formatter = Formatters['multiple']
-            col.formatter= Formatters['decimal'],
+            col.formatter = Formatters['decimal'],
             col.params = { maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.type = FieldType.float
-//            col.cssClass = 'text-right'
-
+            col.cssClass = 'text-right'
           } else if (col.type == 'number') {
-            col.formatter = Formatters['multiple']
-            col.params = { formatters: [] }
+            col.formatter = Formatters['decimal'],
             col.cssClass = 'text-right'
           } else if (col.type == 'object')
             col.type = FieldType.object

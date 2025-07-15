@@ -5,7 +5,7 @@ import { BehaviorSubject, debounceTime, map, switchMap, tap, firstValueFrom, tim
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, FieldType, Editors, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, FieldType, Editors, SlickGlobalEditorLock, EditCommand, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -37,7 +37,6 @@ type listOptionsT = {
 })
 export class TableOrdenesDeVentaComponent {
 
-  RefreshLicencia = model<boolean>(false)
   anio = input<any>(0)
   mes = input<any>(0)
   rowLocked = signal<boolean>(false);
@@ -46,36 +45,23 @@ export class TableOrdenesDeVentaComponent {
   private injector = inject(Injector)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
-  private searchService = inject(SearchService)
+  
 
   formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-
-
+  
   columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
     
     let mapped = cols.map((col: Column) => {
-      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA') { 
+      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA') 
         col.editor= { model: CustomFloatEditor, decimal: 2,params:{},alwaysSaveOnEnterKey: true }
 
-      }
-      if (col.id === 'TotalHoraA' || col.id === 'TotalHoraB') {
-        col.editor= { model: CustomFloatEditor, decimal: 1,params:{},alwaysSaveOnEnterKey: true }
-/*        
-        col.editor = {
-          model: Editors['float'],
-          decimal: 2,
-          minValue: 0,
-          maxValue: 10000000,
-          alwaysSaveOnEnterKey: true,
-          //   required: true
-        }
-*/
-      }
+      if (col.id === 'TotalHoraA' || col.id === 'TotalHoraB') 
+        col.editor = { model: CustomFloatEditor, decimal: 1, params: {}, alwaysSaveOnEnterKey: true }
+
       return col
     });
     
-    return cols
+    return mapped
   }));
 
   excelExportService = new ExcelExportService()
@@ -109,10 +95,10 @@ export class TableOrdenesDeVentaComponent {
             this.dataAngularGrid = data.list
             return data.list
           }),
-          doOnSubscribe(() => { this.tableLoading$.next(true) }),
+          doOnSubscribe(() => { }),
           tap({
             complete: () => {
-              this.tableLoading$.next(false); this.loadingSrv.close()
+               this.loadingSrv.close()
             }
           })
         );
@@ -148,8 +134,8 @@ export class TableOrdenesDeVentaComponent {
 
         this.rowLocked.set(true)
         const ret = await firstValueFrom(this.apiService.setValorFacturacion(
-          row.ObjetivoAsistenciaAnoAno,
-          row.ObjetivoAsistenciaAnoMesMes,
+          this.anio(),
+          this.mes(),
           row.ObjetivoId,
           row.ImporteHoraA,
           row.ImporteHoraB,
