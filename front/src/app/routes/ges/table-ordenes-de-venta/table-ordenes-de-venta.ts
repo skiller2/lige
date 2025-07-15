@@ -121,11 +121,11 @@ export class TableOrdenesDeVentaComponent {
       this.angularGridEdit.slickGrid.invalidate();
       //Intento grabar si tiene error hago undo
       try {
-        if (column.type == FieldType.number || column.type == FieldType.float)
+        if (column.type == FieldType.number || column.type == FieldType.float) {
           editCommand.serializedValue = Number(editCommand.serializedValue)
-
+          editCommand.prevSerializedValue = Number(editCommand.prevSerializedValue)
+        }
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
-
 
         editCommand.execute()
 
