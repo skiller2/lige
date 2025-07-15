@@ -366,7 +366,8 @@ export class ApiService {
             col.type = FieldType.float
             col.cssClass = 'text-right'
           } else if (col.type == 'number') {
-            col.formatter = Formatters['decimal'],
+            col.formatter = Formatters['decimal']
+            col.params = { maxDecimal: 4, minDecimal: 0 }
             col.cssClass = 'text-right'
           } else if (col.type == 'object')
             col.type = FieldType.object
@@ -1457,6 +1458,10 @@ export class ApiService {
   }
 
   getListPolizaPersonalSeguro(filters: any) {
+    if (!filters.options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/seguros/list-personal-seguro', parameter).pipe(
       map((res: { data: any; }) => res.data),

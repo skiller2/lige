@@ -59,44 +59,22 @@ export class PersonalSeguroPolizaComponent {
   ngOnInit(): void {
     this.initializeGridOptions();
     
-    runInInjectionContext(this.#injector, () => {
-    effect(() => {
-      console.log("paso por aca")
-     this.PolizaSeguroNroPoliza()
-      this.PolizaSeguroNroEndoso()
-      this.CompaniaSeguroId()
-      this.TipoSeguroCodigo()
-      
-      this.initializeGridOptions();
-      this.formChange$.next('');
-      
-    });
-  })
+    
 
 
 }
 
-    gridData$ = this.formChange$.pipe(
-      debounceTime(250),
-      tap(() => this.tableLoading$.next(true)), 
-      switchMap(() => {
-        if (
-          this.PolizaSeguroNroPoliza() &&
-          this.PolizaSeguroNroEndoso() &&
-          this.CompaniaSeguroId() &&
-          this.TipoSeguroCodigo()
-        ) {
-          return this.apiService.getListPolizaPersonalSeguro({ options: this.listOptions });
-        } else {
-          return of({ list: [] });
-        }
-      }),
+  gridData$ = this.formChange$.pipe(
+    debounceTime(250),
+    switchMap(() => this.apiService.getListPolizaPersonalSeguro({ options: this.listOptions }).pipe(
       map(data => {
         this.dataAngularGrid = data.list;
         return data.list;
       }),
-      tap({ finalize: () => this.tableLoading$.next(false) }) 
-    );
+      doOnSubscribe(() => this.tableLoading$.next(true)),
+      tap({ complete: () => this.tableLoading$.next(false) })
+    ))
+  );
 
 
   private initializeGridOptions(): void {
@@ -110,17 +88,34 @@ export class PersonalSeguroPolizaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
-    this.listOptions.filtros = []
-    this.startFilters.set([])
+   
 
-    if(this.PolizaSeguroNroPoliza() != "" && this.PolizaSeguroNroEndoso() != "" && this.CompaniaSeguroId() != 0 && this.TipoSeguroCodigo() != ""){
-    this.startFilters.set([
-      {field:'PolizaSeguroNroPoliza', condition:'AND', operator:'=', value: this.PolizaSeguroNroPoliza(), forced:false},
-      {field:'PolizaSeguroNroEndoso', condition:'AND', operator:'=', value: this.PolizaSeguroNroEndoso(), forced:false},
-      {field:'CompaniaSeguroId', condition:'AND', operator:'=', value: this.CompaniaSeguroId(), forced:false},
-      {field:'TipoSeguroCodigo', condition:'AND', operator:'=', value: this.TipoSeguroCodigo(), forced:false},
-    ])
-    }
+    
+
+    runInInjectionContext(this.#injector, () => {
+      effect(() => {
+       this.PolizaSeguroNroPoliza()
+        this.PolizaSeguroNroEndoso()
+        this.CompaniaSeguroId()
+        this.TipoSeguroCodigo()
+
+        this.listOptions.filtros = []
+        this.startFilters.set([])
+
+        if(this.PolizaSeguroNroPoliza() != "" && this.PolizaSeguroNroEndoso() != "" && this.CompaniaSeguroId() != 0 && this.TipoSeguroCodigo() != ""){
+          this.startFilters.set([
+            {field:'PolizaSeguroNroPoliza', condition:'AND', operator:'=', value: this.PolizaSeguroNroPoliza(), forced:false},
+            {field:'PolizaSeguroNroEndoso', condition:'AND', operator:'=', value: this.PolizaSeguroNroEndoso(), forced:false},
+            {field:'CompaniaSeguroId', condition:'AND', operator:'=', value: this.CompaniaSeguroId(), forced:false},
+            {field:'TipoSeguroCodigo', condition:'AND', operator:'=', value: this.TipoSeguroCodigo(), forced:false},
+          ])
+          }
+        
+        //this.initializeGridOptions();
+        this.formChange$.next('');
+        
+      });
+    })
   }
 
   angularGridReady(angularGrid: any): void {
