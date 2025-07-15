@@ -35,7 +35,10 @@ export class PolizaSeguroDrawerComponent {
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'left';
   tituloDrawer = signal<string>("")
-  PolizaSeguroCodigo = input<string>("")
+  PolizaSeguroNroPoliza = input<string>("")
+  PolizaSeguroNroEndoso = input<string>("")
+  CompaniaSeguroId = input<number>(0)
+  TipoSeguroCodigo = input<string>("")
   isSaving = signal<boolean>(false)
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
   $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
@@ -52,8 +55,8 @@ export class PolizaSeguroDrawerComponent {
       const visible = this.visible()
       
       if (visible) {
-        if (this.PolizaSeguroCodigo()) {
-          let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroCodigo()));
+        if (this.PolizaSeguroNroPoliza() && this.PolizaSeguroNroEndoso() && this.CompaniaSeguroId() && this.TipoSeguroCodigo()) {
+          let vals = await firstValueFrom(this.apiService.getPolizaSeguro(this.PolizaSeguroNroPoliza(), this.PolizaSeguroNroEndoso(), this.CompaniaSeguroId(), this.TipoSeguroCodigo()));
      
           this.PolizaSeguroResultado.set(JSON.parse(vals[0].PolizaSeguroResultado))
           this.formCli.patchValue(vals[0])
@@ -90,9 +93,10 @@ export class PolizaSeguroDrawerComponent {
       if(res.data?.list?.PolizaSeguroCodigo) {
 
         this.formCli.patchValue({
-          PolizaSeguroCodigo: res.data?.list?.PolizaSeguroCodigo,
           PolizaSeguroNroPoliza: res.data?.list?.PolizaSeguroNroPoliza,
           PolizaSeguroNroEndoso: res.data?.list?.PolizaSeguroNroEndoso,
+          CompaniaSeguroId: res.data?.list?.CompaniaSeguroId,
+          TipoSeguroCodigo: res.data?.list?.TipoSeguroCodigo,
           PolizaSeguroFechaEndoso: res.data?.list?.PolizaSeguroFechaEndoso
         })
         this.tituloDrawer.set('Editar Poliza Seguro')

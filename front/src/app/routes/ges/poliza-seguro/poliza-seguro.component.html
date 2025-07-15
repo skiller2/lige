@@ -30,5 +30,10 @@
       }
     </ng-container>
 
-    <app-poliza-seguro-drawer (onRefreshPolizaSeguro)="onRefreshPolizaSeguro()" [(visible)]="visible" [PolizaSeguroCodigo]="PolizaSeguroCodigo()" [openDrawerConsult]="openDrawerConsult()"></app-poliza-seguro-drawer> 
+    <app-poliza-seguro-drawer (onRefreshPolizaSeguro)="onRefreshPolizaSeguro()" [(visible)]="visible"  
+    [PolizaSeguroNroPoliza]="PolizaSeguroNroPoliza()" 
+    [PolizaSeguroNroEndoso]="PolizaSeguroNroEndoso()" 
+    [CompaniaSeguroId]="CompaniaSeguroId()" 
+    [TipoSeguroCodigo]="TipoSeguroCodigo()" 
+    [openDrawerConsult]="openDrawerConsult()"></app-poliza-seguro-drawer> 
   </nz-card> 
