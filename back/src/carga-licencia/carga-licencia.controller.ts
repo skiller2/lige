@@ -891,7 +891,7 @@ export class CargaLicenciaController extends BaseController {
         for (const file of req.body.files) {
 
           const docid = file.id ? file.id : 0
-          const result = await FileUploadController.handleDOCUpload(PersonalId, 0, 0, docid, new Date(), null, TipoInasistenciaDescripcion, null, null, file, usuario, ip, queryRunner)
+          const result = await FileUploadController.handleDOCUpload(PersonalId, null, null, docid, new Date(), null, TipoInasistenciaDescripcion, null, null, file, usuario, ip, queryRunner)
 
           if (result && typeof result === 'object') {
             ({ doc_id } = result)
