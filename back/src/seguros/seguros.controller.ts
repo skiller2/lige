@@ -144,14 +144,14 @@ const listaColumnasPoliza: any[] = [
     searchHidden: true
   },
   {
-    id: "PolizaSeguroCodigo",
-    name: "Poliza Seguro Cod",
-    field: "PolizaSeguroCodigo",
-    fieldName: "seg.PolizaSeguroCodigo",
-    type: "number",
-    sortable: false,
-    hidden: true,
-    searchHidden: true
+    id: "TipoSeguroCodigo",
+    name: "Tipo de Seguro",
+    field: "TipoSeguroCodigo",
+    fieldName: "seg.TipoSeguroCodigo",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
   },
   {
     id: "TipoSeguroNombre",
@@ -190,6 +190,16 @@ const listaColumnasPoliza: any[] = [
     field: "PolizaSeguroFechaEndoso",
     fieldName: "seg.PolizaSeguroFechaEndoso",
     type: "date",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "CompaniaSeguroId",
+    name: "Compañía",
+    field: "CompaniaSeguroId",
+    fieldName: "seg.CompaniaSeguroId",
+    type: "number",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -738,11 +748,12 @@ UNION
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
         ts.TipoSeguroNombre,
         ps.TipoSeguroCodigo,
-        ps.PolizaSeguroCodigo,
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
         ps.PolizaSeguroAnio,
+        ps.TipoSeguroCodigo,
+        ps.CompaniaSeguroId,
         ps.PolizaSeguroMes
       FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
@@ -771,13 +782,17 @@ UNION
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       let result = await dataSource.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroCodigo,per.PersonalId,per.PersonalApellidoNombre,
-      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso, tipseg.TipoSeguroCodigo,poliz.PolizaSeguroNroPoliza, tipseg.TipoSeguroNombre
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
+      perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,per.PersonalApellidoNombre,
+      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso,tipseg.TipoSeguroNombre
       FROM PersonalPolizaSeguro AS perpoliz
       JOIN Personal per ON per.PersonalId = perpoliz.PersonalPolizaSeguroPersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId     
       AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      LEFT JOIN PolizaSeguro poliz ON      poliz.PolizaSeguroCodigo =  perpoliz.PolizaSeguroCodigo
+      LEFT JOIN PolizaSeguro poliz ON poliz.PolizaSeguroNroPoliza =  perpoliz.PolizaSeguroNroPoliza
+       AND poliz.PolizaSeguroNroEndoso =  perpoliz.PolizaSeguroNroEndoso 
+       AND poliz.CompaniaSeguroId =  perpoliz.CompaniaSeguroId 
+       AND poliz.TipoSeguroCodigo =  perpoliz.TipoSeguroCodigo
       LEFT JOIN TipoSeguro tipseg ON tipseg.TipoSeguroCodigo = poliz.TipoSeguroCodigo
       WHERE (1=1)
       AND ${filterSql}
@@ -806,19 +821,18 @@ UNION
         ts.TipoSeguroNombre,
         ps.TipoSeguroCodigo,
         ps.DocumentoId,
-        ps.PolizaSeguroCodigo,
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
         ps.PolizaSeguroResultado,
-        ps.CompaniaSeguroId,
+        ps.CompaniaSeguroId, 
         cs.CompaniaSeguroDescripcion,
         ps.PolizaSeguroAnio,
         ps.PolizaSeguroMes
       FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
-      WHERE ps.PolizaSeguroCodigo = @0`, [req.params.id])
+      WHERE ps.PolizaSeguroNroPoliza = @0 AND ps.PolizaSeguroNroEndoso = @1 AND ps.CompaniaSeguroId = @2 AND ps.TipoSeguroCodigo = @3`, [req.params.PolizaSeguroNroPoliza, req.params.PolizaSeguroNroEndoso, req.params.CompaniaSeguroId, req.params.TipoSeguroCodigo])
     
       this.jsonRes(result, res);
     } catch (error) {
@@ -830,11 +844,10 @@ UNION
   async setPolizaSeguro(req: any, res: Response, next: NextFunction) {
 
     let {
-      PolizaSeguroCodigo,
-      TipoSeguroCodigo,
-      CompaniaSeguroId,
       PolizaSeguroNroPoliza,
       PolizaSeguroNroEndoso,
+      CompaniaSeguroId,
+      TipoSeguroCodigo,
       PolizaSeguroFechaEndoso,
       PolizaSeguroAnio,
       PolizaSeguroMes,
@@ -849,7 +862,6 @@ UNION
     let resultFile = null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    let resultPolizaSeguroCodigo
    // throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
@@ -944,26 +956,24 @@ UNION
 
 
       
-      if (PolizaSeguroCodigo) {
+      if (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) {
         // is edit
-      console.log("is edit")
+        console.log("is edit")
 
-      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1]);
+        resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1]);
+
 
         await queryRunner.query(`
           UPDATE PolizaSeguro SET
             TipoSeguroCodigo = @0,
             DocumentoId = @1,
-            PolizaSeguroNroPoliza = @2,
-            PolizaSeguroNroEndoso = @3,
             PolizaSeguroFechaEndoso = @4,
-            CompaniaSeguroId = @5,
             PolizaSeguroAudFechaMod = @6,
             PolizaSeguroAudUsuarioMod = @7,
             PolizaSeguroAudIpMod = @8,
             PolizaSeguroAnio = @9,
             PolizaSeguroMes = @10
-          WHERE PolizaSeguroCodigo = @11
+          WHERE PolizaSeguroNroPoliza = @2 AND PolizaSeguroNroEndoso = @3 AND CompaniaSeguroId = @5 AND TipoSeguroCodigo = @11
         `, [
           TipoSeguroCodigo,
           resultFile.doc_id,
@@ -976,7 +986,7 @@ UNION
           ip,
           anio,
           mes,
-          PolizaSeguroCodigo
+          TipoSeguroCodigo
         ]);
         
 
@@ -998,73 +1008,66 @@ UNION
       }
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
-    
 
- //'CompaniaSeguroId'-'TipoSeguroCod'-'PolizaSeguroNroPoliza'-'PolizaSeguroNroEndoso'
-
-         resultPolizaSeguroCodigo = `${CompaniaSeguroId}-${TipoSeguroCodigo}-${polizaEndoso[0]}-${endoso[1]}`.replace(/ /g, '')
-
-        const existPoliza = await queryRunner.query(`SELECT PolizaSeguroCodigo FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
-
-        if(existPoliza[0]?.PolizaSeguroCodigo) {
-          throw new ClientException(`Ya existe una póliza con este documento.`)
-        }
-
-
-        await queryRunner.query(`
-          INSERT INTO PolizaSeguro (
-            PolizaSeguroCodigo,
-            TipoSeguroCodigo,
-            DocumentoId,
-            PolizaSeguroNroPoliza,
-            PolizaSeguroNroEndoso,
-            PolizaSeguroFechaEndoso,
-            CompaniaSeguroId,
-            PolizaSeguroAudFechaIng,
-            PolizaSeguroAudUsuarioIng,
-            PolizaSeguroAudIpIng,
-            PolizaSeguroAudFechaMod,
-            PolizaSeguroAudUsuarioMod,
-            PolizaSeguroAudIpMod,
-            PolizaSeguroAnio,
-            PolizaSeguroMes
-          ) VALUES (
-            @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
-          )
-        `, [
-          resultPolizaSeguroCodigo,
-          TipoSeguroCodigo,
-          resultFile.doc_id,
-          polizaEndoso[0],
-          endoso[1],
-          fechaDesde,
-          CompaniaSeguroId,
-          new Date(),
-          usuario,
-          ip,
-          new Date(),
-          usuario,
-          ip,
-          anio,
-          mes
-        ]);
+          await queryRunner.query(`
+            INSERT INTO PolizaSeguro (
+              PolizaSeguroNroPoliza,
+              PolizaSeguroNroEndoso,
+              PolizaSeguroFechaEndoso,
+              CompaniaSeguroId,
+              PolizaSeguroAudFechaIng,
+              PolizaSeguroAudUsuarioIng,
+              PolizaSeguroAudIpIng,
+              PolizaSeguroAudFechaMod,
+              PolizaSeguroAudUsuarioMod,
+              PolizaSeguroAudIpMod,
+              TipoSeguroCodigo,
+              DocumentoId,
+              PolizaSeguroAnio,
+              PolizaSeguroMes,
+              PolizaSeguroVersion
+            ) VALUES (
+              @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
+            )
+          `, [
+            polizaEndoso[0],                // PolizaSeguroNroPoliza
+            endoso[1],                      // PolizaSeguroNroEndoso
+            fechaDesde,                     // PolizaSeguroFechaEndoso
+            CompaniaSeguroId,               // CompaniaSeguroId
+            new Date(),                     // PolizaSeguroAudFechaIng
+            usuario,                        // PolizaSeguroAudUsuarioIng
+            ip,                             // PolizaSeguroAudIpIng
+            new Date(),                     // PolizaSeguroAudFechaMod
+            usuario,                        // PolizaSeguroAudUsuarioMod
+            ip,                             // PolizaSeguroAudIpMod
+            TipoSeguroCodigo,               // TipoSeguroCodigo
+            resultFile.doc_id,              // DocumentoId
+            anio,                           // PolizaSeguroAnio
+            mes,                            // PolizaSeguroMes
+            null                            // PolizaSeguroVersion
+          ]);
 
       }
 
-      const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo,resultPolizaSeguroCodigo,usuario,ip,fechaDesde)
+      const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo,usuario,ip,fechaDesde, polizaEndoso[0], endoso[1], CompaniaSeguroId)
       //console.log("validationDniResults", validationDniResults)
       //throw new ClientException(`test.`)
-      const version = await queryRunner.query(`SELECT PolizaSeguroVersion FROM PolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+      const version = await queryRunner.query(`
+        SELECT PolizaSeguroVersion FROM PolizaSeguro 
+        WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, 
+      [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
-      resultPolizaSeguroCodigo  = PolizaSeguroCodigo ? PolizaSeguroCodigo : resultPolizaSeguroCodigo
-
       if(validationDniResults)
-          await queryRunner.query(`UPDATE PolizaSeguro SET PolizaSeguroResultado = @0, PolizaSeguroVersion = @1 WHERE PolizaSeguroCodigo = @2`, [JSON.stringify(validationDniResults), PolizaAeguroVersion, resultPolizaSeguroCodigo])
+          await queryRunner.query(`
+            UPDATE PolizaSeguro 
+            SET PolizaSeguroResultado = @0, PolizaSeguroVersion = @1 
+            WHERE PolizaSeguroNroPoliza = @2 AND PolizaSeguroNroEndoso = @3 AND CompaniaSeguroId = @4 AND TipoSeguroCodigo = @5`,
+          [JSON.stringify(validationDniResults), PolizaAeguroVersion, polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
 
    
   const result = {
-        PolizaSeguroCodigo: resultPolizaSeguroCodigo,
+
         ArchivosAnteriores: resultFile.ArchivosAnteriores,
         notFound: validationDniResults,
         DocumentoId: resultFile.doc_id,
@@ -1076,7 +1079,7 @@ UNION
   console.log("result", result)
       ///throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: result }, res, (req.body.PolizaSeguroCod > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
+      this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
       await queryRunner.rollbackTransaction()
       return next(error)
@@ -1087,14 +1090,16 @@ UNION
 
   }
 
-  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string,resultPolizaSeguroCodigo:string, usuario:string, ip:string, fechaDesde:Date){
+  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string, usuario:string, ip:string, fechaDesde:Date, polizaNroPoliza:string, polizaNroEndoso:string, companiaSeguroId:number){
 
-    await queryRunner.query(`DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroCodigo = @0`, [resultPolizaSeguroCodigo])
+    await queryRunner.query(`DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, [polizaNroPoliza, polizaNroEndoso, companiaSeguroId, tipoSeguroCodigo])
 
     const notFoundInPersonalTable: number[] = [];
     const notFoundInPersonalSeguro: number[] = [];
     const shouldNotBeInSeguro: number[] = [];
 
+    //console.log("dni", dni)
+    //throw new ClientException(`test.`)
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
 
     const personalRows = await queryRunner.query(`
@@ -1159,7 +1164,7 @@ UNION
       }
     
       // EXISTE EL PERSONAL Y ESTÁ ASEGURADO → insertar
-      await this.addPersonalPolizaSeguro(resultPolizaSeguroCodigo,personalId,queryRunner,usuario,ip);
+      await this.addPersonalPolizaSeguro(polizaNroPoliza, polizaNroEndoso, companiaSeguroId, tipoSeguroCodigo, personalId, queryRunner, usuario, ip);
       insertados.add(personalId);
     }
     
@@ -1182,17 +1187,23 @@ UNION
 
   }
 
-  async addPersonalPolizaSeguro(resultPolizaSeguroCodigo:string, personalId:number, queryRunner:QueryRunner, usuario:string, ip:string){
+  async addPersonalPolizaSeguro(polizaNroPoliza:string, polizaNroEndoso:string, companiaSeguroId:number, tipoSeguroCodigo:string, personalId:number, queryRunner:QueryRunner, usuario:string, ip:string){
 
 
-    await queryRunner.query(`INSERT into PersonalPolizaSeguro (
-      PolizaSeguroCodigo,
+    await queryRunner.query(`INSERT INTO PersonalPolizaSeguro (
+      PolizaSeguroNroPoliza,
+      PolizaSeguroNroEndoso,
+      CompaniaSeguroId,
+      TipoSeguroCodigo,
       PersonalPolizaSeguroPersonalId,
       PersonalPolizaSeguroAudFechaIng,
       PersonalPolizaSeguroAudUsuarioIng,
       PersonalPolizaSeguroAudIpIng
-    ) values (@0, @1, @2, @3, @4)`, [
-      resultPolizaSeguroCodigo.replace(/ /g, ''),
+    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7)`, [
+      polizaNroPoliza,
+      polizaNroEndoso,
+      companiaSeguroId,
+      tipoSeguroCodigo,
       personalId,
       new Date(),
       usuario,

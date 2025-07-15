@@ -1052,9 +1052,9 @@ export class ApiService {
 
   }
 
-  getPolizaSeguro(PolizaSeguroCodigo: string) {
+  getPolizaSeguro(PolizaSeguroNroPoliza: string, PolizaSeguroNroEndoso: string, CompaniaSeguroId: number, TipoSeguroCodigo: string) {
 
-    return this.http.get<ResponseJSON<any>>(`/api/seguros/poliza/${PolizaSeguroCodigo}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/seguros/poliza/${PolizaSeguroNroPoliza}/${PolizaSeguroNroEndoso}/${CompaniaSeguroId}/${TipoSeguroCodigo}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
 

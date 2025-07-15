@@ -49,7 +49,10 @@ export class PolizaSeguroComponent {
   private angularGridEdit!: AngularGridInstance;
   visible = model<boolean>(false)
   angularGrid!: AngularGridInstance
-  PolizaSeguroCodigo = signal<string>("")
+  PolizaSeguroNroPoliza = signal<string>("")
+  PolizaSeguroNroEndoso = signal<string>("")
+  CompaniaSeguroId = signal<number>(0)
+  TipoSeguroCodigo = signal<string>("")
   openDrawerConsult = signal<boolean>(false)
 
   private listOptions: ListOptions = {
@@ -115,8 +118,14 @@ export class PolizaSeguroComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.PolizaSeguroCodigo)
-      this.PolizaSeguroCodigo.set(row.PolizaSeguroCodigo)
+    if (row?.PolizaSeguroNroPoliza)
+      this.PolizaSeguroNroPoliza.set(row.PolizaSeguroNroPoliza)
+    if (row?.PolizaSeguroNroEndoso)
+      this.PolizaSeguroNroEndoso.set(row.PolizaSeguroNroEndoso)
+    if (row?.CompaniaSeguroId)
+      this.CompaniaSeguroId.set(row.CompaniaSeguroId)
+    if (row?.TipoSeguroCodigo)
+      this.TipoSeguroCodigo.set(row.TipoSeguroCodigo)
 
   }
 
@@ -135,7 +144,10 @@ export class PolizaSeguroComponent {
 
   async openDrawerForNew() {
 
-    this.PolizaSeguroCodigo.set('')
+    this.PolizaSeguroNroPoliza.set('')
+    this.PolizaSeguroNroEndoso.set('')
+    this.CompaniaSeguroId.set(0)
+    this.TipoSeguroCodigo.set('')
     this.openDrawerConsult.set(false)
     this.visible.set(true)
   }

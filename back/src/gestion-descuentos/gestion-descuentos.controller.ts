@@ -1086,7 +1086,7 @@ export class GestionDescuentosController extends BaseController {
     now.setHours(0, 0, 0, 0)
     await queryRunner.query(`
       UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @3 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1) AND PersonalOtroDescuentoCuotaId IN (@2)
-      UPDATE FROM PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @3 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @3 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
       `, [id, PersonalId, CuotaUltNro, now])
   }
 
@@ -1138,8 +1138,8 @@ export class GestionDescuentosController extends BaseController {
     const now = new Date()
     now.setHours(0, 0, 0, 0)
     await queryRunner.query(`
-      UPDATE FROM ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1) AND ObjetivoDescuentoCuotaId IN (@2)
-      UPDATE FROM ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1) AND ObjetivoDescuentoCuotaId IN (@2)
+      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
       `, [id, ObjetivoId, CuotaUltNro, now])
 
   }
