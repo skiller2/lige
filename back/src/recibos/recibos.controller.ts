@@ -185,7 +185,7 @@ export class RecibosController extends BaseController {
           periodo_id,
           fechaRecibo,
           persona_id,
-          0,
+          null,
           nombre_archivo,
           filesPath,
           usuario,
