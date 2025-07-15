@@ -20,9 +20,8 @@ export class CustomFloatEditor extends InputEditor {
   ) {
     super(args, 'number');
 
-    this.thousand_sep = args.column.params.thousandSeparator ||  args.grid.getOptions().formatterOptions?.thousandSeparator  ||  ''
-    this.decimal_mark = args.column.params.decimalSeparator || args.grid.getOptions().formatterOptions?.decimalSeparator  || '.'
-
+    this.thousand_sep = args.column.params?.thousandSeparator ||  args.grid.getOptions().formatterOptions?.thousandSeparator  ||  ''
+    this.decimal_mark = args.column.params?.decimalSeparator || args.grid.getOptions().formatterOptions?.decimalSeparator  || '.'
   }
 
   override init(): void {
