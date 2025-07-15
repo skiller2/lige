@@ -220,6 +220,12 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para cargar valores de facturación`)
 
 
+      if (!anio)
+        throw new ClientException(`Debe ingresar el año`)
+      if (!mes)
+        throw new ClientException(`Debe ingresar el mes`)
+
+
       await queryRunner.startTransaction()
 
       const objetivo = await queryRunner.query(

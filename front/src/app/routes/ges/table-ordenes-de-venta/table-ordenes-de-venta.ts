@@ -15,6 +15,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
+import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -52,8 +53,15 @@ export class TableOrdenesDeVentaComponent {
 
 
   columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
+    
     let mapped = cols.map((col: Column) => {
-      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA' || col.id === 'TotalHoraA' || col.id === 'TotalHoraB') {
+      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA') { 
+        col.editor= { model: CustomFloatEditor, decimal: 2,params:{},alwaysSaveOnEnterKey: true }
+
+      }
+      if (col.id === 'TotalHoraA' || col.id === 'TotalHoraB') {
+        col.editor= { model: CustomFloatEditor, decimal: 1,params:{},alwaysSaveOnEnterKey: true }
+/*        
         col.editor = {
           model: Editors['float'],
           decimal: 2,
@@ -62,10 +70,12 @@ export class TableOrdenesDeVentaComponent {
           alwaysSaveOnEnterKey: true,
           //   required: true
         }
+*/
       }
       return col
     });
-    return mapped
+    
+    return cols
   }));
 
   excelExportService = new ExcelExportService()
