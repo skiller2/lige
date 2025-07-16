@@ -492,7 +492,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
                 for (const file of ObjCliente.files) {
-                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, ObjCliente.ClienteFacturacionCUIT, null, null, file, usuario, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(null, null, ClienteId, null, new Date(), null, ObjCliente.ClienteFacturacionCUIT, null, null, file, usuario, ip, queryRunner)
                 }
             }
             await queryRunner.commitTransaction()
@@ -671,7 +671,6 @@ ${orderBy}`, [fechaActual])
                 await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ClienteId = @0 `, [contacto.ContactoId])
             }
             await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
-            //await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI'`)
 
             await queryRunner.commitTransaction();
 
@@ -736,7 +735,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
                 for (const file of ObjCliente.files) {
-                    await FileUploadController.handleDOCUpload(0, 0, ClienteId, 0, new Date(), null, ObjCliente.ClienteFacturacionCUIT, null, null, file, usuario, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(null, null, ClienteId, null, new Date(), null, ObjCliente.ClienteFacturacionCUIT, null, null, file, usuario, ip, queryRunner)
                 }
             }
 

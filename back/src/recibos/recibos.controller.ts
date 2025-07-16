@@ -439,21 +439,6 @@ export class RecibosController extends BaseController {
 
   }
 
-  // async updateUsuariosLiquidacionDocGeneral(
-  //   queryRunner: any,
-  //   usuario: string,
-  //   ip: string,
-  //   audfecha: Date,
-  //   den_documento: number,
-  //   persona_id: number, )
-  // {
-  //   return queryRunner.query(`UPDATE lige.dbo.docgeneral
-  //   SET aud_ip_mod= @1, aud_fecha_mod=@2
-  //   WHERE persona_id =@3 AND den_documento=@4 `,
-  //     [usuario, ip, audfecha,persona_id,den_documento ])
-
-  // }
-
   async setUsuariosLiquidacionDocGeneral(
     queryRunner: any,
     docgeneral: number,
