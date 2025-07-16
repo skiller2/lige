@@ -930,21 +930,21 @@ UNION
       console.log("periodo_id...", periodo_id)
 
       //busca si el periodo esta cerrado
-      const ind_recibos_generados = await queryRunner.query(`SELECT ind_recibos_generados,EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
-      const FechaCierre = new Date(ind_recibos_generados[0].FechaCierre)
+      //const ind_recibos_generados = await queryRunner.query(`SELECT ind_recibos_generados,EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+      //const FechaCierre = new Date(ind_recibos_generados[0].FechaCierre)
 
       //No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
-      if (ind_recibos_generados[0].ind_recibos_generados == 1) {
+      //if (ind_recibos_generados[0].ind_recibos_generados == 1) {
 
-        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguro WHERE PolizaSeguroAnio = @0 and PolizaSeguroMes = @1 and TipoSeguroCodigo = @2`, [anio, mes, TipoSeguroCodigo])
-        const polizaDocumentoId = existPolizaInPeriodo[0]?.DocumentoId
+        //const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguro WHERE PolizaSeguroAnio = @0 and PolizaSeguroMes = @1 and TipoSeguroCodigo = @2`, [anio, mes, TipoSeguroCodigo])
+        //const polizaDocumentoId = existPolizaInPeriodo[0]?.DocumentoId
 
         //si existe un documento en el periodo cerrado, no se puede reprocesar
-        if (polizaDocumentoId) {
-          throw new ClientException(`No se puede reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada. ${this.dateOutputFormat(FechaCierre)}`)
-        }
+        //if (polizaDocumentoId) {
+        //  throw new ClientException(`No se puede reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada. ${this.dateOutputFormat(FechaCierre)}`)
+        //}
         
-      }
+      //}
       //throw new ClientException(`test`)
       // Validar que no exista una póliza del mismo tipo en el periodo
 
@@ -954,13 +954,13 @@ UNION
       //  throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} para el periodo seleccionado. Solo se permite una póliza por tipo por periodo.`)
       //}
 
-
       
       if (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) {
         // is edit
         console.log("is edit")
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1]);
+
 
 
         await queryRunner.query(`
@@ -996,18 +996,25 @@ UNION
 
       console.log("is new")
       // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
-      const result = await queryRunner.query(`
-        SELECT COUNT(*) as count 
-        FROM PolizaSeguro ps
-        WHERE ps.TipoSeguroCodigo = @0 
-        AND ps.PolizaSeguroFechaEndoso = @1`, 
-        [TipoSeguroCodigo, PolizaSeguroFechaEndoso])
+      //const result = await queryRunner.query(`
+        //SELECT COUNT(*) as count 
+        //FROM PolizaSeguro ps
+        //WHERE ps.TipoSeguroCodigo = @0 
+        //AND ps.PolizaSeguroFechaEndoso = @1`, 
+        //[TipoSeguroCodigo, PolizaSeguroFechaEndoso])
 
-      if(result[0].count > 0) {
-        throw new ClientException(`Ya existe una póliza de este tipo para el periodo seleccionado.`)
-      }
+      //if(result[0].count > 0) {
+      //  throw new ClientException(`Ya existe una póliza de este tipo para el periodo seleccionado.`)
+      //}
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
+
+
+        const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
+      if (polizaExistente[0].count > 0) {
+        throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} - ${CompaniaSeguroId} - ${polizaEndoso[0]} - ${endoso[1]}`)
+      }
+        //throw new ClientException(`test`)
 
           await queryRunner.query(`
             INSERT INTO PolizaSeguro (
@@ -1076,7 +1083,7 @@ UNION
         PolizaSeguroFechaEndoso: fechaDesde
   }
 
-  console.log("result", result)
+  
       ///throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
