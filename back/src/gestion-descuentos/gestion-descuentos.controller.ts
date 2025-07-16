@@ -333,7 +333,7 @@ const columnsObjetivosDescuentos:any[] = [
   },
   {
     id:'importetotal', name:'Importe Total', field:'importetotal',
-    fieldName: '',
+    fieldName: 'importetotal',
     type:'currency',
     searchType: 'currency',
     sortable: true,
