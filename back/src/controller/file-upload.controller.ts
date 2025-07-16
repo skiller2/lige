@@ -75,7 +75,7 @@ export class FileUploadController extends BaseController {
 
 
     try {
-      if (documentId == '0') throw new ClientException(`Archivo no localizado`)
+      if (documentId == '0' || documentId=='null') throw new ClientException(`Archivo no localizado`)
 
       switch (tableForSearch) {
         case 'DocumentoImagenFoto':

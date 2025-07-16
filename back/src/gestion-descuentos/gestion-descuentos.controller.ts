@@ -57,7 +57,7 @@ const columnsPersonalDescuentos:any[] = [
   //   // minWidth: 10,
   // },
   {
-    id:'tipocuenta_id', name:'Tipo de Cuenta', field:'tipocuenta_id',
+    id:'tipocuenta_id', name:'Tipo Cuenta', field:'tipocuenta_id',
     fieldName: 'perdes.tipocuenta_id',
     type:'string',
     searchType: 'string',
@@ -102,7 +102,7 @@ const columnsPersonalDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'desmovimiento', name:'Desmovimiento', field:'desmovimiento',
+    id:'desmovimiento', name:'Descripción', field:'desmovimiento',
     fieldName: 'perdes.desmovimiento',
     type:'string',
     searchType: "string",
@@ -126,8 +126,8 @@ const columnsPersonalDescuentos:any[] = [
   {
     id:'importe', name:'Importe', field:'importe',
     fieldName: "perdes.importe",
-    type:'float',
-    searchType: "float",
+    type:'currency',
+    searchType: "currency",
     sortable: true,
     hidden: false,
     searchHidden: true,
@@ -135,7 +135,7 @@ const columnsPersonalDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
+    id:'cuotanro', name:'Cuota Número', field:'cuotanro',
     fieldName:'perdes.cuotanro',
     type:'number',
     searchType: "number",
@@ -146,7 +146,7 @@ const columnsPersonalDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
+    id:'cantcuotas', name:'Cantidad Cuotas', field:'cantcuotas',
     fieldName:'perdes.cantcuotas',
     type:'number',
     searchType: "number",
@@ -159,8 +159,8 @@ const columnsPersonalDescuentos:any[] = [
   {
     id:'importetotal', name:'Importe Total', field:'importetotal',
     fieldName: 'perdes.importetotal',
-    type:'float',
-    searchType: "float",
+    type:'currency',
+    searchType: "currency",
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -181,31 +181,28 @@ const columnsObjetivosDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
-  // {
-  //   id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
-  //   fieldName: "gap.GrupoActividadId",
-  //   type:'number',
-  //   searchType: "number",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true,
-  //   // minWidth: 50,
-  //   // minWidth: 10,
-  // },
+   {
+     id:'CodObjetivo', name:'Código', field:'CodObjetivo',
+     fieldName: "CodObjetivo",
+     type:'string',
+     searchType: "string",
+     sortable: true,
+     hidden: false,
+     searchHidden: true,
+     // minWidth: 50,
+     // minWidth: 10,
+   },
   {
-    id: 'objetivo', name:'Objetivo', field: 'objetivo.descripcion',
+    id: 'ObjetivoDescripcion', name:'Objetivo', field: 'ObjetivoDescripcion',
     fieldName: "obj.ObjetivoId",
     sortable: true,
     type: 'string',
-    formatter: 'complexObject',
-    params: {
-        complexFieldLabel: 'objetivo.descripcion',
-    },
     searchComponent: "inpurForObjetivoSearch",
     searchType: "number",
     // maxWidth: 170,
     // minWidth: 100,
   },
+  /*
   {
     id:'CUIT', name:'CUIT', field:'CUIT',
     fieldName:'cuit.PersonalCUITCUILCUIT',
@@ -217,6 +214,7 @@ const columnsObjetivosDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
+  */
   {
     id: 'personal', name:'Apellido Nombre', field: 'personal.fullName',
     fieldName: "per.PersonalId",
@@ -245,7 +243,7 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'tipocuenta_id', name:'Tipo de Cuenta', field:'tipocuenta_id',
+    id:'tipocuenta_id', name:'Tipo Cuenta', field:'tipocuenta_id',
     fieldName: 'tipocuenta_id',
     type:'string',
     searchType: 'string',
@@ -256,8 +254,8 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'tipomov', name:'Tipo Movimiento', field:'tipomov',
-    fieldName: 'det.DescuentoId',
+    id:'DescuentoDescripcion', name:'Tipo Movimiento', field:'DescuentoDescripcion',
+    fieldName: 'det.DescuentoDescripcion',
     searchComponent: 'inpurForDescuentoForObjetivoSearch',
     type:'string',
     searchType: 'number',
@@ -290,8 +288,8 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'desmovimiento', name:'Desmovimiento', field:'desmovimiento',
-    fieldName: '',
+    id:'ObjetivoDescuentoDetalle', name:'Descripción', field:'ObjetivoDescuentoDetalle',
+    fieldName: 'des.ObjetivoDescuentoDetalle',
     type:'string',
     searchType: 'string',
     sortable: true,
@@ -301,21 +299,10 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'tipoint', name:'Tipo', field:'tipoint',
-    fieldName: '',
-    type:'string',
-    searchType: 'string',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  {
-    id:'importe', name:'Importe', field:'importe',
-    fieldName: 'cuo.PersonalOtroDescuentoCuotaImporte',
-    type:'float',
-    searchType: 'float',
+    id:'ObjetivoDescuentoImporteVariable', name:'Importe Cuota', field:'ObjetivoDescuentoImporteVariable',
+    fieldName: 'cuo.ObjetivoDescuentoImporteVariable',
+    type:'currency',
+    searchType: 'currency',
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -323,8 +310,8 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
-    fieldName: 'cuo.ObjetivoDescuentoCuotaCuota',
+    id:'cantprocesada', name:'Cuotas Procesadas', field:'cantprocesada',
+    fieldName: 'cuo.cantprocesada',
     type:'number',
     searchType: 'number',
     sortable: true,
@@ -334,7 +321,7 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
+    id:'cantcuotas', name:'Cantidad Cuotas', field:'cantcuotas',
     fieldName: 'des.ObjetivoDescuentoCantidadCuotas',
     type:'number',
     searchType: 'number',
@@ -346,9 +333,9 @@ const columnsObjetivosDescuentos:any[] = [
   },
   {
     id:'importetotal', name:'Importe Total', field:'importetotal',
-    fieldName: '',
-    type:'float',
-    searchType: 'float',
+    fieldName: 'importetotal',
+    type:'currency',
+    searchType: 'currency',
     sortable: true,
     hidden: false,
     searchHidden: true,
@@ -449,42 +436,44 @@ export class GestionDescuentosController extends BaseController {
   private async getDescuentosObjetivosQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     let condition = '1=1'
     if (anio && mes) {
-      condition = `cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2`
+      condition = `des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2`
     }
     return await queryRunner.query(`
-      SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
-      , gap.GrupoActividadId
+            SELECT CONCAT(cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
       , des.ObjetivoId
       , per.PersonalId
-      , IIF(des.ObjetivoId>0,'C','G') tipocuenta_id
-      , cuit.PersonalCUITCUILCUIT AS CUIT
+      , 'C' tipocuenta_id
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       , @1 AS anio
       , @2 AS mes
-      , det.DescuentoDescripcion AS tipomov
-      , CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', eledep.ClienteElementoDependienteDescripcion)) AS desmovimiento
-      , 'OTRO' tipoint
-      , cuo.ObjetivoDescuentoCuotaImporte AS importe
-      , cuo.ObjetivoDescuentoCuotaCuota AS cuotanro
+      , CONCAT(cli.ClienteId,'/',eledep.ClienteElementoDependienteId) AS CodObjetivo
+      , CONCAT(cli.ClienteDenominacion,' ', eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
+
+      , det.DescuentoDescripcion
+      , des.ObjetivoDescuentoDetalle 
+   
+      , des.ObjetivoDescuentoImporteVariable
+      , cuo.cantprocesada
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
       , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
-      , eledep.ClienteElementoDependienteDescripcion
 
-      FROM ObjetivoDescuentoCuota cuo 
-      JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
-      LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+      FROM ObjetivoDescuento des  
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
       JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
+		JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-      JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
+      
+		
+		LEFT JOIN (SELECT cuox.ObjetivoDescuentoId, cuox.ObjetivoId, COUNT(*) cantprocesada
+		  FROM
+		  ObjetivoDescuentoCuota cuox 
+		  GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
+      ) AS cuo ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
+		
+		LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+      LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       
       WHERE (${condition})
-      AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       AND (${filterSql})
       ${orderBy}
     `, [, anio, mes])
