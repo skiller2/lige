@@ -58,14 +58,6 @@ export class SeguroComponent {
   }
 
   onTabsetChange(_event: any) {
-    switch (_event.index) {
-      case 2: //Poliza
-        this.isActiveProcess.set(false)
-        break;
-        default:
-          this.isActiveProcess.set(true)
-        break;
-    }
     window.dispatchEvent(new Event('resize'));
   }
   
