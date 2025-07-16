@@ -357,6 +357,7 @@ export class ApiService {
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['currency']
             col.type = FieldType.float
+            col.params = { maxDecimal: 2, minDecimal: 2 }
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
