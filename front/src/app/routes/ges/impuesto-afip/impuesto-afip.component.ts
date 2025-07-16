@@ -101,11 +101,8 @@ export class ImpuestoAfipComponent {
   columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols: Column<any>[]) => {
     let mapped = cols.map((col: any) => {
       if (col.id == 'monto') {
-        col.formatter = Formatters['multiple']
         col.asyncPostRender = this.renderAngularComponent.bind(this)
-        col.params.formatters = [Formatters['currency']]
-        col.params.component = CustomDescargaComprobanteComponent
-        col.params.angularUtilService = this.angularUtilService
+        col.params = { angularUtilService : this.angularUtilService, component : CustomDescargaComprobanteComponent  }
       }
       return col
     });
