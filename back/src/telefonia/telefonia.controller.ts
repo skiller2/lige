@@ -7,6 +7,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "f
 import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { recibosController } from "src/controller/controller.module";
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 export class TelefoniaController extends BaseController {
   directory = process.env.PATH_TELEFONIA || "tmp";
@@ -250,7 +251,9 @@ export class TelefoniaController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
-
+    console.log("file", file)
+    
+    //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
 
@@ -657,23 +660,24 @@ export class TelefoniaController extends BaseController {
       //   copyFileSync(file.path, newFilePath);
       let nombre_archivo = `${anioRequest}-${mesRequest.toString().padStart(2, "0")}-${docgeneral}.xls`
 
-
-      await queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "den_documento")
-      VALUES
-      (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);`,
-        [
-          docgeneral,
-          periodo_id,
-          fechaActual,
+        file.filename = nombre_archivo
+        await FileUploadController.handleDOCUpload(
+          null, 
+          null, 
+          null, 
+          docgeneral, 
+          new Date(), 
+          null, 
           null,
           null,
-          newFilePath,
-          nombre_archivo,
-          usuario, ip, fechaActual,
-          usuario, ip, fechaActual,
-          "TEL", idTelefonia
-        ])
+          null, 
+          file, 
+          usuario,
+          ip,
+          queryRunner)
 
+
+          
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");

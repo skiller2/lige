@@ -121,6 +121,8 @@ telefoniaRouter.post("/upload", [authMiddleware.verifyToken,authMiddleware.hasGr
   
       // SUCCESS
       else {
+        req.file.tableForSearch = "docgeneral"
+        req.file.doctipo_id = 'TEL'
         telefoniaController.handleXLSUpload(req, res, next);
       }
     });
