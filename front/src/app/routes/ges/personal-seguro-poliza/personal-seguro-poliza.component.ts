@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, runInInjectionContext, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
@@ -29,6 +29,7 @@ export class PersonalSeguroPolizaComponent {
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
   columns$ = this.apiService.getCols('/api/seguros/cols-personal-seguro');
+  #injector = inject(Injector);
   gridOptions!: GridOption;
   private gridObj!: SlickGrid;
   private dataAngularGrid = [];
@@ -37,7 +38,11 @@ export class PersonalSeguroPolizaComponent {
   private excelExportService = new ExcelExportService();
   private angularGridEdit!: AngularGridInstance;
   angularGrid!: AngularGridInstance
-
+  startFilters = signal<any[]>([])
+  PolizaSeguroNroPoliza = input<string>("")
+  PolizaSeguroNroEndoso = input<string>("")
+  CompaniaSeguroId = input<number>(0)
+  TipoSeguroCodigo = input<string>("")
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -53,7 +58,11 @@ export class PersonalSeguroPolizaComponent {
 
   ngOnInit(): void {
     this.initializeGridOptions();
-  }
+    
+    
+
+
+}
 
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
@@ -67,6 +76,7 @@ export class PersonalSeguroPolizaComponent {
     ))
   );
 
+
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainerPersonalSeguro',
       this.detailViewRowCount,
@@ -78,6 +88,34 @@ export class PersonalSeguroPolizaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
+   
+
+    
+
+    runInInjectionContext(this.#injector, () => {
+      effect(() => {
+       this.PolizaSeguroNroPoliza()
+        this.PolizaSeguroNroEndoso()
+        this.CompaniaSeguroId()
+        this.TipoSeguroCodigo()
+
+        this.listOptions.filtros = []
+        this.startFilters.set([])
+
+        if(this.PolizaSeguroNroPoliza() != "" && this.PolizaSeguroNroEndoso() != "" && this.CompaniaSeguroId() != 0 && this.TipoSeguroCodigo() != ""){
+          this.startFilters.set([
+            {field:'PolizaSeguroNroPoliza', condition:'AND', operator:'=', value: this.PolizaSeguroNroPoliza(), forced:false},
+            {field:'PolizaSeguroNroEndoso', condition:'AND', operator:'=', value: this.PolizaSeguroNroEndoso(), forced:false},
+            {field:'CompaniaSeguroId', condition:'AND', operator:'=', value: this.CompaniaSeguroId(), forced:false},
+            {field:'TipoSeguroCodigo', condition:'AND', operator:'=', value: this.TipoSeguroCodigo(), forced:false},
+          ])
+          }
+        
+        //this.initializeGridOptions();
+        this.formChange$.next('');
+        
+      });
+    })
   }
 
   angularGridReady(angularGrid: any): void {

@@ -4,10 +4,10 @@ import { ordenesDeVentaController } from "../controller/controller.module";
 
 export const ordenesDeVentaRouter = Router();
 
-ordenesDeVentaRouter.get("/cols", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas']), (req, res) => {
+ordenesDeVentaRouter.get("/cols", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones']), (req, res) => {
     ordenesDeVentaController.getGridCols(req, res);
   });
 
-ordenesDeVentaRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenesDeVentaRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas','Liquidaciones'])], (req, res, next) => {
     ordenesDeVentaController.getListOrdenesDeVenta(req, res, next)
 })

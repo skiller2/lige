@@ -150,8 +150,8 @@ const listaColumnasPoliza: any[] = [
     fieldName: "seg.TipoSeguroCodigo",
     type: "string",
     sortable: true,
-    hidden: false,
-    searchHidden: false
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "TipoSeguroNombre",
@@ -201,19 +201,19 @@ const listaColumnasPoliza: any[] = [
     fieldName: "seg.CompaniaSeguroId",
     type: "number",
     sortable: true,
-    hidden: false,
-    searchHidden: false
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "CompaniaSeguroDescripcion",
     name: "Compañía",
     field: "CompaniaSeguroDescripcion",
-    fieldName: "seg.CompaniaSeguroDescripcion",
+    fieldName: "cs.CompaniaSeguroDescripcion",
     searchComponent: "inputForCompaniaSeguroSearch",
     searchType: "string",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
   }
  
 ];
@@ -225,16 +225,6 @@ const listaColumnasPersonalSeguro: any[] = [
     field: "id",
     fieldName: "id",
     type: "number",
-    sortable: false,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: "PolizaSeguroCod",
-    name: "Código de Póliza",
-    field: "PolizaSeguroCod",
-    fieldName: "perpoliz.PolizaSeguroCod",
-    type: "string",
     sortable: false,
     hidden: true,
     searchHidden: true
@@ -271,16 +261,6 @@ const listaColumnasPersonalSeguro: any[] = [
     searchHidden: true
   },
   {
-    id: "PolizaSeguroNroEndoso",
-    name: "Número de Endoso",
-    field: "polizaSeguroNroEndoso",
-    fieldName: "poliz.polizaSeguroNroEndoso",
-    type: "string",
-    sortable: false,
-    hidden: false,
-    searchHidden: true
-  },
-  {
     id: "TipoSeguroCodigo",
     name: "Código Tipo Seguro",
     field: "TipoSeguroCodigo",
@@ -291,6 +271,16 @@ const listaColumnasPersonalSeguro: any[] = [
     sortable: true
   },
   {
+    id: "PolizaSeguroNroEndoso",
+    name: "Número de Endoso",
+    field: "PolizaSeguroNroEndoso",
+    fieldName: "poliz.PolizaSeguroNroEndoso",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
     id: "PolizaSeguroNroPoliza",
     name: "Número de Póliza",
     field: "PolizaSeguroNroPoliza",
@@ -299,7 +289,7 @@ const listaColumnasPersonalSeguro: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false
-  },
+    },
   {
     id: "TipoSeguroNombre",
     name: "Tipo de Seguro",
@@ -309,6 +299,16 @@ const listaColumnasPersonalSeguro: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    id: "CompaniaSeguroDescripcion",
+    name: "Compañía",
+    field: "CompaniaSeguroDescripcion",
+    fieldName: "cs.CompaniaSeguroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
   },
   {
     name: "Tipo seguro ",
@@ -740,7 +740,7 @@ UNION
     res: Response, next: NextFunction
   ) {
     //console.log("req.body.options.filtros ", req.body.options.filtros)
-    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       let result = await dataSource.query(`
@@ -751,12 +751,14 @@ UNION
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
+        cs.CompaniaSeguroDescripcion,
         ps.PolizaSeguroAnio,
-        ps.TipoSeguroCodigo,
         ps.CompaniaSeguroId,
         ps.PolizaSeguroMes
       FROM PolizaSeguro ps
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
+      LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
+      WHERE (1=1)
        AND ${filterSql}
        ${orderBy}
       `)
@@ -773,18 +775,20 @@ UNION
     }
   }
 
+  
+
   async getListPersonalSeguro(
     req: any,
     res: Response, next: NextFunction
   ) {
     //console.log("req.body.options.filtros ", req.body.options.filtros)
-    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       let result = await dataSource.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
       perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,per.PersonalApellidoNombre,
-      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso,tipseg.TipoSeguroNombre
+      cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso,tipseg.TipoSeguroNombre,cs.CompaniaSeguroDescripcion
       FROM PersonalPolizaSeguro AS perpoliz
       JOIN Personal per ON per.PersonalId = perpoliz.PersonalPolizaSeguroPersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId     
@@ -794,6 +798,7 @@ UNION
        AND poliz.CompaniaSeguroId =  perpoliz.CompaniaSeguroId 
        AND poliz.TipoSeguroCodigo =  perpoliz.TipoSeguroCodigo
       LEFT JOIN TipoSeguro tipseg ON tipseg.TipoSeguroCodigo = poliz.TipoSeguroCodigo
+      LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = poliz.CompaniaSeguroId
       WHERE (1=1)
       AND ${filterSql}
        ${orderBy}
@@ -893,7 +898,7 @@ UNION
       //const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
       //const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
 
-      console.log("detalle_documento", detalle_documento)
+      //console.log("detalle_documento", detalle_documento)
       //const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
       const dnis = [...detalle_documento.matchAll(dniRegex)].map(m => m[1]);
 
@@ -907,15 +912,10 @@ UNION
         );
       });
 
-      //console.log("dni", dnisLimpios)
-      //throw new ClientException(`test.`)
       const polizaEndoso = detalle_documento.match(polizaRegex)
       const endoso = detalle_documento.match(endosoRegex)
 
-      //const fechaDesdeEndoso = detalle_documento.match(fechaDesdeRegex)
-      //const fechaTexto = fechaDesdeEndoso[0];
-      //const [dia, mes, anio] = fechaTexto.split(".")
-      //let fechaDesde = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia)))
+
       let fechaDesde = new Date(PolizaSeguroFechaEndoso)
       const anio = fechaDesde.getFullYear()
       const mes = fechaDesde.getMonth() + 1
@@ -924,43 +924,15 @@ UNION
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
-
-      //throw new ClientException(`test`)
-      //optiene periodo del documento
       const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
-      console.log("periodo_id", periodo_id)
-
-      //busca si el periodo esta cerrado
-      const ind_recibos_generados = await queryRunner.query(`SELECT ind_recibos_generados,EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
-      const FechaCierre = new Date(ind_recibos_generados[0].FechaCierre)
-
-      //No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
-      if (ind_recibos_generados[0].ind_recibos_generados == 1) {
-
-        const existPolizaInPeriodo = await queryRunner.query(`SELECT DocumentoId FROM PolizaSeguro WHERE PolizaSeguroAnio = @0 and PolizaSeguroMes = @1 and TipoSeguroCodigo = @2`, [anio, mes, TipoSeguroCodigo])
-        const polizaDocumentoId = existPolizaInPeriodo[0]?.DocumentoId
-
-        //si existe un documento en el periodo cerrado, no se puede reprocesar
-        if (polizaDocumentoId) {
-          throw new ClientException(`No se puede reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada. ${this.dateOutputFormat(FechaCierre)}`)
-        }
-        
-      }
-
-      // Validar que no exista una póliza del mismo tipo en el periodo
-      const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE TipoSeguroCodigo = @0 AND PolizaSeguroAnio = @1 AND PolizaSeguroMes = @2`, [TipoSeguroCodigo, anio, mes])
-
-      if (polizaExistente[0].count > 0) {
-        throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} para el periodo seleccionado. Solo se permite una póliza por tipo por periodo.`)
-      }
-
-
+ 
       
       if (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) {
         // is edit
         console.log("is edit")
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1]);
+
 
 
         await queryRunner.query(`
@@ -995,19 +967,13 @@ UNION
         // is new
 
       console.log("is new")
-      // Solo se podrá cargar un tipo de póliza en cada periodo (1 VC, 1 AP COTO, 1 AP EDESUR y 1 AP ENERGIA ARGENTINA)
-      const result = await queryRunner.query(`
-        SELECT COUNT(*) as count 
-        FROM PolizaSeguro ps
-        WHERE ps.TipoSeguroCodigo = @0 
-        AND ps.PolizaSeguroFechaEndoso = @1`, 
-        [TipoSeguroCodigo, PolizaSeguroFechaEndoso])
+      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
 
-      if(result[0].count > 0) {
-        throw new ClientException(`Ya existe una póliza de este tipo para el periodo seleccionado.`)
+        const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
+      if (polizaExistente[0].count > 0) {
+        throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} - ${CompaniaSeguroId} - ${polizaEndoso[0]} - ${endoso[1]}`)
       }
-
-        resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
+        //throw new ClientException(`test`)
 
           await queryRunner.query(`
             INSERT INTO PolizaSeguro (
@@ -1076,7 +1042,7 @@ UNION
         PolizaSeguroFechaEndoso: fechaDesde
   }
 
-  console.log("result", result)
+  
       ///throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);

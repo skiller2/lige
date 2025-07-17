@@ -133,11 +133,11 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Total Horas Real",
-    type: "number",
-    id: "TotalHorasReal",
-    field: "TotalHorasReal",
-    fieldName: "ven.TotalHorasReal",
+    name: "Total Horas Normales",
+    type: "float",
+    id: "AsistenciaHorasN",
+    field: "AsistenciaHorasN",
+    fieldName: "objasissub.sumtotalhorascalc",
     searchType: "float",
     sortable: true,
     hidden: false,
@@ -145,7 +145,7 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Horas a facturar A",
-    type: "number",
+    type: "float",
     id: "TotalHoraA",
     field: "TotalHoraA",
     fieldName: "ven.TotalHoraA",
@@ -156,7 +156,7 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Horas a facturar B",
-    type: "number",
+    type: "float",
     id: "TotalHoraB",
     field: "TotalHoraB",
     fieldName: "ven.TotalHoraB",
@@ -167,7 +167,7 @@ const columnasGrilla: any[] = [
   },  
   {
     name: "Diferencia Horas",
-    type: "number",
+    type: "float",
     id: "DiferenciaHoras",
     field: "DiferenciaHoras",
     fieldName: "DiferenciaHoras",
@@ -206,6 +206,17 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     editable: false
+  },
+  {
+    name: "Estado Carga",
+    type: "string",
+    id: "EstadoAsistencia",
+    field: "EstadoAsistencia",
+    fieldName: "EstadoAsistencia",
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    editable: false
   }
 ];
 
@@ -237,12 +248,12 @@ export class OrdenesDeVentaController extends BaseController {
           obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
           ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
-          objasissub.sumtotalhorascalc AS AsistenciaHoras,
+          objasissub.sumtotalhorascalc AS AsistenciaHorasN,
           objm.ObjetivoAsistenciaAnoMesHasta,
 
           ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB,
           
-          ven.TotalHorasReal, (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
+          (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
 
           1
@@ -303,7 +314,7 @@ export class OrdenesDeVentaController extends BaseController {
           LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
           LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId
             AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN val.ValorLiquidacionDesde AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')
-
+          WHERE objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = 'N' 
           GROUP BY objd.ObjetivoId, objd.ObjetivoAsistenciaAnoMesId, objd.ObjetivoAsistenciaAnoId
 
         ) objasissub ON objasissub.ObjetivoId = obj.ObjetivoId AND objasissub.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objasissub.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId

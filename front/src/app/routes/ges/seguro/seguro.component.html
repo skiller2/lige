@@ -5,7 +5,7 @@
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'seguro', 'listado']">{{ 'app.segurosList' | i18n }}</a>
+          <a [routerLink]="['/', 'ges', 'seguro', 'listado']" (click)="this.isActiveProcess.set(true)">{{ 'app.segurosList' | i18n }}</a>
         </li>
         <li nz-submenu nzTitle="Informes">
           <ul style="width: auto !important">
@@ -29,11 +29,11 @@
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'seguro', 'poliza']">{{ 'app.segurosPoliza' | i18n }}</a>
+          <a [routerLink]="['/', 'ges', 'seguro', 'poliza']" (click)="this.isActiveProcess.set(false)">{{ 'app.segurosPoliza' | i18n }}</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'seguro', 'personal']">{{ 'app.segurosPersonal' | i18n }}</a>
+          <a [routerLink]="['/', 'ges', 'seguro', 'personal']" (click)="this.isActiveProcess.set(false)">{{ 'app.segurosPersonal' | i18n }}</a>
         </li>
       </ul>
     </div>
@@ -73,13 +73,13 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/poliza">Poliza</a>
       <ng-template nz-tab>
-          <app-poliza-seguro></app-poliza-seguro>
+          <app-poliza-seguro [(TipoSeguroCodigo)]="TipoSeguroCodigo" [(CompaniaSeguroId)]="CompaniaSeguroId" [(PolizaSeguroNroPoliza)]="PolizaSeguroNroPoliza" [(PolizaSeguroNroEndoso)]="PolizaSeguroNroEndoso"></app-poliza-seguro>
       </ng-template>
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/personal">Personal Seguro</a>
       <ng-template nz-tab>
-          <app-personal-seguro-poliza></app-personal-seguro-poliza>
+          <app-personal-seguro-poliza [TipoSeguroCodigo]="TipoSeguroCodigo()" [CompaniaSeguroId]="CompaniaSeguroId()" [PolizaSeguroNroPoliza]="PolizaSeguroNroPoliza()" [PolizaSeguroNroEndoso]="PolizaSeguroNroEndoso()"></app-personal-seguro-poliza>
       </ng-template>
     </nz-tab>
   </nz-tabset>

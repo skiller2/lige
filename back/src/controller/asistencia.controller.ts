@@ -219,7 +219,6 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para cargar valores de facturación`)
 
-
       await queryRunner.startTransaction()
 
       const objetivo = await queryRunner.query(
@@ -287,6 +286,12 @@ export class AsistenciaController extends BaseController {
     try {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para cargar valores de facturación`)
+
+      if (!anio)
+        throw new ClientException(`Debe ingresar el año`)
+      if (!mes)
+        throw new ClientException(`Debe ingresar el mes`)
+
 
 
       await queryRunner.startTransaction()
