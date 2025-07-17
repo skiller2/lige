@@ -158,17 +158,11 @@ export class EstudioController extends BaseController {
 
   async list(req: any, res: Response, next: NextFunction) {
 
+    const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+    const filterSql = filtrosToSql(options.filtros, listaColumnas);
+    const orderBy = orderToSQL(options.sort);
 
-    //const filterSql = filtrosToSql(req.body.filters["options"].filtros, listaColumnas)
-
-    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
-    const orderBy = orderToSQL(req.body.options.sort)
-
-    //const orderBy = orderToSQL(req.body.options.sort)
     const queryRunner = dataSource.createQueryRunner();
-    const fechaActual = new Date()
-    const anio = fechaActual.getFullYear()
-    const mes = fechaActual.getMonth() + 1
 
     try {
       const objetivos = await queryRunner.query(
