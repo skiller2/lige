@@ -1326,7 +1326,7 @@ export class AsistenciaController extends BaseController {
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.ObjetivoDescuentoDetalle AS desmovimiento, 
       des.ObjetivoDescuentoDetalle AS desmovimiento2,
-      des.ObjetivoDescuentoDescontarCoordinador, 
+      des.des.ObjetivoDescuentoDescontar, 
       'OTRO' tipoint,
       cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad AS importetotal
       FROM ObjetivoDescuentoCuota cuo
@@ -1496,7 +1496,7 @@ JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = 
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
 
 WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
-AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
+AND des.ObjetivoDescuentoDescontar = 'CO'
  ${listPersonaId}
 
       UNION

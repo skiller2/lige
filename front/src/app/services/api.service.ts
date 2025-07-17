@@ -1443,6 +1443,10 @@ export class ApiService {
   }
 
   getListEstudios(filters: any) {
+    if (!filters.options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/estudio/list', parameter).pipe(
       map((res: { data: any; }) => res.data),

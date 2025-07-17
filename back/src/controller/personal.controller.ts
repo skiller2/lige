@@ -1503,6 +1503,8 @@ cuit.PersonalCUITCUILCUIT,
       if (valForm instanceof ClientException)
         throw valForm
 
+      await this.addPersonalCambios(queryRunner, PersonalId)
+
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
@@ -2909,6 +2911,138 @@ cuit.PersonalCUITCUILCUIT,
     } catch (error) {
       return next(error)
     }
+  }
+
+  async addPersonalCambios(queryRunner:any, personalId:number){
+    let personal = await queryRunner.query(`
+      SELECT
+        PersonalId,
+        PersonalSucursalIngresoSucursalId,
+        PersonalClasePersonal,
+        PersonalNroLegajo,
+        PersonalApellido,
+        PersonalNombre,
+        PersonalFechaNoAsociado,
+        PersonalFechaSolicitudIngreso,
+        PersonalFechaSolicitudAceptada,
+        PersonalFechaPreIngreso,
+        PersonalFechaIngreso,
+        PersonalFechaAutorizacionIngreso,
+        PersonalFechaPlantaPermanente,
+        PersonalLeyNro,
+        PersonalFechaBajaTramite,
+        PersonalFechaBaja,
+        PersonalFechaReincorporacion,
+        PersonalFechaDestruccion,
+        PersonalFechaNacimiento,
+        PersonalPaisId,
+        PersonalProvinciaId,
+        PersonalLocalidadId,
+        PersonalSexo,
+        PersonalNacionalidadId,
+        PersonalCantidadHijos,
+        PersonalObservacion,
+        PersonalSuActualSucursalPrincipalId,
+        PersonalFechaCompromisoDevolucion,
+        PersonalAudFechaIng,
+        PersonalAudUsuarioIng,
+        PersonalAudIpIng,
+        PersonalAudFechaMod,
+        PersonalAudUsuarioMod,
+        PersonalAudIpMod,
+        TipoBajaId,
+        TipoBajaTramiteId,
+        EstadoCivilId
+      FROM Personal
+      WHERE PersonalId IN (@0)
+    `, [personalId])
+
+    personal = personal[0]
+
+    await queryRunner.query(`
+      INSERT INTO PersonalCambios (
+        PersonalId,
+        PersonalCambiosSucursalIngresoSucursalId,
+        PersonalCambiosClasePersonal,
+        PersonalCambiosNroLegajo,
+        PersonalCambiosApellido,
+        PersonalCambiosNombre,
+        PersonalCambiosFechaNoAsociado,
+        PersonalCambiosFechaSolicitudIngreso,
+        PersonalCambiosFechaSolicitudAceptada,
+        PersonalCambiosFechaPreIngreso,
+        PersonalCambiosFechaIngreso,
+        PersonalCambiosFechaAutorizacionIngreso,
+        PersonalCambiosFechaPlantaPermanente,
+        PersonalCambiosLeyNro,
+        PersonalCambiosFechaBajaTramite,
+        PersonalCambiosFechaBaja,
+        PersonalCambiosFechaReincorporacion,
+        PersonalCambiosFechaDestruccion,
+        PersonalCambiosFechaNacimiento,
+        PaisId,
+        ProvinciaId,
+        LocalidadId,
+        PersonalCambiosSexo,
+        NacionalidadId,
+        PersonalCambiosCantidadHijos,
+        PersonalCambiosObservacion,
+        PersonalCambiosSuActualSucursalPrincipalId,
+        PersonalCambiosFechaCompromisoDevolucion,
+        PersonalCambiosAudFechaIng,
+        PersonalCambiosAudUsuarioIng,
+        PersonalCambiosAudIpIng,
+        PersonalCambiosAudFechaMod,
+        PersonalCambiosAudUsuarioMod,
+        PersonalCambiosAudIpMod,
+        PersonalCambiosTipoBajaId,
+        PersonalCambiosTipoBajaTramiteId,
+        PersonalCambiosEstadoCivilId
+      ) VALUES (
+        @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,
+        @10,@11,@12,@13,@14,@15,@16,@17,@18,@19,
+        @20,@21,@22,@23,@24,@25,@26,@27,@28,@29,
+        @30,@31,@32,@33,@34,@35,@36
+      )
+    `, [
+      personalId,
+      personal.PersonalSucursalIngresoSucursalId,
+      personal.PersonalClasePersonal,
+      personal.PersonalNroLegajo,
+      personal.PersonalApellido,
+      personal.PersonalNombre,
+      personal.PersonalFechaNoAsociado,
+      personal.PersonalFechaSolicitudIngreso,
+      personal.PersonalFechaSolicitudAceptada,
+      personal.PersonalFechaPreIngreso,
+      personal.PersonalFechaIngreso,
+      personal.PersonalFechaAutorizacionIngreso,
+      personal.PersonalFechaPlantaPermanente,
+      personal.PersonalLeyNro,
+      personal.PersonalFechaBajaTramite,
+      personal.PersonalFechaBaja,
+      personal.PersonalFechaReincorporacion,
+      personal.PersonalFechaDestruccion,
+      personal.PersonalFechaNacimiento,
+      personal.PersonalPaisId,
+      personal.PersonalProvinciaId,
+      personal.PersonalLocalidadId,
+      personal.PersonalSexo,
+      personal.PersonalNacionalidadId,
+      personal.PersonalCantidadHijos,
+      personal.PersonalObservacion,
+      personal.PersonalSuActualSucursalPrincipalId,
+      personal.PersonalFechaCompromisoDevolucion,
+      personal.PersonalAudFechaIng,
+      personal.PersonalAudUsuarioIng,
+      personal.PersonalAudIpIng,
+      personal.PersonalAudFechaMod,
+      personal.PersonalAudUsuarioMod,
+      personal.PersonalAudIpMod,
+      personal.TipoBajaId,
+      personal.TipoBajaTramiteId,
+      personal.EstadoCivilId
+    ])
   }
 
 }

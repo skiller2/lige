@@ -251,7 +251,7 @@
                 <tr *ngFor="let data of descObj.data" class="">
                   <td>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
-                  <td>{{ data.ObjetivoDescuentoDescontarCoordinador=='S'?'Si':'No' }}</td>
+                  <td>{{ data.ObjetivoDescuentoDescontar=='CO'?'Coordinador':data.ObjetivoDescuentoDescontar=='CL'?'Cliente':'Ninguno' }}</td>
                   <td>
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | I18NCurrency }}</div>
