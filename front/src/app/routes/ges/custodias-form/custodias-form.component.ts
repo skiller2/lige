@@ -38,9 +38,10 @@ export class CustodiaFormComponent {
     facturacion = signal(0)
     horaspopover = signal('test')
     diferencia = computed(() => {
-        if (this.costo() || this.facturacion())
-            return (this.facturacion() > 0) ? 100 - this.costo() * 100 / this.facturacion() : 0
-        else
+        if (this.costo() || this.facturacion()) {
+            const diffTmp = (this.facturacion() > 0) ? 100 - this.costo() * 100 / this.facturacion() : 0
+            return Math.round(diffTmp * 100) / 100;
+        }  else
             return 0
     });
 
@@ -252,10 +253,13 @@ export class CustodiaFormComponent {
     }
 
     onChangeImpo() {
-        const facturacion = (Number(this.formCus.value.cantModulos) ?? 0) * (Number(this.formCus.value.impoModulos) ?? 0) +
+        const facturacionTmp = (Number(this.formCus.value.cantModulos) ?? 0) * (Number(this.formCus.value.impoModulos) ?? 0) +
             (Number(this.formCus.value.cantHorasExced) ?? 0) * (Number(this.formCus.value.impoHorasExced) ?? 0) +
             (Number(this.formCus.value.cantKmExced) ?? 0) * (Number(this.formCus.value.impoKmExced) ?? 0) +
             (Number(this.formCus.value.impoPeaje) ?? 0)
+        
+        const facturacion = Math.round(facturacionTmp * 100) / 100;
+
         this.formCus.controls['facturacion'].patchValue(facturacion)
         this.facturacion.set(facturacion)
     }
