@@ -78,6 +78,7 @@ export class PersonalDocumentosDrawerComponent {
         switchMap(() =>{
             setTimeout(async () => {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
+                this.formDocumento.patchValue({den_documento: personal.PersonalCUITCUILCUIT})
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
             return this.searchService.getDocumentosByPersonal(Number(this.PersonalId()))
@@ -87,8 +88,9 @@ export class PersonalDocumentosDrawerComponent {
     async ngOnInit(){
         this.selectedPersonalIdChange$.next('');
         const options:any = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
-        const opcionsPersonal = options.filter((obj:any) => obj.des_den_documento.includes("Personal"))
-        this.optionsLabels.set(opcionsPersonal)
+        //aca filtra los tipos de documentos que no son de personal
+        //const opcionsPersonal = options.filter((obj:any) => obj.des_den_documento.includes("Personal"))
+        this.optionsLabels.set(options)
     }
 
     ngOnDestroy(): void {
