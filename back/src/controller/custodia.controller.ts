@@ -1552,7 +1552,9 @@ export class CustodiaController extends BaseController {
     }
 
     comparePersonal(per: any, list: any[]): boolean {
-        let result: any = list.find((obj: any) => (obj.personalId == per.personalId && obj.importe == per.importe))
+        console.log('valida',per,list)
+
+        const result: any = list.find((obj: any) => (obj.personalId == per.personalId && obj.importe == per.importe))
         return result ? true : false
     }
 

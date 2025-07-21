@@ -185,7 +185,9 @@ export class CustodiaFormComponent {
         }
 
         if (persona.enabled) {
-            const total: number = (horas_trabajadas * valorHora) + Number(importe_suma_fija)
+            const totalTmp: number = Number(horas_trabajadas) * Number(valorHora) + Number(importe_suma_fija)
+            
+            const total = Math.round(totalTmp * 100) / 100;
 
             persona.patchValue({
                 importe: total,
