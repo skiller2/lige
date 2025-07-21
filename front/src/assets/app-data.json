@@ -201,6 +201,11 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Facturación",
+          "link": "/ges/facturacion",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Administradores",
           "icon": "anticon-profile",
           "link": "/ges/administradores-listado"

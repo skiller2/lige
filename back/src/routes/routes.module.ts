@@ -45,6 +45,8 @@ import { actasRouter } from "../actas/actas.routes";
 import { institucionesRouter } from "./instituciones.routes"; 
 import { AdministradoresRouter } from "../administradores/administradores.routes";
 import { ordenesDeVentaRouter } from "../ordenes-de-venta/ordenes-de-venta.routes";
+import { facturacionRouter } from "../facturacion/facturacion.routes";
+
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -93,4 +95,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/actas",actasRouter)
   server.setRoute("/api/administradores",AdministradoresRouter)
   server.setRoute("/api/ordenes-de-venta",ordenesDeVentaRouter)
+  server.setRoute("/api/facturacion",facturacionRouter)
 }

@@ -52,6 +52,7 @@ import { InstitucionesController } from "./instituciones.controller";
 import { ActasController } from "../actas/actas.controller";
 import { AdministradoresController } from "../administradores/administradores.controller";
 import { OrdenesDeVentaController } from "../ordenes-de-venta/ordenes-de-venta.controller";
+import { FacturacionController } from "../facturacion/facturacion.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -107,3 +108,4 @@ export const institucionesController = new InstitucionesController();
 export const actasController = new ActasController()
 export const administradoresController = new AdministradoresController()
 export const ordenesDeVentaController = new OrdenesDeVentaController()
+export const facturacionController = new FacturacionController()

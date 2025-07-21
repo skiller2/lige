@@ -1,0 +1,48 @@
+<nz-card class="small-margin">
+
+    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+
+  
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
+
+        <li nz-menu-item>
+          <a [routerLink]="['/', 'ges', 'facturacion', 'listado']">Listado</a>
+        </li>
+        <li nz-menu-item>
+          <a [routerLink]="['/', 'ges', 'facturacion', 'modificaciones']">Modificaciones</a>
+        </li>
+      </ul>
+
+    </div>
+  
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab></nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/facturacion/listado">Listado</a>
+     <ng-template nz-tab>
+          @if(columns$ | async; as columnas) {
+  
+          <shared-filtro-builder [fieldsToSelect]="columnas"
+            (optionsChange)="listOptionsChange($event)" />
+  
+          <div class="gridContainer container-fluid">
+           <angular-slickgrid gridId="gridFacturacion" class="" [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            </angular-slickgrid>
+          </div> 
+          }
+        </ng-template> 
+      </nz-tab>
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/facturacion/modificaciones">Modificaciones</a>
+        <ng-template nz-tab>
+   
+        </ng-template>
+      </nz-tab>
+  
+    </nz-tabset>
+  
+  </nz-card>

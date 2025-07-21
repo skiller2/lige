@@ -155,5 +155,12 @@ export const GesRoutes: Routes = [
     path: 'importe-venta-vigilancia/:tab',
     loadComponent: () => import('./importe-venta-vigilancia/importe-venta-vigilancia').then(c => c.ImporteVentaVigilanciaComponent),
   },
+  { path: 'facturacion', redirectTo: 'facturacion/listado' },
+  {
+    path: 'facturacion/:tab',
+    loadComponent: () => import('./facturacion/facturacion').then(c => c.FacturacionComponent),
+  },
+  
+
   
 ];
