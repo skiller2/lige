@@ -1326,7 +1326,7 @@ export class AsistenciaController extends BaseController {
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.ObjetivoDescuentoDetalle AS desmovimiento, 
       des.ObjetivoDescuentoDetalle AS desmovimiento2,
-      des.des.ObjetivoDescuentoDescontar, 
+      des.ObjetivoDescuentoDescontar, 
       'OTRO' tipoint,
       cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad AS importetotal
       FROM ObjetivoDescuentoCuota cuo

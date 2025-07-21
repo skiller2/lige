@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { table } from "node:console";
 import path from "node:path";
-import { BaseController } from "src/controller/baseController";
+import { BaseController, ClientException } from "src/controller/baseController";
 import { dataSource } from "src/data-source";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
@@ -97,6 +97,44 @@ export class AuthMiddleware {
       return next()
 
     }
+  }
+
+  hasAuthGrupoActividad = () => {
+    return async (req, res, next) => {
+      const stmActual = new Date();
+      const PersonalId = res.locals.PersonalId
+      const GrupoActividadId = req.params.GrupoActividadId
+      const anio = Number(req.body.anio);
+      const mes = Number(req.body.mes);
+      const opcionGrupoActividad = req.body.options.filtros
+
+      console.log('hasAuthGrupoActividad', PersonalId, anio, mes, GrupoActividadId, opcionGrupoActividad, req.body, 'res.locals',res.locals);
+      console.log(' req.params', req.params, 'req.query', req.query, 'req.body', req.body);
+      
+      if (PersonalId < 1) return res.status(403).json({ msg: `No se especifico PersonalId` })
+      if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
+      // if (!GrupoActividadId) return res.status(403).json({ msg: `No se especifico GrupoActividadId` })
+      
+      const queryRunner = dataSource.createQueryRunner()
+
+      const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
+      console.log('grupos', grupos);
+      if (grupos.length > 0){ 
+        for (const row of grupos) {
+          if (row.GrupoActividadId == GrupoActividadId) {
+            res.locals.authGrupoActividad = true
+            return next()
+          }
+        }
+
+
+      }
+
+      console.log('res.locals',res.locals);
+      return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
+      
+    }
+
   }
 
   hasAuthByDocId = () => {

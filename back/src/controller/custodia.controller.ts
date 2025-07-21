@@ -793,6 +793,12 @@ export class CustodiaController extends BaseController {
         if (categoria.length == 0)
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
+        if (categoria.length > 1) 
+            errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) posee mas de una categoría vigente al ${this.dateOutputFormat(fechaDesde)}`)
+
+        if (!(Number(categoria[0].ValorLiquidacionHoraNormal)>0))
+            errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene cargado importe en la categoria ${categoria[0].CategoriaPersonalDescripcion} vigente al ${this.dateOutputFormat(fechaDesde)}`)
+
         const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const perAntUltimo = this.getPreviousMonthYear(perUltRecibo[0].anio, perUltRecibo[0].mes)
         const bot = await AccesoBotController.getBotStatus(perAntUltimo.year, perAntUltimo.month, queryRunner, [PersonalId])
@@ -1546,7 +1552,9 @@ export class CustodiaController extends BaseController {
     }
 
     comparePersonal(per: any, list: any[]): boolean {
-        let result: any = list.find((obj: any) => (obj.personalId == per.personalId && obj.importe == per.importe))
+        console.log('valida',per,list)
+
+        const result: any = list.find((obj: any) => (obj.personalId == per.personalId && obj.importe == per.importe))
         return result ? true : false
     }
 
