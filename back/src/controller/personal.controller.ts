@@ -535,7 +535,9 @@ cuit.PersonalCUITCUILCUIT,
 
   private async addPersonalQuery(
     queryRunner: any,
-    infoPersonal:any
+    infoPersonal:any,
+    usuario:string,
+    ip:string
   ) {
     let Nombre: string = infoPersonal.Nombre
     let Apellido: string = infoPersonal.Apellido
@@ -607,9 +609,16 @@ cuit.PersonalCUITCUILCUIT,
         PersonalSexo,
         PersonalPaisId,
         PersonalProvinciaId,
-        PersonalLocalidadId
+        PersonalLocalidadId,
+        PersonalAudFechaIng,
+        PersonalAudUsuarioIng,
+        PersonalAudIpIng,
+        PersonalAudFechaMod,
+        PersonalAudUsuarioMod,
+        PersonalAudIpMod
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17)
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
+        ,@18,@19,@20,@18,@19,@20)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -630,7 +639,10 @@ cuit.PersonalCUITCUILCUIT,
       Sexo,
       PaisId,
       ProvinciaId,
-      LocalidadId
+      LocalidadId,
+      now,
+      usuario,
+      ip
     ])
     // console.log('newId:',newId);
     let PersonalId = newId[0].id
@@ -647,11 +659,11 @@ cuit.PersonalCUITCUILCUIT,
     const newPersonalCUITCUILId = PersonalCUITCUIL[0].PersonalCUITCUILUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
-      PersonalId,
-      PersonalCUITCUILId,
-      PersonalCUITCUILEs,
-      PersonalCUITCUILCUIT,
-      PersonalCUITCUILDesde
+        PersonalId,
+        PersonalCUITCUILId,
+        PersonalCUITCUILEs,
+        PersonalCUITCUILCUIT,
+        PersonalCUITCUILDesde
       )
       VALUES (@0, @1, @2, @3, @4)
 
@@ -673,10 +685,10 @@ cuit.PersonalCUITCUILCUIT,
     const newPersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalDocumento (
-      PersonalDocumentoId,
-      PersonalId,
-      TipoDocumentoId,
-      PersonalDocumentoNro
+        PersonalDocumentoId,
+        PersonalId,
+        TipoDocumentoId,
+        PersonalDocumentoNro
       )
       VALUES (@0, @1, @2, @3)
       
@@ -733,7 +745,7 @@ cuit.PersonalCUITCUILCUIT,
       if (valForm instanceof ClientException)
         throw valForm
 
-      const PersonalId = await this.addPersonalQuery(queryRunner, req.body)
+      const PersonalId = await this.addPersonalQuery(queryRunner, req.body, usuario, ip)
 
       if (Number.isNaN(PersonalId)) {
         throw new ClientException('No se pudo generar un identificador.')
@@ -818,10 +830,10 @@ cuit.PersonalCUITCUILCUIT,
 
     await queryRunner.query(`
       INSERT INTO PersonalTelefono (
-      PersonalId,
-      PersonalTelefonoId,
-      TipoTelefonoId,
-      PersonalTelefonoNro
+        PersonalId,
+        PersonalTelefonoId,
+        TipoTelefonoId,
+        PersonalTelefonoNro
       )
       VALUES (@0,@1,@2,@3)`, [
       personalId, PersonalTelefonoId, tipoTelefonoId, telefonoNum
@@ -844,9 +856,9 @@ cuit.PersonalCUITCUILCUIT,
     if (docTitulo) {
       const DocumentoImagenEstudio = await queryRunner.query(`
         INSERT INTO DocumentoImagenEstudio (
-        PersonalId,
-        DocumentoImagenParametroId,
-        DocumentoImagenParametroDirectorioId
+          PersonalId,
+          DocumentoImagenParametroId,
+          DocumentoImagenParametroDirectorioId
         )
         VALUES(@0,@1,@2)
 
@@ -857,13 +869,13 @@ cuit.PersonalCUITCUILCUIT,
 
     await queryRunner.query(`
       INSERT INTO PersonalEstudio (
-      PersonalId,
-      PersonalEstudioId,
-      TipoEstudioId,
-      EstadoEstudioId,
-      PersonalEstudioTitulo,
-      PersonalEstudioOtorgado,
-      PersonalEstudioPagina1Id
+        PersonalId,
+        PersonalEstudioId,
+        TipoEstudioId,
+        EstadoEstudioId,
+        PersonalEstudioTitulo,
+        PersonalEstudioOtorgado,
+        PersonalEstudioPagina1Id
       )
       VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
       personalId, PersonalEstudioId, tipoEstudioId, 2, estudioTitulo, PersonalEstudioOtorgado, DocumentoImagenEstudioId
@@ -893,13 +905,13 @@ cuit.PersonalCUITCUILCUIT,
 
     await queryRunner.query(`
       INSERT INTO PersonalFamilia (
-      PersonalId,
-      PersonalFamiliaId,
-      PersonalFamiliaApellido,
-      PersonalFamiliaNombre,
-      PersonalFamiliaSexo,
-      TipoParentescoId,
-      PersonalFamiliaVive
+        PersonalId,
+        PersonalFamiliaId,
+        PersonalFamiliaApellido,
+        PersonalFamiliaNombre,
+        PersonalFamiliaSexo,
+        TipoParentescoId,
+        PersonalFamiliaVive
       )
       VALUES (@0, @1, @2, @3, @4, @5, @6)`, [
       PersonalId, PersonalFamiliaId, Apellido, Nombre, 'N', TipoParentescoId, 1
@@ -955,10 +967,10 @@ cuit.PersonalCUITCUILCUIT,
       // if (!foto.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
-        PersonalId,
-        DocumentoImagenFotoBlobTipoArchivo,
-        DocumentoImagenParametroId,
-        DocumentoImagenParametroDirectorioId
+          PersonalId,
+          DocumentoImagenFotoBlobTipoArchivo,
+          DocumentoImagenParametroId,
+          DocumentoImagenParametroDirectorioId
         )
         VALUES(@0,@1,@2,@3)`,
         [personalId, type, 7, 1]
@@ -1010,10 +1022,10 @@ cuit.PersonalCUITCUILCUIT,
       // if (!doc.length) {
       await queryRunner.query(`
       INSERT INTO DocumentoImagenDocumento (
-      PersonalId,
-      DocumentoImagenDocumentoBlobTipoArchivo,
-      DocumentoImagenParametroId,
-      DocumentoImagenParametroDirectorioId
+        PersonalId,
+        DocumentoImagenDocumentoBlobTipoArchivo,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
       )
       VALUES(@0,@1,@2,@3)`,
         [personalId, type, parametro, 1]
@@ -1109,7 +1121,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any) {
+  private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any, usuario:string, ip:string) {
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
@@ -1149,29 +1161,34 @@ cuit.PersonalCUITCUILCUIT,
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
+    const now:Date = new Date()
 
     await queryRunner.query(`
       UPDATE Personal SET
-      PersonalNroLegajo = @1,
-      PersonalApellido = @2,
-      PersonalNombre = @3,
-      PersonalApellidoNombre = @4,
-      PersonalFechaPreIngreso = @5,
-      PersonalFechaIngreso = @5,
-      PersonalFechaAutorizacionIngreso= @5,
-      PersonalFechaNacimiento = @6,
-      PersonalNacionalidadId = @7,
-      PersonalSuActualSucursalPrincipalId = @8,
-      PersonalApellidoNombreDNILegajo = @9,
-      PersonalLeyNro = @10,
-      EstadoCivilId = @11,
-      PersonalSexo = @12,
-      PersonalPaisId = @13,
-      PersonalProvinciaId = @14,
-      PersonalLocalidadId = @15
+        PersonalNroLegajo = @1,
+        PersonalApellido = @2,
+        PersonalNombre = @3,
+        PersonalApellidoNombre = @4,
+        PersonalFechaPreIngreso = @5,
+        PersonalFechaIngreso = @5,
+        PersonalFechaAutorizacionIngreso= @5,
+        PersonalFechaNacimiento = @6,
+        PersonalNacionalidadId = @7,
+        PersonalSuActualSucursalPrincipalId = @8,
+        PersonalApellidoNombreDNILegajo = @9,
+        PersonalLeyNro = @10,
+        EstadoCivilId = @11,
+        PersonalSexo = @12,
+        PersonalPaisId = @13,
+        PersonalProvinciaId = @14,
+        PersonalLocalidadId = @15,
+        PersonalAudFechaMod = @16,
+        PersonalAudUsuarioMod = @17,
+        PersonalAudIpMod = @18
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
-      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, PaisId, ProvinciaId, LocalidadId
+      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, PaisId, ProvinciaId, LocalidadId,
+      now, usuario, ip
     ])
   }
 
@@ -1336,14 +1353,14 @@ cuit.PersonalCUITCUILCUIT,
         }
         await queryRunner.query(`
           INSERT INTO PersonalEstudio (
-          PersonalId,
-          PersonalEstudioId,
-          TipoEstudioId,
-          EstadoEstudioId,
-          PersonalEstudioTitulo,
-          PersonalEstudioOtorgado,
-          PersonalEstudioPagina1Id
-          --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+            PersonalId,
+            PersonalEstudioId,
+            TipoEstudioId,
+            EstadoEstudioId,
+            PersonalEstudioTitulo,
+            PersonalEstudioOtorgado,
+            PersonalEstudioPagina1Id
+            --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
           )
           VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
           PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
@@ -1468,7 +1485,7 @@ cuit.PersonalCUITCUILCUIT,
     const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro
     await queryRunner.query(`
       UPDATE PersonalDocumento SET
-      PersonalDocumentoNro = @2
+        PersonalDocumentoNro = @2
       WHERE PersonalDocumentoId IN (@0) AND PersonalId IN (@1)
       `, [PersonalDocumentoId, personaId, DNI]
     )
@@ -1487,7 +1504,6 @@ cuit.PersonalCUITCUILCUIT,
     const familiares: any[] = req.body.familiares
     const beneficiarios: any[] = req.body.beneficiarios
     const SucursalId = req.body.SucursalId
-    const actas = req.body.actas
     const habilitacion = req.body.habilitacion
 
     let now = new Date()
@@ -1505,7 +1521,7 @@ cuit.PersonalCUITCUILCUIT,
 
       await this.addPersonalCambios(queryRunner, PersonalId)
 
-      await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
+      await this.updatePersonalQuerys(queryRunner, PersonalId, req.body, usuario, ip)
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
