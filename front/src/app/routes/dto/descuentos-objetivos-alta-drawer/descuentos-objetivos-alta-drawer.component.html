@@ -6,6 +6,24 @@
     <form [formGroup]="formDesc">
 
       <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Aplica A</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-select formControlName="AplicaA" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <nz-option nzLabel="Cliente" nzValue="cliente"></nz-option>
+            <nz-option nzLabel="Coordinador" nzValue="coordinador"></nz-option>
+            <nz-option nzLabel="Ninguno" nzValue="ninguno"></nz-option>
+          </nz-select>
+          <!-- <nz-select formControlName="AplicaA" nzPlaceHolder="tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsDescuento | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select> -->
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Tipo</nz-form-label>
         <nz-form-control [nzMd]="18">
           <nz-select formControlName="DescuentoId" nzPlaceHolder="tipo" nzAllowClear
@@ -20,31 +38,47 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Objetivo</nz-form-label>
         <nz-form-control [nzMd]="18">
-          <app-objetivo-search formControlName="ObjetivoId"></app-objetivo-search>
+          <app-objetivo-search formControlName="ObjetivoId" (ngModelChange)="objetivoDetalleChange($event)"></app-objetivo-search>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5" [nzSpan]="5">Responsable</nz-form-label>
+        <nz-form-control [nzMd]="18" [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
+            @if (objetivoDetalle.responsable.length==0 && ObjetivoId()>0) { <nz-alert nzShowIcon
+                nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
+            <app-view-responsable [list]="objetivoDetalle.responsable" ></app-view-responsable>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
         <nz-form-control [nzMd]="18">
-          <nz-date-picker ngMode="month" formControlName="AplicaEl" (ngModelChange)="onDescuentosChange($event)"></nz-date-picker>
+          <nz-date-picker formControlName="AplicaEl" nzMode="month" nzFormat="MM/yyyy" (ngModelChange)="onDescuentosChange($event)"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Cant. de Cuotas</nz-form-label>
-        <nz-form-control [nzMd]="5">
-          <input nz-input placeholder="" formControlName="Cuotas" type="number" />
+        <nz-form-control [nzMd]="6">
+          <input nz-input placeholder="" formControlName="Cuotas" type="number" (input)="importeCuotaChange()"/>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="3">Importe</nz-form-label>
-        <nz-form-control [nzMd]="10">
-          <input nz-input placeholder="" formControlName="Importe" type="number" />
+        <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
+        <nz-form-control [nzMd]="7">
+          <input nz-input placeholder="" formControlName="Importe" type="text" appDotToComma mask="separator.2" (input)="importeCuotaChange()"/>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Detalle</nz-form-label>
+        <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
+        <nz-form-control [nzMd]="6" >
+            <p nz-input class="ant-input text-right">{{ importeCuota() }}</p>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Descripción</nz-form-label>
         <nz-form-control [nzMd]="18">
           <input nz-input placeholder="" formControlName="Detalle" type="text" />
         </nz-form-control>
