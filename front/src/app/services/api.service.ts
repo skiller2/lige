@@ -714,6 +714,15 @@ export class ApiService {
 
   }
 
+  getFacturacion(options: any) {
+    const parameter = { options }
+    return this.http.post<ResponseJSON<any>>('/api/facturacion/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
   setAgregarRegistros(gridDataInsert: any, periodo: any) {
     const parameter = [periodo, gridDataInsert]
     this.notification.success('Respuesta', `Inicio insercion `);

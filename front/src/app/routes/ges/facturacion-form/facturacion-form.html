@@ -1,0 +1,18 @@
+<form [formGroup]="formCli">
+    <br>
+  
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">CUIT</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+        <input nz-input placeholder="" formControlName="ClienteFacturacionCUIT" type="number" />
+      </nz-form-control>
+    </nz-form-item>
+  
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Razón Social</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+        <input nz-input placeholder="" formControlName="ClienteDenominacion" type="string" />
+      </nz-form-control>
+    </nz-form-item>
+
+  </form>

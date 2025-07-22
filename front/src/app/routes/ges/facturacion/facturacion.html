@@ -1,20 +1,29 @@
 <nz-card class="small-margin">
 
-    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+    <div nz-row class="contentStyle">
+        <div nz-col class="listStyle">
+            <ul nz-menu nzMode="horizontal" style="display: flex;">
 
+                <li nz-menu-item>
+                  <a [routerLink]="['/', 'ges', 'facturacion', 'listado']">Listado</a>
+                </li>
+              </ul>
+        </div>
+    
+
+    <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
+        <nz-button-group style="text-align: right;">
   
-      <ul nz-menu nzMode="horizontal" style="display: flex;">
-
-        <li nz-menu-item>
-          <a [routerLink]="['/', 'ges', 'facturacion', 'listado']">Listado</a>
-        </li>
-        <li nz-menu-item>
-          <a [routerLink]="['/', 'ges', 'facturacion', 'modificaciones']">Modificaciones</a>
-        </li>
-      </ul>
-
+            <!--<button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
+                nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>-->
+                <a [routerLink]="['/', 'ges', 'facturacion','modificaciones']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+                    <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+                  </a>
+       
+  
+        </nz-button-group>
+      </div>
     </div>
-  
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab></nz-tab>
       <nz-tab>
@@ -39,7 +48,7 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/facturacion/modificaciones">Modificaciones</a>
         <ng-template nz-tab>
-   
+            <app-facturacion-form></app-facturacion-form>
         </ng-template>
       </nz-tab>
   

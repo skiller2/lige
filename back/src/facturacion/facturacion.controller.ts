@@ -19,22 +19,35 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
+        name: "Cliente",
+        type: "string",
+        id: "ClienteId",
+        field: "ClienteId",
+        fieldName: "cli.ClienteId",
+        searchComponent: "inpurForClientSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
         name: "Cuit Cliente",
         type: "string",
         id: "CuitCliente",
-        field: "CuitCliente",
-        fieldName: "cli.CuitCliente",
+        field: "ClienteFacturacionCUIT",
+        fieldName: "clif.ClienteFacturacionCUIT",
         searchType: "string",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Cod Objetivo",
         type: "number",
-        id: "CodigoObjetivo",
-        field: "CodigoObjetivo",
-        fieldName: "obj.CodigoObjetivo",
+        id: "ObjetivoCodigo",
+        field: "ObjetivoCodigo",
+        fieldName: "obj.ObjetivoCodigo",
+        searchComponent: "inpurForObjetivoSearch",
+
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -44,7 +57,7 @@ const listaColumnas: any[] = [
         type: "string",
         id: "CodigoProducto",
         field: "CodigoProducto",
-        fieldName: "prod.CodigoProducto",
+        fieldName: "fac.CodigoProducto",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -54,7 +67,7 @@ const listaColumnas: any[] = [
         type: "string",
         id: "Periodo",
         field: "Periodo",
-        fieldName: "fact.Periodo",
+        fieldName: "CONCAT(fac.Mes,'/',fac.Anio)",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -64,7 +77,7 @@ const listaColumnas: any[] = [
         type: "string",
         id: "Descripcion",
         field: "Descripcion",
-        fieldName: "fact.Descripcion",
+        fieldName: "fac.Descripcion",
         searchType: "string",
         sortable: true,
         hidden: false,
@@ -75,7 +88,7 @@ const listaColumnas: any[] = [
         type: "number",
         id: "PrecioUnitario",
         field: "PrecioUnitario",
-        fieldName: "fact.PrecioUnitario",
+        fieldName: "fac.PrecioUnitario",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -85,7 +98,7 @@ const listaColumnas: any[] = [
         type: "number",
         id: "Cantidad",
         field: "Cantidad",
-        fieldName: "fact.Cantidad",
+        fieldName: "fac.Cantidad",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -95,7 +108,7 @@ const listaColumnas: any[] = [
         type: "number",
         id: "ImporteTotal",
         field: "ImporteTotal",
-        fieldName: "fact.ImporteTotal",
+        fieldName: "fac.ImporteTotal",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -105,7 +118,7 @@ const listaColumnas: any[] = [
         type: "date",
         id: "Fecha",
         field: "Fecha",
-        fieldName: "fact.Fecha",
+        fieldName: "fac.Fecha",
         searchComponent: "inpurForFechaSearch",
         sortable: true,
         hidden: false,
@@ -114,9 +127,9 @@ const listaColumnas: any[] = [
     {
         name: "Nro Comprobante",
         type: "string",
-        id: "NroComprobante",
-        field: "NroComprobante",
-        fieldName: "fact.NroComprobante",
+        id: "ComprobanteNro",
+        field: "ComprobanteNro",
+        fieldName: "fac.ComprobanteNro",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -124,9 +137,9 @@ const listaColumnas: any[] = [
     {
         name: "Tipo Comprobante",
         type: "string",
-        id: "TipoComprobante",
-        field: "TipoComprobante",
-        fieldName: "fact.TipoComprobante",
+        id: "ComprobanteTipoCodigo",
+        field: "ComprobanteTipoCodigo",
+        fieldName: "fac.ComprobanteTipoCodigo",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -151,13 +164,34 @@ export class FacturacionController extends BaseController {
         const mes = fechaActual.getMonth() + 1
        
         try {
-            const objetivos = await queryRunner.query(
-                ` ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
+            const facturacion = await queryRunner.query(
+                `SELECT 
+                    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,   
+                    clif.ClienteFacturacionCUIT,
+                    CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
+                    fac.CodigoProducto,
+                    fac.Mes,
+                    fac.Anio,
+                    fac.Descripcion,
+                    fac.PrecioUnitario,
+                    fac.Cantidad,
+                    fac.ImporteTotal,
+                    fac.Fecha,
+                    fac.ComprobanteNro,
+                    fac.ComprobanteTipoCodigo
+                    FROM Facturacion fac
+                    Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
+                    LEFT JOIN Cliente cli ON cli.ClienteId=eledep.ClienteId
+                        LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = fac.ClienteId 
+                                AND clif.ClienteFacturacionDesde <= @0
+                AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0 WHERE ${filterSql} ${orderBy}`, [fechaActual])
+
+                console.log(facturacion)
 
             this.jsonRes(
                 {
-                    total: objetivos.length,
-                    list: objetivos,
+                    total: facturacion.length,
+                    list: facturacion,
                 },
                 res
             );

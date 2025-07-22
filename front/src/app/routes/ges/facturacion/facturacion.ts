@@ -8,6 +8,7 @@ import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, G
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+import { FacturacionFormComponent } from '../facturacion-form/facturacion-form';
 
 type listOptionsT = {
   filtros: any[],
@@ -18,7 +19,7 @@ type listOptionsT = {
 @Component({
   selector: 'app-facturacion',
   providers: [AngularUtilService],
-  imports: [ SHARED_IMPORTS, CommonModule,FiltroBuilderComponent],
+  imports: [ SHARED_IMPORTS, CommonModule,FiltroBuilderComponent,FacturacionFormComponent],
   templateUrl: './facturacion.html',
   styleUrl: './facturacion.less',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -51,7 +52,7 @@ export class FacturacionComponent {
     debounceTime(500),
     switchMap(() => {
       return this.apiService
-        .getDocumentos(
+        .getFacturacion(
           this.listOptions
         )
         .pipe(

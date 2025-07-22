@@ -10,7 +10,7 @@ facturacionRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGr
 });
 
 facturacionRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
-  //objetivosController.list(req, res, next)
+  facturacionController.list(req, res, next)
 })
 
 
