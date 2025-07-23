@@ -46,6 +46,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 if (this.descuentoId() && this.objetivoId()) {
                     let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.descuentoId()))
                     this.formDesc.reset(infoDesc)
+                    this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
                 }
@@ -75,7 +76,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         Cuotas:null, Importe:null, Detalle:''
     })
 
-    $optionsDescuento = this.searchService.getDecuentosOptions();
+    $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
+    $optionsTipo = this.searchService.getDecuentosTipoOptions();
     $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
         debounceTime(50),
         switchMap(objetivoId => {
@@ -92,17 +94,13 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     id():number {
         const value = this.formDesc.get("id")?.value
-        if (value) {
-          return value
-        }
+        if (value) return value
         return 0
     }
 
     ObjetivoId():number {
         const value = this.formDesc.get("ObjetivoId")?.value
-        if (value) {
-          return value
-        }
+        if (value) return value
         return 0
     }
 
@@ -120,17 +118,13 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     Importe():number {
         const value = this.formDesc.get("Importe")?.value
-        if (value) {
-          return value
-        }
+        if (value) return value
         return 0
     }
 
     Cuotas():number {
         const value = this.formDesc.get("Cuotas")?.value
-        if (value) {
-          return value
-        }
+        if (value) return value
         return 0
     }
 

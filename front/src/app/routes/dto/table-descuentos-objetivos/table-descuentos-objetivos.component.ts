@@ -2,13 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input,Injector } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService } from '../../../services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { SettingsService } from '@delon/theme';
+import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-alta-drawer/descuentos-objetivos-alta-drawer.component"
 
@@ -30,7 +30,7 @@ export class TableDescuentosObjetivosComponent {
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
     mes = input<number>(0)
-    reload = input<number>(0)
+    // reload = input<number>(0)
     listDescuento$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
         filtros: [],
@@ -45,26 +45,33 @@ export class TableDescuentosObjetivosComponent {
     loadingDelete = signal<boolean>(false)
 
     constructor(
-        private searchService: SearchService,
+        // private searchService: SearchService,
         private apiService: ApiService,
         private angularUtilService : AngularUtilService,
-        private injector : Injector,
+        // private injector : Injector,
     ) {
         effect(async () => {
             const anio = this.anio()
             const mes = this.mes()
-            const reload = this.reload()
+            // const reload = this.reload()
             this.listDescuento('')
         });
     }
+
+    private readonly loadingSrv = inject(LoadingService);
 
     columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/objetivos')
 
     gridData$ = this.listDescuento$.pipe(
         debounceTime(500),
         switchMap(() => {
+            this.loadingSrv.open({ type: 'spin', text: '' })
             return this.apiService.getDescuentosObjetivos(this.listOptions, this.anio(), this.mes())
-                .pipe(map(data => { return data }))
+            .pipe(
+                map(data => { return data }),
+                doOnSubscribe(() => { }),
+                tap({ complete: () => { this.loadingSrv.close() } })
+            )
         })
     )
 
@@ -96,8 +103,8 @@ export class TableDescuentosObjetivosComponent {
             const rowNum = e.detail.args.changedSelectedRows[0]
             const id:string = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
             const ids:string[] = id.split('-')
-            this.descuentoId.set(parseInt(ids[1]))
-            this.objetivoId.set(parseInt(ids[2]))
+            this.descuentoId.set(parseInt(ids[0]))
+            this.objetivoId.set(parseInt(ids[1]))
             
         } else {
             this.descuentoId.set(0)
