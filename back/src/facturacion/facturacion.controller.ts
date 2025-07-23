@@ -67,10 +67,10 @@ const listaColumnas: any[] = [
         type: "string",
         id: "Periodo",
         field: "Periodo",
-        fieldName: "CONCAT(fac.Mes,'/',fac.Anio)",
+        fieldName: "Periodo",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Descripción",
@@ -141,8 +141,18 @@ const listaColumnas: any[] = [
         field: "ComprobanteTipoCodigo",
         fieldName: "fac.ComprobanteTipoCodigo",
         sortable: true,
-        hidden: false,
+        hidden: true,
         searchHidden: false
+    },
+    {
+        name: "Tipo Comprobante",
+        type: "string",
+        id: "ComprobanteDescripcion",
+        field: "ComprobanteDescripcion",
+        fieldName: "ctp.Descripcion",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
     }
 ];
 
@@ -166,23 +176,28 @@ export class FacturacionController extends BaseController {
         try {
             const facturacion = await queryRunner.query(
                 `SELECT 
-                    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,   
+                    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
                     clif.ClienteFacturacionCUIT,
                     CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
                     fac.CodigoProducto,
                     fac.Mes,
                     fac.Anio,
+                    CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
                     fac.Descripcion,
                     fac.PrecioUnitario,
                     fac.Cantidad,
                     fac.ImporteTotal,
                     fac.Fecha,
                     fac.ComprobanteNro,
-                    fac.ComprobanteTipoCodigo
+                    fac.ComprobanteTipoCodigo,
+                    ctp.Descripcion AS ComprobanteDescripcion,
+                    cli.ClienteApellidoNombre
+                    
                     FROM Facturacion fac
                     Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
                     LEFT JOIN Cliente cli ON cli.ClienteId=eledep.ClienteId
-                        LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = fac.ClienteId 
+                    INNER JOIN ComprobanteTipo ctp ON ctp.ComprobanteTipoCodigo = fac.ComprobanteTipoCodigo
+                        LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = fac.ClienteId  
                                 AND clif.ClienteFacturacionDesde <= @0
                 AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0 WHERE ${filterSql} ${orderBy}`, [fechaActual])
 
@@ -202,7 +217,11 @@ export class FacturacionController extends BaseController {
 
     }
 
-
+    async getComprobanteTipoOptions(req: any, res: Response, next: NextFunction) {
+        const result = await dataSource.query(`
+          SELECT ComprobanteTipoCodigo, Descripcion FROM ComprobanteTipo`)
+        this.jsonRes(result, res);
+      }
    
 
 }

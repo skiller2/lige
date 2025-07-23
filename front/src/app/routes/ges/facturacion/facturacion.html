@@ -14,10 +14,9 @@
     <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
         <nz-button-group style="text-align: right;">
   
-            <!--<button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
-                nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>-->
-                <a [routerLink]="['/', 'ges', 'facturacion','modificaciones']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-                    <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+           
+                <a [routerLink]="['/', 'ges', 'facturacion','modificaciones']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" [class.disabled]="!canEdit()">
+                    <button nz-button nzType="default" [disabled]="!canEdit()"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
                   </a>
        
   
@@ -48,7 +47,9 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/facturacion/modificaciones">Modificaciones</a>
         <ng-template nz-tab>
-            <app-facturacion-form></app-facturacion-form>
+            @defer (on immediate) {
+                <app-facturacion-form [rowSelected]="rowSelected()"></app-facturacion-form>
+            }
         </ng-template>
       </nz-tab>
   

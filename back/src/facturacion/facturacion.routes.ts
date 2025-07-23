@@ -13,4 +13,10 @@ facturacionRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasG
   facturacionController.list(req, res, next)
 })
 
+facturacionRouter.get('/comprobanteTipo_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+    facturacionController.getComprobanteTipoOptions(req, res, next)
+  })
+
+
+
 

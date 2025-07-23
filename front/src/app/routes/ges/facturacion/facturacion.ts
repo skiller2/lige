@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -32,7 +32,27 @@ export class FacturacionComponent {
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   gridObj!: SlickGrid;
-  detailViewRowCount = 9
+  detailViewRowCount = 1
+
+  rowSelected = signal<any[]>([])
+  
+  // Computed signal que verifica si todos los objetos seleccionados tienen el mismo ClienteFacturacionCUIT
+  canEdit = computed(() => {
+    const selectedRows = this.rowSelected();
+    console.log("entre para validar")
+    if (!selectedRows || selectedRows.length === 0) {
+      return false;
+    }
+    
+    // Obtener el primer ClienteFacturacionCUIT como referencia
+    const firstCUIT = selectedRows[0]?.ClienteFacturacionCUIT;
+    if (!firstCUIT) {
+      return false;
+    }
+    
+    // Verificar que todos los objetos tengan el mismo ClienteFacturacionCUIT
+    return selectedRows.every(row => row?.ClienteFacturacionCUIT === firstCUIT);
+  });
   
   private angularUtilService = inject(AngularUtilService)
   private apiService = inject(ApiService)
@@ -71,6 +91,12 @@ export class FacturacionComponent {
     this.gridOptions.enableRowDetailView = false
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+    this.gridOptions.enableCheckboxSelector = true
+    this.gridOptions.rowSelectionOptions = {
+      selectActiveRow: false
+  }
+  this.gridOptions.cellHighlightCssClass = 'changed'
+  this.gridOptions.enableCellNavigation = true
 
 
     // this.startFilters.set([{ field: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, forced: false }])
@@ -93,11 +119,14 @@ export class FacturacionComponent {
   handleSelectedRowsChanged(e: any): void {
     if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
-      //const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
-      //this.docId.set(docId)
-    } else {
-      //this.docId.set(0)
-    }
+      const rowinfo = this.angularGrid.dataView.getItemByIdx(rowNum)
+     
+      
+      const prevSelection = this.rowSelected() || []
+      this.rowSelected.set([...prevSelection, rowinfo])
+      console.log("rowSelected ", this.rowSelected())
+
+    } 
   }
 
   listOptionsChange(options: any) {

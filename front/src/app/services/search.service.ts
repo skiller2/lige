@@ -599,6 +599,16 @@ export class SearchService {
     );
   }
 
+  getComprobanteTipoSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/facturacion/comprobanteTipo_getOptions`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getCategorias(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`).pipe(
       map(res => res.data),

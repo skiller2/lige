@@ -91,6 +91,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsInactivo = this.searchService.getInactivo();
   $optionsInactivoBoolean = this.searchService.getInactivoBoolean();
   $optionsGrupoActividad = this.searchService.getTipo();
+  $optionsComprobanteTipo = this.searchService.getComprobanteTipoSearch();
   $optionsCurso = this.searchService.getCursoSearch();
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
   $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
@@ -365,6 +366,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueGrupoActividad(val: any) {
+    if (val) {
+      this.selections.value = val
+      //this.valueExtended = { fullName: val.label }
+    }
+  }
+
+  selectedValueComprobanteTipo(val: any) {
     if (val) {
       this.selections.value = val
       //this.valueExtended = { fullName: val.label }
