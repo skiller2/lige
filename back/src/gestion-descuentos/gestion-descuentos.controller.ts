@@ -349,6 +349,12 @@ const tableOptions:any[] = [
   { label:'Objetivo', value:'ObjetivoDescuento'}
 ]
 
+const aplicaAOptions:any[] = [
+  { label:'Cliente', value:'CL'},
+  { label:'Coordinador', value:'CO'},
+  { label:'Ninguno', value:'NI'}
+]
+
 export class GestionDescuentosController extends BaseController {
 
   directory = process.env.PATH_DOCUMENTS || "tmp";
@@ -377,7 +383,7 @@ export class GestionDescuentosController extends BaseController {
     //   condition = `perdes.anio IN (@1) AND perdes.mes IN (@2)`
     // }
     return await queryRunner.query(`
-        SELECT  perdes.id
+      SELECT  perdes.id
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
@@ -571,7 +577,7 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas:number = otroDescuento.Cuotas
-    const Importe:number = otroDescuento.Importe
+    const Importe:number = Number(otroDescuento.Importe)
     const Detalle:number = otroDescuento.Detalle
 
     const anio:number = AplicaEl.getFullYear()
@@ -617,12 +623,13 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async addObjetivoDescuento(queryRunner:any, objDescuento:any, usuarioId:number, ip:string){
+    const AplicaA:string = objDescuento.AplicaA
     const DescuentoId:number = objDescuento.DescuentoId
     const ObjetivoId:number = objDescuento.ObjetivoId
     const AplicaEl:Date = objDescuento.AplicaEl? new Date(objDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas:number = objDescuento.Cuotas
-    const Importe:number = objDescuento.Importe
+    const Importe:number = Number(objDescuento.Importe)
     const Detalle:number = objDescuento.Detalle
 
     const anio:number = AplicaEl.getFullYear()
@@ -652,15 +659,16 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoMesesAplica, ObjetivoDescuentoMes, ObjetivoDescuentoCantidad, ObjetivoDescuentoCantidadCuotas
       , ObjetivoDescuentoImporteVariable, ObjetivoDescuentoFechaAplica, ObjetivoDescuentoCuotasPagas
       , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
-      , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo)
-      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12)
+      , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo
+      , ObjetivoDescuentoDescontar)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12, @13)
 
       INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
         ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
         ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
         ObjetivoDescuentoCuotaProceso)
         VALUES (1,@0,@1,@3,@4,1,ROUND(@6/@5, 2),0,0,'FA')
-    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
     return ObjetivoDescuentoId
@@ -917,7 +925,7 @@ export class GestionDescuentosController extends BaseController {
     const PersonalId:number = otroDescuento.PersonalId
     const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
     const Cuotas:number = otroDescuento.Cuotas
-    const Importe:number = otroDescuento.Importe
+    const Importe:number = Number(otroDescuento.Importe)
     const Detalle:string = otroDescuento.Detalle
 
     const anio:number = AplicaEl.getFullYear()
@@ -971,11 +979,12 @@ export class GestionDescuentosController extends BaseController {
 
   private async updateObjetivoDescuento(queryRunner:any, otroDescuento:any, usuarioId:number, ip:string){
     const id:number = otroDescuento.id
+    const AplicaA:string = otroDescuento.AplicaA
     const DescuentoId:number = otroDescuento.DescuentoId
     const ObjetivoId:number = otroDescuento.ObjetivoId
     const AplicaEl:Date = otroDescuento.AplicaEl? new Date(otroDescuento.AplicaEl) : null
     const Cuotas:number = otroDescuento.Cuotas
-    const Importe:number = otroDescuento.Importe
+    const Importe:number = Number(otroDescuento.Importe)
     const Detalle:string = otroDescuento.Detalle
 
     const anio:number = AplicaEl.getFullYear()
@@ -1010,8 +1019,9 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoPuesto = @9, ObjetivoDescuentoUsuarioId = @10
       , ObjetivoDescuentoDia = @11, ObjetivoDescuentoTiempo = @12
       , ObjetivoDescuentoCuotasPagas = 1, ObjetivoDescuentoCuotaUltNro = 1
+      , ObjetivoDescuentoDescontar = @13
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [id, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+    `, [id, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
     
     await queryRunner.query(`
       DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
@@ -1170,6 +1180,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
       , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
       , ObjetivoDescuentoId id
+      , ObjetivoDescuentoDescontar AplicaA
       FROM ObjetivoDescuento WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
       `, [DescuentoId, ObjetivoId])
       // throw new ClientException(`DEBUG.`)
@@ -1213,7 +1224,6 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async getTableOptions(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
     try {
       this.jsonRes(tableOptions, res);
     } catch (error) {
@@ -1386,6 +1396,14 @@ export class GestionDescuentosController extends BaseController {
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
+    }
+  }
+
+  async getAplicaAOptions(req: any, res: Response, next: NextFunction) {
+    try {
+      this.jsonRes(aplicaAOptions, res);
+    } catch (error) {
+      return next(error)
     }
   }
 

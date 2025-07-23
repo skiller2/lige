@@ -8,7 +8,7 @@
       <nz-form-control [nzMd]="5">
         <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          <ng-container *ngFor="let option of $tableOptions | async">
+          <ng-container *ngFor="let option of $optionsTable | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
           </ng-container>
         </nz-select>
@@ -21,7 +21,7 @@
       <nz-form-control [nzMd]="5">
         <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          <ng-container *ngFor="let option of $descuentoOptions | async">
+          <ng-container *ngFor="let option of $optionsTipo | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
           </ng-container>
         </nz-select>
@@ -33,7 +33,7 @@
       <nz-form-control [nzMd]="5">
         <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          <ng-container *ngFor="let option of $descuentoOptions | async">
+          <ng-container *ngFor="let option of $optionsTipo | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
           </ng-container>
         </nz-select>

@@ -1689,8 +1689,18 @@ export class SearchService {
       );
   }
 
-  getDecuentosOptions(): Observable<any> {
+  getDecuentosTipoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/tipo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getDecuentosAplicaAOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/aplicaa/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

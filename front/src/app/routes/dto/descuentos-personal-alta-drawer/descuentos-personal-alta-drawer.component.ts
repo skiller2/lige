@@ -67,7 +67,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         Cuotas:null, Importe:null, Detalle:''
     })
 
-    $optionsDescuento = this.searchService.getDecuentosOptions();
+    $optionsTipo = this.searchService.getDecuentosTipoOptions();
 
     $listaDecuentosPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),

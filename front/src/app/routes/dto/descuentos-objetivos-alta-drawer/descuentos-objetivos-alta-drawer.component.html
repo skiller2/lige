@@ -8,18 +8,12 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Aplica A</nz-form-label>
         <nz-form-control [nzMd]="18">
-          <nz-select formControlName="AplicaA" nzAllowClear
+          <nz-select formControlName="AplicaA" nzPlaceHolder="" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <nz-option nzLabel="Cliente" nzValue="cliente"></nz-option>
-            <nz-option nzLabel="Coordinador" nzValue="coordinador"></nz-option>
-            <nz-option nzLabel="Ninguno" nzValue="ninguno"></nz-option>
-          </nz-select>
-          <!-- <nz-select formControlName="AplicaA" nzPlaceHolder="tipo" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsDescuento | async">
+            <ng-container *ngFor="let option of $optionsAplicaA | async">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>
-          </nz-select> -->
+          </nz-select>
         </nz-form-control>
       </nz-form-item>
 
@@ -28,7 +22,7 @@
         <nz-form-control [nzMd]="18">
           <nz-select formControlName="DescuentoId" nzPlaceHolder="tipo" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsDescuento | async">
+            <ng-container *ngFor="let option of $optionsTipo | async">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>
           </nz-select>
@@ -73,7 +67,7 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
         <nz-form-control [nzMd]="6" >
-            <p nz-input class="ant-input text-right">{{ importeCuota() }}</p>
+            <p nz-input type="text" appDotToComma mask="separator.2" class="ant-input text-right">{{ importeCuota() }}</p>
         </nz-form-control>
       </nz-form-item>
 

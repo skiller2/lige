@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input, Injector, } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService } from '../../../services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -10,6 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { DescuentosPersonalAltaDrawerComponent } from "../descuentos-personal-alta-drawer/descuentos-personal-alta-drawer.component"
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
     selector: 'app-table-descuentos-personal',
@@ -44,10 +45,10 @@ export class TableDescuentosPersonalComponent {
     loadingDelete = signal<boolean>(false)
 
     constructor(
-        private searchService: SearchService,
+        // private searchService: SearchService,
         private apiService: ApiService,
         private angularUtilService : AngularUtilService,
-        private injector : Injector,
+        // private injector : Injector,
     ) {
         effect(async () => {
             const anio = this.anio()
@@ -57,13 +58,20 @@ export class TableDescuentosPersonalComponent {
         });
     }
 
+    private readonly loadingSrv = inject(LoadingService);
+
     columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/personal')
 
     gridData$ = this.listDescuento$.pipe(
         debounceTime(500),
         switchMap(() => {
+            this.loadingSrv.open({ type: 'spin', text: '' })
             return this.apiService.getDescuentosPersonal(this.listOptions, this.anio(), this.mes())
-                .pipe(map(data => { return data }))
+            .pipe(
+                map(data => { return data }),
+                doOnSubscribe(() => { }),
+                tap({ complete: () => { this.loadingSrv.close() } })
+            )
         })
     )
 

@@ -55,8 +55,8 @@ export class DescuentosCargaMasivaComponent {
       })
     }
 
-    $descuentoOptions = this.searchService.getDecuentosOptions();
-    $tableOptions = this.searchService.getDescuentoTableOptions();
+    $optionsTipo = this.searchService.getDecuentosTipoOptions();
+    $optionsTable = this.searchService.getDescuentoTableOptions();
 
     columnsPer:any[] = [
       {

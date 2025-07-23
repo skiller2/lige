@@ -124,6 +124,10 @@ gestionDescuentosRouter.get("/tables", [authMiddleware.verifyToken,authMiddlewar
     gestionDescuentosController.getTableOptions(req, res, next);
 });
 
+gestionDescuentosRouter.get("/aplicaa/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getAplicaAOptions(req, res, next);
+});
+
 gestionDescuentosRouter.post("/upload", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
     uploadXLS(req, res, (err) => {
 
