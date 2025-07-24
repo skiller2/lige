@@ -30,7 +30,7 @@ export class TableDescuentosObjetivosComponent {
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
     mes = input<number>(0)
-    // reload = input<number>(0)
+    reload = input<number>(0)
     listDescuento$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
         filtros: [],
@@ -53,7 +53,7 @@ export class TableDescuentosObjetivosComponent {
         effect(async () => {
             const anio = this.anio()
             const mes = this.mes()
-            // const reload = this.reload()
+            const reload = this.reload()
             this.listDescuento('')
         });
     }
