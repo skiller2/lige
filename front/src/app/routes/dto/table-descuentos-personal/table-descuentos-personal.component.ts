@@ -11,6 +11,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { DescuentosPersonalAltaDrawerComponent } from "../descuentos-personal-alta-drawer/descuentos-personal-alta-drawer.component"
 import { LoadingService } from '@delon/abc/loading';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
     selector: 'app-table-descuentos-personal',
@@ -43,6 +44,7 @@ export class TableDescuentosPersonalComponent {
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
     loadingDelete = signal<boolean>(false)
+    tipoint = signal<string>('')
 
     constructor(
         // private searchService: SearchService,
@@ -59,6 +61,7 @@ export class TableDescuentosPersonalComponent {
     }
 
     private readonly loadingSrv = inject(LoadingService);
+    private notification = inject(NzNotificationService)
 
     columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/personal')
 
@@ -68,7 +71,9 @@ export class TableDescuentosPersonalComponent {
             this.loadingSrv.open({ type: 'spin', text: '' })
             return this.apiService.getDescuentosPersonal(this.listOptions, this.anio(), this.mes())
             .pipe(
-                map(data => { return data }),
+                map(data => {
+                    console.log('data: ', data);
+                    return data }),
                 doOnSubscribe(() => { }),
                 tap({ complete: () => { this.loadingSrv.close() } })
             )
@@ -87,7 +92,9 @@ export class TableDescuentosPersonalComponent {
     handleSelectedRowsChanged(e: any): void {
         if (e.detail.args.changedSelectedRows.length ==1) {
             const rowNum = e.detail.args.changedSelectedRows[0]
-            const id:string = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
+            const row = this.angularGrid.dataView.getItemByIdx(rowNum)
+            this.tipoint.set(row?.tipoint)
+            const id:string = row?.id
             const ids:string[] = id.split('-')
             this.descuentoId.set(parseInt(ids[1]))
             this.personalId.set(parseInt(ids[2]))
@@ -125,7 +132,11 @@ export class TableDescuentosPersonalComponent {
     }
 
     openDrawerforEditDescuentos(){
-        this.visibleEditDesc.set(true)
+        if (this.tipoint() == 'OTRO') {
+            this.visibleEditDesc.set(true)
+        }else{
+            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+        }
     }
 
     async deleteDescuento(){

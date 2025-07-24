@@ -383,7 +383,7 @@ export class GestionDescuentosController extends BaseController {
     //   condition = `perdes.anio IN (@1) AND perdes.mes IN (@2)`
     // }
     return await queryRunner.query(`
-      SELECT  perdes.id
+      SELECT perdes.id
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
@@ -396,6 +396,7 @@ export class GestionDescuentosController extends BaseController {
         , perdes.cuotanro
         , perdes.cantcuotas
         , perdes.importetotal
+        , perdes.tipoint
 
       FROM VistaPersonalDescuento perdes
 
@@ -563,6 +564,7 @@ export class GestionDescuentosController extends BaseController {
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
       WHERE per.PersonalId IN (@0) AND perdes.anio IN (@1) AND perdes.mes IN (@2)
       `, [ PersonalId, anio, mes])
+      // console.log('--------------------------------');
       // console.log('descuentos: ', descuentos.length);
         
       this.jsonRes(descuentos, res);
