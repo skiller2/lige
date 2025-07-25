@@ -1,6 +1,6 @@
 import { readdirSync, unlinkSync } from "fs";
 import path from "path";
-import { QueryRunner } from "typeorm";
+import type { QueryRunner } from "typeorm";
 
 export class Utils {
   static async getMovimientoId(queryRunner: QueryRunner) {

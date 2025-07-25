@@ -1,12 +1,11 @@
-import { DBServer, WebServer } from "./server";
-import { BotServer } from "./bot-server";
-import { makeRoutes } from "./routes/routes.module"
-import { dataSource } from "./data-source";
+import { DBServer, WebServer } from "./server.ts";
+import { BotServer } from "./bot-server.ts";
+import { makeRoutes } from "./routes/routes.module.ts"
+import { dataSource } from "./data-source.ts";
 import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
-import { ChatBotController } from "./controller/chatbot.controller";
+import { ChatBotController } from "./controller/chatbot.controller.ts";
 import { exit } from "process";
-import { BaseController } from "./controller/base.controller";
 dotenv.config()
 
 // Init App

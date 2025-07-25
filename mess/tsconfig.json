@@ -3,7 +3,6 @@
     // This can be omitted when using ts-patch
     //"files": true
     "transpileOnly": true,
-
   },
   "compileOnSave": false,
   "compilerOptions": {
@@ -11,32 +10,35 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
-//    "declaration": true,
-//    "declarationDir": "dist",
+    //    "declaration": true,
+    //    "declarationDir": "dist",
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "esModuleInterop":true,
-    "module": "ESNext",
+    "esModuleInterop": true,
+    "module": "nodenext",
     "target": "ESNext",
-    "moduleResolution": "Bundler",
     "importHelpers": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "strict":false,
-    "emitDecoratorMetadata":true,
+    "strict": false,
+    "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
     "skipLibCheck": true,
     "typeRoots": [
-//      "./src/types",
+      //      "./src/types",
       "node_modules/@types"
-      
     ],
     "lib": [
       "es2021",
     ]
   },
-  
-  "exclude": ["scripts/**","dist/**"]
-  
+  "allowImportingTsExtensions": true,
+  "rewriteRelativeImportExtensions": true,
+  "verbatimModuleSyntax": true,
+  "erasableSyntaxOnly": true,
+  "exclude": [
+    "scripts/**",
+    "dist/**"
+  ]
 }

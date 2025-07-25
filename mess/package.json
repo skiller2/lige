@@ -12,6 +12,7 @@
     "prod": "node ./dist/index.js",
     "start": "npm run dev",
     "dev": "tsc --watch src/index.ts",
+    "devnew": "node --experimental-strip-types --experimental-transform-types ./src/index.ts",
     "devold": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts"
   },
   "keywords": [],
@@ -27,7 +28,7 @@
     "mssql": "^10.0.1",
     "node-schedule": "^2.1.1",
     "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.34.1",
+    "sharp": "^0.34.3",
     "typeorm": "^0.3.20",
     "wa-sticker-formatter": "^4.4.4"
   },

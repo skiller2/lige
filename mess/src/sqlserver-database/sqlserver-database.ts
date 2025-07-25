@@ -1,8 +1,5 @@
 import { MemoryDB } from '@builderbot/bot'
-import { dataSource } from "../data-source";
-import { rejects, throws } from 'node:assert';
-import { DBServer } from 'src/server';
-import { dbServer } from 'src';
+import { dbServer } from '../index.ts';
 
 class SqlServerAdapter extends MemoryDB {
   public listHistory: any[] = []

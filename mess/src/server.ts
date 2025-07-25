@@ -1,11 +1,12 @@
-import express, { json, Application, Router, NextFunction, Request, Response } from "express";
-import { version, author, name, description } from "./version.json";
+import type   { Application, Router, NextFunction, Request, Response } from "express";
+import express, {json} from "express";
+import versionJson from "./version.json" with { type: 'json' };
 import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "http";
-import { ClientException } from "./controller/base.controller";
-
+import { ClientException } from "./controller/base.controller.ts";
+//{ version, author, name, description }
 import dotenv from "dotenv"
 import { performance } from "node:perf_hooks";
 
@@ -123,7 +124,7 @@ export class WebServer {
     });
 */
     this.app.use(errorResponder)
-    this.app.set("pkg", { version, author, name, description });
+    this.app.set("pkg", { version:versionJson.version, author:versionJson.author, name:versionJson.name, description:versionJson.description });
 
     this.app.get("/", (req, res) => {
       res.json({

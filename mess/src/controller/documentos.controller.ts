@@ -1,6 +1,6 @@
-import { BaseController, ClientException } from "./base.controller";
+import { BaseController, ClientException } from "./base.controller.ts";
 import * as fs from 'fs';
-import { dbServer } from "src";
+import { dbServer } from "../index.ts";
 
 export class DocumentosController extends BaseController {
 

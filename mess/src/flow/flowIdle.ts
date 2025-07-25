@@ -1,5 +1,5 @@
 import { EVENTS, addKeyword } from '@builderbot/bot'
-import { BotContext, BotStateStandAlone, TFlow } from '@builderbot/bot/dist/types';
+import type { BotContext, BotStateStandAlone } from '@builderbot/bot';
 
 // Object to store timers for each user
 const timers = {};
@@ -12,7 +12,7 @@ const idleFlow = addKeyword(EVENTS.ACTION).addAction(
 );
 
 // Function to start the inactivity timer for a user
-const start = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, ms: number) => {
+const start = (ctx: BotContext, gotoFlow: (a: addKeyword) => Promise<void>, ms: number) => {
   timers[ctx.from] = setTimeout(() => {
     console.log(`User timeout: ${ctx.from}`);
     return gotoFlow(idleFlow);

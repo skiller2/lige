@@ -1,24 +1,21 @@
-import express, { json, Application, Router, NextFunction, Request, Response } from "express";
-import { version, author, name, description } from "./version.json";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
-import { ClientException } from "./controller/base.controller";
 
 import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
 //import {MemoryDB as Database } from '@builderbot/bot'
-import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database'
+import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-import { flowLogin, flowValidateCode } from "./flow/flowLogin";
-import flowRecibo from "./flow/flowRecibo";
-import flowMonotributo from "./flow/flowMonotributo";
-import flowMenu from "./flow/flowMenu";
-import flowRemoveTel from "./flow/flowRemoveTel";
-import { idleFlow } from "./flow/flowIdle";
-import flowInformacionPersonal from "./flow/flowInformacionPersonal";
-import flowInformacionEmpresa from "./flow/flowInformacionEmpresa";
-import { flowDescargaDocs } from "./flow/flowDescargaDocs";
-import { Utils } from "./controller/util";
+import { flowLogin, flowValidateCode } from "./flow/flowLogin.ts";
+import flowRecibo from "./flow/flowRecibo.ts";
+import flowMonotributo from "./flow/flowMonotributo.ts";
+import flowMenu from "./flow/flowMenu.ts";
+import flowRemoveTel from "./flow/flowRemoveTel.ts";
+import { idleFlow } from "./flow/flowIdle.ts";
+import flowInformacionPersonal from "./flow/flowInformacionPersonal.ts";
+import flowInformacionEmpresa from "./flow/flowInformacionEmpresa.ts";
+import { flowDescargaDocs } from "./flow/flowDescargaDocs.ts";
+import { Utils } from "./controller/util.ts";
 
 dotenv.config()
 export const tmpName = (dir: string) => {

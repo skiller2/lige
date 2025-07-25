@@ -9,32 +9,30 @@ import { flowDescargaDocs } from './flowDescargaDocs.ts';
 const delay = chatBotController.getDelay()
 const linkVigenciaHs = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
 
-export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
+export const flowIncidente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+        const telefono = ctx.from
+        const res = await personalController.getPersonalQuery(telefono,0)
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        if (res.length) {
+            if (![2, 9, 23, 12, 10, 16, 28, 18, 26, 11, 20, 22].includes(res[0].PersonalSituacionRevistaSituacionId)) {
+                await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
+                stop(ctx, gotoFlow, state)
+                return
+            }
+            await state.update({ personalId: res[0].personalId })
+            await state.update({ cuit: res[0].cuit })
+            await state.update({ codigo: res[0].codigo })
+            await state.update({ name: res[0].name.trim() })
+        }
     })
-    .addAnswer([`Ingrese el código proporcionado en la página web 'Validación de Identidad', en caso de desconocerlo ingrese 0 para ir al inicio`], { capture: true, delay: delay },
+    .addAnswer([`Ingrese el código del objetivo donde se produjo el hecho`], { capture: true, delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const telefono = ctx.from
-            const res = await personalController.getPersonalQuery(telefono,0)
-
-            if (res.length) {
-                if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
-                    await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return
-                }
-    
-                await state.update({ personalId: res[0].personalId })
-                await state.update({ cuit: res[0].cuit })
-                await state.update({ codigo: res[0].codigo })
-                await state.update({ name: res[0].name.trim() })
-            }    
             const data = state.getMyState()
+            
+            await state.update({ CodObjetivo: ctx.body })
 
-            if (ctx.body == '0') {
-                return gotoFlow(flowRemoveTel)
-            }
 
             if (data?.codigo == ctx.body) {
                 await flowDynamic(`Identidad verificada existosamente`, { delay: delay })
@@ -97,7 +95,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
             if (res[0].codigo) {
                 //Código pendiente de ingreso
-                return gotoFlow(flowValidateCode)
+//                return gotoFlow(flowValidateCode)
             } else {
 //                return gotoFlow(flowMenu)
                 return gotoFlow(flowDescargaDocs)

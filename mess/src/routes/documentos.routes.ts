@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { documentosController } from "../controller/controller.module";
+import { documentosController } from "../controller/controller.module.ts";
 
 export const documentosRouter = Router();
 

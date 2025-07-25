@@ -1,14 +1,14 @@
 import { EVENTS, addKeyword } from "@builderbot/bot";
-import flowMonotributo from './flowMonotributo'
-import flowRecibo from './flowRecibo'
-import flowRemoveTel from './flowRemoveTel'
-import { chatBotController } from "../controller/controller.module";
-import { reset, stop } from "./flowIdle";
-import { botServer } from "src";
-import flowInformacionPersonal from "./flowInformacionPersonal";
-import flowInformacionEmpresa from "./flowInformacionEmpresa";
-import { flowLogin } from "./flowLogin";
-import { flowDescargaDocs } from "./flowDescargaDocs";
+import flowMonotributo from './flowMonotributo.ts'
+import flowRecibo from './flowRecibo.ts'
+import flowRemoveTel from './flowRemoveTel.ts'
+import { chatBotController } from "../controller/controller.module.ts";
+import { reset, stop } from "./flowIdle.ts";
+import { botServer } from "../index.ts";
+import flowInformacionPersonal from "./flowInformacionPersonal.ts";
+import flowInformacionEmpresa from "./flowInformacionEmpresa.ts";
+import { flowDescargaDocs } from "./flowDescargaDocs.ts";
+import { flowIncidente } from "./flowIncidente.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -20,6 +20,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         '3- *Información Personal*',
         '4- *Información Cooperativa*',
         '5- *Documentación pendiente*',
+        '6- *Informar incidente*',
         '9- *Desvincular teléfono*',
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
@@ -48,7 +49,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                     return gotoFlow(flowDescargaDocs)
                     break;
                 case 6:
-                    return gotoFlow(flowLogin)
+                    return gotoFlow(flowIncidente)
                     break;
                 case 9:
                     return gotoFlow(flowRemoveTel)
