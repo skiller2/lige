@@ -1,9 +1,4 @@
 {
-  "ts-node": {
-    // This can be omitted when using ts-patch
-    //"files": true
-    "transpileOnly": true,
-  },
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
@@ -31,11 +26,13 @@
     ],
     "lib": [
       "es2021",
-    ]
+    ],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
   },
-  "allowImportingTsExtensions": true,
   "rewriteRelativeImportExtensions": true,
-  "verbatimModuleSyntax": true,
+  
   "erasableSyntaxOnly": true,
   "exclude": [
     "scripts/**",

@@ -33,6 +33,6 @@
     "wa-sticker-formatter": "^4.4.4"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.8"
   }
 }
