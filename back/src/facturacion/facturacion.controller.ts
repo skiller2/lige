@@ -201,7 +201,6 @@ export class FacturacionController extends BaseController {
                                 AND clif.ClienteFacturacionDesde <= @0
                 AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0 WHERE ${filterSql} ${orderBy}`, [fechaActual])
 
-                console.log(facturacion)
 
             this.jsonRes(
                 {
@@ -220,6 +219,34 @@ export class FacturacionController extends BaseController {
     async getComprobanteTipoOptions(req: any, res: Response, next: NextFunction) {
         const result = await dataSource.query(`
           SELECT ComprobanteTipoCodigo, Descripcion FROM ComprobanteTipo`)
+        this.jsonRes(result, res);
+      }
+
+    async getFacturas(req: any, res: Response, next: NextFunction) {
+
+        const comprobantesRaw = req.params.ComprobanteNro
+        const comprobantes = comprobantesRaw
+          .split(',')
+          .map(c => `'${c.trim().replace(/'/g, "''")}'`)
+        
+        const inClause = comprobantes.join(', ')
+        const sql = `  SELECT 
+        fac.ComprobanteNro,
+        fac.ComprobanteTipoCodigo,
+        fac.ImporteTotal,
+        fac.Descripcion,
+        fac.PrecioUnitario,
+        fac.Fecha,
+        fac.CodigoProducto,
+        CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
+
+        fac.Cantidad,
+        CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo
+         FROM Facturacion fac
+        Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
+        WHERE LTRIM(RTRIM(ComprobanteNro)) IN (${inClause})`
+      
+        const result = await dataSource.query(sql);
         this.jsonRes(result, res);
       }
    

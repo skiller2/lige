@@ -1039,6 +1039,16 @@ export class ApiService {
 
   }
 
+  getFacturas(ComprobanteNro: string) {
+
+    return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturacion/${ComprobanteNro}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+
+    )
+
+  }
+
   getLicencia(anio: number, mes: number, PersonalId: number, PersonalLicenciaId: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/carga-licencia/${anio}/${mes}/${PersonalId}/${PersonalLicenciaId}`).pipe(

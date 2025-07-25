@@ -117,6 +117,8 @@ export class FacturacionComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
+    console.log("e.detail.args.changedSelectedRows ", e.detail.args)
+
     if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
       const rowinfo = this.angularGrid.dataView.getItemByIdx(rowNum)
@@ -124,9 +126,15 @@ export class FacturacionComponent {
       
       const prevSelection = this.rowSelected() || []
       this.rowSelected.set([...prevSelection, rowinfo])
-      console.log("rowSelected ", this.rowSelected())
+    
+    }
+    else if (e.detail.args.changedUnselectedRows.length == 1) {
+      const rowNum = e.detail.args.changedUnselectedRows[0]
+      const rowinfo = this.angularGrid.dataView.getItemByIdx(rowNum)
+      const prevSelection = this.rowSelected() || []
+      this.rowSelected.set(prevSelection.filter(item => item.id !== rowinfo.id))
 
-    } 
+    }
   }
 
   listOptionsChange(options: any) {
