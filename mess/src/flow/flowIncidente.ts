@@ -36,12 +36,12 @@ export const flowIncidente = addKeyword(EVENTS.ACTION)
 
             if (data?.codigo == ctx.body) {
                 await flowDynamic(`Identidad verificada existosamente`, { delay: delay })
-                personalController.removeCode(telefono)
+//                personalController.removeCode(telefono)
                 return gotoFlow(flowMenu)
             } else {
                 const reintento = (data.reintento)?data.reintento:0
                 if (reintento > 3) {
-                    const res = await personalController.delTelefonoPersona(telefono)
+//                    const res = await personalController.delTelefonoPersona(telefono)
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
                     stop(ctx,gotoFlow, state)
                     return

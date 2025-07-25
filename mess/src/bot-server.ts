@@ -5,7 +5,7 @@ import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
 //import {MemoryDB as Database } from '@builderbot/bot'
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
-import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
+import { BaileysProvider as Provider } from '@builderbot/provider-baileys/dist/index.cjs'
 import { flowLogin, flowValidateCode } from "./flow/flowLogin.ts";
 import flowRecibo from "./flow/flowRecibo.ts";
 import flowMonotributo from "./flow/flowMonotributo.ts";
@@ -16,6 +16,7 @@ import flowInformacionPersonal from "./flow/flowInformacionPersonal.ts";
 import flowInformacionEmpresa from "./flow/flowInformacionEmpresa.ts";
 import { flowDescargaDocs } from "./flow/flowDescargaDocs.ts";
 import { Utils } from "./controller/util.ts";
+import { flowIncidente } from "./flow/flowIncidente.ts";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -67,7 +68,7 @@ export class BotServer {
 
     Utils.removeBotFileSessions()
 
-    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal,flowInformacionEmpresa,flowDescargaDocs])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal,flowInformacionEmpresa,flowDescargaDocs,flowIncidente])
     this.adapterProvider = createProvider(Provider, {
       timeRelease: 10800000, // 3 hours in milliseconds
     })
