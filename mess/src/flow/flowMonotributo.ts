@@ -1,9 +1,9 @@
-import { documentosController } from "../controller/controller.module";
+import { documentosController } from "../controller/controller.module.ts";
 import { EVENTS, addKeyword } from "@builderbot/bot";
-import flowMenu from './flowMenu'
-import { chatBotController } from "../controller/controller.module";
-import { botServer } from "../index";
-import { reset } from "./flowIdle";
+import flowMenu from './flowMenu.ts'
+import { chatBotController } from "../controller/controller.module.ts";
+import { botServer } from "../index.ts";
+import { reset } from "./flowIdle.ts";
 
 const delay = chatBotController.getDelay()
 

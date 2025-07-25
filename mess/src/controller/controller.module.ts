@@ -1,6 +1,6 @@
-import { PersonalController } from "./personal.controller";
-import { DocumentosController } from "./documentos.controller";
-import { ChatBotController } from "./chatbot.controller";
+import { PersonalController } from "./personal.controller.ts";
+import { DocumentosController } from "./documentos.controller.ts";
+import { ChatBotController } from "./chatbot.controller.ts";
 
 export const personalController = new PersonalController();
 export const documentosController = new DocumentosController();

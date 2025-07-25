@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { chatBotController } from "../controller/controller.module";
+import { chatBotController } from "../controller/controller.module.ts";
 
 export const chatBotRouter = Router();
 chatBotRouter.get(`/qr/:imgcount?`, (req, res, next) => {chatBotController.getChatBotQR(req, res, next)});

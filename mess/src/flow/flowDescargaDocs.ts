@@ -1,9 +1,8 @@
 import { addKeyword, EVENTS } from '@builderbot/bot'
-import flowMenu from './flowMenu'
-import { chatBotController, personalController } from "../controller/controller.module";
-import { reset, start, stop, stopSilence } from './flowIdle';
-import { botServer } from 'src';
-import { BaseController } from 'src/controller/base.controller';
+import flowMenu from './flowMenu.ts'
+import { chatBotController, personalController } from "../controller/controller.module.ts";
+import { reset, start, stop, stopSilence } from './flowIdle.ts';
+import { botServer } from '../index.ts';
 
 const delay = chatBotController.getDelay()
 const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"

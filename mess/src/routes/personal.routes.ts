@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { personalController } from "../controller/controller.module";
-import { botServer } from "src";
+import { personalController } from "../controller/controller.module.ts";
+import { botServer } from "../index.ts";
 // import { authMiddleware } from "../middlewares/middleware.module";
 
 export const personalRouter = Router();

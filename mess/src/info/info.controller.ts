@@ -1,7 +1,6 @@
-import { dbServer } from "src";
-import { BaseController } from "../controller/base.controller";
-import { dataSource } from "../data-source";
-import { Request, Response, NextFunction } from "express";
+import { dbServer } from "../index.ts";
+import { BaseController } from "../controller/base.controller.ts";
+import type { Request, Response, NextFunction } from "express";
 
 export class InfoController extends BaseController {
 

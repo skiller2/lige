@@ -1,12 +1,13 @@
-import { BaseController, ClientException } from "./base.controller";
-import { NextFunction, Request, Response } from "express";
+import { BaseController, ClientException } from "./base.controller.ts";
+import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "fs";
-import { botServer } from "../";
-import { dataSource } from "../data-source";
+//import { botServer } from "../bot-server.ts";
+import { dataSource } from "../data-source.ts";
 
 export class ChatBotController extends BaseController {
   getChatBotStatus(req: Request, res: Response, next: NextFunction) {
-    const ret = botServer.status()
+    //  const ret = botServer.status()
+    const ret=null
     return this.jsonRes(ret, res);
   }
   delay: number = 1000

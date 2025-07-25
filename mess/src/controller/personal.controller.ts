@@ -1,12 +1,7 @@
-import { BaseController, ClientException } from "./base.controller";
-// import { PersonaObj } from "../schemas/personal.schemas";
-// import fetch, { Request } from "node-fetch";
-import { dataSource } from "../data-source";
-// import { Response } from "express-serve-static-core";
-// import { ParsedQs } from "qs";
-import { NextFunction, Request, Response } from "express";
+import { BaseController, ClientException } from "./base.controller.ts";
+import type { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
-import { botServer, dbServer } from "src";
+import { botServer, dbServer } from "../index.ts";
 
 export class PersonalController extends BaseController {
   async getDocsPendDescarga(PersonalId: number) {

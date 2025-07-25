@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from 'express';
 import { existsSync } from "node:fs";
 import { performance } from "node:perf_hooks";
-import { DataSource, QueryRunner } from "typeorm";
-import { dbServer } from "src";
+import type { DataSource, QueryRunner } from "typeorm";
+import { dbServer } from "../index.ts";
 
 export class ClientException extends Error {
   messageArr: string[]
-  constructor(message: string | string[], public extended: any = '', public code: number = 0) {
+  constructor(message: string | string[], public extended= null, public code: number = 0) {
     if (message instanceof Array) {
       super(message.join(', '))
       this.messageArr = message

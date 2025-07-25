@@ -1,7 +1,7 @@
-import { personalController } from "../controller/controller.module";
+import { personalController } from "../controller/controller.module.ts";
 import { EVENTS, addKeyword } from "@builderbot/bot";
-import { chatBotController } from "../controller/controller.module";
-import { stop } from "./flowIdle";
+import { chatBotController } from "../controller/controller.module.ts";
+import { stop } from "./flowIdle.ts";
 
 const delay = chatBotController.getDelay()
 
