@@ -18,11 +18,12 @@ import { QueryRunner } from "typeorm";
 import { CustodiaController } from "src/controller/custodia.controller";
 import { AsistenciaController } from "src/controller/asistencia.controller";
 import { FileUploadController } from "src/controller/file-upload.controller";
+import { Filter } from "ldapts/filters/Filter";
 
 
 
 export class RecibosController extends BaseController {
-  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibos'
+  directoryRecibo = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibos'
   PathReciboTemplate = {
     header: `${this.directoryRecibo}/config/recibo-header.html`,
     body: `${this.directoryRecibo}/config/recibo-body.html`,
@@ -31,7 +32,7 @@ export class RecibosController extends BaseController {
     bodyDef: './assets/recibo/recibo-body.def.html',
     footerDef: './assets/recibo/recibo-footer.def.html'
   }
-  
+
 
   constructor() {
     super();
@@ -121,13 +122,13 @@ export class RecibosController extends BaseController {
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 
-      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year,periodo.month,3)
+      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3)
       if (resPendLiq.length > 0) {
         const fecha_limite = resPendLiq[0].fecha_limite
-       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(fecha_limite)}`)
+        throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(fecha_limite)}`)
       }
 
-      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year,periodo.month)
+      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month)
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
 
@@ -308,7 +309,7 @@ export class RecibosController extends BaseController {
           htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           break
         case "I":
-          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${liquidacionElement.custodia_id? 'Custodia '+liquidacionElement.custodia_id+' '+liquidacionElement.ClienteDenominacion : ''} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${liquidacionElement.custodia_id ? 'Custodia ' + liquidacionElement.custodia_id + ' ' + liquidacionElement.ClienteDenominacion : ''} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           retenciones += liquidacionElement.SumaImporte
           break
         default:
@@ -435,7 +436,7 @@ export class RecibosController extends BaseController {
     tip.des_movimiento, 
     tip.indicador_recibo,
     cli.ClienteDenominacion`
-    , [periodo_id, user_id])
+      , [periodo_id, user_id])
 
   }
 
@@ -502,24 +503,24 @@ export class RecibosController extends BaseController {
       if (!data[0])
         throw new ClientException(`Recibo no generado`)
 
-      req.params.id =data[0].doc_id 
+      req.params.id = data[0].doc_id
       req.params.filename = 'original'
       req.params.tableForSearch = 'docgeneral'
-  
+
       const fileUploadController = new FileUploadController();
       await fileUploadController.getByDownloadFile(req, res, next);
- 
 
 
 
-/*
-      res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
-        if (error) {
-          console.error('Error al descargar el archivo:', error);
-          return next(error)
-        }
-      });
-*/
+
+      /*
+            res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
+              if (error) {
+                console.error('Error al descargar el archivo:', error);
+                return next(error)
+              }
+            });
+      */
     } catch (error) {
       return next(error)
     }
@@ -548,23 +549,27 @@ export class RecibosController extends BaseController {
     if (!user)
       throw new ClientException(`Usuario no identificado`)
 
-    let ip = this.getRemoteAddress(req)
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date();
 
     try {
-      let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      let pathFile = (lista)
+      let recibosLista = (lista)
         ? await this.getparthFile(queryRunner, periodo_id, lista)
         : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
       
+      if (res.locals.filterSucursal) {
+        recibosLista = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number })=>res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
+      }
+      
       const mergedPdf = await PDFDocument.create();
 
-      if (pathFile.length == 0)
-        throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado ${Mes}/${Anio}`);
+      if (recibosLista.length == 0)
+        throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados`);
 
       //      pathFile= [pathFile[0]]
-      for (const filterDowload of pathFile) {
+      for (const filterDowload of recibosLista) {
         let origpath = ''
         try {
           origpath = this.directoryRecibo + '/' + filterDowload.path
@@ -635,7 +640,9 @@ export class RecibosController extends BaseController {
         filterExtraIN = `SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
         LEFT JOIN (SELECT per.PersonalId, ISNULL(suc.PersonalSucursalPrincipalSucursalId,1) PersonalSucursalPrincipalSucursalId, suc.PersonalSucursalPrincipalUltimaActualizacion
           FROM Personal per
-          JOIN PersonalSucursalPrincipal suc ON suc.PersonalId=per.PersonalId) suc ON suc.PersonalId = mov.persona_id
+          JOIN PersonalSucursalPrincipal suc ON suc.PersonalId=per.PersonalId AND suc.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)) suc ON suc.PersonalId = mov.persona_id
+
+
         JOIN Sucursal i ON i.SucursalId =  suc.PersonalSucursalPrincipalSucursalId
         WHERE mov.periodo_id=@0 AND i.SucursalId = @3`
 
@@ -656,12 +663,14 @@ export class RecibosController extends BaseController {
 
 
     return queryRunner.query(`
-    SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
+    SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path, h.PersonalSucursalPrincipalSucursalId
         FROM lige.dbo.docgeneral doc 
        JOIN Personal per ON per.PersonalId=doc.persona_id 
        LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.fecha > gaprel.GrupoActividadPersonalDesde  AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
-        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId
+--        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId
+        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId AND h.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
         WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
     ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`,

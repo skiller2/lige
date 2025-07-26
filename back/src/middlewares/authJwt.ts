@@ -30,10 +30,13 @@ export class AuthMiddleware {
       res.locals.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
       res.locals.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
       res.locals.userName = decoded.userName
+      let grupos = []
       if (typeof decoded.groups === "string")
-        req.groups = [decoded.groups]
+        grupos = [decoded.groups]
       else
-        req.groups = decoded.groups
+        grupos = decoded.groups
+
+      req.groups = grupos.map(r => r.match(/CN=([^,]+)/)![1])
       return next();
     });
   };
@@ -42,18 +45,32 @@ export class AuthMiddleware {
     return (req, res, next) => {
       if (res.locals?.skipMiddleware) return next()
 
-      if (req?.groups) {
-        for (const rowgroup of req?.groups) {
-          const myGrp: string = rowgroup.match(/CN=([^,]+)/)![1]
-          for (const grp of group) {
-            if (myGrp.toLowerCase() === grp.toLowerCase()) return next()
-          }
+      for (const myGrp of req?.groups) {
+        for (const grp of group) {
+          if (myGrp.toLowerCase() === grp.toLowerCase()) return next()
         }
       }
+
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
 
     }
+  }
+
+  filterSucursal = (req: any, res: any, next: any) => {
+    res.locals.filterSucursal = []
+
+    if (req?.groups.find((r: any) => r.localeCompare('MDQ') == 1)) {
+      res.locals.filterSucursal.push(3)
+    } else if (req?.groups.find((r: string) => r.localeCompare('FORMOSA') == 1)) {
+      res.locals.filterSucursal.push(2)
+    } else if (req?.groups.find((r: string) => r.localeCompare('CENTRAL') == 1)) {
+      res.locals.filterSucursal.push(1)
+    }
+
+    //      res.locals.filterSucursal.push(2)
+
+    return next()
   }
 
   hasAuthResp = (skipNextonPass: boolean) => {
@@ -108,18 +125,18 @@ export class AuthMiddleware {
       const mes = Number(req.body.mes);
       const opcionGrupoActividad = req.body.options.filtros
 
-      console.log('hasAuthGrupoActividad', PersonalId, anio, mes, GrupoActividadId, opcionGrupoActividad, req.body, 'res.locals',res.locals);
+      console.log('hasAuthGrupoActividad', PersonalId, anio, mes, GrupoActividadId, opcionGrupoActividad, req.body, 'res.locals', res.locals);
       console.log(' req.params', req.params, 'req.query', req.query, 'req.body', req.body);
-      
+
       if (PersonalId < 1) return res.status(403).json({ msg: `No se especifico PersonalId` })
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
       // if (!GrupoActividadId) return res.status(403).json({ msg: `No se especifico GrupoActividadId` })
-      
+
       const queryRunner = dataSource.createQueryRunner()
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
       console.log('grupos', grupos);
-      if (grupos.length > 0){ 
+      if (grupos.length > 0) {
         for (const row of grupos) {
           if (row.GrupoActividadId == GrupoActividadId) {
             res.locals.authGrupoActividad = true
@@ -130,9 +147,9 @@ export class AuthMiddleware {
 
       }
 
-      console.log('res.locals',res.locals);
+      console.log('res.locals', res.locals);
       return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
-      
+
     }
 
   }
