@@ -668,7 +668,6 @@ export class RecibosController extends BaseController {
        JOIN Personal per ON per.PersonalId=doc.persona_id 
        LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.fecha > gaprel.GrupoActividadPersonalDesde  AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
---        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId AND h.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
 
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
