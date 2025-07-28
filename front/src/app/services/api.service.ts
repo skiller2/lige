@@ -1039,14 +1039,20 @@ export class ApiService {
 
   }
 
-  getFacturas(ComprobanteNro: string) {
+  getFacturas(ComprobanteNro: any, ClienteId: string, ClienteElementoDependienteId: string) {
 
-    return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturacion/${ComprobanteNro}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturas/${ComprobanteNro}/${ClienteId}/${ClienteElementoDependienteId}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
 
     )
 
+  }
+
+  saveFacturacion(parameter: any) {
+    return this.http.post<ResponseJSON<any>>('/api/facturacion/save', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
   }
 
   getLicencia(anio: number, mes: number, PersonalId: number, PersonalLicenciaId: number) {

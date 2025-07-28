@@ -21,6 +21,7 @@ export class FacturacionFormComponent {
   rowSelected = input<any>(null);
   rowSelectedSearch = signal<any>(null)
   private apiService = inject(ApiService)
+  comprobanteNroold = signal<string>("")
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['rowSelected'] && this.rowSelected()) {
@@ -37,29 +38,43 @@ export class FacturacionFormComponent {
     ClienteApellidoNombre: "",
     ComprobanteNro: "",
     ImporteTotal: 0,
-    ComprobanteTipoCodigo: ""
+    ComprobanteTipoCodigo: "",
+    comprobanteNroold: "",
+    ClienteId: 0,
+    ClienteElementoDependienteId: 0
   })
 
 
   async ngOnInit(){
 
-    let comprobanteNro =  Array.from(new Set(this.rowSelected().map((row: any) => row.ComprobanteNro))).join(', ')
+    let clienteId = this.rowSelected()[0].ObjetivoCodigo.split('/')[0]
+    let clienteElementoDependienteId = this.rowSelected()[0].ObjetivoCodigo.split('/')[1]
+    this.rowSelectedSearch.set( await firstValueFrom(this.apiService.getFacturas(this.rowSelected()[0].ComprobanteNro, clienteId, clienteElementoDependienteId)))
 
-    this.rowSelectedSearch.set( await firstValueFrom(this.apiService.getFacturas(comprobanteNro)))
-    console.log("rowSelectedSearch...............", this.rowSelectedSearch())
- 
+
     this.formCli.patchValue({
+      comprobanteNroold: this.rowSelected()[0].ComprobanteNro,
       ClienteFacturacionCUIT: this.rowSelected()[0].ClienteFacturacionCUIT,
       ClienteApellidoNombre: this.rowSelected()[0].ClienteApellidoNombre,
-      ComprobanteNro: Array.from(new Set(this.rowSelectedSearch().map((row: any) => row.ComprobanteNro))).join(', '),
+      ComprobanteNro: this.rowSelected()[0].ComprobanteNro,
       ImporteTotal: this.rowSelectedSearch().reduce((acc: number, row: { ImporteTotal: any; }) => acc + (Number(row.ImporteTotal) || 0), 0),
-      ComprobanteTipoCodigo: this.rowSelectedSearch()[0].ComprobanteTipoCodigo
+      ComprobanteTipoCodigo: this.rowSelectedSearch()[0]?.ComprobanteTipoCodigo,
+      ClienteId: clienteId,
+      ClienteElementoDependienteId: clienteElementoDependienteId
     })
     this.formCli.get('ImporteTotal')?.disable()
-    this.formCli.get('ComprobanteTipoCodigo')?.disable()
+    this.formCli.get('ClienteFacturacionCUIT')?.disable()
+    this.formCli.get('ClienteApellidoNombre')?.disable()
+    if(this.rowSelected()[0].ComprobanteNro != null){
+      this.formCli.get('ComprobanteTipoCodigo')?.disable()
+    }else{
+      this.formCli.get('ComprobanteTipoCodigo')?.enable()
+    }
   }
 
-  save(){
+  async save(){
     console.log("save ", this.formCli.value)
+
+    await firstValueFrom(this.apiService.saveFacturacion(this.formCli.value))
   }
 }

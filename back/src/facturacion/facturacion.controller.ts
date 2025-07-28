@@ -224,30 +224,89 @@ export class FacturacionController extends BaseController {
 
     async getFacturas(req: any, res: Response, next: NextFunction) {
 
-        const comprobantesRaw = req.params.ComprobanteNro
-        const comprobantes = comprobantesRaw
-          .split(',')
-          .map(c => `'${c.trim().replace(/'/g, "''")}'`)
-        
-        const inClause = comprobantes.join(', ')
-        const sql = `  SELECT 
-        fac.ComprobanteNro,
-        fac.ComprobanteTipoCodigo,
-        fac.ImporteTotal,
-        fac.Descripcion,
-        fac.PrecioUnitario,
-        fac.Fecha,
-        fac.CodigoProducto,
-        CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
+        const ComprobanteNro = req.params.ComprobanteNro
+        const ClienteId = req.params.ClienteId
+        const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId
+        console.log("ComprobanteNro ", req.params)
+        let comprobanteCondicion = '';
 
-        fac.Cantidad,
-        CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo
-         FROM Facturacion fac
-        Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
-        WHERE LTRIM(RTRIM(ComprobanteNro)) IN (${inClause})`
+        if (ComprobanteNro !== 'null') {
+          comprobanteCondicion = `= '${ComprobanteNro}'`
+        } else {
+          comprobanteCondicion = 'IS NULL';
+        }
+        
+        const sql = `
+          SELECT 
+            fac.ComprobanteNro,
+            fac.ComprobanteTipoCodigo,
+            fac.ImporteTotal,
+            fac.Descripcion,
+            fac.PrecioUnitario,
+            fac.Fecha,
+            fac.CodigoProducto,
+            CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
+            fac.Cantidad,
+            CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo
+          FROM Facturacion fac
+          LEFT JOIN ClienteElementoDependiente eledep 
+            ON eledep.ClienteId = fac.ClienteId 
+           AND eledep.ClienteElementoDependienteId = fac.ClienteElementoDependienteId
+          WHERE fac.ComprobanteNro ${comprobanteCondicion}
+            AND fac.ClienteId = ${ClienteId}
+            AND eledep.ClienteElementoDependienteId = ${ClienteElementoDependienteId}
+        `;
       
         const result = await dataSource.query(sql);
         this.jsonRes(result, res);
+      }
+
+      async saveFacturacion(req: any, res: Response, next: NextFunction) {   
+        
+        const queryRunner = dataSource.createQueryRunner()
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try{
+            console.log("req.body", req.body)
+            const { ComprobanteNro,comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body
+
+            if(!ComprobanteNro){
+            throw new ClientException("El nro de comprobante es requerido")
+            }
+
+            if(!ComprobanteTipoCodigo){
+            throw new ClientException("El tipo de comprobante es requerido")
+            }
+
+            let comprobanteCondicion = ''
+            
+            if (comprobanteNroold) {
+              comprobanteCondicion = `ComprobanteNro = ${comprobanteNroold}`
+            } else {
+              comprobanteCondicion = 'ComprobanteNro IS NULL'
+            }
+            
+            const result = await dataSource.query(`
+              UPDATE Facturacion
+              SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1
+              WHERE ${comprobanteCondicion}
+                AND ClienteId = @2
+                AND ClienteElementoDependienteId = @3
+            `, [ComprobanteNro, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId]);
+            
+            //throw new ClientException("test")
+            this.jsonRes(result, res);
+        }catch(error){
+
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
+            return next(error);
+        }
+
+
+
+     
       }
    
 

@@ -39,19 +39,26 @@ export class FacturacionComponent {
   // Computed signal que verifica si todos los objetos seleccionados tienen el mismo ClienteFacturacionCUIT
   canEdit = computed(() => {
     const selectedRows = this.rowSelected();
-    console.log("entre para validar")
+  
     if (!selectedRows || selectedRows.length === 0) {
       return false;
     }
     
-    // Obtener el primer ClienteFacturacionCUIT como referencia
+    // Obtengo el primer ClienteFacturacionCUIT, ComprobanteNro y ComprobanteTipoCodigo como referencia
     const firstCUIT = selectedRows[0]?.ClienteFacturacionCUIT;
+    const firstComprobanteNro = selectedRows[0]?.ComprobanteNro ?? null;
+    const firstComprobanteTipoCodigo = selectedRows[0]?.ComprobanteTipoCodigo ?? null;
+
     if (!firstCUIT) {
       return false;
     }
-    
-    // Verificar que todos los objetos tengan el mismo ClienteFacturacionCUIT
-    return selectedRows.every(row => row?.ClienteFacturacionCUIT === firstCUIT);
+
+    // Verifico que todos los objetos tengan el mismo ClienteFacturacionCUIT, ComprobanteNro y ComprobanteTipoCodigo (estos dos últimos pueden ser null)
+    return selectedRows.every(row =>
+      row?.ClienteFacturacionCUIT === firstCUIT &&
+      (row?.ComprobanteNro ?? null) === firstComprobanteNro &&
+      (row?.ComprobanteTipoCodigo ?? null) === firstComprobanteTipoCodigo
+    );
   });
   
   private angularUtilService = inject(AngularUtilService)
@@ -117,7 +124,6 @@ export class FacturacionComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-    console.log("e.detail.args.changedSelectedRows ", e.detail.args)
 
     if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
