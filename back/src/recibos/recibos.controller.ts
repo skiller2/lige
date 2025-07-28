@@ -660,8 +660,10 @@ export class RecibosController extends BaseController {
         break;
     }
 
+    const listPers = await queryRunner.query(filterExtraIN, [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
+    
 
-
+    if (listPers.length == 0) listPers.push({ persona_id: 0 })
     return queryRunner.query(`
     SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path, h.PersonalSucursalPrincipalSucursalId
         FROM lige.dbo.docgeneral doc 
@@ -671,7 +673,7 @@ export class RecibosController extends BaseController {
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId AND h.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
 
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
-        WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
+        WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${listPers.map(o => o.persona_id).join(',')})
     ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`,
       [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
   }
