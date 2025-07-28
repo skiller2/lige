@@ -196,7 +196,7 @@ export class FacturacionController extends BaseController {
                     FROM Facturacion fac
                     Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
                     LEFT JOIN Cliente cli ON cli.ClienteId=eledep.ClienteId
-                    INNER JOIN ComprobanteTipo ctp ON ctp.ComprobanteTipoCodigo = fac.ComprobanteTipoCodigo
+                    LEFT JOIN ComprobanteTipo ctp ON ctp.ComprobanteTipoCodigo = fac.ComprobanteTipoCodigo
                         LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = fac.ClienteId  
                                 AND clif.ClienteFacturacionDesde <= @0
                 AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0 WHERE ${filterSql} ${orderBy}`, [fechaActual])
