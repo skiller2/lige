@@ -271,14 +271,20 @@ export class FacturacionController extends BaseController {
             console.log("req.body", req.body)
             const { ComprobanteNro,comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body
 
+            if(ComprobanteNro == comprobanteNroold){
+                throw new ClientException("El nro de comprobante no puede ser el mismo")
+            } 
+
+            if(!ComprobanteTipoCodigo){
+                throw new ClientException("El tipo de comprobante es requerido")
+            }
+    
+
             if(!ComprobanteNro){
             throw new ClientException("El nro de comprobante es requerido")
             }
 
-            if(!ComprobanteTipoCodigo){
-            throw new ClientException("El tipo de comprobante es requerido")
-            }
-
+            
             let comprobanteCondicion = ''
             
             if (comprobanteNroold) {

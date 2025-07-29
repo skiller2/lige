@@ -9,6 +9,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FacturacionFormComponent } from '../facturacion-form/facturacion-form';
+import { LoadingService } from '@delon/abc/loading';
 
 type listOptionsT = {
   filtros: any[],
@@ -33,6 +34,7 @@ export class FacturacionComponent {
   tableLoading$ = new BehaviorSubject(false);
   gridObj!: SlickGrid;
   detailViewRowCount = 1
+  private readonly loadingSrv = inject(LoadingService);
 
   rowSelected = signal<any[]>([])
   
@@ -86,8 +88,8 @@ export class FacturacionComponent {
           map(data => {
             return data.list
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => this.loadingSrv.open()),
+          tap({ complete: () => this.loadingSrv.close() })
         );
     })
   )
