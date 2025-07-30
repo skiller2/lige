@@ -1,10 +1,21 @@
 import { ChangeDetectionStrategy, Component, inject, input,signal, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 import { FormBuilder } from '@angular/forms';
 import { SearchService } from '../../../services/search.service';
-import { firstValueFrom } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { AngularGridInstance, AngularUtilService, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { LoadingService } from '@delon/abc/loading';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+
+type listOptionsT = {
+  filtros: any[],
+  extra: any,
+  sort: any,
+}
 
 @Component({
   selector: 'app-facturacion-form',
@@ -20,17 +31,27 @@ export class FacturacionFormComponent {
 
   rowSelected = input<any>(null);
   rowSelectedSearch = signal<any>(null)
-  private apiService = inject(ApiService)
   comprobanteNroold = signal<string>("")
+  excelExportService = new ExcelExportService()
+  angularGrid!: AngularGridInstance
+  gridOptions!: GridOption
+  formChange$ = new BehaviorSubject('')
+  tableLoading$ = new BehaviorSubject(false)
+  gridObj!: SlickGrid
+  detailViewRowCount = 1
+  isDetail = input<boolean>(false)
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['rowSelected'] && this.rowSelected()) {
-      this.ngOnInit();
-    }
-  }
-
+  private readonly loadingSrv = inject(LoadingService)
+  private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
-  $optionsComprobanteTipo = this.searchService.getComprobanteTipoSearch();
+  private apiService = inject(ApiService)
+
+
+  listOptions: listOptionsT = {
+    filtros: [],
+    sort: null,
+    extra: null
+  }
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({
@@ -44,37 +65,118 @@ export class FacturacionFormComponent {
     ClienteElementoDependienteId: 0
   })
 
+  $optionsComprobanteTipo = this.searchService.getComprobanteTipoSearch();
 
-  async ngOnInit(){
+  columns$ = this.apiService.getCols('/api/facturacion/colsDetail').pipe(map((cols) => {
+    return cols
+  }))
 
-    let clienteId = this.rowSelected()[0].ObjetivoCodigo.split('/')[0]
-    let clienteElementoDependienteId = this.rowSelected()[0].ObjetivoCodigo.split('/')[1]
-    this.rowSelectedSearch.set( await firstValueFrom(this.apiService.getFacturas(this.rowSelected()[0].ComprobanteNro, clienteId, clienteElementoDependienteId)))
-
-
-    this.formCli.patchValue({
-      comprobanteNroold: this.rowSelected()[0].ComprobanteNro,
-      ClienteFacturacionCUIT: this.rowSelected()[0].ClienteFacturacionCUIT,
-      ClienteApellidoNombre: this.rowSelected()[0].ClienteApellidoNombre,
-      ComprobanteNro: this.rowSelected()[0].ComprobanteNro,
-      ImporteTotal: this.rowSelectedSearch().reduce((acc: number, row: { ImporteTotal: any; }) => acc + (Number(row.ImporteTotal) || 0), 0),
-      ComprobanteTipoCodigo: this.rowSelectedSearch()[0]?.ComprobanteTipoCodigo,
-      ClienteId: clienteId,
-      ClienteElementoDependienteId: clienteElementoDependienteId
+  gridData$ = this.formChange$.pipe(
+    debounceTime(500),
+    doOnSubscribe(() => this.loadingSrv.open()),
+    switchMap(() => {
+      if (this.rowSelected() && this.rowSelected().length > 0) {
+        const FacturacionCodigo = this.rowSelected().map((item: any) => item.FacturacionCodigo);
+        return this.apiService.getFacturas(
+          this.rowSelected()[0]?.ComprobanteNro,
+          FacturacionCodigo
+        ).pipe(
+          map((data: any) => data.list ?? []),
+          catchError(() => of([])),
+          tap({ complete: () => this.loadingSrv.close() })
+        );
+      } else {
+        this.loadingSrv.close();
+        return of([]);
+      }
     })
-    this.formCli.get('ImporteTotal')?.disable()
-    this.formCli.get('ClienteFacturacionCUIT')?.disable()
-    this.formCli.get('ClienteApellidoNombre')?.disable()
-    if(this.rowSelected()[0].ComprobanteNro != null){
-      this.formCli.get('ComprobanteTipoCodigo')?.disable()
-    }else{
-      this.formCli.get('ComprobanteTipoCodigo')?.enable()
+  );
+
+ 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['rowSelected'] && this.rowSelected()) {
+      this.formChange$.next('')
+      this.ngOnInit();
+     
     }
   }
 
-  async save(){
-    console.log("save ", this.formCli.value)
+  async ngOnInit(){
 
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainerFacturacionForm', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = false
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
+
+    this.gridOptions.autoResize = {
+      container: '.gridContainerFacturacionForm',
+      rightPadding: 0,
+      bottomPadding: 0,
+      calculateAvailableSizeBy: 'container',
+      minHeight: 400,
+      maxHeight: 400
+    };
+
+      this.formCli.disable()
+      //console.log(this.formCli.disabled)
+      //console.log(this.formCli.getRawValue()); 
+
+  if(this.rowSelected().length > 0){
+
+      let clienteId = this.rowSelected()?.[0]?.ObjetivoCodigo?.split('/')[0]
+      let clienteElementoDependienteId = this.rowSelected()?.[0]?.ObjetivoCodigo?.split('/')[1]
+
+     
+      this.formCli.patchValue({
+        comprobanteNroold: this.rowSelected()?.[0]?.ComprobanteNro,
+        ClienteFacturacionCUIT: this.rowSelected()?.[0]?.ClienteFacturacionCUIT,
+        ClienteApellidoNombre: this.rowSelected()?.[0]?.ClienteApellidoNombre,
+        ComprobanteNro: this.rowSelected()?.[0]?.ComprobanteNro,
+        ComprobanteTipoCodigo: this.rowSelected()?.[0]?.ComprobanteTipoCodigo,
+        ClienteId: clienteId,
+        ClienteElementoDependienteId: clienteElementoDependienteId
+      })
+     
+      //this.formCli.get('ClienteFacturacionCUIT')?.disable()
+      //this.formCli.get('ClienteApellidoNombre')?.disable()
+
+      this.formCli.get('ComprobanteNro')?.enable()
+
+        if (!this.rowSelected()[0]?.ComprobanteNro) {
+          this.formCli.get('ComprobanteTipoCodigo')?.enable()
+        } else {
+         // this.formCli.get('ComprobanteTipoCodigo')?.disable()
+        }
+      
+   }
+
+  }
+
+  async save(){
     await firstValueFrom(this.apiService.saveFacturacion(this.formCli.value))
+  }
+
+  angularGridReady(angularGrid: any) {
+
+    this.angularGrid = angularGrid.detail
+    this.gridObj = angularGrid.detail.slickGrid;
+
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('PrecioUnitario', this.angularGrid)
+      columnTotal('Cantidad', this.angularGrid)
+      columnTotal('ImporteTotal', this.angularGrid)
+    })
+
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds([])
+
+  }
+
+  exportGrid() {
+    this.excelExportService.exportToExcel({
+      filename: 'detalle-facturacion',
+      format: FileType.xlsx
+    });
   }
 }

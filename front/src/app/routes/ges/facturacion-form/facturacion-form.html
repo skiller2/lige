@@ -13,42 +13,15 @@
       </nz-form-control>
 
     </nz-form-item>
+
+        <div class="gridContainerFacturacionForm container-fluid margingrid" >
+          @if(columns$ | async; as columnas) {
+            <angular-slickgrid gridId="gridFacturacionForm" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
+          }
+        </div>
   
-    <nz-form-item class="marginElement">
-        <nz-table 
-          [nzData]="rowSelectedSearch() || []" 
-          *ngIf="rowSelectedSearch() && rowSelectedSearch().length"
-          [nzFrontPagination]="false"
-          class="table-responsive"
-        >
-          <thead>
-            <tr>
-              <th>Cod Objetivo</th>
-              <th>Cod Producto</th>
-              <th>Periodo</th>
-              <th>Descripción</th>
-              <th>Precio Unitario</th>
-              <th>Cantidad</th>
-              <th>Importe</th>
-              <th>Fecha</th>
-              <th>Comprobante Nro</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of rowSelectedSearch()">
-              <td>{{ row.ObjetivoCodigo }}</td>
-              <td>{{ row.CodigoProducto }}</td>
-              <td>{{ row.Periodo }}</td>
-              <td>{{ row.Descripcion }}</td>
-              <td>{{ row.PrecioUnitario }}</td>
-              <td>{{ row.Cantidad }}</td>
-              <td>{{ row.ImporteTotal }}</td>
-              <td>{{ row.Fecha | date: 'yyyy-MM-dd' }}</td>
-              <td>{{ row.ComprobanteNro }}</td>
-            </tr>
-          </tbody>
-        </nz-table>
-    </nz-form-item>
 
     <nz-form-item nzJustify="end" nzAlign="middle" style="width: 100%" >
         <nz-form-label [nzXs]="3" [nzSm]="3" [nzMd]="3">Tipo Comprobante</nz-form-label>
@@ -63,13 +36,9 @@
           <nz-form-control [nzXs]="6" [nzSm]="6" [nzMd]="6">
             <input nz-input placeholder="" formControlName="ComprobanteNro" type="string" />
           </nz-form-control>
-          <nz-form-label [nzXs]="3" [nzSm]="3" [nzMd]="3">Importe Total</nz-form-label>
-          <nz-form-control [nzXs]="3" [nzSm]="3" [nzMd]="3">
-            <input nz-input placeholder="" formControlName="ImporteTotal" type="number" />
-          </nz-form-control>
       </nz-form-item>
 
-    <nz-form-item *ngIf="formCli.enabled">
+    <nz-form-item *ngIf="formCli.enabled && !isDetail()">
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           <button nzType="primary" nz-button (click)="save()"  [disabled]="formCli.pristine">
             {{ 'app.btn.save' | i18n }}
@@ -78,3 +47,4 @@
       </nz-form-item>
 
   </form>
+

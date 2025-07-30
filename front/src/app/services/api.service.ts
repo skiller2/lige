@@ -1039,9 +1039,9 @@ export class ApiService {
 
   }
 
-  getFacturas(ComprobanteNro: any, ClienteId: string, ClienteElementoDependienteId: string) {
+  getFacturas(ComprobanteNro: any, FacturacionCodigo: string[]) {
 
-    return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturas/${ComprobanteNro}/${ClienteId}/${ClienteElementoDependienteId}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturas/${ComprobanteNro}/${FacturacionCodigo}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
 

@@ -55,9 +55,9 @@ const listaColumnas: any[] = [
     {
         name: "Cod Producto",
         type: "string",
-        id: "CodigoProducto",
-        field: "CodigoProducto",
-        fieldName: "fac.CodigoProducto",
+        id: "ProductoCodigo",
+        field: "ProductoCodigo",
+        fieldName: "fac.ProductoCodigo",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -85,41 +85,33 @@ const listaColumnas: any[] = [
     },
     {
         name: "Precio Unitario",
-        type: "number",
+        type: "float",
         id: "PrecioUnitario",
         field: "PrecioUnitario",
         fieldName: "fac.PrecioUnitario",
+        searchType: "float",
         sortable: true,
         hidden: false,
         searchHidden: false
     },
     {
         name: "Cantidad",
-        type: "number",
+        type: "float",
         id: "Cantidad",
         field: "Cantidad",
         fieldName: "fac.Cantidad",
+        searchType: "float",
         sortable: true,
         hidden: false,
         searchHidden: false
     },
     {
         name: "Importe Total",
-        type: "number",
+        type: "float",
         id: "ImporteTotal",
         field: "ImporteTotal",
         fieldName: "fac.ImporteTotal",
-        sortable: true,
-        hidden: false,
-        searchHidden: false
-    },
-    {
-        name: "Fecha",
-        type: "date",
-        id: "Fecha",
-        field: "Fecha",
-        fieldName: "fac.Fecha",
-        searchComponent: "inpurForFechaSearch",
+        searchType: "float",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -157,12 +149,124 @@ const listaColumnas: any[] = [
 ];
 
 
+const listaColumnasDetail: any[] = [
+    {
+        id: "id",
+        name: "id",
+        field: "id",
+        fieldName: "id",
+        type: "number",
+        sortable: false,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        name: "FacturacionCodigo",
+        type: "number",
+        id: "FacturacionCodigo",
+        field: "FacturacionCodigo",
+        fieldName: "fac.FacturacionCodigo",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Cod Objetivo",
+        type: "number",
+        id: "ObjetivoCodigo",
+        field: "ObjetivoCodigo",
+        fieldName: "obj.ObjetivoCodigo",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Cod Producto",
+        type: "string",
+        id: "ProductoCodigo",
+        field: "ProductoCodigo",
+        fieldName: "fac.ProductoCodigo",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Periodo",
+        type: "string",
+        id: "Periodo",
+        field: "Periodo",
+        fieldName: "Periodo",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Descripción",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "fac.Descripcion",
+        searchType: "string",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Precio Unitario",
+        type: "float",
+        id: "PrecioUnitario",
+        field: "PrecioUnitario",
+        fieldName: "fac.PrecioUnitario",
+        searchType: "float",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Cantidad",
+        type: "float",
+        id: "Cantidad",
+        field: "Cantidad",
+        fieldName: "fac.Cantidad",
+        searchType: "float",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Importe Total",
+        type: "float",
+        id: "ImporteTotal",
+        field: "ImporteTotal",
+        fieldName: "fac.ImporteTotal",
+        searchType: "float",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Nro Comprobante",
+        type: "string",
+        id: "ComprobanteNro",
+        field: "ComprobanteNro",
+        fieldName: "fac.ComprobanteNro",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    }
+];
+
 export class FacturacionController extends BaseController {
 
 
     async getGridCols(req, res) {
         this.jsonRes(listaColumnas, res);
     }
+
+    async getGridColsDetail(req, res) {
+        this.jsonRes(listaColumnasDetail, res);
+    }
+
 
     async list(req: any, res: Response, next: NextFunction) {
 
@@ -172,14 +276,16 @@ export class FacturacionController extends BaseController {
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
-       
+
         try {
             const facturacion = await queryRunner.query(
                 `SELECT 
-                    ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
+                     fac.FacturacionCodigo AS id,
+                    fac.FacturacionCodigo,
                     clif.ClienteFacturacionCUIT,
                     CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-                    fac.CodigoProducto,
+                    fac.ProductoCodigo,
+                    pro.Nombre,
                     fac.Mes,
                     fac.Anio,
                     CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
@@ -187,7 +293,6 @@ export class FacturacionController extends BaseController {
                     fac.PrecioUnitario,
                     fac.Cantidad,
                     fac.ImporteTotal,
-                    fac.Fecha,
                     fac.ComprobanteNro,
                     fac.ComprobanteTipoCodigo,
                     ctp.Descripcion AS ComprobanteDescripcion,
@@ -196,6 +301,7 @@ export class FacturacionController extends BaseController {
                     FROM Facturacion fac
                     Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
                     LEFT JOIN Cliente cli ON cli.ClienteId=eledep.ClienteId
+                     LEFT JOIN Producto pro ON pro.ProductoCodigo = fac.ProductoCodigo
                     LEFT JOIN ComprobanteTipo ctp ON ctp.ComprobanteTipoCodigo = fac.ComprobanteTipoCodigo
                         LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = fac.ClienteId  
                                 AND clif.ClienteFacturacionDesde <= @0
@@ -220,79 +326,103 @@ export class FacturacionController extends BaseController {
         const result = await dataSource.query(`
           SELECT ComprobanteTipoCodigo, Descripcion FROM ComprobanteTipo`)
         this.jsonRes(result, res);
-      }
+    }
 
     async getFacturas(req: any, res: Response, next: NextFunction) {
 
+
+        // const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+        // const orderBy = orderToSQL(req.body.options.sort)
+        const queryRunner = dataSource.createQueryRunner();
+
         const ComprobanteNro = req.params.ComprobanteNro
-        const ClienteId = req.params.ClienteId
-        const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId
+        const FacturacionCodigo = req.params.FacturacionCodigo
         console.log("ComprobanteNro ", req.params)
+        console.log("FacturacionCodigo ", FacturacionCodigo)
         let comprobanteCondicion = '';
 
         if (ComprobanteNro !== 'null') {
-          comprobanteCondicion = `= '${ComprobanteNro}'`
+            comprobanteCondicion = `= '${ComprobanteNro}'`
         } else {
-          comprobanteCondicion = 'IS NULL';
+            comprobanteCondicion = 'IS NULL';
         }
-        
-        const sql = `
+
+        try {
+            const facturacionDetail = await queryRunner.query(
+                `
           SELECT 
+            fac.FacturacionCodigo AS id,
+            fac.FacturacionCodigo,
             fac.ComprobanteNro,
             fac.ComprobanteTipoCodigo,
             fac.ImporteTotal,
             fac.Descripcion,
             fac.PrecioUnitario,
-            fac.Fecha,
-            fac.CodigoProducto,
+            fac.ProductoCodigo,
+            pro.Nombre,
             CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
             fac.Cantidad,
             CONCAT(eledep.ClienteId,'/', ISNULL(eledep.ClienteElementoDependienteId,0)) AS ObjetivoCodigo
           FROM Facturacion fac
+          LEFT JOIN Producto pro ON pro.ProductoCodigo = fac.ProductoCodigo
           LEFT JOIN ClienteElementoDependiente eledep 
             ON eledep.ClienteId = fac.ClienteId 
            AND eledep.ClienteElementoDependienteId = fac.ClienteElementoDependienteId
           WHERE fac.ComprobanteNro ${comprobanteCondicion}
-            AND fac.ClienteId = ${ClienteId}
-            AND eledep.ClienteElementoDependienteId = ${ClienteElementoDependienteId}
-        `;
       
-        const result = await dataSource.query(sql);
-        this.jsonRes(result, res);
-      }
+            ${ComprobanteNro == 'null' ? `AND fac.FacturacionCodigo in (${FacturacionCodigo})` : ''}
+        `,)
+            this.jsonRes(
+                {
+                    total: facturacionDetail.length,
+                    list: facturacionDetail,
+                },
+                res
+            );
 
-      async saveFacturacion(req: any, res: Response, next: NextFunction) {   
-        
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    async saveFacturacion(req: any, res: Response, next: NextFunction) {
+
         const queryRunner = dataSource.createQueryRunner()
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        try{
+        try {
             console.log("req.body", req.body)
-            const { ComprobanteNro,comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body
+            const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body
 
-            if(ComprobanteNro == comprobanteNroold){
+            const validateFacturacion = await dataSource.query(` SELECT ComprobanteNro FROM Facturacion WHERE ComprobanteNro = @0`, [ComprobanteNro]);
+
+            if (validateFacturacion.length > 0) {
+                throw new ClientException("El nro de comprobante ya existe")
+            }
+
+            if (ComprobanteNro == comprobanteNroold) {
                 throw new ClientException("El nro de comprobante no puede ser el mismo")
-            } 
+            }
 
-            if(!ComprobanteTipoCodigo){
+            if (!ComprobanteTipoCodigo) {
                 throw new ClientException("El tipo de comprobante es requerido")
             }
-    
 
-            if(!ComprobanteNro){
-            throw new ClientException("El nro de comprobante es requerido")
+
+            if (!ComprobanteNro) {
+                throw new ClientException("El nro de comprobante es requerido")
             }
 
-            
+
             let comprobanteCondicion = ''
-            
+
             if (comprobanteNroold) {
-              comprobanteCondicion = `ComprobanteNro = ${comprobanteNroold}`
+                comprobanteCondicion = `ComprobanteNro = ${comprobanteNroold}`
             } else {
-              comprobanteCondicion = 'ComprobanteNro IS NULL'
+                comprobanteCondicion = 'ComprobanteNro IS NULL'
             }
-            
+
             const result = await dataSource.query(`
               UPDATE Facturacion
               SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1
@@ -300,10 +430,10 @@ export class FacturacionController extends BaseController {
                 AND ClienteId = @2
                 AND ClienteElementoDependienteId = @3
             `, [ComprobanteNro, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId]);
-            
+
             //throw new ClientException("test")
             this.jsonRes(result, res);
-        }catch(error){
+        } catch (error) {
 
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
@@ -312,8 +442,8 @@ export class FacturacionController extends BaseController {
 
 
 
-     
-      }
-   
+
+    }
+
 
 }

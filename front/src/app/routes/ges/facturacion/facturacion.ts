@@ -6,7 +6,7 @@ import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FacturacionFormComponent } from '../facturacion-form/facturacion-form';
 import { LoadingService } from '@delon/abc/loading';
@@ -28,13 +28,15 @@ type listOptionsT = {
 export class FacturacionComponent {
 
   excelExportService = new ExcelExportService()
-  angularGrid!: AngularGridInstance;
+  angularGrid!: AngularGridInstance
   gridOptions!: GridOption
-  formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-  gridObj!: SlickGrid;
+  formChange$ = new BehaviorSubject('')
+  tableLoading$ = new BehaviorSubject(false)
+  gridObj!: SlickGrid
   detailViewRowCount = 1
-  private readonly loadingSrv = inject(LoadingService);
+  private readonly loadingSrv = inject(LoadingService)
+  startFilters = signal<any[]>([])
+  isDetail = signal(false)
 
   rowSelected = signal<any[]>([])
   
@@ -107,8 +109,9 @@ export class FacturacionComponent {
   this.gridOptions.cellHighlightCssClass = 'changed'
   this.gridOptions.enableCellNavigation = true
 
-
-    // this.startFilters.set([{ field: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, forced: false }])
+  this.startFilters.set([{ field: 'ComprobanteNro', condition: 'AND', operator: '=', value: null, forced: false },
+    { field: 'ComprobanteTipoCodigo', condition: 'AND', operator: '=', value: null, forced: false }
+  ])
   }
 
   angularGridReady(angularGrid: any) {
@@ -118,6 +121,9 @@ export class FacturacionComponent {
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
+      columnTotal('PrecioUnitario', this.angularGrid)
+      columnTotal('Cantidad', this.angularGrid)
+      columnTotal('ImporteTotal', this.angularGrid)
     })
 
     if (this.apiService.isMobile())
@@ -148,6 +154,13 @@ export class FacturacionComponent {
   listOptionsChange(options: any) {
     this.listOptions = options;
     this.formChange$.next('')
+  }
+
+  exportGrid() {
+    this.excelExportService.exportToExcel({
+      filename: 'listado-facturacion',
+      format: FileType.xlsx
+    });
   }
 
 }

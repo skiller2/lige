@@ -17,7 +17,7 @@ facturacionRouter.get('/comprobanteTipo_getOptions', [authMiddleware.verifyToken
     facturacionController.getComprobanteTipoOptions(req, res, next)
   })
 
-facturacionRouter.get('/facturas/:ComprobanteNro/:ClienteId/:ClienteElementoDependienteId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon','gSistemas'])], (req, res, next) => {
+facturacionRouter.get('/facturas/:ComprobanteNro/:FacturacionCodigo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon','gSistemas'])], (req, res, next) => {
     facturacionController.getFacturas(req, res, next)
   })
 
@@ -25,4 +25,6 @@ facturacionRouter.post('/save', [authMiddleware.verifyToken, authMiddleware.hasG
   facturacionController.saveFacturacion(req, res, next)
 })
 
-
+facturacionRouter.get("/colsDetail", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon','gSistemas'])], (req, res) => {
+  facturacionController.getGridColsDetail(req, res);
+});

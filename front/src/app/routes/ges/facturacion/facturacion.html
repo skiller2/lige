@@ -7,19 +7,22 @@
                 <li nz-menu-item>
                   <a [routerLink]="['/', 'ges', 'facturacion', 'listado']">Listado</a>
                 </li>
+                <li nz-menu-item>
+                  @if(this.rowSelected().length > 0 ) {
+                    <a [routerLink]="['/', 'ges', 'facturacion', 'detalle']"  (click)="isDetail.set(true)">Detalle</a>
+                  }
+                </li>
               </ul>
         </div>
     
-
+      <!--  isDetail: {{isDetail()}} -->
     <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
         <nz-button-group style="text-align: right;">
-  
-           
-                <a [routerLink]="['/', 'ges', 'facturacion','modificaciones']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" [class.disabled]="!canEdit()">
-                    <button nz-button nzType="default" [disabled]="!canEdit()"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-                  </a>
+    
+          <a [routerLink]="['/', 'ges', 'facturacion','detalle']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" [class.disabled]="!canEdit()">
+              <button nz-button nzType="default" [disabled]="!canEdit()" (click)="isDetail.set(false)"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+          </a>
        
-  
         </nz-button-group>
       </div>
     </div>
@@ -31,6 +34,7 @@
           @if(columns$ | async; as columnas) {
   
           <shared-filtro-builder [fieldsToSelect]="columnas"
+            [startFilters]="startFilters()"
             (optionsChange)="listOptionsChange($event)" />
   
           <div class="gridContainer container-fluid">
@@ -45,10 +49,10 @@
       </nz-tab>
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/facturacion/modificaciones">Modificaciones</a>
+        <a nz-tab-link routerLink="/ges/facturacion/detalle">Detalle</a>
         <ng-template nz-tab>
             @defer (on immediate) {
-                <app-facturacion-form [rowSelected]="rowSelected()"></app-facturacion-form>
+                <app-facturacion-form [rowSelected]="rowSelected()" [isDetail]="isDetail()"></app-facturacion-form>
             }
         </ng-template>
       </nz-tab>
