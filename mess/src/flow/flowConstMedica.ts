@@ -1,6 +1,6 @@
 import { addKeyword } from "@builderbot/bot";
-import flowMenu from './flowMenu'
-import { chatBotController } from "../controller/controller.module";
+import flowMenu from './flowMenu.ts'
+import { chatBotController } from "../controller/controller.module.ts";
 
 const delay = chatBotController.getDelay()
 

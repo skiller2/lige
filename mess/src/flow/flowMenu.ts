@@ -8,7 +8,7 @@ import { botServer } from "../index.ts";
 import flowInformacionPersonal from "./flowInformacionPersonal.ts";
 import flowInformacionEmpresa from "./flowInformacionEmpresa.ts";
 import { flowDescargaDocs } from "./flowDescargaDocs.ts";
-import { flowIncidente } from "./flowIncidente.ts";
+import { flowNovedad } from "./flowNovedad.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -20,7 +20,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         '3- *Información Personal*',
         '4- *Información Cooperativa*',
         '5- *Documentación pendiente*',
-        '6- *Informar incidente*',
+        '6- *Informar novedad*',
         '9- *Desvincular teléfono*',
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
@@ -49,7 +49,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                     return gotoFlow(flowDescargaDocs)
                     break;
                 case 6:
-                    return gotoFlow(flowIncidente)
+                    return gotoFlow(flowNovedad)
                     break;
                 case 9:
                     return gotoFlow(flowRemoveTel)
