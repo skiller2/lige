@@ -99,6 +99,21 @@ export class FacturacionFormComponent {
       this.ngOnInit();
      
     }
+  
+    if(!this.isDetail() ){
+      console.log("isDetail ",this.isDetail(),"entro")
+        this.formCli.get('ComprobanteNro')?.enable()
+
+        if (!this.rowSelected()[0]?.ComprobanteNro) {
+          this.formCli.get('ComprobanteTipoCodigo')?.enable()
+        } 
+    }else{
+      this.formCli.get('ComprobanteNro')?.disable()
+      this.formCli.get('ComprobanteTipoCodigo')?.disable()
+    } 
+
+
+    
   }
 
   async ngOnInit(){
@@ -117,7 +132,10 @@ export class FacturacionFormComponent {
       maxHeight: 400
     };
 
-      this.formCli.disable()
+      //this.formCli.disable()
+      this.formCli.get('ClienteFacturacionCUIT')?.disable()
+      this.formCli.get('ClienteApellidoNombre')?.disable()
+
       //console.log(this.formCli.disabled)
       //console.log(this.formCli.getRawValue()); 
 
@@ -136,18 +154,6 @@ export class FacturacionFormComponent {
         ClienteId: clienteId,
         ClienteElementoDependienteId: clienteElementoDependienteId
       })
-     
-      //this.formCli.get('ClienteFacturacionCUIT')?.disable()
-      //this.formCli.get('ClienteApellidoNombre')?.disable()
-
-      this.formCli.get('ComprobanteNro')?.enable()
-
-        if (!this.rowSelected()[0]?.ComprobanteNro) {
-          this.formCli.get('ComprobanteTipoCodigo')?.enable()
-        } else {
-         // this.formCli.get('ComprobanteTipoCodigo')?.disable()
-        }
-      
    }
 
   }
