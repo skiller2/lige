@@ -6,11 +6,11 @@ import { botServer, dbServer } from "../index.ts";
 export class NovedadController extends BaseController {
 
   async saveNovedad(telefono: string, novedad:any) {
-    const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad);
+    const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)
     return await dbServer.dataSource.query(`
-      UPDATE regtelefonopersonal
+      UPDATE lige.dbo.regtelefonopersonal
       SET incidente = @1
-      WHERE telefono == @0
+      WHERE telefono = @0
       `, [telefono, jsonNovedad]
     )
   }
@@ -18,8 +18,8 @@ export class NovedadController extends BaseController {
   async getBackupNovedad(telefono: string) {
     const result = await dbServer.dataSource.query(`
       SELECT incidente AS novedad
-      FROM regtelefonopersonal
-      WHERE telefono == @0
+      FROM lige.dbo.regtelefonopersonal
+      WHERE telefono = @0
       `, [telefono]
     )
     return result
@@ -32,6 +32,14 @@ export class NovedadController extends BaseController {
         Json, AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
       ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)
     `, [])
+  }
+
+  async getNovedadTipo() {
+    const result = await dbServer.dataSource.query(`
+      SELECT NovedadTipoCod, Descripcion
+      FROM NovedadTipo
+    `)
+    return result
   }
 
 }
