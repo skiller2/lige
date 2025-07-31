@@ -594,11 +594,6 @@ cuit.PersonalCUITCUILCUIT,
         PersonalApellido,
         PersonalNombre,
         PersonalApellidoNombre,
-        PersonalFechaSolicitudIngreso,
-        PersonalFechaSolicitudAceptada,
-        PersonalFechaPreIngreso,
-        PersonalFechaIngreso,
-        PersonalFechaAutorizacionIngreso,
         PersonalFechaNacimiento,
         PersonalNacionalidadId,
         PersonalSucursalIngresoSucursalId,
@@ -618,7 +613,7 @@ cuit.PersonalCUITCUILCUIT,
         PersonalAudUsuarioMod,
         PersonalAudIpMod
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
+      VALUES (@0,@1,@2,@3,@4,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
         ,@18,@19,@20,@18,@19,@20)
       
       SELECT MAX(PersonalId) id FROM Personal
@@ -628,8 +623,8 @@ cuit.PersonalCUITCUILCUIT,
       Apellido,
       Nombre,
       fullname,
-      now,
-      FechaIngreso,
+      '',
+      '',
       FechaNacimiento,
       NacionalidadId,
       SucursalId,
