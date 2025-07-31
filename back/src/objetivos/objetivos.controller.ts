@@ -1067,15 +1067,15 @@ export class ObjetivosController extends BaseController {
         queryRunner: any,
         ClienteId: number,
         ClienteElementoDependienteId: any,
-        SucursalDescripcion: any,
-        SucursalId: any,
+        ClienteElementoDependienteDescripcion: any,
+        ClienteElementoDependienteSucursalId: any,
     ) {
 
         return await queryRunner.query(`
             UPDATE ClienteElementoDependiente
             SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId, ClienteElementoDependienteId, SucursalId, SucursalDescripcion])
+            [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteSucursalId, ClienteElementoDependienteDescripcion])
     }
 
     async updateClienteTable(
