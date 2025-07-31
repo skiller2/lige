@@ -140,7 +140,7 @@ const columns: any[] = [
     name: "Fecha Ingreso",
     field: "PersonalFechaIngreso",
     type: "date",
-    fieldName: "per.PersonalFechaIngreso",
+    fieldName: "ing.PersonalFechaIngreso",
     searchType: "date",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
@@ -286,7 +286,7 @@ export class PersonalController extends BaseController {
     dataSource
       .query(
         `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, per.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId,
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId,
         TRIM(CONCAT(
           TRIM(dom.PersonalDomicilioDomCalle), ' ',
           TRIM(dom.PersonalDomicilioDomNro), ' ',
@@ -300,6 +300,7 @@ export class PersonalController extends BaseController {
         act.GrupoActividadDetalle,
         suc.SucursalDescripcion
         FROM Personal per
+        LEFT JOIN PersonalFechaIngreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
@@ -455,7 +456,7 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
-        per.PersonalFechaIngreso,
+        ing.PersonalFechaIngreso,
         tels.Telefonos
 
         FROM Personal per
@@ -466,7 +467,7 @@ cuit.PersonalCUITCUILCUIT,
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
 			 ) sitrev ON sitrev.PersonalId = per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
+        LEFT JOIN PersonalFechaIngreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 
@@ -544,7 +545,6 @@ cuit.PersonalCUITCUILCUIT,
     const CUIT: number = infoPersonal.CUIT
     const NroLegajo: number = infoPersonal.NroLegajo
     const SucursalId: number = infoPersonal.SucursalId
-    let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const NacionalidadId: number = infoPersonal.NacionalidadId
     const Sexo: string = infoPersonal.Sexo
@@ -593,11 +593,6 @@ cuit.PersonalCUITCUILCUIT,
         PersonalApellido,
         PersonalNombre,
         PersonalApellidoNombre,
-        PersonalFechaSolicitudIngreso,
-        PersonalFechaSolicitudAceptada,
-        PersonalFechaPreIngreso,
-        PersonalFechaIngreso,
-        PersonalFechaAutorizacionIngreso,
         PersonalFechaNacimiento,
         PersonalNacionalidadId,
         PersonalSucursalIngresoSucursalId,
@@ -617,7 +612,7 @@ cuit.PersonalCUITCUILCUIT,
         PersonalAudUsuarioMod,
         PersonalAudIpMod
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
+      VALUES (@0,@1,@2,@3,@4,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
         ,@18,@19,@20,@18,@19,@20)
       
       SELECT MAX(PersonalId) id FROM Personal
@@ -627,8 +622,8 @@ cuit.PersonalCUITCUILCUIT,
       Apellido,
       Nombre,
       fullname,
-      now,
-      FechaIngreso,
+      '',
+      '',
       FechaNacimiento,
       NacionalidadId,
       SucursalId,
@@ -1124,7 +1119,7 @@ cuit.PersonalCUITCUILCUIT,
   private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any, usuario:string, ip:string) {
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
-      PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
+      PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro,
       EstadoCivilId, PersonalSexo Sexo, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId, PersonalLocalidadId LocalidadId
       FROM Personal
@@ -1147,7 +1142,6 @@ cuit.PersonalCUITCUILCUIT,
     const EstadoCivilId: number = infoPersonal.EstadoCivilId
     const NroLegajo: number = infoPersonal.NroLegajo
     const SucursalId: number = infoPersonal.SucursalId
-    let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
     const LeyNro: number = infoPersonal.LeyNro
@@ -1155,7 +1149,6 @@ cuit.PersonalCUITCUILCUIT,
     const ProvinciaId: number = infoPersonal.ProvinciaId
     const LocalidadId: number = infoPersonal.LocalidadId
 
-    FechaIngreso?.setHours(0, 0, 0, 0)
     FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
@@ -1169,24 +1162,21 @@ cuit.PersonalCUITCUILCUIT,
         PersonalApellido = @2,
         PersonalNombre = @3,
         PersonalApellidoNombre = @4,
-        PersonalFechaPreIngreso = @5,
-        PersonalFechaIngreso = @5,
-        PersonalFechaAutorizacionIngreso= @5,
-        PersonalFechaNacimiento = @6,
-        PersonalNacionalidadId = @7,
-        PersonalSuActualSucursalPrincipalId = @8,
-        PersonalApellidoNombreDNILegajo = @9,
-        PersonalLeyNro = @10,
-        EstadoCivilId = @11,
-        PersonalSexo = @12,
-        PersonalPaisId = @13,
-        PersonalProvinciaId = @14,
-        PersonalLocalidadId = @15,
-        PersonalAudFechaMod = @16,
-        PersonalAudUsuarioMod = @17,
-        PersonalAudIpMod = @18
+        PersonalFechaNacimiento = @5,
+        PersonalNacionalidadId = @6,
+        PersonalSuActualSucursalPrincipalId = @7,
+        PersonalApellidoNombreDNILegajo = @8,
+        PersonalLeyNro = @9,
+        EstadoCivilId = @10,
+        PersonalSexo = @11,
+        PersonalPaisId = @12,
+        PersonalProvinciaId = @13,
+        PersonalLocalidadId = @14,
+        PersonalAudFechaMod = @15,
+        PersonalAudUsuarioMod = @16,
+        PersonalAudIpMod = @17
       WHERE PersonalId = @0
-      `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
+      `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaNacimiento, NacionalidadId,
       SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, PaisId, ProvinciaId, LocalidadId,
       now, usuario, ip
     ])
@@ -1578,7 +1568,7 @@ cuit.PersonalCUITCUILCUIT,
   private async getFormPersonByIdQuery(queryRunner: any, personalId: any) {
     let data = await queryRunner.query(`
       SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
-      cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
+      cuit.PersonalCUITCUILCUIT CUIT, per.PersonalFechaNacimiento FechaNacimiento,
       per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId,
       TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId,
       PersonalLocalidadId LocalidadId, email.PersonalEmailEmail Email, email.PersonalEmailId,
@@ -2938,18 +2928,7 @@ cuit.PersonalCUITCUILCUIT,
         PersonalNroLegajo,
         PersonalApellido,
         PersonalNombre,
-        PersonalFechaNoAsociado,
-        PersonalFechaSolicitudIngreso,
-        PersonalFechaSolicitudAceptada,
-        PersonalFechaPreIngreso,
-        PersonalFechaIngreso,
-        PersonalFechaAutorizacionIngreso,
-        PersonalFechaPlantaPermanente,
         PersonalLeyNro,
-        PersonalFechaBajaTramite,
-        PersonalFechaBaja,
-        PersonalFechaReincorporacion,
-        PersonalFechaDestruccion,
         PersonalFechaNacimiento,
         PersonalPaisId,
         PersonalProvinciaId,
@@ -2959,7 +2938,6 @@ cuit.PersonalCUITCUILCUIT,
         PersonalCantidadHijos,
         PersonalObservacion,
         PersonalSuActualSucursalPrincipalId,
-        PersonalFechaCompromisoDevolucion,
         PersonalAudFechaIng,
         PersonalAudUsuarioIng,
         PersonalAudIpIng,
@@ -2983,18 +2961,7 @@ cuit.PersonalCUITCUILCUIT,
         PersonalCambiosNroLegajo,
         PersonalCambiosApellido,
         PersonalCambiosNombre,
-        PersonalCambiosFechaNoAsociado,
-        PersonalCambiosFechaSolicitudIngreso,
-        PersonalCambiosFechaSolicitudAceptada,
-        PersonalCambiosFechaPreIngreso,
-        PersonalCambiosFechaIngreso,
-        PersonalCambiosFechaAutorizacionIngreso,
-        PersonalCambiosFechaPlantaPermanente,
         PersonalCambiosLeyNro,
-        PersonalCambiosFechaBajaTramite,
-        PersonalCambiosFechaBaja,
-        PersonalCambiosFechaReincorporacion,
-        PersonalCambiosFechaDestruccion,
         PersonalCambiosFechaNacimiento,
         PaisId,
         ProvinciaId,
@@ -3004,7 +2971,6 @@ cuit.PersonalCUITCUILCUIT,
         PersonalCambiosCantidadHijos,
         PersonalCambiosObservacion,
         PersonalCambiosSuActualSucursalPrincipalId,
-        PersonalCambiosFechaCompromisoDevolucion,
         PersonalCambiosAudFechaIng,
         PersonalCambiosAudUsuarioIng,
         PersonalCambiosAudIpIng,
@@ -3017,8 +2983,7 @@ cuit.PersonalCUITCUILCUIT,
       ) VALUES (
         @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,
         @10,@11,@12,@13,@14,@15,@16,@17,@18,@19,
-        @20,@21,@22,@23,@24,@25,@26,@27,@28,@29,
-        @30,@31,@32,@33,@34,@35,@36
+        @20,@21,@22,@23,@24
       )
     `, [
       personalId,
@@ -3027,18 +2992,7 @@ cuit.PersonalCUITCUILCUIT,
       personal.PersonalNroLegajo,
       personal.PersonalApellido,
       personal.PersonalNombre,
-      personal.PersonalFechaNoAsociado,
-      personal.PersonalFechaSolicitudIngreso,
-      personal.PersonalFechaSolicitudAceptada,
-      personal.PersonalFechaPreIngreso,
-      personal.PersonalFechaIngreso,
-      personal.PersonalFechaAutorizacionIngreso,
-      personal.PersonalFechaPlantaPermanente,
       personal.PersonalLeyNro,
-      personal.PersonalFechaBajaTramite,
-      personal.PersonalFechaBaja,
-      personal.PersonalFechaReincorporacion,
-      personal.PersonalFechaDestruccion,
       personal.PersonalFechaNacimiento,
       personal.PersonalPaisId,
       personal.PersonalProvinciaId,
@@ -3048,7 +3002,6 @@ cuit.PersonalCUITCUILCUIT,
       personal.PersonalCantidadHijos,
       personal.PersonalObservacion,
       personal.PersonalSuActualSucursalPrincipalId,
-      personal.PersonalFechaCompromisoDevolucion,
       personal.PersonalAudFechaIng,
       personal.PersonalAudUsuarioIng,
       personal.PersonalAudIpIng,

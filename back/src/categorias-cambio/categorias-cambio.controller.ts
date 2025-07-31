@@ -40,7 +40,7 @@ const columnasGrilla: any[] = [
     type: "date",
     id: "PersonalFechaIngreso",
     field: "PersonalFechaIngreso",
-    fieldName: "per.PersonalFechaIngreso",
+    fieldName: "ing.PersonalFechaIngreso",
     sortable: true,
   },
   {
@@ -109,18 +109,19 @@ export class CategoriasController extends BaseController {
     const fecha = options.extra?.fecProcesoCambio || new Date()
 
     return dataSource.query(
-      `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ApellidoNombre, per.PersonalFechaIngreso, 
+      `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ApellidoNombre, ing.PersonalFechaIngreso, 
         cat.CategoriaPersonalDescripcion, cat.TipoAsociadoId, cat.CategoriaPersonalId,
         rel.PersonalCategoriaDesde, rel.PersonalCategoriaHasta, 
         sit.SituacionRevistaDescripcion,
-        DATEDIFF("m",per.PersonalFechaIngreso,@1) AS meses,
-        DATEDIFF("m",per.PersonalFechaIngreso,@1)/12 AS anios,
+        DATEDIFF("m",ing.PersonalFechaIngreso,@1) AS meses,
+        DATEDIFF("m",ing.PersonalFechaIngreso,@1)/12 AS anios,
         pas.CategoriaPersonalPasaAAnos, pas.CategoriaPersonalPasaAMeses,
-        DATEADD(YEAR,ISNULL(pas.CategoriaPersonalPasaAAnos,0),DATEADD(MONTH,ISNULL(pas.CategoriaPersonalPasaAMeses,0),per.PersonalFechaIngreso)) fechaCambio,
+        DATEADD(YEAR,ISNULL(pas.CategoriaPersonalPasaAAnos,0),DATEADD(MONTH,ISNULL(pas.CategoriaPersonalPasaAMeses,0),ing.PersonalFechaIngreso)) fechaCambio,
         catpas.TipoAsociadoId TipoAsociadoIdCambio, catpas.CategoriaPersonalId CategoriaPersonalIdCambio,  catpas.CategoriaPersonalDescripcion CategoriaCambio,
         CONCAT(per.PersonalId,'-',cat.TipoAsociadoId) as id,
         1
         FROM Personal per
+        JOIN PersonalFechaIngreso ing ON ing.PersonalId = per.PersonalId
         JOIN PersonalCategoria rel ON rel.PersonalCategoriaPersonalId = per.PersonalId AND rel.PersonalCategoriaDesde <= @1 AND ISNULL(rel.PersonalCategoriaHasta,'9999-12-31') >= @1
         JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = rel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = rel.PersonalCategoriaCategoriaPersonalId
         JOIN CategoriaPersonalPasaA pas ON pas.TipoAsociadoId = cat.TipoAsociadoId AND pas.CategoriaPersonalId = cat.CategoriaPersonalId AND (pas.CategoriaPersonalPasaAAnos>0 OR pas.CategoriaPersonalPasaAMeses >0) AND @1 >=  pas.CategoriaPersonalPasaADesde AND  @1 <= ISNULL(pas.CategoriaPersonalPasaAHasta,'9999-12-31')
@@ -133,10 +134,10 @@ export class CategoriasController extends BaseController {
         WHERE 
           1=1
           
-          AND DATEDIFF("m",per.PersonalFechaIngreso,@1) >= ISNULL(pas.CategoriaPersonalPasaAMeses,0) 
-          AND DATEDIFF("m",per.PersonalFechaIngreso,@1)/12 >= ISNULL(pas.CategoriaPersonalPasaAAnos,0)
+          AND DATEDIFF("m",ing.PersonalFechaIngreso,@1) >= ISNULL(pas.CategoriaPersonalPasaAMeses,0) 
+          AND DATEDIFF("m",ing.PersonalFechaIngreso,@1)/12 >= ISNULL(pas.CategoriaPersonalPasaAAnos,0)
           AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
-          AND DATEADD(YEAR,ISNULL(pas.CategoriaPersonalPasaAAnos,0),DATEADD(MONTH,ISNULL(pas.CategoriaPersonalPasaAMeses,0),per.PersonalFechaIngreso)) <= @1
+          AND DATEADD(YEAR,ISNULL(pas.CategoriaPersonalPasaAAnos,0),DATEADD(MONTH,ISNULL(pas.CategoriaPersonalPasaAMeses,0),ing.PersonalFechaIngreso)) <= @1
           
           `,
       ['', fecha])

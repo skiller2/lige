@@ -1,6 +1,6 @@
 import { addKeyword, utils, EVENTS } from '@builderbot/bot'
 import flowMenu from './flowMenu.ts'
-import { chatBotController, personalController, novedadController } from "../controller/controller.module.ts";
+import { chatBotController, personalController, novedadController, objetivoController } from "../controller/controller.module.ts";
 import { reset, start, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
 import { flowDescargaDocs } from './flowDescargaDocs.ts';
@@ -28,8 +28,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             await state.update({ codigo: res[0].codigo })
             await state.update({ name: res[0].name.trim() })
         }
-        console.log('----------------------');
-        console.log('getMyState :', state.getMyState());
+
         await state.update({ novedad, reintento: 0 })
         if (!novedad.CodObjetivo) {
             return gotoFlow(flowNovedadCodObjetivo)
@@ -122,8 +121,9 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
         const telefono = ctx.from
         const CodObjetivo = ctx.body
         const data = state.getMyState()
-        
-        if (data?.codigo != CodObjetivo) {
+
+        const res = await objetivoController.getObjetivoByCodObjetivo(CodObjetivo)
+        if (!res.length) {
             const reintento = (data.reintento)? data.reintento : 0
             if (reintento > 3) {
 //                    const res = await personalController.delTelefonoPersona(telefono)
@@ -135,8 +135,8 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
             await state.update({ reintento: reintento + 1 })    
             return fallBack('Código ingresado incorrecto, reintente')
         }
-
-        await flowDynamic(`Identidad verificada existosamente`, { delay: delay })
+        const objetivo = res[0]
+        await flowDynamic([`Identidad verificada existosamente`, `Objetivo: ${objetivo.ObjetivoDescripcion}`], { delay: delay })
 //                personalController.removeCode(telefono)
         const novedad = { CodObjetivo }
         await novedadController.saveNovedad(telefono, novedad)
@@ -146,49 +146,54 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
     })
 
 export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
-    .addAnswer([
-            'Indique el tipo de situación',
-            '1- *Robo mercadería*',
-            '2- *Robo cliente*',
-            '3- *Merodeo*', 
-        ], { capture: true, delay },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
-            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+    .addAction(async (ctx, { flowDynamic, state }) => {
+        const res = await novedadController.getNovedadTipo()
+        const novedad = state.get('novedad')
+        const concatOptionsTipo = res.map((item:any, i:number) => `${i+1}- ${item.Descripcion}`).join('\n');
+        await flowDynamic(`${concatOptionsTipo}`, { delay: delay })
+        novedad.OptionsTipo = res
+        await state.update({ novedad })
+    })
+    .addAnswer('Ingrese el número del tipo de situación', { capture: true, delay },
+    async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
-            const data = state.getMyState()
-            const novedad = state.get('novedad')
-            
-            const tipo = parseInt(ctx.body)
-            if (![1,2,3].includes(tipo)) {
-                const reintento = (data.reintento)? data.reintento : 0
-                if (reintento > 3) {
-                    await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return
-                }
-
-                await state.update({ reintento: reintento + 1 })  
-                return fallBack('Tipo de novedad ingresado incorrecto, reintente')
+        const telefono = ctx.from
+        const data = state.getMyState()
+        const novedad = state.get('novedad')
+        const OptionsTipo = novedad.OptionsTipo
+        
+        const indexTipo = parseInt(ctx.body)
+        if (indexTipo < 1 || indexTipo > OptionsTipo.length) {
+            const reintento = (data.reintento)? data.reintento : 0
+            if (reintento > 3) {
+                await flowDynamic(`Demasiados reintentos`, { delay: delay })
+                stop(ctx, gotoFlow, state)
+                return
             }
-            novedad.Tipo = tipo
-            await novedadController.saveNovedad(telefono, novedad)
-            await state.update({ novedad, reintento: 0 })
-            return gotoFlow(flowNovedadDescrip)
+
+            await state.update({ reintento: reintento + 1 })  
+            return fallBack('Tipo de novedad ingresado incorrecto, reintente')
+        }
+        novedad.Tipo = OptionsTipo[indexTipo-1]
+        delete novedad.OptionsTipo
+        await novedadController.saveNovedad(telefono, novedad)
+        await state.update({ novedad, reintento: 0 })
+        return gotoFlow(flowNovedadDescrip)
     })
 
 export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
     .addAnswer(['Describa la situación'], { capture: true, delay },
-        async (ctx, { state, gotoFlow, }) => {
-            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+    async (ctx, { state, gotoFlow, }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
-            const novedad = state.get('novedad')
-            novedad.Descripcion = ctx.body
-            await novedadController.saveNovedad(telefono, novedad)
-            await state.update({ novedad })
+        const telefono = ctx.from
+        const novedad = state.get('novedad')
+        novedad.Descripcion = ctx.body
+        await novedadController.saveNovedad(telefono, novedad)
+        await state.update({ novedad })
 
-            return gotoFlow(flowNovedadHora)
+        return gotoFlow(flowNovedadHora)
     })
 
 export const flowNovedadHora = addKeyword(EVENTS.ACTION)
@@ -245,26 +250,22 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
             await novedadController.saveNovedad(telefono, novedad)
             await state.update({ novedad, reintento: 0 })
 
-            return gotoFlow(flowNovedadEnvio)
+            return gotoFlow(flowNovedadInforme)
     })
 
-export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
+export const flowNovedadInforme = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const novedad = state.get('novedad')
-        const tiposNovedad = ['Robo mercadería', 'Robo cliente', 'Merodeo']
         
-        await flowDynamic([
-            `*Informe de novedad*`,
-            `-Cod.Objetivo: ${novedad.CodObjetivo}`,
-            `-Tipo de novedad: ${tiposNovedad[novedad.Tipo-1]}`,
-            `-Descripcion: ${novedad.Descripcion}`,
-            `-Hora: ${novedad.Hora}`,
-            `-Fecha: ${novedad.Fecha}`
-        ], { delay: delay })
-
+        await flowDynamic(
+            `*Informe de novedad*\n-Cod.Objetivo: ${novedad.CodObjetivo}\n-Tipo de novedad: ${novedad.Tipo.Descripcion}\n-Descripcion: ${novedad.Descripcion}\n-Hora: ${novedad.Hora}\n-Fecha: ${novedad.Fecha}`
+            , { delay: delay })
+        return gotoFlow(flowNovedadEnvio)
     })
+
+export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
     .addAnswer('Enviar al responsable (si/no)' , { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -276,7 +277,8 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             const telefono = ctx.from
             if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
                 // await novedadController.addNovedad(novedad, telefono, personalId)
-                await flowDynamic(`Enviado al responsable`, { delay: delay })
+                await novedadController.saveNovedad(telefono, {})
+                await flowDynamic([`Enviado al responsable`,`Redirigiendo al Menu ...`], { delay: delay })
             } else if (respuesta != 'no' && respuesta != 'No' && respuesta != 'NO') {
                 return fallBack()
             }
