@@ -545,7 +545,6 @@ cuit.PersonalCUITCUILCUIT,
     const CUIT: number = infoPersonal.CUIT
     const NroLegajo: number = infoPersonal.NroLegajo
     const SucursalId: number = infoPersonal.SucursalId
-    let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const NacionalidadId: number = infoPersonal.NacionalidadId
     const Sexo: string = infoPersonal.Sexo
