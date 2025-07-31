@@ -304,7 +304,7 @@ export class ObjetivosController extends BaseController {
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
-       
+
         try {
             const objetivos = await queryRunner.query(
                 `SELECT 
@@ -886,7 +886,7 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-           // const usuarioId = await this.getUsuarioId(res, queryRunner)
+            // const usuarioId = await this.getUsuarioId(res, queryRunner)
             const usuarioId = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ObjetivoId = Number(req.params.id)
@@ -950,6 +950,8 @@ export class ObjetivosController extends BaseController {
                 }
 
                 await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId)
+                await this.updateObjetivoTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion)
+
 
 
             } else {
@@ -1076,6 +1078,19 @@ export class ObjetivosController extends BaseController {
             SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
             [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteSucursalId, ClienteElementoDependienteDescripcion])
+    }
+
+    async updateObjetivoTable(
+        queryRunner: any,
+        ClienteId: number,
+        ClienteElementoDependienteId: any,
+        ObjetivoDescripcion: any,
+    ) {
+        return await queryRunner.query(`
+            UPDATE Objetivo
+            SET ObjetivoDescripcion = @2
+            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
+            [ClienteId, ClienteElementoDependienteId, ObjetivoDescripcion])
     }
 
     async updateClienteTable(
@@ -1261,7 +1276,7 @@ export class ObjetivosController extends BaseController {
         try {
 
             const ip = this.getRemoteAddress(req)
-           
+
             const usuarioId = res.locals.PersonalId
 
 
