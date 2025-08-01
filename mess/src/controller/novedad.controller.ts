@@ -25,13 +25,31 @@ export class NovedadController extends BaseController {
     return result
   }
 
-  async addNovedad(novedad: any, telefono:string, personalId:number) {
+  async addNovedad(novedad: any, Telefono:string, PersonalId:number) {
+    const array = novedad.CodObjetivo.split('/')
+    const ClienteId:number = parseInt(array[0])
+    const ClienteElementoDependienteId:number = parseInt(array[1])
+
+    const [dia, mes, anio] = novedad.Fecha.split('/');
+    const fechaISO = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}T${novedad.Hora}:00` // Crea un string en formato ISO (yyyy-mm-ddThh:mm)
+    const Fecha = new Date(fechaISO);
+
+    const Descripcion = novedad.Descripcion
+    const NovedadTipoCod = novedad.Tipo.NovedadTipoCod
+    const now:Date = new Date()
+    const jsonNovedad = JSON.stringify(novedad)
+    const NovedadCodigo = await this.getProxNumero(dbServer.dataSource, `Novedad`, 'bot', '::1')
     await dbServer.dataSource.query(`
       INSERT INTO Novedad (
-        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Detalle, NovedadTipoCod,
+        NovedadCodigo,
+        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, NovedadTipoCod,
         Json, AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
-      ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)
-    `, [])
+      ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@9,@10,@10,@11,@11)
+      `, [
+        NovedadCodigo,
+        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, NovedadTipoCod,
+        jsonNovedad, now, 'bot', '::1'
+    ])
   }
 
   async getNovedadTipo() {

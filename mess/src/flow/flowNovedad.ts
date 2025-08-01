@@ -41,7 +41,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
         } else if (!novedad.Fecha) {
             return gotoFlow(flowNovedadFecha)
         }
-        return gotoFlow(flowNovedadEnvio)
+        return gotoFlow(flowNovedadInforme)
     })
 
 export const flowLogin = addKeyword(EVENTS.WELCOME)
@@ -197,7 +197,7 @@ export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
     })
 
 export const flowNovedadHora = addKeyword(EVENTS.ACTION)
-    .addAnswer(['Hora del novedad (hh:mm)'], { capture: true, delay },
+    .addAnswer(['Ingrese la hora de cuando se produjo el hecho (hh:mm)'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
@@ -226,7 +226,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
     })
 
 export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
-    .addAnswer(['Fecha del novedad (dd/mm/aaaa)'], { capture: true, delay },
+    .addAnswer(['Ingrese la fecha de cuando se produjo el hecho (dd/mm/aaaa)'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
@@ -276,7 +276,7 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             const respuesta = ctx.body
             const telefono = ctx.from
             if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
-                // await novedadController.addNovedad(novedad, telefono, personalId)
+                await novedadController.addNovedad(novedad, telefono, personalId)
                 await novedadController.saveNovedad(telefono, {})
                 await flowDynamic([`Enviado al responsable`,`Redirigiendo al Menu ...`], { delay: delay })
             } else if (respuesta != 'no' && respuesta != 'No' && respuesta != 'NO') {
