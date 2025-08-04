@@ -163,4 +163,8 @@ export class FacturacionComponent {
     });
   }
 
+  reloadListado() {
+    this.formChange$.next('')
+  }
+
 }

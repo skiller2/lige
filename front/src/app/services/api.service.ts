@@ -1049,7 +1049,8 @@ export class ApiService {
 
   }
 
-  saveFacturacion(parameter: any) {
+  saveFacturacion(formValue: any,rowSelected:any) {
+    let parameter = [formValue,rowSelected]  
     return this.http.post<ResponseJSON<any>>('/api/facturacion/save', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )

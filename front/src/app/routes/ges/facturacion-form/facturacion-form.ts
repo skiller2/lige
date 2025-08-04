@@ -35,12 +35,12 @@ export class FacturacionFormComponent {
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance
   gridOptions!: GridOption
-  formChange$ = new BehaviorSubject('')
+  formChangefacturacion$ = new BehaviorSubject('')
   tableLoading$ = new BehaviorSubject(false)
   gridObj!: SlickGrid
   detailViewRowCount = 1
   isDetail = input<boolean>(false)
-
+  FacturacionCodigo = signal<any[]>([])
   private readonly loadingSrv = inject(LoadingService)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -71,15 +71,15 @@ export class FacturacionFormComponent {
     return cols
   }))
 
-  gridData$ = this.formChange$.pipe(
+  gridData$ = this.formChangefacturacion$.pipe(
     debounceTime(500),
     doOnSubscribe(() => this.loadingSrv.open()),
     switchMap(() => {
       if (this.rowSelected() && this.rowSelected().length > 0) {
-        const FacturacionCodigo = this.rowSelected().map((item: any) => item.FacturacionCodigo);
+        this.FacturacionCodigo.set(this.rowSelected().map((item: any) => item.FacturacionCodigo))
         return this.apiService.getFacturas(
           this.rowSelected()[0]?.ComprobanteNro,
-          FacturacionCodigo
+          this.FacturacionCodigo()
         ).pipe(
           map((data: any) => data.list ?? []),
           catchError(() => of([])),
@@ -95,7 +95,7 @@ export class FacturacionFormComponent {
  
   ngOnChanges(changes: SimpleChanges) {
     if (changes['rowSelected'] && this.rowSelected()) {
-      this.formChange$.next('')
+      this.formChangefacturacion$.next('')
       this.ngOnInit();
      
     }
@@ -159,7 +159,13 @@ export class FacturacionFormComponent {
   }
 
   async save(){
-    await firstValueFrom(this.apiService.saveFacturacion(this.formCli.value))
+    await firstValueFrom(this.apiService.saveFacturacion(this.formCli.value,this.rowSelected()))
+
+      this.rowSelected().forEach((row: any) => {
+        row.ComprobanteNro = this.formCli.get('ComprobanteNro')?.value;
+      })
+      
+     this.formChangefacturacion$.next('')
   }
 
   angularGridReady(angularGrid: any) {

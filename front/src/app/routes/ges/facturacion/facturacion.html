@@ -5,7 +5,7 @@
             <ul nz-menu nzMode="horizontal" style="display: flex;">
 
                 <li nz-menu-item>
-                  <a [routerLink]="['/', 'ges', 'facturacion', 'listado']">Listado</a>
+                  <a [routerLink]="['/', 'ges', 'facturacion', 'listado']" (click)="reloadListado()">Listado</a>
                 </li>
                 <li nz-menu-item>
                   @if(this.rowSelected().length > 0 ) {

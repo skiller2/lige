@@ -393,7 +393,8 @@ export class FacturacionController extends BaseController {
 
         try {
             console.log("req.body", req.body)
-            const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body
+          
+            const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body[0]
 
             const validateFacturacion = await dataSource.query(` SELECT ComprobanteNro FROM Facturacion WHERE ComprobanteNro = @0`, [ComprobanteNro]);
 
@@ -414,25 +415,21 @@ export class FacturacionController extends BaseController {
                 throw new ClientException("El nro de comprobante es requerido")
             }
 
+            
+            for (const registro of req.body[1]) {
+                const { id } = registro
 
-            let comprobanteCondicion = ''
+                console.log("id", id)
+                console.log("ComprobanteNro", ComprobanteNro)
+                console.log("ComprobanteTipoCodigo", ComprobanteTipoCodigo)
+                await dataSource.query(`UPDATE Facturacion SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1  WHERE FacturacionCodigo = @2`, 
+                  [ComprobanteNro, ComprobanteTipoCodigo, id])
 
-            if (comprobanteNroold) {
-                comprobanteCondicion = `ComprobanteNro = ${comprobanteNroold}`
-            } else {
-                comprobanteCondicion = 'ComprobanteNro IS NULL'
+                
             }
-
-            const result = await dataSource.query(`
-              UPDATE Facturacion
-              SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1
-              WHERE ${comprobanteCondicion}
-                AND ClienteId = @2
-                AND ClienteElementoDependienteId = @3
-            `, [ComprobanteNro, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId]);
-
-            //throw new ClientException("test")
-            this.jsonRes(result, res);
+           
+            //throw new ClientException("todo ok")
+            this.jsonRes("", res);
         } catch (error) {
 
             await queryRunner.rollbackTransaction();
