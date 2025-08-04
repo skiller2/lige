@@ -396,6 +396,16 @@ export class FacturacionController extends BaseController {
             //throw new ClientException("test")
             const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body[0]
 
+            
+            if (!ComprobanteTipoCodigo) {
+                throw new ClientException("El tipo de comprobante es requerido")
+            }
+
+
+            if (!ComprobanteNro) {
+                throw new ClientException("El nro de comprobante es requerido")
+            }
+
             const validateFacturacion = await dataSource.query(` SELECT ComprobanteNro FROM Facturacion WHERE ComprobanteNro = @0`, [ComprobanteNro]);
 
             if (validateFacturacion.length > 0) {
@@ -406,14 +416,6 @@ export class FacturacionController extends BaseController {
                 throw new ClientException("El nro de comprobante no puede ser el mismo")
             }
 
-            if (!ComprobanteTipoCodigo) {
-                throw new ClientException("El tipo de comprobante es requerido")
-            }
-
-
-            if (!ComprobanteNro) {
-                throw new ClientException("El nro de comprobante es requerido")
-            }
 
             
             for (const registro of req.body[1]) {
@@ -429,7 +431,7 @@ export class FacturacionController extends BaseController {
             }
            
             //throw new ClientException("todo ok")
-            this.jsonRes("", res);
+            this.jsonRes({}, res, 'Actualización de registro exitoso');
         } catch (error) {
 
             await queryRunner.rollbackTransaction();
