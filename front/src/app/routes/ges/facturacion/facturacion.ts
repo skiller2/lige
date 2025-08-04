@@ -164,7 +164,11 @@ export class FacturacionComponent {
   }
 
   reloadListado() {
-    this.formChange$.next('')
+      // Limpiar selección de filas
+  this.angularGrid.gridService.setSelectedRows([])
+
+  // Disparar el observable para recargar
+  this.formChange$.next('');
   }
 
 }

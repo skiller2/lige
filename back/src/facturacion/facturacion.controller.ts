@@ -251,7 +251,7 @@ const listaColumnasDetail: any[] = [
         field: "ComprobanteNro",
         fieldName: "fac.ComprobanteNro",
         sortable: true,
-        hidden: false,
+        hidden: true,
         searchHidden: false
     }
 ];
