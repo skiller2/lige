@@ -30,6 +30,7 @@ type listOptionsT = {
 export class FacturacionFormComponent {
 
   rowSelected = input<any>(null);
+  resultgrid = signal<any>(null)
   rowSelectedSearch = signal<any>(null)
   comprobanteNroold = signal<string>("")
   excelExportService = new ExcelExportService()
@@ -81,7 +82,11 @@ export class FacturacionFormComponent {
           this.rowSelected()[0]?.ComprobanteNro,
           this.FacturacionCodigo()
         ).pipe(
-          map((data: any) => data.list ?? []),
+          map((data: any) => {
+            const list = data.list ?? []
+            this.resultgrid.set(list)
+            return list;
+          }),
           catchError(() => of([])),
           tap({ complete: () => this.loadingSrv.close() })
         );
@@ -159,7 +164,7 @@ export class FacturacionFormComponent {
   }
 
   async save(){
-    await firstValueFrom(this.apiService.saveFacturacion(this.formCli.value,this.rowSelected()))
+    await firstValueFrom(this.apiService.saveFacturacion(this.formCli.value,this.resultgrid()))
 
       this.rowSelected().forEach((row: any) => {
         row.ComprobanteNro = this.formCli.get('ComprobanteNro')?.value;

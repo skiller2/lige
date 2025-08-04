@@ -393,7 +393,7 @@ export class FacturacionController extends BaseController {
 
         try {
             console.log("req.body", req.body)
-          
+            //throw new ClientException("test")
             const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body[0]
 
             const validateFacturacion = await dataSource.query(` SELECT ComprobanteNro FROM Facturacion WHERE ComprobanteNro = @0`, [ComprobanteNro]);
