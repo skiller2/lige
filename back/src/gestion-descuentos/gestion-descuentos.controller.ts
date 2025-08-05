@@ -1121,8 +1121,7 @@ export class GestionDescuentosController extends BaseController {
 
   private async cancellationObjetivoDescuentoQuery(queryRunner:any, id:number, ObjetivoId:number){
     let res = await queryRunner.query(`
-      SELECT 
-      , ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
+      SELECT ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
       , ObjetivoDescuentoCuotaUltNro CuotaUltNro
       FROM ObjetivoDescuento
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
