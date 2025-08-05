@@ -40,11 +40,17 @@ export class PersonalActaDrawerComponent {
     fb = inject(FormBuilder)
     formActa = this.fb.group({
         ActaId:0, TipoActa:0, PersonalActaDescripcion:'',
-        ActaFechaActa:'',
+        ActaFechaActa:'', PersonalSituacionRevistaId:0
     })
 
     optionsNroActa:any[] = []
-    $optionsTipoActa = this.searchService.getTipoPersonalActaOptions(); 
+    $optionsTipoActa = this.searchService.getTipoPersonalActaOptions();
+    $optionsSitRevsitaAsoc = this.selectedPersonalIdChange$.pipe(
+        debounceTime(500),
+        switchMap(() =>{
+            return this.searchService.getSitRevsitaAsocByPersonalId(this.PersonalId());
+        })
+    );
     
     // $optionsTipoPersonalActa = this.searchService.getTipoPersonalActaOptions(); 
     $listaPersonalActa = this.selectedPersonalIdChange$.pipe(
