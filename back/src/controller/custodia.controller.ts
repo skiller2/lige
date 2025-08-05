@@ -520,7 +520,7 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced ? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced ? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje ? objetivoCustodia.impoPeaje : null
-        const impo_facturar = cant_modulos * importe_modulos + cant_horas_exced * impo_horas_exced + cant_km_exced * impo_km_exced + impo_peaje
+        const impo_facturar = Number(cant_modulos) * Number(importe_modulos) + Number(cant_horas_exced) * Number(impo_horas_exced) + Number(cant_km_exced) * Number(impo_km_exced) + Number(impo_peaje)
         const num_factura = objetivoCustodia.numFactura ? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
@@ -659,7 +659,7 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = Number(objetivoCustodia.cantKmExced) ? Number(objetivoCustodia.cantKmExced) : null
         const impo_km_exced = Number(objetivoCustodia.impoKmExced) ? Number(objetivoCustodia.impoKmExced) : null
         const impo_peaje = Number(objetivoCustodia.impoPeaje) ? Number(objetivoCustodia.impoPeaje) : null
-        const impo_facturar = cant_modulos * importe_modulos + cant_horas_exced * impo_horas_exced + cant_km_exced * impo_km_exced + impo_peaje
+        const impo_facturar = Number(cant_modulos) * Number(importe_modulos) + Number(cant_horas_exced) * Number(impo_horas_exced) + Number(cant_km_exced) * Number(impo_km_exced) + Number(impo_peaje)
         const num_factura = objetivoCustodia.numFactura ? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
