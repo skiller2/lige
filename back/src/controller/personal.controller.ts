@@ -2840,10 +2840,13 @@ cuit.PersonalCUITCUILCUIT,
         , peract.PersonalId
         , peract.TipoPersonalActaCodigo
         , tipperact.TipoPersonalActaDescripcion
+        , CONCAT(TRIM(sit.SituacionRevistaDescripcion),'/Desde: ', FORMAT(persit.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista
 
         FROM PersonalActa peract
         LEFT JOIN Acta act ON act.ActaId = peract.ActaId
         LEFT JOIN TipoPersonalActa tipperact ON tipperact.TipoPersonalActaCodigo = peract.TipoPersonalActaCodigo
+        LEFT JOIN PersonalSituacionRevista persit ON persit.PersonalSituacionRevistaId = peract.PersonalSituacionRevistaId AND persit.PersonalId = peract.PersonalId
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = persit.PersonalSituacionRevistaSituacionId
         WHERE peract.PersonalId IN (@0)
         ORDER BY act.ActaFechaActa desc
       `, [personalId])
@@ -2875,12 +2878,13 @@ cuit.PersonalCUITCUILCUIT,
     const personalId = Number(req.params.personalId);
     const ActaId: number = req.body.ActaId;
     const TipoActa: string = req.body.TipoActa;
+    const PersonalSituacionRevistaId: number = req.body.PersonalSituacionRevistaId;
     const PersonalActaDescripcion: string = req.body.PersonalActaDescripcion;
     const now = new Date()
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
-    // let campos_vacios:string[] = []
+    let campos_vacios:string[] = []
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2890,11 +2894,12 @@ cuit.PersonalCUITCUILCUIT,
       // if (!ActaId) campos_vacios.push("- Nro Acta");
       // if (!TipoActa) campos_vacios.push("- Tipo");
       // if (!PersonalActaDescripcion) campos_vacios.push("- Descripcion");
+      if (!PersonalSituacionRevistaId) campos_vacios.push("- Sit. Revista Asociada");
 
-      // if (campos_vacios.length) {
-      //   campos_vacios.unshift('Debe completar los siguientes campos: ')
-      //   throw new ClientException(campos_vacios)
-      // }
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
+      }
 
       await queryRunner.query(`
       INSERT INTO PersonalActa (
@@ -2907,9 +2912,10 @@ cuit.PersonalCUITCUILCUIT,
         PersonalActaAudIpIng,
         PersonalActaAudFechaMod,
         PersonalActaAudUsuarioMod,
-        PersonalActaAudIpMod
-      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
-      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip])
+        PersonalActaAudIpMod,
+        PersonalSituacionRevistaId
+      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6, @7)
+      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip, PersonalSituacionRevistaId])
 
       await queryRunner.commitTransaction();
 
@@ -3012,6 +3018,28 @@ cuit.PersonalCUITCUILCUIT,
       personal.TipoBajaTramiteId,
       personal.EstadoCivilId
     ])
+  }
+
+  private async getSitRevistaAsoByPersonalIdQuery(queryRunner: any, PersonalId:number) {
+    return await queryRunner.query(`
+        SELECT persit.PersonalSituacionRevistaId value,
+        CONCAT_WS('/',TRIM(sit.SituacionRevistaDescripcion),CAST(persit.PersonalSituacionRevistaDesde AS DATE),CAST(persit.PersonalSituacionRevistaHasta AS DATE),TRIM(persit.PersonalSituacionRevistaMotivo)) label
+        FROM PersonalSituacionRevista persit
+        JOIN SituacionRevista sit ON sit.SituacionRevistaId = persit.PersonalSituacionRevistaSituacionId
+        WHERE persit.PersonalId IN (@0)
+      `, [PersonalId])
+  }
+
+  async getSitRevistaAsoByPersonalId(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId = Number(req.params.personalId);
+    try {
+      const options = await this.getSitRevistaAsoByPersonalIdQuery(queryRunner, personalId)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
   }
 
 }

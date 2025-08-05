@@ -1854,7 +1854,7 @@ export class SearchService {
     );
   }
 
-   getNroActaOptions(): Observable<any> {
+  getNroActaOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/actas/nro-acta-options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1864,5 +1864,15 @@ export class SearchService {
     );
   }
 
+  getSitRevsitaAsocByPersonalId(PersonalId:number): Observable<any> {
+    if (!PersonalId) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/sitrevistaaso/options/${PersonalId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
 }
