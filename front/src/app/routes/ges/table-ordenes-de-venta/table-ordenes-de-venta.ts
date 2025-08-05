@@ -49,7 +49,7 @@ export class TableOrdenesDeVentaComponent {
 
   formChange$ = new BehaviorSubject('');
   
-  columns$ = this.apiService.getCols('/api/ordenes-de-venta/cols').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols').pipe(map((cols) => {
     
     let mapped = cols.map((col: Column) => {
       if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA') 

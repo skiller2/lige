@@ -2,12 +2,13 @@ import { Component, inject, input, signal, model, ViewChild, viewChild } from '@
 import { SHARED_IMPORTS } from '@shared'
 import { NzIconModule } from 'ng-zorro-antd/icon'
 import { NzMenuModule } from 'ng-zorro-antd/menu'
-import { TableOrdenesDeVentaComponent } from '../table-ordenes-de-venta/table-ordenes-de-venta'
-import { SettingsService } from '@delon/theme';
+import { TableOrdenesDeVentaComponent } from '../table-ordenes-de-venta/table-ordenes-de-venta' 
+import { SettingsService } from '@delon/theme'
+import { ImporteVentaVigilanciaCarga } from '../importe-venta-vigilancia-carga/importe-venta-vigilancia-carga'
 
 @Component({
   selector: 'app-importe-venta-vigilancia',
-  imports: [...SHARED_IMPORTS, NzIconModule, NzMenuModule, TableOrdenesDeVentaComponent],
+  imports: [...SHARED_IMPORTS, NzIconModule, NzMenuModule, TableOrdenesDeVentaComponent, ImporteVentaVigilanciaCarga],
   templateUrl: './importe-venta-vigilancia.html',
   styleUrl: './importe-venta-vigilancia.less'
 })

@@ -23,6 +23,10 @@
             <span nz-icon nzType=""></span>
             <a [routerLink]="['/', 'ges', 'importe-venta-vigilancia','listado']" >{{ 'app.segurosList' | i18n }}</a>
           </li>
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'importe-venta-vigilancia','carga']" >{{ 'app.carga' | i18n }}</a>
+          </li>
  
         </ul>
       </div>
@@ -35,6 +39,12 @@
         <a nz-tab-link routerLink="/ges/importe-venta-vigilancia/listado">{{ 'app.segurosList' | i18n }}</a>
         <ng-template nz-tab>
             <app-table-ordenes-de-venta [anio]="anio()" [mes]="mes()"></app-table-ordenes-de-venta> 
+        </ng-template>
+      </nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/importe-venta-vigilancia/carga">{{ 'app.carga' | i18n }}</a>
+        <ng-template nz-tab>
+          <app-importe-venta-vigilancia-carga [anio]="anio()" [mes]="mes()"></app-importe-venta-vigilancia-carga>
         </ng-template>
       </nz-tab>
 

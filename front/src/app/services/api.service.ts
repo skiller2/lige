@@ -119,6 +119,16 @@ export class ApiService {
     );
   }
 
+  getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number) {
+    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}`).pipe( 
+      map((res: any) => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getTipoCuenta() {
     return this.http.get(`/api/liquidaciones/tipo_cuenta`).pipe(
       map((res: any) => res.data.list),
@@ -604,7 +614,7 @@ export class ApiService {
 
   getListOrdenesDeVenta(options: any, anio: any, mes: any) {
     const parameter = { options, anio, mes }
-    return this.http.post<ResponseJSON<any>>('/api/ordenes-de-venta/list', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/importe-venta-vigilancia/list', parameter).pipe( 
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
