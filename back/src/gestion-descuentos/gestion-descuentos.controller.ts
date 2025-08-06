@@ -443,7 +443,7 @@ export class GestionDescuentosController extends BaseController {
   private async getDescuentosObjetivosQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     let condition = '1=1'
     if (anio && mes) {
-      condition = `des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2`
+      condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (cuo.cantprocesada <> des.ObjetivoDescuentoCantidadCuotas)`
     }
     return await queryRunner.query(`
             SELECT CONCAT(cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
