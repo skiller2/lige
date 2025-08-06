@@ -5,11 +5,11 @@ import { facturacionController } from "../controller/controller.module";
 export const facturacionRouter = Router();
 
 
-facturacionRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', , 'Liquidaciones Consultas'])], (req, res) => {
+facturacionRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res) => {
     facturacionController.getGridCols(req, res);
 });
 
-facturacionRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas' , 'Liquidaciones', , 'Liquidaciones Consultas'])], (req, res, next) => {
+facturacionRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas' , 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
   facturacionController.list(req, res, next)
 })
 
