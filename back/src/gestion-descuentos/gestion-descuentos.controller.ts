@@ -451,8 +451,8 @@ export class GestionDescuentosController extends BaseController {
       , per.PersonalId
       , 'C' tipocuenta_id
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-      , @1 AS anio
-      , @2 AS mes
+      , des.ObjetivoDescuentoAnoAplica AS anio
+      , des.ObjetivoDescuentoMesesAplica AS mes
       , CONCAT(cli.ClienteId,'/',eledep.ClienteElementoDependienteId) AS CodObjetivo
       , CONCAT(cli.ClienteDenominacion,' ', eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
 
