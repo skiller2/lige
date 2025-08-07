@@ -3027,6 +3027,7 @@ cuit.PersonalCUITCUILCUIT,
         FROM PersonalSituacionRevista persit
         JOIN SituacionRevista sit ON sit.SituacionRevistaId = persit.PersonalSituacionRevistaSituacionId
         WHERE persit.PersonalId IN (@0)
+        ORDER BY persit.PersonalSituacionRevistaDesde DESC
       `, [PersonalId])
   }
 

@@ -3085,7 +3085,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       let ClienteId = 0
       let ClienteElementoDependienteId = 0
 
-      //      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
+//      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
       let listadoProcessed = {}
       for (const personal of listado) {
         const CUIT = personal.employeeNo
@@ -3096,7 +3096,10 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
           [, ClienteId, ClienteElementoDependienteId] = matches.map(m => parseInt(m) || 0)
 
         for (const day of personal.detailInfo) {
-          const dayNum = new Date(day.dateTime).getDate() + 1
+//          const dayNum = new Date(day.dateTime).getUTCDate().getDate() + 1
+
+          const dayNum = new Date(day.dateTime).getUTCDate();
+
           if (day.timeList.length) {
             const maxMinsMidnight = Math.max(...day.timeList)
             const minMinsMidnight = Math.min(...day.timeList)
@@ -3109,13 +3112,13 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
             if (diffHours > 0) {
               if (!listadoProcessed[personal.groupName]) listadoProcessed[personal.groupName] = { ClienteId, ClienteElementoDependienteId, personal: {} }
-              listadoProcessed[personal.groupName].personal[personal.employeeNo] = { ...listadoProcessed[personal.groupName].personal[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours }
+              listadoProcessed[personal.groupName].personal[personal.employeeNo] = { ...listadoProcessed[personal.groupName].personal[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours,['day' + dayNum + 'fec']:day.dateTime }
             }
           }
         }
       }
-      //      fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
-
+//            fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
+//          throw new ClientException('debug')
 
       await queryRunner.startTransaction()
 

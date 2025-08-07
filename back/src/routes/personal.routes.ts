@@ -201,6 +201,6 @@ personalRouter.post(`${base}/acta/add/:personalId`, [authMiddleware.verifyToken,
   personalController.addPersonalActa(req, res, next);
 });
 
-personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.verifyToken], (req, res, next) => {
+personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
   personalController.getSitRevistaAsoByPersonalId(req, res, next);
 });

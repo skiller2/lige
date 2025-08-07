@@ -27,19 +27,26 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
         <nz-form-control [nzMd]="18">
-          <nz-date-picker ngMode="month" formControlName="AplicaEl" (ngModelChange)="onDescuentosChange($event)"></nz-date-picker>
+          <nz-date-picker formControlName="AplicaEl" nzMode="month" nzFormat="MM/yyyy" (ngModelChange)="onDescuentosChange($event)"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Cant. de Cuotas</nz-form-label>
         <nz-form-control [nzMd]="5">
-          <input nz-input placeholder="" formControlName="Cuotas" type="number" />
+          <input nz-input placeholder="" formControlName="Cuotas" type="number" (input)="importeCuotaChange()"/>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="3">Importe</nz-form-label>
-        <nz-form-control [nzMd]="10">
-          <input nz-input placeholder="" formControlName="Importe" type="number" />
+        <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
+        <nz-form-control [nzMd]="7">
+          <input nz-input placeholder="" formControlName="Importe" type="number" (input)="importeCuotaChange()"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
+        <nz-form-control [nzMd]="6" >
+            <p nz-input type="text" appDotToComma mask="separator.2" class="ant-input text-right">{{ importeCuota() }}</p>
         </nz-form-control>
       </nz-form-item>
 
