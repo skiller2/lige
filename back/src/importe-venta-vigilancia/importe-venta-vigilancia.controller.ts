@@ -7,6 +7,7 @@ import { NextFunction, Request, Response } from "express";
 // import { ObjetivoController } from "src/controller/objetivo.controller";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import xlsx from 'node-xlsx';
+import { FileUploadController } from "src/controller/file-upload.controller";
 
 const columnasGrilla: any[] = [
   {
@@ -271,6 +272,15 @@ const columnsImport = [
     searchHidden: false,
     hidden: false,
   },
+  {
+    name: "Detalle",
+    type: "string",
+    id: "Detalle",
+    field: "Detalle",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
 
 
 ]
@@ -434,9 +444,10 @@ export class ImporteVentaVigilanciaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
     console.log("file", file)
-    
 
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
+    let dataset = []
+    let datasetid = 0
+
 
 
     try {
@@ -446,7 +457,14 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       
       await queryRunner.connect();
-      await queryRunner.startTransaction();
+      await queryRunner.startTransaction()
+
+      // validar que el periodo no tenga recibos generados
+    const periodo = await queryRunner.query(`
+      SELECT periodo_id,ind_recibos_generados, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE anio= @0 AND mes = @1
+    `, [anioRequest, mesRequest])
+
+      if(periodo.ind_recibos_generados == 1) throw new ClientException("El periodo ya tiene recibos generados.")
 
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
       const newFilePath = `${this.directory
@@ -461,10 +479,112 @@ export class ImporteVentaVigilanciaController extends BaseController {
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0]
 
+      // nombre de las columnas
+      const columnas = sheet1.data[0];
+      console.log("columnas", columnas)
+
+
+      const indexCuitCliente = columnas.findIndex(col => col?.toString().toLowerCase().includes('cuit'))
+      const indexCodigoObjetivo = columnas.findIndex(col => col?.toString().toLowerCase().includes('cod obj'))
+      const indexImporteHoraA = columnas.findIndex(col => col?.toString().toLowerCase().includes('importe hora a'))
+      const indexImporteHoraB = columnas.findIndex(col => col?.toString().toLowerCase().includes('importe hora b'))
+
+      if (indexCuitCliente === -1 || indexCodigoObjetivo === -1 || indexImporteHoraA === -1 || indexImporteHoraB === -1) {
+        throw new ClientException("Faltan columnas en el archivo.")
+      }
+
       sheet1.data.splice(0, 2)
 
-      console.log("sheet1", sheet1)
+      for (const row of sheet1.data) {
 
+        const clienteCUIT = row[indexCuitCliente]
+        const clienteId = row[indexCodigoObjetivo].split("/")[0]
+        const codigoObjetivo = row[indexCodigoObjetivo].split("/")[1]
+        const importeHoraA = row[indexImporteHoraA]
+        const importeHoraB = row[indexImporteHoraB]
+
+        //validar que el clientecuit exista y que el id sea el mismo del excel 
+    
+        if(!clienteCUIT || !clienteId  || !codigoObjetivo ) {
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `Faltan datos`
+           })
+          continue
+        }
+
+        const cliente = await queryRunner.query(`
+          SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
+           LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
+           AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
+          WHERE clif.ClienteFacturacionCUIT = @1 `, [fechaActual,clienteCUIT])
+
+        if (cliente.length == 0) {
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `Cuit ${clienteCUIT} no existe en la base de datos`
+           })
+          continue
+        }
+        if (cliente[0].ClienteId != clienteId) {
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `Cuit ${clienteCUIT} no coincide con el id ${clienteId} del excel` 
+           })
+          continue
+        }
+        // Buscar si existe algún registro con el código objetivo correcto
+        const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == codigoObjetivo);
+        if (!clienteObjetivo) {
+          dataset.push({ id: datasetid++,  ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `El codigo objetivo ${codigoObjetivo} no coincide con ningún id de objetivo del cliente en la base de datos`
+          });
+          continue;
+        }
+
+    
+        // Verificar si ya existe el registro en ObjetivoImporteVenta
+        const existeObjetivoImporteVenta = await queryRunner.query(`
+          SELECT ClienteId, ClienteElementoDependienteId FROM ObjetivoImporteVenta 
+          WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
+        `, [clienteId, codigoObjetivo, mesRequest, anioRequest])
+
+        if (existeObjetivoImporteVenta.length < 0) {
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB
+            ,Detalle: `El registro no existe en la base de datos`
+           })
+          continue
+        }
+
+        await queryRunner.query(`
+          UPDATE ObjetivoImporteVenta
+          SET ImporteHoraA = @0, ImporteHoraB = @1
+          WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
+        `, [importeHoraA, importeHoraB, clienteId, codigoObjetivo, mesRequest, anioRequest])
+
+      }
+    
+      if (dataset.length > 0)
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+
+      let documento = await queryRunner.query(`SELECT MAX(DocumentoId) + 1 as DocumentoId FROM Documento`)
+      let nombre_archivo = `${documento[0].DocumentoId}-${file.doctipo_id}-${mesRequest.toString().padStart(2, "0")}-${anioRequest}.xls`
+     
+      file.filename = nombre_archivo
+      await FileUploadController.handleDOCUpload(
+        null, 
+        null, 
+        null, 
+        null, // es null si va a la tabla documento
+        new Date(), 
+        null, 
+        null, 
+        null,
+        null, 
+        file, 
+        usuario,
+        ip,
+        queryRunner)
+
+       
+      //throw new ClientException("stop")
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");
@@ -475,5 +595,39 @@ export class ImporteVentaVigilanciaController extends BaseController {
       await queryRunner.release();
       unlinkSync(file.path);
     }
+  }
+
+  async getImportacionesOrdenesDeVentaAnteriores(req: Request, res: Response, next: NextFunction) {
+    try {
+
+      const anio = req.params.anio
+      const mes = req.params.mes
+      const usuario = res.locals.DocumentoTipoCodigo
+
+
+      if(!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
+
+      const queryRunner = dataSource.createQueryRunner();
+
+      const importacionesAnteriores = await queryRunner.query(
+
+        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
+        FROM documento 
+        WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'IMPVENV'`,
+        [Number(anio), Number(mes)])
+
+      this.jsonRes(
+        {
+          total: importacionesAnteriores.length,
+          list: importacionesAnteriores,
+        },
+
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+    
   }
 }

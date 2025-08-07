@@ -72,6 +72,10 @@ importeVentaVigilanciaRouter.get("/cols-import", authMiddleware.verifyToken,auth
   importeVentaVigilanciaController.getGridColsImport(req, res);
 })
 
+importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:DocumentoTipoCodigo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+  importeVentaVigilanciaController.getImportacionesOrdenesDeVentaAnteriores(req, res, next);
+})
+
 importeVentaVigilanciaRouter.post("/upload", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
   uploadXLS(req, res, (err) => {
 

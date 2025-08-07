@@ -24,6 +24,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 })
 export class ImporteVentaVigilanciaCarga { 
 
+  DocumentoTipoCodigo = 'IMPVENV'
+
   anio = input<any>(null)
   mes = input<any>(null)
   fecha: Date = new Date()
@@ -58,14 +60,14 @@ export class ImporteVentaVigilanciaCarga {
     switchMap(() => {
       return this.apiService
         .getImportacionesOrdenesDeVentaAnteriores(
-          this.anio(), this.mes()
+          this.anio(), this.mes(), this.DocumentoTipoCodigo
         )
         .pipe()
     })
   )
 
   async ngOnInit() {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridImporteVenta', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = false
     this.gridOptions.enableAutoSizeColumns = true
     this.gridOptions.fullWidthRows = true

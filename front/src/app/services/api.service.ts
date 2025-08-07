@@ -119,8 +119,8 @@ export class ApiService {
     );
   }
 
-  getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number) {
-    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}`).pipe( 
+  getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number, DocumentoTipoCodigo: string) {
+    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}/${DocumentoTipoCodigo}`).pipe( 
       map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
