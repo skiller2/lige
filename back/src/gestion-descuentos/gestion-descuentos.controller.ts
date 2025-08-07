@@ -124,7 +124,7 @@ const columnsPersonalDescuentos:any[] = [
   //   // minWidth: 10,
   // },
   {
-    id:'importe', name:'Importe', field:'importe',
+    id:'importe', name:'Importe Cuota', field:'importe',
     fieldName: "perdes.importe",
     type:'currency',
     searchType: "currency",
@@ -619,7 +619,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
-      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, ROUND(@6/@5, 2), @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12)
 
       INSERT INTO PersonalOtroDescuentoCuota (
         PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
@@ -672,7 +672,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
       , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo
       , ObjetivoDescuentoDescontar)
-      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12, @13)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, ROUND(@6/@5, 2), @7, 0, 0, 0, @8, @9, @10, @11, @12, @13)
 
       INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
         ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
@@ -966,7 +966,7 @@ export class GestionDescuentosController extends BaseController {
       UPDATE PersonalOtroDescuento SET
       PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
       , PersonalOtroDescuentoMesesAplica = @4, PersonalOtroDescuentoMes = @4
-      , PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = @6
+      , PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = ROUND(@6/@5, 2)
       , PersonalOtroDescuentoFechaAplica = @7, PersonalOtroDescuentoDetalle = @8
       , PersonalOtroDescuentoPuesto = @9, PersonalOtroDescuentoUsuarioId = @10
       , PersonalOtroDescuentoDia = @11, PersonalOtroDescuentoTiempo = @12
@@ -1025,7 +1025,7 @@ export class GestionDescuentosController extends BaseController {
       UPDATE ObjetivoDescuento SET
       ObjetivoDescuentoDescuentoId = @2, ObjetivoDescuentoAnoAplica = @3
       , ObjetivoDescuentoMesesAplica = @4, ObjetivoDescuentoMes = @4
-      , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = @6
+      , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = ROUND(@6/@5, 2)
       , ObjetivoDescuentoFechaAplica = @7, ObjetivoDescuentoDetalle = @8
       , ObjetivoDescuentoPuesto = @9, ObjetivoDescuentoUsuarioId = @10
       , ObjetivoDescuentoDia = @11, ObjetivoDescuentoTiempo = @12
@@ -1044,7 +1044,7 @@ export class GestionDescuentosController extends BaseController {
       ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
       ObjetivoDescuentoCuotaProceso)
       VALUES (1,@0,@1,@2,@3,1,ROUND(@5/@4, 2),0,0,'FA')
-    `,[DescuentoId, ObjetivoId, anio, mes, Cuotas, Importe])
+    `,[id, ObjetivoId, anio, mes, Cuotas, Importe])
     
   }
 
