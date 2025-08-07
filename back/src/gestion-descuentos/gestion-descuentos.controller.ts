@@ -443,7 +443,7 @@ export class GestionDescuentosController extends BaseController {
   private async getDescuentosObjetivosQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     let condition = '1=1'
     if (anio && mes) {
-      condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (cuo.cantprocesada <> des.ObjetivoDescuentoCantidadCuotas)`
+      condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (ISNULL(cuo2.cantprocesadasinmes,0) <> des.ObjetivoDescuentoCantidadCuotas)`
     }
     return await queryRunner.query(`
             SELECT CONCAT(cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
@@ -476,7 +476,16 @@ export class GestionDescuentosController extends BaseController {
 		  ObjetivoDescuentoCuota cuox 
 		  GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
       ) AS cuo ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
-		
+
+		LEFT JOIN (SELECT cuox.ObjetivoDescuentoId, cuox.ObjetivoId, COUNT(*) cantprocesadasinmes
+		  FROM
+		  ObjetivoDescuentoCuota cuox 
+      WHERE cuox.ObjetivoDescuentoCuotaAno*100 + cuox.ObjetivoDescuentoCuotaMes != @1*100+@2
+      GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
+      ) AS cuo2 ON cuo2.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo2.ObjetivoId = des.ObjetivoId
+      
+
+
 		LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       
