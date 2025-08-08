@@ -3022,12 +3022,21 @@ cuit.PersonalCUITCUILCUIT,
 
   private async getSitRevistaAsoByPersonalIdQuery(queryRunner: any, PersonalId:number) {
     return await queryRunner.query(`
-        SELECT persit.PersonalSituacionRevistaId value,
-        CONCAT_WS('/',TRIM(sit.SituacionRevistaDescripcion),CAST(persit.PersonalSituacionRevistaDesde AS DATE),CAST(persit.PersonalSituacionRevistaHasta AS DATE),TRIM(persit.PersonalSituacionRevistaMotivo)) label
+        SELECT 
+        persit.PersonalSituacionRevistaId AS value,
+        CONCAT_WS(' / ',
+            TRIM(sit.SituacionRevistaDescripcion),
+            CONCAT('Desde: ', FORMAT(persit.PersonalSituacionRevistaDesde, 'dd-MM-yyyy')),
+            CONCAT('Hasta: ', ISNULL(FORMAT(persit.PersonalSituacionRevistaHasta, 'dd-MM-yyyy'), 'Actualidad')),
+            TRIM(persit.PersonalSituacionRevistaMotivo)
+        ) AS label
         FROM PersonalSituacionRevista persit
-        JOIN SituacionRevista sit ON sit.SituacionRevistaId = persit.PersonalSituacionRevistaSituacionId
+        JOIN SituacionRevista sit 
+            ON sit.SituacionRevistaId = persit.PersonalSituacionRevistaSituacionId
         WHERE persit.PersonalId IN (@0)
-        ORDER BY persit.PersonalSituacionRevistaDesde DESC
+        ORDER BY persit.PersonalSituacionRevistaDesde DESC;
+
+
       `, [PersonalId])
   }
 
