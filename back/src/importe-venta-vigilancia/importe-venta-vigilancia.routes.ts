@@ -4,11 +4,12 @@ import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
 import { tmpName } from "../server";
 import { ClientException } from "../controller/baseController";
+
 import { importeVentaVigilanciaController } from "../controller/controller.module";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 
-const dirtmp = `${process.env.PATH_ORDENES_DE_VENTA}/temp`;
+const dirtmp = `${process.env.PATH_IMPORTACIONES_VENTA_VIGILANCIA}/temp`;
 if (!existsSync(dirtmp)) {
     mkdirSync(dirtmp, { recursive: true });
   }

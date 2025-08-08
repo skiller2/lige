@@ -555,11 +555,18 @@ export class ImporteVentaVigilanciaController extends BaseController {
           continue
         }
 
-        await queryRunner.query(`
-          UPDATE ObjetivoImporteVenta
+        function parseImporte(valor: string | number): number {
+          if (typeof valor === "number") return valor
+          return parseFloat(valor.replace(/\./g, "").replace(",", "."))
+        }
+        
+        const importeA = parseImporte(importeHoraA)
+        const importeB = parseImporte(importeHoraB)
+        
+        await queryRunner.query(`UPDATE ObjetivoImporteVenta
           SET ImporteHoraA = @0, ImporteHoraB = @1
           WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
-        `, [importeHoraA, importeHoraB, clienteId, codigoObjetivo, mesRequest, anioRequest])
+        `, [importeA, importeB, clienteId, codigoObjetivo, mesRequest, anioRequest])
 
       }
     
