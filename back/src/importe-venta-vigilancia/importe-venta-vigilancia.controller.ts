@@ -464,7 +464,9 @@ export class ImporteVentaVigilanciaController extends BaseController {
       SELECT periodo_id,ind_recibos_generados, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE anio= @0 AND mes = @1
     `, [anioRequest, mesRequest])
 
-      if(periodo.ind_recibos_generados == 1) throw new ClientException("El periodo ya tiene recibos generados.")
+
+      if(periodo[0].ind_recibos_generados == 1) throw new ClientException("El periodo ya tiene recibos generados.")
+
 
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
       const newFilePath = `${this.directory
