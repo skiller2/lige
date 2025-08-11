@@ -28,6 +28,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     disabled = input<boolean>(false);
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
+    importeCuota = signal(0)
 
     constructor(
         private searchService: SearchService,
@@ -40,6 +41,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
                     this.formDesc.reset(infoDes)
+                    console.log('formDesc: ', this.formDesc.value);
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
                 }
@@ -110,6 +112,18 @@ export class DescuentosPersonalAltaDrawerComponent {
         return 0
     }
 
+    Importe():number {
+        const value = this.formDesc.get("Importe")?.value
+        if (value) return value
+        return 0
+    }
+
+    Cuotas():number {
+        const value = this.formDesc.get("Cuotas")?.value
+        if (value) return value
+        return 0
+    }
+
     async ngOnInit(){}
 
     ngOnDestroy(): void {
@@ -144,6 +158,13 @@ export class DescuentosPersonalAltaDrawerComponent {
 
     resetForm() {
         this.formDesc.reset()
+    }
+
+    importeCuotaChange(){
+        if (this.Importe() && this.Cuotas()) 
+            this.importeCuota.set(parseFloat((this.Importe() / this.Cuotas()).toFixed(2)))
+        else
+            this.importeCuota.set(0)
     }
 
 }

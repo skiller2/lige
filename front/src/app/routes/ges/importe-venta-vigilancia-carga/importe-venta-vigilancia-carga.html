@@ -1,50 +1,39 @@
- <form nz-form #telefonoForm="ngForm">
-    <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
+<form [formGroup]="ngForm">
+  <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
-    <nz-form-item>
-      <nz-form-label class="inputText" >Archivo Importe Venta</nz-form-label>
-      <nz-form-control>
-        <ng-container>
-     
-
-          <nz-upload nzAccept="application/xls" nzAction="/api/importe-venta-vigilancia/upload" [nzData]="{
-          anio: anio(),
-          mes: mes()
-        }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
-            <button nz-button>
-              <span nz-icon nzType="upload"></span>
-              {{ 'app.btn.XLS' | i18n }}
-            </button>
-          </nz-upload>
-        </ng-container>
-      </nz-form-control>
+    <nz-form-item style="height: 83px;">
+      <nz-form-label class="inputText">Importaciones anteriores</nz-form-label> 
+        <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'IMPVENV'"
+          [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
     </nz-form-item>
+
     <nz-form-item>
-      <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
+      <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
       <nz-form-control>
+        <!--{{ngForm.value | json}}-->
         <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
-  
-          <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle={{1}}>
-             <ng-container>
-                <a app-down-file  httpUrl="/api/importe-venta-vigilancia/download/{{anio()}}/{{mes()}}/{{movimiento.id}}">
-                <span nz-icon nzType="download" ></span></a>
-              </ng-container>
-            <span> ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
+
+          <div class="containerAnterioresImporteVentaVigilancia" nz-tooltip nzTooltipTitle={{1}}>
+            <ng-container>
+              <a app-down-file httpUrl="/api/importe-venta-vigilancia/download/{{anio()}}/{{mes()}}/IMPVENV">
+                <span nz-icon nzType="download"></span></a>
+            </ng-container>
+            <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}
+            </span>
           </div>
         </ng-container>
       </nz-form-control>
     </nz-form-item>
   </nz-spin>
-  </form>
+</form>
 
-  @if(columns$ | async; as columnas) {
-   
-    <div class="gridContainer container-fluid">
-     <angular-slickgrid gridId="gridImporteVenta" class="" [columnDefinitions]="columnas | colsFilter"
-        [gridOptions]="gridOptions" [dataset]="(gridDataImport$ | async) || []"
-        (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
-    </div> 
-  }
+@if(columns$ | async; as columnas) {
 
-  <div>Registros: {{ gridDataImportLen }}</div>
+<div class="gridContainer container-fluid">
+  <angular-slickgrid gridId="gridImporteVenta" class="" [columnDefinitions]="columnas | colsFilter"
+    [gridOptions]="gridOptions" [dataset]="(gridDataImport$ | async) || []"
+    (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
+</div>
+}
 
+<div>Registros: {{ gridDataImportLen }}</div>

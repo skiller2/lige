@@ -119,8 +119,8 @@ export class ApiService {
     );
   }
 
-  getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number) {
-    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}`).pipe( 
+  getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number, DocumentoTipoCodigo: string) {
+    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}/${DocumentoTipoCodigo}`).pipe( 
       map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1458,6 +1458,16 @@ export class ApiService {
         map(res => res.data),
         catchError(() => of([]))
       );
+  }
+
+  handleXLSUpload(files: any, anio: number, mes: number) {
+    const parameter = { files, anio, mes }
+    return this.http.post<ResponseJSON<any>>(`api/importe-venta-vigilancia/upload`, parameter)
+      .pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
   }
 
   getDescuentosPrepaga(options: any, anio: number, mes: number) {

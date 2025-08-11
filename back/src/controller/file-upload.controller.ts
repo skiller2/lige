@@ -388,10 +388,14 @@ export class FileUploadController extends BaseController {
         // INSERT DOCUMENTO
         doc_id = await this.getProxNumero(queryRunner, 'documento', usuario, ip);
    
-        const type = file.mimetype.split('/')[1]
+        let type = file.mimetype.split('/')[1]
 
         if (type == 'pdf') {
           detalle_documento = await FileUploadController.FileData(file.tempfilename)
+        }
+
+        if(type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+          type = 'xlsx'
         }
 
         newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
@@ -400,7 +404,14 @@ export class FileUploadController extends BaseController {
         this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
         const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
+        console.log("doc_id", doc_id)
+        console.log("doctipo_id", doctipo_id)
+        console.log("den_documento", den_documento)
+        console.log("type", type)
 
+        console.log("file", file)
+
+       // throw new ClientException(`test`)
         var maxid = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
         //console.log("maxid..................", maxid)
 
