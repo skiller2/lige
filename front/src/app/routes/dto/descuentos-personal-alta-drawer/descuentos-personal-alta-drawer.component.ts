@@ -28,7 +28,6 @@ export class DescuentosPersonalAltaDrawerComponent {
     disabled = input<boolean>(false);
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
-    importeCuota = signal(0)
 
     constructor(
         private searchService: SearchService,
@@ -41,7 +40,8 @@ export class DescuentosPersonalAltaDrawerComponent {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
                     this.formDesc.reset(infoDes)
-                    console.log('formDesc: ', this.formDesc.value);
+                    // console.log('formDesc: ', this.formDesc.value);
+                    this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
                 }
@@ -66,7 +66,8 @@ export class DescuentosPersonalAltaDrawerComponent {
     formDesc = this.fb.group({
         id: 0,
         DescuentoId: 0, PersonalId:0, AplicaEl:new Date(),
-        Cuotas:null, Importe:null, Detalle:''
+        Cuotas:null, Importe:null, Detalle:'',
+        DetalleAnulacion:'', importeCuota: ''
     })
 
     $optionsTipo = this.searchService.getDecuentosTipoOptions();
@@ -161,10 +162,10 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
 
     importeCuotaChange(){
-        if (this.Importe() && this.Cuotas()) 
-            this.importeCuota.set(parseFloat((this.Importe() / this.Cuotas()).toFixed(2)))
+        if (this.Importe() && this.Cuotas())
+            this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
         else
-            this.importeCuota.set(0)
+            this.formDesc.get('importeCuota')?.setValue('')
     }
 
 }

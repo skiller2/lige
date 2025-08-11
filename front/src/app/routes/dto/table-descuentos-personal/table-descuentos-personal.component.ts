@@ -45,6 +45,7 @@ export class TableDescuentosPersonalComponent {
     visibleEditDesc = signal<boolean>(false)
     loadingDelete = signal<boolean>(false)
     tipoint = signal<string>('')
+    disabledForm = signal(false);
 
     constructor(
         // private searchService: SearchService,
@@ -71,9 +72,7 @@ export class TableDescuentosPersonalComponent {
             this.loadingSrv.open({ type: 'spin', text: '' })
             return this.apiService.getDescuentosPersonal(this.listOptions, this.anio(), this.mes())
             .pipe(
-                map(data => {
-                    console.log('data: ', data);
-                    return data }),
+                map(data => { return data }),
                 doOnSubscribe(() => { }),
                 tap({ complete: () => { this.loadingSrv.close() } })
             )
@@ -133,6 +132,16 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforEditDescuentos(){
         if (this.tipoint() == 'OTRO') {
+            this.disabledForm.set(false)
+            this.visibleEditDesc.set(true)
+        }else{
+            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+        }
+    }
+
+    openDrawerforViewDescuentos(){
+        if (this.tipoint() == 'OTRO') {
+            this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);

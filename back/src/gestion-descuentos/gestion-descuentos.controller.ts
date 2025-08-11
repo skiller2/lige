@@ -167,6 +167,16 @@ const columnsPersonalDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
+  // {
+  //   id:'importetotal', name:'Importe Total', field:'importetotal',
+  //   fieldName: 'perdes.importetotal',
+  //   type:'dateTime',
+  //   searchComponent: "inpurForFechaSearch",
+  //   searchType: 'date',
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false,
+  // },
 ]
 
 const columnsObjetivosDescuentos:any[] = [
@@ -342,6 +352,16 @@ const columnsObjetivosDescuentos:any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
+  {
+    id:'ObjetivoDescuentoFechaAnulacion', name:'Fecha Anulación', field:'ObjetivoDescuentoFechaAnulacion',
+    fieldName: 'des.ObjetivoDescuentoFechaAnulacion',
+    type:'date',
+    searchComponent: "inpurForFechaSearch",
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
 ]
 
 const tableOptions:any[] = [
@@ -446,7 +466,7 @@ export class GestionDescuentosController extends BaseController {
       condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (ISNULL(cuo2.cantprocesadasinmes,0) <> des.ObjetivoDescuentoCantidadCuotas)`
     }
     return await queryRunner.query(`
-            SELECT CONCAT(cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
+      SELECT CONCAT(cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
       , des.ObjetivoId
       , per.PersonalId
       , 'C' tipocuenta_id
@@ -463,6 +483,7 @@ export class GestionDescuentosController extends BaseController {
       , cuo.cantprocesada
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
       , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
+      , des.ObjetivoDescuentoFechaAnulacion
 
       FROM ObjetivoDescuento des  
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId

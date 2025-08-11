@@ -43,6 +43,7 @@ export class TableDescuentosObjetivosComponent {
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
     loadingDelete = signal<boolean>(false)
+    disabledForm = signal(false);
 
     constructor(
         // private searchService: SearchService,
@@ -126,6 +127,12 @@ export class TableDescuentosObjetivosComponent {
     }
 
     openDrawerforEditDescuentos(){
+        this.disabledForm.set(false)
+        this.visibleEditDesc.set(true)
+    }
+
+    openDrawerforDetailDescuentos(){
+        this.disabledForm.set(true)
         this.visibleEditDesc.set(true)
     }
 

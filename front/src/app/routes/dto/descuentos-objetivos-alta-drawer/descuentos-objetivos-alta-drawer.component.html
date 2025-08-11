@@ -67,7 +67,7 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
         <nz-form-control [nzMd]="6" >
-            <p nz-input type="text" appDotToComma mask="separator.2" class="ant-input text-right">{{ importeCuota() }}</p>
+            <input nz-input formControlName="importeCuota" type="text" appDotToComma mask="separator.2" class="ant-input text-right"/>
         </nz-form-control>
       </nz-form-item>
 
@@ -78,9 +78,16 @@
         </nz-form-control>
       </nz-form-item>
 
+      <!-- <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="DetalleAnulacion" type="text" />
+        </nz-form-control>
+      </nz-form-item> -->
+
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine" *ngIf="formDesc.enabled">
             {{ 'app.btn.save' | i18n }}
           </button>
           <button *ngIf="id() && !descuentoId() && !objetivoId()" nzType="primary" nz-button (click)="resetForm()">

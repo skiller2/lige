@@ -16,6 +16,11 @@
           [disabled]="descuentoId() == 0 && objetivoId() == 0">
           <span nz-icon nzType="edit" nzTheme="outline"></span>
         </button>
+        <!-- Detalle Descuento -->
+        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.detalle' | i18n }}" (click)="openDrawerforDetailDescuentos()"
+          [disabled]="descuentoId() == 0 && objetivoId() == 0">
+          <span nz-icon nzType="file" nzTheme="outline"></span>
+        </button>
         <!-- Anular Descuento -->
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" 
           [disabled]="descuentoId() == 0 && objetivoId() == 0" [nzLoading]="loadingDelete()"
@@ -40,5 +45,5 @@
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)"></app-descuentos-objetivos-alta-drawer>
+  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()"></app-descuentos-objetivos-alta-drawer>
 }

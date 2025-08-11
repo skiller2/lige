@@ -46,7 +46,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 if (this.descuentoId() && this.objetivoId()) {
                     let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.descuentoId()))
                     this.formDesc.reset(infoDesc)
-                    console.log('formDesc: ', this.formDesc.value);
+                    // console.log('formDesc: ', this.formDesc.value);
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
@@ -74,7 +74,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
     formDesc = this.fb.group({
         id:0,
         AplicaA:'', DescuentoId:0, ObjetivoId:0, AplicaEl:new Date(),
-        Cuotas:null, Importe:null, Detalle:''
+        Cuotas:null, Importe:null, Detalle:'',
+        DetalleAnulacion:'', importeCuota:''
     })
 
     $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
@@ -185,9 +186,9 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     importeCuotaChange(){
         if (this.Importe() && this.Cuotas()) 
-            this.importeCuota.set(parseFloat((this.Importe() / this.Cuotas()).toFixed(2)))
+            this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
         else
-            this.importeCuota.set(0)
+            this.formDesc.get('importeCuota')?.setValue('')
     }
 
 }
