@@ -289,7 +289,7 @@ const columnsImport = [
 
 export class ImporteVentaVigilanciaController extends BaseController {
 
-  directory = process.env.PATH_IMPORTACIONES_VENTA_VIGILANCIA || "tmp";
+  directory = process.env.PATH_DOCUMENTS || "tmp";
   constructor() {
     super();
     if (!existsSync(this.directory)) {
@@ -434,22 +434,19 @@ export class ImporteVentaVigilanciaController extends BaseController {
     }
   }
 
-  async handleXLSUpload(req: Request, res: Response, next: NextFunction, file:any) {
+  async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
 
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
-    const queryRunner = dataSource.createQueryRunner();
+    const file = req.body.files
+    const queryRunner = dataSource.createQueryRunner()
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
-    console.log("file", file)
 
     let dataset = []
     let datasetid = 0
-
-
-
     try {
 
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
@@ -467,18 +464,12 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       if(periodo[0].ind_recibos_generados == 1) throw new ClientException("El periodo ya tiene recibos generados.")
 
+      const path =  this.directory + "/temp/" + file[0].tempfilename
 
-      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-      const newFilePath = `${this.directory
-        }/${anioRequest}/${anioRequest}-${mesRequest
-          .toString()
-          .padStart(2, "0")}-${file.tableForSearch}.xls`;
+      console.log("path ", path)
+    
 
-      if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
-
-      console.log("fnewFilePath", newFilePath)
-
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(path))
       const sheet1 = workSheetsFromBuffer[0]
 
       // nombre de las columnas
@@ -574,20 +565,20 @@ export class ImporteVentaVigilanciaController extends BaseController {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
       let documento = await queryRunner.query(`SELECT MAX(DocumentoId) + 1 as DocumentoId FROM Documento`)
-      let nombre_archivo = `${documento[0].DocumentoId}-${file.doctipo_id}-${mesRequest.toString().padStart(2, "0")}-${anioRequest}.xls`
+      let nombre_archivo = `${documento[0].DocumentoId}-${file[0].doctipo_id}-${mesRequest.toString().padStart(2, "0")}-${anioRequest}.xls`
      
-      file.filename = nombre_archivo
+      file[0].filename = nombre_archivo
       await FileUploadController.handleDOCUpload(
         null, 
         null, 
         null, 
         null, // es null si va a la tabla documento
         new Date(), 
-        null, 
-        null, 
         null,
-        null, 
-        file, 
+        documento[0].DocumentoId, //den_documento 
+        anioRequest,
+        mesRequest, 
+        file[0], 
         usuario,
         ip,
         queryRunner)
@@ -601,8 +592,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      await queryRunner.release();
-      unlinkSync(file.path);
+        await queryRunner.release()
     }
   }
 

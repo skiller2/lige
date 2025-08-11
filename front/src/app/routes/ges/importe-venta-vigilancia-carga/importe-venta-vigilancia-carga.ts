@@ -1,14 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject,input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject,input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { BehaviorSubject, debounceTime, map, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FormBuilder, FormArray } from '@angular/forms';
 
 @Component({
   selector: 'app-importe-venta-vigilancia-carga',
@@ -16,7 +18,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
     CommonModule,
     SHARED_IMPORTS,
     NzAffixModule,
-    NzUploadModule],
+    NzUploadModule,
+    FileUploadComponent],
   templateUrl: './importe-venta-vigilancia-carga.html',
   styleUrl: './importe-venta-vigilancia-carga.less',
   providers: [AngularUtilService],
@@ -55,6 +58,17 @@ export class ImporteVentaVigilanciaCarga {
     return cols
   }));
 
+  
+constructor() {
+  effect(() => {
+    const year = this.anio();
+    const month = this.mes();
+    if (year && month) {
+      this.formChange$.next('changed');
+    }
+  });
+}
+
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -73,7 +87,25 @@ export class ImporteVentaVigilanciaCarga {
     this.gridOptions.fullWidthRows = true
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+
+
+     // Escuchar cambios en ngForm.files
+       this.ngForm.get('files')?.valueChanges.subscribe((filesValue: any) => {
+
+        if(filesValue.length > 0){
+          console.log('Cambió files:', filesValue);
+          firstValueFrom(this.apiService.handleXLSUpload(filesValue, this.anio(), this.mes()))
+        }
+    
+    //this.filesChange$.next(filesValue);
+  });
+
 }
+
+
+
+fb = inject(FormBuilder)
+ngForm = this.fb.group({  files: [] })
 
   angularGridReady(angularGrid: any) {
 

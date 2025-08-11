@@ -1,63 +1,6 @@
 import { Request, Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
-import multer, { FileFilterCallback } from "multer";
-import { existsSync, mkdirSync } from "fs";
-import { tmpName } from "../server";
-import { ClientException } from "../controller/baseController";
-
 import { importeVentaVigilanciaController } from "../controller/controller.module";
-
-type DestinationCallback = (error: Error | null, destination: string) => void;
-
-const dirtmp = `${process.env.PATH_IMPORTACIONES_VENTA_VIGILANCIA}/temp`;
-if (!existsSync(dirtmp)) {
-    mkdirSync(dirtmp, { recursive: true });
-  }
-  
-const storage = multer.diskStorage({
-    destination: (
-      req: Request,
-      file: Express.Multer.File,
-      callback: DestinationCallback
-    ) => {
-      return callback(null, dirtmp);
-    },
-  
-    filename: (
-      req: Request,
-      file: Express.Multer.File,
-      callback: DestinationCallback
-    ) => {
-      const fileName = tmpName(dirtmp);
-      callback(null, fileName);
-    },
-  });
-  
-  const fileFilterXLS = (
-    request: Request,
-    file: Express.Multer.File,
-    callback: FileFilterCallback
-  ): void => {
-    if (file.mimetype != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-      callback(new ClientException("El archivo no es del tipo planilla xls."));
-      return;
-    }
-    if (request.body.anio == "") {
-      callback(new ClientException("No se especificó un año."));
-      return;
-    }
-    if (request.body.mes == "") {
-      callback(new ClientException("No se especificó un mes."));
-      return;
-    }
-    callback(null, true);
-  };
-  
-  const uploadXLS = multer({
-    storage: storage,
-    fileFilter: fileFilterXLS,
-    limits: { fileSize: 100 * 1000 * 1000 },
-  }).single("xls");
 
 export const importeVentaVigilanciaRouter = Router();
 
@@ -77,39 +20,10 @@ importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:Document
   importeVentaVigilanciaController.getImportacionesOrdenesDeVentaAnteriores(req, res, next);
 })
 
-importeVentaVigilanciaRouter.post("/upload", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
-  uploadXLS(req, res, (err) => {
-
-
-      // FILE SIZE ERROR
-    if (err instanceof multer.MulterError) {
-      return res.status(409).json({
-        msg: "Max file size 100MB allowed!",
-        data: [],
-        stamp: new Date(),
-      });
-    }
-
-    // INVALID FILE TYPE, message will return from fileFilter callback
-    else if (err) {
-      return res
-        .status(409)
-        .json({ msg: err.message, data: [], stamp: new Date() });
-    }
-
-    // FILE NOT SELECTED
-    else if (!req.file) {
-      return res
-        .status(409)
-        .json({ msg: "File is required!", data: [], stamp: new Date() });
-    }
-
-    // SUCCESS
-    else {
-      req.file.tableForSearch = "documento"
-      req.file.doctipo_id = 'IMPVENV'
-      importeVentaVigilanciaController.handleXLSUpload(req, res, next, req.file);
-    }
-  })
+importeVentaVigilanciaRouter.post('/upload', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+  importeVentaVigilanciaController.handleXLSUpload(req, res, next);
 })
+
+
+
 

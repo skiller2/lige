@@ -1460,6 +1460,16 @@ export class ApiService {
       );
   }
 
+  handleXLSUpload(files: any, anio: number, mes: number) {
+    const parameter = { files, anio, mes }
+    return this.http.post<ResponseJSON<any>>(`api/importe-venta-vigilancia/upload`, parameter)
+      .pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
   getDescuentosPrepaga(options: any, anio: number, mes: number) {
     if (!anio && !mes) return of([]);
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, { options, anio, mes })
