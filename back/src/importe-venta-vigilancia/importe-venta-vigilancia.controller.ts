@@ -475,12 +475,18 @@ export class ImporteVentaVigilanciaController extends BaseController {
       // nombre de las columnas
       const columnas = sheet1.data[0];
       console.log("columnas", columnas)
+      const reqCols=['cuit','cod obj','importe hora a','importe hora b']
+
+      
+      const missingCols = reqCols.filter(name => !columnas.some(name2 => name2.toLowerCase() === name.toLowerCase()));
+      if (missingCols.length>0)
+        throw new ClientException(`Faltan columnas ${missingCols.toString()}`)
 
 
-      const indexCuitCliente = columnas.findIndex(col => col?.toString().toLowerCase().includes('cuit'))
-      const indexCodigoObjetivo = columnas.findIndex(col => col?.toString().toLowerCase().includes('cod obj'))
-      const indexImporteHoraA = columnas.findIndex(col => col?.toString().toLowerCase().includes('importe hora a'))
-      const indexImporteHoraB = columnas.findIndex(col => col?.toString().toLowerCase().includes('importe hora b'))
+      const indexCuitCliente = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[0]))
+      const indexCodigoObjetivo = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[1]))
+      const indexImporteHoraA = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[2]))
+      const indexImporteHoraB = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[3]))
 
       if (indexCuitCliente === -1 || indexCodigoObjetivo === -1 || indexImporteHoraA === -1 || indexImporteHoraB === -1) {
         throw new ClientException("Faltan columnas en el archivo.")
