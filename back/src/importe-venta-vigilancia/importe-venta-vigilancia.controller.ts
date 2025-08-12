@@ -1,14 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
+import { readFileSync } from "fs";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { NextFunction, Request, Response } from "express";
 // import { ObjetivoController } from "src/controller/objetivo.controller";
-import { Utils } from "../liquidaciones/liquidaciones.utils";
 import xlsx from 'node-xlsx';
 import { FileUploadController } from "src/controller/file-upload.controller";
-import { AsistenciaController } from "src/controller/asistencia.controller";
 
 const columnasGrilla: any[] = [
   {
@@ -169,7 +167,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     editable: true
-  },  
+  },
   {
     name: "Diferencia Horas",
     type: "float",
@@ -289,15 +287,6 @@ const columnsImport = [
 
 
 export class ImporteVentaVigilanciaController extends BaseController {
-
-  directory = process.env.PATH_DOCUMENTS || "tmp";
-  constructor() {
-    super();
-    if (!existsSync(this.directory)) {
-      mkdirSync(this.directory, { recursive: true });
-    }
-  }
-
   async getGridCols(req, res) {
     this.jsonRes(columnasGrilla, res);
   }
@@ -309,7 +298,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
   async getListOrdenesDeVenta(req: Request, res: Response, next: NextFunction) {
 
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-    
+
     const filterSql = filtrosToSql(options.filtros, columnasGrilla);
     const orderBy = orderToSQL(options.sort)
     const anio = req.body.anio
@@ -421,7 +410,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
         ${orderBy}
-        `, [ , anio, mes])
+        `, [, anio, mes])
       this.jsonRes(
         {
           total: listCargaLicenciaHistory.length,
@@ -453,32 +442,26 @@ export class ImporteVentaVigilanciaController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
 
-      
+      const checkrecibos = await queryRunner.query(
+        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anioRequest, mesRequest]
+      );
+
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+
       await queryRunner.connect();
       await queryRunner.startTransaction()
 
-      // validar que el periodo no tenga recibos generados
-    const periodo = await queryRunner.query(`
-      SELECT periodo_id,ind_recibos_generados, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE anio= @0 AND mes = @1
-    `, [anioRequest, mesRequest])
-
-
-      if(periodo[0].ind_recibos_generados == 1) throw new ClientException("El periodo ya tiene recibos generados.")
-
-      const path =  this.directory + "/temp/" + file[0].tempfilename
-
-    
-
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(path))
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() +'/'+ file[0].tempfilename))
       const sheet1 = workSheetsFromBuffer[0]
 
       // nombre de las columnas
       const columnas = sheet1.data[0];
-      const reqCols=['cuit cliente','cod obj','importe hora a','importe hora b']
+      const reqCols = ['cuit cliente', 'cod obj', 'importe hora a', 'importe hora b']
 
-      
+
       const missingCols = reqCols.filter(name => !columnas.some(name2 => name2.toLowerCase() === name.toLowerCase()));
-      if (missingCols.length>0)
+      if (missingCols.length > 0)
         throw new ClientException(`Faltan columnas ${missingCols.toString()}`)
 
 
@@ -498,22 +481,24 @@ export class ImporteVentaVigilanciaController extends BaseController {
         const clienteCUIT = row[indexCuitCliente]
         const clienteId = row[indexCodigoObjetivo].split("/")[0]
         const ClienteElementoDependienteId = row[indexCodigoObjetivo].split("/")[1]
-        const importeHoraA =  (Math.round(Number(row[indexImporteHoraA]) * 100) / 100) 
-        const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100) 
+        const importeHoraA = (Math.round(Number(row[indexImporteHoraA]) * 100) / 100)
+        const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100)
 
         //validar que el clientecuit exista y que el id sea el mismo del excel 
-    
-        if(!clienteCUIT) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+
+        if (!clienteCUIT) {
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
             Detalle: `Falta Cuit`
-           })
+          })
           continue
         }
 
-        if(!clienteId  || !ClienteElementoDependienteId ) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+        if (!clienteId || !ClienteElementoDependienteId) {
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
             Detalle: `Falta código del objetivo`
-           })
+          })
           continue
         }
 
@@ -521,24 +506,27 @@ export class ImporteVentaVigilanciaController extends BaseController {
           SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
            LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
            AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
-          WHERE clif.ClienteFacturacionCUIT = @1 `, [fechaActual,clienteCUIT])
+          WHERE clif.ClienteFacturacionCUIT = @1 `, [fechaActual, clienteCUIT])
 
         if (cliente.length == 0) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo:`${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
             Detalle: `El CUIT no existe en la base de datos`
-           })
+          })
           continue
         }
         if (cliente[0].ClienteId != clienteId) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `El CUIT no coincide con el código del objetivo` 
-           })
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `El CUIT no coincide con el código del objetivo`
+          })
           continue
         }
         // Buscar si existe algún registro con el código objetivo correcto
         const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == ClienteElementoDependienteId);
         if (!clienteObjetivo) {
-          dataset.push({ id: datasetid++,  ClienteCUIT: clienteCUIT,ObjetivoCodigo:`${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
             Detalle: `El codigo objetivo no coincide con ningún objetivo del cliente`
           });
           continue;
@@ -547,7 +535,8 @@ export class ImporteVentaVigilanciaController extends BaseController {
         if (!importeHoraA && !importeHoraB)
           continue
 
-        // Verificar si ya existe el registro en ObjetivoImporteVenta
+        // Verificar si ya algun movimiento en facturacion.
+        
         const existeObjetivoImporteVenta = await queryRunner.query(`
           SELECT ClienteId, ClienteElementoDependienteId FROM ObjetivoImporteVenta 
           WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
@@ -562,41 +551,41 @@ export class ImporteVentaVigilanciaController extends BaseController {
             [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, 0, 0, importeHoraA, importeHoraB,
               fechaActual, usuario, ip])
         } else {
-            await queryRunner.query(`UPDATE ObjetivoImporteVenta
+          await queryRunner.query(`UPDATE ObjetivoImporteVenta
           SET ImporteHoraA = @0, ImporteHoraB = @1
           WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
           `, [importeHoraA ?? 0, importeHoraB ?? 0, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
         }
       }
-    
-  //    if (dataset.length > 0)
-  //      throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+
+      if (dataset.length > 0)
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
       await FileUploadController.handleDOCUpload(
-        null, 
-        null, 
-        null, 
+        null,
+        null,
+        null,
         null, // es null si va a la tabla documento
-        new Date(), 
+        new Date(),
         null,
         `Precios ${mesRequest}/${anioRequest}`, //den_documento 
         anioRequest,
-        mesRequest, 
-        file[0], 
+        mesRequest,
+        file[0],
         usuario,
         ip,
         queryRunner)
 
-       
+
       //throw new ClientException("stop")
       await queryRunner.commitTransaction();
 
-      this.jsonRes({}, res, "XLS Recibido y procesado!");
+      this.jsonRes([], res, "XLS Recibido y procesado!");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-        await queryRunner.release()
+      await queryRunner.release()
     }
   }
 
@@ -608,7 +597,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
       const usuario = res.locals.DocumentoTipoCodigo
 
 
-      if(!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
+      if (!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
 
       const queryRunner = dataSource.createQueryRunner();
 
@@ -631,6 +620,6 @@ export class ImporteVentaVigilanciaController extends BaseController {
     } catch (error) {
       return next(error)
     }
-    
+
   }
 }

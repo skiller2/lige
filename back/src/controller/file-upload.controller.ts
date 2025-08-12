@@ -23,8 +23,11 @@ const unlink = promisify(fs.unlink);
 export class FileUploadController extends BaseController {
   static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
   pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'   //Los archivos de Genexus
-  tempFolderPath = path.join(FileUploadController.pathDocuments, 'temp');
+  static tempFolderPath = path.join(FileUploadController.pathDocuments, 'temp');
 
+  static getTempPath() {
+    return this.tempFolderPath
+  }
   static async hashFile(filePath: string): Promise<string> {
     try {
       const hash = CryptoJS.algo.SHA256.create(); // Create a SHA256 hash instance
@@ -671,10 +674,10 @@ export class FileUploadController extends BaseController {
   async deleleTemporalFiles(req, res, next) {
     try {
 
-      const files = await fs.promises.readdir(this.tempFolderPath);
+      const files = await fs.promises.readdir(FileUploadController.tempFolderPath);
       const limiteFecha = Date.now() - (24 * 60 * 60 * 1000);
       const deletePromises = files.map(async (file) => {
-        const filePath = path.join(this.tempFolderPath, file);
+        const filePath = path.join(FileUploadController.tempFolderPath, file);
         const stats = await stat(filePath);
         const fechaCreacion = stats.birthtime.getTime();
 
@@ -929,7 +932,7 @@ export class FileUploadController extends BaseController {
     //    const tempDir = os.tmpdir();
     const uniqueID = randomBytes(16).toString("hex")
     const fileName = `tempfile_${uniqueID}${extension}`;
-    return path.join(this.tempFolderPath, fileName);
+    return path.join(FileUploadController.tempFolderPath, fileName);
   }
 
   async pdf2img(finalurl: string): Promise<string> {

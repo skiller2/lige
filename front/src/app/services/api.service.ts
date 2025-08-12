@@ -1464,7 +1464,7 @@ export class ApiService {
     const parameter = { files, anio, mes }
     return this.http.post<ResponseJSON<any>>(`api/importe-venta-vigilancia/import-xls`, parameter)
       .pipe(
-      map((res: { data: any; }) => res.data),
+          tap((res: ResponseJSON<any>) => this.response(res)),
     );
 
   }

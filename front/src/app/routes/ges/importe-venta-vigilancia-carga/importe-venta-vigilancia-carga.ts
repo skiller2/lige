@@ -12,6 +12,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { FormBuilder, FormArray } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-importe-venta-vigilancia-carga',
@@ -53,6 +54,7 @@ export class ImporteVentaVigilanciaCarga {
 
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
+  private readonly loadingSrv = inject(LoadingService);
 
   columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols-import').pipe(map((cols) => {
     return cols
@@ -92,6 +94,8 @@ export class ImporteVentaVigilanciaCarga {
     // Escuchar cambios en ngForm.files
     this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
       if (filesValue.length > 0) {
+        this.loadingSrv.open({ type: 'spin', text: '' })
+
         this.gridDataImport.set([])
 
         try {
@@ -104,10 +108,9 @@ export class ImporteVentaVigilanciaCarga {
           }
           this.uploading$.next({ loading: false, event: null })
         }
+        this.loadingSrv.close()
 
       }
-
-      //this.filesChange$.next(filesValue);
     });
 
   }
