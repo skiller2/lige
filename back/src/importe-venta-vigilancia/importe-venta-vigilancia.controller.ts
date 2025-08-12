@@ -8,6 +8,7 @@ import { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import xlsx from 'node-xlsx';
 import { FileUploadController } from "src/controller/file-upload.controller";
+import { AsistenciaController } from "src/controller/asistencia.controller";
 
 const columnasGrilla: any[] = [
   {
@@ -466,7 +467,6 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       const path =  this.directory + "/temp/" + file[0].tempfilename
 
-      console.log("path ", path)
     
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(path))
@@ -474,7 +474,6 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       // nombre de las columnas
       const columnas = sheet1.data[0];
-      console.log("columnas", columnas)
       const reqCols=['cuit cliente','cod obj','importe hora a','importe hora b']
 
       
@@ -499,14 +498,21 @@ export class ImporteVentaVigilanciaController extends BaseController {
         const clienteCUIT = row[indexCuitCliente]
         const clienteId = row[indexCodigoObjetivo].split("/")[0]
         const ClienteElementoDependienteId = row[indexCodigoObjetivo].split("/")[1]
-        const importeHoraA = row[indexImporteHoraA]
-        const importeHoraB = row[indexImporteHoraB]
+        const importeHoraA =  (Math.round(Number(row[indexImporteHoraA]) * 100) / 100) 
+        const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100) 
 
         //validar que el clientecuit exista y que el id sea el mismo del excel 
     
-        if(!clienteCUIT || !clienteId  || !ClienteElementoDependienteId ) {
+        if(!clienteCUIT) {
           dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `Falta Cuit o Código de Objetivo`
+            Detalle: `Falta Cuit`
+           })
+          continue
+        }
+
+        if(!clienteId  || !ClienteElementoDependienteId ) {
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `Falta código del objetivo`
            })
           continue
         }
@@ -519,13 +525,13 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
         if (cliente.length == 0) {
           dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo:`${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `CUIT ${clienteCUIT} no existe en la base de datos`
+            Detalle: `El CUIT no existe en la base de datos`
            })
           continue
         }
         if (cliente[0].ClienteId != clienteId) {
           dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `CUIT ${clienteCUIT} no coincide con el id ${clienteId} del excel` 
+            Detalle: `El CUIT no coincide con el código del objetivo` 
            })
           continue
         }
@@ -533,10 +539,13 @@ export class ImporteVentaVigilanciaController extends BaseController {
         const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == ClienteElementoDependienteId);
         if (!clienteObjetivo) {
           dataset.push({ id: datasetid++,  ClienteCUIT: clienteCUIT,ObjetivoCodigo:`${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `El codigo objetivo ${clienteId}/${ClienteElementoDependienteId} no coincide con ningún objetivo del cliente`
+            Detalle: `El codigo objetivo no coincide con ningún objetivo del cliente`
           });
           continue;
         }
+
+        if (!importeHoraA && !importeHoraB)
+          continue
 
         // Verificar si ya existe el registro en ObjetivoImporteVenta
         const existeObjetivoImporteVenta = await queryRunner.query(`
@@ -545,25 +554,22 @@ export class ImporteVentaVigilanciaController extends BaseController {
         `, [clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
 
         if (existeObjetivoImporteVenta.length < 0) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB
-            ,Detalle: `El registro no existe en la base de datos`
-           })
-          continue
-        }
 
-        function parseImporte(valor: string | number): number {
-          if (typeof valor === "number") return valor
-          return parseFloat(valor.replace(/\./g, "").replace(",", "."))
-        }
-        
-        const importeA = parseImporte(importeHoraA)
-        const importeB = parseImporte(importeHoraB)
-        
-        await queryRunner.query(`UPDATE ObjetivoImporteVenta
+          //const asistencia = await AsistenciaController.getObjetivoAsistencia(anioRequest, mesRequest, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
+          //asistencia.TotalHorasReal
+          const TotalHorasReal = 0
+          await queryRunner.query(
+            `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
+            [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, TotalHorasReal, 0, 0, importeHoraA, importeHoraB,
+              fechaActual, usuario, ip])
+        } else {
+            await queryRunner.query(`UPDATE ObjetivoImporteVenta
           SET ImporteHoraA = @0, ImporteHoraB = @1
           WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
-        `, [importeA, importeB, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
-
+          `, [importeHoraA ?? 0, importeHoraB ?? 0, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
+        }
       }
     
       if (dataset.length > 0)
