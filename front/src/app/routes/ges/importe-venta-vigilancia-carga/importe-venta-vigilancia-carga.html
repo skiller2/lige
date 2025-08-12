@@ -31,9 +31,7 @@
 
 <div class="gridContainer container-fluid">
   <angular-slickgrid gridId="gridImporteVenta" class="" [columnDefinitions]="columnas | colsFilter"
-    [gridOptions]="gridOptions" [dataset]="(gridDataImport$ | async) || []"
+    [gridOptions]="gridOptions" [dataset]="gridDataImport()"
     (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
 </div>
 }
-
-<div>Registros: {{ gridDataImportLen }}</div>

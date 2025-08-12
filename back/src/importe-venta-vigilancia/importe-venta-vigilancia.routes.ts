@@ -20,7 +20,7 @@ importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:Document
   importeVentaVigilanciaController.getImportacionesOrdenesDeVentaAnteriores(req, res, next);
 })
 
-importeVentaVigilanciaRouter.post('/upload', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+importeVentaVigilanciaRouter.post('/import-xls', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
   importeVentaVigilanciaController.handleXLSUpload(req, res, next);
 })
 

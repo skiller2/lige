@@ -1460,12 +1460,11 @@ export class ApiService {
       );
   }
 
-  handleXLSUpload(files: any, anio: number, mes: number) {
+  importXLSImporteVenta(files: any, anio: number, mes: number) {
     const parameter = { files, anio, mes }
-    return this.http.post<ResponseJSON<any>>(`api/importe-venta-vigilancia/upload`, parameter)
+    return this.http.post<ResponseJSON<any>>(`api/importe-venta-vigilancia/import-xls`, parameter)
       .pipe(
       map((res: { data: any; }) => res.data),
-      catchError(() => of([]))
     );
 
   }

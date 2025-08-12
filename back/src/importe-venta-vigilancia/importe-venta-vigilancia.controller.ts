@@ -230,15 +230,15 @@ const columnsImport = [
     id: "id",
     name: "id",
     field: "id",
-    fieldName: "id.TelefoniaId",
+    fieldName: "id",
     type: "number",
     sortable: true,
     searchHidden: true,
     hidden: true
   },
   {
-    name: "CUIT CLiente",
-    type: "number",
+    name: "CUIT Cliente",
+    type: "string",
     id: "ClienteCUIT",
     field: "ClienteCUIT",
     sortable: true,
@@ -247,7 +247,7 @@ const columnsImport = [
   },
   {
     name: "Codigo Objetivo",
-    type: "number",
+    type: "string",
     id: "ObjetivoCodigo",
     field: "ObjetivoCodigo",
     sortable: true,
@@ -475,7 +475,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
       // nombre de las columnas
       const columnas = sheet1.data[0];
       console.log("columnas", columnas)
-      const reqCols=['cuit','cod obj','importe hora a','importe hora b']
+      const reqCols=['cuit cliente','cod obj','importe hora a','importe hora b']
 
       
       const missingCols = reqCols.filter(name => !columnas.some(name2 => name2.toLowerCase() === name.toLowerCase()));
@@ -498,15 +498,15 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
         const clienteCUIT = row[indexCuitCliente]
         const clienteId = row[indexCodigoObjetivo].split("/")[0]
-        const codigoObjetivo = row[indexCodigoObjetivo].split("/")[1]
+        const ClienteElementoDependienteId = row[indexCodigoObjetivo].split("/")[1]
         const importeHoraA = row[indexImporteHoraA]
         const importeHoraB = row[indexImporteHoraB]
 
         //validar que el clientecuit exista y que el id sea el mismo del excel 
     
-        if(!clienteCUIT || !clienteId  || !codigoObjetivo ) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `Faltan datos`
+        if(!clienteCUIT || !clienteId  || !ClienteElementoDependienteId ) {
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `Falta Cuit o Código de Objetivo`
            })
           continue
         }
@@ -518,35 +518,34 @@ export class ImporteVentaVigilanciaController extends BaseController {
           WHERE clif.ClienteFacturacionCUIT = @1 `, [fechaActual,clienteCUIT])
 
         if (cliente.length == 0) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `Cuit ${clienteCUIT} no existe en la base de datos`
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo:`${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `CUIT ${clienteCUIT} no existe en la base de datos`
            })
           continue
         }
         if (cliente[0].ClienteId != clienteId) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `Cuit ${clienteCUIT} no coincide con el id ${clienteId} del excel` 
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `CUIT ${clienteCUIT} no coincide con el id ${clienteId} del excel` 
            })
           continue
         }
         // Buscar si existe algún registro con el código objetivo correcto
-        const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == codigoObjetivo);
+        const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == ClienteElementoDependienteId);
         if (!clienteObjetivo) {
-          dataset.push({ id: datasetid++,  ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `El codigo objetivo ${codigoObjetivo} no coincide con ningún id de objetivo del cliente en la base de datos`
+          dataset.push({ id: datasetid++,  ClienteCUIT: clienteCUIT,ObjetivoCodigo:`${clienteId}/${ClienteElementoDependienteId}` , ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+            Detalle: `El codigo objetivo ${clienteId}/${ClienteElementoDependienteId} no coincide con ningún objetivo del cliente`
           });
           continue;
         }
 
-    
         // Verificar si ya existe el registro en ObjetivoImporteVenta
         const existeObjetivoImporteVenta = await queryRunner.query(`
           SELECT ClienteId, ClienteElementoDependienteId FROM ObjetivoImporteVenta 
           WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
-        `, [clienteId, codigoObjetivo, mesRequest, anioRequest])
+        `, [clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
 
         if (existeObjetivoImporteVenta.length < 0) {
-          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: codigoObjetivo, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB
+          dataset.push({ id: datasetid++, ClienteCUIT: clienteCUIT,ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB
             ,Detalle: `El registro no existe en la base de datos`
            })
           continue
@@ -563,7 +562,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         await queryRunner.query(`UPDATE ObjetivoImporteVenta
           SET ImporteHoraA = @0, ImporteHoraB = @1
           WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
-        `, [importeA, importeB, clienteId, codigoObjetivo, mesRequest, anioRequest])
+        `, [importeA, importeB, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
 
       }
     

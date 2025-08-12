@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject,input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -11,6 +11,7 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { FormBuilder, FormArray } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-importe-venta-vigilancia-carga',
@@ -25,7 +26,7 @@ import { FormBuilder, FormArray } from '@angular/forms';
   providers: [AngularUtilService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ImporteVentaVigilanciaCarga { 
+export class ImporteVentaVigilanciaCarga {
 
   DocumentoTipoCodigo = 'IMPVENV'
 
@@ -36,17 +37,16 @@ export class ImporteVentaVigilanciaCarga {
   files: NzUploadFile[] = []
   formChange$ = new BehaviorSubject('')
   filesChange$ = new BehaviorSubject('')
-  uploading$ = new BehaviorSubject({loading:false,event:null})
+  uploading$ = new BehaviorSubject({ loading: false, event: null })
 
   angularGrid!: AngularGridInstance
   gridObj!: SlickGrid
   gridOptions!: GridOption
   detailViewRowCount = 9
 
-  gridDataImport$ = new BehaviorSubject([])
+  gridDataImport = signal([])
 
   gridDataLen = 0
-  gridDataImportLen = 0
   toggle = false
 
   excelExportService = new ExcelExportService()
@@ -58,16 +58,16 @@ export class ImporteVentaVigilanciaCarga {
     return cols
   }));
 
-  
-constructor() {
-  effect(() => {
-    const year = this.anio();
-    const month = this.mes();
-    if (year && month) {
-      this.formChange$.next('changed');
-    }
-  });
-}
+
+  constructor() {
+    effect(() => {
+      const year = this.anio();
+      const month = this.mes();
+      if (year && month) {
+        this.formChange$.next('changed');
+      }
+    });
+  }
 
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
@@ -89,68 +89,40 @@ constructor() {
     this.gridOptions.createFooterRow = true
 
 
-     // Escuchar cambios en ngForm.files
-       this.ngForm.get('files')?.valueChanges.subscribe((filesValue: any) => {
-
-        if(filesValue.length > 0){
-          console.log('Cambió files:', filesValue);
-          firstValueFrom(this.apiService.handleXLSUpload(filesValue, this.anio(), this.mes()))
+    // Escuchar cambios en ngForm.files
+    this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
+      if (filesValue.length > 0) {
+        try {
+          await firstValueFrom(this.apiService.importXLSImporteVenta(filesValue, this.anio(), this.mes()))
+        } catch (e: any) {
+          if (e.error?.data?.list) {
+            this.gridDataImport.set(e.error.data.list)
+          }
+          this.uploading$.next({ loading: false, event: null })
         }
-    
-    //this.filesChange$.next(filesValue);
-  });
+      }
 
-}
+      //this.filesChange$.next(filesValue);
+    });
+
+  }
 
 
 
-fb = inject(FormBuilder)
-ngForm = this.fb.group({  files: [] })
+  fb = inject(FormBuilder)
+  ngForm = this.fb.group({ files: [] })
 
   angularGridReady(angularGrid: any) {
 
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-      //columnTotal('ImporteTotal', this.angularGrid)
-    })
+    //    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+    //columnTotal('ImporteTotal', this.angularGrid)
+    //    })
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
 
   }
-
-  uploadChange(event: any) {
-    switch (event.type) {
-      case 'start':
-        this.uploading$.next({ loading: true, event })
-        this.gridDataImport$.next([])
-        this.gridDataImportLen = 0
-        
-        break;
-      case 'progress':
-
-        break;
-      case 'error':
-        const Error = event.file.error
-        if (Error.error.data?.list) {
-          this.gridDataImport$.next(Error.error.data?.list)
-          this.gridDataImportLen = Error.error.data?.list?.length
-        }
-        this.uploading$.next({ loading:false,event })
-        break;
-      case 'success':
-        const Response = event.file.response
-        this.gridDataImport$.next([])
-        this.gridDataImportLen = 0
-        this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response)        
-        break
-      default:
-        break;
-    }
-
-  }
-
 }
