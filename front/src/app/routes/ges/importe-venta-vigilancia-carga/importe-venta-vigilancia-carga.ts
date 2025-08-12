@@ -92,14 +92,19 @@ export class ImporteVentaVigilanciaCarga {
     // Escuchar cambios en ngForm.files
     this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
       if (filesValue.length > 0) {
+        this.gridDataImport.set([])
+
         try {
           await firstValueFrom(this.apiService.importXLSImporteVenta(filesValue, this.anio(), this.mes()))
+        this.formChange$.next('changed');
+
         } catch (e: any) {
           if (e.error?.data?.list) {
             this.gridDataImport.set(e.error.data.list)
           }
           this.uploading$.next({ loading: false, event: null })
         }
+
       }
 
       //this.filesChange$.next(filesValue);

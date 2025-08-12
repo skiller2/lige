@@ -321,7 +321,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         SELECT DISTINCT
           @1 anio,
           @2 mes,
-          CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as id, 
+          CONCAT(obj.ClienteId,'-' ,ISNULL(obj.ClienteElementoDependienteId,0,'-',@1,'-',@2)) as id, 
           suc.SucursalId, suc.SucursalDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,fac.ClienteFacturacionCUIT,
           cli.ClienteDenominacion, eledep.ClienteElementoDependienteDescripcion,
           CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo, IIF((obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
@@ -553,7 +553,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
           WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
         `, [clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
 
-        if (existeObjetivoImporteVenta.length < 0) {
+        if (existeObjetivoImporteVenta.length = 0) {
 
           //const asistencia = await AsistenciaController.getObjetivoAsistencia(anioRequest, mesRequest, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
           //asistencia.TotalHorasReal
