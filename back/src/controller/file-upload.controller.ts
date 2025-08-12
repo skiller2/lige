@@ -410,11 +410,6 @@ export class FileUploadController extends BaseController {
         console.log("type", type)
 
         console.log("file", file)
-
-       // throw new ClientException(`test`)
-        var maxid = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
-        //console.log("maxid..................", maxid)
-
         
         await queryRunner.query(`INSERT INTO Documento (
           DocumentoId,
@@ -462,10 +457,6 @@ export class FileUploadController extends BaseController {
             anio, 
             mes
           ])
-
-
-          var maxid2 = await queryRunner.query(`Select MAX( DocumentoId ) AS DocumentoId FROM  Documento`)
-          //console.log("maxid2..................", maxid2)
 
       } else {
         // UPDATE DOCUMENTO

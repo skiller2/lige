@@ -569,10 +569,6 @@ export class ImporteVentaVigilanciaController extends BaseController {
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
-      let documento = await queryRunner.query(`SELECT MAX(DocumentoId) + 1 as DocumentoId FROM Documento`)
-      let nombre_archivo = `${documento[0].DocumentoId}-${file[0].doctipo_id}-${mesRequest.toString().padStart(2, "0")}-${anioRequest}.xls`
-     
-      file[0].filename = nombre_archivo
       await FileUploadController.handleDOCUpload(
         null, 
         null, 
@@ -580,7 +576,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         null, // es null si va a la tabla documento
         new Date(), 
         null,
-        documento[0].DocumentoId, //den_documento 
+        `Precios ${mesRequest}/${anioRequest}`, //den_documento 
         anioRequest,
         mesRequest, 
         file[0], 
