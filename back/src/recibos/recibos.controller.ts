@@ -302,7 +302,7 @@ export class RecibosController extends BaseController {
           adelanto += liquidacionElement.SumaImporte
           break;
         case "R":
-          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte*-1)}</td></tr>`
           retribucion += liquidacionElement.SumaImporte
           break;
         case "D":
@@ -320,7 +320,7 @@ export class RecibosController extends BaseController {
     if (adelanto > 0)
       htmlAdelanto += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(adelanto)}</td></tr>`
     if (retribucion > 0)
-      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion)}</td></tr>`
+      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion*-1)}</td></tr>`
     if (retenciones > 0)
       htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones)}</td></tr>`
 

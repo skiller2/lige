@@ -1388,9 +1388,9 @@ export class AsistenciaController extends BaseController {
       UNION
       
       SELECT CONCAT('ayu',cuo.PersonalPrestamoCuotaId,'-',cuo.PersonalPrestamoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, 'Ayuda Asistencial' AS tipomov, 
-      form.FormaPrestamoDescripcion AS desmovimiento, 
-      form.FormaPrestamoDescripcion AS desmovimiento2, 
+      @1 AS anio, @2 AS mes, TRIM(form.FormaPrestamoDescripcion) AS tipomov, 
+      CONCAT(TRIM(form.FormaPrestamoDescripcion),' ',des.personalId,'/',des.PersonalPrestamoId) AS desmovimiento,
+      CONCAT(TRIM(form.FormaPrestamoDescripcion),' ',des.personalId,'/',des.PersonalPrestamoId) AS desmovimiento2, 
      'AYUD' tipoint,
       cuo.PersonalPrestamoCuotaImporte AS importe, cuo.PersonalPrestamoCuotaCuota AS cuotanro, des.PersonalPrestamoCantidadCuotas AS cantcuotas, des.PersonalPrestamoMonto importetotal
       

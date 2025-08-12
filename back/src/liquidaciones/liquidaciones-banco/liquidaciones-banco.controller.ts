@@ -568,17 +568,28 @@ export class LiquidacionesBancoController extends BaseController {
             row.importe,
             row.clave_id
             ])
+          const prestamo= await queryRunner.query(`SELECT pre.PersonalPrestamoId, frm.FormaPrestamoDescripcion FROM PersonalPrestamo pre WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoMonto = @1 AND pre.PersonalPrestamoId=@2
+            JOIN FormaPrestamo frm ON frm.FormaPrestamoId = pre.FormaPrestamoId
+`,            [row.persona_id,
+            row.importe,
+            row.clave_id
+            ])
 
-          //Prestamo Positivo          
+          
+          //Prestamo Positivo
+
+          
+
+
           await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, tipocuenta_id,
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
               VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
             [++movimiento_id,
             row.periodo_id,
-              tipo_movimiento_id_ade,
-              fechaActual,
-              `Ayuda Asistencial`,
-              null,
+            tipo_movimiento_id_ade,
+            fechaActual,
+            `${prestamo[0].frm.FormaPrestamoDescripcion} ${row.persona_id + '/' + row.clave_id}`,
+            null,
             row.persona_id,
             row.importe,
             row.tipocuenta_id,
@@ -677,7 +688,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       const nro_envio = await this.getProxNumero(queryRunner, `banco_${BancoId}`, usuario, ip)
 
-      const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-', '') 
+      const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-', '')
 
 
       for (const row of banco) {
@@ -764,7 +775,7 @@ export class LiquidacionesBancoController extends BaseController {
         fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}${fileTest}.txt`
 
         let total = 0
-//        console.log("registros ", banco)
+        //        console.log("registros ", banco)
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
           const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
@@ -772,14 +783,14 @@ export class LiquidacionesBancoController extends BaseController {
             throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
           if (!row.PersonalBancoCBU)
             throw new ClientException('Sin CBU para el personal ' + PersonalApellidoNombre)
-        
+
           file.write(format("%s\t%s\t%s\t%s\t%s\t%s\t%s\r\n",
             "",// legajo no es obligatorio
             row.PersonalCUITCUILCUIT.toString().substring(0, 11),
 
             PersonalApellidoNombre.toString(),
             "", // Se informa el cbu por lo que cuenta se queda en blanco
-            
+
             row.PersonalBancoCBU.toString(),
             row.importe.toFixed(2),
             "" // comprobante no es obligatorio
@@ -787,7 +798,7 @@ export class LiquidacionesBancoController extends BaseController {
 
           total += Math.trunc(row.importe * 100)
         }
-  //throw new ClientException('Termino bien')
+        //throw new ClientException('Termino bien')
         file.end()
         await once(file, 'finish')
 
