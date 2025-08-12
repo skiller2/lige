@@ -333,7 +333,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
           ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB,
           
-          (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( ven.TotalHorasReal,0)) AS DiferenciaHoras,
+          (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( sumtotalhorascalc,0)) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
 
           1
@@ -553,16 +553,13 @@ export class ImporteVentaVigilanciaController extends BaseController {
           WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
         `, [clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
 
-        if (existeObjetivoImporteVenta.length = 0) {
+        if (existeObjetivoImporteVenta.length == 0) {
 
-          //const asistencia = await AsistenciaController.getObjetivoAsistencia(anioRequest, mesRequest, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
-          //asistencia.TotalHorasReal
-          const TotalHorasReal = 0
           await queryRunner.query(
-            `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
-         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
-            [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, TotalHorasReal, 0, 0, importeHoraA, importeHoraB,
+            `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
+            [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, 0, 0, importeHoraA, importeHoraB,
               fechaActual, usuario, ip])
         } else {
             await queryRunner.query(`UPDATE ObjetivoImporteVenta
@@ -572,8 +569,8 @@ export class ImporteVentaVigilanciaController extends BaseController {
         }
       }
     
-      if (dataset.length > 0)
-        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+  //    if (dataset.length > 0)
+  //      throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
       await FileUploadController.handleDOCUpload(
         null, 

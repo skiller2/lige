@@ -237,16 +237,16 @@ export class AsistenciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, TotalHoraA=@5, TotalHoraB=@6,
+          `UPDATE ObjetivoImporteVenta SET TotalHoraA=@5, TotalHoraB=@6,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, 0, 0, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, null, TotalHoraA, TotalHoraB, 0, 0, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
-          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, 0, 0,
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0,
             fechaActual, usuario, ip])
       }
 
@@ -312,28 +312,28 @@ export class AsistenciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHorasReal=@4, TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
+          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, null, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
-          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHorasReal,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8, @9,@10,@11,@9,@10,@11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, asistencia.TotalHorasReal, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
             fechaActual, usuario, ip])
       }
 
 
       const rec = await queryRunner.query(
-        `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHorasReal,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB,
-          ISNULL(ven.TotalHoraA,0) + ISNULL(ven.TotalHoraB,0) - ISNULL( ven.TotalHorasReal,0) AS DiferenciaHoras,
+        `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,@4 TotalHorasReal,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB,
+          ISNULL(ven.TotalHoraA,0) + ISNULL(ven.TotalHoraB,0) - ISNULL( @4,0) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
           1
           FROM ObjetivoImporteVenta ven
           WHERE ven.ClienteId=@0 AND ven.Anio=@1 AND ven.Mes=@2 AND ven.ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId])
+          [ClienteId, anio, mes, ClienteElementoDependienteId,asistencia.TotalHorasReal])
 
 
       await queryRunner.commitTransaction();
