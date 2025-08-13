@@ -559,12 +559,12 @@ export class RecibosController extends BaseController {
         ? await this.getparthFile(queryRunner, periodo_id, lista)
         : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
       
-      if (res.locals.filterSucursal) {
+      if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
         recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number })=>res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
       } else {
         recibosListaFiltroSuc = recibosLista
       }
-      const sucursalesFiltroMsg = (res.locals.filterSucursal) ? 'Sucursales: '+res.locals.filterSucursal.join(',') :''
+      const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: '+res.locals.filterSucursal.join(',') :''
       if (recibosListaFiltroSuc.length == 0)
         throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
 
