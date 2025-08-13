@@ -60,16 +60,20 @@ export class AuthMiddleware {
   filterSucursal = (req: any, res: any, next: any) => {
     res.locals.filterSucursal = []
 
-    if (req?.groups.find((r: any) => r.localeCompare('MDQ') == 1)) {
+    if (req?.groups.find((r: any) => r.localeCompare('MDQ') == 0)) {
       res.locals.filterSucursal.push(3)
-    } else if (req?.groups.find((r: string) => r.localeCompare('FORMOSA') == 1)) {
+    } 
+    if (req?.groups.find((r: string) => r.localeCompare('FORMOSA') == 0)) {
       res.locals.filterSucursal.push(2)
-    } else if (req?.groups.find((r: string) => r.localeCompare('CENTRAL') == 1)) {
+    } 
+    if (req?.groups.find((r: string) => r.localeCompare('CENTRAL') == 0)) {
       res.locals.filterSucursal.push(1)
     }
 
     //      res.locals.filterSucursal.push(2)
-
+    console.log('filterSucursal', res.locals.filterSucursal, req?.groups);
+    console.log(res.locals);
+    
     return next()
   }
 
