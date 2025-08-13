@@ -554,22 +554,24 @@ export class RecibosController extends BaseController {
 
     try {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
-
-      let recibosLista = (lista)
+      let recibosListaFiltroSuc = []
+      const recibosLista = (lista)
         ? await this.getparthFile(queryRunner, periodo_id, lista)
         : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
       
       if (res.locals.filterSucursal) {
-        recibosLista = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number })=>res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
+        recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number })=>res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
       }
-      
+      const sucursalesFiltroMsg = (res.locals.filterSucursal) ? 'Sucursales: '+res.locals.filterSucursal.join(',') :''
+      if (recibosListaFiltroSuc.length == 0)
+        throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
+
+
       const mergedPdf = await PDFDocument.create();
 
-      if (recibosLista.length == 0)
-        throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados`);
 
       //      pathFile= [pathFile[0]]
-      for (const filterDowload of recibosLista) {
+      for (const filterDowload of recibosListaFiltroSuc) {
         let origpath = ''
         try {
           origpath = this.directoryRecibo + '/' + filterDowload.path
