@@ -488,12 +488,25 @@ export class ImporteVentaVigilanciaController extends BaseController {
       for (const row of sheet1.data) {
 
         const clienteCUIT = row[indexCuitCliente]
-        const clienteId = row[indexCodigoObjetivo].split("/")[0]
-        const ClienteElementoDependienteId = row[indexCodigoObjetivo].split("/")[1]
+        const clienteId = String(row[indexCodigoObjetivo]).split("/")[0]
+        const ClienteElementoDependienteId = String(row[indexCodigoObjetivo]).split("/")[1]
         const importeHoraA = (Math.round(Number(row[indexImporteHoraA]) * 100) / 100)
         const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100)
 
         //validar que el clientecuit exista y que el id sea el mismo del excel 
+        if (Number.isNaN(importeHoraA) && row[indexImporteHoraA]) {
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: row[indexImporteHoraA], ImporteHoraB: row[indexImporteHoraB],
+            Detalle: `El campo importe Hora A no es numérico`
+          })
+        }
+
+        if (Number.isNaN(importeHoraB) && row[indexImporteHoraB]) {
+          dataset.push({
+            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: row[indexImporteHoraA], ImporteHoraB: row[indexImporteHoraB],
+            Detalle: `El campo importe Hora B no es numérico`
+          })
+        }
 
         if (!clienteCUIT) {
           dataset.push({
@@ -545,7 +558,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
           continue
 
         // Verificar si ya algun movimiento en facturacion.
-        
+
         const existeObjetivoImporteVenta = await queryRunner.query(`
           SELECT ClienteId, ClienteElementoDependienteId FROM ObjetivoImporteVenta 
           WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
@@ -569,6 +582,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+//throw new ClientException(`Debug`, { list: dataset })
 
       await FileUploadController.handleDOCUpload(
         null,
