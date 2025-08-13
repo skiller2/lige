@@ -31,6 +31,7 @@ importeVentaVigilanciaRouter.get("/download/:impoexpoId", [authMiddleware.verify
     next
   );
 });
+importeVentaVigilanciaRouter.post('/valorFacturacion', authMiddleware.verifyToken, (req, res, next) => {importeVentaVigilanciaController.setValorFacturacion(req, res, next)})
 
 
 

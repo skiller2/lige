@@ -1017,9 +1017,6 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('api/asistencia/horasFacturacion', { anio, mes, ObjetivoId, TotalHoraA, TotalHoraB }).pipe(map(res => res.data))
   }
 
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number) {
-    return this.http.post<ResponseJSON<any>>('api/asistencia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA,TotalHoraB }).pipe(map(res => res.data))
-  }
 
   addAsistencia(asistencia: any) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
@@ -1458,6 +1455,10 @@ export class ApiService {
         map(res => res.data),
         catchError(() => of([]))
       );
+  }
+
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number) {
+    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA,TotalHoraB }).pipe(map(res => res.data))
   }
 
   importXLSImporteVenta(files: any, anio: number, mes: number) {
