@@ -30,8 +30,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
     descuentoId = model<number>(0);
     objetivoId = model<number>(0);
     disabled = input<boolean>(false);
+    cancelDesc = input<boolean>(false);
     onAddorUpdate = output()
-    importeCuota = signal(0)
 
     private readonly loadingSrv = inject(LoadingService);
 
@@ -130,6 +130,12 @@ export class DescuentosObjetivosAltaDrawerComponent {
         return 0
     }
 
+    DetalleAnulacion():string {
+        const value = this.formDesc.get("DetalleAnulacion")?.value
+        if (value?.length) return value
+        return ''
+    }
+
     async ngOnInit(){}
 
     ngOnDestroy(): void {
@@ -189,6 +195,21 @@ export class DescuentosObjetivosAltaDrawerComponent {
             this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
         else
             this.formDesc.get('importeCuota')?.setValue('')
+    }
+
+    async cancel(){
+        this.isLoading.set(true)
+        let values = this.formDesc.value
+        try {
+            if (this.descuentoId() && this.objetivoId()) {
+                await firstValueFrom(this.apiService.cancellationObjetivoDescuento(values))
+                this.onAddorUpdate.emit()
+                this.selectedPersonalIdChange$.next('')
+                this.formDesc.markAsUntouched()
+                this.formDesc.markAsPristine()
+            }
+        } catch (e) {}
+        this.isLoading.set(false)
     }
 
 }

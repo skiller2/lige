@@ -43,9 +43,9 @@ export class TableDescuentosPersonalComponent {
     personalId = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
-    loadingDelete = signal<boolean>(false)
     tipoint = signal<string>('')
     disabledForm = signal(false);
+    cancelDesc = signal(false);
 
     constructor(
         // private searchService: SearchService,
@@ -132,7 +132,28 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforEditDescuentos(){
         if (this.tipoint() == 'OTRO') {
+            this.cancelDesc.set(false)
             this.disabledForm.set(false)
+            this.visibleEditDesc.set(true)
+        }else{
+            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+        }
+    }
+
+    openDrawerforDetailDescuentos(){
+        if (this.tipoint() == 'OTRO') {
+            this.cancelDesc.set(false)
+            this.disabledForm.set(true)
+            this.visibleEditDesc.set(true)
+        }else{
+            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+        }
+    }
+
+    openDrawerforCancelDescuentos(){
+        if (this.tipoint() == 'OTRO') {
+            this.disabledForm.set(false)
+            this.cancelDesc.set(true)
             this.visibleEditDesc.set(true)
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
@@ -146,17 +167,6 @@ export class TableDescuentosPersonalComponent {
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
         }
-    }
-
-    async deleteDescuento(){
-        this.loadingDelete.set(true)
-        try {
-            if (this.descuentoId() && this.personalId()) {
-            await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(this.descuentoId(), this.personalId()))
-            this.listDescuento('')
-        }
-        } catch (error) {}
-        this.loadingDelete.set(false)
     }
 
     onAddorUpdate(_e:any) {

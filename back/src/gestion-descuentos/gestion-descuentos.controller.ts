@@ -750,7 +750,7 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const anio : number = req.body.year
     const mes : number = req.body.month
-    let errors : string[] = []
+    // let errors : string[] = []
     try {
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -919,7 +919,7 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
-    let errors : string[] = []
+    // let errors : string[] = []
     try {
       await queryRunner.startTransaction()
       const usuarioId = await this.getUsuarioId(res, queryRunner)
@@ -969,6 +969,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
       , PersonalOtroDescuentoCantidadCuotas Cuotas, PersonalOtroDescuentoImporteVariable Importe
       , PersonalOtroDescuentoDetalle Detalle, PersonalOtroDescuentoCuotaUltNro CuotaUltNro
+      , PersonalOtroDescuentoFechaAnulacion FechaAnulacion
       FROM PersonalOtroDescuento
       WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
     `, [id, PersonalId])
@@ -976,6 +977,8 @@ export class GestionDescuentosController extends BaseController {
       throw new ClientException(`No se encontro el descuento de la persona.`)
     }
     const PersonalOtroDescuento = res[0]
+    if (PersonalOtroDescuento.FechaAnulacion)
+      throw new ClientException(`No se puede modificar descuentos anulados.`)
     const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
@@ -1028,6 +1031,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
       , ObjetivoDescuentoCantidadCuotas Cuotas, ObjetivoDescuentoImporteVariable Importe
       , ObjetivoDescuentoDetalle Detalle, ObjetivoDescuentoCuotaUltNro CuotaUltNro
+      , ObjetivoDescuentoFechaAnulacion FechaAnulacion
       FROM ObjetivoDescuento
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
     `, [id, ObjetivoId])
@@ -1035,6 +1039,8 @@ export class GestionDescuentosController extends BaseController {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
     const ObjetivoDescuento = res[0]
+    if (ObjetivoDescuento.FechaAnulacion)
+      throw new ClientException(`No se puede modificar descuentos anulados.`)
     const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
@@ -1071,23 +1077,30 @@ export class GestionDescuentosController extends BaseController {
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const id = Number(req.body.id)
-    const PersonalId = Number(req.body.PersonalId)
-    // let errors : string[] = []
+    const id:number = Number(req.body.id)
+    const PersonalId:number = Number(req.body.PersonalId)
+    const DetalleAnulacion:string = req.body.DetalleAnulacion
+    let campos_vacios:string[] = []
     try {
       await queryRunner.startTransaction()
       // const usuarioId = await this.getUsuarioId(res, queryRunner)
       // const ip = this.getRemoteAddress(req)
+      if (!DetalleAnulacion.length) campos_vacios.push("- Motivo de anulación");
+
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
+      }
       
       if (PersonalId) { //PersonalOtrosDescuentos
-        await this.cancellationPersonalOtroDescuentoQuery(queryRunner, id, PersonalId)
+        await this.cancellationPersonalOtroDescuentoQuery(queryRunner, id, PersonalId, DetalleAnulacion)
       } else {
         throw new ClientException(`Error de busqueda.`)
       }
 
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Descuento borrado con exito.');
+      return this.jsonRes({}, res, 'Descuento anulado con exito.');
     }catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1096,11 +1109,11 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async cancellationPersonalOtroDescuentoQuery(queryRunner:any, id:number, PersonalId:number){
+  private async cancellationPersonalOtroDescuentoQuery(queryRunner:any, id:number, PersonalId:number, DetalleAnulacion:string){
     let res = await queryRunner.query(`
       SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
       , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
-      , PersonalOtroDescuentoCuotaUltNro CuotaUltNro
+      , PersonalOtroDescuentoCuotaUltNro CuotaUltNro, PersonalOtroDescuentoFechaAnulacion FechaAnulacion
       FROM PersonalOtroDescuento
       WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
     `, [id, PersonalId])
@@ -1108,6 +1121,8 @@ export class GestionDescuentosController extends BaseController {
       throw new ClientException(`No se encontro el descuento de la persona.`)
     }
     const PersonalOtroDescuento = res[0]
+    if (PersonalOtroDescuento.FechaAnulacion)
+      throw new ClientException(`No se puede modificar descuentos anulados.`)
     const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
@@ -1117,30 +1132,37 @@ export class GestionDescuentosController extends BaseController {
     now.setHours(0, 0, 0, 0)
     await queryRunner.query(`
       UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @3 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1) AND PersonalOtroDescuentoCuotaId IN (@2)
-      UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @3 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
-      `, [id, PersonalId, CuotaUltNro, now])
+      UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @3, PersonalOtroDescuentoDetalleAnulacion = @4 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      `, [id, PersonalId, CuotaUltNro, now, DetalleAnulacion])
   }
 
 
   async cancellationObjetivoDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const id = Number(req.body.id)
-    const ObjetivoId = Number(req.body.ObjetivoId)
-    // let errors : string[] = []
+    const id:number = Number(req.body.id)
+    const ObjetivoId:number = Number(req.body.ObjetivoId)
+    const DetalleAnulacion:string = req.body.DetalleAnulacion
+    let campos_vacios : string[] = []
     try {
       await queryRunner.startTransaction()
       // const usuarioId = await this.getUsuarioId(res, queryRunner)
       // const ip = this.getRemoteAddress(req)
+      if (!DetalleAnulacion.length) campos_vacios.push("- Motivo de anulación");
+
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
+      }
       
       if (ObjetivoId) { //ObjetivoDescuentos
-        await this.cancellationObjetivoDescuentoQuery(queryRunner, id, ObjetivoId)
+        await this.cancellationObjetivoDescuentoQuery(queryRunner, id, ObjetivoId, DetalleAnulacion)
       } else {
         throw new ClientException(`Error de busqueda.`)
       }
 
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Descuento borrado con exito.');
+      return this.jsonRes({}, res, 'Descuento anulado con exito.');
     }catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1149,10 +1171,10 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async cancellationObjetivoDescuentoQuery(queryRunner:any, id:number, ObjetivoId:number){
+  private async cancellationObjetivoDescuentoQuery(queryRunner:any, id:number, ObjetivoId:number, DetalleAnulacion:string){
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
-      , ObjetivoDescuentoCuotaUltNro CuotaUltNro
+      , ObjetivoDescuentoCuotaUltNro CuotaUltNro, ObjetivoDescuentoFechaAnulacion FechaAnulacion
       FROM ObjetivoDescuento
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
     `, [id, ObjetivoId])
@@ -1160,6 +1182,8 @@ export class GestionDescuentosController extends BaseController {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
     const ObjetivoDescuento = res[0]
+    if (ObjetivoDescuento.FechaAnulacion)
+      throw new ClientException(`No se puede modificar descuentos anulados.`)
     const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
@@ -1169,8 +1193,8 @@ export class GestionDescuentosController extends BaseController {
     now.setHours(0, 0, 0, 0)
     await queryRunner.query(`
       UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1) AND ObjetivoDescuentoCuotaId IN (@2)
-      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-      `, [id, ObjetivoId, CuotaUltNro, now])
+      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      `, [id, ObjetivoId, CuotaUltNro, now, DetalleAnulacion])
 
   }
 
@@ -1186,6 +1210,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoFechaAplica AplicaEl, PersonalOtroDescuentoCantidadCuotas Cuotas
       , PersonalOtroDescuentoImporteVariable Importe, PersonalId
       , PersonalOtroDescuentoId id
+      , PersonalOtroDescuentoDetalleAnulacion DetalleAnulacion
       FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
       `, [DescuentoId, PersonalId])
       // throw new ClientException(`DEBUG.`)
@@ -1212,6 +1237,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
       , ObjetivoDescuentoId id
       , ObjetivoDescuentoDescontar AplicaA
+      , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
       FROM ObjetivoDescuento WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
       `, [DescuentoId, ObjetivoId])
       // throw new ClientException(`DEBUG.`)

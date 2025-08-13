@@ -19,12 +19,11 @@
         <!-- Ver Descuento -->
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.detail' | i18n }}" (click)="openDrawerforViewDescuentos()"
           [disabled]="descuentoId() == 0 && personalId() == 0">
-          <span nz-icon nzType="file" nzTheme="outline"></span>
+          <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>
         <!-- Anular Descuento -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" 
-          [disabled]="descuentoId() == 0 && personalId() == 0" [nzLoading]="loadingDelete()"
-          nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere anular este Descuento?" (nzOnConfirm)="deleteDescuento()">
+        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" (click)="openDrawerforCancelDescuentos()"
+          [disabled]="descuentoId() == 0 && personalId() == 0">
           <span nz-icon nzType="delete" nzTheme="outline"></span>
         </button>
       </nz-button-group>
@@ -46,5 +45,5 @@
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleEditDesc" [personalId]="personalId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()"></app-descuentos-personal-alta-drawer>
+  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleEditDesc" [personalId]="personalId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()"></app-descuentos-personal-alta-drawer>
 }

@@ -42,8 +42,8 @@ export class TableDescuentosObjetivosComponent {
     objetivoId = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
-    loadingDelete = signal<boolean>(false)
     disabledForm = signal(false);
+    cancelDesc = signal(false);
 
     constructor(
         // private searchService: SearchService,
@@ -128,23 +128,20 @@ export class TableDescuentosObjetivosComponent {
 
     openDrawerforEditDescuentos(){
         this.disabledForm.set(false)
+        this.cancelDesc.set(false)
         this.visibleEditDesc.set(true)
     }
 
     openDrawerforDetailDescuentos(){
+        this.cancelDesc.set(false)
         this.disabledForm.set(true)
         this.visibleEditDesc.set(true)
     }
 
-    async deleteDescuento(){
-        this.loadingDelete.set(true)
-        try {
-            if (this.descuentoId() && this.objetivoId()) {
-                await firstValueFrom(this.apiService.cancellationObjetivoDescuento(this.descuentoId(), this.objetivoId()))
-                this.listDescuento('')
-            }
-        } catch (e) {}
-        this.loadingDelete.set(false)
+    openDrawerforCancelDescuentos(){
+        this.disabledForm.set(false)
+        this.cancelDesc.set(true)
+        this.visibleEditDesc.set(true)
     }
 
     onAddorUpdate(_e:any) {

@@ -78,20 +78,23 @@
         </nz-form-control>
       </nz-form-item>
 
-      <!-- <nz-form-item class="marginElement">
+      <nz-form-item class="marginElement" *ngIf="DetalleAnulacion() || cancelDesc()">
         <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
         <nz-form-control [nzMd]="18">
           <input nz-input placeholder="" formControlName="DetalleAnulacion" type="text" />
         </nz-form-control>
-      </nz-form-item> -->
+      </nz-form-item>
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine" *ngIf="formDesc.enabled">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine" *ngIf="formDesc.enabled && !cancelDesc()">
             {{ 'app.btn.save' | i18n }}
           </button>
           <button *ngIf="id() && !descuentoId() && !objetivoId()" nzType="primary" nz-button (click)="resetForm()">
             {{ 'app.btn.clear.form' | i18n }}
+          </button>
+          <button nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine" *ngIf="cancelDesc() && formDesc.enabled">
+            Anular
           </button>
         </nz-form-control>
       </nz-form-item>
