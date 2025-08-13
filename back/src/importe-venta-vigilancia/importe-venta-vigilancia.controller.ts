@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync } from "fs";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros";
@@ -287,6 +287,15 @@ const columnsImport = [
 
 
 export class ImporteVentaVigilanciaController extends BaseController {
+
+  directory = process.env.PATH_DOCUMENTS || "tmp";
+  constructor() {
+    super();
+    if (!existsSync(this.directory)) {
+      mkdirSync(this.directory, { recursive: true });
+    }
+  }
+  
   async getGridCols(req, res) {
     this.jsonRes(columnasGrilla, res);
   }
@@ -638,5 +647,31 @@ export class ImporteVentaVigilanciaController extends BaseController {
       return next(error)
     }
 
+  }
+
+  async downloadComprobanteExportacion(
+    impoexpoId: string,
+    res: Response,
+    req: Request,
+    next: NextFunction
+  ) {
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const data = await queryRunner.query(`SELECT DocumentoPath,DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
+        [impoexpoId]
+      )
+      if (!data[0])
+        throw new ClientException(`Archivo de importe de venta no generado`)
+
+      res.download(this.directory + '/' + data[0].DocumentoPath, data[0].DocumentoNombreArchivo, async (error) => {
+        if (error) {
+          console.error('Error al descargar el archivo:', error);
+          return next(error)
+        }
+      });
+    } catch (error) {
+      return next(error)
+    }
   }
 }

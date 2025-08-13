@@ -15,7 +15,7 @@
 
           <div class="containerAnterioresImporteVentaVigilancia" nz-tooltip nzTooltipTitle={{1}}>
             <ng-container>
-              <a app-down-file httpUrl="/api/importe-venta-vigilancia/download/{{anio()}}/{{mes()}}/IMPVENV">
+              <a app-down-file httpUrl="/api/importe-venta-vigilancia/download/{{movimiento.DocumentoId}}">
                 <span nz-icon nzType="download"></span></a>
             </ng-container>
             <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}
