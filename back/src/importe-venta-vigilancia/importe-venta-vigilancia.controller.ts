@@ -594,7 +594,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         null, // es null si va a la tabla documento
         new Date(),
         null,
-        `Precios ${mesRequest}/${anioRequest}`, //den_documento 
+        `Precios ${mesRequest}-${anioRequest}`, //den_documento 
         anioRequest,
         mesRequest,
         file[0],
