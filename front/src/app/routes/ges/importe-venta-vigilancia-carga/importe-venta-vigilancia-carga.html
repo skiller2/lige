@@ -1,8 +1,8 @@
 <form [formGroup]="ngForm">
   <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
-    <nz-form-item style="height: 83px;">
-      <nz-form-label class="inputText">Importaciones anteriores</nz-form-label> 
+    <nz-form-item class="nfi-margin-bottom">
+      <nz-form-label class="inputText">Archivo Importe Venta</nz-form-label> 
         <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'IMPVENV'"
           [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
     </nz-form-item>

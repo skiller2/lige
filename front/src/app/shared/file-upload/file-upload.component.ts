@@ -225,6 +225,13 @@ export class FileUploadComponent implements ControlValueAccessor {
   } catch (error) {
 
   }
+  
+}
+
+async DeleteFileByExporterror(file:any) {
+  
+  this.files.set([])
+  
 }
 
   ngOnDestroy() {
