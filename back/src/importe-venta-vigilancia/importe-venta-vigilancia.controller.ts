@@ -484,6 +484,9 @@ export class ImporteVentaVigilanciaController extends BaseController {
         const importeHoraA = (Math.round(Number(row[indexImporteHoraA]) * 100) / 100)
         const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100)
 
+        if (!clienteCUIT &&  !importeHoraA && !importeHoraB)
+          continue
+
         //validar que el clientecuit exista y que el id sea el mismo del excel 
         if (Number.isNaN(importeHoraA) && row[indexImporteHoraA]) {
           dataset.push({
