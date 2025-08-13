@@ -561,6 +561,8 @@ export class RecibosController extends BaseController {
       
       if (res.locals.filterSucursal) {
         recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number })=>res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
+      } else {
+        recibosListaFiltroSuc = recibosLista
       }
       const sucursalesFiltroMsg = (res.locals.filterSucursal) ? 'Sucursales: '+res.locals.filterSucursal.join(',') :''
       if (recibosListaFiltroSuc.length == 0)
