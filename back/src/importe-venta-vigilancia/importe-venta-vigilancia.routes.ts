@@ -23,6 +23,14 @@ importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:Document
 importeVentaVigilanciaRouter.post('/import-xls', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
   importeVentaVigilanciaController.handleXLSUpload(req, res, next);
 })
+importeVentaVigilanciaRouter.get("/download/:impoexpoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res,next) => {
+  importeVentaVigilanciaController.downloadComprobanteExportacion(
+    req.params.impoexpoId,
+    res,
+    req,
+    next
+  );
+});
 
 
 

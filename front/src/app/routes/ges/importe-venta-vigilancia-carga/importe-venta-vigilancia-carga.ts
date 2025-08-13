@@ -101,7 +101,7 @@ export class ImporteVentaVigilanciaCarga {
         try {
           await firstValueFrom(this.apiService.importXLSImporteVenta(filesValue, this.anio(), this.mes()))
         this.formChange$.next('changed');
-
+        this.fileUploadComponent().DeleteFileByExporterror(filesValue)
         } catch (e: any) {
           this.fileUploadComponent().DeleteFileByExporterror(filesValue)
           if (e.error?.data?.list) {
