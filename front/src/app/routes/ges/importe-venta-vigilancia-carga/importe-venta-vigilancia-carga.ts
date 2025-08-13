@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -46,7 +46,7 @@ export class ImporteVentaVigilanciaCarga {
   detailViewRowCount = 9
 
   gridDataImport = signal([])
-
+  fileUploadComponent = viewChild.required(FileUploadComponent);
   gridDataLen = 0
   toggle = false
 
@@ -103,6 +103,7 @@ export class ImporteVentaVigilanciaCarga {
         this.formChange$.next('changed');
 
         } catch (e: any) {
+          this.fileUploadComponent().DeleteFileByExporterror(filesValue)
           if (e.error?.data?.list) {
             this.gridDataImport.set(e.error.data.list)
           }

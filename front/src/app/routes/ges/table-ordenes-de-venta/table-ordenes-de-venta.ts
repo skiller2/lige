@@ -39,6 +39,7 @@ export class TableOrdenesDeVentaComponent {
 
   anio = input<any>(0)
   mes = input<any>(0)
+  reloadForm = model<any>(false)
   rowLocked = signal<boolean>(false);
 
   private readonly loadingSrv = inject(LoadingService);
@@ -162,6 +163,11 @@ export class TableOrdenesDeVentaComponent {
     effect(async () => {
       if (this.anio() && this.mes()) {
         this.formChange$.next('')
+      }
+      if (this.reloadForm()) {
+        this.reloadForm.set(false)
+        this.formChange$.next('')
+       
       }
     }, { injector: this.injector });
 

@@ -16,7 +16,7 @@ export class ImporteVentaVigilanciaComponent {
   periodo = model<any>(new Date())
   anio = signal(0)
   mes = signal(0)
-
+  reloadForm = model<any>(false)
   private settingsService = inject(SettingsService)
 
   
@@ -48,4 +48,9 @@ export class ImporteVentaVigilanciaComponent {
     localStorage.setItem('mes', String(this.mes()));
 
   }
+
+  resetForm() {
+    this.reloadForm.set(true)
+  }
+
 }
