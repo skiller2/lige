@@ -26,6 +26,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     descuentoId = model<number>(0);
     personalId = model<number>(0);
     disabled = input<boolean>(false);
+    cancelDesc = input<boolean>(false);
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
 
@@ -125,6 +126,12 @@ export class DescuentosPersonalAltaDrawerComponent {
         return 0
     }
 
+    DetalleAnulacion():string {
+        const value = this.formDesc.get("DetalleAnulacion")?.value
+        if (value?.length) return value
+        return ''
+    }
+
     async ngOnInit(){}
 
     ngOnDestroy(): void {
@@ -166,6 +173,21 @@ export class DescuentosPersonalAltaDrawerComponent {
             this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
         else
             this.formDesc.get('importeCuota')?.setValue('')
+    }
+
+    async cancel(){
+        this.isLoading.set(true)
+        let values = this.formDesc.value
+        try {
+            if (this.descuentoId() && this.personalId()) {
+                await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(values))
+                this.onAddorUpdate.emit()
+                this.selectedPersonalIdChange$.next('')
+                this.formDesc.markAsUntouched()
+                this.formDesc.markAsPristine()
+            }
+        } catch (e) {}
+        this.isLoading.set(false)
     }
 
 }

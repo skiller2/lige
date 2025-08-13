@@ -474,7 +474,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         throw new ClientException("Faltan columnas en el archivo.")
       }
 
-      sheet1.data.splice(0, 2)
+      sheet1.data.splice(0, 1)
 
       for (const row of sheet1.data) {
 

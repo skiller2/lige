@@ -1610,14 +1610,14 @@ export class ApiService {
     );
   }
 
-  cancellationPersonalOtroDescuento(id: number, PersonalId: number) {
-    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/personal/`, { id, PersonalId }).pipe(
+  cancellationPersonalOtroDescuento(params: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/personal/`, params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
-  cancellationObjetivoDescuento(id: number, ObjetivoId: number) {
-    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/objetivo/`, { id, ObjetivoId }).pipe(
+  cancellationObjetivoDescuento(params:any) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/objetivo/`, params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
