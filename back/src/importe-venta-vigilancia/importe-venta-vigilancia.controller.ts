@@ -479,8 +479,8 @@ export class ImporteVentaVigilanciaController extends BaseController {
       for (const row of sheet1.data) {
 
         const clienteCUIT = row[indexCuitCliente]
-        const clienteId = row[indexCodigoObjetivo].split("/")[0]
-        const ClienteElementoDependienteId = row[indexCodigoObjetivo].split("/")[1]
+        const clienteId = String(row[indexCodigoObjetivo]).split("/")[0]
+        const ClienteElementoDependienteId = String(row[indexCodigoObjetivo]).split("/")[1]
         const importeHoraA = (Math.round(Number(row[indexImporteHoraA]) * 100) / 100)
         const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100)
 
