@@ -793,10 +793,10 @@ export class CustodiaController extends BaseController {
         if (categoria.length == 0)
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
-        if (categoria.length > 1) 
+        if (categoria.length > 1)  
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) posee mas de una categoría vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
-        if (!(Number(categoria[0].ValorLiquidacionHoraNormal)>0))
+        if (categoria.length ==1 && !(Number(categoria[0].ValorLiquidacionHoraNormal)>0))
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene cargado importe en la categoria ${categoria[0].CategoriaPersonalDescripcion} vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
         const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
