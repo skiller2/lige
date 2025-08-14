@@ -9,7 +9,7 @@ const delay = chatBotController.getDelay()
 const linkVigenciaHs = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
 
 export const flowNovedad = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic,endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
@@ -21,7 +21,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             if (![2, 9, 23, 12, 10, 16, 28, 18, 26, 11, 20, 22].includes(res[0].PersonalSituacionRevistaSituacionId)) {
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
                 stop(ctx, gotoFlow, state)
-                return
+                return endFlow()
             }
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
@@ -45,7 +45,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
     })
 
 export const flowLogin = addKeyword(EVENTS.WELCOME)
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic,endFlow }) => {
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
@@ -62,7 +62,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })
                 stop(ctx, gotoFlow, state)
-                return
+                return endFlow()
             }
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
@@ -115,7 +115,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
 export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
     .addAnswer([ 'Ingrese el código del objetivo donde se produjo el hecho' ], { capture: true, delay },
-    async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+    async (ctx, { flowDynamic, state, gotoFlow, fallBack,endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
@@ -129,14 +129,14 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
 //                    const res = await personalController.delTelefonoPersona(telefono)
                 await flowDynamic(`Demasiados reintentos`, { delay: delay })
                 stop(ctx, gotoFlow, state)
-                return
+                return endFlow()
             }
 
             await state.update({ reintento: reintento + 1 })    
             return fallBack('Código ingresado incorrecto, reintente')
         }
         const objetivo = res[0]
-        await flowDynamic([`Identidad verificada existosamente`, `Objetivo: ${objetivo.ObjetivoDescripcion}`], { delay: delay })
+        await flowDynamic([`Objetivo: ${objetivo.descripcion}`], { delay: delay })
 //                personalController.removeCode(telefono)
         const novedad = { CodObjetivo }
         await novedadController.saveNovedad(telefono, novedad)
@@ -155,7 +155,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
         await state.update({ novedad })
     })
     .addAnswer('Ingrese el número del tipo de situación', { capture: true, delay },
-    async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+    async (ctx, { flowDynamic, state, gotoFlow, fallBack,endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
@@ -169,7 +169,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
             if (reintento > 3) {
                 await flowDynamic(`Demasiados reintentos`, { delay: delay })
                 stop(ctx, gotoFlow, state)
-                return
+                return endFlow()
             }
 
             await state.update({ reintento: reintento + 1 })  
@@ -198,7 +198,7 @@ export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadHora = addKeyword(EVENTS.ACTION)
     .addAnswer(['Ingrese la hora de cuando se produjo el hecho (hh:mm)'], { capture: true, delay },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack,endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const telefono = ctx.from
@@ -210,7 +210,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
                     stop(ctx, gotoFlow, state)
-                    return
+                    return endFlow()
                 }
 
                 await state.update({ reintento: reintento + 1 })  
@@ -227,7 +227,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
     .addAnswer(['Ingrese la fecha de cuando se produjo el hecho (dd/mm/aaaa)'], { capture: true, delay },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack,endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const telefono = ctx.from
@@ -239,7 +239,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
                     stop(ctx, gotoFlow, state)
-                    return
+                    return endFlow()
                 }
 
                 await state.update({ reintento: reintento + 1 })  
