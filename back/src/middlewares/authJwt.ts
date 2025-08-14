@@ -62,10 +62,10 @@ export class AuthMiddleware {
 
     if (req?.groups.find((r: any) => r.localeCompare('MDQ') == 0)) {
       res.locals.filterSucursal.push(3)
-    } 
+    }
     if (req?.groups.find((r: string) => r.localeCompare('FORMOSA') == 0)) {
       res.locals.filterSucursal.push(2)
-    } 
+    }
     if (req?.groups.find((r: string) => r.localeCompare('CENTRAL') == 0)) {
       res.locals.filterSucursal.push(1)
     }
@@ -73,7 +73,7 @@ export class AuthMiddleware {
     //      res.locals.filterSucursal.push(2)
     console.log('filterSucursal', res.locals.filterSucursal, req?.groups);
     console.log(res.locals);
-    
+
     return next()
   }
 
@@ -272,6 +272,90 @@ export class AuthMiddleware {
               // Si el tipo de documento tiene permisos, se valida
               if (!DocumentoTipo[0].json_permisos_act_dir) return next();
               return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+            }
+
+            return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
+
+          case 'Documento':
+            if (documentId) {
+              // Verificar existencia del documento
+
+              Documento = await queryRunner.query(
+                ` SELECT doc.DocumentoId, doc.PersonalId ,doctip.DocumentoTipoJsonPermisosActDir, doctip.DocumentoTipoCodigo
+                FROM Documento doc
+                LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoId = doc.DocumentoId
+                WHERE doc.DocumentoId = @0`,
+                [documentId]
+              );
+
+
+              const doc = Documento[0];
+              const DocumentoPersonalId = doc.persona_id;
+
+              // Si el documento no tiene persona_id ni DocumentoTipoJsonPermisosActDir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
+
+              if (Documento.length === 0) return next();
+              if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
+
+              const documentoTipoIdOld = doc.doctipo_id
+              const documentoTipoIdNew = req.body.doctipo_id
+              // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
+              if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
+                const permisosADDocumentoTipo = await queryRunner.query(
+                  ` SELECT DocumentoTipoJsonPermisosActDir
+                FROM DocumentoTipo
+                WHERE DocumentoTipoCodigo = @0`,
+                  [documentoTipoIdNew]
+                );
+                // Si el tipo de documento tiene permisos, se valida
+                if (permisosADDocumentoTipo[0].DocumentoTipoJsonPermisosActDir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].DocumentoTipoJsonPermisosActDir)(req, res, next);
+              }
+
+              if (!doc.persona_id && !doc.DocumentoTipoJsonPermisosActDir || !doc.DocumentoTipoJsonPermisosActDir) return next();
+
+              // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
+              if (doc.persona_id && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
+                const anio = stmActual.getFullYear();
+                const mes = stmActual.getMonth() + 1;
+
+                const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+                const listGrupos = grupos.map(row => row.GrupoActividadId);
+
+                if (listGrupos.length > 0) {
+                  const resPers = await queryRunner.query(`
+                    SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+                    WHERE gap.GrupoActividadPersonalPersonalId = @0  
+                    AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+                    AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+                    AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+                    UNION
+                    SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+                    WHERE gap.GrupoActividadJerarquicoPersonalId = @0  
+                    AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+                    AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+                    AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+                    AND gap.GrupoActividadJerarquicoComo = 'J'
+                `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
+                  if (resPers.length > 0) return next();
+                }
+              }
+
+              // Si el documento tiene DocumentoTipoJsonPermisosActDir, se valida
+              return this.validateJsonPermisosActDir(doc.DocumentoTipoJsonPermisosActDir)(req, res, next);
+            }
+
+            if (documentType) {
+              // Si no se pasa el id del documento, pero si el tipo de documento, se verifica los permisos del tipo de documento
+              const DocumentoTipo = await queryRunner.query(
+                ` SELECT DocumentoTipoJsonPermisosActDir
+              FROM DocumentoTipo
+              WHERE DocumentoTipoCodigo = @0`,
+                [documentType]
+              );
+
+              // Si el tipo de documento tiene permisos, se valida
+              if (!DocumentoTipo[0].DocumentoTipoJsonPermisosActDir) return next();
+              return this.validateJsonPermisosActDir(DocumentoTipo[0].DocumentoTipoJsonPermisosActDir)(req, res, next);
             }
 
             return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
