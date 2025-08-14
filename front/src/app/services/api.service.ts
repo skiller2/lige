@@ -1470,6 +1470,15 @@ export class ApiService {
 
   }
 
+  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date) {
+    const parameter = { files, anio, mes, fecha }
+    return this.http.post<ResponseJSON<any>>(`api/telefonia/import-xls-telefonia`, parameter)
+      .pipe(
+          tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+
+  }
+
   getDescuentosPrepaga(options: any, anio: number, mes: number) {
     if (!anio && !mes) return of([]);
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, { options, anio, mes })

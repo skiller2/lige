@@ -1,6 +1,7 @@
+
 <nz-card class="small-margin">
 
-  <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" (ngModelChange)="onChange($event)" />
+  <nz-date-picker  nzMode="month" name="periodo" [(ngModel)]="periodo" (ngModelChange)="onChange($event)" />
 
   <nz-form-item>
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
@@ -13,7 +14,7 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'telefonia','listado']">Listado</a>
+      <a [routerLink]="['/', 'ges', 'telefonia','listado']" (click)="reloadGrid()">Listado</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -30,7 +31,7 @@
     </li>
   </ul>
 
-
+  <form nz-form #telefonoForm="ngForm" [formGroup]="ngForm">
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
@@ -49,14 +50,13 @@
       <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
       <ng-template nz-tab >
 
-      <form nz-form #telefonoForm="ngForm">
+     
         <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
-        <nz-form-item>
+        <!--<nz-form-item>
           <nz-form-label class="inputText" >Archivo Telefonía</nz-form-label>
           <nz-form-control>
             <ng-container>
-              <!-- input #cuitForzado type="number" [placeholder]="'CUIT'" nz-input name="cuitForzado" ngModel / -->
 
               <nz-upload nzAccept="application/xls" nzAction="/api/telefonia/upload" [nzData]="{
               anio: anio,
@@ -70,7 +70,14 @@
               </nz-upload>
             </ng-container>
           </nz-form-control>
+        </nz-form-item>-->
+
+        <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
+          <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>  
+            <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
+              [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="false"></app-file-upload>
         </nz-form-item>
+        
         <nz-form-item>
           <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
           <nz-form-control>
@@ -87,11 +94,11 @@
           </nz-form-control>
         </nz-form-item>
       </nz-spin>
-      </form>
+    
 
         <div class="gridContainer container-fluid">
           <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnsImport | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridDataImport$ | async) || []">
+            [gridOptions]="gridOptions" [dataset]="gridDataImport()">
           </angular-slickgrid>
         </div>
         <div>Registros: {{ gridDataImportLen }}</div>
@@ -100,4 +107,5 @@
 
     </nz-tab>
   </nz-tabset>
+</form>
 </nz-card>

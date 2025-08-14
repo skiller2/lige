@@ -181,7 +181,7 @@ export class TelefoniaController extends BaseController {
       if (!data[0])
         throw new ClientException(`Archivo de telefono no generado`)
 
-      res.download(this.directory + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
+      res.download(this.directory + '/' + data[0].DocumentoPath, data[0].DocumentoNombreArchivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           return next(error)
@@ -241,18 +241,17 @@ export class TelefoniaController extends BaseController {
     }
   }
 
-  async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
-    const file = req.file;
+  async handleXLSUploadTelefonia(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
+    const file = req.body.files
     const fechaRequest = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
-    console.log("file", file)
-    
+    //console.log("req.body", req.body)
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
@@ -283,18 +282,18 @@ export class TelefoniaController extends BaseController {
       let idTelefonia = await this.getProxNumero(queryRunner, `idtelefonia`, usuario, ip)
 
 
-      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-      const newFilePath = `${this.directory
-        }/${anioRequest}/${anioRequest}-${mesRequest
-          .toString()
-          .padStart(2, "0")}-${docgeneral}.xls`;
+     // mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+      //const newFilePath = `${this.directory
+      //  }/${anioRequest}/${anioRequest}-${mesRequest
+      //    .toString()
+      //    .padStart(2, "0")}-${docgeneral}.xls`;
 
-      if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
+      //if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
       const now = fechaRequest
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
 
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
       //      console.log('telefonos', telefonos)
 
@@ -686,7 +685,7 @@ export class TelefoniaController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
-      unlinkSync(file.path);
+     // unlinkSync(file.path);
     }
   }
 
