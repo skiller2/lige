@@ -10,7 +10,7 @@ import { recibosController } from "src/controller/controller.module";
 import { FileUploadController } from "src/controller/file-upload.controller";
 
 export class TelefoniaController extends BaseController {
-  directory = process.env.PATH_TELEFONIA || "tmp";
+  directory = process.env.PATH_DOCUMENTS || "tmp";
   constructor() {
     super();
     if (!existsSync(this.directory)) {
@@ -174,7 +174,7 @@ export class TelefoniaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const data = await queryRunner.query(`SELECT path, nombre_archivo FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`,
+      const data = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM documento WHERE DocumentoId = @0`,
         [impoexpoId]
       )
 
@@ -708,7 +708,7 @@ export class TelefoniaController extends BaseController {
 
       const importacionesAnteriores = await dataSource.query(
 
-        `SELECT 
+        /*`SELECT 
         doc.doc_id AS id, doc.path, 
         doc.nombre_archivo AS nombre, 
         doc.path, 
@@ -720,6 +720,12 @@ export class TelefoniaController extends BaseController {
         per.anio = @0 
         AND per.mes = @1 
         AND doc.doctipo_id = 'TEL'`,
+        [Number(Anio), Number(Mes)]) */
+
+        
+        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
+        FROM documento 
+        WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'TEL'`,
         [Number(Anio), Number(Mes)])
 
       this.jsonRes(

@@ -71,24 +71,24 @@
             </ng-container>
           </nz-form-control>
         </nz-form-item>-->
-
         <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
           <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>  
             <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
-              [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" [showTipoDocs]="false"></app-file-upload>
+            [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
         </nz-form-item>
         
         <nz-form-item>
           <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
           <nz-form-control>
+
             <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
               <!-- <ng-container > -->
               <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle={{1}}>
                  <ng-container>
-                    <a app-down-file  httpUrl="/api/telefonia/download/{{anio}}/{{mes}}/{{movimiento.id}}">
+                    <a app-down-file  httpUrl="/api/telefonia/download/{{anio}}/{{mes}}/{{movimiento.DocumentoId}}">
                     <span nz-icon nzType="download" ></span></a>
                   </ng-container>
-                <span> ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
+                <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
               </div>
             </ng-container>
           </nz-form-control>
