@@ -16,7 +16,7 @@ import flowInformacionPersonal from "./flow/flowInformacionPersonal.ts";
 import flowInformacionEmpresa from "./flow/flowInformacionEmpresa.ts";
 import { flowDescargaDocs } from "./flow/flowDescargaDocs.ts";
 import { Utils } from "./controller/util.ts";
-import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadInforme, flowNovedadEnvio } from "./flow/flowNovedad.ts";
+import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio } from "./flow/flowNovedad.ts";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -71,7 +71,7 @@ export class BotServer {
     const adapterFlow = createFlow([
       flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo,
       flowRemoveTel, idleFlow, flowInformacionPersonal, flowInformacionEmpresa, flowDescargaDocs,
-      flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadInforme, flowNovedadEnvio
+      flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio
     ])
     this.adapterProvider = createProvider(Provider, {
       timeRelease: 10800000, // 3 hours in milliseconds
