@@ -278,17 +278,9 @@ export class TelefoniaController extends BaseController {
       let datasetid = 0
 
 
-      let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-      let idTelefonia = await this.getProxNumero(queryRunner, `idtelefonia`, usuario, ip)
+      let getProxNumero = await this.getProxNumero(queryRunner, `documento`, usuario, ip)
 
 
-     // mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-      //const newFilePath = `${this.directory
-      //  }/${anioRequest}/${anioRequest}-${mesRequest
-      //    .toString()
-      //    .padStart(2, "0")}-${docgeneral}.xls`;
-
-      //if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
       const now = fechaRequest
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
@@ -657,14 +649,14 @@ export class TelefoniaController extends BaseController {
       //      throw new ClientException(`OKA`)
 
       //   copyFileSync(file.path, newFilePath);
-      let nombre_archivo = `${anioRequest}-${mesRequest.toString().padStart(2, "0")}-${docgeneral}.xls`
+      let nombre_archivo = `${anioRequest}-${mesRequest.toString().padStart(2, "0")}-${getProxNumero}.xls`
 
         file.filename = nombre_archivo
         await FileUploadController.handleDOCUpload(
           null, 
           null, 
           null, 
-          docgeneral, 
+          getProxNumero, 
           new Date(), 
           null, 
           null,
@@ -707,20 +699,6 @@ export class TelefoniaController extends BaseController {
 
 
       const importacionesAnteriores = await dataSource.query(
-
-        /*`SELECT 
-        doc.doc_id AS id, doc.path, 
-        doc.nombre_archivo AS nombre, 
-        doc.path, 
-        doc.aud_fecha_ins AS fecha,
-        per.periodo_id,per.anio,per.mes
-        FROM lige.dbo.docgeneral doc
-        JOIN lige.dbo.liqmaperiodo per ON doc.periodo = per.periodo_id
-        WHERE 
-        per.anio = @0 
-        AND per.mes = @1 
-        AND doc.doctipo_id = 'TEL'`,
-        [Number(Anio), Number(Mes)]) */
 
         
         `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes

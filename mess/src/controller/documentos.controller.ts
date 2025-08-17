@@ -20,9 +20,9 @@ export class DocumentosController extends BaseController {
     try {
       // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
-        SELECT TOP ${cant} per.periodo_id, per.anio, per.mes FROM lige.dbo.liqmaperiodo per
-        JOIN lige.dbo.docgeneral doc ON per.periodo_id = doc.periodo
-        WHERE doc.persona_id = @0 AND doctipo_id = 'REC'      
+        SELECT TOP ${cant} per.anio, per.mes FROM lige.dbo.liqmaperiodo per
+        JOIN documento doc ON per.anio = doc.Documentoanio AND per.mes = doc.Documentomes
+        WHERE doc.personalid = @0 AND doc.DocumentoTipoCodigo = 'REC'      
         ORDER BY per.anio DESC,per.mes DESC`, 
         [personalId])
       // await queryRunner.commitTransaction()

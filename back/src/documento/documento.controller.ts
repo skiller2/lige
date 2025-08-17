@@ -276,20 +276,20 @@ export class DocumentoController extends BaseController {
   async getdocgenralListQuery(filterSql: any, orderBy: any) {
 
     const result = await dataSource.query(`
-      SELECT docg.doc_id AS id,
-      docg.den_documento,
+      SELECT docg.DocumentoId AS id,
+      docg.DocumentoDenominadorDocumento,
       tipo.detalle AS tipo, 
-      docg.fecha, docg.fec_doc_ven,
+      docg.Documentofecha, docg.DocumentoFechaDocumentoVencimiento,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
       obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
-      FROM lige.dbo.docgeneral AS docg 
-      LEFT JOIN lige.dbo.doctipo AS tipo ON docg.doctipo_id = tipo.doctipo_id
-      LEFT JOIN Personal AS pers ON docg.persona_id = pers.PersonalId 
-      LEFT JOIN Objetivo AS obj ON docg.objetivo_id = obj.ObjetivoId
+      FROM documento AS docg   
+      LEFT JOIN lige.dbo.doctipo AS tipo ON docg.DocumentoTipoCodigo = tipo.doctipo_id
+      LEFT JOIN Personal AS pers ON docg.PersonalId = pers.PersonalId 
+      LEFT JOIN Objetivo AS obj ON docg.ObjetivoId = obj.ObjetivoId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
-      LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.periodo = per.periodo_id
-      LEFT JOIN lige.dbo.Cliente AS cli ON docg.cliente_id = cli.ClienteId
+      LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.Documentoanio = per.anio AND docg.Documentomes = per.mes
+      LEFT JOIN lige.dbo.Cliente AS cli ON docg.DocumentoClienteId = cli.ClienteId
       WHERE ${filterSql}
       ${orderBy}
     `,)
@@ -504,16 +504,16 @@ export class DocumentoController extends BaseController {
 
       if (telefonos.length) {
         const doc = await queryRunner.query(`
-          SELECT doctipo_id, persona_id, objetivo_id, cliente_id, ind_descarga_bot
-          FROM lige.dbo.docgeneral
-          WHERE doc_id IN (@0)
+          SELECT DocumentoTipoCodigo, PersonalId, ObjetivoId, DocumentoClienteId, DocumentoIndividuoDescargaBot
+          FROM documento
+          WHERE DocumentoId IN (@0)
         `, [doc_id])
 
-        if (doc[0].doctipo_id != doctipo_id
-          || doc[0].persona_id != persona_id
-          || doc[0].objetivo_id != objetivo_id
-          || doc[0].cliente_id != cliente_id
-          || doc[0].ind_descarga_bot != ind_descarga_bot
+        if (doc[0].DocumentoTipoCodigo != doctipo_id
+          || doc[0].PersonalId != persona_id
+          || doc[0].ObjetivoId != objetivo_id
+          || doc[0].DocumentoClienteId != cliente_id
+          || doc[0].DocumentoIndividuoDescargaBot != ind_descarga_bot
         ) {
           throw new ClientException('El Documento tiene registros de descarga. Solo se puede modificar la fecha desde, hasta y la denominacion del documento.')
         }
@@ -530,7 +530,6 @@ export class DocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      //const archivo = [{ doc_id, doctipo_id, tableForSearch: 'docgeneral', den_documento, persona_id, cliente_id, objetivo_id, fecha, fec_doc_ven }]
 
       if (req.body.archivo) {
         const archivosActualizados = req.body.archivo.map(file => ({
@@ -588,12 +587,12 @@ export class DocumentoController extends BaseController {
     try {
       await queryRunner.startTransaction()
       const doc = await queryRunner.query(`
-        SELECT doc_id, periodo, fecha, fec_doc_ven, doctipo_id,
-        persona_id, objetivo_id, den_documento, cliente_id,
-        RIGHT(nombre_archivo, CHARINDEX('.', REVERSE(nombre_archivo)) - 1) AS extension,
-        nombre_archivo, ind_descarga_bot
-        FROM lige.dbo.docgeneral
-        WHERE doc_id IN (@0)
+        SELECT DocumentoId, Documentoanio, Documentomes, Documentofecha, DocumentoFechaDocumentoVencimiento, DocumentoTipoCodigo,
+        PersonalId, ObjetivoId, DocumentoDenominadorDocumento, DocumentoClienteId,
+        RIGHT(DocumentoNombreArchivo, CHARINDEX('.', REVERSE(DocumentoNombreArchivo)) - 1) AS extension,
+        DocumentoNombreArchivo, DocumentoIndividuoDescargaBot
+        FROM documento
+        WHERE DocumentoId IN (@0)
       `, [doc_id])
       await queryRunner.commitTransaction()
       this.jsonRes(doc[0], res, 'Carga Exitosa');

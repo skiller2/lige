@@ -101,7 +101,8 @@
          <nz-form-control>
           <!-- DocumentoId: {{ngForm().value.DocumentoId}} -->
             <app-file-upload  ngModel name="files"   [idForSearh]="this.ngForm().value.DocumentoId ?? 0"
-            [textForSearch]="'LIC'" [columnForSearch]="'doc_id'" [tableForSearch]="'docgeneral'" ></app-file-upload>
+            [textForSearch]="'LIC'"
+            [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" ></app-file-upload>
           </nz-form-control>
       
 

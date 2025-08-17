@@ -230,7 +230,7 @@ export class DocumentoComponent {
     try {
       const id = this.docId();
       if (id != null) {
-        await firstValueFrom(this.apiService.deleteDocumento(id, 'docgeneral'));
+        await firstValueFrom(this.apiService.deleteDocumento(id, 'documento'));
         // Emito cambio para refrescar la lista, el grid, etc.
         this.formChange$.next('');
       }

@@ -285,10 +285,10 @@ export class AyudaAsistencialController extends BaseController {
 
   async getReciboQuery(queryRunner:any, PersonalId:number, anio:number, mes:number){
     return await queryRunner.query(`
-      SELECT doc.doc_id
-      FROM lige.dbo.docgeneral doc
-      LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
-      WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND doc.doctipo_id='REC' 
+      SELECT doc.DocumentoId
+      FROM documento doc 
+      LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.anio = doc.DocumentoAnio AND liqp.mes = doc.DocumentoMes
+      WHERE doc.PersonalId = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND doc.DocumentoTipoCodigo='REC' 
       `, [PersonalId, anio, mes])
   }
 
