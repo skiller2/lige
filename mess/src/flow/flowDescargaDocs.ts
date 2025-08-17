@@ -56,6 +56,9 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
 
 
             } else {
+                if (process.env.PERSONALID_TEST) { 
+                    return gotoFlow(flowMenu)
+                }
                 stop(ctx, gotoFlow, state)
                 return endFlow()
             }

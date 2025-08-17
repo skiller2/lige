@@ -10,9 +10,13 @@ export class ObjetivoController extends BaseController {
     const ClienteId:number = parseInt(array[0])
     const ClienteElementoDependienteId:number = parseInt(array[1])
     const res = await dbServer.dataSource.query(`
-      SELECT ObjetivoId, ObjetivoDescripcion
-      FROM Objetivo
-      WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1
+      SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+        CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
+        ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
+        FROM Objetivo obj 
+        JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        JOIN ClienteElementoDependiente ele ON ele.ClienteId = obj.ClienteId AND ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      WHERE obj.ClienteId = @0 AND obj.ClienteElementoDependienteId = @1
       `, [ClienteId, ClienteElementoDependienteId]
     )
     return res

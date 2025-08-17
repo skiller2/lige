@@ -7,12 +7,17 @@ export class NovedadController extends BaseController {
 
   async saveNovedad(telefono: string, novedad:any) {
     const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)
-    return await dbServer.dataSource.query(`
+      const queryRunner = dbServer.dataSource.createQueryRunner();
+    
+
+    const res = await queryRunner.query(`
       UPDATE lige.dbo.regtelefonopersonal
       SET incidente = @1
       WHERE telefono = @0
-      `, [telefono, jsonNovedad]
+      `, [telefono, jsonNovedad],true
     )
+
+    return res
   }
 
   async getBackupNovedad(telefono: string) {
@@ -22,7 +27,7 @@ export class NovedadController extends BaseController {
       WHERE telefono = @0
       `, [telefono]
     )
-    return result
+    return result[0]??{}
   }
 
   async addNovedad(novedad: any, Telefono:string, PersonalId:number) {
