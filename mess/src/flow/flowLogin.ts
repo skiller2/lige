@@ -13,7 +13,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
     })
     .addAnswer([`Ingrese el código proporcionado en la página web 'Validación de Identidad', en caso de desconocerlo ingrese 0 para ir al inicio`], { capture: true, delay: delay },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack,endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
             const res = await personalController.getPersonalQuery(telefono,0)
@@ -22,7 +22,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                     await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
                     stop(ctx, gotoFlow, state)
-                    return
+                    return endFlow()
                 }
     
                 await state.update({ personalId: res[0].personalId })
@@ -46,7 +46,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                     const res = await personalController.delTelefonoPersona(telefono)
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
                     stop(ctx,gotoFlow, state)
-                    return
+                    return endFlow()
                 }
 
                 await state.update({ reintento: reintento + 1 })    
@@ -55,7 +55,14 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
         })
 
 export const flowLogin = addKeyword(EVENTS.WELCOME)
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        //FIX por si entra 2 veces, ignora la segunda
+        const currState = state.getMyState()
+        if (currState?.flowLogin == 1)
+            return endFlow()
+        
+        await state.update({ flowLogin: 1 })
+
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
@@ -72,7 +79,8 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })
                 stop(ctx, gotoFlow, state)
-                return
+                await state.update({ flowLogin: 0 })
+                return endFlow()
             }
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
@@ -95,6 +103,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             if (fistName)
                 await flowDynamic(`${mensaje} ${fistName.charAt(0).toUpperCase() + fistName.slice(1).toLowerCase()}`, { delay: delay })
 
+            await state.update({ flowLogin: 0 })
             if (res[0].codigo) {
                 //Código pendiente de ingreso
                 return gotoFlow(flowValidateCode)
@@ -102,7 +111,6 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 //                return gotoFlow(flowMenu)
                 return gotoFlow(flowDescargaDocs)
             }
-
         }
     })
     .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },

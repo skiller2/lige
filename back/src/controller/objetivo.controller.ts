@@ -3,7 +3,7 @@ import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
 import { ObjetivoInfo } from "../schemas/ResponseJSON";
 import { NextFunction } from "express-serve-static-core";
-import { QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
+import { QueryRunner } from "typeorm";
 
 export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
@@ -14,7 +14,7 @@ export class ObjetivoController extends BaseController {
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
         JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = obj.ClienteId AND ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        JOIN ClienteElementoDependiente ele ON ele.ClienteId = obj.ClienteId AND ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         WHERE obj.ObjetivoId = @0`,
         [objetivoId]
       );

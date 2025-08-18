@@ -1,18 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, inject, signal, viewChild, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, Observable, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { FormBuilder, FormArray } from '@angular/forms';
+import { LoadingService } from '@delon/abc/loading';
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
 
 @Component({
@@ -24,8 +27,10 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
         SHARED_IMPORTS,
         NzAffixModule,
         FiltroBuilderComponent,
-        NzUploadModule
+        NzUploadModule,
+        FileUploadComponent
     ],
+    standalone: true,
     providers: [AngularUtilService]
 })
 export class TelefoniaComponent {
@@ -39,17 +44,19 @@ export class TelefoniaComponent {
   filesChange$ = new BehaviorSubject('');
   uploading$ = new BehaviorSubject({loading:false,event:null});
   excelExportService = new ExcelExportService()
-
+  gridDataImport = signal([])
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
   gridOptions!: GridOption;
   detailViewRowCount = 9;
+  fileUploadComponent = viewChild.required(FileUploadComponent);
 
   gridDataLen = 0
   gridDataImportLen = 0
   toggle = false
 
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
+  private readonly loadingSrv = inject(LoadingService);
 
 
   listOptions: listOptionsT = {
@@ -118,11 +125,38 @@ export class TelefoniaComponent {
     })
   );
 
+  fb = inject(FormBuilder)
+  ngForm = this.fb.group({ files: [] })
+
   ngOnInit(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+
+    
+    // Escuchar cambios en ngForm.files
+    this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
+      if (filesValue.length > 0) {
+        this.loadingSrv.open({ type: 'spin', text: '' })
+
+        this.gridDataImport.set([])
+
+        try {
+          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio, this.mes,this.fecha))
+        this.formChange$.next('changed');
+        this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+        } catch (e: any) {
+          this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+          if (e.error?.data?.list) {
+            this.gridDataImport.set(e.error.data.list)
+          }
+          this.uploading$.next({ loading: false, event: null })
+        }
+        this.loadingSrv.close()
+
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -193,36 +227,10 @@ export class TelefoniaComponent {
     })
   }
 
-  uploadChange(event: any) {
-    switch (event.type) {
-      case 'start':
-        this.uploading$.next({ loading: true, event })
-        this.gridDataImport$.next([])
-        this.gridDataImportLen = 0
-        
-        break;
-      case 'progress':
 
-        break;
-      case 'error':
-        const Error = event.file.error
-        if (Error.error.data?.list) {
-          this.gridDataImport$.next(Error.error.data?.list)
-          this.gridDataImportLen = Error.error.data?.list?.length
-        }
-        this.uploading$.next({ loading:false,event })
-        break;
-      case 'success':
-        const Response = event.file.response
-        this.gridDataImport$.next([])
-        this.gridDataImportLen = 0
-        this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response)        
-        break
-      default:
-        break;
-    }
-
+  reloadGrid() {
+    this.filesChange$.next('')
+    this.formChange$.next('changed')
   }
 
 }

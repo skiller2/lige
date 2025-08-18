@@ -213,7 +213,7 @@ export class ImpuestosAfipController extends BaseController {
 
     return dataSource.query(
       `SELECT DISTINCT 
-      CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId,'-',doc.doc_id) id,
+      CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId,'-',doc.DocumentoId) id,
       per.PersonalId PersonalId,
       
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -224,7 +224,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       des.PersonalOtroDescuentoImporteVariable montodescuento, 
     excep.PersonalExencionCUIT, 
  	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
- 	 doc.doc_id, doc.path,
+ 	 doc.DocumentoId, doc.DocumentoPath,
     2
      FROM PersonalImpuestoAFIP imp
 
@@ -233,12 +233,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
      LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
 
      LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
-     LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = com.PersonalId AND doc.doctipo_id='MONOT' AND doc.periodo = peri.periodo_id
+     LEFT JOIN documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes 
 
-     
-	
-  
-  
 	LEFT JOIN 
   	( SELECT  gap2.GrupoActividadPersonalPersonalId, MAX(gap2.GrupoActividadId) GrupoActividadId FROM GrupoActividadPersonal gap2
 	  WHERE 
@@ -250,7 +246,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
   LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
   LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
-
 
   LEFT JOIN 
 		(
@@ -446,10 +441,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     let PersonalOtroDescuentoUltNro = Number(personalIDQuery.PersonalOtroDescuentoUltNro);
 
     const alreadyExists = await queryRunner.query(
-      `SELECT pag.PersonalComprobantePagoAFIPId, pag.PersonalComprobantePagoAFIPImporte, pag.PersonalComprobantePagoAFIPAno,pag.PersonalComprobantePagoAFIPMes,doc.doc_id
+      `SELECT pag.PersonalComprobantePagoAFIPId, pag.PersonalComprobantePagoAFIPImporte, pag.PersonalComprobantePagoAFIPAno,pag.PersonalComprobantePagoAFIPMes,doc.DocumentoId
         FROM PersonalComprobantePagoAFIP pag 
         LEFT JOIN lige.dbo.liqmaperiodo per ON per.anio = @1 AND per.mes = @2
-        LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = pag.PersonalId AND doc.doctipo_id='MONOT' AND doc.periodo = per.periodo_id
+        LEFT JOIN documento doc ON doc.PersonalId = pag.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = per.anio AND doc.DocumentoMes = per.mes
         WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2
 `,
       [
@@ -539,7 +534,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     if (updateFile || forzado) {
         const fileObj = {
           doctipo_id: "MONOT", 
-          tableForSearch: "docgeneral", 
+          tableForSearch: "documento", 
           ind_descarga_bot: 0, 
           tempfilename: file.filename, 
           originalname: file.originalname, 
@@ -1076,13 +1071,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         `SELECT DISTINCT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
-        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, doc.doc_id, doc.path, doc.nombre_archivo,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, doc.DocumentoId, doc.DocumentoPath, doc.DocumentoNombreArchivo,
         1
         FROM Personal per
         JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
 
         LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
-        LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = com.PersonalId AND doc.doctipo_id='MONOT' AND doc.periodo = peri.periodo_id
+        LEFT JOIN documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes
 
 
         LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)

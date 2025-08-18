@@ -153,16 +153,4 @@ export class PersonalDocumentosDrawerComponent {
         this.modalViewerVisiable1.set(false)
         this.modalViewerVisiable2.set(false)
     }
-
-    // async ChangeDocId(docId:number, tableName:string){
-    //     console.log('docId: ', docId);
-    //     //Problemas al buscar el documento, debido a que hay que buscar en diferentes tablas
-    //     if (docId && tableName === 'docgeneral') {
-    //         //Solo busca en la tabla docgeneral
-    //         let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(docId))
-    //         this.tableName.set(tableName)
-    //         this.formDocumento.reset(infoDoc)
-    //         console.log('infoDoc: ', infoDoc);
-    //     }
-    // }
 }
