@@ -5,7 +5,7 @@ import { botServer, dbServer } from "../index.ts";
 
 export class NovedadController extends BaseController {
 
-  async saveNovedad(telefono: string, novedad:any) {
+  async saveNovedad(personalId: string, novedad:any) {
     const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)
       const queryRunner = dbServer.dataSource.createQueryRunner();
     
@@ -13,21 +13,21 @@ export class NovedadController extends BaseController {
     const res = await queryRunner.query(`
       UPDATE lige.dbo.regtelefonopersonal
       SET incidente = @1
-      WHERE telefono = @0
-      `, [telefono, jsonNovedad],true
+      WHERE personal_id = @0
+      `, [personalId, jsonNovedad],true
     )
 
     return res
   }
 
-  async getBackupNovedad(telefono: string) {
+  async getBackupNovedad(personalId: string) {
     const result = await dbServer.dataSource.query(`
       SELECT incidente AS novedad
       FROM lige.dbo.regtelefonopersonal
-      WHERE telefono = @0
-      `, [telefono]
+      WHERE personal_id = @0
+      `, [personalId]
     )
-    return result[0]??{}
+    return JSON.parse(result[0].novedad) ??{}
   }
 
   async addNovedad(novedad: any, Telefono:string, PersonalId:number) {

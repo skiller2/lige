@@ -9,8 +9,8 @@ const delay = chatBotController.getDelay()
 export const flowNovedad = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-        const telefono = ctx.from
-        const novedad = await novedadController.getBackupNovedad(telefono)
+        const personalId = state.get('personalId')
+        const novedad = await novedadController.getBackupNovedad(personalId)
         await flowDynamic([
             `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ?? 's/d'}\n` +
@@ -92,15 +92,13 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
             const CodObjetivo = ctx.body
             const data = state.getMyState()
-
+            
             const res = await objetivoController.getObjetivoByCodObjetivo(CodObjetivo)
             if (!res.length) {
                 const reintento = (data.reintento) ? data.reintento : 0
                 if (reintento > 3) {
-                    //                    const res = await personalController.delTelefonoPersona(telefono)
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
                     stop(ctx, gotoFlow, state)
                     return endFlow()
@@ -111,29 +109,28 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
             }
             const objetivo = res[0]
             await flowDynamic([`Objetivo: ${objetivo.descripcion}`], { delay: delay })
-            //                personalController.removeCode(telefono)
             const novedad = state.get('novedad') ?? {}
             novedad.CodObjetivo = CodObjetivo
-            await novedadController.saveNovedad(telefono, novedad)
+            await novedadController.saveNovedad(data.personalId, novedad)
             await state.update({ novedad, reintento: 0 })
 
             return gotoFlow(flowNovedad)
         })
 
 export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { flowDynamic, state }) => {
+    .addAction(async (ctx, { flowDynamic, state,gotoFlow }) => {
         const res = await novedadController.getNovedadTipo()
         const novedad = state.get('novedad')
         const concatOptionsTipo = res.map((item: any, i: number) => `${i + 1}- ${item.Descripcion}`).join('\n');
         await flowDynamic(`${concatOptionsTipo}`, { delay: delay })
         novedad.OptionsTipo = res
         await state.update({ novedad })
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
     })
     .addAnswer('Ingrese el número del tipo de situación', { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
             const data = state.getMyState()
             const novedad = state.get('novedad') ?? {}
             const OptionsTipo = novedad.OptionsTipo
@@ -152,7 +149,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
             }
             novedad.Tipo = OptionsTipo[indexTipo - 1]
             delete novedad.OptionsTipo
-            await novedadController.saveNovedad(telefono, novedad)
+            await novedadController.saveNovedad(data.personalId, novedad)
             await state.update({ novedad, reintento: 0 })
             return gotoFlow(flowNovedad)
         })
@@ -162,21 +159,24 @@ export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
         async (ctx, { state, gotoFlow, }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
             const novedad = state.get('novedad') ?? {}
+            const personalId = state.get('personalId') ?? {}
             novedad.Descripcion = ctx.body
-            await novedadController.saveNovedad(telefono, novedad)
+            await novedadController.saveNovedad(personalId, novedad)
             await state.update({ novedad })
 
             return gotoFlow(flowNovedad)
         })
 
 export const flowNovedadHora = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { flowDynamic, state,gotoFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+    })
+    
     .addAnswer(['Ingrese la hora de cuando se produjo el hecho (hh:mm)'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
             const data = state.getMyState()
             const Hora = ctx.body
 
@@ -194,7 +194,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
 
             const novedad = state.get('novedad') ?? {}
             novedad.Hora = Hora
-            await novedadController.saveNovedad(telefono, novedad)
+            await novedadController.saveNovedad(data.personalId, novedad)
             await state.update({ novedad, reintento: 0 })
 
             return gotoFlow(flowNovedad)
@@ -205,7 +205,6 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const telefono = ctx.from
             const data = state.getMyState()
             const Fecha = ctx.body
 
@@ -222,7 +221,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
             }
             const novedad = state.get('novedad') ?? {}
             novedad.Fecha = Fecha
-            await novedadController.saveNovedad(telefono, novedad)
+            await novedadController.saveNovedad(data.personalId, novedad)
             await state.update({ novedad, reintento: 0 })
 
             return gotoFlow(flowNovedad)
@@ -233,22 +232,18 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
     .addAnswer('Enviar al responsable (si/no)', { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-
-            let myState = state.getMyState()
             const novedad = state.get('novedad')
             const personalId = state.get('personalId')
-            const respuesta = ctx.body
+            const respSINO = ctx.body
             const telefono = ctx.from
-            if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
+            if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 await novedadController.addNovedad(novedad, telefono, personalId)
-                await novedadController.saveNovedad(telefono, {})
+                await novedadController.saveNovedad(personalId, {})
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
-            } else if (respuesta != 'no' && respuesta != 'No' && respuesta != 'NO') {
+            } else {
                 return fallBack()
             }
-            delete myState.novedad
-            delete myState.reintento
-            await state.update(myState)
+            await state.update({ nodedad:{},reintento:0 })
             return gotoFlow(flowMenu)
         })
 
