@@ -47,7 +47,7 @@ export class PersonalDocumentosDrawerComponent {
             const newId:number = this.PersonalId()
             if (newId > 0) {
                 this.formDocumento.reset()
-                this.formDocumento.get('persona_id')?.setValue(newId)
+                this.formDocumento.get('PersonalId')?.setValue(newId)
             }
         });
     }
@@ -56,17 +56,17 @@ export class PersonalDocumentosDrawerComponent {
 
     fb = inject(FormBuilder)
     formDocumento = this.fb.group({ 
-        doc_id:0, persona_id:0, doctipo_id: '', den_documento: null, fecha: null, fec_doc_ven: null, archivo: [] 
+        DocumentoId:0, PersonalId:0, DocumentoTipoCodigo: '', DocumentoDenominadorDocumento: null, Documentofecha: null, DocumentoFechaDocumentoVencimiento: null, archivo: [] 
     })
 
     doc_id(): number {
-        const value = this.formDocumento.get("doc_id")?.value
+        const value = this.formDocumento.get("DocumentoId")?.value 
         if (value)
             return value
         return 0
     }
     doctipo_id(): string {
-        const value = this.formDocumento.get("doctipo_id")?.value
+        const value = this.formDocumento.get("DocumentoTipoCodigo")?.value 
         if (value)
             return value
         return ''
@@ -78,7 +78,7 @@ export class PersonalDocumentosDrawerComponent {
         switchMap(() =>{
             setTimeout(async () => {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
-                this.formDocumento.patchValue({den_documento: personal.PersonalCUITCUILCUIT})
+                this.formDocumento.patchValue({DocumentoDenominadorDocumento: personal.PersonalCUITCUILCUIT})
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
             return this.searchService.getDocumentosByPersonal(Number(this.PersonalId()))
@@ -113,12 +113,12 @@ export class PersonalDocumentosDrawerComponent {
         this.isLoading.set(true)
         const values = this.formDocumento.value
         try {
-            if (values.doc_id){
+            if (values.DocumentoId){
                 await firstValueFrom(this.apiService.updateDocumento(values))
             } else {
                 const res = await firstValueFrom(this.apiService.addDocumento(values))
-                if (res.data.doc_id){
-                    this.formDocumento.patchValue({ doc_id: res.data.doc_id })
+                if (res.data.DocumentoId){
+                    this.formDocumento.patchValue({ DocumentoId: res.data.DocumentoId })
                 }
             }
             this.selectedPersonalIdChange$.next('');
@@ -132,7 +132,7 @@ export class PersonalDocumentosDrawerComponent {
     }
 
     resetForm() {
-        this.formDocumento.reset({persona_id: this.PersonalId()})
+        this.formDocumento.reset({PersonalId: this.PersonalId()})
     }
 
     async LoadArchivo(url: string, filename: string) {

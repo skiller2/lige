@@ -7,7 +7,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Tipo de documento</nz-form-label>
         <nz-form-control [nzSpan]="15">
-          <nz-select formControlName="doctipo_id" nzPlaceHolder="Tipo" nzAllowClear
+          <nz-select formControlName="DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear 
           [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
           (ngModelChange)="selectLabel($event)">
             <ng-container *ngFor="let option of optionsLabels() || []" >
@@ -20,19 +20,19 @@
       <nz-form-item style="display: none;" >
         <nz-form-label [nzSpan]="7" >{{ label() }}</nz-form-label>
         <nz-form-control [nzSpan]="14">
-          <input nz-input formControlName="den_documento"/>
+          <input nz-input formControlName="DocumentoDenominadorDocumento"/>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Desde</nz-form-label>
         <nz-form-control [nzXs]="7">
-          <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="fecha"></nz-date-picker>
+          <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="Documentofecha"></nz-date-picker>
         </nz-form-control>
 
         <nz-form-label [nzSpan]="3">Hasta</nz-form-label>
         <nz-form-control [nzXs]="7">
-          <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="fec_doc_ven"></nz-date-picker>
+          <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="DocumentoFechaDocumentoVencimiento"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
     

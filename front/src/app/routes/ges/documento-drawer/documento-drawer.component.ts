@@ -64,7 +64,6 @@ Date: any;
       if (visible) {
         if (this.docId()) {
           let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-          
           this.formTipoDocumento.reset(infoDoc)
           this.formTipoDocumento.markAsUntouched()
           this.formTipoDocumento.markAsPristine()
@@ -82,28 +81,38 @@ Date: any;
   }
 
   fb = inject(FormBuilder)
-  formTipoDocumento = this.fb.group({ doc_id: 0, doctipo_id: '', den_documento: null, persona_id: 0,
-    cliente_id: 0, objetivo_id: 0, fecha: null, fec_doc_ven: null, ind_descarga_bot: false, archivo: [] })
+  formTipoDocumento = this.fb.group({ 
+    DocumentoId: 0,
+    DocumentoTipoCodigo: '',  
+    DocumentoDenominadorDocumento: null, 
+    PersonalId: 0,
+    DocumentoClienteId: 0, 
+    ObjetivoId: 0, 
+    Documentofecha: null, 
+    DocumentoFechaDocumentoVencimiento: null,
+    DocumentoIndividuoDescargaBot: false,
+    archivo: []
+    }) 
 
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
 
 
   doc_id(): number {
-    const value = this.formTipoDocumento.get("doc_id")?.value
+    const value = this.formTipoDocumento.get("DocumentoId")?.value 
     if (value)
       return value
     return 0
   }
 
   doctipo_id(): string {
-    const value = this.formTipoDocumento.get("doctipo_id")?.value
+    const value = this.formTipoDocumento.get("DocumentoTipoCodigo")?.value
     if (value)
       return value
     return ''
   }
 
   archivo():[]  { 
-    const value:any = this.formTipoDocumento.get("archivo")?.value
+    const value:any = this.formTipoDocumento.get("archivo")?.value 
     if (value && value.length)
       return value
     return []
@@ -124,14 +133,14 @@ Date: any;
     const values = this.formTipoDocumento.value
     let docId = 0
       try {
-        if (values.doc_id){
-          docId = values.doc_id
+        if (values.DocumentoId){
+          docId = values.DocumentoId
           await firstValueFrom(this.apiService.updateDocumento(values))
         } else {
         const res = await firstValueFrom(this.apiService.addDocumento(values))
-        if (res.data.doc_id){
-          docId = res.data.doc_id
-          this.formTipoDocumento.patchValue({ doc_id: res.data.doc_id })
+        if (res.data.DocumentoId){
+          docId = res.data.DocumentoId
+          this.formTipoDocumento.patchValue({ DocumentoId: res.data.DocumentoId })
         }
         
       }
