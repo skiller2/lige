@@ -102,7 +102,7 @@ const columnsPersonalDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'desmovimiento', name:'Descripción', field:'desmovimiento',
+    id:'desmovimiento', name:'Detalle', field:'desmovimiento',
     fieldName: 'perdes.desmovimiento',
     type:'string',
     searchType: "string",
@@ -298,7 +298,7 @@ const columnsObjetivosDescuentos:any[] = [
     // minWidth: 10,
   },
   {
-    id:'ObjetivoDescuentoDetalle', name:'Descripción', field:'ObjetivoDescuentoDetalle',
+    id:'ObjetivoDescuentoDetalle', name:'Detalle', field:'ObjetivoDescuentoDetalle',
     fieldName: 'des.ObjetivoDescuentoDetalle',
     type:'string',
     searchType: 'string',
@@ -1315,6 +1315,11 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
+      //Valida que el período no tenga el indicador de recibos generado
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anioRequest, mesRequest)
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        return new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
       const columnsName: Array<string> = sheet1.data[0]
@@ -1325,7 +1330,7 @@ export class GestionDescuentosController extends BaseController {
         return acc;
       }, {} as Record<string, number>);
 
-      const data = sheet1.data.splice(1)
+      sheet1.data.splice(0, 1)
 
       //Obtengo la descripcion del descuento
       const Descuento:any = await queryRunner.query(`
@@ -1337,26 +1342,24 @@ export class GestionDescuentosController extends BaseController {
         case 'PersonalOtroDescuento':
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
-          if (isNaN(columnsXLS['AplicaEl'])) columnsnNotFound.push('- AplicaEl')
           if (isNaN(columnsXLS['Cant.Cuotas'])) columnsnNotFound.push('- Cant.Cuotas')
-          if (isNaN(columnsXLS['Importe'])) columnsnNotFound.push('- Importe')
+          if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- ImporteTotal')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
 
           if (columnsnNotFound.length) {
-            columnsnNotFound.unshift('A la planilla le faltan las siguientes columnas:')
+            columnsnNotFound.unshift('Faltan las siguientes columnas:')
             throw new ClientException(columnsnNotFound)
           }
 
-          den_documento = `Personal-${DescuentoDescripcion}`
+          den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
 
-          for (const row of data) {
+          for (const row of sheet1.data) {
             
             //Finaliza cuando la fila esta vacia
             if (
               !row[columnsXLS['CUIT']]
-              && !row[columnsXLS['AplicaEl']]
               && !row[columnsXLS['Cant.Cuotas']]
-              && !row[columnsXLS['Importe']]
+              && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
             ) break
             
@@ -1373,9 +1376,9 @@ export class GestionDescuentosController extends BaseController {
             const otroDescuento:any = {
               DescuentoId: descuentoIdRequest,
               PersonalId: PersonalCUITCUIL[0].PersonalId,
-              AplicaEl: row[columnsXLS['AplicaEl']],
+              AplicaEl: new Date(anioRequest, mesRequest-1, 1),
               Cuotas: row[columnsXLS['Cant.Cuotas']],
-              Importe: row[columnsXLS['Importe']],
+              Importe: row[columnsXLS['Importe Total']],
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
@@ -1387,43 +1390,73 @@ export class GestionDescuentosController extends BaseController {
         break;
         case 'ObjetivoDescuento':
           //Validar que esten las columnas nesesarias
+          if (isNaN(columnsXLS['Aplica A'])) columnsnNotFound.push('- Aplica A')
           if (isNaN(columnsXLS['Codigo'])) columnsnNotFound.push('- Codigo')
-          if (isNaN(columnsXLS['AplicaEl'])) columnsnNotFound.push('- AplicaEl')
           if (isNaN(columnsXLS['Cant.Cuotas'])) columnsnNotFound.push('- Cant.Cuotas')
-          if (isNaN(columnsXLS['Importe'])) columnsnNotFound.push('- Importe')
+          if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
+          if (isNaN(columnsXLS['CUIT Cliente'])) columnsnNotFound.push('- CUIT Cliente')
 
           if (columnsnNotFound.length) {
-            columnsnNotFound.unshift('A la planilla le faltan las siguientes columnas:')
+            columnsnNotFound.unshift('Faltan las siguientes columnas:')
             throw new ClientException(columnsnNotFound)
           }
 
-          den_documento = `Objetivo-${DescuentoDescripcion}`
+          den_documento = `Objetivo-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
 
-          for (const row of data) {
+          for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
             if (
-              !row[columnsXLS['Codigo']]
-              && !row[columnsXLS['AplicaEl']]
+              !row[columnsXLS['Aplica A']]
+              && !row[columnsXLS['Codigo']]
               && !row[columnsXLS['Cant.Cuotas']]
-              && !row[columnsXLS['Importe']]
+              && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
+              && !row[columnsXLS['CUIT Cliente']]
             ) break
 
             //Verifica que exista el Codigo del objetivo
+            const array = row[columnsXLS['Codigo']].split('/')
+            const ClienteId:number = parseInt(array[0])
+            const ClienteElementoDependienteId:number = parseInt(array[1])
             const Objetivo = await queryRunner.query(`
-              SELECT ObjetivoId FROM Objetivo WHERE ObjetivoId IN (@0)
-            `, [row[columnsXLS['Codigo']]])
+              SELECT ObjetivoId FROM Objetivo WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1
+            `, [ClienteId, ClienteElementoDependienteId])
             if (!Objetivo.length) {
               dataset.push({id: idError++, Codigo:row[columnsXLS['Codigo']], Detalle: 'Codigo no encontrado'})
               continue
             }
+            const ObjetivoId = Objetivo[0].ObjetivoId
+            //Verifica que exista el cuit del cliente y que el id sea el mismo del excel
+            const clienteCUIT = row[columnsXLS['CUIT Cliente']]
+            const cliente = await queryRunner.query(`
+              SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
+                LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
+                AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
+              WHERE clif.ClienteFacturacionCUIT = @1
+            `, [fechaActual, clienteCUIT])
+
+            if (cliente.length == 0) {
+              dataset.push({ id: idError++, Codigo:row[columnsXLS['Codigo']], Detalle: `El CUIT no existe en la base de datos`})
+              continue
+            }
+            if (cliente[0].ClienteId != ClienteId) {
+              dataset.push({ id: idError++, Codigo:row[columnsXLS['Codigo']], Detalle: `El CUIT no coincide con el código del objetivo`})
+              continue
+            }
+            //Verifico que exita el Aplica A
+            const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
+            if (!AplicaA) {
+              dataset.push({id: idError++, Codigo:row[columnsXLS['Codigo']], Detalle: 'Aplica A no identificado'})
+              continue
+            }
             const otroDescuento:any = {
               DescuentoId: descuentoIdRequest,
-              ObjetivoId: row[columnsXLS['Codigo']],
-              AplicaEl: row[columnsXLS['AplicaEl']],
+              AplicaA: AplicaA,
+              ObjetivoId: ObjetivoId,
+              AplicaEl: new Date(anioRequest, mesRequest-1, 1),
               Cuotas: row[columnsXLS['Cant.Cuotas']],
-              Importe: row[columnsXLS['Importe']],
+              Importe: row[columnsXLS['Importe Total']],
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
@@ -1446,7 +1479,7 @@ export class GestionDescuentosController extends BaseController {
       await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file, usuario, ip, queryRunner)
 
       await queryRunner.commitTransaction();
-      this.jsonRes(data, res, "XLS Recibido y procesado!");
+      this.jsonRes([], res, "XLS Recibido y procesado!");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1462,6 +1495,12 @@ export class GestionDescuentosController extends BaseController {
     } catch (error) {
       return next(error)
     }
+  }
+
+  private getValueByLabel(label: string): string | null {
+    const normalizedLabel = label.trim().toLowerCase();
+    const item = aplicaAOptions.find((opt:any) => opt.label.toLowerCase() === normalizedLabel)
+    return item ? item.value : null;
   }
 
 }
