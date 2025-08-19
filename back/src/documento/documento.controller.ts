@@ -88,9 +88,9 @@ export class DocumentoController extends BaseController {
       searchHidden: false
     },
     {
-      id: "Documentofecha",
+      id: "DocumentoFecha",
       name: "Desde",
-      field: "Documentofecha",
+      field: "DocumentoFecha",
       type: "date",
       fieldName: "docg.DocumentoFecha",
       searchComponent: "inpurForFechaSearch",
