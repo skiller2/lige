@@ -30,7 +30,9 @@ export class DocumentoController extends BaseController {
       maxWidth: 150,
     },
     {
-      id: "den_documento", name: "Denominacion", field: "den_documento",
+      id: "DocumentoDenominadorDocumento",
+      name: "Denominacion",
+      field: "DocumentoDenominadorDocumento",
       fieldName: "docg.DocumentoDenominadorDocumento",
       type: "number",
       sortable: true,
@@ -86,7 +88,9 @@ export class DocumentoController extends BaseController {
       searchHidden: false
     },
     {
-      id: "fecha", name: "Desde", field: "fecha",
+      id: "Documentofecha",
+      name: "Desde",
+      field: "Documentofecha",
       type: "date",
       fieldName: "docg.Documentofecha",
       searchComponent: "inpurForFechaSearch",
@@ -96,7 +100,9 @@ export class DocumentoController extends BaseController {
       hidden: false,
     },
     {
-      id: "fec_doc_ven", name: "Hasta", field: "fec_doc_ven",
+      id: "DocumentoFechaDocumentoVencimiento",
+      name: "Hasta",
+      field: "DocumentoFechaDocumentoVencimiento",
       type: "date",
       fieldName: "docg.DocumentoFechaDocumentoVencimiento",
       searchComponent: "inpurForFechaSearch",
@@ -106,7 +112,9 @@ export class DocumentoController extends BaseController {
       hidden: false,
     },
     {
-      id: "detalle_documento", name: "Detalle Documento", field: "detalle_documento",
+      id: "DocumentoDetalle",
+      name: "Detalle Documento",
+      field: "DocumentoDetalle",
       fieldName: "docg.DocumentoDetalle",
       type: "string",
       searchType: "string",
