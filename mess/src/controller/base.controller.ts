@@ -369,7 +369,7 @@ console.log('URL',tmpURL)
 //    const queryRunner = dataSource.createQueryRunner();
     try {
       const data = await queryRunner.query(`SELECT doc.DocumentoPath, doc.DocumentoNombreArchivo from Documento doc
-      WHERE doc.DocumentoId=@0`
+      WHERE doc.DocumentoId=@0`,
         [DocumentoId]
       )
 

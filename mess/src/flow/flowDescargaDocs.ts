@@ -17,7 +17,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
             let docsPendStr = (docsPend.length==1)?`Existe un documento pendiente de descarga\n`:`Existen ${docsPend.length} documentos pendientes de descarga:\n`
             docsPend.forEach(doc => {
                 const periodo =  (doc.anio && doc.mes) ? `${doc.mes}/${doc.anio}` : ''
-                docsPendStr += `- ${doc.detalle} ${periodo} Nro. ${doc.den_documento}\n`
+                docsPendStr += `- ${doc.DocumentoTipoDetalle} ${periodo} Nro. ${doc.DocumentoDenominadorDocumento}\n`
             })
             await flowDynamic(docsPendStr, { delay: delay })
             await flowDynamic('Desea descargarlos (Si/No)?', { delay: delay })
@@ -35,7 +35,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 const docsPend = await state.get('docsPend')
                 const documento = docsPend.pop()
                 
-                const urlDoc = `${apiPath}/documentos/download/${documento.doc_id}/${documento.doctipo_id}-${documento.nombre_archivo}`;
+                const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
 
                 try {
                     await flowDynamic([{ body: documento.detalle, media: urlDoc, delay }])
