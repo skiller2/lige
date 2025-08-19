@@ -30,7 +30,9 @@ export class DocumentoController extends BaseController {
       maxWidth: 150,
     },
     {
-      id: "den_documento", name: "Denominacion", field: "den_documento",
+      id: "DocumentoDenominadorDocumento",
+      name: "Denominacion",
+      field: "DocumentoDenominadorDocumento",
       fieldName: "docg.DocumentoDenominadorDocumento",
       type: "number",
       sortable: true,
@@ -86,9 +88,11 @@ export class DocumentoController extends BaseController {
       searchHidden: false
     },
     {
-      id: "fecha", name: "Desde", field: "fecha",
+      id: "Documentofecha",
+      name: "Desde",
+      field: "Documentofecha",
       type: "date",
-      fieldName: "docg.Documentofecha",
+      fieldName: "docg.DocumentoFecha",
       searchComponent: "inpurForFechaSearch",
       searchType: "date",
       sortable: true,
@@ -96,7 +100,9 @@ export class DocumentoController extends BaseController {
       hidden: false,
     },
     {
-      id: "fec_doc_ven", name: "Hasta", field: "fec_doc_ven",
+      id: "DocumentoFechaDocumentoVencimiento",
+      name: "Hasta",
+      field: "DocumentoFechaDocumentoVencimiento",
       type: "date",
       fieldName: "docg.DocumentoFechaDocumentoVencimiento",
       searchComponent: "inpurForFechaSearch",
@@ -106,7 +112,9 @@ export class DocumentoController extends BaseController {
       hidden: false,
     },
     {
-      id: "detalle_documento", name: "Detalle Documento", field: "detalle_documento",
+      id: "DocumentoDetalle",
+      name: "Detalle Documento",
+      field: "DocumentoDetalle",
       fieldName: "docg.DocumentoDetalle",
       type: "string",
       searchType: "string",
@@ -279,7 +287,7 @@ export class DocumentoController extends BaseController {
       SELECT docg.DocumentoId AS id,
       docg.DocumentoDenominadorDocumento,
       tipo.detalle AS tipo, 
-      docg.Documentofecha, docg.DocumentoFechaDocumentoVencimiento,
+      docg.DocumentoFecha, docg.DocumentoFechaDocumentoVencimiento,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
       obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
@@ -347,9 +355,9 @@ export class DocumentoController extends BaseController {
 
   async addDocumento(req: any, res: Response, next: NextFunction) {
     const den_documento: string = req.body.DocumentoDenominadorDocumento
-    const persona_id: number = req.body.PersonalId
-    const cliente_id: number = req.body.DocumentoClienteId
-    const objetivo_id: number = req.body.ObjetivoId
+    const persona_id: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
+    const cliente_id: number | null = req.body.DocumentoClienteId === 0 ? null : req.body.DocumentoClienteId;
+    const objetivo_id: number | null = req.body.ObjetivoId === 0 ? null : req.body.ObjetivoId;
     const fecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : null
     const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : null
     const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
@@ -561,7 +569,7 @@ export class DocumentoController extends BaseController {
     const den_documento: string = tipoDocumento.DocumentoDenominadorDocumento
     const persona_id: number = tipoDocumento.PersonalId
     const cliente_id: number = tipoDocumento.DocumentoClienteId
-    const objetivo_id: number = tipoDocumento.ObjetivoId 
+    const objetivo_id: number = tipoDocumento.ObjetivoId
     const fecha: Date = tipoDocumento.Documentofecha ? new Date(tipoDocumento.Documentofecha) : tipoDocumento.Documentofecha
     const fec_doc_ven: Date = tipoDocumento.DocumentoFechaDocumentoVencimiento ? new Date(tipoDocumento.DocumentoFechaDocumentoVencimiento) : tipoDocumento.DocumentoFechaDocumentoVencimiento
 
