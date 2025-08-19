@@ -443,7 +443,7 @@ export class FileUploadController extends BaseController {
           DocumentoAudFechaMod, 
           DocumentoAudUsuarioMod,
           DocumentoAudIpMod,
-          DocumentoClienteId,
+          DocumentoClienteId, 
           DocumentoAnio,
           DocumentoMes
         ) VALUES (
@@ -467,7 +467,7 @@ export class FileUploadController extends BaseController {
               fechaActual,
               usuario,
               ip,
-              DocumentoClienteId,
+              cliente_id,
               anio,
               mes
             ])
