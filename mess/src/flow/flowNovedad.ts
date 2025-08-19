@@ -15,7 +15,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ?? 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
-            `3 - Cod.Objetivo: ${novedad.CodObjetivo ?? 's/d'}\n` +
+            `3 - Cod.Objetivo: ${novedad.CodObjetivo ?? 's/d'} ${novedad.DesObjetivo??''}\n` +
             `4 - Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
