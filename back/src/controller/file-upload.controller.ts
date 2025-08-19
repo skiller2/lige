@@ -115,9 +115,9 @@ export class FileUploadController extends BaseController {
           finalurl = path.join(FileUploadController.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
           break;
-        case 'documento':
+        case 'Documento':
           document = await dataSource.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
-                FROM documento doc
+                FROM Documento doc
                 LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = doc.DocumentoTipoCodigo
                 WHERE doc.DocumentoId = @0`, [documentId]);
 
@@ -224,7 +224,7 @@ export class FileUploadController extends BaseController {
         case 'docgeneral':
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner, columnSearch, TipoSearch, id)
           break;
-        case 'documento':
+        case 'Documento':
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, columnSearch, TipoSearch, id)
           break;
 
@@ -259,7 +259,7 @@ export class FileUploadController extends BaseController {
       else
         archivo.mimetype = 'unknown'
 
-      archivo.url = `api/file-upload/downloadFile/${id}/docgeneral/original`
+      archivo.url = `api/file-upload/downloadFile/${id}/Documento/original`
       return archivo
     })
     return ArchivosAnteriores
