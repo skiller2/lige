@@ -78,7 +78,7 @@ export class FileUploadController extends BaseController {
 
 
     try {
-      if (documentId == '0' || documentId=='null') throw new ClientException(`Archivo no localizado`)
+      if (documentId == '0' || documentId == 'null') throw new ClientException(`Archivo no localizado`)
 
       switch (tableForSearch) {
         case 'DocumentoImagenFoto':
@@ -118,7 +118,7 @@ export class FileUploadController extends BaseController {
         case 'Documento':
           document = await dataSource.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
                 FROM Documento doc
-                LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = doc.DocumentoTipoCodigo
+                LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
                 WHERE doc.DocumentoId = @0`, [documentId]);
 
           finalurl = path.join(FileUploadController.pathDocuments, document[0]["path"])
@@ -316,9 +316,9 @@ export class FileUploadController extends BaseController {
             'documento' AS tableForSearch,
             doc.DocumentoNombreArchivo AS nombre
         FROM Documento doc
-        JOIN lige.dbo.doctipo tipo ON doc.DocumentoTipoCodigo = tipo.doctipo_id
+        JOIN DocumentoTipo tipo ON doc.DocumentoTipoCodigo = tipo.DocumentoTipoCodigo
         WHERE 
-            doc.${columnSearch} = @0 AND  tipo.doctipo_id = @1
+            doc.${columnSearch} = @0 AND  tipo.DocumentoTipoCodigo = @1
       `, [singleId, TipoSearch])
 
       ArchivosAnteriores.push(...result)
@@ -346,14 +346,20 @@ export class FileUploadController extends BaseController {
   ) {
     let periodo_id = 0
     let fechaActual = new Date();
-    if (anio && mes){
+    if (anio && mes) {
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-    }else{
+    } else {
       anio = fecha.getFullYear()
       mes = fecha.getMonth() + 1
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
     }
-     
+
+
+    const FechaMes = fecha.getMonth() + 1;
+    const FechaAnio = fecha.getFullYear();
+
+
+
     let DocumentoClienteId = DocumentoCliente ? DocumentoCliente : null
     let detalle_documento = ''
     const doctipo_id = file.doctipo_id
@@ -387,34 +393,34 @@ export class FileUploadController extends BaseController {
 
       case "Documento":
 
-      if (!doc_id) {
-        // INSERT DOCUMENTO
-        doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
-   
-        let type = file.mimetype.split('/')[1]
+        if (!doc_id) {
+          // INSERT DOCUMENTO
+          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
 
-        if (type == 'pdf') {
-          detalle_documento = await FileUploadController.FileData(file.tempfilename)
-        }
+          let type = file.mimetype.split('/')[1]
 
-        if(type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-          type = 'xlsx'
-        }
+          if (type == 'pdf') {
+            detalle_documento = await FileUploadController.FileData(file.tempfilename)
+          }
 
-        newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-        //console.log("newFilePath", newFilePath)
-        //console.log("file.tempfilename", file.tempfilename)
-        this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
+          if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            type = 'xlsx'
+          }
 
-        const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
-        console.log("doc_id", doc_id)
-        console.log("doctipo_id", doctipo_id)
-        console.log("den_documento", den_documento)
-        console.log("type", type)
+          newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
+          //console.log("newFilePath", newFilePath)
+          //console.log("file.tempfilename", file.tempfilename)
+          this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
-        console.log("file", file)
-        
-        await queryRunner.query(`INSERT INTO Documento (
+          const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
+          console.log("doc_id", doc_id)
+          console.log("doctipo_id", doctipo_id)
+          console.log("den_documento", den_documento)
+          console.log("type", type)
+
+          console.log("file", file)
+
+          await queryRunner.query(`INSERT INTO Documento (
           DocumentoId,
           DocumentoTipoCodigo, 
           PersonalId, 
@@ -438,52 +444,52 @@ export class FileUploadController extends BaseController {
         ) VALUES (
           @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15,@16,@17,@18,@19
         )`,
-          [
-            doc_id,
-            doctipo_id,
-            personal_id,
-            objetivo_id,
-            den_documento,
-            namefile,
-            fecha,
-            fec_doc_ven,
-            newFilePath,
-            detalle_documento,
-            ind_descarga_bot,
-            fechaActual, 
-            usuario, 
-            ip, 
-            fechaActual, 
-            usuario, 
-            ip,
-            DocumentoClienteId,
-            anio, 
-            mes
-          ])
+            [
+              doc_id,
+              doctipo_id,
+              personal_id,
+              objetivo_id,
+              den_documento,
+              namefile,
+              fecha,
+              fec_doc_ven,
+              newFilePath,
+              detalle_documento,
+              ind_descarga_bot,
+              fechaActual,
+              usuario,
+              ip,
+              fechaActual,
+              usuario,
+              ip,
+              DocumentoClienteId,
+              anio,
+              mes
+            ])
 
-      } else {
-        // UPDATE DOCUMENTO
-        console.log("file update", file)
-        // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
-        if (file?.tempfilename != '' && file?.tempfilename != null) {
+        } else {
+          // UPDATE DOCUMENTO
+          console.log("file update", file)
+          // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
+          if (file?.tempfilename != '' && file?.tempfilename != null) {
 
-          const path = await queryRunner.query(`SELECT path FROM Documento WHERE DocumentoId = @0`, [doc_id])
+            const path = await queryRunner.query(`SELECT path FROM Documento WHERE DocumentoId = @0`, [doc_id])
 
-          const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
-          const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
+            const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
+            const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
 
-          // Borra el archivo si existe
-          if (existsSync(filePath)) {
-            await unlink(filePath);
+            // Borra el archivo si existe
+            if (existsSync(filePath)) {
+              await unlink(filePath);
+            }
+
+            // Copia el nuevo archivo
+            copyFileSync(tempFilePath, filePath);
+
           }
 
-          // Copia el nuevo archivo
-          copyFileSync(tempFilePath, filePath);
-
-        }
-
-        // Actualiza el registro
-        await queryRunner.query(`
+          // Actualiza el registro
+          await queryRunner.query(`
           UPDATE Documento
           SET DocumentoPeriodo = @1, DocumentoFecha = @2, 
           DocumentoTipoCodigo = @5, DocumentoPersonalId = @6, DocumentoObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
@@ -491,14 +497,14 @@ export class FileUploadController extends BaseController {
           DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13 
           WHERE DocumentoId = @0
         `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
-          den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot])
+            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot])
 
 
-        ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'DocumentoId', doctipo_id, doc_id)
+          ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'DocumentoId', doctipo_id, doc_id)
 
-      }
-      //throw new ClientException(`Error al actualizar el documento test`)
-      return { doc_id, ArchivosAnteriores }
+        }
+        //throw new ClientException(`Error al actualizar el documento test`)
+        return { doc_id, ArchivosAnteriores }
 
       case "DocumentoImagenEstudio":
         const DocumentoImagenParametroId = 20 // CURSO
@@ -530,7 +536,7 @@ export class FileUploadController extends BaseController {
 
         if (!doc_id) {
           // INSERT DOCUMENTO
-          doc_id = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
+          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
 
@@ -548,21 +554,21 @@ export class FileUploadController extends BaseController {
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
 
-          await queryRunner.query(`INSERT INTO lige.dbo.docgeneral (doc_id, periodo, fecha, fec_doc_ven, persona_id, 
-            objetivo_id, cliente_id, path, nombre_archivo, doctipo_id, 
-            den_documento, detalle_documento,ind_descarga_bot,
+          await queryRunner.query(`INSERT INTO Documento (DocumentoId, DocumentoFecha, DocumentoFechaDocumentoVencimiento, PersonalId, 
+            ObjetivoId, DocumentoClienteId, DocumentoPath, DocumentoNombreArchivo, DocumentoTipoCodigo, 
+            DocumentoDenominadorDocumento, DocumentoDetalleDocumento,DocumentoIndividuoDescargaBot,
 
-            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+            DocumentoAudUsuarioIng, DocumentoAudIpIng, DocumentoAudFechaIng, DocumentoAudUsuarioMod, DocumentoAudIpMod, DocumentoAudFechaMod, DocumentoMes, DocumentoAnio, DocumentoVersion)
             VALUES
-          (@0, @1, @2, @3, @4, 
+          (@0, @2, @3, @4, 
           @5, @6, @7, @8, @9, 
           @10, @11, @12, @13, @14,
-          @15,@16,@17,@18)`,
+          @15,@16,@17,@18, @19, @20, @21)`,
             [
               doc_id, periodo_id, fecha, fec_doc_ven, personal_id,
               objetivo_id, cliente_id, newFilePath, namefile, doctipo_id,
               den_documento, detalle_documento, ind_descarga_bot,
-              usuario, ip, fechaActual, usuario, ip, fechaActual
+              usuario, ip, fechaActual, usuario, ip, fechaActual, FechaMes, FechaAnio, 0
             ])
 
         } else {
@@ -571,7 +577,7 @@ export class FileUploadController extends BaseController {
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
 
-            const path = await queryRunner.query(`SELECT path FROM lige.dbo.docgeneral WHERE doc_id = @0`, [doc_id])
+            const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
 
             const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
             const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
@@ -588,17 +594,17 @@ export class FileUploadController extends BaseController {
 
           // Actualiza el registro
           await queryRunner.query(`
-            UPDATE lige.dbo.docgeneral
-            SET periodo = @1, fecha = @2, 
-            -- path = @3, nombre_archivo = @4, detalle_documento = @14
-            doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10, ind_descarga_bot = @15,
-            aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13 
-            WHERE doc_id = @0
+            UPDATE Documento
+            SET DocumentoFecha = @2, DocumentoMes=@16, DocumentoAnio=@17,
+            DocumentoPath = @3, DocumentoNombreArchivo = @4, DocumentoDetalleDocumento = @14,
+            DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
+            DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13 
+            WHERE DocumentoId = @0
           `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
-            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot])
+            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
 
 
-          ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner, 'doc_id', doctipo_id, doc_id)
+          ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'Documento', doctipo_id, doc_id)
 
         }
         //throw new ClientException(`Error al actualizar el documento test`)

@@ -173,8 +173,8 @@ export class AuthMiddleware {
         const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo?.[0]?.tableForSearch || req.body.files?.[0]?.tableForSearch;
 
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
-        const documentId = req.params.id || req.body.doc_id || req.query[0];
-        const documentType = req.body.doctipo_id || req.body.files?.[0]?.doctipo_id//|| req.params.doctipo_id || req.query.doctipo_id;
+        const documentId = req.params.id || req.body.doc_id || req.query[0] || req.body.DocumentoId;
+        const documentType = req.body.doctipo_id || req.body.files?.[0]?.doctipo_id || req.body.DocumentoTipoCodigo//|| req.params.doctipo_id || req.query.doctipo_id;
 
         const path = req.route.path
 
@@ -183,6 +183,8 @@ export class AuthMiddleware {
         // console.log('documentType', documentType);
         // console.log('req -------------------- ', req);
         // console.log('req.url -------------------- ', req.url);
+        // console.log('req.params -------------------- ', req.params);
+        // console.log('req.body -------------------- ', req.body);
         // console.log('res -------------------- ', res);
         // console.log('res.locals -------------------- ', res.locals);
         // console.log('req.royte.path', req.route.path);
@@ -190,7 +192,7 @@ export class AuthMiddleware {
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
         if (!tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado tableForSearch" })
         let Documento = null;
-
+        console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
         switch (tableForSearch) {
           case 'docgeneral':
             if (documentId) {
@@ -274,6 +276,7 @@ export class AuthMiddleware {
               return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
             }
 
+            console.log('no tiene documento ni tipo de documento');
             return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
 
           case 'Documento':
@@ -283,7 +286,7 @@ export class AuthMiddleware {
               Documento = await queryRunner.query(
                 ` SELECT doc.DocumentoId, doc.PersonalId ,doctip.DocumentoTipoJsonPermisosActDir, doctip.DocumentoTipoCodigo
                 FROM Documento doc
-                LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoId = doc.DocumentoId
+                LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
                 WHERE doc.DocumentoId = @0`,
                 [documentId]
               );
