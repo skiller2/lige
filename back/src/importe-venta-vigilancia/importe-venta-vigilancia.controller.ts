@@ -740,14 +740,14 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       const rec = await queryRunner.query(
         `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB,
-          ISNULL(ven.TotalHoraA,0) + ISNULL(ven.TotalHoraB,0) - ISNULL(ven.TotalHorasReal,0) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
           1
           FROM ObjetivoImporteVenta ven
           WHERE ven.ClienteId=@0 AND ven.Anio=@1 AND ven.Mes=@2 AND ven.ClienteElementoDependienteId=@3`,
         [ClienteId, anio, mes, ClienteElementoDependienteId])
 
-      rec.TotalHorasReal = asistencia.TotalHorasReal
+      rec[0].TotalHorasReal = Number(asistencia.TotalHorasReal)
+      rec[0].DiferenciaHoras = Number(rec[0].TotalHoraA) +  Number(rec[0].TotalHoraB) - Number(rec[0].TotalHorasReal) 
       await queryRunner.commitTransaction();
       this.jsonRes(rec, res, `Valores Actualizados`);
     } catch (error) {

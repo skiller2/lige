@@ -315,7 +315,7 @@ export class FileUploadController extends BaseController {
             doc.DocumentoPath AS path, 
             'documento' AS tableForSearch,
             doc.DocumentoNombreArchivo AS nombre
-        FROM documento doc
+        FROM Documento doc
         JOIN lige.dbo.doctipo tipo ON doc.DocumentoTipoCodigo = tipo.doctipo_id
         WHERE 
             doc.${columnSearch} = @0 AND  tipo.doctipo_id = @1
@@ -385,11 +385,11 @@ export class FileUploadController extends BaseController {
 
     switch (file.tableForSearch) {
 
-      case "documento":
+      case "Documento":
 
       if (!doc_id) {
         // INSERT DOCUMENTO
-        doc_id = await this.getProxNumero(queryRunner, 'documento', usuario, ip);
+        doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
    
         let type = file.mimetype.split('/')[1]
 
@@ -467,7 +467,7 @@ export class FileUploadController extends BaseController {
         // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
         if (file?.tempfilename != '' && file?.tempfilename != null) {
 
-          const path = await queryRunner.query(`SELECT path FROM documento WHERE DocumentoId = @0`, [doc_id])
+          const path = await queryRunner.query(`SELECT path FROM Documento WHERE DocumentoId = @0`, [doc_id])
 
           const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
           const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
@@ -484,7 +484,7 @@ export class FileUploadController extends BaseController {
 
         // Actualiza el registro
         await queryRunner.query(`
-          UPDATE documento
+          UPDATE Documento
           SET DocumentoPeriodo = @1, DocumentoFecha = @2, 
           DocumentoTipoCodigo = @5, DocumentoPersonalId = @6, DocumentoObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
           DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,

@@ -363,14 +363,14 @@ export class AccesoBotController extends BaseController {
             const personalId = personaIdQuery[0].PersonalId
 
 
-            const result = await queryRunner.query(`SELECT TOP 2 rec.den_documento FROM lige.dbo.docgeneral rec
-                WHERE rec.persona_id = @0 AND rec.doctipo_id='REC'
-                ORDER BY rec.fecha DESC
+            const result = await queryRunner.query(`SELECT TOP 2 rec.DocumentoDenominadorDocumento FROM Documento rec
+                WHERE rec.PersonalId = @0 AND rec.DocumentoTipoCodigo='REC'
+                ORDER BY rec.DocumentoFecha DESC
             `, [personalId])
             if (result.length < 1)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
-            if (result[0].den_documento != recibo && result[1]?.den_documento != recibo)
+            if (result[0].DocumentoDenominadorDocumento != recibo && result[1]?.DocumentoDenominadorDocumento != recibo)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
             this.jsonRes("OK", res)
@@ -737,18 +737,15 @@ export class AccesoBotController extends BaseController {
 			) botreg ON botreg.PersonalId = per.PersonalId
             
          LEFT JOIN (
-                SELECT doc.persona_id PersonalId, 
-                doc.doc_id, @1 AS anio, @2 AS mes, 
+                SELECT  doc.PersonalId, 
+                doc.DocumentoId doc_id, @1 AS anio, @2 AS mes, 
 					 MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
-                FROM lige.dbo.docgeneral doc
-                JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
-                LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.doc_id AND dl.personal_id = doc.persona_id 
-                WHERE doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
-                GROUP BY doc.persona_id, doc.doc_id, pr.mes, pr.anio,dl.doc_id
+                FROM Documento doc
+                LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.DocumentoId AND dl.personal_id = doc.PersonalId
+                WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @1 AND doc.DocumentoMes = @2
+                GROUP BY doc.PersonalId, doc.DocumentoId, doc.DocumentoAnio, doc.DocumentoMes,dl.doc_id
 			) recibo ON recibo.PersonalId = per.PersonalId
             WHERE 
             per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes])
-
     }
-
 }
