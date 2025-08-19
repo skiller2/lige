@@ -686,7 +686,7 @@ export class RecibosController extends BaseController {
 
   async getparthFile(queryRunner: QueryRunner, anio:number,mes:number, perosonalIds: number[]) {
     const personalIdsString = perosonalIds.join(', ');
-    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [anio,mes])
+    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [,anio,mes])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
