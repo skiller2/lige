@@ -329,9 +329,9 @@ export class FileUploadController extends BaseController {
   }
 
   static async handleDOCUpload(
-    personal_id: number,
-    objetivo_id: number,
-    cliente_id: number,
+    personal_id_raw: any,
+    objetivo_id_raw: any,
+    cliente_id_raw: any,
     doc_id: number,
     fecha: Date,
     fec_doc_ven: Date,
@@ -353,6 +353,10 @@ export class FileUploadController extends BaseController {
       mes = fecha.getMonth() + 1
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
     }
+
+    const objetivo_id: number | null = objetivo_id_raw === '' || Number(objetivo_id_raw) === 0 ? null : Number(objetivo_id_raw);
+    const cliente_id: number | null = cliente_id_raw === '' || Number(cliente_id_raw) === 0 ? null : Number(cliente_id_raw);
+    const personal_id: number | null = personal_id_raw === '' || Number(personal_id_raw) === 0 ? null : Number(personal_id_raw);
 
 
     const FechaMes = fecha.getMonth() + 1;
@@ -596,7 +600,7 @@ export class FileUploadController extends BaseController {
           await queryRunner.query(`
             UPDATE Documento
             SET DocumentoFecha = @2, DocumentoMes=@16, DocumentoAnio=@17,
-            DocumentoPath = @3, DocumentoNombreArchivo = @4, DocumentoDetalleDocumento = @14,
+            --DocumentoPath = @3, DocumentoNombreArchivo = @4, DocumentoDetalleDocumento = @14,
             DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
             DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13 
             WHERE DocumentoId = @0
@@ -705,6 +709,7 @@ export class FileUploadController extends BaseController {
     const tableForSearch = req.query[1];
     const queryRunner = dataSource.createQueryRunner();
 
+    
     let document: any
     let finalurl: any
 
@@ -729,9 +734,10 @@ export class FileUploadController extends BaseController {
 
       // 
       switch (tableForSearch) {
+        case 'documento':
         case 'Documento':
           document = await dataSource.query(`
-                  SELECT DocumentoId AS id, path, nombre_archivo AS name
+                  SELECT DocumentoId AS id, DocumentoPath as path, DocumentoNombreArchivo AS name
                   FROM Documento
                   WHERE DocumentoId = @0
                   `, [deleteId])
@@ -769,7 +775,7 @@ export class FileUploadController extends BaseController {
           break;
         default:
           document = await queryRunner.query(`
-            SELECT doc.${tableForSearch}Id AS id, 
+            SELECT 1, doc.${tableForSearch}Id AS id, 
             CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
             doc.${tableForSearch}BlobNombreArchivo AS name,
             doc.PersonalId, doc.DocumentoImagenParametroId
