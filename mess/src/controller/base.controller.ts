@@ -364,14 +364,13 @@ console.log('URL',tmpURL)
   ) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const doc_id = req.params.doc_id
+    const DocumentoId = req.params.doc_id
     const queryRunner = dbServer.dataSource.createQueryRunner();
 //    const queryRunner = dataSource.createQueryRunner();
     try {
-      const data = await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
-      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-      WHERE doc.doc_id=@0`,
-        [doc_id]
+      const data = await queryRunner.query(`SELECT doc.DocumentoPath, doc.DocumentoNombreArchivo from Documento doc
+      WHERE doc.DocumentoId=@0`
+        [DocumentoId]
       )
 
       if (!data[0])
@@ -379,7 +378,7 @@ console.log('URL',tmpURL)
 
 
 
-      res.download(this.pathDocuments + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
+      res.download(this.pathDocuments + '/' + data[0].DocumentoPath, data[0].DocumentoNombreArchivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           throw new ClientException(`Error al descargar el archivo`, error)

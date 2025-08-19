@@ -42,7 +42,7 @@ export class RecibosController extends BaseController {
   }
 
 
-  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number, isUnique: any, directorPathUnique: string, den_documento: number) {
+  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, anio: number, mes:number, isUnique: any, directorPathUnique: string, den_documento: number) {
     try {
 
       if (isUnique) {
@@ -57,18 +57,18 @@ export class RecibosController extends BaseController {
           });
         }
       }
-      await this.deleteDirectories(queryRunner, periodo, isUnique, den_documento)
+      await this.deleteDirectories(queryRunner, anio,mes, isUnique, den_documento)
     } catch (error) {
       console.error("Error al limpiar el directorio:", error);
     }
   }
 
-  async deleteDirectories(queryRunner: QueryRunner, periodo: number, isUnique: any, den_documento: number) {
+  async deleteDirectories(queryRunner: QueryRunner, anio: number, mes:number, isUnique: any, den_documento: number) {
 
     if (isUnique) {
-      await queryRunner.query(`delete from lige.dbo.docgeneral where den_documento=@0 AND doctipo_id='REC'; `, [den_documento])
+      await queryRunner.query(`delete from Documento where DocumentoDenominadorDocumento=@0 AND DocumentoTipoCodigo='REC' `, [den_documento])
     } else {
-      await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 AND doctipo_id='REC'; `, [periodo])
+      await queryRunner.query(`delete from Documento WHERE DocumentoAnio=@1 AND DocumentoMes=@2 AND DocumentoTipoCodigo='REC' `, [null,anio,mes])
     }
 
   }
@@ -113,7 +113,7 @@ export class RecibosController extends BaseController {
     let persona_id = 0
     //estas  variables se usan solo si el recibo previamente ya existe 
     let fechaRecibo = new Date(req.body.fechaRecibo)
-    let docgeneral: number
+    let DocumentoId: number
     let den_documento: number
     let directorPathUnique = ""
     const fechaActual = new Date();
@@ -144,15 +144,15 @@ export class RecibosController extends BaseController {
       } else {
 
         // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
-        const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id, personalId);
+        const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo.year, periodo.month, personalId);
 
         if (existRecibo.length <= 0)
           throw new ClientException(`Recibo no existe para el periodo seleccionado`)
 
-        fechaRecibo = existRecibo[0].fecha;
-        den_documento = existRecibo[0].den_documento
-        docgeneral = existRecibo[0].docgeneral
-        directorPathUnique = existRecibo[0].path
+        fechaRecibo = existRecibo[0].DocumentoFecha;
+        den_documento = existRecibo[0].DocumentoDenominadorDocumento
+        DocumentoId = existRecibo[0].DocumentoId
+        directorPathUnique = existRecibo[0].DocumentoPath
       }
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
 
@@ -161,7 +161,7 @@ export class RecibosController extends BaseController {
         mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }
 
-      await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo_id, isUnique, directorPathUnique, den_documento)
+      await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo.year, periodo.month, isUnique, directorPathUnique, den_documento)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaRecibo, periodo.year, periodo.month)
 
@@ -172,18 +172,16 @@ export class RecibosController extends BaseController {
         persona_id = movimiento.PersonalId
         const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+        DocumentoId = await this.getProxNumero(queryRunner, `Documento`, usuario, ip)
 
         if (!isUnique)
           den_documento = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
 
-
-
-
-        await this.setUsuariosLiquidacionDocGeneral(
+        await this.setUsuariosLiquidacionDocumento(
           queryRunner,
-          docgeneral,
-          periodo_id,
+          DocumentoId,
+          periodo.year,
+          periodo.month,
           fechaRecibo,
           persona_id,
           null,
@@ -236,8 +234,8 @@ export class RecibosController extends BaseController {
   }
 
 
-  existReciboId(queryRunner: QueryRunner, fechaActual: Date, periodo_id: number, personalId: number) {
-    return queryRunner.query(`SELECT * from lige.dbo.docgeneral WHERE periodo= @0 AND persona_id = @1`, [periodo_id, personalId])
+  existReciboId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes:number, personalId: number) {
+    return queryRunner.query(`SELECT * from Documento WHERE DocumentoAnio= @1 AND DocumentoMes=@2 AND PersonalId = @0`, [personalId,anio,mes])
   }
 
 
@@ -440,10 +438,11 @@ export class RecibosController extends BaseController {
 
   }
 
-  async setUsuariosLiquidacionDocGeneral(
+  async setUsuariosLiquidacionDocumento(
     queryRunner: any,
-    docgeneral: number,
-    periodo: number,
+    DocumentoId: number,
+    anio: number,
+    mes: number,
     fecha: Date,
     persona_id: number,
     objetivo_id: number,
@@ -456,25 +455,27 @@ export class RecibosController extends BaseController {
     den_documento: number
 
   ) {
-
-    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "ind_descarga_bot", "den_documento")
-    VALUES
-    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
-      [
-        docgeneral,
-        periodo,
-        fecha,
+    return queryRunner.query(
+      'INSERT INTO Documento(DocumentoId, DocumentoTipoCodigo, PersonalId, ObjetivoId, DocumentoDenominadorDocumento, DocumentoNombreArchivo, DocumentoFecha, DocumentoFechaDocumentoVencimiento, DocumentoPath, DocumentoDetalleDocumento, DocumentoIndividuoDescargaBot, DocumentoAudFechaIng, DocumentoAudUsuarioIng, DocumentoAudIpIng, DocumentoAudFechaMod, DocumentoAudUsuarioMod, DocumentoAudIpMod, DocumentoClienteId, DocumentoAnio, DocumentoMes, DocumentoVersion)',
+      [DocumentoId,
+        doctipo_id,
         persona_id,
         objetivo_id,
-        path,
+        den_documento,
         nombre_archivo,
-        usuario, ip, fecha,
-        usuario, ip, audfecha,
-        doctipo_id,
-        1, //ind_descarga_bot
-        den_documento
-      ])
-
+        fecha,
+        null,
+        path,
+        null,
+        1,
+        fecha, usuario, ip,
+        audfecha, usuario, ip,
+        null, //ClienteId
+        anio, // DocumentoAnio 
+        mes, // DocumentoMes 
+        0 // DocumentoVersion
+    ]
+    )
   }
 
   async downloadComprobantesByPeriodo(
@@ -492,20 +493,20 @@ export class RecibosController extends BaseController {
 
     try {
       await queryRunner.connect();
-      const data = await queryRunner.query(`SELECT doc.doc_id, doc.path, doc.nombre_archivo 
-        from lige.dbo.docgeneral doc
-        JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-          WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
-        [year, month, PersonalId]
+      const data = await queryRunner.query(`SELECT doc.DocumentoId, doc.DocumentoPath, doc.DocumentoNombreArchivo
+        from Documento doc
+          WHERE doc.DocumentoAnio =@1 AND doc.DocumentoMes=@2 AND doc.PersonalId = @0 AND doc.DocumentoTipoCodigo = 'REC'
+    `,
+        [PersonalId, year, month]
       )
 
 
       if (!data[0])
         throw new ClientException(`Recibo no generado`)
 
-      req.params.id = data[0].doc_id
+      req.params.id = data[0].DocumentoId
       req.params.filename = 'original'
-      req.params.tableForSearch = 'docgeneral'
+      req.params.tableForSearch = 'Documento'
 
       const fileUploadController = new FileUploadController();
       await fileUploadController.getByDownloadFile(req, res, next);
@@ -556,7 +557,7 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
       let recibosListaFiltroSuc = []
       const recibosLista = (lista)
-        ? await this.getparthFile(queryRunner, periodo_id, lista)
+        ? await this.getparthFile(queryRunner, Number(Anio), Number(Mes), lista)
         : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
       
       if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
@@ -576,7 +577,7 @@ export class RecibosController extends BaseController {
       for (const filterDowload of recibosListaFiltroSuc) {
         let origpath = ''
         try {
-          origpath = this.directoryRecibo + '/' + filterDowload.path
+          origpath = this.directoryRecibo + '/' + filterDowload.DocumentoPath
           if (!fs.existsSync(origpath))
             throw new ClientException(`Error al generar el recibo unificado ${origpath}`);
 
@@ -669,22 +670,23 @@ export class RecibosController extends BaseController {
 
     if (listPers.length == 0) listPers.push({ persona_id: 0 })
     return queryRunner.query(`
-    SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path, h.PersonalSucursalPrincipalSucursalId
-        FROM lige.dbo.docgeneral doc 
-       JOIN Personal per ON per.PersonalId=doc.persona_id 
-       LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.fecha > gaprel.GrupoActividadPersonalDesde  AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
+    SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.DocumentoPath, h.PersonalSucursalPrincipalSucursalId
+        FROM Documento doc 
+       JOIN Personal per ON per.PersonalId=doc.PersonalId
+       JOIN lige.dbo.liqmaperiodo peri ON peri.anio = doc.DocumentoAnio AND peri.mes = doc.DocumentoMes AND peri.periodo_id = @0 
+       LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.DocumentoFecha > gaprel.GrupoActividadPersonalDesde  AND doc.DocumentoFecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId AND h.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
 
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
-        WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${listPers.map(o => o.persona_id).join(',')})
+        WHERE doc.DocumentoTipoCodigo = 'REC' AND per.PersonalId IN (${listPers.map(o => o.persona_id).join(',')})
     ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`,
       [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
   }
 
-  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[]) {
+  async getparthFile(queryRunner: QueryRunner, anio:number,mes:number, perosonalIds: number[]) {
     const personalIdsString = perosonalIds.join(', ');
-    return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC' AND persona_id IN (${personalIdsString})`, [periodo_id])
+    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [anio,mes])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
