@@ -338,8 +338,8 @@ export class DocumentoController extends BaseController {
 
   private async getTiposDocumentoQuery(queryRunner: any) {
     return await queryRunner.query(`
-          SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, des_den_documento
-          FROM lige.dbo.doctipo tipo`)
+          SELECT tipo.DocumentoTipoCodigo value, TRIM(tipo.DocumentoTipoDetalle) label, tipo.DocumentoTipoDescripcionDenominadorDocumento des_den_documento
+          FROM DocumentoTipo tipo`)
   }
 
   async getTipos(req: any, res: Response, next: NextFunction) {

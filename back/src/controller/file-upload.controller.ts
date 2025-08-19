@@ -54,7 +54,7 @@ export class FileUploadController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
-      let info = await queryRunner.query(`SELECT doctipo_id,detalle FROM lige.dbo.doctipo`)
+      let info = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo doctipo_id, tipo.DocumentoTipoDetalle detalle FROM DocumentoTipo tipo`)
       await queryRunner.commitTransaction()
       return this.jsonRes(info, res);
     } catch (error) {
@@ -107,8 +107,8 @@ export class FileUploadController extends BaseController {
         case 'docgeneral':
           document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name
                 FROM lige.dbo.docgeneral docgen
-                LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id=docgen.doctipo_id
-                WHERE doc_id = @0`, [documentId]);
+                LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=docgen.doctipo_id
+                WHERE docgen.doc_id = @0`, [documentId]);
 
 
 
@@ -285,10 +285,11 @@ export class FileUploadController extends BaseController {
             'docgeneral' AS tableForSearch,
             doc.nombre_archivo AS nombre
         FROM lige.dbo.docgeneral doc
-        JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
+        JOIN DocumentoTipo tipo ON doc.doctipo_id = tipo.DocumentoTipoCodigo
+
         WHERE 
             doc.${columnSearch} = @0 AND
-            ('${columnSearch}' = 'doc_id' OR tipo.doctipo_id = @1)
+            ('${columnSearch}' = 'doc_id' OR tipo.DocumentoTipoCodigo = @1)
       `, [singleId, TipoSearch])
 
       ArchivosAnteriores.push(...result)
@@ -382,12 +383,13 @@ export class FileUploadController extends BaseController {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}
 
-    const doctipo = await queryRunner.query(`SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, tipo.des_den_documento, tipo.path_origen FROM lige.dbo.doctipo tipo 
-          WHERE tipo.doctipo_id = @0`, [doctipo_id])
+    const doctipo = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo value, tipo.DocumentoTipoDetalle label, tipo.DocumentoTipoDescripcionDenominadorDocumento, tipo.DocumentoTipoPathOrigen FROM DocumentoTipo tipo 
+          WHERE tipo.DocumentoTipoCodigo = @0
+    `, [doctipo_id])
     if (!doctipo.length)
       throw new ClientException(`Tipo de documento no existe`)
 
-    const folder = fecha.getFullYear() + doctipo[0]['path_origen']
+    const folder = fecha.getFullYear() + doctipo[0]['DocumentoTipoPathOrigen']
     if (!folder)
       throw new ClientException(`Error subiendo archivo`)
 

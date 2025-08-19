@@ -197,12 +197,12 @@ export class AuthMiddleware {
           case 'docgeneral':
             if (documentId) {
               // Verificar existencia del documento
-
               Documento = await queryRunner.query(
-                ` SELECT docgen.doc_id, docgen.persona_id ,doctip.json_permisos_act_dir, doctip.doctipo_id
+                `SELECT docgen.doc_id, docgen.persona_id ,doctip.DocumentoTipoJsonPermisosActDir json_permisos_act_dir, doctip.DocumentoTipoCodigo doctipo_id
                 FROM lige.dbo.docgeneral docgen
-                LEFT JOIN lige.dbo.doctipo doctip ON doctip.doctipo_id = docgen.doctipo_id
-                WHERE docgen.doc_id = @0`,
+                LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = docgen.doctipo_id
+                WHERE docgen.doc_id = @0
+                `,
                 [documentId]
               );
 
@@ -220,13 +220,13 @@ export class AuthMiddleware {
               // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
               if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
                 const permisosADDocumentoTipo = await queryRunner.query(
-                  ` SELECT json_permisos_act_dir
-                FROM lige.dbo.doctipo
-                WHERE doctipo_id = @0`,
+                  `SELECT tip.DocumentoTipoJsonPermisosActDir
+                FROM DocumentoTipo tip
+                WHERE tip.DocumentoTipoCodigo = @0`,
                   [documentoTipoIdNew]
                 );
                 // Si el tipo de documento tiene permisos, se valida
-                if (permisosADDocumentoTipo[0].json_permisos_act_dir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+                if (permisosADDocumentoTipo[0].DocumentoTipoJsonPermisosActDir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].DocumentoTipoJsonPermisosActDir)(req, res, next);
               }
 
               if (!doc.persona_id && !doc.json_permisos_act_dir || !doc.json_permisos_act_dir) return next();
@@ -265,15 +265,15 @@ export class AuthMiddleware {
             if (documentType) {
               // Si no se pasa el id del documento, pero si el tipo de documento, se verifica los permisos del tipo de documento
               const DocumentoTipo = await queryRunner.query(
-                ` SELECT json_permisos_act_dir
-              FROM lige.dbo.doctipo
-              WHERE doctipo_id = @0`,
+                ` SELECT tip.DocumentoTipoJsonPermisosActDir
+                FROM DocumentoTipo tip
+                WHERE tip.DocumentoTipoCodigo = @0`,
                 [documentType]
               );
 
               // Si el tipo de documento tiene permisos, se valida
-              if (!DocumentoTipo[0].json_permisos_act_dir) return next();
-              return this.validateJsonPermisosActDir(DocumentoTipo[0].json_permisos_act_dir)(req, res, next);
+              if (!DocumentoTipo[0].DocumentoTipoJsonPermisosActDir) return next();
+              return this.validateJsonPermisosActDir(DocumentoTipo[0].DocumentoTipoJsonPermisosActDir)(req, res, next);
             }
 
             console.log('no tiene documento ni tipo de documento');
