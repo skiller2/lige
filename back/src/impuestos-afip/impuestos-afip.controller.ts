@@ -1091,7 +1091,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
-      const fullPath = join(FileUploadController.pathDocuments,comprobante.path)
+      const fullPath = join(FileUploadController.pathDocuments,comprobante.DocumentoPath)
       const nombre_archivo = comprobante.nombre_archivo
 
       //const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
