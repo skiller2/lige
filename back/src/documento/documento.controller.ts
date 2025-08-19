@@ -23,7 +23,7 @@ export class DocumentoController extends BaseController {
   listaDocumento: any[] = [
     {
       id: "id", name: "ID", field: "id",
-      fieldName: "docg.doc_id",
+      fieldName: "docg.DocumentoId",
       type: "number",
       sortable: true,
       hidden: false,
@@ -31,7 +31,7 @@ export class DocumentoController extends BaseController {
     },
     {
       id: "den_documento", name: "Denominacion", field: "den_documento",
-      fieldName: "docg.den_documento",
+      fieldName: "docg.DocumentoDenominadorDocumento",
       type: "number",
       sortable: true,
       hidden: false,
@@ -88,7 +88,7 @@ export class DocumentoController extends BaseController {
     {
       id: "fecha", name: "Desde", field: "fecha",
       type: "date",
-      fieldName: "docg.fecha",
+      fieldName: "docg.Documentofecha",
       searchComponent: "inpurForFechaSearch",
       searchType: "date",
       sortable: true,
@@ -98,7 +98,7 @@ export class DocumentoController extends BaseController {
     {
       id: "fec_doc_ven", name: "Hasta", field: "fec_doc_ven",
       type: "date",
-      fieldName: "docg.fec_doc_ven",
+      fieldName: "docg.DocumentoFechaDocumentoVencimiento",
       searchComponent: "inpurForFechaSearch",
       searchType: "date",
       sortable: true,
@@ -107,7 +107,7 @@ export class DocumentoController extends BaseController {
     },
     {
       id: "detalle_documento", name: "Detalle Documento", field: "detalle_documento",
-      fieldName: "docg.detalle_documento",
+      fieldName: "docg.DocumentoDetalle",
       type: "string",
       searchType: "string",
       sortable: true,
@@ -283,7 +283,7 @@ export class DocumentoController extends BaseController {
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
       obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
-      FROM documento AS docg   
+      FROM Documento AS docg   
       LEFT JOIN lige.dbo.doctipo AS tipo ON docg.DocumentoTipoCodigo = tipo.doctipo_id
       LEFT JOIN Personal AS pers ON docg.PersonalId = pers.PersonalId 
       LEFT JOIN Objetivo AS obj ON docg.ObjetivoId = obj.ObjetivoId
@@ -346,13 +346,13 @@ export class DocumentoController extends BaseController {
   }
 
   async addDocumento(req: any, res: Response, next: NextFunction) {
-    const den_documento: string = req.body.den_documento
-    const persona_id: number = req.body.persona_id
-    const cliente_id: number = req.body.cliente_id
-    const objetivo_id: number = req.body.objetivo_id
-    const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : null
-    const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : null
-    const ind_descarga_bot: boolean = req.body.ind_descarga_bot
+    const den_documento: string = req.body.DocumentoDenominadorDocumento
+    const persona_id: number = req.body.PersonalId
+    const cliente_id: number = req.body.DocumentoClienteId
+    const objetivo_id: number = req.body.ObjetivoId
+    const fecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : null
+    const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : null
+    const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
     const archivos: any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
@@ -478,15 +478,15 @@ export class DocumentoController extends BaseController {
   }
 
   async updateDocumento(req: any, res: Response, next: NextFunction) {
-    const doc_id = req.body.doc_id
-    const doctipo_id: string = req.body.doctipo_id
-    const den_documento: string = req.body.den_documento
-    const persona_id: number = req.body.persona_id
-    const cliente_id: number = req.body.cliente_id
-    const objetivo_id: number = req.body.objetivo_id
-    const fecha: Date = req.body.fecha ? new Date(req.body.fecha) : req.body.fecha
-    const fec_doc_ven: Date = req.body.fec_doc_ven ? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
-    const ind_descarga_bot: boolean = req.body.ind_descarga_bot
+    const doc_id = req.body.DocumentoId
+    const doctipo_id: string = req.body.DocumentoTipoCodigo
+    const den_documento: string = req.body.DocumentoDenominadorDocumento
+    const persona_id: number = req.body.PersonalId
+    const cliente_id: number = req.body.DocumentoClienteId
+    const objetivo_id: number = req.body.ObjetivoId
+    const fecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : req.body.Documentofecha
+    const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : req.body.DocumentoFechaDocumentoVencimiento
+    const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -505,7 +505,7 @@ export class DocumentoController extends BaseController {
       if (telefonos.length) {
         const doc = await queryRunner.query(`
           SELECT DocumentoTipoCodigo, PersonalId, ObjetivoId, DocumentoClienteId, DocumentoIndividuoDescargaBot
-          FROM documento
+          FROM Documento
           WHERE DocumentoId IN (@0)
         `, [doc_id])
 
@@ -557,13 +557,13 @@ export class DocumentoController extends BaseController {
   }
 
   private valsTipoDocumento(tipoDocumento: any) {
-    const doctipo_id: string = tipoDocumento.doctipo_id
-    const den_documento: string = tipoDocumento.den_documento
-    const persona_id: number = tipoDocumento.persona_id
-    const cliente_id: number = tipoDocumento.cliente_id
-    const objetivo_id: number = tipoDocumento.objetivo_id
-    const fecha: Date = tipoDocumento.fecha ? new Date(tipoDocumento.fecha) : tipoDocumento.fecha
-    const fec_doc_ven: Date = tipoDocumento.fec_doc_ven ? new Date(tipoDocumento.fec_doc_ven) : tipoDocumento.fec_doc_ven
+    const doctipo_id: string = tipoDocumento.DocumentoTipoCodigo
+    const den_documento: string = tipoDocumento.DocumentoDenominadorDocumento
+    const persona_id: number = tipoDocumento.PersonalId
+    const cliente_id: number = tipoDocumento.DocumentoClienteId
+    const objetivo_id: number = tipoDocumento.ObjetivoId 
+    const fecha: Date = tipoDocumento.Documentofecha ? new Date(tipoDocumento.Documentofecha) : tipoDocumento.Documentofecha
+    const fec_doc_ven: Date = tipoDocumento.DocumentoFechaDocumentoVencimiento ? new Date(tipoDocumento.DocumentoFechaDocumentoVencimiento) : tipoDocumento.DocumentoFechaDocumentoVencimiento
 
     let campos_vacios: any[] = []
 
