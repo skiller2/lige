@@ -18,6 +18,8 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `3 - Cod.Objetivo: ${novedad.CodObjetivo ?? 's/d'}\n` +
             `4 - Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `5 - Descripcion: ${novedad.Descripcion ?? 's/d'}`,
+            `6 - Acción: ${novedad.Accion ?? 's/d'}`,
+
             `C - Limpar campos`,
             `E - Enviar al responsable`,
             `M - Menú`
@@ -43,6 +45,9 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
                     break;
                 case '5':
                     return gotoFlow(flowNovedadDescrip)
+                    break;
+                case '6':
+                    return gotoFlow(flowNovedadAccion)
                     break;
                 case 'c':
                     //return gotoFlow(flowNovedad)
@@ -153,6 +158,21 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
             await state.update({ novedad, reintento: 0 })
             return gotoFlow(flowNovedad)
         })
+
+export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
+    .addAnswer(['Describa la acción tomada'], { capture: true, delay },
+        async (ctx, { state, gotoFlow, }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
+            const novedad = state.get('novedad') ?? {}
+            const personalId = state.get('personalId') ?? {}
+            novedad.Descripcion = ctx.body
+            await novedadController.saveNovedad(personalId, novedad)
+            await state.update({ novedad })
+
+            return gotoFlow(flowNovedad)
+        })
+
 
 export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
     .addAnswer(['Describa la situación'], { capture: true, delay },
