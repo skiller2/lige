@@ -395,6 +395,7 @@ export class FileUploadController extends BaseController {
 
     switch (file.tableForSearch) {
 
+      case "documento":
       case "Documento":
 
         if (!doc_id) {
@@ -495,13 +496,13 @@ export class FileUploadController extends BaseController {
           // Actualiza el registro
           await queryRunner.query(`
           UPDATE Documento
-          SET DocumentoPeriodo = @1, DocumentoFecha = @2, 
-          DocumentoTipoCodigo = @5, DocumentoPersonalId = @6, DocumentoObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
+          SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16,
+          DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
           DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
           DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13 
           WHERE DocumentoId = @0
         `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
-            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot])
+            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
 
 
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'DocumentoId', doctipo_id, doc_id)
