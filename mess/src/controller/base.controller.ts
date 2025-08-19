@@ -326,9 +326,8 @@ export class BaseController {
 
   async getRutaFile(queryRunner: QueryRunner, PersonalId: number, year: number, month: number, doctipo_id: string) {
     return queryRunner.query(`
-      SELECT * from lige.dbo.docgeneral doc
-      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-      WHERE per.anio =@1 AND per.mes=@2 AND doc.persona_id = @0  AND doctipo_id = @3`,
+      SELECT * from Documento doc
+      WHERE doc.DocumentoAnio =@1 AND doc.DocumentoMes=@2 AND doc.PersonalId = @0  AND doc.DocumentoTipoCodigo = @3`,
       [PersonalId, year, month, doctipo_id]
     )
   }
@@ -347,14 +346,14 @@ export class BaseController {
 //    const queryRunner = dataSource.createQueryRunner()
     const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month, tipoDoc)
     let tmpURL = ''
-    if (gettmpfilename[0] && gettmpfilename[0].doc_id && existsSync(this.pathDocuments + '/' + gettmpfilename[0].path)) {
-      tmpURL = `${this.apiPath}/documentos/download/${gettmpfilename[0].doc_id}/${gettmpfilename[0].doctipo_id}-${gettmpfilename[0].nombre_archivo}`;
+    if (gettmpfilename[0] && gettmpfilename[0].DocumentoId && existsSync(this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)) {
+      tmpURL = `${this.apiPath}/documentos/download/${gettmpfilename[0].DocumentoId}/${gettmpfilename[0].DocumentoTipoCodigo}-${gettmpfilename[0].DocumentoNombreArchivo}`;
 console.log('URL',tmpURL)
 
     } else {
-      throw new ClientException(`Documento no localizado`,this.pathDocuments + '/' + gettmpfilename[0].path)
+      throw new ClientException(`Documento no localizado`,this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)
     }
-    return { URL: tmpURL, doc_id: gettmpfilename[0].doc_id }
+    return { URL: tmpURL, doc_id: gettmpfilename[0].DocumentoId }
   }
 
 
