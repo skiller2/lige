@@ -2014,7 +2014,7 @@ cuit.PersonalCUITCUILCUIT,
       const documentos = await queryRunner.query(`
         SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', foto.DocumentoImagenFotoId, '/DocumentoImagenFoto/0') url,
+        CONCAT('api/file-upload/downloadFile/', foto.DocumentoImagenFotoId, '/DocumentoImagenFoto/0') url,
         DocumentoImagenFotoBlobTipoArchivo TipoArchivo, 'DocumentoImagenFoto' tableName
         FROM DocumentoImagenFoto foto
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
@@ -2022,7 +2022,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url,
+        CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url,
         DocumentoImagenDocumentoBlobTipoArchivo TipoArchivo, 'DocumentoImagenDocumento' tableName
         FROM DocumentoImagenDocumento doc
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
@@ -2030,7 +2030,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT CUIT.DocumentoImagenCUITCUILId docId, CUIT.DocumentoImagenCUITCUILBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', CUIT.DocumentoImagenCUITCUILId,'/DocumentoImagenCUITCUIL/0') url,
+        CONCAT('api/file-upload/downloadFile/', CUIT.DocumentoImagenCUITCUILId,'/DocumentoImagenCUITCUIL/0') url,
         DocumentoImagenCUITCUILBlobTipoArchivo TipoArchivo, 'DocumentoImagenCUITCUIL' tableName
         FROM DocumentoImagenCUITCUIL CUIT
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = CUIT.DocumentoImagenParametroId
@@ -2038,7 +2038,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', afip.DocumentoImagenImpuestoAFIPId,'/DocumentoImagenImpuestoAFIP/0') url,
+        CONCAT('api/file-upload/downloadFile/', afip.DocumentoImagenImpuestoAFIPId,'/DocumentoImagenImpuestoAFIP/0') url,
         DocumentoImagenImpuestoAFIPBlobTipoArchivo TipoArchivo, 'DocumentoImagenImpuestoAFIP' tableName
         FROM DocumentoImagenImpuestoAFIP afip
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = afip.DocumentoImagenParametroId
@@ -2046,7 +2046,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT curso.DocumentoImagenCursoId docId, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url,
+        CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url,
         DocumentoImagenCursoBlobTipoArchivo TipoArchivo, 'DocumentoImagenCurso' tableName
         FROM DocumentoImagenCurso curso
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
@@ -2054,7 +2054,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT habil.DocumentoImagenHabilitacionId docId, habil.DocumentoImagenHabilitacionBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', habil.DocumentoImagenHabilitacionId, '/DocumentoImagenHabilitacion/0') url,
+        CONCAT('api/file-upload/downloadFile/', habil.DocumentoImagenHabilitacionId, '/DocumentoImagenHabilitacion/0') url,
         DocumentoImagenHabilitacionBlobTipoArchivo TipoArchivo, 'DocumentoImagenHabilitacion' tableName
         FROM DocumentoImagenHabilitacion habil
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = habil.DocumentoImagenParametroId
@@ -2062,7 +2062,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT psi.DocumentoImagenPsicofisicoId docId, psi.DocumentoImagenPsicofisicoBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', psi.DocumentoImagenPsicofisicoId, '/DocumentoImagenPsicofisico/0') url,
+        CONCAT('api/file-upload/downloadFile/', psi.DocumentoImagenPsicofisicoId, '/DocumentoImagenPsicofisico/0') url,
         DocumentoImagenPsicofisicoBlobTipoArchivo TipoArchivo, 'DocumentoImagenPsicofisico' tableName
         FROM DocumentoImagenPsicofisico psi
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = psi.DocumentoImagenParametroId
@@ -2070,7 +2070,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT ren.DocumentoImagenRenarId docId, ren.DocumentoImagenRenarBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', ren.DocumentoImagenRenarId, '/DocumentoImagenRenar/0') url,
+        CONCAT('api/file-upload/downloadFile/', ren.DocumentoImagenRenarId, '/DocumentoImagenRenar/0') url,
         DocumentoImagenRenarBlobTipoArchivo TipoArchivo, 'DocumentoImagenRenar' tableName
         FROM DocumentoImagenRenar ren
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = ren.DocumentoImagenParametroId
@@ -2078,7 +2078,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT rein.DocumentoImagenCertificadoReincidenciaId docId, rein.DocumentoImagenCertificadoReincidenciaBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', rein.DocumentoImagenCertificadoReincidenciaId, '/DocumentoImagenCertificadoReincidencia/0') url,
+        CONCAT('api/file-upload/downloadFile/', rein.DocumentoImagenCertificadoReincidenciaId, '/DocumentoImagenCertificadoReincidencia/0') url,
         DocumentoImagenCertificadoReincidenciaBlobTipoArchivo TipoArchivo, 'DocumentoImagenCertificadoReincidencia' tableName
         FROM DocumentoImagenCertificadoReincidencia rein
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = rein.DocumentoImagenParametroId
@@ -2086,7 +2086,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT preo.DocumentoImagenPreocupacionalId docId, preo.DocumentoImagenPreocupacionalBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', preo.DocumentoImagenPreocupacionalId, '/DocumentoImagenPreocupacional/0') url,
+        CONCAT('api/file-upload/downloadFile/', preo.DocumentoImagenPreocupacionalId, '/DocumentoImagenPreocupacional/0') url,
         DocumentoImagenPreocupacionalBlobTipoArchivo TipoArchivo, 'DocumentoImagenPreocupacional' tableName
         FROM DocumentoImagenPreocupacional preo
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = preo.DocumentoImagenParametroId
@@ -2095,7 +2095,7 @@ cuit.PersonalCUITCUILCUIT,
         SELECT 
         gen.DocumentoId docId, gen.DocumentoNombreArchivo NombreArchivo,
         param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', gen.DocumentoId, '/Documento/0') url,
+        CONCAT('api/file-upload/downloadFile/', gen.DocumentoId, '/Documento/0') url,
         RIGHT(gen.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(gen.DocumentoNombreArchivo)) - 1) TipoArchivo,
         'Documento' tableName
         FROM Documento gen

@@ -116,6 +116,7 @@ export class FileUploadController extends BaseController {
           docname = document[0]["name"]
           break;
         case 'Documento':
+        case 'documento':
           document = await dataSource.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
                 FROM Documento doc
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
