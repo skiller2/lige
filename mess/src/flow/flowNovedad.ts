@@ -17,7 +17,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
             `3 - Cod.Objetivo: ${novedad.CodObjetivo ?? 's/d'}\n` +
             `4 - Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-            `5 - Descripcion: ${novedad.Descripcion ?? 's/d'}`,
+            `5 - Descripcion: ${novedad.Descripcion ?? 's/d'}\n ` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
 
             `C - Limpar campos`,
