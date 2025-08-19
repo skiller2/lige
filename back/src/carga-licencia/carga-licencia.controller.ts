@@ -1024,7 +1024,7 @@ export class CargaLicenciaController extends BaseController {
         , [PersonalId, PersonalLicenciaId])
 
       if (DocumentoId && Number(DocumentoId) > 0)
-        await FileUploadController.deleteFile(Number(DocumentoId), 'documento', queryRunner)
+        await FileUploadController.deleteFile(Number(DocumentoId), 'Documento', queryRunner)
 
       if (recLicSit[0].PersonalLicenciaSituacionRevistaId == 10)
         throw new ClientException(`La situación revista anterior no puede ser "Licencia", avise al administrador`)
