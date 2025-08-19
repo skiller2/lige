@@ -2092,14 +2092,15 @@ cuit.PersonalCUITCUILCUIT,
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = preo.DocumentoImagenParametroId
         WHERE preo.PersonalId IN (@0)
         UNION ALL
-        SELECT gen.doc_id docId, gen.nombre_archivo NombreArchivo,
-        param.doctipo_id Parametro, param.detalle Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', gen.doc_id, '/docgeneral/0') url,
-        RIGHT(gen.nombre_archivo, CHARINDEX('.', REVERSE(gen.nombre_archivo)) - 1) TipoArchivo,
-        'docgeneral' tableName
-        FROM lige.dbo.docgeneral gen
-        LEFT JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
-        WHERE gen.persona_id IN (@0) AND gen.doctipo_id NOT IN ('REC')
+        SELECT 
+        gen.DocumentoId docId, gen.DocumentoNombreArchivo NombreArchivo,
+        param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
+        CONCAT('/api/file-upload/downloadFile/', gen.DocumentoId, '/Documento/0') url,
+        RIGHT(gen.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(gen.DocumentoNombreArchivo)) - 1) TipoArchivo,
+        'Documento' tableName
+        FROM Documento gen
+        LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = gen.DocumentoTipoCodigo
+        WHERE gen.PersonalId IN (@0) AND gen.DocumentoTipoCodigo NOT IN ('REC')
         `, [personalId]
       )
 
@@ -2120,13 +2121,13 @@ cuit.PersonalCUITCUILCUIT,
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
       let ds: any
-      if (table == 'docgeneral') {
+      if (table == 'docgeneral' || table == 'Documento') {
         ds = await queryRunner.query(`
-          SELECT gen.doc_id AS id, path, gen.nombre_archivo AS nombreArchivo,
-          param.doctipo_id parametro
-          FROM lige.dbo.docgeneral gen
-          JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
-          WHERE gen.doc_id = @0
+          SELECT gen.DocumentoId AS id, gen.DocumentoPath path, gen.DocumentoNombreArchivo AS nombreArchivo,
+          gen.DocumentoTipoCodigo parametro
+          FROM Documento gen
+          JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = gen.DocumentoTipoCodigo
+          WHERE gen.DocumentoId = @0
           `, [id]
         )
       } else {
