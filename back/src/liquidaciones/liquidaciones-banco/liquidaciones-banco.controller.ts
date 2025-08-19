@@ -589,7 +589,7 @@ export class LiquidacionesBancoController extends BaseController {
             row.periodo_id,
             tipo_movimiento_id_ade,
             fechaActual,
-            `${prestamo[0].frm.FormaPrestamoDescripcion} ${row.persona_id + '/' + row.clave_id}`,
+            `${prestamo[0].FormaPrestamoDescripcion} ${row.persona_id + '/' + row.clave_id}`,
             null,
             row.persona_id,
             row.importe,
