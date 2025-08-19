@@ -55,6 +55,24 @@ export class ChatBotController extends BaseController {
       [doc_id, fechaActual, telefono, personal_id, 'bot', '127.0.0.1', fechaActual])
   }
 
+    static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
+        const queryRunner = dataSource.createQueryRunner()  
+        const fechaActual = new Date()
+        try {
+            const existsTel = await queryRunner.query(`SELECT personal_id FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personal_id]) 
+            if (existsTel.length==0) throw new ClientException(`El personal no tiene un telefono registrado.`)
+    
+            await queryRunner
+                .query(`INSERT INTO lige.dbo.bot_cola_mensajes (fecha_ingreso, personal_id, clase_mensaje, texto_mensaje, fecha_proceso, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_fecha_mod, aud_ip_mod) 
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, personal_id, clase_mensaje, texto_mensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
+            return true
+
+        } catch (error) { 
+            return false
+        }
+    }
+
+
   static async getColaMsg() {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()

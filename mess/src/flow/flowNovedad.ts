@@ -3,6 +3,7 @@ import flowMenu from './flowMenu.ts'
 import { chatBotController, personalController, novedadController, objetivoController } from "../controller/controller.module.ts";
 import { reset, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
+import { ChatBotController } from 'src/controller/chatbot.controller.ts';
 
 const delay = chatBotController.getDelay()
 
@@ -271,11 +272,20 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 await novedadController.addNovedad(novedad, telefono, personalId)
                 await novedadController.saveNovedad(personalId, {})
+
+//            ChatBotController.enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
+
+
+
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {
                 return fallBack()
             }
-            await state.update({ reintento:0 })
+            await state.update({ reintento: 0 })
+            
+
+
+
             return gotoFlow(flowMenu)
         })
 
