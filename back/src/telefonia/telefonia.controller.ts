@@ -174,7 +174,7 @@ export class TelefoniaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const data = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM documento WHERE DocumentoId = @0`,
+      const data = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
         [impoexpoId]
       )
 
@@ -278,7 +278,7 @@ export class TelefoniaController extends BaseController {
       let datasetid = 0
 
 
-      let getProxNumero = await this.getProxNumero(queryRunner, `documento`, usuario, ip)
+      let getProxNumero = await this.getProxNumero(queryRunner, `Documento`, usuario, ip)
 
 
       const now = fechaRequest

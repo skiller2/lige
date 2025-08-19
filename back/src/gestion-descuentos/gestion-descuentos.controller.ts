@@ -1300,7 +1300,7 @@ export class GestionDescuentosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let den_documento:string = ''
     const fechaActual:Date = new Date()
-    const file = {...req.file, doctipo_id:'DES', tableForSearch:'documento'}
+    const file = {...req.file, doctipo_id:'DES', tableForSearch:'Documento'}
 
     let columnsnNotFound = []
     let dataset:any = []

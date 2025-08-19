@@ -9,8 +9,8 @@ export class PersonalController extends BaseController {
       `SELECT doc.personalid PersonalId, 
         doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.detalle, tip.des_den_documento, doc.DocumentoDenominadorDocumento, pr.anio, pr.mes, doc.DocumentoNombreArchivo,
         MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
-        FROM documento doc
-        JOIN lige.dbo.doctipo tip ON tip.doctipo_id = doc.DocumentoTipoCodigo
+        FROM Documento doc
+        JOIN DocumentoTipo tip ON tip.doctipo_id = doc.DocumentoTipoCodigo
         LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.anio = doc.Documentoanio AND pr.mes = doc.Documentomes
         LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.DocumentoId AND dl.personal_id = @0
         WHERE doc.DocumentoIndividuoDescargaBot = 1  AND dl.fecha_descarga IS NULL AND (doc.personalid =0 OR doc.personalid =  @0) AND Documentofecha > '2025-01-01'
