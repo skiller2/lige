@@ -286,13 +286,13 @@ export class DocumentoController extends BaseController {
     const result = await dataSource.query(`
       SELECT docg.DocumentoId AS id,
       docg.DocumentoDenominadorDocumento,
-      tipo.detalle AS tipo, 
+      tipo.DocumentoTipoDetalle AS tipo, 
       docg.DocumentoFecha, docg.DocumentoFechaDocumentoVencimiento,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
       obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
       FROM Documento AS docg   
-      LEFT JOIN lige.dbo.doctipo AS tipo ON docg.DocumentoTipoCodigo = tipo.doctipo_id
+      LEFT JOIN DocumentoTipo AS tipo ON docg.DocumentoTipoCodigo = tipo.DocumentoTipoCodigo
       LEFT JOIN Personal AS pers ON docg.PersonalId = pers.PersonalId 
       LEFT JOIN Objetivo AS obj ON docg.ObjetivoId = obj.ObjetivoId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
