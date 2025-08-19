@@ -38,8 +38,8 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
 
                 try {
-                    await flowDynamic([{ body: documento.detalle, media: urlDoc, delay }])
-                    await chatBotController.addToDocLog(documento.doc_id, ctx.from)
+                    await flowDynamic([{ body: documento.DocumentoTipoDetalle, media: urlDoc, delay }])
+                    await chatBotController.addToDocLog(documento.DocumentoId, ctx.from)
                 } catch (error) {
                     console.log('Error descargando Archivo',error)
                     await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
