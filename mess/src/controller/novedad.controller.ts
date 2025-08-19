@@ -40,6 +40,7 @@ export class NovedadController extends BaseController {
     const Fecha = new Date(fechaISO);
 
     const Descripcion = novedad.Descripcion
+    const Accion = novedad.Descripcion
     const NovedadTipoCod = novedad.Tipo.NovedadTipoCod
     const now:Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
@@ -47,12 +48,12 @@ export class NovedadController extends BaseController {
     await dbServer.dataSource.query(`
       INSERT INTO Novedad (
         NovedadCodigo,
-        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, NovedadTipoCod,
+        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         Json, AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
-      ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@9,@10,@10,@11,@11)
+      ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9, @10,@10,@10,@11,@11,@12,@12)
       `, [
         NovedadCodigo,
-        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, NovedadTipoCod,
+        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         jsonNovedad, now, 'bot', '::1'
     ])
   }
