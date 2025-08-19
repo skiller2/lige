@@ -233,7 +233,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
      LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
 
      LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
-     LEFT JOIN documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes 
+     LEFT JOIN Documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes 
 
 	LEFT JOIN 
   	( SELECT  gap2.GrupoActividadPersonalPersonalId, MAX(gap2.GrupoActividadId) GrupoActividadId FROM GrupoActividadPersonal gap2
@@ -444,7 +444,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       `SELECT pag.PersonalComprobantePagoAFIPId, pag.PersonalComprobantePagoAFIPImporte, pag.PersonalComprobantePagoAFIPAno,pag.PersonalComprobantePagoAFIPMes,doc.DocumentoId
         FROM PersonalComprobantePagoAFIP pag 
         LEFT JOIN lige.dbo.liqmaperiodo per ON per.anio = @1 AND per.mes = @2
-        LEFT JOIN documento doc ON doc.PersonalId = pag.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = per.anio AND doc.DocumentoMes = per.mes
+        LEFT JOIN Documento doc ON doc.PersonalId = pag.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = per.anio AND doc.DocumentoMes = per.mes
         WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2
 `,
       [
@@ -534,7 +534,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     if (updateFile || forzado) {
         const fileObj = {
           doctipo_id: "MONOT", 
-          tableForSearch: "documento", 
+          tableForSearch: "Documento", 
           ind_descarga_bot: 0, 
           tempfilename: file.filename, 
           originalname: file.originalname, 
@@ -1077,7 +1077,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
 
         LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
-        LEFT JOIN documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes
+        LEFT JOIN Documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes
 
 
         LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)

@@ -568,9 +568,10 @@ export class LiquidacionesBancoController extends BaseController {
             row.importe,
             row.clave_id
             ])
-          const prestamo= await queryRunner.query(`SELECT pre.PersonalPrestamoId, frm.FormaPrestamoDescripcion FROM PersonalPrestamo pre WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoMonto = @1 AND pre.PersonalPrestamoId=@2
+          const prestamo = await queryRunner.query(`SELECT pre.PersonalPrestamoId, frm.FormaPrestamoDescripcion FROM PersonalPrestamo pre 
             JOIN FormaPrestamo frm ON frm.FormaPrestamoId = pre.FormaPrestamoId
-`,            [row.persona_id,
+            WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoMonto = @1 AND pre.PersonalPrestamoId=@2
+            `,            [row.persona_id,
             row.importe,
             row.clave_id
             ])
@@ -588,7 +589,7 @@ export class LiquidacionesBancoController extends BaseController {
             row.periodo_id,
             tipo_movimiento_id_ade,
             fechaActual,
-            `${prestamo[0].frm.FormaPrestamoDescripcion} ${row.persona_id + '/' + row.clave_id}`,
+            `${prestamo[0].FormaPrestamoDescripcion} ${row.persona_id + '/' + row.clave_id}`,
             null,
             row.persona_id,
             row.importe,
