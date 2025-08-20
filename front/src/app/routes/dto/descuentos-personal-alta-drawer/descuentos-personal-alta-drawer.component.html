@@ -56,6 +56,15 @@
           <input nz-input placeholder="" formControlName="Detalle" type="text" />
         </nz-form-control>
       </nz-form-item>
+      
+      @if(formDesc.get('PersonalOtroDescuentoFechaAnulacion')?.value) {
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="PersonalOtroDescuentoFechaAnulacion" type="date" />
+        </nz-form-control>
+      </nz-form-item>
+      }
 
       <nz-form-item class="marginElement" *ngIf="DetalleAnulacion() || cancelDesc()">
         <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
@@ -63,6 +72,8 @@
           <input nz-input placeholder="" formControlName="DetalleAnulacion" type="text" />
         </nz-form-control>
       </nz-form-item>
+
+      
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">

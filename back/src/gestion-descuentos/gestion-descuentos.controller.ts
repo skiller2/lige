@@ -177,6 +177,13 @@ const columnsPersonalDescuentos:any[] = [
   //   hidden: false,
   //   searchHidden: false,
   // },
+  {
+    id:'PersonalOtroDescuentoFechaAnulacion', name:'Fecha Anulación', field:'PersonalOtroDescuentoFechaAnulacion',
+    fieldName: 'perotro.PersonalOtroDescuentoFechaAnulacion',
+    type:'date',
+    searchComponent: "inpurForFechaSearch",
+    searchType: 'date',
+  },
 ]
 
 const columnsObjetivosDescuentos:any[] = [
@@ -419,7 +426,6 @@ export class GestionDescuentosController extends BaseController {
         , perdes.tipoint
 
       FROM VistaPersonalDescuento perdes
-
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
@@ -715,22 +721,21 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
-
       if (PersonalId && !ObjetivoId) {
 
-        if(req.body.Detalle == null){
+        if(!req.body.Detalle){
           throw new ClientException('Debe de ingresar un detalle')
         }
-
+   
         const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
       }else if (ObjetivoId && !PersonalId) {
 
-        if(req.body.Detalle == null){
+        if(!req.body.Detalle){
           throw new ClientException('Debe de ingresar un detalle')
         }
-
+   
         const result = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
@@ -1095,7 +1100,7 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
       // const usuarioId = await this.getUsuarioId(res, queryRunner)
       // const ip = this.getRemoteAddress(req)
-     if(req.body.DetalleAnulacion == null){
+     if(!req.body.DetalleAnulacion){
       throw new ClientException('Debe de ingresar un detalle de anulación')
      }
       if (PersonalId) { //PersonalOtrosDescuentos
@@ -1217,6 +1222,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoImporteVariable Importe, PersonalId
       , PersonalOtroDescuentoId id
       , PersonalOtroDescuentoDetalleAnulacion DetalleAnulacion
+      , PersonalOtroDescuentoFechaAnulacion
       FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
       `, [DescuentoId, PersonalId])
       // throw new ClientException(`DEBUG.`)

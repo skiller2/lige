@@ -74,7 +74,8 @@ export class DescuentosPersonalAltaDrawerComponent {
         id: 0,
         DescuentoId: 0, PersonalId:0, AplicaEl:new Date(),
         Cuotas:null, Importe:null, Detalle:'',
-        DetalleAnulacion:'', importeCuota: ''
+        DetalleAnulacion:'', importeCuota: '',
+        PersonalOtroDescuentoFechaAnulacion: null
     })
 
     $optionsTipo = this.searchService.getDecuentosTipoOptions();
@@ -136,6 +137,12 @@ export class DescuentosPersonalAltaDrawerComponent {
         const value = this.formDesc.get("DetalleAnulacion")?.value
         if (value?.length) return value
         return ''
+    }
+
+    FechaAnulacion():Date | null {
+        const value = this.formDesc.get("PersonalOtroDescuentoFechaAnulacion")?.value
+        if (value) return value
+        return null as any
     }
 
     async ngOnInit(){}
