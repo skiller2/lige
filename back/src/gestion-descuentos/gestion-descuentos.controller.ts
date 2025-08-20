@@ -717,10 +717,20 @@ export class GestionDescuentosController extends BaseController {
       const ip = this.getRemoteAddress(req)
 
       if (PersonalId && !ObjetivoId) {
+
+        if(req.body.Detalle == null){
+          throw new ClientException('Debe de ingresar un detalle')
+        }
+
         const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
       }else if (ObjetivoId && !PersonalId) {
+
+        if(req.body.Detalle == null){
+          throw new ClientException('Debe de ingresar un detalle')
+        }
+
         const result = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
@@ -1085,13 +1095,9 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
       // const usuarioId = await this.getUsuarioId(res, queryRunner)
       // const ip = this.getRemoteAddress(req)
-      if (!DetalleAnulacion.length) campos_vacios.push("- Motivo de anulación");
-
-      if (campos_vacios.length) {
-        campos_vacios.unshift('Debe completar los siguientes campos: ')
-        throw new ClientException(campos_vacios)
-      }
-      
+     if(req.body.DetalleAnulacion == null){
+      throw new ClientException('Debe de ingresar un detalle de anulación')
+     }
       if (PersonalId) { //PersonalOtrosDescuentos
         await this.cancellationPersonalOtroDescuentoQuery(queryRunner, id, PersonalId, DetalleAnulacion)
       } else {

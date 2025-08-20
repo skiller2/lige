@@ -44,7 +44,7 @@ export class TableDescuentosObjetivosComponent {
     visibleEditDesc = signal<boolean>(false)
     disabledForm = signal(false);
     cancelDesc = signal(false);
-
+    isAnulacion = signal(false);
     constructor(
         // private searchService: SearchService,
         private apiService: ApiService,
@@ -124,24 +124,28 @@ export class TableDescuentosObjetivosComponent {
 
     openDrawerforAltaDescuentos(){
         this.visibleAltaDesc.set(true)
+        this.isAnulacion.set(false)
     }
 
     openDrawerforEditDescuentos(){
         this.disabledForm.set(false)
         this.cancelDesc.set(false)
         this.visibleEditDesc.set(true)
+        this.isAnulacion.set(false)
     }
 
     openDrawerforDetailDescuentos(){
         this.cancelDesc.set(false)
         this.disabledForm.set(true)
-        this.visibleEditDesc.set(true)
+        this.visibleEditDesc.set(true) 
+        this.isAnulacion.set(false)
     }
 
     openDrawerforCancelDescuentos(){
-        this.disabledForm.set(false)
+        this.disabledForm.set(true)
         this.cancelDesc.set(true)
         this.visibleEditDesc.set(true)
+        this.isAnulacion.set(true)
     }
 
     onAddorUpdate(_e:any) {

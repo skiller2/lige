@@ -46,7 +46,7 @@ export class TableDescuentosPersonalComponent {
     tipoint = signal<string>('')
     disabledForm = signal(false);
     cancelDesc = signal(false);
-
+    isAnulacion = signal(false);
     constructor(
         // private searchService: SearchService,
         private apiService: ApiService,
@@ -128,6 +128,7 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforAltaDescuentos(){
         this.visibleAltaDesc.set(true)
+        this.isAnulacion.set(false)
     }
 
     openDrawerforEditDescuentos(){
@@ -135,6 +136,7 @@ export class TableDescuentosPersonalComponent {
             this.cancelDesc.set(false)
             this.disabledForm.set(false)
             this.visibleEditDesc.set(true)
+            this.isAnulacion.set(false)
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
         }
@@ -145,6 +147,7 @@ export class TableDescuentosPersonalComponent {
             this.cancelDesc.set(false)
             this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
+            this.isAnulacion.set(false)
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
         }
@@ -152,9 +155,10 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforCancelDescuentos(){
         if (this.tipoint() == 'OTRO') {
-            this.disabledForm.set(false)
+            this.disabledForm.set(true)
             this.cancelDesc.set(true)
             this.visibleEditDesc.set(true)
+            this.isAnulacion.set(true)
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
         }
@@ -164,6 +168,7 @@ export class TableDescuentosPersonalComponent {
         if (this.tipoint() == 'OTRO') {
             this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
+            this.isAnulacion.set(false)
         }else{
             this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
         }

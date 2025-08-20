@@ -40,9 +40,9 @@
 </nz-card>
 
 @defer( when visibleAltaDesc()){
-  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)"></app-descuentos-objetivos-alta-drawer>
+  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()"></app-descuentos-objetivos-alta-drawer>
+  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
 }

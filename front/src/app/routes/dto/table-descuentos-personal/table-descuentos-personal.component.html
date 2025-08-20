@@ -26,6 +26,7 @@
           [disabled]="descuentoId() == 0 && personalId() == 0">
           <span nz-icon nzType="delete" nzTheme="outline"></span>
         </button>
+        
       </nz-button-group>
       </div>
     </div>
@@ -41,9 +42,9 @@
 </nz-card>
 
 @defer( when visibleAltaDesc()){
-  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)"></app-descuentos-personal-alta-drawer>
+  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()" [isAnulacion]="isAnulacion()"></app-descuentos-personal-alta-drawer>
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleEditDesc" [personalId]="personalId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()"></app-descuentos-personal-alta-drawer>
+  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleEditDesc" [personalId]="personalId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()"  [isAnulacion]="isAnulacion()"></app-descuentos-personal-alta-drawer>
 }

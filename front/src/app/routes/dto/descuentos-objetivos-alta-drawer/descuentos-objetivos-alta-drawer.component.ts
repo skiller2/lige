@@ -31,7 +31,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
     objetivoId = model<number>(0);
     disabled = input<boolean>(false);
     cancelDesc = input<boolean>(false);
-    onAddorUpdate = output()
+    isAnulacion = input<boolean>(false);
+    onAddorUpdate = output() 
 
     private readonly loadingSrv = inject(LoadingService);
 
@@ -52,10 +53,14 @@ export class DescuentosObjetivosAltaDrawerComponent {
                     this.formDesc.markAsPristine()
                 }
 
-                if (this.disabled())
-                    this.formDesc.disable()
-                else
+                if (this.disabled()) {
+                    this.formDesc.disable();
+                    if (this.isAnulacion()) {
+                        this.formDesc.get('DetalleAnulacion')?.enable(); 
+                    }
+                } else {
                     this.formDesc.enable()
+                }
                 
             }
             else {
@@ -108,13 +113,13 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     anio():number {
         const value = this.formDesc.get("AplicaEl")?.value
-        if(value) return value.getFullYear()
+        if (value) return new Date(value).getFullYear()
         return 0
     }
 
     mes():number {
         const value = this.formDesc.get("AplicaEl")?.value
-        if(value) return value.getMonth()+1
+        if(value) return new Date(value).getMonth()+1
         return 0
     }
 

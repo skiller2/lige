@@ -11,7 +11,6 @@ import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FormBuilder, FormArray } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-
 @Component({
     selector: 'app-descuentos-personal-alta-drawer',
     templateUrl: './descuentos-personal-alta-drawer.component.html',
@@ -27,6 +26,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     personalId = model<number>(0);
     disabled = input<boolean>(false);
     cancelDesc = input<boolean>(false);
+    isAnulacion = input<boolean>(false);
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
 
@@ -37,6 +37,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     ) {
         effect(async() => { 
             const visible = this.visibleDesc()
+          
             if (visible) {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
@@ -47,10 +48,15 @@ export class DescuentosPersonalAltaDrawerComponent {
                     this.formDesc.markAsPristine()
                 }
 
-                if (this.disabled())
-                    this.formDesc.disable()
-                else
+                if (this.disabled())  {
+                    this.formDesc.disable();
+                    
+                    if (this.isAnulacion()) {
+                      this.formDesc.get('DetalleAnulacion')?.enable(); 
+                    }
+                } else {
                     this.formDesc.enable()
+                }
                 
             } else {
                 this.formDesc.reset()
