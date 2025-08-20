@@ -8,7 +8,9 @@ export class NovedadController extends BaseController {
   async sendMsgResponsable(novedad: any) {
     const CodObjetivo = novedad.CodObjetivo.split('/')
     const ClienteId:number = parseInt(CodObjetivo[0])
-    const ClienteElementoDependienteId:number = parseInt(CodObjetivo[1])
+    const ClienteElementoDependienteId: number = parseInt(CodObjetivo[1])
+    const anio=2025
+    const mes=7
 
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId,ClienteElementoDependienteId)
 
