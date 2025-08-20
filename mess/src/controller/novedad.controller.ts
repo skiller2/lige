@@ -2,8 +2,21 @@ import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
+import { ObjetivoController } from "./objetivo.controller.ts";
 
 export class NovedadController extends BaseController {
+  async sendMsgResponsable(novedad: any) {
+    const CodObjetivo = novedad.CodObjetivo.split('/')
+    const ClienteId:number = parseInt(CodObjetivo[0])
+    const ClienteElementoDependienteId: number = parseInt(CodObjetivo[1])
+    const anio=2025
+    const mes=7
+
+    const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId,ClienteElementoDependienteId)
+
+//            ChatBotController.enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
+
+  }
 
   async saveNovedad(personalId: string, novedad:any) {
     const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)

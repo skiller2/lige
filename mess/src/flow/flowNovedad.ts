@@ -4,6 +4,7 @@ import { chatBotController, personalController, novedadController, objetivoContr
 import { reset, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
 import { ChatBotController } from 'src/controller/chatbot.controller.ts';
+import { ObjetivoController } from 'src/controller/objetivo.controller.ts';
 
 const delay = chatBotController.getDelay()
 
@@ -282,9 +283,7 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                 await novedadController.addNovedad(novedad, telefono, personalId)
                 await novedadController.saveNovedad(personalId, {})
 
-//            ChatBotController.enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
-
-
+//                await novedadController.sendMsgResponsable(novedad)
 
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {
