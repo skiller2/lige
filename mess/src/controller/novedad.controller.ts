@@ -2,8 +2,21 @@ import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
+import { ObjetivoController } from "./objetivo.controller.ts";
 
 export class NovedadController extends BaseController {
+  async sendMsgResponsable(novedad: any) {
+    const CodObjetivo = novedad.CodObjetivo.split('/')
+    const ClienteId:number = parseInt(CodObjetivo[0])
+    const ClienteElementoDependienteId: number = parseInt(CodObjetivo[1])
+    const anio=2025
+    const mes=7
+
+    const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId,ClienteElementoDependienteId)
+
+//            ChatBotController.enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
+
+  }
 
   async saveNovedad(personalId: string, novedad:any) {
     const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)
@@ -40,6 +53,7 @@ export class NovedadController extends BaseController {
     const Fecha = new Date(fechaISO);
 
     const Descripcion = novedad.Descripcion
+    const Accion = novedad.Descripcion
     const NovedadTipoCod = novedad.Tipo.NovedadTipoCod
     const now:Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
@@ -47,12 +61,12 @@ export class NovedadController extends BaseController {
     await dbServer.dataSource.query(`
       INSERT INTO Novedad (
         NovedadCodigo,
-        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, NovedadTipoCod,
+        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         Json, AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
-      ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@9,@10,@10,@11,@11)
+      ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9, @10,@10,@10,@11,@11,@12,@12)
       `, [
         NovedadCodigo,
-        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, NovedadTipoCod,
+        ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         jsonNovedad, now, 'bot', '::1'
     ])
   }

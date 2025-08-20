@@ -22,7 +22,7 @@ export class ObjetivoController extends BaseController {
     return res
   }
 
-  static async getObjetivoResponsables(objetivoId: number, anio: number, mes: number) {
+  static async getObjetivoResponsables(anio: number, mes: number, ClienteId:number,ClienteElementoDependienteId:number) {
     await dbServer.dataSource.query(`
         SELECT 
             1 AS ord, obj.ObjetivoId as id, 'Grupo' tipo,
@@ -31,7 +31,7 @@ export class ObjetivoController extends BaseController {
         FROM Objetivo obj 
         JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
         JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
-        WHERE  obj.ObjetivoId = @0
+        WHERE  obj.ClienteId = @3 AND obj.ClienteElementoDependienteId=@4
         UNION
         SELECT
             2, obj.ObjetivoId, 'Coordinador' tipo,
@@ -40,7 +40,7 @@ export class ObjetivoController extends BaseController {
         FROM Objetivo obj 
         JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   opj.ObjetivoPersonalJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') 
         JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-        WHERE  obj.ObjetivoId = @0
+        WHERE  obj.ClienteId = @3 AND obj.ClienteElementoDependienteId=@4
         UNION
         SELECT 3, obj.ObjetivoId, 'Supervisor' tipo,
             per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
@@ -51,7 +51,7 @@ export class ObjetivoController extends BaseController {
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
         LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'J'
         JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
-        WHERE  obj.ObjetivoId = @0
+        WHERE  obj.ClienteId = @3 AND obj.ClienteElementoDependienteId=@4
         UNION
         SELECT 
             4, obj.ObjetivoId, 'Administrador' tipo,
@@ -62,9 +62,9 @@ export class ObjetivoController extends BaseController {
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
         LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'A'
         JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
-        WHERE  obj.ObjetivoId = @0
+        WHERE  obj.ClienteId = @3 AND obj.ClienteElementoDependienteId=@4
         ORDER BY ord
-    `, [objetivoId, anio, mes])
+    `, [null, anio, mes,ClienteId,ClienteElementoDependienteId])
 
   }
 

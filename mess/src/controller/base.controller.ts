@@ -324,11 +324,11 @@ export class BaseController {
   }
 
 
-  async getRutaFile(queryRunner: QueryRunner, PersonalId: number, year: number, month: number, doctipo_id: string) {
+  async getRutaFile(queryRunner: QueryRunner, PersonalId: number, year: number, month: number, DocumentoTipoCodigo: string) {
     return queryRunner.query(`
       SELECT * from Documento doc
       WHERE doc.DocumentoAnio =@1 AND doc.DocumentoMes=@2 AND doc.PersonalId = @0  AND doc.DocumentoTipoCodigo = @3`,
-      [PersonalId, year, month, doctipo_id]
+      [PersonalId, year, month, DocumentoTipoCodigo]
     )
   }
 
@@ -369,7 +369,7 @@ console.log('URL',tmpURL)
 //    const queryRunner = dataSource.createQueryRunner();
     try {
       const data = await queryRunner.query(`SELECT doc.DocumentoPath, doc.DocumentoNombreArchivo from Documento doc
-      WHERE doc.DocumentoId=@0`
+      WHERE doc.DocumentoId=@0`,
         [DocumentoId]
       )
 
