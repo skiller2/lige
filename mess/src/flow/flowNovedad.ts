@@ -12,6 +12,9 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
         const novedad = await novedadController.getBackupNovedad(personalId)
+        if (Object.keys(novedad).length === 0) {
+            return gotoFlow(flowNovedadFecha)
+        }
         await flowDynamic([
             `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ?? 's/d'}\n` +
@@ -21,6 +24,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
 
+            // `A - Adjuntar documento/foto/video\n`+
             `C - Limpiar campos\n`+
             `E - Enviar al responsable\n`+
             `M - Menú`
@@ -51,15 +55,18 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
                 case '6':
                     return gotoFlow(flowNovedadAccion)
                     break;
+                case 'a':
+                    // return gotoFlow(flowNovedadRecibirDocs)
+                    break;
                 case 'c':
                     await novedadController.saveNovedad(personalId, {})
                     await flowDynamic(`Limpieza exitosa`, { delay: delay })
-                    return gotoFlow(flowNovedadFecha)
+                    return gotoFlow(flowNovedad)
                     break;
                 case 'e':
                     if (!novedad.Fecha || !novedad.Hora || !novedad.CodObjetivo || !novedad.Tipo || !novedad.Descripcion || !novedad.Accion) {
                         await flowDynamic(`Se debe completar todos los campos para realizar esta acción`, { delay: delay })
-                        return fallBack()
+                        return gotoFlow(flowNovedad)
                     }
                     return gotoFlow(flowNovedadEnvio)
                     break;
@@ -296,7 +303,7 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
         const novedad = await novedadController.getBackupNovedad(personalId)
-        if (!novedad.Fecha || Object.keys(novedad).length === 0) {
+        if (!novedad.Fecha) {
             return gotoFlow(flowNovedadFecha)
         }else if (!novedad.Hora) {
             return gotoFlow(flowNovedadHora)
@@ -311,6 +318,23 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
         }else
             return gotoFlow(flowNovedad)
     })
+
+export const flowNovedadRecibirDocs = addKeyword(EVENTS.ACTION)
+  .addAnswer("📎 Envíame un documento, foto o video:", { capture: true }, async (ctx, { gotoFlow, flowDynamic, fallBack }) => {
+    reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+    // console.log('ctx: ', ctx);
+      
+    // if (ctx.type === "document") {
+    //       await flowDynamic(`Recibí tu documento: ${ctx.media.filename}`);
+    //       console.log("URL del archivo:", ctx.media.url);
+    //   } else if (ctx.type === "image") {
+    //       await flowDynamic("Recibí tu imagen!");
+    //       console.log("URL de la imagen:", ctx.media.url);
+    //   } else {
+    //       await flowDynamic("⚠️ No recibí un documento válido, intenta de nuevo.");
+    //       return fallBack()
+    //   }
+  });
 
 function esHoraValida(hora: string): boolean {
     const partes = hora.split(':')
