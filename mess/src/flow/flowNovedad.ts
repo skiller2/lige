@@ -21,16 +21,17 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
 
-            `C - Limpar campos\n`+
+            `C - Limpiar campos\n`+
             `E - Enviar al responsable\n`+
             `M - Menú`
         ]
             , { delay: delay })
     })
-
     .addAnswer([],
         { capture: true, delay },
-        async (ctx, { fallBack, gotoFlow, state }) => {
+        async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
+            const personalId = state.get('personalId')
+            const novedad = await novedadController.getBackupNovedad(personalId)
             switch (String(ctx.body).toLowerCase()) {
                 case '1':
                     return gotoFlow(flowNovedadFecha)
@@ -51,9 +52,15 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
                     return gotoFlow(flowNovedadAccion)
                     break;
                 case 'c':
-                    //return gotoFlow(flowNovedad)
+                    await novedadController.saveNovedad(personalId, {})
+                    await flowDynamic(`Limpieza exitosa`, { delay: delay })
+                    return gotoFlow(flowNovedadFecha)
                     break;
                 case 'e':
+                    if (!novedad.Fecha || !novedad.Hora || !novedad.CodObjetivo || !novedad.Tipo || !novedad.Descripcion || !novedad.Accion) {
+                        await flowDynamic(`Se debe completar todos los campos para realizar esta acción`, { delay: delay })
+                        return fallBack()
+                    }
                     return gotoFlow(flowNovedadEnvio)
                     break;
                 case 'm':
@@ -100,7 +107,6 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
 
             const CodObjetivo = ctx.body
             const personalId = state.get('personalId')
-
             
             const res = await objetivoController.getObjetivoByCodObjetivo(CodObjetivo)
             if (!res.length) {
@@ -124,16 +130,15 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
             await novedadController.saveNovedad(personalId, novedad)
             await state.update({ reintento: 0 })
 
-            return gotoFlow(flowNovedad)
+            return gotoFlow(flowNovedadRouter)
         })
 
 export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { flowDynamic, state,gotoFlow }) => {
-        const res = await novedadController.getNovedadTipo()
         const personalId = state.get('personalId')
-
         const novedad = await novedadController.getBackupNovedad(personalId)
 
+        const res = await novedadController.getNovedadTipo()
         const concatOptionsTipo = res.map((item: any, i: number) => `${i + 1}- ${item.Descripcion}`).join('\n');
         await flowDynamic(`${concatOptionsTipo}`, { delay: delay })
         novedad.OptionsTipo = res
@@ -146,9 +151,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
 
             const personalId = state.get('personalId')
-
             const novedad = await novedadController.getBackupNovedad(personalId)
-
             const OptionsTipo = novedad.OptionsTipo
 
             const indexTipo = parseInt(ctx.body)
@@ -167,7 +170,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
             delete novedad.OptionsTipo
             await novedadController.saveNovedad(personalId, novedad)
             await state.update({ reintento: 0 })
-            return gotoFlow(flowNovedad)
+            return gotoFlow(flowNovedadRouter)
         })
 
 export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
@@ -181,7 +184,7 @@ export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
             novedad.Accion = ctx.body
             await novedadController.saveNovedad(personalId, novedad)
 
-            return gotoFlow(flowNovedad)
+            return gotoFlow(flowNovedadRouter)
         })
 
 
@@ -196,14 +199,13 @@ export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
             novedad.Descripcion = ctx.body
             await novedadController.saveNovedad(personalId, novedad)
 
-            return gotoFlow(flowNovedad)
+            return gotoFlow(flowNovedadRouter)
         })
 
 export const flowNovedadHora = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { flowDynamic, state,gotoFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
-    
     .addAnswer(['Ingrese la hora de cuando se produjo el hecho (hh:mm)'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -230,7 +232,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
             await novedadController.saveNovedad(personalId, novedad)
             await state.update({ reintento: 0 })
 
-            return gotoFlow(flowNovedad)
+            return gotoFlow(flowNovedadRouter)
         })
 
 export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
@@ -257,7 +259,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
             await novedadController.saveNovedad(personalId, novedad)
             await state.update({ reintento: 0 })
 
-            return gotoFlow(flowNovedad)
+            return gotoFlow(flowNovedadRouter)
         })
 
 
@@ -288,6 +290,27 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
 
             return gotoFlow(flowMenu)
         })
+
+export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedad = await novedadController.getBackupNovedad(personalId)
+        if (!novedad.Fecha || Object.keys(novedad).length === 0) {
+            return gotoFlow(flowNovedadFecha)
+        }else if (!novedad.Hora) {
+            return gotoFlow(flowNovedadHora)
+        }else if (!novedad.CodObjetivo) {
+            return gotoFlow(flowNovedadCodObjetivo)
+        }else if (!novedad.Tipo) {
+            return gotoFlow(flowNovedadTipo)
+        }else if (!novedad.Descripcion) {
+            return gotoFlow(flowNovedadDescrip)
+        }else if (!novedad.Accion) {
+            return gotoFlow(flowNovedadAccion)
+        }else
+            return gotoFlow(flowNovedad)
+    })
 
 function esHoraValida(hora: string): boolean {
     const partes = hora.split(':')
