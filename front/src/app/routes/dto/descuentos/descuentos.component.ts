@@ -25,7 +25,7 @@ export class DescuentosComponent {
     mes = computed(() => this.periodo()?.getMonth()+1)
     reload = signal<number>(0)
     loadingCuo = signal(false)
-
+    selectedPeriod = { year: 0, month: 0 };
     private apiService = inject(ApiService)
 
     async addCuotaReg() {
@@ -39,4 +39,33 @@ export class DescuentosComponent {
         }
         this.loadingCuo.set(false)
     }
+
+    ngOnInit() {
+        this.selectedDate()
+    }
+
+    selectedDate (){
+        const now = new Date(); //date
+        const anio =
+          Number(localStorage.getItem('anio')) > 0
+            ? Number(localStorage.getItem('anio'))
+            : now.getFullYear();
+        const mes =
+          Number(localStorage.getItem('mes')) > 0
+            ? Number(localStorage.getItem('mes'))
+            : now.getMonth() + 1;
+        this.periodo.set(new Date(anio, mes - 1, 1))
+        this.selectedPeriod = { year: anio, month: mes }
+    }
+
+    dateChange(result: Date): void {
+        this.selectedPeriod.year = result.getFullYear();
+        this.selectedPeriod.month = result.getMonth() + 1;
+        console.log('this.selectedPeriod: ', this.selectedPeriod);
+        console.log('this.periodo: ', this.periodo());
+    
+        localStorage.setItem('anio', String(this.selectedPeriod.year));
+        localStorage.setItem('mes', String(this.selectedPeriod.month));
+      }
+    
 }

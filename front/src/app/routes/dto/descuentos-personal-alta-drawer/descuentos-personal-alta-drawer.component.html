@@ -58,10 +58,11 @@
       </nz-form-item>
       
       @if(formDesc.get('FechaAnulacion')?.value) {
+
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
         <nz-form-control [nzMd]="18">
-          <input nz-input placeholder="" formControlName="FechaAnulacion" type="date" />
+          <nz-date-picker formControlName="FechaAnulacion" nzFormat="dd/MM/yyyy" ></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
       }

@@ -42,7 +42,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
                     this.formDesc.reset(infoDes)
-                    // console.log('formDesc: ', this.formDesc.value);
+                    // console.log('infoDes: ', infoDes);
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
@@ -141,8 +141,11 @@ export class DescuentosPersonalAltaDrawerComponent {
 
     FechaAnulacion():Date | null {
         const value = this.formDesc.get("FechaAnulacion")?.value
-        if (value) return value
-        return null as any
+        if(value){
+            const date = new Date(value)
+            return date
+        }
+        return null
     }
 
     async ngOnInit(){}

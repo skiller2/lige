@@ -47,7 +47,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 if (this.descuentoId() && this.objetivoId()) {
                     let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.descuentoId()))
                     this.formDesc.reset(infoDesc)
-                    // console.log('formDesc: ', this.formDesc.value);
+                     //console.log('infoDesc: ', infoDesc);
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
@@ -80,7 +80,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         id:0,
         AplicaA:'', DescuentoId:0, ObjetivoId:0, AplicaEl:new Date(),
         Cuotas:null, Importe:null, Detalle:'',
-        DetalleAnulacion:'', importeCuota:''
+        DetalleAnulacion:'', importeCuota:'',
+        FechaAnulacion: null
     })
 
     $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
@@ -139,6 +140,15 @@ export class DescuentosObjetivosAltaDrawerComponent {
         const value = this.formDesc.get("DetalleAnulacion")?.value
         if (value?.length) return value
         return ''
+    }
+
+    FechaAnulacion():Date | null {
+        const value = this.formDesc.get("FechaAnulacion")?.value
+        if(value){
+            const date = new Date(value)
+            return date
+        }
+        return null
     }
 
     async ngOnInit(){}
