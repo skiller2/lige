@@ -129,8 +129,8 @@ export class AuthMiddleware {
       const mes = Number(req.body.mes);
       const opcionGrupoActividad = req.body.options.filtros
 
-      console.log('hasAuthGrupoActividad', PersonalId, anio, mes, GrupoActividadId, opcionGrupoActividad, req.body, 'res.locals', res.locals);
-      console.log(' req.params', req.params, 'req.query', req.query, 'req.body', req.body);
+      // console.log('hasAuthGrupoActividad', PersonalId, anio, mes, GrupoActividadId, opcionGrupoActividad, req.body, 'res.locals', res.locals);
+      // console.log(' req.params', req.params, 'req.query', req.query, 'req.body', req.body);
 
       if (PersonalId < 1) return res.status(403).json({ msg: `No se especifico PersonalId` })
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
@@ -139,7 +139,7 @@ export class AuthMiddleware {
       const queryRunner = dataSource.createQueryRunner()
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-      console.log('grupos', grupos);
+      // console.log('grupos', grupos);
       if (grupos.length > 0) {
         for (const row of grupos) {
           if (row.GrupoActividadId == GrupoActividadId) {
@@ -151,7 +151,7 @@ export class AuthMiddleware {
 
       }
 
-      console.log('res.locals', res.locals);
+      // console.log('res.locals', res.locals);
       return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
 
     }
@@ -178,7 +178,7 @@ export class AuthMiddleware {
 
         const path = req.route.path
 
-        console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
+        // console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
 
         // console.log('tableforsearch', tableForSearch);
         // console.log('query --------- ', req.query);
@@ -317,8 +317,6 @@ export class AuthMiddleware {
 
               if (!doc.PersonalId && !doc.DocumentoTipoJsonPermisosActDir || !doc.DocumentoTipoJsonPermisosActDir) return next();
 
-              console.log('doc', doc);
-              console.log('req.route.path', req.route.path);
               // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
               if (doc.PersonalId && doc.DocumentoTipoCodigo === 'REC' && req.route.path.includes('downloadFile')) {
                 const anio = stmActual.getFullYear();
@@ -343,7 +341,6 @@ export class AuthMiddleware {
                     AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
                     AND gap.GrupoActividadJerarquicoComo = 'J'
                 `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
-                console.log('resPers', resPers);
                   if (resPers.length > 0) return next();
                 }
               }
@@ -375,7 +372,7 @@ export class AuthMiddleware {
 
 
       } catch (error) {
-        console.error("Error en hasAuthByDocId:", error);
+        // console.error("Error en hasAuthByDocId:", error);
         await queryRunner.rollbackTransaction();
         return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
