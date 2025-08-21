@@ -75,7 +75,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         DescuentoId: 0, PersonalId:0, AplicaEl:new Date(),
         Cuotas:null, Importe:null, Detalle:'',
         DetalleAnulacion:'', importeCuota: '',
-        PersonalOtroDescuentoFechaAnulacion: null
+        FechaAnulacion: null
     })
 
     $optionsTipo = this.searchService.getDecuentosTipoOptions();
@@ -140,7 +140,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
 
     FechaAnulacion():Date | null {
-        const value = this.formDesc.get("PersonalOtroDescuentoFechaAnulacion")?.value
+        const value = this.formDesc.get("FechaAnulacion")?.value
         if (value) return value
         return null as any
     }
