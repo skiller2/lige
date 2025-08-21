@@ -3422,14 +3422,14 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     `, [ObjetivoId, anio, mes, PersonalId])
 
 
-      const res = await queryRunner.query(`SELECT *
+      const lista = await queryRunner.query(`SELECT *
       FROM ObjetivoAsistenciaAnoMesPersonalDias objp
         JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
         JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
       WHERE objp.ObjetivoId = @0
     `, [ObjetivoId, anio, mes])
 
-      if (res.length == 0) {
+      if (lista.length == 0) {
 
         await queryRunner.query(`DELETE objm
         FROM ObjetivoAsistenciaAnoMes objm  
