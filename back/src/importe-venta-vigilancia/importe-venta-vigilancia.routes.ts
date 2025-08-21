@@ -4,26 +4,26 @@ import { importeVentaVigilanciaController } from "../controller/controller.modul
 
 export const importeVentaVigilanciaRouter = Router();
 
-importeVentaVigilanciaRouter.get("/cols", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas']), (req, res) => {
+importeVentaVigilanciaRouter.get("/cols", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon']), (req, res) => {
     importeVentaVigilanciaController.getGridCols(req, res);
   });
 
-importeVentaVigilanciaRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas','Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+importeVentaVigilanciaRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas','Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {
     importeVentaVigilanciaController.getListOrdenesDeVenta(req, res, next)
 })
 
-importeVentaVigilanciaRouter.get("/cols-import", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas']), (req, res) => {
+importeVentaVigilanciaRouter.get("/cols-import", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon']), (req, res) => {
   importeVentaVigilanciaController.getGridColsImport(req, res);
 })
 
-importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:DocumentoTipoCodigo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:DocumentoTipoCodigo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {
   importeVentaVigilanciaController.getImportacionesOrdenesDeVentaAnteriores(req, res, next);
 })
 
-importeVentaVigilanciaRouter.post('/import-xls', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+importeVentaVigilanciaRouter.post('/import-xls', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones','gComercial'])], (req, res, next) => {
   importeVentaVigilanciaController.handleXLSUpload(req, res, next);
 })
-importeVentaVigilanciaRouter.get("/download/:impoexpoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res,next) => {
+importeVentaVigilanciaRouter.get("/download/:impoexpoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas','Liquidaciones', 'gComercial'])], (req, res,next) => {
   importeVentaVigilanciaController.downloadComprobanteExportacion(
     req.params.impoexpoId,
     res,
@@ -31,7 +31,7 @@ importeVentaVigilanciaRouter.get("/download/:impoexpoId", [authMiddleware.verify
     next
   );
 });
-importeVentaVigilanciaRouter.post('/valorFacturacion', authMiddleware.verifyToken, (req, res, next) => {importeVentaVigilanciaController.setValorFacturacion(req, res, next)})
+importeVentaVigilanciaRouter.post('/valorFacturacion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas','Liquidaciones', 'gComercial'])], (req, res, next) => {importeVentaVigilanciaController.setValorFacturacion(req, res, next)})
 
 
 
