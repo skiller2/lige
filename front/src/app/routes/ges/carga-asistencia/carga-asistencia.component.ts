@@ -658,6 +658,31 @@ console.log('ver',data)
         try {
             const res = firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
                 finally(() => { this.isLoadingCheck = false })
+            
+            this.formChange('', Busqueda.Objetivo)            
+        } catch (error) {
+
+        }
+
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: true })
+    }
+    async eliminaPersona() { 
+        this.isLoadingCheck = true
+
+
+        const editable = this.angularGridEdit.slickGrid.getOptions().editable
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: false })
+
+        try {
+            const persona=this.getPersonalIdFromGrid()
+
+            const res = firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, persona.PersonalId)).
+                finally(() => { this.isLoadingCheck = false })
+            
+            this.formChange('', Busqueda.Objetivo)            
+            
         } catch (error) {
 
         }
@@ -735,22 +760,19 @@ console.log('ver',data)
     }
 
     openDrawer(): void {
-        const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
-        if (selrows[0] == undefined) return
-        const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
-        if (row.apellidoNombre == '') return
-
-        this.personalApellidoNombre = row.apellidoNombre.fullName
-        this.selectedPersonalId = row.apellidoNombre.id
+        const persona = this.getPersonalIdFromGrid()
+        if (persona.PersonalId==0) return
+        this.personalApellidoNombre = persona.ApellidoNombre
+        this.selectedPersonalId = persona.PersonalId
         this.visibleDrawer = true
     }
 
-    getPersonalIdFromGrid(): number {
+    getPersonalIdFromGrid(): {PersonalId:number,ApellidoNombre:string} {
         const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
-        if (selrows[0] == undefined) return 0
+        if (selrows[0] == undefined) return { PersonalId: 0, ApellidoNombre:''}
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
-        if (row.apellidoNombre == '') return 0
-        return row.apellidoNombre.id
+        if (row.apellidoNombre == '') return { PersonalId: 0, ApellidoNombre:''}
+        return { PersonalId: Number(row.apellidoNombre.id), ApellidoNombre: row.apellidoNombre.fullName }
     }
 
     closeDrawer(): void {
