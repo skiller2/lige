@@ -27,6 +27,7 @@ import { RequirenteSearchComponent } from '../requirente-search/requirente-searc
 import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
 import { AdministradorSearchComponent } from "../../shared/administrador-search/administrador-search.component"
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
+import { ApiService } from '../../services/api.service';
 
 type listOptionsT = {
   filtros: any[],
@@ -59,7 +60,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   private searchService = inject(SearchService)
   private elRef = inject(ElementRef)
   private datePipe = inject(DatePipe)
-
+  private apiService = inject(ApiService);
 
   //conditionsToSelect = ['AND', 'OR'];
   //operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
@@ -80,7 +81,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsNivelEstudio = this.searchService.getEstudioSearch();
   $optionsModalidadCurso = this.searchService.getModalidadCursoSearch();
   $optionsDescObj = this.searchService.getDescuentoForObjetivo();
-
+  $optionsTipoCuenta = this.apiService.getTipoCuenta();
+  $optionsTipoDescuento = this.searchService.getDecuentosTipoOptions();
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
     filtros: [],
@@ -412,6 +414,25 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.value = val 
       const res = await firstValueFrom(this.searchService.getTipoSeguroId(val))
       this.selections.label = res[0].TipoSeguroNombre
+    }
+  }
+
+  async selectedValueTipoCuenta(val: any) {
+
+    if (val) {
+      this.selections.value = val 
+      const res = await firstValueFrom( this.apiService.getTipoCuenta())
+      this.selections.label = res[0].detalle
+    }
+  }
+
+
+  async selectedValueTipoDescuento(val: any) {
+
+    if (val) {
+      this.selections.value = val 
+      const res = await firstValueFrom(this.searchService.getDecuentosTipoOptions())
+      this.selections.label = res[0].label
     }
   }
 
