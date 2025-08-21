@@ -656,7 +656,7 @@ console.log('ver',data)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            const res = firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+            const res = await firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
                 finally(() => { this.isLoadingCheck = false })
             
             this.formChange('', Busqueda.Objetivo)            
@@ -678,7 +678,7 @@ console.log('ver',data)
         try {
             const persona=this.getPersonalIdFromGrid()
 
-            const res = firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, persona.PersonalId)).
+            const res = await firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, persona.PersonalId)).
                 finally(() => { this.isLoadingCheck = false })
             
             this.formChange('', Busqueda.Objetivo)            
