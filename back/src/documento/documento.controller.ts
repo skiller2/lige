@@ -52,7 +52,7 @@ export class DocumentoController extends BaseController {
     {
       id: "tipo", name: "Tipo", field: "tipo",
       type: "string",
-      fieldName: "tipo.doctipo_id",
+      fieldName: "docg.DocumentoTipoCodigo",
       searchComponent: "inpurForTipoDocumentoSearch",
       searchType: "string",
       hidden: false,
@@ -286,7 +286,8 @@ export class DocumentoController extends BaseController {
     const result = await dataSource.query(`
       SELECT docg.DocumentoId AS id,
       docg.DocumentoDenominadorDocumento,
-      tipo.DocumentoTipoDetalle AS tipo, 
+      tipo.DocumentoTipoDetalle AS DocumentoTipoDetalle,
+      docg.DocumentoTipoCodigo AS DocumentoTipoCodigo, 
       docg.DocumentoFecha, docg.DocumentoFechaDocumentoVencimiento,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
       obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
@@ -318,6 +319,7 @@ export class DocumentoController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
+    console.log(' acaaaa',req.body.options.filtros )
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
