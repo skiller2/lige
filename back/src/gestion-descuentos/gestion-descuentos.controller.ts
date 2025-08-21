@@ -178,8 +178,8 @@ const columnsPersonalDescuentos:any[] = [
   //   searchHidden: false,
   // },
   {
-    id:'PersonalOtroDescuentoFechaAnulacion', name:'Fecha Anulación', field:'PersonalOtroDescuentoFechaAnulacion',
-    fieldName: 'perotro.PersonalOtroDescuentoFechaAnulacion',
+    id:'FechaAnulacion', name:'Fecha Anulación', field:'FechaAnulacion',
+    fieldName: 'perdes.FechaAnulacion',
     type:'date',
     searchComponent: "inpurForFechaSearch",
     searchType: 'date',
@@ -424,6 +424,7 @@ export class GestionDescuentosController extends BaseController {
         , perdes.cantcuotas
         , perdes.importetotal
         , perdes.tipoint
+        , perdes.FechaAnulacion
 
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
@@ -592,6 +593,7 @@ export class GestionDescuentosController extends BaseController {
         , perdes.cuotanro
         , perdes.cantcuotas
         , perdes.importetotal
+        , perdes.FechaAnulacion
 
       FROM VistaPersonalDescuento perdes
 
