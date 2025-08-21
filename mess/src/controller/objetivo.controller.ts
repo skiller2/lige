@@ -11,7 +11,7 @@ export class ObjetivoController extends BaseController {
     const ClienteElementoDependienteId:number = parseInt(array[1])
     const res = await dbServer.dataSource.query(`
       SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
-        CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
+        CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
         JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
