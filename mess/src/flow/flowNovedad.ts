@@ -331,10 +331,10 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             const telefono = ctx.from
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 await novedadController.addNovedad(novedad, telefono, personalId)
-                await novedadController.saveNovedad(personalId, {})
 
-//                await novedadController.sendMsgResponsable(novedad)
+                await novedadController.sendMsgResponsable(novedad)
 
+//                await novedadController.saveNovedad(personalId, {})
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {
                 return fallBack()

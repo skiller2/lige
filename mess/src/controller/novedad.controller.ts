@@ -6,14 +6,15 @@ import { ObjetivoController } from "./objetivo.controller.ts";
 
 export class NovedadController extends BaseController {
   async sendMsgResponsable(novedad: any) {
-    const CodObjetivo = novedad.CodObjetivo.split('/')
-    const ClienteId:number = parseInt(CodObjetivo[0])
-    const ClienteElementoDependienteId: number = parseInt(CodObjetivo[1])
-    const anio=2025
-    const mes=7
+    const Fecha = novedad.Fecha
+    const ClienteId = novedad.ClienteId 
+    const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
+    const DesObjetivo = novedad.DesObjetivo
+    const anio=Fecha.getFullYear()
+    const mes = Fecha.getMonth()+1 
 
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId,ClienteElementoDependienteId)
-
+console.log('respon',responsables)
 //            ChatBotController.enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
 
   }
@@ -44,13 +45,10 @@ export class NovedadController extends BaseController {
   }
 
   async addNovedad(novedad: any, Telefono:string, PersonalId:number) {
-    const array = novedad.CodObjetivo.split('/')
-    const ClienteId:number = parseInt(array[0])
-    const ClienteElementoDependienteId:number = parseInt(array[1])
+    const ClienteId = novedad.ClienteId
+    const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
 
-    const [dia, mes, anio] = novedad.Fecha.split('/');
-    const fechaISO = `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}T${novedad.Hora}:00` // Crea un string en formato ISO (yyyy-mm-ddThh:mm)
-    const Fecha = new Date(fechaISO);
+    const Fecha =  novedad.Fecha
 
     const Descripcion = novedad.Descripcion
     const Accion = novedad.Descripcion
