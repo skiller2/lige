@@ -1323,6 +1323,7 @@ export class GestionDescuentosController extends BaseController {
     let dataset:any = []
     let idError:number = 0
 
+    debugger
     try {
       if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
       if (!descuentoIdRequest) throw new ClientException("Faltó indicar Tipo de descuento");
@@ -1359,7 +1360,7 @@ export class GestionDescuentosController extends BaseController {
         case 'PersonalOtroDescuento':
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
-          if (isNaN(columnsXLS['Cant.Cuotas'])) columnsnNotFound.push('- Cant.Cuotas')
+          if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
           if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- ImporteTotal')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
 
@@ -1375,7 +1376,7 @@ export class GestionDescuentosController extends BaseController {
             //Finaliza cuando la fila esta vacia
             if (
               !row[columnsXLS['CUIT']]
-              && !row[columnsXLS['Cant.Cuotas']]
+              && !row[columnsXLS['Cantidad Cuotas']]
               && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
             ) break
@@ -1394,7 +1395,7 @@ export class GestionDescuentosController extends BaseController {
               DescuentoId: descuentoIdRequest,
               PersonalId: PersonalCUITCUIL[0].PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest-1, 1),
-              Cuotas: row[columnsXLS['Cant.Cuotas']],
+              Cuotas: row[columnsXLS['Cantidad Cuotas']],
               Importe: row[columnsXLS['Importe Total']],
               Detalle: row[columnsXLS['Detalle']],
             }
@@ -1409,7 +1410,7 @@ export class GestionDescuentosController extends BaseController {
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['Aplica A'])) columnsnNotFound.push('- Aplica A')
           if (isNaN(columnsXLS['Codigo'])) columnsnNotFound.push('- Codigo')
-          if (isNaN(columnsXLS['Cant.Cuotas'])) columnsnNotFound.push('- Cant.Cuotas')
+          if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
           if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
           if (isNaN(columnsXLS['CUIT Cliente'])) columnsnNotFound.push('- CUIT Cliente')
@@ -1426,7 +1427,7 @@ export class GestionDescuentosController extends BaseController {
             if (
               !row[columnsXLS['Aplica A']]
               && !row[columnsXLS['Codigo']]
-              && !row[columnsXLS['Cant.Cuotas']]
+              && !row[columnsXLS['Cantidad Cuotas']]
               && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
               && !row[columnsXLS['CUIT Cliente']]
@@ -1472,7 +1473,7 @@ export class GestionDescuentosController extends BaseController {
               AplicaA: AplicaA,
               ObjetivoId: ObjetivoId,
               AplicaEl: new Date(anioRequest, mesRequest-1, 1),
-              Cuotas: row[columnsXLS['Cant.Cuotas']],
+              Cuotas: row[columnsXLS['Cantidad Cuotas']],
               Importe: row[columnsXLS['Importe Total']],
               Detalle: row[columnsXLS['Detalle']],
             }
