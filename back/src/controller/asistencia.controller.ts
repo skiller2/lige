@@ -3317,6 +3317,64 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     }
   }
 
+  async eliminaCargaGrilla(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const {
+        anio,
+        mes,
+        ObjetivoId
+      } = req.body;
+
+      const checkrecibos = await queryRunner.query(
+        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anio, mes]
+      );
+
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede eliminar la carga`)
+
+
+      await queryRunner.startTransaction();
+      await queryRunner.query(`DELETE objp
+      FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0
+    `, [ObjetivoId, anio, mes])
+
+      await queryRunner.query(`DELETE objp
+      FROM ObjetivoAsistenciaAnoMesPersonalAsignado objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0
+    `, [ObjetivoId, anio, mes])
+
+      await queryRunner.query(`DELETE objp
+      FROM ObjetivoAsistenciaMesDiasPersonal objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0
+
+    `, [ObjetivoId, anio, mes])
+
+      await queryRunner.query(`DELETE objm
+        FROM ObjetivoAsistenciaAnoMes objm  
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        WHERE objm.ObjetivoId = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @2
+    `, [ObjetivoId, anio, mes])
+      
+      await queryRunner.commitTransaction();
+
+      this.jsonRes([], res, 'Todas las personas se eliminaron correctamente');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+
   async validaGrilla(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {

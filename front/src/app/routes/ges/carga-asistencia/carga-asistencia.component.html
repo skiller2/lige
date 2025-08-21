@@ -67,6 +67,11 @@
                     <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span
                             nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" nzTheme="outline" nz-tooltip
                             nzTooltipTitle="{{ 'app.icon.validar' | i18n }}"></span></button>
+                    <button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
+                        nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck"><span
+                            nz-icon [nzType]="isLoadingCheck ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
+                            nzTooltipTitle="{{ 'app.icon.eliminar' | i18n }}"></span></button>
+
                 </nz-button-group>
 
             </nz-form-control>

@@ -1021,12 +1021,16 @@ export class ApiService {
   addAsistencia(asistencia: any) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
+  
+  eliminaCargaGrilla(anio: number, mes: number, ObjetivoId: number) {
+    return this.http.post<ResponseJSON<any>>(`api/asistencia/eliminargrilla`, { anio, mes, ObjetivoId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
 
   validaGrilla(anio: number, mes: number, ObjetivoId: number) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, { anio, mes, ObjetivoId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
-
 
   setRecibo(parameter: any) {
     console.log('parameters', parameter)

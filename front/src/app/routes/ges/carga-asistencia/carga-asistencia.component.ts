@@ -129,7 +129,11 @@ export class CargaAsistenciaComponent {
 
                 this.periodos = data[2]
                 this.contratos = data[1]
-                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && this.contratos.length > 0)
+
+
+console.log('ver',data)
+
+                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && (this.contratos.length > 0 || data[3].length>0))
 
                 this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
@@ -642,6 +646,26 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.slickGrid.setOptions({ editable: true })
 
     }
+
+    async eliminaGrilla() { 
+        this.isLoadingCheck = true
+
+
+        const editable = this.angularGridEdit.slickGrid.getOptions().editable
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: false })
+
+        try {
+            const res = firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+                finally(() => { this.isLoadingCheck = false })
+        } catch (error) {
+
+        }
+
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: true })
+    }
+
 
     async validaGrilla() {
         this.isLoadingCheck = true
