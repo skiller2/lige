@@ -158,7 +158,7 @@ export class DescuentosPersonalAltaDrawerComponent {
 
     async save() {
         this.isLoading.set(true)
-        let values = this.formDesc.value
+        let values = this.formDesc.getRawValue()
         try {
             if (values.id) {
                 await firstValueFrom(this.apiService.updateDescuento(values))
@@ -190,7 +190,7 @@ export class DescuentosPersonalAltaDrawerComponent {
 
     async cancel(){
         this.isLoading.set(true)
-        let values = this.formDesc.value
+        let values = this.formDesc.getRawValue()
         try {
             if (this.descuentoId() && this.personalId()) {
                 await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(values))

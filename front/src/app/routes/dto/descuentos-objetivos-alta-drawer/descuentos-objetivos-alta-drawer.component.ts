@@ -154,7 +154,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     async save() {
         this.isLoading.set(true)
-        let values = this.formDesc.value
+        let values = this.formDesc.getRawValue()
         try {
             if (values.id) {
                 await firstValueFrom(this.apiService.updateDescuento(values))
@@ -204,7 +204,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     async cancel(){
         this.isLoading.set(true)
-        let values = this.formDesc.value
+        let values = this.formDesc.getRawValue()
         try {
             if (this.descuentoId() && this.objetivoId()) {
                 await firstValueFrom(this.apiService.cancellationObjetivoDescuento(values))
