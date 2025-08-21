@@ -319,7 +319,6 @@ export class DocumentoController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
-    console.log(' acaaaa',req.body.options.filtros )
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
