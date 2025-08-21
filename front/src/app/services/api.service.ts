@@ -1027,6 +1027,11 @@ export class ApiService {
     )
   }
 
+  eliminaGrillaPersona(anio: number, mes: number, ObjetivoId: number, PersonalId:number) {
+    return this.http.post<ResponseJSON<any>>(`api/asistencia/eliminarpersona`, { anio, mes, ObjetivoId, PersonalId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   validaGrilla(anio: number, mes: number, ObjetivoId: number) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, { anio, mes, ObjetivoId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
     )

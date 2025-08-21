@@ -3000,7 +3000,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       let ClienteId = 0
       let ClienteElementoDependienteId = 0
 
-//      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
+      //      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
       let listadoProcessed = {}
       for (const personal of listado) {
         const CUIT = personal.employeeNo
@@ -3011,7 +3011,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
           [, ClienteId, ClienteElementoDependienteId] = matches.map(m => parseInt(m) || 0)
 
         for (const day of personal.detailInfo) {
-//          const dayNum = new Date(day.dateTime).getUTCDate().getDate() + 1
+          //          const dayNum = new Date(day.dateTime).getUTCDate().getDate() + 1
 
           const dayNum = new Date(day.dateTime).getUTCDate();
 
@@ -3027,13 +3027,13 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
             if (diffHours > 0) {
               if (!listadoProcessed[personal.groupName]) listadoProcessed[personal.groupName] = { ClienteId, ClienteElementoDependienteId, personal: {} }
-              listadoProcessed[personal.groupName].personal[personal.employeeNo] = { ...listadoProcessed[personal.groupName].personal[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours,['day' + dayNum + 'fec']:day.dateTime }
+              listadoProcessed[personal.groupName].personal[personal.employeeNo] = { ...listadoProcessed[personal.groupName].personal[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours, ['day' + dayNum + 'fec']: day.dateTime }
             }
           }
         }
       }
-//            fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
-//          throw new ClientException('debug')
+      //            fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
+      //          throw new ClientException('debug')
 
       await queryRunner.startTransaction()
 
@@ -3317,6 +3317,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     }
   }
 
+
+
   async eliminaCargaGrilla(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -3362,10 +3364,84 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
         WHERE objm.ObjetivoId = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @2
     `, [ObjetivoId, anio, mes])
-      
+
       await queryRunner.commitTransaction();
 
       this.jsonRes([], res, 'Todas las personas se eliminaron correctamente');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+  async eliminaCargaGrillaPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const {
+        anio,
+        mes,
+        ObjetivoId,
+        PersonalId
+      } = req.body;
+
+      const checkrecibos = await queryRunner.query(
+        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anio, mes]
+      );
+
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede eliminar la carga`)
+
+      if (!PersonalId)
+        throw new ClientException(`Debe selccionar una persona`)
+
+
+      //      throw new ClientException(`Persona ${PersonalId}`);
+
+      await queryRunner.startTransaction();
+      await queryRunner.query(`DELETE objp
+      FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0 and objp.ObjetivoAsistenciaMesPersonalId=@3
+    `, [ObjetivoId, anio, mes, PersonalId])
+
+      await queryRunner.query(`DELETE objp
+      FROM ObjetivoAsistenciaAnoMesPersonalAsignado objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0 and objp.ObjetivoAsistenciaMesPersonalId=@3
+    `, [ObjetivoId, anio, mes, PersonalId])
+
+      await queryRunner.query(`DELETE objp
+      FROM ObjetivoAsistenciaMesDiasPersonal objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0 and objp.ObjetivoAsistenciaMesPersonalId=@3
+
+    `, [ObjetivoId, anio, mes, PersonalId])
+
+
+      const lista = await queryRunner.query(`SELECT *
+      FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      WHERE objp.ObjetivoId = @0
+    `, [ObjetivoId, anio, mes])
+
+      if (lista.length == 0) {
+
+        await queryRunner.query(`DELETE objm
+        FROM ObjetivoAsistenciaAnoMes objm  
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        WHERE objm.ObjetivoId = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @2
+        `, [ObjetivoId, anio, mes])
+
+      }
+
+      await queryRunner.commitTransaction();
+
+      this.jsonRes([], res, 'La persona se eliminó correctamente');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)

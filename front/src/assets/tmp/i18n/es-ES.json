@@ -191,6 +191,8 @@
   "app.icon.aprobar": "Aprobar",
   "app.icon.validar": "Validar Planilla",
   "app.icon.reload": "Recarga",
+  "app.icon.eliminarpersona": "Elimino Persona",
+  "app.icon.eliminargrilla": "Vacío toda la grilla",
   "app.icon.objectives": "Objetivos",
   "app.icon.bank": "Datos Bancarios",
   "app.custody": "Custodias",

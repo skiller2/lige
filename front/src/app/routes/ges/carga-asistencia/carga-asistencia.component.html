@@ -11,6 +11,11 @@
             </nz-form-control>
             <nz-form-control [nzSpan]="16" style="text-align: right;" *ngIf="selectedObjetivoId>0">
                 <nz-button-group>
+                    <button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
+                        nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck"><span
+                            nz-icon [nzType]="isLoadingCheck ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
+                            nzTooltipTitle="{{ 'app.icon.eliminargrilla' | i18n }}"></span></button>
+
                     <button nz-button nzType="default" (click)="exportGrid()" *ngIf="gridDataInsert.length > 1 "><span
                             nz-icon nzType="download"></span>{{ 'app.btn.name.xls' | i18n }}</button>
                     <button nz-button nzType="default"
@@ -67,10 +72,11 @@
                     <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span
                             nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" nzTheme="outline" nz-tooltip
                             nzTooltipTitle="{{ 'app.icon.validar' | i18n }}"></span></button>
-                    <button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
-                        nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck"><span
+
+                    <button nz-button nzType="default" (nzOnConfirm)="eliminaPersona()" nz-popconfirm
+                        [nzPopconfirmTitle]="'Elimino ' + getPersonalIdFromGrid().ApellidoNombre + '?'" [disabled]="isLoadingCheck"><span
                             nz-icon [nzType]="isLoadingCheck ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
-                            nzTooltipTitle="{{ 'app.icon.eliminar' | i18n }}"></span></button>
+                            nzTooltipTitle="{{ 'app.icon.eliminarpersona' | i18n }}"></span></button>
 
                 </nz-button-group>
 
