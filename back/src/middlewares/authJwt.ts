@@ -178,6 +178,8 @@ export class AuthMiddleware {
 
         const path = req.route.path
 
+        console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
+
         // console.log('tableforsearch', tableForSearch);
         // console.log('query --------- ', req.query);
         // console.log('documentType', documentType);
@@ -192,7 +194,6 @@ export class AuthMiddleware {
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
         if (!tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado tableForSearch" })
         let Documento = null;
-        console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
         switch (tableForSearch) {
           case 'docgeneral':
             if (documentId) {
@@ -279,10 +280,10 @@ export class AuthMiddleware {
             console.log('no tiene documento ni tipo de documento');
             return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
 
+          case 'documento':
           case 'Documento':
             if (documentId) {
               // Verificar existencia del documento
-
               Documento = await queryRunner.query(
                 ` SELECT doc.DocumentoId, doc.PersonalId ,doctip.DocumentoTipoJsonPermisosActDir, doctip.DocumentoTipoCodigo
                 FROM Documento doc
@@ -293,15 +294,15 @@ export class AuthMiddleware {
 
 
               const doc = Documento[0];
-              const DocumentoPersonalId = doc.persona_id;
+              const DocumentoPersonalId = doc.PersonalId;
 
               // Si el documento no tiene persona_id ni DocumentoTipoJsonPermisosActDir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
               if (Documento.length === 0) return next();
               if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
 
-              const documentoTipoIdOld = doc.doctipo_id
-              const documentoTipoIdNew = req.body.doctipo_id
+              const documentoTipoIdOld = doc.DocumentoTipoCodigo
+              const documentoTipoIdNew = req.body.DocumentoTipoCodigo
               // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
               if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
                 const permisosADDocumentoTipo = await queryRunner.query(
@@ -314,16 +315,19 @@ export class AuthMiddleware {
                 if (permisosADDocumentoTipo[0].DocumentoTipoJsonPermisosActDir) return this.validateJsonPermisosActDir(permisosADDocumentoTipo[0].DocumentoTipoJsonPermisosActDir)(req, res, next);
               }
 
-              if (!doc.persona_id && !doc.DocumentoTipoJsonPermisosActDir || !doc.DocumentoTipoJsonPermisosActDir) return next();
+              if (!doc.PersonalId && !doc.DocumentoTipoJsonPermisosActDir || !doc.DocumentoTipoJsonPermisosActDir) return next();
 
+              console.log('doc', doc);
+              console.log('req.route.path', req.route.path);
               // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
-              if (doc.persona_id && doc.doctipo_id === 'REC' && req.route.path.includes('downloadFile')) {
+              if (doc.PersonalId && doc.DocumentoTipoCodigo === 'REC' && req.route.path.includes('downloadFile')) {
                 const anio = stmActual.getFullYear();
                 const mes = stmActual.getMonth() + 1;
 
                 const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
                 const listGrupos = grupos.map(row => row.GrupoActividadId);
 
+                
                 if (listGrupos.length > 0) {
                   const resPers = await queryRunner.query(`
                     SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
@@ -339,6 +343,7 @@ export class AuthMiddleware {
                     AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
                     AND gap.GrupoActividadJerarquicoComo = 'J'
                 `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
+                console.log('resPers', resPers);
                   if (resPers.length > 0) return next();
                 }
               }
