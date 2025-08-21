@@ -767,9 +767,11 @@ console.log('ver',data)
         this.visibleDrawer = true
     }
 
-    getPersonalIdFromGrid(): {PersonalId:number,ApellidoNombre:string} {
-        const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
-        if (selrows[0] == undefined) return { PersonalId: 0, ApellidoNombre:''}
+    getPersonalIdFromGrid(): { PersonalId: number, ApellidoNombre: string } {
+        if (!this.angularGridEdit?.slickGrid)
+            return { PersonalId: 0, ApellidoNombre:''}
+        const selrows = this.angularGridEdit?.slickGrid?.getSelectedRows()
+        if (selrows && selrows[0] == undefined) return { PersonalId: 0, ApellidoNombre:''}
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
         if (row.apellidoNombre == '') return { PersonalId: 0, ApellidoNombre:''}
         return { PersonalId: Number(row.apellidoNombre.id), ApellidoNombre: row.apellidoNombre.fullName }
