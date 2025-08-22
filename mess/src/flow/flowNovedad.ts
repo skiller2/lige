@@ -341,8 +341,14 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                 novedad.telefonoOrigen = telefono
                 await novedadController.sendMsgResponsable(novedad)
 
-                //    await novedadController.saveNovedad(personalId, {})
-                //const doc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, novedad.file, 'bot', '::1')
+                console.log('archivos',novedad.file)
+                if (novedad.file) {
+                    const doc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, novedad.file, 'bot', '::1')
+                    await novedadController.addRelNovedadDoc(novedadId,doc.doc_id,new Date())
+                }
+
+                if (!process.env.PERSONALID_TEST)
+                    await novedadController.saveNovedad(personalId, {})
 
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {
