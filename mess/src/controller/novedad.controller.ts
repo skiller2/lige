@@ -28,6 +28,7 @@ export class NovedadController extends BaseController {
       `Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
       `Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
       `Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
+      `Documentos registrados: ${novedad.files.length}\n` +
       `Acción: ${novedad.Accion ?? 's/d'}`
 
     if (supervisor.GrupoActividadId) {

@@ -20,6 +20,9 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
         const novedad = await novedadController.getBackupNovedad(personalId)
+        if (!novedad.files)
+            novedad.files = []
+
         if (Object.keys(novedad).length === 0) {
             return gotoFlow(flowNovedadFecha)
         }
@@ -27,12 +30,12 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
-            `3 - Cod.Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
+            `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
             `4 - Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
 
-            `A - Adjuntar documento/foto/video\n` +
+            `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\n` +
             `C - Limpiar campos\n` +
             `E - Enviar al responsable\n` +
             `M - Menú`
@@ -341,11 +344,14 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                 novedad.telefonoOrigen = telefono
                 await novedadController.sendMsgResponsable(novedad)
 
-                console.log('archivos',novedad.file)
-                if (novedad.file) {
-                    const doc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, novedad.file, 'bot', '::1')
-                    await novedadController.addRelNovedadDoc(novedadId,doc.doc_id,new Date())
+                if (!novedad.files)
+                    novedad.files = []
+
+                for (const doc of novedad.files) {
+                    const resdoc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, doc, 'bot', '::1')
+                    await novedadController.addRelNovedadDoc(novedadId, resdoc.doc_id, new Date())
                 }
+
 
                 if (!process.env.PERSONALID_TEST)
                     await novedadController.saveNovedad(personalId, {})
@@ -384,7 +390,7 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
     })
 
 export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
-    .addAnswer("📎 Envíame un documento, foto o video:", { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider }) => {
+    .addAnswer("📎 Envíame un documento, foto o video", { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
         const novedad = await novedadController.getBackupNovedad(personalId)
@@ -402,9 +408,11 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
             mimetype = ctx.message.videoMessage.mimetype
         }
 
-        const file = { mimetype: ctx.message.documentMessage.mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
+        const doc = { mimetype: ctx.message.documentMessage.mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
+        if (!novedad.files)
+            novedad.files = []
+        novedad.files.push(doc)
 
-        novedad.file = file
         await novedadController.saveNovedad(personalId, novedad)
         return gotoFlow(flowNovedad)
     });
