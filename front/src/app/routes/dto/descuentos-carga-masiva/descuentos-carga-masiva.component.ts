@@ -13,6 +13,7 @@ import { FormBuilder, FormArray } from '@angular/forms';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
     selector: 'app-descuentos-carga-masiva-drawer',
@@ -28,6 +29,7 @@ export class DescuentosCargaMasivaComponent {
     gridDataImportLen = 0
     uploading$ = new BehaviorSubject({loading:false,event:null});
     gridDataImport$ = new BehaviorSubject([]);
+    private readonly loadingSrv = inject(LoadingService);
     fb = inject(FormBuilder)
     anio = input<number>(0)
     mes = input<number>(0)
@@ -141,6 +143,7 @@ export class DescuentosCargaMasivaComponent {
     uploadChange(event: any) {
         switch (event.type) {
           case 'start':
+            this.loadingSrv.open({ type: 'spin', text: '' })
             this.uploading$.next({ loading: true, event })
             this.gridDataImport$.next([])
             this.gridDataImportLen = 0
@@ -156,12 +159,14 @@ export class DescuentosCargaMasivaComponent {
               this.gridDataImportLen = Error.error.data?.list?.length
             }
             this.uploading$.next({ loading:false,event })
+            this.loadingSrv.close()
             break;
           case 'success':
             const Response = event.file.response
             this.gridDataImport$.next([])
             this.gridDataImportLen = 0
             this.uploading$.next({ loading: false, event })
+            this.loadingSrv.close()
             this.apiService.response(Response)        
             break
           default:

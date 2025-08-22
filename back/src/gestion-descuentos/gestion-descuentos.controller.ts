@@ -1336,7 +1336,7 @@ export class GestionDescuentosController extends BaseController {
       //Valida que el período no tenga el indicador de recibos generado
       const checkrecibos = await this.getPeriodoQuery(queryRunner, anioRequest, mesRequest)
       if (checkrecibos[0]?.ind_recibos_generados == 1)
-        return new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
