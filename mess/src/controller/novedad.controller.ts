@@ -31,8 +31,7 @@ export class NovedadController extends BaseController {
             `Acción: ${novedad.Accion ?? 's/d'}`
 
     if (supervisor.GrupoActividadId) {
-//      const PersonalId = supervisor.GrupoActividadId
-      const PersonalId = 699
+      const PersonalId = supervisor.GrupoActividadId
       const result = await dbServer.dataSource.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0 `, [PersonalId])
       let telefono = (result[0]) ? result[0].telefono : ''
 
@@ -40,12 +39,11 @@ export class NovedadController extends BaseController {
         telefono = novedad.telefonoOrigen
 
       if (telefono) {
-        console.log('envio a',telefono, msg)
+        console.log('envio a',PersonalId,telefono, msg)
         await botServer.sendMsg(telefono, msg)
         //ChatBotController.enqueBotMsg(PersonalId, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
 
       }
-      console.log('respon',PersonalId)
     }
   }
 
