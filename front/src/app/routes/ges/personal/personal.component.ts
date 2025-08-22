@@ -83,6 +83,7 @@ export class PersonalComponent {
     // childDomDrawer = viewChild.required<PersonalDomicilioDrawerComponent>('domDrawer')
     childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
     childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
+    childPerDocumentosDrawer = viewChild.required<PersonalDocumentosDrawerComponent>('docDrawer')
 
     columns$ = this.apiService.getCols('/api/personal/cols')
     gridData$ = this.listPersonal$.pipe(
@@ -166,7 +167,8 @@ export class PersonalComponent {
   }
 
   openDrawerforConsultDocumentos(): void{
-    this.visibleDocumentos.set(true) 
+    this.visibleDocumentos.set(true)
+    this.childPerDocumentosDrawer().resetFormValues()
   }
 
   openDrawerforConsultCategoria(): void{

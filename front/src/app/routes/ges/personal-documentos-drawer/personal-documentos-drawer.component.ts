@@ -127,12 +127,23 @@ export class PersonalDocumentosDrawerComponent {
         } catch (e) {
 
         }
-
+        this.resetFormValues()
         this.isLoading.set(false)
     }
 
     resetForm() {
         this.formDocumento.reset({PersonalId: this.PersonalId()})
+    }
+
+    resetFormValues() {
+        console.log('entre')
+        this.formDocumento.patchValue({
+            DocumentoId: 0,
+            DocumentoTipoCodigo: '',
+            DocumentoDenominadorDocumento: null,
+            Documentofecha: null,
+            DocumentoFechaDocumentoVencimiento: null,
+            archivo: null})
     }
 
     async LoadArchivo(url: string, filename: string) {
