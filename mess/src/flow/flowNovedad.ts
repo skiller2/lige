@@ -5,8 +5,15 @@ import { reset, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
 import { ChatBotController } from 'src/controller/chatbot.controller.ts';
 import { ObjetivoController } from 'src/controller/objetivo.controller.ts';
+import { existsSync, mkdirSync } from "fs";
+import { FileUploadController } from 'src/controller/file-upload.controller.ts';
 
 const delay = chatBotController.getDelay()
+
+const dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
+if (!existsSync(dirtmp)) {
+    mkdirSync(dirtmp, { recursive: true });
+}
 
 export const flowNovedad = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
@@ -330,11 +337,13 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             const respSINO = ctx.body
             const telefono = ctx.from
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
-                await novedadController.addNovedad(novedad, telefono, personalId)
+                const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
 
-                await novedadController.sendMsgResponsable(novedad)
+                // await novedadController.sendMsgResponsable(novedad)
 
-//                await novedadController.saveNovedad(personalId, {})
+            //    await novedadController.saveNovedad(personalId, {})
+                const doc:any = await FileUploadController.handleDOCUpload(null,null,null,null,new Date(novedad.Fecha), null, novedadId.toString(), null,null,novedad.file,'bot','::1')
+                
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {
                 return fallBack()
@@ -368,21 +377,30 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
             return gotoFlow(flowNovedad)
     })
 
-export const flowNovedadRecibirDocs = addKeyword(EVENTS.ACTION)
-  .addAnswer("📎 Envíame un documento, foto o video:", { capture: true }, async (ctx, { gotoFlow, flowDynamic, fallBack }) => {
+export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
+  .addAnswer("📎 Envíame un documento, foto o video:", { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider }) => {
     reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-    console.log('ctx: ', ctx);
-      
-    if (ctx.type === "document") {
-          await flowDynamic(`Recibí tu documento: ${ctx.media.filename}`);
-        //   console.log("URL del archivo:", ctx.media.url);
-      } else if (ctx.type === "image") {
-          await flowDynamic("Recibí tu imagen!");
-        //   console.log("URL de la imagen:", ctx.media.url);
-      } else {
-          await flowDynamic("⚠️ No recibí un documento válido, intenta de nuevo.");
-          return fallBack()
-      }
+    const personalId = state.get('personalId')
+    const novedad = await novedadController.getBackupNovedad(personalId)
+    
+    const localPath = await provider.saveFile(ctx, {path:`${dirtmp}`})
+    let array = localPath.split('\\')
+    
+    const tempfilename = array[array.length-1]
+    let mimetype = null
+    if (ctx.message.documentMessage) {
+        mimetype = ctx.message.documentMessage.mimetype
+    }else if(ctx.message.imageMessage){
+        mimetype = ctx.message.imageMessage.mimetype
+    }else if (ctx.message.videoMessage) {
+        mimetype = ctx.message.videoMessage.mimetype
+    }
+    
+    const file = { mimetype: ctx.message.documentMessage.mimetype, doctipo_id:'NOV', tableForSearch:'Documento', tempfilename}
+    
+    novedad.file = file
+    await novedadController.saveNovedad(personalId, novedad)
+    return gotoFlow(flowNovedad)
   });
 
 function esHoraValida(hora: string): boolean {

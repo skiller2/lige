@@ -92,6 +92,8 @@ export class NovedadController extends BaseController {
         ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         jsonNovedad, now, 'bot', '::1'
     ])
+    
+    return NovedadCodigo
   }
 
   async getNovedadTipo() {
@@ -100,6 +102,14 @@ export class NovedadController extends BaseController {
       FROM NovedadTipo
     `)
     return result
+  }
+
+  async addDocumentoRelaciones(novedadId: any, documentoId:any) {
+    
+    const now:Date = new Date()
+    await dbServer.dataSource.query(`
+
+      `, [novedadId, documentoId])
   }
 
 }
