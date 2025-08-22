@@ -27,13 +27,18 @@ export class NovedadController extends BaseController {
             `Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId+'/'+novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo??''}\n` +
             `Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+            `Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
             `Acción: ${novedad.Accion ?? 's/d'}`
 
     if (supervisor.GrupoActividadId) {
 //      const PersonalId = supervisor.GrupoActividadId
       const PersonalId = 699
       const result = await dbServer.dataSource.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0 `, [PersonalId])
-      const telefono = (result[0]) ? result[0].telefono : ''
+      let telefono = (result[0]) ? result[0].telefono : ''
+
+      if (process.env.PERSONALID_TEST)
+        telefono = novedad.telefonoOrien
+
       if (telefono) {
         console.log('envio a',telefono, msg)
         await botServer.sendMsg(telefono, msg)

@@ -27,14 +27,14 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
-            `3 - Cod.Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId+'/'+novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo??''}\n` +
+            `3 - Cod.Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
             `4 - Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
 
-            `A - Adjuntar documento/foto/video\n`+
-            `C - Limpiar campos\n`+
-            `E - Enviar al responsable\n`+
+            `A - Adjuntar documento/foto/video\n` +
+            `C - Limpiar campos\n` +
+            `E - Enviar al responsable\n` +
             `M - Menú`
         ]
             , { delay: delay })
@@ -42,7 +42,7 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
     .addAnswer([],
         { capture: true, delay },
         async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
-            
+
             const personalId = state.get('personalId')
             const novedad = await novedadController.getBackupNovedad(personalId)
             switch (String(ctx.body).toLowerCase()) {
@@ -121,10 +121,10 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
-            
+
             const CodObjetivo = ctx.body
             const personalId = state.get('personalId')
-            
+
             const res = await objetivoController.getObjetivoByCodObjetivo(CodObjetivo)
             if (!res.length) {
                 const reintento = state.get('reintento') ?? 0
@@ -137,7 +137,7 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
                 await state.update({ reintento: reintento + 1 })
                 return fallBack('Código ingresado incorrecto, reintente')
             }
-            
+
             const objetivo = res[0]
             await flowDynamic([`Objetivo: ${objetivo.descripcion}`], { delay: delay })
             const novedad = await novedadController.getBackupNovedad(personalId)
@@ -155,13 +155,13 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
         })
 
 export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { flowDynamic, state,gotoFlow }) => {
+    .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
         const personalId = state.get('personalId')
         const novedad = await novedadController.getBackupNovedad(personalId)
 
         const res = await novedadController.getNovedadTipo()
         const concatOptionsTipo = res.map((item: any, i: number) => `${i + 1}- ${item.Descripcion}`).join('\n');
-        await flowDynamic([`${concatOptionsTipo}`,`M - Volver al menú`, ], { delay: delay })
+        await flowDynamic([`${concatOptionsTipo}`, `M - Volver al menú`,], { delay: delay })
         novedad.OptionsTipo = res
         await novedadController.saveNovedad(personalId, novedad)
 
@@ -228,26 +228,26 @@ export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
         })
 
 export const flowNovedadHora = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { flowDynamic, state,gotoFlow }) => {
+    .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
     .addAnswer([
-            'Ingrese la hora de cuando se produjo el hecho (hh:mm)',
-            'H - Ingresar Hora actual',
-            'M - Volver al menú',
-        ], { capture: true, delay },
+        'Ingrese la hora de cuando se produjo el hecho (hh:mm)',
+        'H - Ingresar Hora actual',
+        'M - Volver al menú',
+    ], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const personalId = state.get('personalId')
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
             if (String(ctx.body).toLowerCase() == 'h') {
-                const HoraActual:Date = new Date()
+                const HoraActual: Date = new Date()
                 const novedad = await novedadController.getBackupNovedad(personalId)
                 const NovedadFecha = new Date(novedad.Fecha)
                 NovedadFecha.setHours(HoraActual.getHours(), HoraActual.getMinutes(), 0, 0);
                 novedad.Fecha = NovedadFecha
-                novedad.Hora = HoraActual.getHours()+':'+HoraActual.getMinutes()
+                novedad.Hora = HoraActual.getHours() + ':' + HoraActual.getMinutes()
                 await novedadController.saveNovedad(personalId, novedad)
                 await state.update({ reintento: 0 })
 
@@ -282,18 +282,18 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
     .addAnswer([
-            'Ingrese la fecha de cuando se produjo el hecho (dd/mm/aaaa)',
-            'H - Ingresar Fecha actual', 
-            'M - Volver al menú',
-        ], { capture: true, delay },
+        'Ingrese la fecha de cuando se produjo el hecho (dd/mm/aaaa)',
+        'H - Ingresar Fecha actual',
+        'M - Volver al menú',
+    ], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
             const personalId = state.get('personalId')
-            
+
             if (String(ctx.body).toLowerCase() == 'h') {
-                const FechaActual:Date = new Date()
+                const FechaActual: Date = new Date()
                 const novedad = await novedadController.getBackupNovedad(personalId)
                 const [horas, minutos] = novedad.Hora ? novedad.Hora.split(':').map(Number) : [0, 0];
                 FechaActual.setHours(horas, minutos, 0, 0)
@@ -338,18 +338,18 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             const telefono = ctx.from
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
+                novedad.telefonoOrigen = telefono
+                await novedadController.sendMsgResponsable(novedad)
 
-                // await novedadController.sendMsgResponsable(novedad)
+                //    await novedadController.saveNovedad(personalId, {})
+                const doc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, novedad.file, 'bot', '::1')
 
-            //    await novedadController.saveNovedad(personalId, {})
-                const doc:any = await FileUploadController.handleDOCUpload(null,null,null,null,new Date(novedad.Fecha), null, novedadId.toString(), null,null,novedad.file,'bot','::1')
-                
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {
                 return fallBack()
             }
             await state.update({ reintento: 0 })
-            
+
 
 
 
@@ -363,45 +363,45 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
         const novedad = await novedadController.getBackupNovedad(personalId)
         if (!novedad.Fecha) {
             return gotoFlow(flowNovedadFecha)
-        }else if (!novedad.Hora) {
+        } else if (!novedad.Hora) {
             return gotoFlow(flowNovedadHora)
-        }else if (!(novedad.ClienteId && novedad.ClienteElementoDependienteId)) {
+        } else if (!(novedad.ClienteId && novedad.ClienteElementoDependienteId)) {
             return gotoFlow(flowNovedadCodObjetivo)
-        }else if (!novedad.Tipo) {
+        } else if (!novedad.Tipo) {
             return gotoFlow(flowNovedadTipo)
-        }else if (!novedad.Descripcion) {
+        } else if (!novedad.Descripcion) {
             return gotoFlow(flowNovedadDescrip)
-        }else if (!novedad.Accion) {
+        } else if (!novedad.Accion) {
             return gotoFlow(flowNovedadAccion)
-        }else
+        } else
             return gotoFlow(flowNovedad)
     })
 
 export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
-  .addAnswer("📎 Envíame un documento, foto o video:", { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider }) => {
-    reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-    const personalId = state.get('personalId')
-    const novedad = await novedadController.getBackupNovedad(personalId)
-    
-    const localPath = await provider.saveFile(ctx, {path:`${dirtmp}`})
-    let array = localPath.split('\\')
-    
-    const tempfilename = array[array.length-1]
-    let mimetype = null
-    if (ctx.message.documentMessage) {
-        mimetype = ctx.message.documentMessage.mimetype
-    }else if(ctx.message.imageMessage){
-        mimetype = ctx.message.imageMessage.mimetype
-    }else if (ctx.message.videoMessage) {
-        mimetype = ctx.message.videoMessage.mimetype
-    }
-    
-    const file = { mimetype: ctx.message.documentMessage.mimetype, doctipo_id:'NOV', tableForSearch:'Documento', tempfilename}
-    
-    novedad.file = file
-    await novedadController.saveNovedad(personalId, novedad)
-    return gotoFlow(flowNovedad)
-  });
+    .addAnswer("📎 Envíame un documento, foto o video:", { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedad = await novedadController.getBackupNovedad(personalId)
+
+        const localPath = await provider.saveFile(ctx, { path: `${dirtmp}` })
+        let array = localPath.split('\\')
+
+        const tempfilename = array[array.length - 1]
+        let mimetype = null
+        if (ctx.message.documentMessage) {
+            mimetype = ctx.message.documentMessage.mimetype
+        } else if (ctx.message.imageMessage) {
+            mimetype = ctx.message.imageMessage.mimetype
+        } else if (ctx.message.videoMessage) {
+            mimetype = ctx.message.videoMessage.mimetype
+        }
+
+        const file = { mimetype: ctx.message.documentMessage.mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
+
+        novedad.file = file
+        await novedadController.saveNovedad(personalId, novedad)
+        return gotoFlow(flowNovedad)
+    });
 
 function esHoraValida(hora: string): boolean {
     const partes = hora.split(':')
@@ -428,6 +428,6 @@ function esFechaValida(fecha: string): boolean {
 }
 
 function parseFecha(fecha: string): string {
-    const date:Date = new Date(fecha)
-    return date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()
+    const date: Date = new Date(fecha)
+    return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear()
 }
