@@ -342,7 +342,7 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                 await novedadController.sendMsgResponsable(novedad)
 
                 //    await novedadController.saveNovedad(personalId, {})
-                const doc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, novedad.file, 'bot', '::1')
+                //const doc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, novedad.file, 'bot', '::1')
 
                 await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
             } else {

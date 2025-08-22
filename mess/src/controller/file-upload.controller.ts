@@ -9,7 +9,6 @@ import { promisify } from 'util';
 import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { TextItem } from "pdfjs-dist/types/src/display/api";
 import type { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 
@@ -1049,7 +1048,7 @@ export class FileUploadController extends BaseController {
     for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
       const page = await document.getPage(pagenum);
       const textContent = await page.getTextContent();
-      textContent.items.forEach((item: TextItem) => {
+      textContent.items.forEach((item: any) => {
         detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
       });
     }

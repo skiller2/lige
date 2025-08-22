@@ -37,7 +37,7 @@ export class NovedadController extends BaseController {
       let telefono = (result[0]) ? result[0].telefono : ''
 
       if (process.env.PERSONALID_TEST)
-        telefono = novedad.telefonoOrien
+        telefono = novedad.telefonoOrigen
 
       if (telefono) {
         console.log('envio a',telefono, msg)
