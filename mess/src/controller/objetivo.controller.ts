@@ -23,7 +23,7 @@ export class ObjetivoController extends BaseController {
   }
 
   static async getObjetivoResponsables(anio: number, mes: number, ClienteId:number,ClienteElementoDependienteId:number) {
-    await dbServer.dataSource.query(`
+    return dbServer.dataSource.query(`
         SELECT 
             1 AS ord, obj.ObjetivoId as id, 'Grupo' tipo,
             ga.GrupoActividadId, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadObjetivoDesde AS desde , gap.GrupoActividadObjetivoHasta hasta,

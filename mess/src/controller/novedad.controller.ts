@@ -4,19 +4,44 @@ import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
 
+function parseFecha(fecha: string): string {
+    const date:Date = new Date(fecha)
+    return date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()
+}
+
 export class NovedadController extends BaseController {
   async sendMsgResponsable(novedad: any) {
-    const Fecha = novedad.Fecha
+    const Fecha = new Date(novedad.Fecha)
     const ClienteId = novedad.ClienteId 
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
     const DesObjetivo = novedad.DesObjetivo
     const anio=Fecha.getFullYear()
-    const mes = Fecha.getMonth()+1 
+    const mes = Fecha.getMonth()+1
+    const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
+    const supervisor = responsables.find(r => r.ord == 3)
+    
 
-    const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId,ClienteElementoDependienteId)
-console.log('respon',responsables)
-//            ChatBotController.enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
+    const msg = `Novedad:\n` +
+            `Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
+            `Hora: ${novedad.Hora ?? 's/d'}\n` +
+            `Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId+'/'+novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo??''}\n` +
+            `Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
+            `Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+            `Acción: ${novedad.Accion ?? 's/d'}`
 
+    if (supervisor.GrupoActividadId) {
+//      const PersonalId = supervisor.GrupoActividadId
+      const PersonalId = 699
+      const result = await dbServer.dataSource.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0 `, [PersonalId])
+      const telefono = (result[0]) ? result[0].telefono : ''
+      if (telefono) {
+        console.log('envio a',telefono, msg)
+        await botServer.sendMsg(telefono, msg)
+        //ChatBotController.enqueBotMsg(PersonalId, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
+
+      }
+      console.log('respon',PersonalId)
+    }
   }
 
   async saveNovedad(personalId: string, novedad:any) {
