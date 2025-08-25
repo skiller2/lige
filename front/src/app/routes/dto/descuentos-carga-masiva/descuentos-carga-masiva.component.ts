@@ -14,13 +14,15 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { LoadingService } from '@delon/abc/loading';
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+
 
 @Component({
     selector: 'app-descuentos-carga-masiva-drawer',
     templateUrl: './descuentos-carga-masiva.component.html',
     styleUrl: './descuentos-carga-masiva.component.less',
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule, FileUploadComponent],
     providers: [AngularUtilService],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -33,7 +35,9 @@ export class DescuentosCargaMasivaComponent {
     fb = inject(FormBuilder)
     anio = input<number>(0)
     mes = input<number>(0)
-
+    formChange$ = new BehaviorSubject('');
+    fecha: Date = new Date()
+    periodo: Date = new Date()
     angularGrid!: AngularGridInstance;
     gridOptionsPer!: GridOption;
     gridOptionsObj!: GridOption;
@@ -41,9 +45,9 @@ export class DescuentosCargaMasivaComponent {
     gridObj!: SlickGrid;
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService();
-
+    fileUploadComponent = viewChild.required(FileUploadComponent);
     formAltaDesc = this.fb.group({
-        DescuentoId:0, tableName:'',
+        DescuentoId:0, tableName:'', files: [[]]
     })
 
     constructor(
@@ -111,6 +115,9 @@ export class DescuentosCargaMasivaComponent {
       },
     ]
 
+
+
+
     ngOnInit(): void {
       this.gridOptionsPer = this.apiService.getDefaultGridOptions('.gridErrorPer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
       this.gridOptionsPer.enableRowDetailView = this.apiService.isMobile()
@@ -121,6 +128,32 @@ export class DescuentosCargaMasivaComponent {
       this.gridOptionsObj.enableRowDetailView = this.apiService.isMobile()
       this.gridOptionsObj.showFooterRow = true
       this.gridOptionsObj.createFooterRow = true
+
+                // Escuchar cambios en formAltaDesc.files
+        this.formAltaDesc.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
+          if (filesValue.length > 0) {
+            this.loadingSrv.open({ type: 'spin', text: '' })
+
+            this.gridDataImport$.next([])
+ 
+
+            try {
+              let descuentoId = this.formAltaDesc.get('DescuentoId')?.value
+              let tableName = this.formAltaDesc.get('tableName')?.value
+              await firstValueFrom(this.apiService.importXLSImporteVentaDescuentos(filesValue, this.anio(), this.mes(),this.fecha, descuentoId, tableName))  
+            this.formChange$.next('changed');
+            this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+            } catch (e: any) {
+              this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+              if (e.error?.data?.list) {
+                this.gridDataImport$.next(e.error.data.list)
+              }
+              this.uploading$.next({ loading: false, event: null })
+            }
+            this.loadingSrv.close()
+
+          }
+        });
       }
     
 
@@ -174,6 +207,7 @@ export class DescuentosCargaMasivaComponent {
         }
     
     }
+  
 
     async angularGridReady(angularGrid: any) {
       // this.angularGrid = angularGrid.detail

@@ -191,12 +191,12 @@ const columnsPersonalDescuentos:any[] = [
 const columnsObjetivosDescuentos:any[] = [
   {
     id:'id', name:'Id', field:'id',
-    fieldName: '',
+    fieldName: 'id',
     type:'string',
     searchType: 'string',
     sortable: true,
     hidden: true,
-    searchHidden: true,
+    searchHidden: true
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -475,7 +475,7 @@ export class GestionDescuentosController extends BaseController {
       condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (ISNULL(cuo2.cantprocesadasinmes,0) <> des.ObjetivoDescuentoCantidadCuotas)`
     }
     return await queryRunner.query(`
-      SELECT CONCAT(cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
       , des.ObjetivoId
       , per.PersonalId
       , 'C' tipocuenta_id
@@ -1308,7 +1308,7 @@ export class GestionDescuentosController extends BaseController {
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
-    const descuentoIdRequest = Number(req.body.descuentoId)
+    const descuentoIdRequest = Number(req.body.DescuentoId)
     const tableNameRequest = req.body.tableName
     const queryRunner = dataSource.createQueryRunner();
 
@@ -1317,19 +1317,19 @@ export class GestionDescuentosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let den_documento:string = ''
     const fechaActual:Date = new Date()
-    const file = {...req.file, doctipo_id:'DES', tableForSearch:'Documento'}
+    const file = req.body.files
 
     let columnsnNotFound = []
     let dataset:any = []
     let idError:number = 0
 
-    debugger
+
     try {
       if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
       if (!descuentoIdRequest) throw new ClientException("Faltó indicar Tipo de descuento");
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
-
+      
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
@@ -1338,7 +1338,7 @@ export class GestionDescuentosController extends BaseController {
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
 
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
       const columnsName: Array<string> = sheet1.data[0]
 
@@ -1358,6 +1358,7 @@ export class GestionDescuentosController extends BaseController {
 
       switch (tableNameRequest) {
         case 'PersonalOtroDescuento':
+
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
           if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
@@ -1372,15 +1373,21 @@ export class GestionDescuentosController extends BaseController {
           den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
 
           for (const row of sheet1.data) {
-            
             //Finaliza cuando la fila esta vacia
+
+            const isEmpty = (val) => 
+              val === null || val === undefined || (typeof val === "string" && val.trim() === "")
+
             if (
-              !row[columnsXLS['CUIT']]
-              && !row[columnsXLS['Cantidad Cuotas']]
-              && !row[columnsXLS['Importe Total']]
-              && !row[columnsXLS['Detalle']]
-            ) break
+              !isEmpty(row[columnsXLS['CUIT']]) &&
+              !isEmpty(row[columnsXLS['Cantidad Cuotas']]) &&
+              !isEmpty(row[columnsXLS['Importe Total']]) &&
+              !isEmpty(row[columnsXLS['Detalle']])
+            ) 
+              break;
             
+
+
             //Verifica que exista el CUIT
             const PersonalCUITCUIL = await queryRunner.query(`
               SELECT cuit.PersonalId
@@ -1489,12 +1496,12 @@ export class GestionDescuentosController extends BaseController {
           throw new ClientException(`Tipo de carga no identificado`)
           break;
       }
-      
-      if (dataset.length) {
+  
+      if (dataset.length > 0) {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list: dataset})
       }
 
-      await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file, usuario, ip, queryRunner)
+      await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "XLS Recibido y procesado!");
@@ -1503,7 +1510,6 @@ export class GestionDescuentosController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
-      unlinkSync(file.path);
     }
   }
 
