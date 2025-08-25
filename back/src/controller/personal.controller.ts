@@ -375,7 +375,7 @@ export class PersonalController extends BaseController {
         WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
         [PersonalId, stmactual]
       )
-      result.map((cuenta: any) => { cuenta.PersonalBancoCBU = (cuenta.PersonalBancoCBU)?cuenta.PersonalBancoCBU?.slice(0, -6) + 'XXXXXX':'No cargado' })
+      result.map((cuenta: any) => { cuenta.PersonalBancoCBU = (cuenta.PersonalBancoCBU) ? cuenta.PersonalBancoCBU?.slice(0, -6) + 'XXXXXX' : 'No cargado' })
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
@@ -536,9 +536,9 @@ cuit.PersonalCUITCUILCUIT,
 
   private async addPersonalQuery(
     queryRunner: any,
-    infoPersonal:any,
-    usuario:string,
-    ip:string
+    infoPersonal: any,
+    usuario: string,
+    ip: string
   ) {
     let Nombre: string = infoPersonal.Nombre
     let Apellido: string = infoPersonal.Apellido
@@ -754,6 +754,9 @@ cuit.PersonalCUITCUILCUIT,
       await this.updatePersonalDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
+
+      await this.addPersonalCambios(queryRunner, PersonalId, req.body, usuario, ip)
+
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
@@ -1116,7 +1119,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any, usuario:string, ip:string) {
+  private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any, usuario: string, ip: string) {
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaNacimiento FechaNacimiento,
@@ -1154,7 +1157,7 @@ cuit.PersonalCUITCUILCUIT,
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
-    const now:Date = new Date()
+    const now: Date = new Date()
 
     await queryRunner.query(`
       UPDATE Personal SET
@@ -1509,7 +1512,7 @@ cuit.PersonalCUITCUILCUIT,
       if (valForm instanceof ClientException)
         throw valForm
 
-      await this.addPersonalCambios(queryRunner, PersonalId, req.body)
+      await this.addPersonalCambios(queryRunner, PersonalId, req.body,usuario, ip)
 
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body, usuario, ip)
 
@@ -1604,7 +1607,7 @@ cuit.PersonalCUITCUILCUIT,
   //     `, [personalId]
   //   )
   // }
-  
+
   private async getFormDomicilioByPersonalIdQuery(queryRunner: any, personalId: any) {
     const PersonalDomicilio = await queryRunner.query(`
         SELECT 
@@ -1987,7 +1990,7 @@ cuit.PersonalCUITCUILCUIT,
     if (action == 'I' && !personalForm.SituacionId) {
       campos_vacios.push(`- Situacion de Revista`)
     }
-    
+
     //Validaciones de Lugar de nacimiento
     const algunIncomleto = personalForm.PaisId || personalForm.ProvinciaId || personalForm.LocalidadId;
     const todosCompletos = personalForm.PaisId && personalForm.ProvinciaId && personalForm.LocalidadId;
@@ -2885,11 +2888,11 @@ cuit.PersonalCUITCUILCUIT,
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
-    let campos_vacios:string[] = []
+    let campos_vacios: string[] = []
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      
+
       //Validadar que los campos no este vacios
       // if (!personalId) campos_vacios.push("- Persona");
       // if (!ActaId) campos_vacios.push("- Nro Acta");
@@ -2926,40 +2929,9 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  async addPersonalCambios(queryRunner:any, personalId:number, form:any){
+  async addPersonalCambios(queryRunner: any, personalId: number, form: any, usuario: string, ip: string) {
     const PersonalCambiosJson = JSON.stringify(form)
-    let personal = await queryRunner.query(`
-      SELECT
-        PersonalId,
-        PersonalSucursalIngresoSucursalId,
-        PersonalClasePersonal,
-        PersonalNroLegajo,
-        PersonalApellido,
-        PersonalNombre,
-        PersonalLeyNro,
-        PersonalFechaNacimiento,
-        PersonalPaisId,
-        PersonalProvinciaId,
-        PersonalLocalidadId,
-        PersonalSexo,
-        PersonalNacionalidadId,
-        PersonalCantidadHijos,
-        PersonalObservacion,
-        PersonalSuActualSucursalPrincipalId,
-        PersonalAudFechaIng,
-        PersonalAudUsuarioIng,
-        PersonalAudIpIng,
-        PersonalAudFechaMod,
-        PersonalAudUsuarioMod,
-        PersonalAudIpMod,
-        TipoBajaId,
-        TipoBajaTramiteId,
-        EstadoCivilId
-      FROM Personal
-      WHERE PersonalId IN (@0)
-    `, [personalId])
-
-    personal = personal[0]
+    const now = new Date()
 
     await queryRunner.query(`
       INSERT INTO PersonalCambios (
@@ -2996,35 +2968,35 @@ cuit.PersonalCUITCUILCUIT,
       )
     `, [
       personalId,
-      personal.PersonalSucursalIngresoSucursalId,
-      personal.PersonalClasePersonal,
-      personal.PersonalNroLegajo,
-      personal.PersonalApellido,
-      personal.PersonalNombre,
-      personal.PersonalLeyNro,
-      personal.PersonalFechaNacimiento,
-      personal.PersonalPaisId,
-      personal.PersonalProvinciaId,
-      personal.PersonalLocalidadId,
-      personal.PersonalSexo,
-      personal.PersonalNacionalidadId,
-      personal.PersonalCantidadHijos,
-      personal.PersonalObservacion,
-      personal.PersonalSuActualSucursalPrincipalId,
-      personal.PersonalAudFechaIng,
-      personal.PersonalAudUsuarioIng,
-      personal.PersonalAudIpIng,
-      personal.PersonalAudFechaMod,
-      personal.PersonalAudUsuarioMod,
-      personal.PersonalAudIpMod,
-      personal.TipoBajaId,
-      personal.TipoBajaTramiteId,
-      personal.EstadoCivilId,
+      form.SucursalId,
+      null,
+      form.NroLegajo,
+      form.Apellido,
+      form.Nombre,
+      form.LeyNro,
+      form.FechaNacimiento,
+      form.domicilio.PaisId,
+      form.domicilio.ProvinciaId,
+      form.domicilio.LocalidadId,
+      form.Sexo,
+      form.NacionalidadId,
+      null,
+      null,
+      form.SuActualSucursalPrincipalId,
+      now,
+      usuario,
+      ip,
+      now,
+      usuario,
+      ip,
+      null,
+      null,
+      form.EstadoCivilId,
       PersonalCambiosJson
     ])
   }
 
-  private async getSitRevistaAsoByPersonalIdQuery(queryRunner: any, PersonalId:number) {
+  private async getSitRevistaAsoByPersonalIdQuery(queryRunner: any, PersonalId: number) {
     return await queryRunner.query(`
         SELECT 
         persit.PersonalSituacionRevistaId AS value,
