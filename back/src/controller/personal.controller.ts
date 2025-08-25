@@ -1509,7 +1509,7 @@ cuit.PersonalCUITCUILCUIT,
       if (valForm instanceof ClientException)
         throw valForm
 
-      await this.addPersonalCambios(queryRunner, PersonalId)
+      await this.addPersonalCambios(queryRunner, PersonalId, req.body)
 
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body, usuario, ip)
 
@@ -2926,7 +2926,8 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  async addPersonalCambios(queryRunner:any, personalId:number){
+  async addPersonalCambios(queryRunner:any, personalId:number, form:any){
+    const PersonalCambiosJson = JSON.stringify(form)
     let personal = await queryRunner.query(`
       SELECT
         PersonalId,
@@ -2986,11 +2987,12 @@ cuit.PersonalCUITCUILCUIT,
         PersonalCambiosAudIpMod,
         PersonalCambiosTipoBajaId,
         PersonalCambiosTipoBajaTramiteId,
-        PersonalCambiosEstadoCivilId
+        PersonalCambiosEstadoCivilId,
+        PersonalCambiosJson
       ) VALUES (
         @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,
         @10,@11,@12,@13,@14,@15,@16,@17,@18,@19,
-        @20,@21,@22,@23,@24
+        @20,@21,@22,@23,@24,@25
       )
     `, [
       personalId,
@@ -3017,7 +3019,8 @@ cuit.PersonalCUITCUILCUIT,
       personal.PersonalAudIpMod,
       personal.TipoBajaId,
       personal.TipoBajaTramiteId,
-      personal.EstadoCivilId
+      personal.EstadoCivilId,
+      PersonalCambiosJson
     ])
   }
 
