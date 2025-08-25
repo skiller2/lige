@@ -57,14 +57,14 @@
             </nz-form-control>
 
             <nz-form-label [nzSpan]="2">Responsable</nz-form-label>
-            <nz-form-control [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
+            <nz-form-control [nzSpan]="8" *ngIf="$objetivoDetalle| async as objetivoDetalle">
                 @if (objetivoDetalle.responsable.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon
                     nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
                 <app-view-responsable [list]="objetivoDetalle.responsable"
                     (changeSize)="collapseChange($event)"></app-view-responsable>
             </nz-form-control>
 
-            <nz-form-control [nzSpan]="1" style="text-align: right;">
+            <nz-form-control [nzSpan]="2" style="text-align: right;">
                 <nz-button-group>
                     <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
                             nzTheme="outline" nz-tooltip
