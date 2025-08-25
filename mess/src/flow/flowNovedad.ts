@@ -200,7 +200,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
         })
 
 export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
-    .addAnswer(['Describa la acción tomada'], { capture: true, delay },
+    .addAnswer(['Describa la acción tomada', 'M - Volver al menú',], { capture: true, delay },
         async (ctx, { state, gotoFlow, }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
@@ -408,7 +408,7 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
             mimetype = ctx.message.videoMessage.mimetype
         }
 
-        const doc = { mimetype: ctx.message.documentMessage.mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
+        const doc = { mimetype: mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
         if (!novedad.files)
             novedad.files = []
         novedad.files.push(doc)
