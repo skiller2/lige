@@ -613,19 +613,35 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
+  parseImporte(str) {
+    if (!str) return 0
+    return Number(str.replace(/\./g, "").replace(",", "."))
+  }
+  
+  dividirImporte(importeStr, cuotas, paraSql = false) {
+    const importe = this.parseImporte(importeStr)
+    const division = importe / cuotas
+
+    return division.toFixed(2); 
+    
+  }
+
   private async addPersonalOtroDescuento(queryRunner: any, otroDescuento: any, usuarioId: number, ip: string) {
     const DescuentoId: number = otroDescuento.DescuentoId
     const PersonalId: number = otroDescuento.PersonalId
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = otroDescuento.Cuotas
-    const Importe: number = Number(otroDescuento.Importe)
+    const Importe = otroDescuento.Importe
     const Detalle: number = otroDescuento.Detalle
 
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
 
-    let importeVariable = Importe/Cuotas
+
+    let importeVariable = this.dividirImporte(Importe, Cuotas)
+
+
     //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
