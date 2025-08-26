@@ -59,7 +59,7 @@
 
 
     <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
-      <nz-form-label class="inputText">Archivo Descuentos</nz-form-label>   
+      <nz-form-label [nzXs]="4" class="inputText">Archivo Descuentos</nz-form-label>   
         <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
         [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
     </nz-form-item>
