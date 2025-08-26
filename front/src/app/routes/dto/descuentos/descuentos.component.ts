@@ -24,7 +24,8 @@ export class DescuentosComponent {
     anio = computed(() => this.periodo()?.getFullYear())
     mes = computed(() => this.periodo()?.getMonth()+1)
     reload = signal<number>(0)
-    loadingCuo = signal(false)
+    loadingCuo = model<boolean>(false)
+    reloadGrid = model<boolean>(false)
     selectedPeriod = { year: 0, month: 0 };
     private apiService = inject(ApiService)
 

@@ -11,11 +11,11 @@
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'dto', 'descuentos', 'personal']">Personal</a>
+          <a [routerLink]="['/', 'dto', 'descuentos', 'personal']" (click)="reloadGrid.set(true)">Personal</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'dto', 'descuentos', 'objetivos']">Objetivos</a>
+          <a [routerLink]="['/', 'dto', 'descuentos', 'objetivos']" (click)="reloadGrid.set(true)">Objetivos</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
@@ -36,14 +36,14 @@
       <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/personal">Personal</a>
         <ng-template nz-tab>
-          <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" [reload]="reload()"></app-table-descuentos-personal>
+          <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" [reload]="reload()" [(reloadGrid)]="reloadGrid"></app-table-descuentos-personal> 
         </ng-template>
       </nz-tab>
   
       <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/objetivos">Objetivos</a>
         <ng-template nz-tab>
-          <app-table-descuentos-objetivos [anio]="anio()" [mes]="mes()" [reload]="reload()"></app-table-descuentos-objetivos>
+          <app-table-descuentos-objetivos [anio]="anio()" [mes]="mes()" [reload]="reload()" [(reloadGrid)]="reloadGrid"></app-table-descuentos-objetivos>
         </ng-template>
       </nz-tab>
 

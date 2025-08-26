@@ -27,6 +27,7 @@ export class TableDescuentosPersonalComponent {
     gridOptions!: GridOption;
     gridData: any;
     rows: number[] = [];
+    reloadGrid = model<boolean>(false)
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
@@ -58,6 +59,8 @@ export class TableDescuentosPersonalComponent {
             const mes = this.mes()
             const reload = this.reload()
             this.listDescuento('')
+             this.reloadGrid();
+            this.reloadGrid.set(false)
         });
     }
 
@@ -86,6 +89,7 @@ export class TableDescuentosPersonalComponent {
         this.gridOptions.fullWidthRows = true
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
+
     }
 
     handleSelectedRowsChanged(e: any): void {

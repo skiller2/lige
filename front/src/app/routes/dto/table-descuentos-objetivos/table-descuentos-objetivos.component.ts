@@ -27,6 +27,7 @@ export class TableDescuentosObjetivosComponent {
     gridData: any;
     rows: number[] = [];
     detailViewRowCount = 1;
+    reloadGrid = model<boolean>(false)
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
     mes = input<number>(0)
@@ -56,6 +57,8 @@ export class TableDescuentosObjetivosComponent {
             const mes = this.mes()
             const reload = this.reload()
             this.listDescuento('')
+            this.reloadGrid();
+            this.reloadGrid.set(false)
         });
     }
 
