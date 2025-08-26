@@ -99,15 +99,14 @@ export class ImpuestosAfipController extends BaseController {
         .map((descuento, index) => {
           return {
             name: `${periodo.year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
-            doc_id:descuento.doc_id,
-            path:descuento.path,
+            DocumentoId:descuento.DocumentoId,
+            DocumentoPath:descuento.DocumentoPath,
             apellidoNombre: descuento.ApellidoNombre,
             GrupoActividadDetalle: descuento.GrupoActividadDetalle,
           };
         });
 
       const fileUploadController = new FileUploadController()
-      
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, cantxpag);
       const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
       const tmpfilename = fileUploadController.getRandomTempFileName('.pdf')
@@ -455,7 +454,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
 
-    const doc_id = alreadyExists[0]?.doc_id    
+    const DocumentoId = alreadyExists[0]?.DocumentoId    
 
     updateFile=false
     if (alreadyExists.length == 0) {
@@ -555,9 +554,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       if (pagenum == null) {
 
-        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,  fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,  fileObj, usuario, ip, queryRunner)
       } else {
-        const currentFileBuffer = readFileSync(file.path);
+        const currentFileBuffer = readFileSync(file.DocumentoPath);
         const fileUploadController = new FileUploadController()
         const pdfDoc = await PDFDocument.create();
         const srcDoc = await PDFDocument.load(currentFileBuffer);
@@ -571,7 +570,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         const tempfilename = fileUploadController.getRandomTempFileName('.pdf')
         writeFileSync(tempfilename, buffer);
         fileObj.tempfilename = basename(tempfilename)
-        await FileUploadController.handleDOCUpload(personalID, null, null, doc_id, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,fileObj, usuario, ip, queryRunner)
 
       }
     }
@@ -819,7 +818,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
             apellidoNombre: descuento.ApellidoNombre,
             GrupoActividadDetalle: descuento.GrupoActividadDetalle,
-            path: descuento.path
+            DocumentoPath: descuento.DocumentoPath
           };
         });
 
@@ -843,7 +842,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       name: string;
       apellidoNombre: string;
       GrupoActividadDetalle: string;
-      path:string
+      DocumentoPath:string
     }[],
     cantxpag: number
   ) {
@@ -858,7 +857,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       currentFileBuffer = null;
       currentFilePDF = null;
       currentFilePDFPage = null;
-      const fullPath =   join(FileUploadController.pathDocuments, file.path)
+      const fullPath =   join(FileUploadController.pathDocuments, file.DocumentoPath)
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
