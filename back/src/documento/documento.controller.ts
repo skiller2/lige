@@ -23,9 +23,19 @@ export class DocumentoController extends BaseController {
   listaDocumento: any[] = [
     {
       id: "id", name: "ID", field: "id",
+      fieldName: "id",
+      type: "number",
+      sortable: false,
+      searchHidden: true,
+      hidden: true,
+      maxWidth: 150,
+    },
+    {
+      id: "DocumentoId", name: "Id", field: "DocumentoId",
       fieldName: "docg.DocumentoId",
       type: "number",
-      sortable: true,
+      sortable: false,
+      searchHidden: false,
       hidden: false,
       maxWidth: 150,
     },
@@ -52,16 +62,24 @@ export class DocumentoController extends BaseController {
     {
       id: "tipo", name: "Tipo", field: "tipo",
       type: "string",
-      fieldName: "docg.DocumentoTipoCodigo",
+      fieldName: "tipo.DocumentoTipoCodigo",
+      searchComponent: "inpurForTipoDocumentoSearch",
+      searchType: "string",
+      hidden: true,
+      searchHidden: false,
+    },
+    {
+      id: "DocumentoTipoDetalle", name: "Tipo", field: "DocumentoTipoDetalle",
+      type: "string",
+      fieldName: "tipo.DocumentoTipoDetalle",
       searchComponent: "inpurForTipoDocumentoSearch",
       searchType: "string",
       hidden: false,
-      searchHidden: false,
-      maxWidth: 250,
+      searchHidden: true,
     },
     {
-      id: "objetivo", name: "Objetivo", field: "objetivo.fullname",
-      fieldName: "obj.ObjetivoId",
+      id: "objetivo", name: "Objetivo", field: "objetivo.fullname", 
+      fieldName: "obj.ObjetivoId", 
       type: "string",
       formatter: 'complexObject',
       params: {
@@ -75,7 +93,7 @@ export class DocumentoController extends BaseController {
     },
     {
       id: 'cliente', name: 'Cliente', field: 'cliente.fullname',
-      fieldName: "cli.ClienteId",
+      fieldName: "cli.ClienteId", 
       type: 'string',
       formatter: 'complexObject',
       params: {
@@ -284,7 +302,8 @@ export class DocumentoController extends BaseController {
   async getdocgenralListQuery(filterSql: any, orderBy: any) {
 
     const result = await dataSource.query(`
-      SELECT docg.DocumentoId AS id,
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
+      docg.DocumentoId,
       docg.DocumentoDenominadorDocumento,
       tipo.DocumentoTipoDetalle AS DocumentoTipoDetalle,
       docg.DocumentoTipoCodigo AS DocumentoTipoCodigo, 

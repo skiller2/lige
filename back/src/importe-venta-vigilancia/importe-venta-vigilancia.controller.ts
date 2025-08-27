@@ -57,6 +57,27 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
+    name: "Sucursal",
+    type: "number",
+    id: "SucursalId",
+    field: "SucursalId",
+    fieldName: "SucursalId",
+    searchComponent: "inpurForSucursalSearch",
+    hidden: true,
+    searchHidden: false,
+    sortable: true
+  },
+  {
+    name: "Sucursal",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalDescripcion",
+    searchHidden: true,
+    hidden: false,
+    sortable: true
+  },
+  {
     name: "Cod Obj",
     type: "string",
     id: "codObjetivo",
