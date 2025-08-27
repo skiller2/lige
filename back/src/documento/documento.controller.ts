@@ -573,7 +573,10 @@ export class DocumentoController extends BaseController {
     const objetivo_id: number = tipoDocumento.ObjetivoId
     const fecha: Date = tipoDocumento.Documentofecha ? new Date(tipoDocumento.Documentofecha) : tipoDocumento.Documentofecha
     const fec_doc_ven: Date = tipoDocumento.DocumentoFechaDocumentoVencimiento ? new Date(tipoDocumento.DocumentoFechaDocumentoVencimiento) : tipoDocumento.DocumentoFechaDocumentoVencimiento
-
+  
+    const documentoTipoInvalidos = ['POLSEG', 'NOV', 'EST', 'IMPVENV', 'LIC', 'MONOT', 'TEL', 'DES']
+    if (documentoTipoInvalidos.includes(doctipo_id)) return new ClientException(`No se puede ingresar/modificar el registro. Se debera hacer desde el modulo correspondiente. Tipo seleccionado: ${doctipo_id}.`)
+    
     let campos_vacios: any[] = []
 
     if (!doctipo_id) campos_vacios.push(`- Tipo de documento`)
