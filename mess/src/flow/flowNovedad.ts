@@ -342,7 +342,6 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
                 novedad.telefonoOrigen = telefono
-                await novedadController.sendMsgResponsable(novedad)
 
                 if (!novedad.files)
                     novedad.files = []
@@ -352,11 +351,12 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                     await novedadController.addRelNovedadDoc(novedadId, resdoc.doc_id, new Date())
                 }
 
+                await novedadController.sendMsgResponsable(novedad)
 
                 if (!process.env.PERSONALID_TEST)
                     await novedadController.saveNovedad(personalId, {})
 
-                await flowDynamic([`Enviado al responsable`, `Redirigiendo al Menu ...`], { delay: delay })
+                await flowDynamic([`Enviado al responsable`, `Redirigiendo al menú ...`], { delay: delay })
             } else {
                 return fallBack()
             }
@@ -390,8 +390,10 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
     })
 
 export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
-    .addAnswer("📎 Envíame un documento, foto o video", { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider }) => {
+    .addAnswer(["📎 Envíame un documento, foto o video", 'M - Volver al menú de novedad',], { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowNovedad)
+
         const personalId = state.get('personalId')
         const novedad = await novedadController.getBackupNovedad(personalId)
 
@@ -407,14 +409,27 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
         } else if (ctx.message.videoMessage) {
             mimetype = ctx.message.videoMessage.mimetype
         }
+        
+        if (mimetype == 'jpeg' || mimetype == 'pdf' || mimetype == 'mp4') {
+            const doc = { mimetype: mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
+            if (!novedad.files)
+                novedad.files = []
+            novedad.files.push(doc)
 
-        const doc = { mimetype: mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
-        if (!novedad.files)
-            novedad.files = []
-        novedad.files.push(doc)
-
-        await novedadController.saveNovedad(personalId, novedad)
-        return gotoFlow(flowNovedad)
+            await novedadController.saveNovedad(personalId, novedad)
+            await state.update({ reintento: 0 })
+            await flowDynamic([`Archivo recibido`, `Redirigiendo al menú de novedad ...`], { delay: delay })
+            return gotoFlow(flowNovedad)
+        } else {
+            const reintento = state.get('reintento') ?? 0
+            if (reintento > 3) {
+                await flowDynamic(`Demasiados reintentos`, { delay: delay })
+                stop(ctx, gotoFlow, state)
+                return endFlow()
+            }
+            await state.update({ reintento: reintento + 1 })
+            fallBack('El formato del archivo es desconocido, reintente')
+        }
     });
 
 function esHoraValida(hora: string): boolean {
@@ -445,3 +460,48 @@ function parseFecha(fecha: string): string {
     const date: Date = new Date(fecha)
     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear()
 }
+
+function parseHora(fecha: string): string {
+    const date: Date = new Date(fecha)
+    return date.getHours() + ':' + ((date.getMinutes() < 10)? ('0'+date.getMinutes()) : date.getMinutes())
+}
+
+
+//Novedades pendientes por ver
+
+export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        if (!novedades.length){
+            await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
+            return gotoFlow(flowMenu)
+        }
+           
+        const msg: string[] = []
+
+        novedades.forEach((nov:any, i:any) => {
+            msg.push(
+                `Novedad #${nov.NovedadCodigo}:\n` +
+                `- Fecha: ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'}\n` +
+                `- Hora: ${nov.Fecha ? parseHora(nov.Fecha) : 's/d'}\n` +
+                `- Objetivo: ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjetivoDescripcion ?? ''}\n` +
+                `- Tipo de novedad: ${nov.TipoDescripcion ?? 's/d'}\n` +
+                `- Descripción: ${nov.Descripcion ?? 's/d'}\n` +
+                `- Acción: ${nov.Accion ?? 's/d'}`,
+                `- Personal: ${nov.PersonalId ?  nov.PersonalFullName : 's/d'}\n` +
+                `- Teléfono: ${nov.Telefono ?? 's/d'}\n`
+            )
+        })
+
+        msg.push('M - Volver al menú')
+        await flowDynamic(msg , { delay: delay })
+    })
+    .addAnswer('', { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            
+            return gotoFlow(flowMenu)
+        }
+    )

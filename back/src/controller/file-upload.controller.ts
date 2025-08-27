@@ -225,6 +225,7 @@ export class FileUploadController extends BaseController {
         case 'docgeneral':
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocgeneral(queryRunner, columnSearch, TipoSearch, id)
           break;
+        case 'documento':
         case 'Documento':
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, columnSearch, TipoSearch, id)
           break;
@@ -481,7 +482,7 @@ export class FileUploadController extends BaseController {
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
 
-            const path = await queryRunner.query(`SELECT path FROM Documento WHERE DocumentoId = @0`, [doc_id])
+            const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
 
             const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
             const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
