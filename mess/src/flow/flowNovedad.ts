@@ -460,3 +460,48 @@ function parseFecha(fecha: string): string {
     const date: Date = new Date(fecha)
     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear()
 }
+
+function parseHora(fecha: string): string {
+    const date: Date = new Date(fecha)
+    return date.getHours() + ':' + ((date.getMinutes() < 10)? ('0'+date.getMinutes()) : date.getMinutes())
+}
+
+
+//Novedades pendientes por ver
+
+export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        if (!novedades.length){
+            await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
+            return gotoFlow(flowMenu)
+        }
+           
+        const msg: string[] = []
+
+        novedades.forEach((nov:any, i:any) => {
+            msg.push(
+                `Novedad #${nov.NovedadCodigo}:\n` +
+                `- Fecha: ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'}\n` +
+                `- Hora: ${nov.Fecha ? parseHora(nov.Fecha) : 's/d'}\n` +
+                `- Objetivo: ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjetivoDescripcion ?? ''}\n` +
+                `- Tipo de novedad: ${nov.TipoDescripcion ?? 's/d'}\n` +
+                `- Descripción: ${nov.Descripcion ?? 's/d'}\n` +
+                `- Acción: ${nov.Accion ?? 's/d'}`,
+                `- Personal: ${nov.PersonalId ?  nov.PersonalFullName : 's/d'}\n` +
+                `- Teléfono: ${nov.Telefono ?? 's/d'}\n`
+            )
+        })
+
+        msg.push('M - Volver al menú')
+        await flowDynamic(msg , { delay: delay })
+    })
+    .addAnswer('', { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            
+            return gotoFlow(flowMenu)
+        }
+    )

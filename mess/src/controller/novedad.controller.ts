@@ -133,4 +133,41 @@ export class NovedadController extends BaseController {
       `, [novedadId, documentoId])
   }
 
+  async getNovedadesByResponsable(PersonalId: any) {
+    const date = new Date()
+    const year = date.getFullYear()
+    const month = date.getMonth()+1
+    const res = await dbServer.dataSource.query(`
+        SELECT obj.ClienteElementoDependienteId, obj.ClienteId, 'Supervisor' tipo,
+          per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta
+          
+        FROM Objetivo obj 
+        LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'J'
+        JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        WHERE per.PersonalId = @0
+      `, [PersonalId, year, month]
+    )
+    if (!res.length) return []
+
+    const ClienteElementoDependienteId = res[0].ClienteElementoDependienteId
+    const ClienteId = res[0].ClienteId
+    const novedades = await dbServer.dataSource.query(`
+        SELECT
+          nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
+          , tipo.Descripcion TipoDescripcion
+          , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
+          , obj.ObjetivoDescripcion
+        FROM Novedad nov
+        JOIN NovedadTipo tipo ON tipo.NovedadTipoCod = nov.NovedadTipoCod
+        JOIN Personal per ON per.PersonalId = nov.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
+        WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1)
+      `, [ClienteId, ClienteElementoDependienteId]
+    )
+    return novedades
+  }
+
 }
