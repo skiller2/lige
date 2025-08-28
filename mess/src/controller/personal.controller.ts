@@ -103,7 +103,7 @@ export class PersonalController extends BaseController {
   */
   async getPersonalQuery(telefono: string, PersonalId:number) {
     return await dbServer.dataSource.query(
-      `SELECT reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit, codigo, 
+      `SELECT reg.personal_id personalId, reg.telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
       sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso
       FROM lige.dbo.regtelefonopersonal reg
