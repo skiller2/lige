@@ -5,6 +5,8 @@ import { botServer, dbServer } from "../index.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
 import { PersonalController } from "./personal.controller.ts";
 
+const personalController = new PersonalController()
+
 function parseFecha(fecha: string): string {
   const date: Date = new Date(fecha)
   return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear()
@@ -21,17 +23,22 @@ export class NovedadController extends BaseController {
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
 
-    
-    const msg = `Novedad:\n` +
-      `Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
-      `Hora: ${novedad.Hora ?? 's/d'}\n` +
-      `Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-      `Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-      `Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-      `Personal: ${novedad.personalId ??'s/d'}\n` +
-      `Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
-      `Documentos registrados: ${novedad.files.length}\n` +
-      `Acción: ${novedad.Accion ?? 's/d'}`
+    const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
+    console.log('infoPersonal', infoPersonal)
+
+    const msg = `*Novedad:*\n` +
+      `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
+      `- Hora: ${novedad.Hora ?? 's/d'}\n` +
+      `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
+      `- Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
+      `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+      `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
+      `*Datos del Personal:*\n`+
+      `- Nombre: ${infoPersonal[0].fullName ?? 's/d'}\n` +
+      `- Cuit:  ${infoPersonal[0].cuit ?? 's/d'}\n`+
+      `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n\n` +
+      `- Documentos registrados: ${novedad.files.length}\n`
+
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
@@ -76,7 +83,7 @@ export class NovedadController extends BaseController {
   }
 
 
-  async addRelNovedadDoc(novdedadId: number, documentoId: number, fechaActual:Date) {
+  async addRelNovedadDoc(novdedadId: number, documentoId: number, fechaActual: Date) {
     await dbServer.dataSource.query(`
       INSERT INTO DocumentoRelaciones (DocumentoId, PersonalId, ObjetivoId, ClienteId, PersonalLicenciaId, NovedadCodigo, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
  VALUES (@0,@1,@2,@3,@4,@5, @6,@6, @7,@7, @8,@8)
@@ -138,7 +145,7 @@ export class NovedadController extends BaseController {
   async getNovedadesByResponsable(PersonalId: any) {
     const date = new Date()
     const year = date.getFullYear()
-    const month = date.getMonth()+1
+    const month = date.getMonth() + 1
     const res = await dbServer.dataSource.query(`
         SELECT obj.ClienteElementoDependienteId, obj.ClienteId, 'Supervisor' tipo,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta
