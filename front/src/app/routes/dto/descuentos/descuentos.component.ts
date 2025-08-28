@@ -9,7 +9,7 @@ import { ApiService } from '../../../services/api.service';
 import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/table-descuentos-personal.component';
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
 import { DescuentosCargaMasivaComponent } from '../descuentos-carga-masiva/descuentos-carga-masiva.component';
-
+import { LoadingService } from '@delon/abc/loading';
 @Component({
     selector: 'app-descuentos',
     templateUrl: './descuentos.component.html',
@@ -28,9 +28,10 @@ export class DescuentosComponent {
     reloadGrid = model<boolean>(false)
     selectedPeriod = { year: 0, month: 0 };
     private apiService = inject(ApiService)
+    private readonly loadingSrv = inject(LoadingService);
 
     async addCuotaReg() {
-        this.loadingCuo.set(true)
+        this.loadingSrv.open({ type: 'spin', text: '' })
         try {
             const res: any = await firstValueFrom(this.apiService.descuentoAddCuota({ year: this.anio(), month: this.mes() }))
             let newReload = this.reload()+1
@@ -38,7 +39,7 @@ export class DescuentosComponent {
         } catch (error) {
             console.log(error);
         }
-        this.loadingCuo.set(false)
+        this.loadingSrv.close()
     }
 
     ngOnInit() {

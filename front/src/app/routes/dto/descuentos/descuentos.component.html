@@ -25,7 +25,7 @@
       
       <nz-button-group>
         <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{mes()}}/{{anio()}}"
-        (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
+        (nzOnConfirm)="addCuotaReg()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>
       </nz-button-group>
