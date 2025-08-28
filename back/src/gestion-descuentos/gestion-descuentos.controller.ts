@@ -412,7 +412,8 @@ export class GestionDescuentosController extends BaseController {
     //   condition = `perdes.anio IN (@1) AND perdes.mes IN (@2)`
     // }
     return await queryRunner.query(`
-      SELECT perdes.id
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
+        , perdes.id perdes_id
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
@@ -582,7 +583,8 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = req.body.mes
     try {
       const descuentos = await queryRunner.query(`
-      SELECT  perdes.id
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
+        , perdes.id perdes_id
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
