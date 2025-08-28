@@ -124,10 +124,10 @@ export class PersonalDocumentosDrawerComponent {
             this.selectedPersonalIdChange$.next('');
             this.formDocumento.markAsUntouched()
             this.formDocumento.markAsPristine()
+            this.resetFormValues()
         } catch (e) {
-
         }
-        this.resetFormValues()
+       
         this.isLoading.set(false)
     }
 
