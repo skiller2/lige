@@ -339,33 +339,39 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             const novedad = await novedadController.getBackupNovedad(personalId)
             const respSINO = ctx.body
             const telefono = ctx.from
-            if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
-                const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
-                novedad.telefonoOrigen = telefono
+            try {
+                if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
+                    const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
+                    novedad.telefonoOrigen = telefono
+                    novedad.perdonalId = personalId
 
-                if (!novedad.files)
-                    novedad.files = []
+                    if (!novedad.files)
+                        novedad.files = []
 
-                for (const doc of novedad.files) {
-                    const resdoc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, doc, 'bot', '::1')
-                    await novedadController.addRelNovedadDoc(novedadId, resdoc.doc_id, new Date())
+                    for (const doc of novedad.files) {
+                        const resdoc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, doc, 'bot', '::1')
+                        await novedadController.addRelNovedadDoc(novedadId, resdoc.doc_id, new Date())
+                    }
+
+                    await novedadController.sendMsgResponsable(novedad)
+
+                    if (!process.env.PERSONALID_TEST)
+                        await novedadController.saveNovedad(personalId, {})
+
+                    await flowDynamic([`Enviado al responsable`, `Redirigiendo al menú ...`], { delay: delay })
+                } else {
+                    return fallBack()
                 }
+                await state.update({ reintento: 0 })
+                return gotoFlow(flowMenu)
 
-                await novedadController.sendMsgResponsable(novedad)
+            } catch (error) {
+                console.log('error', error)
+                await flowDynamic([`Ocurrio un error enviando la novedad al responsable. Informe al administrador del sistema.`, `Redirigiendo al menú ...`], { delay: delay })
+                return gotoFlow(flowMenu)
 
-                if (!process.env.PERSONALID_TEST)
-                    await novedadController.saveNovedad(personalId, {})
-
-                await flowDynamic([`Enviado al responsable`, `Redirigiendo al menú ...`], { delay: delay })
-            } else {
-                return fallBack()
             }
-            await state.update({ reintento: 0 })
 
-
-
-
-            return gotoFlow(flowMenu)
         })
 
 export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
@@ -463,7 +469,7 @@ function parseFecha(fecha: string): string {
 
 function parseHora(fecha: string): string {
     const date: Date = new Date(fecha)
-    return date.getHours() + ':' + ((date.getMinutes() < 10)? ('0'+date.getMinutes()) : date.getMinutes())
+    return date.getHours() + ':' + ((date.getMinutes() < 10) ? ('0' + date.getMinutes()) : date.getMinutes())
 }
 
 
@@ -474,14 +480,14 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
         const novedades = await novedadController.getNovedadesByResponsable(personalId)
-        if (!novedades.length){
+        if (!novedades.length) {
             await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)
         }
-           
+
         const msg: string[] = []
 
-        novedades.forEach((nov:any, i:any) => {
+        novedades.forEach((nov: any, i: any) => {
             msg.push(
                 `Novedad #${nov.NovedadCodigo}:\n` +
                 `- Fecha: ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'}\n` +
@@ -490,18 +496,18 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 `- Tipo de novedad: ${nov.TipoDescripcion ?? 's/d'}\n` +
                 `- Descripción: ${nov.Descripcion ?? 's/d'}\n` +
                 `- Acción: ${nov.Accion ?? 's/d'}`,
-                `- Personal: ${nov.PersonalId ?  nov.PersonalFullName : 's/d'}\n` +
+                `- Personal: ${nov.PersonalId ? nov.PersonalFullName : 's/d'}\n` +
                 `- Teléfono: ${nov.Telefono ?? 's/d'}\n`
             )
         })
 
         msg.push('M - Volver al menú')
-        await flowDynamic(msg , { delay: delay })
+        await flowDynamic(msg, { delay: delay })
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            
+
             return gotoFlow(flowMenu)
         }
     )

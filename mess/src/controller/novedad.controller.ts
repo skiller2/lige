@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
+import { PersonalController } from "./personal.controller.ts";
 
 function parseFecha(fecha: string): string {
   const date: Date = new Date(fecha)
@@ -20,13 +21,14 @@ export class NovedadController extends BaseController {
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
 
-
+    
     const msg = `Novedad:\n` +
       `Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
       `Hora: ${novedad.Hora ?? 's/d'}\n` +
       `Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
       `Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
       `Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+      `Personal: ${novedad.personalId ??'s/d'}\n` +
       `Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
       `Documentos registrados: ${novedad.files.length}\n` +
       `Acción: ${novedad.Accion ?? 's/d'}`
