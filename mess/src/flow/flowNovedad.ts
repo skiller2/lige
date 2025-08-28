@@ -409,7 +409,12 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
         } else if (ctx.message.videoMessage) {
             mimetype = ctx.message.videoMessage.mimetype
         }
-        
+
+        if(mimetype!= null){
+            const parts = mimetype.split('/')
+            mimetype = parts[1]
+        }
+
         if (mimetype == 'jpeg' || mimetype == 'pdf' || mimetype == 'mp4') {
             const doc = { mimetype: mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
             if (!novedad.files)
