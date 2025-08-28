@@ -196,7 +196,7 @@ export class DocumentoComponent {
   handleSelectedRowsChanged(e: any): void {
     if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
-      const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
+      const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.DocumentoId
       this.docId.set(docId)
     } else {
       this.docId.set(0)
