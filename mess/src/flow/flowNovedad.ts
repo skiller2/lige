@@ -3,10 +3,10 @@ import flowMenu from './flowMenu.ts'
 import { chatBotController, personalController, novedadController, objetivoController } from "../controller/controller.module.ts";
 import { reset, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
-import { ChatBotController } from 'src/controller/chatbot.controller.ts';
-import { ObjetivoController } from 'src/controller/objetivo.controller.ts';
+import { ChatBotController } from '../controller/chatbot.controller.ts';
+import { ObjetivoController } from '../controller/objetivo.controller.ts';
 import { existsSync, mkdirSync } from "fs";
-import { FileUploadController } from 'src/controller/file-upload.controller.ts';
+import { FileUploadController } from '../controller/file-upload.controller.ts';
 
 const delay = chatBotController.getDelay()
 
