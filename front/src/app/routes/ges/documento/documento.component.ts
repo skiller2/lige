@@ -1,4 +1,4 @@
-import { Component, model, signal, viewChild } from '@angular/core';
+import { Component, inject, model, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import {
   BehaviorSubject,
@@ -22,7 +22,7 @@ import { DocumentoDrawerComponent } from '../documento-drawer/documento-drawer.c
 import { TablePendientesDescargasComponent } from '../table-pendientes-descargas/table-pendientes-descargas.component'
 import { TableHistorialDescargasComponent } from '../table-historial-descargas/table-historial-descargas.component'
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
-
+import { LoadingService } from '@delon/abc/loading';
 
 type listOptionsT = {
   filtros: any[],
@@ -80,7 +80,7 @@ export class DocumentoComponent {
   visibleDetalle = model<boolean>(false)
   refresh = signal(0)
   loadingDelete = signal<boolean>(false)
-
+  private readonly loadingSrv = inject(LoadingService);
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -102,6 +102,7 @@ export class DocumentoComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
+      this.loadingSrv.open({ type: 'spin', text: '' })
       return this.apiService
         .getDocumentos(
           this.listOptions
@@ -111,7 +112,10 @@ export class DocumentoComponent {
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          tap({ complete: () => {
+            this.tableLoading$.next(false)
+            this.loadingSrv.close()
+          } })
         );
     })
   )
