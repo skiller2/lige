@@ -192,7 +192,7 @@ export class AuthMiddleware {
         // console.log('req.royte.path', req.route.path);
 
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
-        if (!tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado tableForSearch" })
+        if (!tableForSearch) return res.status(403).json({ msg: "Documento Requerido. No se ha adjuntado ningún documento." })
         let Documento = null;
         switch (tableForSearch) {
           case 'docgeneral':

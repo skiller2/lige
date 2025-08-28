@@ -391,7 +391,7 @@ export class DocumentoController extends BaseController {
       const valsTipoDocumento = this.valsTipoDocumento(req.body)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
-
+      
       archivos[0].ind_descarga_bot = ind_descarga_bot
       const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, null, fecha, fec_doc_ven, den_documento, null, null, archivos[0], usuario, ip, queryRunner)
       const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
@@ -592,7 +592,7 @@ export class DocumentoController extends BaseController {
     const objetivo_id: number = tipoDocumento.ObjetivoId
     const fecha: Date = tipoDocumento.Documentofecha ? new Date(tipoDocumento.Documentofecha) : tipoDocumento.Documentofecha
     const fec_doc_ven: Date = tipoDocumento.DocumentoFechaDocumentoVencimiento ? new Date(tipoDocumento.DocumentoFechaDocumentoVencimiento) : tipoDocumento.DocumentoFechaDocumentoVencimiento
-  
+
     const documentoTipoInvalidos = ['POLSEG', 'NOV', 'EST', 'IMPVENV', 'LIC', 'MONOT', 'TEL', 'DES']
     if (documentoTipoInvalidos.includes(doctipo_id)) return new ClientException(`No se puede ingresar/modificar el registro. Se debera hacer desde el modulo correspondiente. Tipo seleccionado: ${doctipo_id}.`)
     
@@ -605,6 +605,7 @@ export class DocumentoController extends BaseController {
     if (doctipo_id == 'OBJ' && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
     if (!fecha) campos_vacios.push(`- Desde`)
     // if (!fec_doc_ven) campos_vacios.push(`- Hasta`)
+
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
