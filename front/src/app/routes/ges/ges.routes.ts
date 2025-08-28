@@ -118,6 +118,11 @@ export const GesRoutes: Routes = [
     path: 'acceso-bot/:tab',
     loadComponent: () => import('./acceso-bot/acceso-bot.component').then(c => c.AccesoBotComponent),
   },
+  { path: 'novedades', redirectTo: 'novedades/listado' },
+  {
+    path: 'novedades/:tab',
+    loadComponent: () => import('./novedades/novedades').then(c => c.NovedadesComponent), 
+  },
   { path: 'grupo-actividad', redirectTo: 'grupo-actividad/grupos' },
   {
     path: 'grupo-actividad/:tab',

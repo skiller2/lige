@@ -53,6 +53,7 @@ import { ActasController } from "../actas/actas.controller";
 import { AdministradoresController } from "../administradores/administradores.controller";
 import { ImporteVentaVigilanciaController } from "../importe-venta-vigilancia/importe-venta-vigilancia.controller";
 import { FacturacionController } from "../facturacion/facturacion.controller";
+import { NovedadesController } from "../novedades/novedades.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -108,4 +109,5 @@ export const institucionesController = new InstitucionesController();
 export const actasController = new ActasController()
 export const administradoresController = new AdministradoresController()
 export const importeVentaVigilanciaController = new ImporteVentaVigilanciaController()
-export const facturacionController = new FacturacionController()
+export const facturacionController = new FacturacionController() 
+export const novedadesController = new NovedadesController()

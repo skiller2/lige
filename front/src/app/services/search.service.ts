@@ -1167,6 +1167,15 @@ export class SearchService {
       );
   }
 
+  getListNovedades(filters: any) {
+    return this.http
+      .post<ResponseJSON<any>>(`api/novedades/list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 
   getInfoObjCustodia(objCustodiaId: number) {
     return this.http

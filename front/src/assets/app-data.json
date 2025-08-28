@@ -216,6 +216,11 @@
           "link": "/ges/grupo-actividad"
         },
         {
+          "text": "Novedades",
+          "icon": "anticon-profile",
+          "link": "/ges/novedades"
+        },
+        {
           "text": "Configuración",
           "icon": "anticon-profile",
           "children": [
