@@ -410,12 +410,7 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
             mimetype = ctx.message.videoMessage.mimetype
         }
 
-        if(mimetype!= null){
-            const parts = mimetype.split('/')
-            mimetype = parts[1]
-        }
-
-        if (mimetype == 'jpeg' || mimetype == 'pdf' || mimetype == 'mp4') {
+        if (['jpeg', 'pdf', 'mp4'].some(type => mimetype.includes(type))) {
             const doc = { mimetype: mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
             if (!novedad.files)
                 novedad.files = []
