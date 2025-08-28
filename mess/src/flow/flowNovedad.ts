@@ -485,29 +485,40 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             return gotoFlow(flowMenu)
         }
 
-        const msg: string[] = []
-
+        let msg: string = 'Ingrese el número de la novedad a consultar:\n'
         novedades.forEach((nov: any, i: any) => {
-            msg.push(
-                `Novedad #${nov.NovedadCodigo}:\n` +
-                `- Fecha: ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'}\n` +
-                `- Hora: ${nov.Fecha ? parseHora(nov.Fecha) : 's/d'}\n` +
-                `- Objetivo: ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjetivoDescripcion ?? ''}\n` +
-                `- Tipo de novedad: ${nov.TipoDescripcion ?? 's/d'}\n` +
-                `- Descripción: ${nov.Descripcion ?? 's/d'}\n` +
-                `- Acción: ${nov.Accion ?? 's/d'}`,
-                `- Personal: ${nov.PersonalId ? nov.PersonalFullName : 's/d'}\n` +
-                `- Teléfono: ${nov.Telefono ?? 's/d'}\n`
-            )
+            msg += `${nov.id} - Novedad #${nov.NovedadCodigo}\n`
         })
-
-        msg.push('M - Volver al menú')
+        msg += 'M - Volver al menú'
+        
         await flowDynamic(msg, { delay: delay })
+
+        state.update({ novedades })
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            return gotoFlow(flowMenu)
+            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
+            const novedades = state.get('novedades')
+
+            const novedad = novedades.find((nov:any)=> {return nov.id == ctx.body})
+            
+            flowDynamic(
+                    `*Novedad:*\n` +
+                    `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
+                    `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha): 's/d'}\n` +
+                    `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjetivoDescripcion ?? ''}\n` +
+                    `- Tipo de novedad: ${novedad.TipoDescripcion ?? 's/d'}\n` +
+                    `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+                    `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
+                    `*Datos del Personal:*\n`+
+                    `- Personal: ${novedad.PersonalFullName ?? 's/d'}\n` +
+                    `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n`
+                    // `- Documentos registrados: ${novedad.files.length}\n`
+                , { delay: delay })
+
+            return gotoFlow(flowNovedadPendiente)
         }
     )
+    

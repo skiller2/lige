@@ -160,23 +160,30 @@ export class NovedadController extends BaseController {
     )
     if (!res.length) return []
 
-    const ClienteElementoDependienteId = res[0].ClienteElementoDependienteId
-    const ClienteId = res[0].ClienteId
-    const novedades = await dbServer.dataSource.query(`
-        SELECT
-          nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
-          , tipo.Descripcion TipoDescripcion
-          , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
-          , obj.ObjetivoDescripcion
-        FROM Novedad nov
-        JOIN NovedadTipo tipo ON tipo.NovedadTipoCod = nov.NovedadTipoCod
-        JOIN Personal per ON per.PersonalId = nov.PersonalId
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
-        WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1)
-      `, [ClienteId, ClienteElementoDependienteId]
-    )
-    return novedades
+  
+    let novPendientes = []
+    for (let index = 0; index < res.length; index++) {
+      const ClienteElementoDependienteId = res[index].ClienteElementoDependienteId
+      const ClienteId = res[index].ClienteId
+      const novedades = await dbServer.dataSource.query(`
+          SELECT 
+            ROW_NUMBER() OVER (ORDER BY nov.NovedadCodigo) id
+            , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
+            , tipo.Descripcion TipoDescripcion
+            , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
+            , obj.ObjetivoDescripcion
+          FROM Novedad nov
+          JOIN NovedadTipo tipo ON tipo.NovedadTipoCod = nov.NovedadTipoCod
+          JOIN Personal per ON per.PersonalId = nov.PersonalId
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+          JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
+          WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1) AND nov.VisualizacionFecha IS NULL
+        `, [ClienteId, ClienteElementoDependienteId]
+      )
+      novPendientes = novPendientes.concat(novedades)
+    }
+    
+    return novPendientes
   }
 
 }
