@@ -571,7 +571,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             }
         }
     )
-    .addAnswer('L - Volver al listado de novedades','M - Volver al menú', { delay: delay, capture: true },
+    .addAnswer(['L - Volver al listado de novedades','M - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
