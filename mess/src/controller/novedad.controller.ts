@@ -186,4 +186,27 @@ export class NovedadController extends BaseController {
     return novPendientes
   }
 
+  async getDocumentosByNovedadCodigo(NovedadCodigo:number) {
+    const result = await dbServer.dataSource.query(`
+      SELECT 
+        doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle
+        , tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, doc.DocumentoNombreArchivo
+      FROM Documento doc
+      JOIN DocumentoTipo tip ON tip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+      LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id = doc.DocumentoId
+      JOIN DocumentoRelaciones dr ON dr.DocumentoId = doc.DocumentoId AND dr.NovedadCodigo IN (49)
+      `, [NovedadCodigo])
+    return result
+  }
+
+  async setNovedadVisualizacion(NovedadCodigo:number, telefono:string) {
+    const now = new Date()
+    await dbServer.dataSource.query(`
+      UPDATE Novedad
+      SET VisualizacionFecha = @1, VisualizacionUsuario = @2
+      WHERE NovedadCodigo = @0
+      `, [NovedadCodigo, now, ('bot-'+telefono)])
+    return
+  }
+
 }
