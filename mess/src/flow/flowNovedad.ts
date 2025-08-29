@@ -604,10 +604,6 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 's') return gotoFlow(flowNovedadPendiente)
             await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
-
             return gotoFlow(flowMenu)
-
-            // await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
-
         }
     )
