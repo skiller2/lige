@@ -502,29 +502,29 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
             const novedades = state.get('novedades')
-            
+
             const index = ctx.body
 
             if (isNaN(index) || (parseInt(index) > novedades.length) || (parseInt(index) < 0)) {
                 return fallBack()
             }
 
-            const novedad = novedades.find((nov:any)=> {return nov.id == index})
+            const novedad = novedades.find((nov: any) => { return nov.id == index })
             state.update({ NovedadCodigo: novedad.NovedadCodigo })
-            
+
             flowDynamic(
                 `*Novedad:*\n` +
                 `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
-                `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha): 's/d'}\n` +
+                `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha) : 's/d'}\n` +
                 `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjetivoDescripcion ?? ''}\n` +
                 `- Tipo de novedad: ${novedad.TipoDescripcion ?? 's/d'}\n` +
                 `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
                 `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
-                `*Datos del Personal:*\n`+
+                `*Datos del Personal:*\n` +
                 `- Personal: ${novedad.PersonalFullName ?? 's/d'}\n` +
                 `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n`
                 // `- Documentos registrados: ${novedad.files.length}\n`
-            , { delay: delay })
+                , { delay: delay })
 
             await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from)
 
@@ -532,18 +532,18 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
         }
     )
-    .addAnswer(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay, capture: true },
+    .addAnswer(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            if (String(ctx.body).toLowerCase() == 'm'){
+            if (String(ctx.body).toLowerCase() == 'm') {
                 const MyState = state.getMyState()
                 delete MyState.novedades
                 delete MyState.NovedadCodigo
                 state.update(MyState)
                 return gotoFlow(flowMenu)
-            } 
-            if (String(ctx.body).toLowerCase() == 'l'){ 
+            }
+            if (String(ctx.body).toLowerCase() == 'l') {
                 const MyState = state.getMyState()
                 delete MyState.novedades
                 delete MyState.NovedadCodigo
@@ -553,12 +553,12 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             if (String(ctx.body).toLowerCase() != 'c') return fallBack()
 
             const NovedadCodigo = state.get('NovedadCodigo')
-            const docsNov:any[] = await novedadController.getDocumentosByNovedadCodigo(NovedadCodigo)
+            const docsNov: any[] = await novedadController.getDocumentosByNovedadCodigo(NovedadCodigo)
 
             try {
                 for (let index = 0; index < docsNov.length; index++) {
                     const documento = docsNov[index]
-                
+
                     const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoNombreArchivo}`;
 
                     await flowDynamic([{ body: documento.DocumentoTipoDetalle, media: urlDoc, delay }])
@@ -571,7 +571,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             }
         }
     )
-    .addAnswer(['L - Volver al listado de novedades','M - Volver al menú'], { delay: delay, capture: true },
+    .addAnswer(['L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
@@ -584,4 +584,30 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             return fallBack()
         }
     )
-    
+
+
+export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        if (!novedades.length) {
+            await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
+            return gotoFlow(flowMenu)
+        }
+
+        let msg: string = 'Existen novedades pendientes de visualización. ¿Desea verlas? (Si/No)\n'
+        await flowDynamic(msg, { delay: delay })
+    })
+    .addAnswer('', { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            if (String(ctx.body).toLowerCase() == 's') return gotoFlow(flowNovedadPendiente)
+            await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
+
+            return gotoFlow(flowMenu)
+
+            // await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
+
+        }
+    )
