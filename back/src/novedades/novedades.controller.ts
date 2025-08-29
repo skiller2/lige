@@ -86,8 +86,20 @@ const listaColumnas: any[] = [
         fieldName: "NovedadTipo",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true,
     },
+    {
+        name: "Tipo Nov.",
+        type: "string",
+        id: "NovedadTipoCod",
+        field: "NovedadTipoCod",
+        fieldName: "novtip.NovedadTipoCod",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        searchComponent: "inputForTipoNovedadSearch"
+    },
+
     {
         name: "Fecha",
         type: "date",
@@ -177,6 +189,7 @@ export class NovedadesController extends BaseController {
         ,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) as ApellidoNombrePersonal
         ,nov.Telefono
         ,novtip.Descripcion NovedadTipo
+        ,novtip.NovedadTipoCod
         ,nov.Fecha
         ,nov.VisualizacionFecha
         ,nov.VisualizacionUsuario
@@ -209,6 +222,19 @@ export class NovedadesController extends BaseController {
             return next(error)
         }
 
+    }
+
+    async getTipoNovedad(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const provincias = await queryRunner.query(`SELECT NovedadTipoCod, Descripcion FROM NovedadTipo`)
+            return this.jsonRes(provincias, res);
+        } catch (error) {
+            return next(error)
+        } finally {
+
+        }
     }
 
    

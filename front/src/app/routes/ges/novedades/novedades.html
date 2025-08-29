@@ -61,17 +61,17 @@
     
         <nz-tab>
           <a nz-tab-link routerLink="/ges/novedades/editar" >{{ 'app.icon.edit' | i18n }}</a>
-           <!--  -->
+           <app-novedades-form></app-novedades-form>
         </nz-tab>
   
         <nz-tab>
           <a nz-tab-link routerLink="/ges/novedades/detalle" >{{ 'app.detail' | i18n }}</a>
-        
+          <app-novedades-form></app-novedades-form>
         </nz-tab>
     
         <nz-tab> 
           <a nz-tab-link routerLink="/ges/novedades/alta" >{{ 'app.alta' | i18n }}</a>
-       
+          <app-novedades-form></app-novedades-form>
         </nz-tab>
   
       </nz-tabset>

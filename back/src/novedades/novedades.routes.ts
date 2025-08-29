@@ -13,3 +13,11 @@ novedadesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGro
   novedadesController.list(req, res, next)
 })
 
+novedadesRouter.get('/tipo_novedad', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon','gSistemas'])], (req, res, next) => {
+  novedadesController.getTipoNovedad(req, res, next);
+});
+
+
+
+
+

@@ -1263,6 +1263,16 @@ export class SearchService {
     );
   }
 
+  getTipoNovedad(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/novedades/tipo_novedad`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getTipoTelefono(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getTipoTelefono`).pipe(
       map(res => res.data),

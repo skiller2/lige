@@ -82,6 +82,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsModalidadCurso = this.searchService.getModalidadCursoSearch();
   $optionsDescObj = this.searchService.getDescuentoForObjetivo();
   $optionsTipoCuenta = this.apiService.getTipoCuenta();
+  $optionsTipoNovedad = this.searchService.getTipoNovedad();
   $optionsTipoDescuento = this.searchService.getDecuentosTipoOptions();
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
@@ -425,6 +426,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.label = res[0].detalle
     }
   }
+
+  async selectedValueTipoNovedad(val: any) { 
+
+    if (val) {
+      this.selections.value = val 
+      const res = await firstValueFrom( this.searchService.getTipoNovedad() )
+      console.log(res)
+      this.selections.label = res[0].Descripcion
+    }
+  }
+
+
 
 
   async selectedValueTipoDescuento(val: any) {

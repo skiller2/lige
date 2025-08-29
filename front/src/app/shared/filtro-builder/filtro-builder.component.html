@@ -246,7 +246,16 @@
         [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsTipoCuenta | async">
 
-          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option> 
+        </ng-container>
+      </nz-select>
+
+      <nz-select ngModel nzAllowClear style="width:100%" *ngIf="selections.field.searchComponent=='inputForTipoNovedadSearch'"
+        nzPlaceHolder="Tipo Novedad" nzShowSearch (ngModelChange)="selectedValueTipoNovedad($event)"
+        [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+        <ng-container *ngFor="let option of $optionsTipoNovedad | async">
+
+          <nz-option [nzValue]="option.NovedadTipoCod" [nzLabel]="option.Descripcion"></nz-option>
         </ng-container>
       </nz-select>
 
