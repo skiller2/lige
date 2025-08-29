@@ -528,16 +528,28 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
             await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from)
 
-            await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
+            // await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
 
         }
     )
-    .addAnswer('', { delay: delay, capture: true },
+    .addAnswer(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
-            if (String(ctx.body).toLowerCase() == 'l') return gotoFlow(flowNovedadPendiente)
+            if (String(ctx.body).toLowerCase() == 'm'){
+                const MyState = state.getMyState()
+                delete MyState.novedades
+                delete MyState.NovedadCodigo
+                state.update(MyState)
+                return gotoFlow(flowMenu)
+            } 
+            if (String(ctx.body).toLowerCase() == 'l'){ 
+                const MyState = state.getMyState()
+                delete MyState.novedades
+                delete MyState.NovedadCodigo
+                state.update(MyState)
+                return gotoFlow(flowNovedadPendiente)
+            }
             if (String(ctx.body).toLowerCase() != 'c') return fallBack()
 
             const NovedadCodigo = state.get('NovedadCodigo')
@@ -557,20 +569,18 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
 
             }
-            
-
-            await flowDynamic(['V - Ver novedades pendientes', 'M - Volver al menú'], { delay: delay })
-            await flowDynamic('Cargando menu general', { delay: delay*3 })
-            return gotoFlow(flowMenu)
-
         }
     )
-    .addAnswer('', { delay: delay, capture: true },
+    .addAnswer('L - Volver al listado de novedades','M - Volver al menú', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
+            const MyState = state.getMyState()
+            delete MyState.novedades
+            delete MyState.NovedadCodigo
+            state.update(MyState)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
-            if (String(ctx.body).toLowerCase() == 'v') return gotoFlow(flowMenu)
+            if (String(ctx.body).toLowerCase() == 'l') return gotoFlow(flowNovedadPendiente)
             return fallBack()
         }
     )
