@@ -9,6 +9,7 @@ import { existsSync, mkdirSync } from "fs";
 import { FileUploadController } from '../controller/file-upload.controller.ts';
 
 const delay = chatBotController.getDelay()
+const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
 
 const dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
 if (!existsSync(dirtmp)) {
@@ -485,29 +486,124 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             return gotoFlow(flowMenu)
         }
 
-        const msg: string[] = []
-
+        let msg: string = 'Ingrese el número de la novedad a consultar:\n'
         novedades.forEach((nov: any, i: any) => {
-            msg.push(
-                `Novedad #${nov.NovedadCodigo}:\n` +
-                `- Fecha: ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'}\n` +
-                `- Hora: ${nov.Fecha ? parseHora(nov.Fecha) : 's/d'}\n` +
-                `- Objetivo: ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjetivoDescripcion ?? ''}\n` +
-                `- Tipo de novedad: ${nov.TipoDescripcion ?? 's/d'}\n` +
-                `- Descripción: ${nov.Descripcion ?? 's/d'}\n` +
-                `- Acción: ${nov.Accion ?? 's/d'}`,
-                `- Personal: ${nov.PersonalId ? nov.PersonalFullName : 's/d'}\n` +
-                `- Teléfono: ${nov.Telefono ?? 's/d'}\n`
-            )
+            msg += `${nov.id} - Novedad #${nov.NovedadCodigo}\n`
         })
+        msg += 'M - Volver al menú'
 
-        msg.push('M - Volver al menú')
         await flowDynamic(msg, { delay: delay })
+
+        state.update({ novedades })
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
+            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
+            const novedades = state.get('novedades')
+
+            const index = ctx.body
+
+            if (isNaN(index) || (parseInt(index) > novedades.length) || (parseInt(index) < 0)) {
+                return fallBack()
+            }
+
+            const novedad = novedades.find((nov: any) => { return nov.id == index })
+            state.update({ NovedadCodigo: novedad.NovedadCodigo })
+
+            flowDynamic(
+                `*Novedad:*\n` +
+                `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
+                `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha) : 's/d'}\n` +
+                `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjetivoDescripcion ?? ''}\n` +
+                `- Tipo de novedad: ${novedad.TipoDescripcion ?? 's/d'}\n` +
+                `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+                `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
+                `*Datos del Personal:*\n` +
+                `- Personal: ${novedad.PersonalFullName ?? 's/d'}\n` +
+                `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n`
+                // `- Documentos registrados: ${novedad.files.length}\n`
+                , { delay: delay })
+
+            await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from)
+
+            // await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
+
+        }
+    )
+    .addAnswer(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
+            if (String(ctx.body).toLowerCase() == 'm') {
+                const MyState = state.getMyState()
+                delete MyState.novedades
+                delete MyState.NovedadCodigo
+                state.update(MyState)
+                return gotoFlow(flowMenu)
+            }
+            if (String(ctx.body).toLowerCase() == 'l') {
+                const MyState = state.getMyState()
+                delete MyState.novedades
+                delete MyState.NovedadCodigo
+                state.update(MyState)
+                return gotoFlow(flowNovedadPendiente)
+            }
+            if (String(ctx.body).toLowerCase() != 'c') return fallBack()
+
+            const NovedadCodigo = state.get('NovedadCodigo')
+            const docsNov: any[] = await novedadController.getDocumentosByNovedadCodigo(NovedadCodigo)
+
+            try {
+                for (let index = 0; index < docsNov.length; index++) {
+                    const documento = docsNov[index]
+
+                    const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoNombreArchivo}`;
+
+                    await flowDynamic([{ body: documento.DocumentoTipoDetalle, media: urlDoc, delay }])
+                    await chatBotController.addToDocLog(documento.DocumentoId, ctx.from)
+                }
+            } catch (error) {
+                console.log('Error descargando Archivo', error)
+                await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
+
+            }
+        }
+    )
+    .addAnswer(['L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
+            const MyState = state.getMyState()
+            delete MyState.novedades
+            delete MyState.NovedadCodigo
+            state.update(MyState)
+            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
+            if (String(ctx.body).toLowerCase() == 'l') return gotoFlow(flowNovedadPendiente)
+            return fallBack()
+        }
+    )
+
+
+export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        if (!novedades.length) {
+            await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
+            return gotoFlow(flowMenu)
+        }
+
+        let msg: string = 'Existen novedades pendientes de visualización. ¿Desea verlas? (Si/No)\n'
+        await flowDynamic(msg, { delay: delay })
+    })
+    .addAnswer('', { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            if (String(ctx.body).toLowerCase() == 's') return gotoFlow(flowNovedadPendiente)
+            await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)
         }
     )

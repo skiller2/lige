@@ -3,6 +3,7 @@ import flowMenu from './flowMenu.ts'
 import { chatBotController, personalController } from "../controller/controller.module.ts";
 import { reset, start, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
+import { flowConsNovedadPendiente } from './flowNovedad.ts';
 
 const delay = chatBotController.getDelay()
 const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
@@ -24,7 +25,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
 
         } else {
             await flowDynamic('No posee documentos pendientes de descarga', { delay: delay })
-            return gotoFlow(flowMenu)            
+            return gotoFlow(flowConsNovedadPendiente)            
         }
     })
     .addAnswer('', { delay: delay, capture: true },
@@ -50,14 +51,13 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 if (docsPend.length)
                     return fallBack('Desea descargar el siguiente documento de la lista? (Si/No)')
                 else {
-                    await flowDynamic('Cargando menu general', { delay: delay*3 })
-                    return gotoFlow(flowMenu)
+                    // await flowDynamic('Cargando menu general', { delay: delay*3 })
+                    return gotoFlow(flowConsNovedadPendiente)
                 }
-
 
             } else {
                 if (process.env.PERSONALID_TEST) { 
-                    return gotoFlow(flowMenu)
+                    return gotoFlow(flowConsNovedadPendiente)
                 }
                 stop(ctx, gotoFlow, state)
                 return endFlow()
