@@ -484,7 +484,7 @@ UNION
       await queryRunner.startTransaction();
 
       const PersonalSeguroDesde = new Date(anio, mes - 1, 1)
-      const PersonalSeguroHasta = new Date(anio, mes - 1, 0)
+      const PersonalSeguroHasta = new Date(anio, mes, 0)
 
       const maxfechas = (await queryRunner.query(`SELECT MAX(seg.PersonalSeguroDesde) PersonalSeguroDesde_max, MAX(seg.PersonalSeguroHasta) PersonalSeguroHasta_max FROM PersonalSeguro seg`))[0]
       const PersonalSeguroDesde_max = new Date(maxfechas.PersonalSeguroDesde_max)
