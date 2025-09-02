@@ -31,6 +31,7 @@ export class NovedadesFormComponent {
   private searchService = inject(SearchService)
   public router = inject(Router)
   onAddorUpdate = output()
+  formChange$ = new BehaviorSubject('');
 
   $selectedObjetivoIdChange = new BehaviorSubject(0)
   $optionsTipoNovedad = this.searchService.getTipoNovedad()
@@ -42,8 +43,8 @@ export class NovedadesFormComponent {
     TipoNovedadId: 0,
     Descripcion: '',
     Accion: '',
-    files: []
-
+    files: [],
+    DocumentoId: 0
   })
 
   objetivoDetalleChange(event: any){
@@ -68,6 +69,10 @@ export class NovedadesFormComponent {
 
     console.log("infoObjetivo", infoObjetivo)
     this.formCli.reset(infoObjetivo[0])
+    
+    this.formCli.patchValue({
+      ObjetivoId: infoObjetivo[0].ObjetivoId
+    })
   }
 
 
@@ -94,6 +99,8 @@ export class NovedadesFormComponent {
         this.onAddorUpdate.emit()
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
+        this.formChange$.next("") 
+
     } catch (e) {
         
     }

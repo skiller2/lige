@@ -173,42 +173,40 @@ export class NovedadesController extends BaseController {
         try {
             const objetivos = await queryRunner.query(
                 `Select
-         nov.NovedadCodigo id
-        ,suc.SucursalId
-        ,suc.SucursalDescripcion
-        ,cli.ClienteId
-        ,cli.ClienteDenominacion
-        ,ele.ClienteElementoDependienteId
-        ,obj.ObjetivoId
-        , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
-        ,ele.ClienteElementoDependienteDescripcion DescripcionObj
+                    nov.NovedadCodigo id
+                    ,suc.SucursalId
+                    ,suc.SucursalDescripcion
+                    ,cli.ClienteId
+                    ,cli.ClienteDenominacion
+                    ,ele.ClienteElementoDependienteId
+                    ,obj.ObjetivoId
+                    , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
+                    ,ele.ClienteElementoDependienteDescripcion DescripcionObj
 
-        ,CONCAT(TRIM(jerper.PersonalApellido),', ', TRIM(jerper.PersonalNombre)) as ApellidoNombreJerarquico
+                    ,CONCAT(TRIM(jerper.PersonalApellido),', ', TRIM(jerper.PersonalNombre)) as ApellidoNombreJerarquico
 
-        ,per.PersonalId
-        ,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) as ApellidoNombrePersonal
-        ,nov.Telefono
-        ,novtip.Descripcion NovedadTipo
-        ,novtip.NovedadTipoCod
-        ,nov.Fecha
-        ,nov.VisualizacionFecha
-        ,nov.VisualizacionUsuario
-        ,nov.Accion
-        ,1
-        From Novedad nov
-        LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
-        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-        LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
-        LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-        LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
-        LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
-        LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
-        LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
-        LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
-        LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
+                    ,per.PersonalId
+                    ,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) as ApellidoNombrePersonal
+                    ,nov.Telefono
+                    ,novtip.Descripcion NovedadTipo
+                    ,novtip.NovedadTipoCod
+                    ,nov.Fecha
+                    ,nov.VisualizacionFecha
+                    ,nov.VisualizacionUsuario
+                    ,nov.Accion
+                    ,1
+                    From Novedad nov
+                    LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
+                    LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+                    LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
+                    LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+                    LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
+                    LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
+                    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
+                    LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
+                    LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
+                    LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
 
-
-                
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
             this.jsonRes(
@@ -261,7 +259,8 @@ export class NovedadesController extends BaseController {
     async getNovedadQuery(queryRunner: any, NovedadId: any) {
        
         return await queryRunner.query(`
-          Select
+         
+        Select
             nov.NovedadCodigo id
             ,cli.ClienteId
             ,cli.ClienteDenominacion
@@ -269,12 +268,15 @@ export class NovedadesController extends BaseController {
             ,obj.ObjetivoId
             ,nov.Fecha
             ,nov.Accion
+             ,STRING_AGG(CAST(doc.DocumentoId AS VARCHAR), ',') AS DocumentoId
             ,nov.NovedadTipoCod AS TipoNovedadId
             ,nov.Descripcion
             , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
             ,ele.ClienteElementoDependienteDescripcion DescripcionObj
             ,1
             From Novedad nov
+            
+            LEFT JOIN DocumentoRelaciones doc ON doc.NovedadCodigo = nov.NovedadCodigo
             LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
             LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
             LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
@@ -283,7 +285,10 @@ export class NovedadesController extends BaseController {
             LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
             LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
             LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
-        WHERE nov.NovedadCodigo = @0`,
+             WHERE nov.NovedadCodigo = @0
+            GROUP BY
+                nov.NovedadCodigo,cli.ClienteId,cli.ClienteDenominacion,ele.ClienteElementoDependienteId,obj.ObjetivoId,nov.Fecha,nov.Accion,nov.NovedadTipoCod,nov.Descripcion,CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)),ele.ClienteElementoDependienteDescripcion
+       `,
             [NovedadId])
         
             
@@ -294,12 +299,15 @@ export class NovedadesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
 
-            const usuarioId = res.locals.userName
+            const usuarioName = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const NovedadId = Number(req.params.id)
             const Obj = { ...req.body }
             let ObjObjetivoNew = {}
             const AudFechaMod = new Date()
+
+            const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
+            const usuarioId = usuarioIdquery[0].UsuarioPersonalId
 
           //  throw new ClientException(`test.`)
            
@@ -307,7 +315,15 @@ export class NovedadesController extends BaseController {
 
             await this.FormValidations(Obj)
 
-            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioId, ip)
+            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip)
+            
+            let array_id = []
+            let doc_id = 0
+            if (Obj.files?.length > 0) {
+                for (const file of Obj.files) {
+                    await this.fileNovedadUpload(queryRunner, Obj, usuarioId, ip, NovedadId, usuarioName, file, array_id, doc_id)
+                }
+            }
 
             //validacion de barrio
             
@@ -355,31 +371,36 @@ export class NovedadesController extends BaseController {
 
     async addNovedad(req: any, res: Response, next: NextFunction) {
 
+        const usuarioName = res.locals.userName
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body }
         let ObjObjetivoNew = { }
 
         try {
-            console.log("Obj", Obj)
+            
             const ip = this.getRemoteAddress(req)
             const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
             const usuarioId = usuarioIdquery[0].UsuarioPersonalId
-            console.log("usuarioId", usuarioId)
+           
             await queryRunner.startTransaction()
             await this.FormValidations(Obj)
 
+          
             const novedadId = await this.getProxNumero(queryRunner, `Novedad`, usuarioId, ip)
 
             const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
             Obj.ClienteId = objetivo[0].ClienteId
-            Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+            Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteRubroId
 
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
                   Obj.Telefono, usuarioId, ip, novedadId)
 
+
+             let doc_id = 0
+             let array_id = []
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
-                   // await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, 'obj', null, null, file, usuarioId, ip, queryRunner)
+                    await this.fileNovedadUpload(queryRunner, Obj, usuarioId, ip, novedadId, usuarioName, file, array_id, doc_id)
                 }
             }
 
@@ -391,6 +412,57 @@ export class NovedadesController extends BaseController {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async fileNovedadUpload(queryRunner: any, Obj: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any, file: any, array_id: any, doc_id: any ) {
+
+        let result = await FileUploadController.handleDOCUpload(usuarioId, Obj.ObjetivoId, null, null, new Date(), null, file.doctipo_id, null, null, file, usuarioName, ip, queryRunner)
+
+
+         if (result && typeof result === 'object') {
+             ({ doc_id } = result)
+             array_id.push(doc_id)
+         }
+
+         console.log("file.tempfilename", file.tempfilename)
+         console.log("file", file)
+         console.log("result", result)
+         if (file.tempfilename && !file.id) {
+             await queryRunner.query(`INSERT INTO DocumentoRelaciones (
+             DocumentoId,
+             PersonalId,
+             ObjetivoId,
+             ClienteId,
+             PersonalLicenciaId,
+             AudFechaIng,
+             AudFechaMod,
+             AudUsuarioIng,
+             AudUsuarioMod,
+             AudIpIng,
+             AudIpMod,
+             NovedadCodigo
+         ) VALUES (
+             @0, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7, @8
+         )`, [
+             doc_id,
+             usuarioId,
+             null,
+             null,
+             null,
+             new Date(),
+             usuarioName,
+             ip,
+             novedadId
+             ])
+         } else {
+             await queryRunner.query(`UPDATE DocumentoRelaciones SET AudFechaMod = @0, AudUsuarioMod = @1, AudIpMod = @2, NovedadCodigo = @4 WHERE DocumentoId = @3 `, [
+             new Date(),
+             usuarioName,
+             ip,
+             doc_id,
+             novedadId
+             ])
+         }
     }
 
     async addNovedadTable( queryRunner: any,Fecha: any, NovedadTipoCod: any,Descripcion: any,Accion: any,ClienteId: any,

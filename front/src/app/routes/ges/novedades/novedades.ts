@@ -104,6 +104,10 @@ export class NovedadesComponent {
 
   }
 
+  reloadListado() {
+    this.listNovedades$.next('')
+  }
+
   listOptionsChange(options: any) {
     this.listOptions = options
     this.listNovedades$.next('')

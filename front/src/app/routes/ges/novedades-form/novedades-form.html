@@ -9,6 +9,13 @@
       </nz-form-control>
     </nz-form-item>
 
+    <nz-form-item style="display:none">
+      <nz-form-label [nzSpan]="3">DocumentoId</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <input nz-input name="DocumentoId" ngModel  />
+      </nz-form-control>
+    </nz-form-item>
+
     <!-- Fecha y Hora -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha y Hora</nz-form-label>
@@ -55,9 +62,9 @@
     <!-- Apartado para adjuntar documentos -->
   <nz-form-item>
     <nz-form-control >
-      <app-file-upload formControlName="files"   [idForSearh]="0"
+      <app-file-upload formControlName="files" [idForSearh]="formCli.getRawValue().DocumentoId ?? 0"
       [textForSearch]="'NOV'"  
-      columnForSearch="ObjetivoId" [tableForSearch]="'Documento'" 
+      columnForSearch="DocumentoId" [tableForSearch]="'Documento'" 
       [showTipoDocs]="false"></app-file-upload>
     </nz-form-control>
     
