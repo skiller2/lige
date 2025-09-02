@@ -643,7 +643,7 @@ export class TelefoniaController extends BaseController {
         'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesTelefonoUltNro = @1 WHERE ConsumoTelefoniaAnoMesId = @0', [ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoMesTelefonoUltNro])
 
       //      throw new ClientException(`OKA`)
-      let periodo = String(mesRequest) + String(anioRequest)
+      let periodo = String(mesRequest)+ '/' + String(anioRequest)
 
       //   copyFileSync(file.path, newFilePath);
 
