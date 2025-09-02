@@ -643,26 +643,27 @@ export class TelefoniaController extends BaseController {
         'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesTelefonoUltNro = @1 WHERE ConsumoTelefoniaAnoMesId = @0', [ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoMesTelefonoUltNro])
 
       //      throw new ClientException(`OKA`)
+      let periodo = String(mesRequest) + String(anioRequest)
 
       //   copyFileSync(file.path, newFilePath);
 
-      await FileUploadController.handleDOCUpload(
-        null,
-        null,
-        null,
-        null,
-        new Date(),
-        null,
-        null,
-        null,
-        null,
-        file,
-        usuario,
-        ip,
-        queryRunner)
+       await FileUploadController.handleDOCUpload(
+          null, 
+          null, 
+          null, 
+          null, 
+          new Date(), 
+          null, 
+          periodo,
+          null,
+          null, 
+          file, 
+          usuario,
+          ip,
+          queryRunner)
 
 
-
+          
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");
@@ -671,7 +672,7 @@ export class TelefoniaController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
-      // unlinkSync(file.path);
+     // unlinkSync(file.path);
     }
   }
 
@@ -694,7 +695,7 @@ export class TelefoniaController extends BaseController {
 
       const importacionesAnteriores = await dataSource.query(
 
-
+        
         `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
         FROM documento 
         WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'TEL'`,
