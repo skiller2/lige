@@ -24,7 +24,7 @@ telefoniaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     telefoniaController.getTelefonosCols(req, res);
 });
 
-telefoniaRouter.get("/download/:anio/:mes/:impoexpoId?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res,next) => {
+telefoniaRouter.get("/download/:anio/:mes/:impoexpoId?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gLogistica', 'gSistemas'])], (req, res,next) => {
   telefoniaController.downloadComprobantes(
     req.params.anio,
     req.params.mes,
@@ -35,15 +35,15 @@ telefoniaRouter.get("/download/:anio/:mes/:impoexpoId?", [authMiddleware.verifyT
   );
 });
 
-telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
+telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas','gLogistica', 'gLogisticaCon', 'gSistemas'])], (req, res, next) => {
     telefoniaController.getTelefonosList(req, res, next);
 });
 
-telefoniaRouter.get('/importaciones_anteriores/:anio/:mes', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+telefoniaRouter.get('/importaciones_anteriores/:anio/:mes', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gLogistica', 'gSistemas'])], (req, res, next) => {
   telefoniaController.getImportacionesTelefoniaAnteriores(req.params.anio, req.params.mes, req, res, next)
 });
 
-telefoniaRouter.post("/import-xls-telefonia", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
+telefoniaRouter.post("/import-xls-telefonia", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','gLogistica', 'gSistemas'])], (req, res, next) => {
   telefoniaController.handleXLSUploadTelefonia(req, res, next)
   });
   
