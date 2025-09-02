@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
-import { novedadesController } from "../controller/controller.module";
+import { novedadesController, objetivosController } from "../controller/controller.module";
 
 export const novedadesRouter = Router();
 
@@ -17,7 +17,16 @@ novedadesRouter.get('/tipo_novedad', [authMiddleware.verifyToken, authMiddleware
   novedadesController.getTipoNovedad(req, res, next);
 });
 
+novedadesRouter.get('/infNovedad/:NovedadId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+  novedadesController.infNovedad(req, res, next)
+})
 
+novedadesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial','gSistemas'])], (req, res, next) => {
+  novedadesController.updateNovedad(req, res, next)
+})
 
+novedadesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial'])], (req, res, next) => {
+  novedadesController.addNovedad(req, res, next)
+})
 
 

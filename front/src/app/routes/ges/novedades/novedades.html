@@ -1,15 +1,15 @@
 <nz-card class="small-margin">
 
     <div nz-row>
-  
+ 
       <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
-  
+        
         <nz-button-group >
           <a [routerLink]="['/', 'ges', 'novedades','editar']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-            <button nz-button nzType="default" [disabled]="editNovedadId()? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+            <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo()? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
           </a>
           <a [routerLink]="['/', 'ges', 'novedades','detalle']" nz-tooltip nzTooltipTitle="{{ 'app.detail' | i18n }}">
-            <button nz-button nzType="default" [disabled]="editNovedadId()? false : true"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
+            <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo()? false : true"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
           </a>
           <a [routerLink]="['/', 'ges', 'novedades','alta']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
@@ -43,7 +43,7 @@
     
     </div>
     
-      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
         <nz-tab></nz-tab>
         <nz-tab>
           <a nz-tab-link routerLink="/ges/novedades/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
@@ -61,23 +61,20 @@
     
         <nz-tab>
           <a nz-tab-link routerLink="/ges/novedades/editar" >{{ 'app.icon.edit' | i18n }}</a>
-           <app-novedades-form></app-novedades-form>
+          <app-novedades-form #novedadesFormEdit [(NovedadCodigo)]="editNovedadNovedadCodigo" (onAddorUpdate)="handleAddOrUpdate()"  ></app-novedades-form>
         </nz-tab>
   
         <nz-tab>
           <a nz-tab-link routerLink="/ges/novedades/detalle" >{{ 'app.detail' | i18n }}</a>
-          <app-novedades-form></app-novedades-form>
+          <app-novedades-form #novedadesFormDeta [(NovedadCodigo)]="editNovedadNovedadCodigo" ></app-novedades-form>
         </nz-tab>
     
         <nz-tab> 
           <a nz-tab-link routerLink="/ges/novedades/alta" >{{ 'app.alta' | i18n }}</a>
-          <app-novedades-form></app-novedades-form>
+          <app-novedades-form   [(NovedadCodigo)]="editNovedadNovedadCodigo" (onAddorUpdate)="handleAddOrUpdate()" ></app-novedades-form>
         </nz-tab>
   
       </nz-tabset>
-  
-  
-     
   
     </nz-card>
   

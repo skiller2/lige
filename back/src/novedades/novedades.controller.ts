@@ -20,9 +20,9 @@ const listaColumnas: any[] = [
     {
         name: "Codigo",
         type: "number",
-        id: "NovedadCodigo",
-        field: "NovedadCodigo",
-        fieldName: "nov.NovedadCodigo",
+        id: "id",
+        field: "id",
+        fieldName: "id",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -172,8 +172,8 @@ export class NovedadesController extends BaseController {
 
         try {
             const objetivos = await queryRunner.query(
-                `Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
-         ,nov.NovedadCodigo
+                `Select
+         nov.NovedadCodigo id
         ,suc.SucursalId
         ,suc.SucursalDescripcion
         ,cli.ClienteId
@@ -193,6 +193,7 @@ export class NovedadesController extends BaseController {
         ,nov.Fecha
         ,nov.VisualizacionFecha
         ,nov.VisualizacionUsuario
+        ,nov.Accion
         ,1
         From Novedad nov
         LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
@@ -237,7 +238,242 @@ export class NovedadesController extends BaseController {
         }
     }
 
-   
+
+
+    async infNovedad(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const NovedadId = req.params.NovedadId
+            let infObjetivo = await this.getNovedadQuery(queryRunner, NovedadId)
+            await queryRunner.commitTransaction()
+            return this.jsonRes(infObjetivo, res)
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+
+    
+    async getNovedadQuery(queryRunner: any, NovedadId: any) {
+       
+        return await queryRunner.query(`
+          Select
+            nov.NovedadCodigo id
+            ,cli.ClienteId
+            ,cli.ClienteDenominacion
+            ,ele.ClienteElementoDependienteId
+            ,obj.ObjetivoId
+            ,nov.Fecha
+            ,nov.Accion
+            ,nov.NovedadTipoCod AS TipoNovedadId
+            ,nov.Descripcion
+            , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
+            ,ele.ClienteElementoDependienteDescripcion DescripcionObj
+            ,1
+            From Novedad nov
+            LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
+            LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+            LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
+            LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+            LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
+            LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
+            LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
+            LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
+        WHERE nov.NovedadCodigo = @0`,
+            [NovedadId])
+        
+            
+    }
+
+    async updateNovedad(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+
+            const usuarioId = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+            const NovedadId = Number(req.params.id)
+            const Obj = { ...req.body }
+            let ObjObjetivoNew = {}
+            const AudFechaMod = new Date()
+
+          //  throw new ClientException(`test.`)
+           
+            await queryRunner.startTransaction()
+
+            await this.FormValidations(Obj)
+
+            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioId, ip)
+
+            //validacion de barrio
+            
+            await queryRunner.commitTransaction()
+
+            return this.jsonRes(ObjObjetivoNew, res, 'Modificación  Exitosa');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async FormValidations(Obj: any) {
+
+
+        if (!Obj.ObjetivoId) {
+            throw new ClientException(`Debe completar el campo Objetivo.`)
+        }
+
+        if (!Obj.Fecha) {
+            throw new ClientException(`Debe completar el campo fecha.`)
+        }
+
+        if (!Obj.TipoNovedadId) {
+            throw new ClientException(`Debe completar el campo Tipo de novedad.`)
+        }
+
+        if (!Obj.Descripcion) {
+            throw new ClientException(`Debe completar el campo Descripcion.`)
+        }
+
+        if (!Obj.Accion) {
+            throw new ClientException(`Debe completar el campo Accion.`)
+        }
+    }
+
+    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any) {
+        await queryRunner.query(`
+            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7 where NovedadCodigo = @4`
+            , [ Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod])
+    }
+
+
+    async addNovedad(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = dataSource.createQueryRunner();
+        const Obj = { ...req.body }
+        let ObjObjetivoNew = { }
+
+        try {
+            console.log("Obj", Obj)
+            const ip = this.getRemoteAddress(req)
+            const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
+            const usuarioId = usuarioIdquery[0].UsuarioPersonalId
+            console.log("usuarioId", usuarioId)
+            await queryRunner.startTransaction()
+            await this.FormValidations(Obj)
+
+            const novedadId = await this.getProxNumero(queryRunner, `Novedad`, usuarioId, ip)
+
+            const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
+            Obj.ClienteId = objetivo[0].ClienteId
+            Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+
+            await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
+                  Obj.Telefono, usuarioId, ip, novedadId)
+
+            if (Obj.files?.length > 0) {
+                for (const file of Obj.files) {
+                   // await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, 'obj', null, null, file, usuarioId, ip, queryRunner)
+                }
+            }
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(ObjObjetivoNew, res, 'Carga de nuevo registro exitoso');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async addNovedadTable( queryRunner: any,Fecha: any, NovedadTipoCod: any,Descripcion: any,Accion: any,ClienteId: any,
+        ClienteElementoDependienteId: any,Telefono: any,usuarioId: any,ip: any, novedadId: any ) {
+
+        const now = new Date();
+        const AudFechaIng = now;
+        const AudFechaMod = now;
+        const AudIpIng = ip;
+        const AudIpMod = ip;
+        const AudUsuarioIng = usuarioId;
+        const AudUsuarioMod = usuarioId;
+
+        const PersonalId = usuarioId
+
+        const fechaString = Fecha;
+        const fechaObjeto = new Date(fechaString);
+        const hora = fechaObjeto.getHours() + ':' + fechaObjeto.getMinutes();
+
+        const NovedadTipoCodDescripcion = await queryRunner.query(`SELECT Descripcion FROM NovedadTipo WHERE NovedadTipoCod = @0`, [NovedadTipoCod])
+
+        NovedadTipoCod
+        const Json = JSON.stringify({
+            Fecha: Fecha,
+            CodObjetivo: ClienteId + '/' + (ClienteElementoDependienteId ?? 0),
+            Tipo: {
+                NovedadTipoCod: NovedadTipoCod,
+                Descripcion: NovedadTipoCodDescripcion[0].Descripcion
+            },
+            Descripcion: Descripcion,
+            Hora: hora,
+        });
+        const VisualizacionFecha = null;
+        const VisualizacionUsuario = null;
+
+        await queryRunner.query(
+            `
+            INSERT INTO Novedad (
+                NovedadCodigo,
+                ClienteId,
+                ClienteElementoDependienteId,
+                PersonalId,
+                Telefono,
+                Fecha,
+                Descripcion,
+                NovedadTipoCod,
+                Json,
+                AudFechaIng,
+                AudFechaMod,
+                AudIpIng,
+                AudIpMod,
+                AudUsuarioIng,
+                AudUsuarioMod,
+                Accion,
+                VisualizacionFecha,
+                VisualizacionUsuario
+            )
+            VALUES (
+                @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17
+            )
+            `,
+            [   
+                novedadId,
+                ClienteId,
+                ClienteElementoDependienteId,
+                PersonalId,
+                Telefono,
+                Fecha,
+                Descripcion,
+                NovedadTipoCod,
+                Json,
+                AudFechaIng,
+                AudFechaMod,
+                AudIpIng,
+                AudIpMod,
+                AudUsuarioIng,
+                AudUsuarioMod,
+                Accion,
+                VisualizacionFecha,
+                VisualizacionUsuario
+            ]
+        );
+    }
 
  
 }

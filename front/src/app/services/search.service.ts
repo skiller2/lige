@@ -1196,6 +1196,15 @@ export class SearchService {
       );
   }
 
+  getNovedad(novedadId: number) { 
+    return this.http 
+      .get<ResponseJSON<any>>(`api/novedades/infNovedad/${novedadId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getInfoFilterReport(title: string) {
     return this.http
       .get<ResponseJSON<any>>(`api/reportes/filterReport/${title}`)

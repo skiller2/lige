@@ -14,7 +14,7 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha y Hora</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
         <nz-date-picker
-          formControlName="FechaNovedad"
+          formControlName="Fecha"
           nzShowTime="true"
           nzFormat="yyyy-MM-dd HH:mm"
           style="width: 100%;">
@@ -61,5 +61,13 @@
       [showTipoDocs]="false"></app-file-upload>
     </nz-form-control>
     
+  </nz-form-item>
+
+  <nz-form-item *ngIf="formCli.enabled">
+    <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+      <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine" >
+        {{ 'app.btn.save' | i18n }}
+      </button>
+    </nz-form-control>
   </nz-form-item>
   </form>

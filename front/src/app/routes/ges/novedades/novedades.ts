@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component,  inject, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component,  inject, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -26,7 +26,7 @@ export class NovedadesComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editNovedadId = signal(0)
+  editNovedadNovedadCodigo = signal(0)
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listNovedades$ = new BehaviorSubject('')
@@ -34,6 +34,10 @@ export class NovedadesComponent {
     filtros: [],
     sort: null,
   };
+
+  childAlta = viewChild.required<NovedadesFormComponent>('novedadesFormAlta')
+  childDeta = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
+  childEdit = viewChild.required<NovedadesFormComponent>('novedadesFormEdit')
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -76,8 +80,26 @@ export class NovedadesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    console.log(row)
     if (row?.id) {
-      //this.editObjetivoId.set(row.ObjetivoId)
+      this.editNovedadNovedadCodigo.set(row.id)
+    }
+
+  }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 4: //INSERT
+        this.childAlta().newRecord()
+        break
+      case 3: //DETAIL
+        this.childDeta().viewRecord(true)
+        break;
+      case 2: //EDIT
+        this.childEdit().viewRecord(false)
+        break;
+        default:
+        break;
     }
 
   }
@@ -86,5 +108,10 @@ export class NovedadesComponent {
     this.listOptions = options
     this.listNovedades$.next('')
   }
+
+  async handleAddOrUpdate(){
+    this.listNovedades$.next('')
+  }
+
 
 }

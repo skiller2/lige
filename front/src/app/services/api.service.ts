@@ -1302,6 +1302,12 @@ export class ApiService {
     )
   }
 
+  addNovedad(novedad: any) {
+    return this.http.post<ResponseJSON<any>>('/api/novedades/add', novedad).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   updateCliente(cliente: any, ClienteId: any) {
     return this.http.post<ResponseJSON<any>>(`/api/clientes/update/${ClienteId}`, cliente).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1322,6 +1328,12 @@ export class ApiService {
 
   updateObjetivo(objetivo: any, ObjetivoId: any) {
     return this.http.post<ResponseJSON<any>>(`/api/objetivos/update/${ObjetivoId}`, objetivo).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  updateNovedad(novedad: any, NovedadCodigo: any) {  
+    return this.http.post<ResponseJSON<any>>(`/api/novedades/update/${NovedadCodigo}`, novedad).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
