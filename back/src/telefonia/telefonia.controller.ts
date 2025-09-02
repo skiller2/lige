@@ -244,7 +244,7 @@ export class TelefoniaController extends BaseController {
   async handleXLSUploadTelefonia(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
-    const file = req.body.files
+    const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
@@ -254,7 +254,6 @@ export class TelefoniaController extends BaseController {
     //console.log("req.body", req.body)
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
-
 
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
@@ -278,14 +277,11 @@ export class TelefoniaController extends BaseController {
       let datasetid = 0
 
 
-      let getProxNumero = await this.getProxNumero(queryRunner, `Documento`, usuario, ip)
-
-
       const now = fechaRequest
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
 
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file.tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
       //      console.log('telefonos', telefonos)
 
@@ -649,26 +645,24 @@ export class TelefoniaController extends BaseController {
       //      throw new ClientException(`OKA`)
 
       //   copyFileSync(file.path, newFilePath);
-      let nombre_archivo = `${anioRequest}-${mesRequest.toString().padStart(2, "0")}-${getProxNumero}.xls`
 
-        file.filename = nombre_archivo
-        await FileUploadController.handleDOCUpload(
-          null, 
-          null, 
-          null, 
-          getProxNumero, 
-          new Date(), 
-          null, 
-          null,
-          null,
-          null, 
-          file, 
-          usuario,
-          ip,
-          queryRunner)
+      await FileUploadController.handleDOCUpload(
+        null,
+        null,
+        null,
+        null,
+        new Date(),
+        null,
+        null,
+        null,
+        null,
+        file,
+        usuario,
+        ip,
+        queryRunner)
 
 
-          
+
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");
@@ -677,7 +671,7 @@ export class TelefoniaController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
-     // unlinkSync(file.path);
+      // unlinkSync(file.path);
     }
   }
 
@@ -700,7 +694,7 @@ export class TelefoniaController extends BaseController {
 
       const importacionesAnteriores = await dataSource.query(
 
-        
+
         `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
         FROM documento 
         WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'TEL'`,

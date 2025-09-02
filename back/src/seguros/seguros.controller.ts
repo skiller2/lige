@@ -159,7 +159,7 @@ const listaColumnasPoliza: any[] = [
     field: "TipoSeguroNombre",
     fieldName: "seg.TipoSeguroNombre",
     searchComponent: "inputForTipoSeguroSearch",
-    type: "string", 
+    type: "string",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -179,7 +179,7 @@ const listaColumnasPoliza: any[] = [
     name: "Número de Endoso",
     field: "PolizaSeguroNroEndoso",
     fieldName: "seg.PolizaSeguroNroEndoso",
-    type: "string",   
+    type: "string",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -215,7 +215,7 @@ const listaColumnasPoliza: any[] = [
     searchHidden: false,
     hidden: false,
   }
- 
+
 ];
 
 const listaColumnasPersonalSeguro: any[] = [
@@ -289,7 +289,7 @@ const listaColumnasPersonalSeguro: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false
-    },
+  },
   {
     id: "TipoSeguroNombre",
     name: "Tipo de Seguro",
@@ -376,7 +376,7 @@ WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AN
         JOIN ClienteElementoDependienteContrato con ON con.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND con.ClienteId = obj.ClienteId AND con.ClienteElementoDependienteContratoFechaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
         JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = gao.GrupoActividadId AND  gaj.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gaj.GrupoActividadJerarquicoComo='J'
       WHERE obj.ClienteId = @0 
-    `,[ClientId, anio, mes])
+    `, [ClientId, anio, mes])
   }
 
 
@@ -474,41 +474,41 @@ UNION
 
 
 
-  async updateSeguros(req:any,res:any, anio: number, mes: number,next:NextFunction) {
+  async updateSeguros(req: any, res: any, anio: number, mes: number, next: NextFunction) {
     const stm_now = new Date()
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
-  
+
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction();
 
       const PersonalSeguroDesde = new Date(anio, mes - 1, 1)
-      const PersonalSeguroHasta = new Date(anio, mes - 1, 0)
+      const PersonalSeguroHasta = new Date(anio, mes, 0)
 
       const maxfechas = (await queryRunner.query(`SELECT MAX(seg.PersonalSeguroDesde) PersonalSeguroDesde_max, MAX(seg.PersonalSeguroHasta) PersonalSeguroHasta_max FROM PersonalSeguro seg`))[0]
       const PersonalSeguroDesde_max = new Date(maxfechas.PersonalSeguroDesde_max)
       const PersonalSeguroHasta_max = new Date(maxfechas.PersonalSeguroHasta_max)
-    
+
       if (PersonalSeguroDesde_max > PersonalSeguroDesde || PersonalSeguroHasta_max > PersonalSeguroHasta) {
         throw new ClientException("El período seleccionado es menor al ya procesado", { PersonalSeguroDesde_max, PersonalSeguroHasta_max })
       }
       await queryRunner.query(`UPDATE PersonalSeguro SET PersonalSeguroMotivoBaja=NULL, PersonalSeguroHasta= NULL WHERE PersonalSeguroHasta >= @0`,
         [PersonalSeguroHasta])
-  
+
       await queryRunner.query(`DELETE PersonalSeguro WHERE PersonalSeguroDesde >= @0`,
         [PersonalSeguroDesde])
 
-//  throw new ClientException("stop")
-      const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
+      //  throw new ClientException("stop")
+      const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
 
-      const personalEdesur = [...await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 798, anio, mes)]
+      const personalEdesur = [...await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 798, anio, mes)]
 
-      const personalEnergiaArgentina = [...await this.getPersonalHorasByClientId(queryRunner, 866, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalHorasByClientId(queryRunner, 867, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 867, anio, mes)]
+      const personalEnergiaArgentina = [...await this.getPersonalHorasByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalHorasByClientId(queryRunner, 867, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 867, anio, mes)]
 
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
 
-      
+
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
       const personalEnSeguroVidCol = await this.getPersonalEnSeguro(queryRunner, 'VC', anio, mes)
@@ -517,31 +517,31 @@ UNION
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle, stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APC', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APC', row.detalle, stm_now, usuario, ip)
         }
-        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'AP', 'En COTO ' + row.detalle,stm_now, usuario, ip)
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'AP', 'En COTO ' + row.detalle, stm_now, usuario, ip)
       }
 
       for (const row of personalEdesur) {
         const rowEnSeguro = personalEnSeguroEdesur.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle, stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APE', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APE', row.detalle, stm_now, usuario, ip)
         }
-        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En Edesur ' + row.detalle,stm_now, usuario, ip)
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En Edesur ' + row.detalle, stm_now, usuario, ip)
       }
 
       for (const row of personalEnergiaArgentina) {
         const rowEnSeguro = personalEnSeguroEnergiaArgentina.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle, stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APEA', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APEA', row.detalle, stm_now, usuario, ip)
         }
-        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En EnergiaArgentina ' + row.detalle,stm_now, usuario, ip)
+        await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En EnergiaArgentina ' + row.detalle, stm_now, usuario, ip)
       }
 
 
@@ -554,19 +554,19 @@ UNION
 
       for (const row of personalEnSeguroCoto) {
         if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APC', 'No está mas en COTO',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APC', 'No está mas en COTO', stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEdesur) {
         if (!personalEdesur.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APE', 'No está mas en Edesur',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APE', 'No está mas en Edesur', stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEnergiaArgentina) {
         if (!personalEnergiaArgentina.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APEA', 'No está mas en Energia Argentina',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APEA', 'No está mas en Energia Argentina', stm_now, usuario, ip)
         }
       }
 
@@ -580,36 +580,36 @@ UNION
         }
         const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'APG', row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'APG', row.detalle, stm_now, usuario, ip)
         } else {
           if ([7].includes(row.SituacionRevistaId) && row.month_diff > 3)
             continue
-          if ([3,13,19,24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
+          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
             continue
-          
-          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APG', row.detalle,stm_now, usuario, ip)
+
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APG', row.detalle, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroGeneral) {
         if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId))
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Coto',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Coto', stm_now, usuario, ip)
 
         if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId))
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Edesur',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Edesur', stm_now, usuario, ip)
 
         if (personalEnSeguroEnergiaArgentna2.find(r => r.PersonalId == row.PersonalId))
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Energia Argentina',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Energia Argentina', stm_now, usuario, ip)
 
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
 
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'No tiene situación revista (2,10,11,20,12,7)',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'No tiene situación revista (2,10,11,20,12,7)', stm_now, usuario, ip)
         } else {
           if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
-          if ([3,13,19,24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
-            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' baja',stm_now, usuario, ip)
+          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
         }
       }
 
@@ -617,27 +617,27 @@ UNION
       for (const row of personalSitRev) {
         if ([7].includes(row.SituacionRevistaId) && row.month_diff > 3)
           continue
-        if ([3,13,19,24,8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
+        if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
           continue
 
         const rowEnSeguro = personalEnSeguroVidCol.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'VC', row.detalle,stm_now, usuario, ip)
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'VC', row.detalle, stm_now, usuario, ip)
         } else {
-          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'VC', row.detalle,stm_now, usuario, ip)
+          await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'VC', row.detalle, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroVidCol) {
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)',stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)', stm_now, usuario, ip)
         } else {
           if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
-          if ([3,13,19,24,8, 29, 36, 30, 31].includes(row.SituacionRevistaId) )
+          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
-          
+
         }
       }
 
@@ -646,22 +646,22 @@ UNION
       await this.rollbackTransaction(queryRunner)
       return next(error)
     }
-    return (res)? this.jsonRes(true, res, "Procesado correctamente"): true
+    return (res) ? this.jsonRes(true, res, "Procesado correctamente") : true
   }
 
-  queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string,stm_now:Date, usuario:string, ip:string) {
+  queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string, stm_now: Date, usuario: string, ip: string) {
     return queryRunner.query(`UPDATE PersonalSeguro SET PersonalSeguroMotivoAdhesion=@3, PersonalSeguroHasta=@4, PersonalSeguroAudFechaMod=@5, PersonalSeguroAudUsuarioMod=@6, PersonalSeguroAudIpMod=@7 
       WHERE PersonalId=@0 AND PersonalSeguroDesde=@1 AND TipoSeguroCodigo = @2
     `, [PersonalId, PersonalSeguroDesde, TipoSeguroNombre, PersonalSeguroMotivoAdhesion, null, stm_now, usuario, ip])
   }
 
-  queryUpdSegurosFin(queryRunner: QueryRunner, PersonalId: number, PersonalSeguroHasta: Date, TipoSeguroNombre: string, PersonalSeguroMotivoBaja: string, stm_now:Date, usuario:string, ip:string) {
+  queryUpdSegurosFin(queryRunner: QueryRunner, PersonalId: number, PersonalSeguroHasta: Date, TipoSeguroNombre: string, PersonalSeguroMotivoBaja: string, stm_now: Date, usuario: string, ip: string) {
     return queryRunner.query(`UPDATE PersonalSeguro SET PersonalSeguroMotivoBaja=@2, PersonalSeguroHasta=@3, PersonalSeguroAudFechaMod=@4, PersonalSeguroAudUsuarioMod=@5, PersonalSeguroAudIpMod=@6 
       WHERE PersonalId=@0 AND TipoSeguroCodigo = @1 AND PersonalSeguroDesde <= @3 AND PersonalSeguroHasta IS NULL
     `, [PersonalId, TipoSeguroNombre, PersonalSeguroMotivoBaja, PersonalSeguroHasta, stm_now, usuario, ip])
   }
 
-  queryAddSeguros(queryRunner: QueryRunner, PersonalId: number, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string,stm_now:Date, usuario:string, ip:string) {
+  queryAddSeguros(queryRunner: QueryRunner, PersonalId: number, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string, stm_now: Date, usuario: string, ip: string) {
     return queryRunner.query(`INSERT PersonalSeguro (PersonalId, TipoSeguroCodigo, PersonalSeguroDesde, PersonalSeguroHasta, PersonalSeguroMotivoAdhesion, PersonalSeguroMotivoBaja, PersonalSeguroAudFechaIng, PersonalSeguroAudUsuarioIng, PersonalSeguroAudIpIng, PersonalSeguroAudFechaMod, PersonalSeguroAudUsuarioMod, PersonalSeguroAudIpMod) 
       VALUES  (@0,@1, @2, @3,@4, @5, @6, @7, @8, @9, @10, @11)
     `, [PersonalId, TipoSeguroNombre, PersonalSeguroDesde, null, PersonalSeguroMotivoAdhesion, null, stm_now, usuario, ip, stm_now, usuario, ip])
@@ -689,8 +689,8 @@ UNION
     console.log("req.body.options.filtros ", req.body.options.filtros)
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-    const anio:number = req.body.anio
-    const mes:number = req.body.mes
+    const anio: number = req.body.anio
+    const mes: number = req.body.mes
     try {
       const result = await dataSource.query(`
        SELECT
@@ -775,7 +775,7 @@ UNION
     }
   }
 
-  
+
 
   async getListPersonalSeguro(
     req: any,
@@ -838,7 +838,7 @@ UNION
       LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
       WHERE ps.PolizaSeguroNroPoliza = @0 AND ps.PolizaSeguroNroEndoso = @1 AND ps.CompaniaSeguroId = @2 AND ps.TipoSeguroCodigo = @3`, [req.params.PolizaSeguroNroPoliza, req.params.PolizaSeguroNroEndoso, req.params.CompaniaSeguroId, req.params.TipoSeguroCodigo])
-    
+
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
@@ -863,15 +863,15 @@ UNION
     let result = []
 
     console.log("req.body", req.body)
-    
+
     let resultFile = null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-   // throw new ClientException(`test.`)
+    // throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    
+
     //const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
 
 
@@ -919,14 +919,15 @@ UNION
       let fechaDesde = new Date(PolizaSeguroFechaEndoso)
       const anio = fechaDesde.getFullYear()
       const mes = fechaDesde.getMonth() + 1
-  
+
+
       if (!dnisLimpios || !polizaEndoso) {
         throw new ClientException(`Error al procesar el Documento.`)
       }
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
- 
-      
+
+
       if (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) {
         // is edit
         console.log("is edit")
@@ -951,7 +952,7 @@ UNION
           resultFile.doc_id,
           polizaEndoso[0],
           endoso[1],
-          fechaDesde, 
+          fechaDesde,
           CompaniaSeguroId,
           new Date(),
           usuario,
@@ -960,22 +961,22 @@ UNION
           mes,
           TipoSeguroCodigo
         ]);
-        
+
 
 
       } else {
         // is new
 
-      console.log("is new")
-      resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0],endoso[1])
+        console.log("is new")
+        resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1])
 
         const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
-      if (polizaExistente[0].count > 0) {
-        throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} - ${CompaniaSeguroId} - ${polizaEndoso[0]} - ${endoso[1]}`)
-      }
+        if (polizaExistente[0].count > 0) {
+          throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} - ${CompaniaSeguroId} - ${polizaEndoso[0]} - ${endoso[1]}`)
+        }
         //throw new ClientException(`test`)
 
-          await queryRunner.query(`
+        await queryRunner.query(`
             INSERT INTO PolizaSeguro (
               PolizaSeguroNroPoliza,
               PolizaSeguroNroEndoso,
@@ -996,43 +997,46 @@ UNION
               @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14
             )
           `, [
-            polizaEndoso[0],                // PolizaSeguroNroPoliza
-            endoso[1],                      // PolizaSeguroNroEndoso
-            fechaDesde,                     // PolizaSeguroFechaEndoso
-            CompaniaSeguroId,               // CompaniaSeguroId
-            new Date(),                     // PolizaSeguroAudFechaIng
-            usuario,                        // PolizaSeguroAudUsuarioIng
-            ip,                             // PolizaSeguroAudIpIng
-            new Date(),                     // PolizaSeguroAudFechaMod
-            usuario,                        // PolizaSeguroAudUsuarioMod
-            ip,                             // PolizaSeguroAudIpMod
-            TipoSeguroCodigo,               // TipoSeguroCodigo
-            resultFile.doc_id,              // DocumentoId
-            anio,                           // PolizaSeguroAnio
-            mes,                            // PolizaSeguroMes
-            null                            // PolizaSeguroVersion
-          ]);
+          polizaEndoso[0],                // PolizaSeguroNroPoliza
+          endoso[1],                      // PolizaSeguroNroEndoso
+          fechaDesde,                     // PolizaSeguroFechaEndoso
+          CompaniaSeguroId,               // CompaniaSeguroId
+          new Date(),                     // PolizaSeguroAudFechaIng
+          usuario,                        // PolizaSeguroAudUsuarioIng
+          ip,                             // PolizaSeguroAudIpIng
+          new Date(),                     // PolizaSeguroAudFechaMod
+          usuario,                        // PolizaSeguroAudUsuarioMod
+          ip,                             // PolizaSeguroAudIpMod
+          TipoSeguroCodigo,               // TipoSeguroCodigo
+          resultFile.doc_id,              // DocumentoId
+          anio,                           // PolizaSeguroAnio
+          mes,                            // PolizaSeguroMes
+          null                            // PolizaSeguroVersion
+        ]);
 
       }
 
-      const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo,usuario,ip,fechaDesde, polizaEndoso[0], endoso[1], CompaniaSeguroId)
+      // obtengo el primer dia del mes anterior a la fecha de la poliza
+      const fechaPersonalSeguro = new Date(anio, mes - 2, 1);
+
+      const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId)
       //console.log("validationDniResults", validationDniResults)
       //throw new ClientException(`test.`)
       const version = await queryRunner.query(`
         SELECT PolizaSeguroVersion FROM PolizaSeguro 
-        WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, 
-      [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
+        WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,
+        [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
       const PolizaAeguroVersion = version[0]?.PolizaSeguroVersion ? version[0]?.PolizaSeguroVersion + 1 : 1
 
-      if(validationDniResults)
-          await queryRunner.query(`
+      if (validationDniResults)
+        await queryRunner.query(`
             UPDATE PolizaSeguro 
             SET PolizaSeguroResultado = @0, PolizaSeguroVersion = @1 
             WHERE PolizaSeguroNroPoliza = @2 AND PolizaSeguroNroEndoso = @3 AND CompaniaSeguroId = @4 AND TipoSeguroCodigo = @5`,
           [JSON.stringify(validationDniResults), PolizaAeguroVersion, polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])
 
-   
-  const result = {
+
+      const result = {
 
         ArchivosAnteriores: resultFile.ArchivosAnteriores,
         notFound: validationDniResults,
@@ -1040,9 +1044,9 @@ UNION
         PolizaSeguroNroPoliza: polizaEndoso[0],
         PolizaSeguroNroEndoso: endoso[1],
         PolizaSeguroFechaEndoso: fechaDesde
-  }
+      }
 
-  
+
       ///throw new ClientException(`test.`)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
@@ -1056,7 +1060,7 @@ UNION
 
   }
 
-  async validateAnInsertDni( dni:any, queryRunner:QueryRunner, tipoSeguroCodigo:string, usuario:string, ip:string, fechaDesde:Date, polizaNroPoliza:string, polizaNroEndoso:string, companiaSeguroId:number){
+  async validateAnInsertDni(dni: any, queryRunner: QueryRunner, tipoSeguroCodigo: string, usuario: string, ip: string, fechaDesde: Date, polizaNroPoliza: string, polizaNroEndoso: string, companiaSeguroId: number) {
 
     await queryRunner.query(`DELETE FROM PersonalPolizaSeguro WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, [polizaNroPoliza, polizaNroEndoso, companiaSeguroId, tipoSeguroCodigo])
 
@@ -1079,6 +1083,7 @@ UNION
             WHERE docmax.PersonalId = per.PersonalId
         )`, dniNumeros);
 
+
     const documentoToPersonalId = new Map<number, number>();
     personalRows.forEach(row => {
       documentoToPersonalId.set(row.PersonalDocumentoNro, row.PersonalId);
@@ -1098,52 +1103,52 @@ UNION
             WHERE docmax.PersonalId = ps.PersonalId
         )
   `, [tipoSeguroCodigo, fechaDesde]);
-    
+
     const aseguradosSet = new Set<number>();
     const documentoAseguradosSet = new Set<number>();
-    
+
     personalSeguroRows.forEach(row => {
       aseguradosSet.add(row.PersonalId);
       documentoAseguradosSet.add(row.PersonalDocumentoNro);
     });
-    
+
     // Set para evitar duplicados al insertar
     const insertados = new Set<number>();
-    
+
     for (const doc of dniNumeros) {
       const personalId = documentoToPersonalId.get(doc);
-    
+
       // Si no está en la tabla Personal
       if (!personalId) {
         notFoundInPersonalTable.push(doc);
         continue;
       }
-    
+
       // estan asegurados y no deberian estarlo
       if (!aseguradosSet.has(personalId)) {
         notFoundInPersonalSeguro.push(doc);
       }
-    
+
       // Si ya se inserto se salta
       if (insertados.has(personalId)) {
-        continue; 
+        continue;
       }
-    
+
       // EXISTE EL PERSONAL Y ESTÁ ASEGURADO → insertar
       await this.addPersonalPolizaSeguro(polizaNroPoliza, polizaNroEndoso, companiaSeguroId, tipoSeguroCodigo, personalId, queryRunner, usuario, ip);
       insertados.add(personalId);
     }
-    
+
     //  Validar asegurados que no deberían estarlo
     for (const doc of documentoAseguradosSet) {
-      if(doc) {
-          if (dniNumeros.includes(doc)) {
-            continue;
-          }
-          shouldNotBeInSeguro.push(doc);
+      if (doc) {
+        if (dniNumeros.includes(doc)) {
+          continue;
+        }
+        shouldNotBeInSeguro.push(doc);
       }
     }
-    
+
 
     return {
       notFoundInPersonalTable,
@@ -1153,7 +1158,7 @@ UNION
 
   }
 
-  async addPersonalPolizaSeguro(polizaNroPoliza:string, polizaNroEndoso:string, companiaSeguroId:number, tipoSeguroCodigo:string, personalId:number, queryRunner:QueryRunner, usuario:string, ip:string){
+  async addPersonalPolizaSeguro(polizaNroPoliza: string, polizaNroEndoso: string, companiaSeguroId: number, tipoSeguroCodigo: string, personalId: number, queryRunner: QueryRunner, usuario: string, ip: string) {
 
 
     await queryRunner.query(`INSERT INTO PersonalPolizaSeguro (
@@ -1179,7 +1184,7 @@ UNION
 
   async fileSeguroUpload(files: any, queryRunner: QueryRunner, usuario: string, ip: string, polizaEndoso: string, endoso: string) {
 
-    
+
     let resultFile = null
     let denDocumento = `${polizaEndoso}-${endoso}`
     if (files?.length > 0) {
@@ -1191,21 +1196,21 @@ UNION
         let cliente_id = file.cliente_id > 0 ? file.cliente_id : null
         let objetivo_id = file.objetivo_id > 0 ? file.objetivo_id : null
         //throw new ClientException(`Debe subir un solo archivo.`)
-         resultFile = await FileUploadController.handleDOCUpload(
-          PersonalId, 
-          objetivo_id, 
-          cliente_id, 
-          file.id, 
-          new Date(), 
-          fec_doc_ven, 
-           denDocumento,
-          null, null, 
-          file, 
+        resultFile = await FileUploadController.handleDOCUpload(
+          PersonalId,
+          objetivo_id,
+          cliente_id,
+          file.id,
+          new Date(),
+          fec_doc_ven,
+          denDocumento,
+          null, null,
+          file,
           usuario,
           ip,
           queryRunner,
           DocumentoClienteId)
-      
+
       }
       return resultFile
 
@@ -1248,58 +1253,58 @@ UNION
         return next(error)
       });
 
-    }
+  }
 
 
-    async getCompaniaSeguroSearch(req: any, res: Response, next: NextFunction) {
-      const result = await dataSource.query(`
+  async getCompaniaSeguroSearch(req: any, res: Response, next: NextFunction) {
+    const result = await dataSource.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro  WHERE CompaniaSeguroInactivo IS NULL OR CompaniaSeguroInactivo = 0`)
-      this.jsonRes(result, res);
-    }
+    this.jsonRes(result, res);
+  }
 
-    async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
-      const result = await dataSource.query(`
+  async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
+    const result = await dataSource.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
-      this.jsonRes(result, res);
-    }
+    this.jsonRes(result, res);
+  }
 
-    async getTipoSeguroSearch(req: any, res: Response, next: NextFunction) {
-      const result = await dataSource.query(`
+  async getTipoSeguroSearch(req: any, res: Response, next: NextFunction) {
+    const result = await dataSource.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro `)
-      this.jsonRes(result, res);
-    }
+    this.jsonRes(result, res);
+  }
 
-    async getTipoSeguroId(req: any, res: Response, next: NextFunction) {
-      const result = await dataSource.query(`
+  async getTipoSeguroId(req: any, res: Response, next: NextFunction) {
+    const result = await dataSource.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro WHERE TipoSeguroCodigo = @0`, [req.params.id])
-      this.jsonRes(result, res);
+    this.jsonRes(result, res);
+  }
+
+  async validateFormPolizaSeguro(params: any, queryRunner: QueryRunner) {
+
+    if (!params.TipoSeguroCodigo) {
+      throw new ClientException(`Debe completar el campo Tipo de Seguro.`)
     }
 
-    async validateFormPolizaSeguro(params: any, queryRunner: QueryRunner) {
-      
-      if(!params.TipoSeguroCodigo){
-        throw new ClientException(`Debe completar el campo Tipo de Seguro.`)
-      }
-
-      if(!params.CompaniaSeguroId){
-        throw new ClientException(`Debe completar el campo Compañía.`)
-      }
-
-      if(params.files.length == 0){
-        throw new ClientException(`Debe subir al menos un archivo.`)
-      }
-
-      if(params.files.length > 1){
-        throw new ClientException(`Debe subir un solo archivo.`)
-      }
-      if(!params.PolizaSeguroFechaEndoso){
-        throw new ClientException(`Debe completar el campo Fecha de Endoso.`)
-      }
-
-      // No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
-      // en caso de que el periodo que desea cargar el endoso tenga cerrada la liquidación pero no tenga póliza asociada, se podrá cargada el endoso de la poliza (esto para cada tipo)
-      
+    if (!params.CompaniaSeguroId) {
+      throw new ClientException(`Debe completar el campo Compañía.`)
     }
+
+    if (params.files.length == 0) {
+      throw new ClientException(`Debe subir al menos un archivo.`)
+    }
+
+    if (params.files.length > 1) {
+      throw new ClientException(`Debe subir un solo archivo.`)
+    }
+    if (!params.PolizaSeguroFechaEndoso) {
+      throw new ClientException(`Debe completar el campo Fecha de Endoso.`)
+    }
+
+    // No se podrá reprocesar datos de pólizas las cuales sean de un periodo el cual la liquidación fue cerrada.
+    // en caso de que el periodo que desea cargar el endoso tenga cerrada la liquidación pero no tenga póliza asociada, se podrá cargada el endoso de la poliza (esto para cada tipo)
+
+  }
 
 }
 

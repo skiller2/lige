@@ -92,34 +92,6 @@ export const flowNovedad = addKeyword(EVENTS.ACTION)
             }
         })
 
-
-/*
-export const flowNovedad1 = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic,endFlow }) => {
-        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-        const telefono = ctx.from
-        const novedad = await novedadController.getBackupNovedad(telefono)
-        await flowDynamic(
-            `*Informe de novedad*\n-Cod.Objetivo: ${novedad.CodObjetivo}\n-Tipo de novedad: ${novedad.Tipo.Descripcion}\n-Descripcion: ${novedad.Descripcion}\n-Hora: ${novedad.Hora}\n-Fecha: ${novedad.Fecha}`
-            , { delay: delay })
-
-
-
-        await state.update({ novedad, reintento: 0 })
-        if (!novedad.CodObjetivo) {
-            return gotoFlow(flowNovedadCodObjetivo)
-        } else if (!novedad.Tipo) {
-            return gotoFlow(flowNovedadTipo)
-        } else if (!novedad.Descripcion) {
-            return gotoFlow(flowNovedadDescrip)
-        } else if (!novedad.Hora) {
-            return gotoFlow(flowNovedadHora)
-        } else if (!novedad.Fecha) {
-            return gotoFlow(flowNovedadFecha)
-        }
-        return gotoFlow(flowNovedad)
-    })
-*/
 export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
     .addAnswer(['Ingrese el código del objetivo donde se produjo el hecho', 'M - Volver al menú',], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
