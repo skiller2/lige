@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "fs";
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
+import { botServer } from "../index.ts";
 
 export class ChatBotController extends BaseController {
   getChatBotStatus(req: Request, res: Response, next: NextFunction) {
@@ -31,9 +32,23 @@ export class ChatBotController extends BaseController {
     return this.getDelay()
   }
 
-  async sendAlert(req: any, res: Response, next: NextFunction) { 
-    console.log('sendAlert')
+  async sendAlert(req: any, res: Response, next: NextFunction) {
+    const nodo = req.body.nodo
+    const estado = req.body.estado
+    const apiKey = req.body.apiKey
     const ret = null
+
+    if (apiKey != "12345678")
+      return this.jsonRes(ret, res);
+      
+    try {
+      await botServer.sendMsg('5491144050522', `Nodo ${nodo} ${estado}`)
+      await botServer.sendMsg('5491131624773', `Nodo ${nodo} ${estado}`)
+      
+    } catch (error) {
+//      console.log('Error enviando msg',error)    
+    }
+    
     return this.jsonRes(ret, res);
    
   }
