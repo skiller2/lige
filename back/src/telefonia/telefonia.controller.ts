@@ -244,7 +244,7 @@ export class TelefoniaController extends BaseController {
   async handleXLSUploadTelefonia(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
-    const file = req.body.files
+    const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
@@ -254,7 +254,6 @@ export class TelefoniaController extends BaseController {
     //console.log("req.body", req.body)
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
-
 
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
@@ -285,7 +284,7 @@ export class TelefoniaController extends BaseController {
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
 
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file.tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
       //      console.log('telefonos', telefonos)
 
