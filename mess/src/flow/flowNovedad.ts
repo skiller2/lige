@@ -16,7 +16,7 @@ if (!existsSync(dirtmp)) {
     mkdirSync(dirtmp, { recursive: true });
 }
 
-export const flowNovedad = addKeyword(EVENTS.ACTION)
+export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
