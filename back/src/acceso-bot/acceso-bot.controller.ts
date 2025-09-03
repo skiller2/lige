@@ -708,7 +708,7 @@ export class AccesoBotController extends BaseController {
             if (existsTel.length==0) throw new ClientException(`El personal no tiene un telefono registrado.`)
     
             await queryRunner
-                .query(`INSERT INTO lige.dbo.bot_cola_mensajes (fecha_ingreso, personal_id, clase_mensaje, texto_mensaje, fecha_proceso, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_fecha_mod, aud_ip_mod) 
+                .query(`INSERT INTO BotColaMensajes (FechaIngreso, PersonalId, ClaseMensaje, TextoMensaje, FechaProceso, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudFechaMod, AudIpMod) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, personal_id, clase_mensaje, texto_mensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
             return true
 
