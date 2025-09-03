@@ -30,14 +30,12 @@ export class NovedadController extends BaseController {
       `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
       `- Hora: ${novedad.Hora ?? 's/d'}\n` +
       `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-      `- Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
+      `- Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
       `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-      `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
-      `*Datos del Personal:*\n`+
-      `- Nombre: ${infoPersonal[0].fullName ?? 's/d'}\n` +
-      `- Cuit:  ${infoPersonal[0].cuit ?? 's/d'}\n`+
-      `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n\n` +
-      `- Documentos registrados: ${novedad.files.length}\n`
+      `- Acción: ${novedad.Accion ?? 's/d'}\n` +
+      `- Registrado por: ${infoPersonal[0].fullName ?? 's/d'} (CUIT: ${infoPersonal[0].cuit ?? 's/d'})\n` +
+      `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
+      `- Documentos: ${novedad.files.length}\n`
 
 
     if (supervisor.GrupoActividadId) {
@@ -160,7 +158,7 @@ export class NovedadController extends BaseController {
     )
     if (!res.length) return []
 
-  
+
     let novPendientes = []
     for (let index = 0; index < res.length; index++) {
       const ClienteElementoDependienteId = res[index].ClienteElementoDependienteId
@@ -182,11 +180,11 @@ export class NovedadController extends BaseController {
       )
       novPendientes = novPendientes.concat(novedades)
     }
-    
+
     return novPendientes
   }
 
-  async getDocumentosByNovedadCodigo(NovedadCodigo:number) {
+  async getDocumentosByNovedadCodigo(NovedadCodigo: number) {
     const result = await dbServer.dataSource.query(`
       SELECT 
         doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle
@@ -199,13 +197,13 @@ export class NovedadController extends BaseController {
     return result
   }
 
-  async setNovedadVisualizacion(NovedadCodigo:number, telefono:string) {
+  async setNovedadVisualizacion(NovedadCodigo: number, telefono: string) {
     const now = new Date()
     await dbServer.dataSource.query(`
       UPDATE Novedad
       SET VisualizacionFecha = @1, VisualizacionUsuario = @2
       WHERE NovedadCodigo = @0
-      `, [NovedadCodigo, now, ('bot-'+telefono)])
+      `, [NovedadCodigo, now, ('bot-' + telefono)])
     return
   }
 

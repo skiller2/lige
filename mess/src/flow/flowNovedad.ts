@@ -574,7 +574,8 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            if (String(ctx.body).toLowerCase() == 's') return gotoFlow(flowNovedadPendiente)
+            const respSINO = ctx.body
+            if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
             await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)
         }
