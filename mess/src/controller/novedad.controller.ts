@@ -197,13 +197,13 @@ export class NovedadController extends BaseController {
     return result
   }
 
-  async setNovedadVisualizacion(NovedadCodigo: number, telefono: string) {
+  async setNovedadVisualizacion(NovedadCodigo: number, telefono: string, personalId:any) {
     const now = new Date()
     await dbServer.dataSource.query(`
       UPDATE Novedad
-      SET VisualizacionFecha = @1, VisualizacionUsuario = @2
+      SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId
       WHERE NovedadCodigo = @0
-      `, [NovedadCodigo, now, ('bot-' + telefono)])
+      `, [NovedadCodigo, now, telefono, personalId])
     return
   }
 
