@@ -26,17 +26,18 @@ export class NovedadController extends BaseController {
     const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
     console.log('infoPersonal', infoPersonal)
 
-    const msg = `*Novedad:*\n` +
-      `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
-      `- Hora: ${novedad.Hora ?? 's/d'}\n` +
-      `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-      `- Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-      `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-      `- Acción: ${novedad.Accion ?? 's/d'}\n` +
-      `- Registrado por: ${infoPersonal[0].fullName ?? 's/d'} (CUIT: ${infoPersonal[0].cuit ?? 's/d'})\n` +
-      `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
-      `- Documentos: ${novedad.files.length}\n`
+    // const msg = `*Novedad:*\n` +
+    //   `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
+    //   `- Hora: ${novedad.Hora ?? 's/d'}\n` +
+    //   `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
+    //   `- Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
+    //   `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+    //   `- Acción: ${novedad.Accion ?? 's/d'}\n` +
+    //   `- Registrado por: ${infoPersonal[0].fullName ?? 's/d'} (CUIT: ${infoPersonal[0].cuit ?? 's/d'})\n` +
+    //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
+    //   `- Documentos: ${novedad.files.length}\n`
 
+    const msg = `Se a registrado una novedas. Para poder consultarla, por favor, responda "Hola".\n` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
