@@ -25,7 +25,7 @@ novedadesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.
   novedadesController.updateNovedad(req, res, next)
 })
 
-novedadesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial'])], (req, res, next) => {
+novedadesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial','gSistemas'])], (req, res, next) => {
   novedadesController.addNovedad(req, res, next)
 })
 
