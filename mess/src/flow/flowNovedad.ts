@@ -16,7 +16,7 @@ if (!existsSync(dirtmp)) {
     mkdirSync(dirtmp, { recursive: true });
 }
 
-export const flowNovedad = addKeyword(EVENTS.ACTION)
+export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
@@ -473,8 +473,9 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
+                
             const novedades = state.get('novedades')
-
+            const personalId = state.get('personalId')
             const index = ctx.body
 
             if (isNaN(index) || (parseInt(index) > novedades.length) || (parseInt(index) < 0)) {
@@ -489,16 +490,15 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
                 `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha) : 's/d'}\n` +
                 `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjetivoDescripcion ?? ''}\n` +
-                `- Tipo de novedad: ${novedad.TipoDescripcion ?? 's/d'}\n` +
+                `- Tipo: ${novedad.TipoDescripcion ?? 's/d'}\n` +
                 `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
                 `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
-                `*Datos del Personal:*\n` +
-                `- Personal: ${novedad.PersonalFullName ?? 's/d'}\n` +
+                `- Registrado por: ${novedad.PersonalFullName ?? 's/d'}\n` +
                 `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n`
                 // `- Documentos registrados: ${novedad.files.length}\n`
                 , { delay: delay })
 
-            await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from)
+            await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from, personalId)
 
             // await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
 
@@ -574,7 +574,8 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            if (String(ctx.body).toLowerCase() == 's') return gotoFlow(flowNovedadPendiente)
+            const respSINO = ctx.body
+            if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
             await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)
         }

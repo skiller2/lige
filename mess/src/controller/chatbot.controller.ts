@@ -85,7 +85,7 @@ export class ChatBotController extends BaseController {
       if (existsTel.length == 0) throw new ClientException(`El personal no tiene un telefono registrado.`)
 
       await queryRunner
-        .query(`INSERT INTO lige.dbo.bot_cola_mensajes (fecha_ingreso, personal_id, clase_mensaje, texto_mensaje, fecha_proceso, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_fecha_mod, aud_ip_mod) 
+        .query(`INSERT INTO BotColaMensajes (FechaIngreso, PersonalId, ClaseMensaje, TextoMensaje, FechaProceso, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudFechaMod, AudIpMod) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, personal_id, clase_mensaje, texto_mensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
       return true
 
@@ -99,16 +99,16 @@ export class ChatBotController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
     return queryRunner.query(`
-      SELECT col.fecha_ingreso, col.personal_id, tel.telefono, col.texto_mensaje,
+      SELECT col.FechaIngreso, col.PersonalId, tel.telefono, col.TextoMensaje,
       1 
-      FROM lige.dbo.bot_cola_mensajes col 
-      JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = col.personal_id
-      WHERE col.fecha_proceso IS NULL`, [])
+      FROM BotColaMensajes col 
+      JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = col.PersonalId
+      WHERE col.FechaProceso IS NULL`, [])
   }
 
   static async updColaMsg(fecha_ingreso: Date, personal_id: number) {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
-    return queryRunner.query(`UPDATE lige.dbo.bot_cola_mensajes SET fecha_proceso = @0, aud_usuario_mod=@3, aud_fecha_mod=@0, aud_ip_mod=@4 WHERE fecha_ingreso = @1 AND personal_id = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1'])
+    return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1'])
   }
 }
