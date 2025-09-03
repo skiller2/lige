@@ -24,7 +24,8 @@ class SqlServerAdapter extends MemoryDB {
       return lastRow
     else {
       const res = await dbServer.dataSource.query(`SELECT TOP 1 l.Stm, l.Ref, l.Keyword, l.Answer, l.RefSerialize, l.FromMsg, l.Options FROM BotLog l WHERE l.FromMsg = @0 AND l.Keyword IS NOT NULL ORDER BY Stm DESC`, [from])
-      const row = res[0] ? { stm: res[0].stm, ref: res[0].ref, keyword: res[0].keyword, answer: res[0].answer, refSerialize: res[0].refSerialize, from: res[0].from_msg, options: JSON.parse(res[0].options) } : {}
+      console.log('----------',res)
+      const row = res[0] ? { stm: res[0].Stm, ref: res[0].Ref, keyword: res[0].Keyword, answer: res[0].Answer, refSerialize: res[0].RefSerialize, from: res[0].FromMsg, options: JSON.parse(res[0].Options) } : {}
       return row
     }
   }
