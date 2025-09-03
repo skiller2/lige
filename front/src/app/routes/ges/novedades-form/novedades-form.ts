@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
-import { Component, inject, ChangeDetectionStrategy,ViewEncapsulation, signal, input, output, model } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy,ViewEncapsulation, signal, input, output, model, viewChild } from '@angular/core';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { SearchService } from 'src/app/services/search.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
@@ -32,6 +32,7 @@ export class NovedadesFormComponent {
   public router = inject(Router)
   onAddorUpdate = output()
   formChange$ = new BehaviorSubject('');
+  fileUploadComponent = viewChild.required(FileUploadComponent);
 
   $selectedObjetivoIdChange = new BehaviorSubject(0)
   $optionsTipoNovedad = this.searchService.getTipoNovedad()
@@ -67,11 +68,10 @@ export class NovedadesFormComponent {
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getNovedad(this.NovedadCodigo()))
 
-    console.log("infoObjetivo", infoObjetivo)
     this.formCli.reset(infoObjetivo[0])
-    
     this.formCli.patchValue({
-      ObjetivoId: infoObjetivo[0].ObjetivoId
+      ObjetivoId: infoObjetivo[0].ObjetivoId,
+      DocumentoId: infoObjetivo[0].DocumentoId || infoObjetivo[0].id
     })
   }
 
@@ -79,31 +79,29 @@ export class NovedadesFormComponent {
   async save() {
     this.loadingSrv.open({ type: 'spin', text: '' })
     let form = this.formCli.getRawValue();
+    let DocumentoId = this.formCli.getRawValue().DocumentoId
     try {
         if (this.NovedadCodigo()) {
 
-          // este es para cuando es update
-
           let result = await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
-        
+          await this.load()
+
         } else {
-          // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addNovedad(form))
-           console.log("result", result)
-          this.formCli.patchValue({
-          });
-
-          
+          this.NovedadCodigo.set(result.data.NovedadCodigo || result.data.id || result.data.NovedadId)
+          await this.load()
         }
+        
         this.onAddorUpdate.emit()
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
-        this.formChange$.next("") 
+        
 
     } catch (e) {
-        
+        console.error('Error al guardar novedad:', e)
     }
+    this.formChange$.next("save") 
     this.loadingSrv.close()
 }
 

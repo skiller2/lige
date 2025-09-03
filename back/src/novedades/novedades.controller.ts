@@ -192,7 +192,6 @@ export class NovedadesController extends BaseController {
                     ,novtip.NovedadTipoCod
                     ,nov.Fecha
                     ,nov.VisualizacionFecha
-                    ,nov.VisualizacionUsuario
                     ,nov.Accion
                     ,1
                     From Novedad nov
@@ -496,7 +495,7 @@ export class NovedadesController extends BaseController {
             Hora: hora,
         });
         const VisualizacionFecha = null;
-        const VisualizacionUsuario = null;
+        const VisualizacionPersonalId = null;
 
         await queryRunner.query(
             `
@@ -518,7 +517,7 @@ export class NovedadesController extends BaseController {
                 AudUsuarioMod,
                 Accion,
                 VisualizacionFecha,
-                VisualizacionUsuario
+                VisualizacionPersonalId
             )
             VALUES (
                 @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17
@@ -542,7 +541,7 @@ export class NovedadesController extends BaseController {
                 AudUsuarioMod,
                 Accion,
                 VisualizacionFecha,
-                VisualizacionUsuario
+                VisualizacionPersonalId
             ]
         );
     }
