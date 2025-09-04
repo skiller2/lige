@@ -170,12 +170,15 @@ export class NovedadController extends BaseController {
             , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
             , tipo.Descripcion TipoDescripcion
             , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
-            , obj.ObjetivoDescripcion
+            , obj.ObjetivoDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+            CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(eledep.ClienteElementoDependienteDescripcion)) ObjDescripcion
           FROM Novedad nov
           JOIN NovedadTipo tipo ON tipo.NovedadTipoCod = nov.NovedadTipoCod
           JOIN Personal per ON per.PersonalId = nov.PersonalId
           LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
           JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
+          LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+          LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
           WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1) AND nov.VisualizacionFecha IS NULL
         `, [ClienteId, ClienteElementoDependienteId]
       )

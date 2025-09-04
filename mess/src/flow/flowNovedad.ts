@@ -31,7 +31,7 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
             `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
-            `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
+            `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.Descripcion ?? ''}\n` +
             `4 - Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
@@ -460,9 +460,9 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
         let msg: string = 'Ingrese el número de la novedad a consultar:\n'
         novedades.forEach((nov: any, i: any) => {
-            msg += `${nov.id} - Novedad #${nov.NovedadCodigo}\n`
+            msg += `${nov.id} - Nov. #${nov.NovedadCodigo} - ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'} - ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjDescripcion ?? ''} \n`
         })
-        msg += 'M - Volver al menú'
+        msg += '\nM - Volver al menú'
 
         await flowDynamic(msg, { delay: delay })
 
@@ -489,13 +489,13 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 `*Novedad:*\n` +
                 `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
                 `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha) : 's/d'}\n` +
-                `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjetivoDescripcion ?? ''}\n` +
+                `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjDescripcion ?? ''}\n` +
                 `- Tipo: ${novedad.TipoDescripcion ?? 's/d'}\n` +
                 `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
                 `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
                 `- Registrado por: ${novedad.PersonalFullName ?? 's/d'}\n` +
-                `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n` +
-                `- Documentos adjuntos: ${novedad.files.length}\n`
+                `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n` //+
+                // `- Documentos adjuntos: ${novedad.files.length}\n`
                 , { delay: delay })
 
             await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from, personalId)
