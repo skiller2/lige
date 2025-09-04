@@ -32,7 +32,7 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
             `1 - Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
             `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-            `4 - Tipo de novedad: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
+            `4 - Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
             `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
             `6 - Acción: ${novedad.Accion ?? 's/d'}`,
 
@@ -137,14 +137,14 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
 
         const res = await novedadController.getNovedadTipo()
         const concatOptionsTipo = res.map((item: any, i: number) => `${i + 1}- ${item.Descripcion}`).join('\n');
-        await flowDynamic([`${concatOptionsTipo}`, `M - Volver al menú`,], { delay: delay })
+        await flowDynamic([`${concatOptionsTipo} \n\n M - Volver al menú`], { delay: delay })
         novedad.OptionsTipo = res
         await novedadController.saveNovedad(personalId, novedad)
 
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
     })
-    .addAnswer(['Ingrese el número del tipo de situación', 'M - Volver al menú',], { capture: true, delay },
+    .addAnswer(['Ingrese el número del tipo de situación'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
@@ -494,8 +494,8 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
                 `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
                 `- Registrado por: ${novedad.PersonalFullName ?? 's/d'}\n` +
-                `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n`
-                // `- Documentos registrados: ${novedad.files.length}\n`
+                `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n` +
+                `- Documentos adjuntos: ${novedad.files.length}\n`
                 , { delay: delay })
 
             await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from, personalId)
