@@ -305,7 +305,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
 
 
 export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
-    .addAnswer('Enviar al responsable (si/no)', { capture: true, delay },
+    .addAnswer('Enviar al responsable (Si/No)', { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const personalId = state.get('personalId')
@@ -572,6 +572,37 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
         await flowDynamic(msg, { delay: delay })
     })
     .addAnswer('', { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            const respSINO = ctx.body
+            if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
+            await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
+            return gotoFlow(flowMenu)
+        }
+    )
+
+export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADES"))
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        //Verfico el personal
+        const telefono = ctx.from
+        const res = await personalController.getPersonalQuery(telefono,0)
+
+        if (res.length) {
+            if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
+                // await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
+                stop(ctx, gotoFlow, state)
+                return endFlow()
+            }
+
+            await state.update({ personalId: res[0].personalId })
+            await state.update({ cuit: res[0].cuit })
+            await state.update({ codigo: res[0].codigo })
+            await state.update({ name: res[0].name.trim() })
+        }
+
+    })
+    .addAnswer('¿Desea ver las novedades? (Si/No)', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body

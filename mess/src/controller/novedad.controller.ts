@@ -23,8 +23,7 @@ export class NovedadController extends BaseController {
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
 
-    const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
-    console.log('infoPersonal', infoPersonal)
+    // const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
 
     // const msg = `*Novedad:*\n` +
     //   `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
@@ -37,7 +36,7 @@ export class NovedadController extends BaseController {
     //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
     //   `- Documentos: ${novedad.files.length}\n`
 
-    const msg = `Se a registrado una novedas en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}. Para poder consultarla, por favor, responda "Hola".\n` 
+    const msg = `Se a registrado una novedas en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}.\n` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
@@ -48,8 +47,10 @@ export class NovedadController extends BaseController {
         telefono = novedad.telefonoOrigen
 
       if (telefono) {
-        console.log('envio a', PersonalId, telefono, msg)
+        // console.log('envio a', PersonalId, telefono, msg)
         await botServer.sendMsg(telefono, msg)
+        
+        await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
         //ChatBotController.enqueBotMsg(PersonalId, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
 
       }
