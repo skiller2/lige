@@ -52,6 +52,17 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: false
     },
+    
+    {
+        name: "Razón Social",
+        type: "string",
+        id: "ClienteDenominacion",
+        field: "ClienteDenominacion",
+        fieldName: "cli.ClienteDenominacion",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
     {
         name: "Cod Producto",
         type: "string",
@@ -296,8 +307,8 @@ export class FacturacionController extends BaseController {
                     fac.ComprobanteNro,
                     fac.ComprobanteTipoCodigo,
                     ctp.Descripcion AS ComprobanteDescripcion,
-                    cli.ClienteApellidoNombre
-                    
+                    cli.ClienteApellidoNombre,
+                    cli.ClienteDenominacion
                     FROM Facturacion fac
                     Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
                     LEFT JOIN Cliente cli ON cli.ClienteId=eledep.ClienteId
