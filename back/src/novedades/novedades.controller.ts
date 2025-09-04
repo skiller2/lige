@@ -305,10 +305,11 @@ export class NovedadesController extends BaseController {
             let ObjObjetivoNew = {}
             const AudFechaMod = new Date()
 
-            const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
-            const usuarioId = usuarioIdquery[0].UsuarioPersonalId
+           // console.log("res.local.PersonalId", res.locals.PersonalId)
+           // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
+            const usuarioId =  res.locals.PersonalId
 
-          //  throw new ClientException(`test.`)
+           //throw new ClientException(`test.`)
            
             await queryRunner.startTransaction()
 
@@ -378,8 +379,8 @@ export class NovedadesController extends BaseController {
         try {
             
             const ip = this.getRemoteAddress(req)
-            const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
-            const usuarioId = usuarioIdquery[0].UsuarioPersonalId
+           // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
+            const usuarioId = res.locals.PersonalId
            
             await queryRunner.startTransaction()
             await this.FormValidations(Obj)
@@ -415,7 +416,7 @@ export class NovedadesController extends BaseController {
 
     async fileNovedadUpload(queryRunner: any, Obj: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any, file: any, array_id: any, doc_id: any ) {
 
-        let result = await FileUploadController.handleDOCUpload(usuarioId, Obj.ObjetivoId, null, null, new Date(), null, file.doctipo_id, null, null, file, usuarioName, ip, queryRunner)
+        let result = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(), null, file.doctipo_id, null, null, file, usuarioName, ip, queryRunner)
 
 
          if (result && typeof result === 'object') {
@@ -423,9 +424,6 @@ export class NovedadesController extends BaseController {
              array_id.push(doc_id)
          }
 
-         console.log("file.tempfilename", file.tempfilename)
-         console.log("file", file)
-         console.log("result", result)
          if (file.tempfilename && !file.id) {
              await queryRunner.query(`INSERT INTO DocumentoRelaciones (
              DocumentoId,
@@ -444,7 +442,7 @@ export class NovedadesController extends BaseController {
              @0, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7, @8
          )`, [
              doc_id,
-             usuarioId,
+             null,
              null,
              null,
              null,
