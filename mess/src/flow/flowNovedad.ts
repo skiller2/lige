@@ -482,25 +482,31 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 return fallBack()
             }
 
-            const novedad = novedades.find((nov: any) => { return nov.id == index })
-            state.update({ NovedadCodigo: novedad.NovedadCodigo })
+            try {
+                const novedad = novedades.find((nov: any) => { return nov.id == index })
+                state.update({ NovedadCodigo: novedad.NovedadCodigo })
 
-            flowDynamic(
-                `*Novedad:*\n` +
-                `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
-                `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha) : 's/d'}\n` +
-                `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjDescripcion ?? ''}\n` +
-                `- Tipo: ${novedad.TipoDescripcion ?? 's/d'}\n` +
-                `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-                `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
-                `- Registrado por: ${novedad.PersonalFullName ?? 's/d'}\n` +
-                `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n` //+
-                // `- Documentos adjuntos: ${novedad.files.length}\n`
-                , { delay: delay })
-
-            await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from, personalId)
-
-            // await flowDynamic(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades','M - Volver al menú'], { delay: delay })
+                flowDynamic(
+                    `*Novedad:*\n` +
+                    `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
+                    `- Hora: ${novedad.Fecha ? parseHora(novedad.Fecha) : 's/d'}\n` +
+                    `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.ObjDescripcion ?? ''}\n` +
+                    `- Tipo: ${novedad.TipoDescripcion ?? 's/d'}\n` +
+                    `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
+                    `- Acción: ${novedad.Accion ?? 's/d'}\n\n` +
+                    `- Registrado por: ${novedad.PersonalFullName ?? 's/d'}\n` +
+                    `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n` +
+                    `- Documentos adjuntos: ${novedad.CantDocRelacionados}\n`
+                    , { delay: delay })
+                
+                await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from, personalId)
+                
+            } catch (error) {
+                console.log('Error --->', error)
+                await flowDynamic([`Ocurrio un error al mostrar la novedad. Informe al administrador del sistema.`, `Redirigiendo al menú ...`], { delay: delay })
+                return gotoFlow(flowMenu)
+            }
+            
 
         }
     )

@@ -171,8 +171,9 @@ export class NovedadController extends BaseController {
             , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
             , tipo.Descripcion TipoDescripcion
             , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
-            , obj.ObjetivoDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
-            CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(eledep.ClienteElementoDependienteDescripcion)) ObjDescripcion
+            , obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId
+            , CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(eledep.ClienteElementoDependienteDescripcion)) ObjDescripcion
+            , ISNULL(cnt.Cantidad, 0) AS CantDocRelacionados
           FROM Novedad nov
           JOIN NovedadTipo tipo ON tipo.NovedadTipoCod = nov.NovedadTipoCod
           JOIN Personal per ON per.PersonalId = nov.PersonalId
@@ -180,6 +181,13 @@ export class NovedadController extends BaseController {
           JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
           LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
           LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+          LEFT JOIN (
+            	SELECT doc.NovedadCodigo, COUNT(doc.NovedadCodigo) AS Cantidad
+              FROM DocumentoRelaciones doc
+              JOIN Novedad nov ON nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1)
+              WHERE doc.NovedadCodigo = nov.NovedadCodigo
+              GROUP BY doc.NovedadCodigo
+          ) cnt ON cnt.NovedadCodigo = nov.NovedadCodigo
           WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1) AND nov.VisualizacionFecha IS NULL
         `, [ClienteId, ClienteElementoDependienteId]
       )
@@ -206,7 +214,7 @@ export class NovedadController extends BaseController {
     const now = new Date()
     await dbServer.dataSource.query(`
       UPDATE Novedad
-      SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId
+      SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId = @3
       WHERE NovedadCodigo = @0
       `, [NovedadCodigo, now, telefono, personalId])
     return
