@@ -23,8 +23,7 @@ export class NovedadController extends BaseController {
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
 
-    const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
-    console.log('infoPersonal', infoPersonal)
+    // const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
 
     // const msg = `*Novedad:*\n` +
     //   `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
@@ -37,7 +36,7 @@ export class NovedadController extends BaseController {
     //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
     //   `- Documentos: ${novedad.files.length}\n`
 
-    const msg = `Se a registrado una novedas. Para poder consultarla, por favor, responda "Hola".\n` 
+    const msg = `Se a registrado una novedas en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}.\n` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
@@ -48,8 +47,10 @@ export class NovedadController extends BaseController {
         telefono = novedad.telefonoOrigen
 
       if (telefono) {
-        console.log('envio a', PersonalId, telefono, msg)
+        // console.log('envio a', PersonalId, telefono, msg)
         await botServer.sendMsg(telefono, msg)
+        
+        await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
         //ChatBotController.enqueBotMsg(PersonalId, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
 
       }
@@ -170,12 +171,15 @@ export class NovedadController extends BaseController {
             , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
             , tipo.Descripcion TipoDescripcion
             , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
-            , obj.ObjetivoDescripcion
+            , obj.ObjetivoDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+            CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(eledep.ClienteElementoDependienteDescripcion)) ObjDescripcion
           FROM Novedad nov
           JOIN NovedadTipo tipo ON tipo.NovedadTipoCod = nov.NovedadTipoCod
           JOIN Personal per ON per.PersonalId = nov.PersonalId
           LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
           JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
+          LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+          LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
           WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1) AND nov.VisualizacionFecha IS NULL
         `, [ClienteId, ClienteElementoDependienteId]
       )
