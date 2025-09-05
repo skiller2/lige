@@ -44,8 +44,8 @@ const listaColumnas: any[] = [
         field: "SucursalDescripcion",
         fieldName: "suc.SucursalId",
         searchComponent: "inpurForSucursalSearch",
-        sortable: true,
-        hidden: false,
+        sortable: false,
+        hidden: true,
         searchHidden: false
     },
     {
@@ -315,7 +315,7 @@ export class NovedadesController extends BaseController {
 
             await this.FormValidations(Obj)
 
-            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip)
+            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip, Obj.ObjetivoId)
             
             let array_id = []
             let doc_id = 0
@@ -362,10 +362,10 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any) {
+    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any, ObjetivoId: any) {
         await queryRunner.query(`
-            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7 where NovedadCodigo = @4`
-            , [ Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod])
+            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ObjetivoId = @8 where NovedadCodigo = @4`
+            , [ Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod,ObjetivoId])
     }
 
 
@@ -380,7 +380,7 @@ export class NovedadesController extends BaseController {
             
             const ip = this.getRemoteAddress(req)
            // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
-            const usuarioId = res.locals.PersonalId
+            const usuarioId = res.locals.PersonalId ? res.locals.PersonalId : null
            
             await queryRunner.startTransaction()
             await this.FormValidations(Obj)

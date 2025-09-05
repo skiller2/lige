@@ -60,7 +60,7 @@ export class NovedadesFormComponent {
     }else{
       this.formCli.enable()
     }
-    this.formCli.get('ObjetivoId')?.disable()
+    
     this.formCli.markAsPristine()        
 
  }
