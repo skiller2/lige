@@ -315,7 +315,12 @@ export class NovedadesController extends BaseController {
 
             await this.FormValidations(Obj)
 
-            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip, Obj.ObjetivoId)
+            
+            const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
+            Obj.ClienteId = objetivo[0].ClienteId
+            Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+
+            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             
             let array_id = []
             let doc_id = 0
@@ -362,10 +367,10 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any, ObjetivoId: any) {
+    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any,  ClienteId: any, ClienteElementoDependienteId: any) {
         await queryRunner.query(`
-            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ObjetivoId = @8 where NovedadCodigo = @4`
-            , [ Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod,ObjetivoId])
+            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ClienteId = @8, ClienteElementoDependienteId = @9 where NovedadCodigo = @4`
+            , [ Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod, ClienteId, ClienteElementoDependienteId])
     }
 
 
@@ -386,11 +391,11 @@ export class NovedadesController extends BaseController {
             await this.FormValidations(Obj)
 
           
-            const novedadId = await this.getProxNumero(queryRunner, `Novedad`, usuarioId, ip)
+            const novedadId = await this.getProxNumero(queryRunner, `Novedad`, res.locals.PersonalId, ip)
 
             const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
             Obj.ClienteId = objetivo[0].ClienteId
-            Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteRubroId
+            Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
                   Obj.Telefono, usuarioId, ip, novedadId)
@@ -474,7 +479,7 @@ export class NovedadesController extends BaseController {
         const AudUsuarioMod = usuarioId;
 
         const PersonalId = usuarioId
-
+        const telefono =  Telefono ? Telefono : null
         const fechaString = Fecha;
         const fechaObjeto = new Date(fechaString);
         const hora = fechaObjeto.getHours() + ':' + fechaObjeto.getMinutes();
@@ -493,7 +498,7 @@ export class NovedadesController extends BaseController {
             Hora: hora,
         });
         const VisualizacionFecha = null;
-        const VisualizacionPersonalId = null;
+        const VisualizacionPersonaId = null;
 
         await queryRunner.query(
             `
@@ -515,7 +520,7 @@ export class NovedadesController extends BaseController {
                 AudUsuarioMod,
                 Accion,
                 VisualizacionFecha,
-                VisualizacionPersonalId
+                VisualizacionPersonaId
             )
             VALUES (
                 @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17
@@ -539,7 +544,7 @@ export class NovedadesController extends BaseController {
                 AudUsuarioMod,
                 Accion,
                 VisualizacionFecha,
-                VisualizacionPersonalId
+                VisualizacionPersonaId
             ]
         );
     }
