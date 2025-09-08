@@ -491,7 +491,25 @@ UNION
     const ip = this.getRemoteAddress(req)
 
     const queryRunner = dataSource.createQueryRunner();
+
+    let estadoProceso = 'EJE';
+    let resultadoProceso = '';
+    let parametrosEntrada = [anio, mes, usuario, ip]
+
+    let seguro: any[] = []
     try {
+      // Log de inicio
+      await this.procesoAutomaticoLog(
+        queryRunner,
+        `Actualización de Seguros ${mes}/${anio}`,
+        estadoProceso,
+        JSON.stringify(parametrosEntrada),
+        'Proceso iniciado',
+        usuario,
+        ip
+      );
+
+
       await queryRunner.startTransaction();
 
       const PersonalSeguroDesde = new Date(anio, mes - 1, 1)
@@ -512,18 +530,29 @@ UNION
 
       //  throw new ClientException("stop")
       const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
+      seguro.push(personalCoto)
 
       const personalEdesur = [...await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 798, anio, mes)]
+      seguro.push(personalEdesur)
 
       const personalEnergiaArgentina = [...await this.getPersonalHorasByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalHorasByClientId(queryRunner, 867, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 867, anio, mes)]
+      seguro.push(personalEnergiaArgentina)
 
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
+      seguro.push(personalSitRev)
 
 
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
+      seguro.push(personalEnSeguroCoto)
+
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
+      seguro.push(personalEnSeguroEdesur)
+
       const personalEnSeguroVidCol = await this.getPersonalEnSeguro(queryRunner, 'VC', anio, mes)
+      seguro.push(personalEnSeguroVidCol)
+
       const personalEnSeguroEnergiaArgentina = await this.getPersonalEnSeguro(queryRunner, 'APEA', anio, mes)
+      seguro.push(personalEnSeguroEnergiaArgentina)
 
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
@@ -561,6 +590,7 @@ UNION
       //TODO: Falta sacer los de coto y edesur
 
       const personalEnSeguroGeneral = await this.getPersonalEnSeguro(queryRunner, 'APG', anio, mes)
+      seguro.push(personalEnSeguroGeneral)
 
 
       for (const row of personalEnSeguroCoto) {
@@ -653,10 +683,40 @@ UNION
       }
 
       await queryRunner.commitTransaction()
+
+      parametrosEntrada.push(seguro)
+      // Log de éxito
+      estadoProceso = 'COM';
+      resultadoProceso = 'Procesado correctamente';
+      await this.procesoAutomaticoLog(
+        queryRunner,
+        `Actualización de Seguros ${mes}/${anio}`,
+        estadoProceso,
+        JSON.stringify(parametrosEntrada),
+        resultadoProceso,
+        usuario,
+        ip
+      );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+
+      // Log de error
+      estadoProceso = 'ERR';
+      resultadoProceso = error?.message || 'Error desconocido';
+      await this.procesoAutomaticoLog(
+        queryRunner,
+        `Actualización de Seguros ${mes}/${anio}`,
+        estadoProceso,
+        JSON.stringify(parametrosEntrada),
+        resultadoProceso,
+        usuario,
+        ip
+      );
+
+
       return next(error)
     }
+
     return (res) ? this.jsonRes(true, res, "Procesado correctamente") : true
   }
 

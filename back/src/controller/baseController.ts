@@ -324,7 +324,7 @@ export class BaseController {
     let DenNumero = 1
     const numerador = await queryRunner.query('SELECT DenNumero FROM GenNumerador WHERE NumeradorCodigo=@0', [NumeradorCodigo])
     if (numerador.length == 0) {
-      await queryRunner.query(`INSERT INTO GenNumerador (DenNumerador,DenNumero,AudUsuarioIng,AudIpIng,AudFechaIng,AudUsuarioMod,AudIpMod,AudFechaMod) 
+      await queryRunner.query(`INSERT INTO GenNumerador (NumeradorCodigo,DenNumero,AudUsuarioIng,AudIpIng,AudFechaIng,AudUsuarioMod,AudIpMod,AudFechaMod) 
       VALUES(@0,@1,@2,@3,@4,@5,@6,@7)`, [NumeradorCodigo, DenNumero, usuario, ip, fechaActual, usuario, ip, fechaActual])
     } else {
       DenNumero = numerador[0]['DenNumero'] + 1
@@ -357,16 +357,38 @@ export class BaseController {
   }
 
   // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
-  async logProcesoAutomatico(queryRunner: QueryRunner, NombreProceso: string, EstadoCod: string, ParamentroEntrada: string, Resultado: string, usuario: string, ip: string) {
+  async procesoAutomaticoLog(queryRunner: QueryRunner, NombreProceso: string, EstadoCod: string, ParametroEntrada: string, Resultado: string, usuario: string, ip: string) {
     const fechaActual = new Date()
     let procesoCodigo = await this.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
 
-    await queryRunner.query(`INSERT INTO lige.dbo.LogProcesoAutomatico (LogProcesoAutomaticoProceso,LogProcesoAutomaticoDetalle,
-    aud_usuario_ins,aud_ip_ins,aud_fecha_ins) 
-      VALUES(@0,@1,@2,@3,@4)`, [usuario, ip, fechaActual])
 
-    return procesoCodigo
-
+    await queryRunner.query(
+      `INSERT INTO ProcesoAutomaticoLog (
+      ProcesoAutomaticoLogCodigo,
+      NombreProceso,
+      FechaInicio,
+      FechaFin,
+      ProcesoAutomaticoEstadoCod,
+      ParametroEntrada,
+      Resultado,
+      AudFechaIng,
+      AudUsuarioIng,
+      AudIpIng
+    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9)`,
+      [
+        procesoCodigo,
+        NombreProceso,
+        fechaActual,
+        null,
+        EstadoCod,
+        ParametroEntrada,
+        Resultado,
+        fechaActual,
+        usuario,
+        ip
+      ]
+    );
+    // return procesoCodigo
   }
 
 
