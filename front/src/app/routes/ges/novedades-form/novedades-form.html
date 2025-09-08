@@ -24,6 +24,7 @@
           formControlName="Fecha"
           nzShowTime="true"
           nzFormat="yyyy-MM-dd HH:mm"
+          nzMode="date"
           style="width: 100%;">
         </nz-date-picker>
       </nz-form-control>
@@ -70,11 +71,19 @@
     
   </nz-form-item>
 
-  <nz-form-item *ngIf="formCli.enabled">
+
+<nz-form-item *ngIf="formCli.enabled">
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-      <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine" >
+      <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine"  >
         {{ 'app.btn.save' | i18n }}
+      </button>
+      <button nzType="primary" nz-button nzDanger  nz-popconfirm
+      nzPopconfirmTitle="Esta seguro que quiere eliminar esta novedad?"
+      (nzOnConfirm)="deleteNovedad()"
+      nzPopconfirmPlacement="top"  >
+      {{ 'app.btn.delete' | i18n }}
       </button>
     </nz-form-control>
   </nz-form-item>
+
   </form>
