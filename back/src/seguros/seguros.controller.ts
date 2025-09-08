@@ -329,28 +329,39 @@ export class SegurosController extends BaseController {
 
 
   private async getPersonalBySitRev(queryRunner: any, anio: number, mes: number) {
-    return queryRunner.query(`SELECT psr.*, persr.PersonalSituacionRevistaDesde, persr.PersonalSituacionRevistaSituacionId SituacionRevistaId, DATEDIFF(month,persr.PersonalSituacionRevistaDesde,EOMONTH(DATEFROMPARTS(@1,@2,1))) month_diff FROM (
-
-
-SELECT persr.PersonalId, STRING_AGG(CONCAT(TRIM(sitrev.SituacionRevistaDescripcion),' ',FORMAT(persr.PersonalSituacionRevistaDesde,'dd-MM-yyyy')),', ') detalle,
---persr.PersonalSituacionRevistaId, 
---						persr.PersonalSituacionRevistaDesde,
-	--					persr.PersonalSituacionRevistaHasta,
-		--				sitrev.SituacionRevistaDescripcion,
-		DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1)) desde,
-		EOMONTH(DATEFROMPARTS(@1,@2,1)) hasta
-	FROM PersonalSituacionRevista persr
-	LEFT JOIN SituacionRevista sitrev  ON sitrev.SituacionRevistaId = persr.PersonalSituacionRevistaSituacionId 
-	 WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-			ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1))
-							
-						AND sitrev.SituacionRevistaId IN (2,10,11,20,12,7)
-	-- 1=1					
-GROUP BY persr.PersonalId ) AS psr
-LEFT JOIN PersonalSituacionRevista persr ON persr.PersonalId = psr.PersonalId
-WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-			ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
-`, [, anio, mes])
+    return queryRunner.query(`SELECT 
+          psr.*,
+          persr.PersonalSituacionRevistaDesde,
+          persr.PersonalSituacionRevistaSituacionId AS SituacionRevistaId,
+          DATEDIFF(MONTH, persr.PersonalSituacionRevistaDesde, EOMONTH(DATEFROMPARTS(@1,@2,1))) AS month_diff
+      FROM (
+          SELECT 
+              persr.PersonalId,
+              STRING_AGG(
+                  CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(persr.PersonalSituacionRevistaDesde,'dd-MM-yyyy')),
+                  ', '
+              ) AS detalle,
+              DATEADD(MONTH, -1, DATEFROMPARTS(@1,@2,1)) AS desde,
+              EOMONTH(DATEFROMPARTS(@1,@2,1)) AS hasta
+          FROM PersonalSituacionRevista persr
+          LEFT JOIN SituacionRevista sitrev  
+              ON sitrev.SituacionRevistaId = persr.PersonalSituacionRevistaSituacionId 
+          WHERE persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+            AND ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1))
+            AND sitrev.SituacionRevistaId IN (2,10,11,20,12,7)
+          GROUP BY persr.PersonalId
+      ) AS psr
+      OUTER APPLY (
+          SELECT TOP 1 *
+          FROM PersonalSituacionRevista p2
+          WHERE p2.PersonalId = psr.PersonalId
+            AND p2.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+            AND ISNULL(p2.PersonalSituacionRevistaHasta, '9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+          ORDER BY 
+              CASE WHEN p2.PersonalSituacionRevistaSituacionId IN (2,10,12) THEN 0 ELSE 1 END, -- prioridad
+              p2.PersonalSituacionRevistaDesde DESC
+      ) persr
+      `, [, anio, mes])
 
   }
 
@@ -484,7 +495,7 @@ UNION
       await queryRunner.startTransaction();
 
       const PersonalSeguroDesde = new Date(anio, mes - 1, 1)
-      const PersonalSeguroHasta = new Date(anio, mes, 0)
+      const PersonalSeguroHasta = new Date(anio, mes - 1, 0)
 
       const maxfechas = (await queryRunner.query(`SELECT MAX(seg.PersonalSeguroDesde) PersonalSeguroDesde_max, MAX(seg.PersonalSeguroHasta) PersonalSeguroHasta_max FROM PersonalSeguro seg`))[0]
       const PersonalSeguroDesde_max = new Date(maxfechas.PersonalSeguroDesde_max)
