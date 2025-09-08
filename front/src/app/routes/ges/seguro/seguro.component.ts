@@ -10,6 +10,7 @@ import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
 import { PolizaSeguroComponent } from '../poliza-seguro/poliza-seguro.component'
 import { PersonalSeguroPolizaComponent } from '../personal-seguro-poliza/personal-seguro-poliza.component'
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-seguro',
@@ -34,6 +35,7 @@ export class SeguroComponent {
   TipoSeguroCodigo = signal<string>("")
 
   public apiService = inject(ApiService)
+  private readonly loadingSrv = inject(LoadingService)
   constructor() { }
 
   async processInsurrance() {
@@ -45,10 +47,16 @@ export class SeguroComponent {
   }
 
   async send() {
+    this.loadingSrv.open({ type: 'spin', text: '' })
     this.selectedPeriod.year = (this.fechaseguro() as Date).getFullYear()
     this.selectedPeriod.month = (this.fechaseguro() as Date).getMonth() + 1
-    const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
-
+    try {
+      const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
+    } catch (error) {
+      console.error('Error al procesar seguro', error)
+    }finally{
+      this.loadingSrv.close()
+    }
   }
 
   ngOnInit(): void {
