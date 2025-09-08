@@ -530,29 +530,20 @@ UNION
 
       //  throw new ClientException("stop")
       const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
-      seguro.push(personalCoto)
 
       const personalEdesur = [...await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 798, anio, mes)]
-      seguro.push(personalEdesur)
 
       const personalEnergiaArgentina = [...await this.getPersonalHorasByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 866, anio, mes), ...await this.getPersonalHorasByClientId(queryRunner, 867, anio, mes), ...await this.getPersonalResponableByClientId(queryRunner, 867, anio, mes)]
-      seguro.push(personalEnergiaArgentina)
 
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
-      seguro.push(personalSitRev)
-
 
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
-      seguro.push(personalEnSeguroCoto)
 
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
-      seguro.push(personalEnSeguroEdesur)
 
       const personalEnSeguroVidCol = await this.getPersonalEnSeguro(queryRunner, 'VC', anio, mes)
-      seguro.push(personalEnSeguroVidCol)
 
       const personalEnSeguroEnergiaArgentina = await this.getPersonalEnSeguro(queryRunner, 'APEA', anio, mes)
-      seguro.push(personalEnSeguroEnergiaArgentina)
 
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
@@ -590,8 +581,6 @@ UNION
       //TODO: Falta sacer los de coto y edesur
 
       const personalEnSeguroGeneral = await this.getPersonalEnSeguro(queryRunner, 'APG', anio, mes)
-      seguro.push(personalEnSeguroGeneral)
-
 
       for (const row of personalEnSeguroCoto) {
         if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
@@ -678,7 +667,6 @@ UNION
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
           if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
-
         }
       }
 
