@@ -356,6 +356,13 @@ export class BaseController {
     return (value == null || (typeof value === "string" && value.trim().length === 0));
   }
 
+  // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
+  async logProcesoAutomatico(queryRunner: QueryRunner, NombreProceso: string, EstadoCod: string, ParamentroEntrada: string, Resultado:string, usuario: string, ip: string) {
+    const fechaActual = new Date()
+    await queryRunner.query(`INSERT INTO lige.dbo.LogProcesoAutomatico (LogProcesoAutomaticoProceso,LogProcesoAutomaticoDetalle,
+    aud_usuario_ins,aud_ip_ins,aud_fecha_ins) 
+      VALUES(@0,@1,@2,@3,@4)`, [usuario, ip, fechaActual])
+  }
+
 }
 
-// TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
