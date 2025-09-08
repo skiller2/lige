@@ -1338,6 +1338,12 @@ export class ApiService {
     )
   }
 
+  deleteNovedad(NovedadCodigo: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/novedades/delete/${NovedadCodigo}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 
   ayudaAsistencialRechazar(parameter: any,) {
     return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/rechazar`, parameter).pipe(

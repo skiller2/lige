@@ -549,5 +549,26 @@ export class NovedadesController extends BaseController {
         );
     }
 
+
+    async deleteNovedad(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = dataSource.createQueryRunner()
+       // console.log("req.params", req.params)
+        //throw new ClientException(`test`)
+        try {
+            const NovedadId = req.params.id
+            await queryRunner.startTransaction()
+            await queryRunner.query(`DELETE FROM Novedad WHERE NovedadCodigo = @0`, [NovedadId])
+            await queryRunner.commitTransaction()
+            return this.jsonRes({}, res, 'Eliminación exitosa')
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+       
+    }
+
  
 }

@@ -29,4 +29,8 @@ novedadesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGrou
   novedadesController.addNovedad(req, res, next)
 })
 
+novedadesRouter.delete('/delete/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial','gSistemas'])], (req, res, next) => {
+  novedadesController.deleteNovedad(req, res, next)
+})
+
 

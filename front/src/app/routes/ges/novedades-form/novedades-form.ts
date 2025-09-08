@@ -40,7 +40,7 @@ export class NovedadesFormComponent {
  fb = inject(FormBuilder)
   formCli = this.fb.group({
     ObjetivoId: 0,
-    Fecha: null,
+    Fecha: null as Date | null,
     TipoNovedadId: 0,
     Descripcion: '',
     Accion: '',
@@ -67,7 +67,7 @@ export class NovedadesFormComponent {
   
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getNovedad(this.NovedadCodigo()))
-
+console.log( "infoObjetivo", infoObjetivo)
     this.formCli.reset(infoObjetivo[0])
     this.formCli.patchValue({
       ObjetivoId: infoObjetivo[0].ObjetivoId,
@@ -80,19 +80,29 @@ export class NovedadesFormComponent {
     this.loadingSrv.open({ type: 'spin', text: '' })
     let form = this.formCli.getRawValue();
     let DocumentoId = this.formCli.getRawValue().DocumentoId
+    
+    // Ajustar la fecha para evitar problemas de zona horaria
+    if (form.Fecha) {
+      const adjustedDate = this.adjustDateForTimezone(form.Fecha);
+      if (adjustedDate) {
+        (form as any).Fecha = adjustedDate;
+      }
+    }
+    
     try {
         if (this.NovedadCodigo()) {
 
           let result = await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
+
           await this.load()
 
         } else {
 
           let result = await firstValueFrom(this.apiService.addNovedad(form))
+
           this.NovedadCodigo.set(result.data.NovedadCodigo || result.data.id || result.data.NovedadId)
           await this.load()
-        }
-        
+        } 
         this.onAddorUpdate.emit()
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
@@ -113,5 +123,26 @@ async newRecord() {
 }
 
 
+async deleteNovedad() {
+  await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
+
+}
+
+
+//esto ajusta la fecha para evitar problema que sume +3 horas cada vez que se guarda
+private adjustDateForTimezone(date: Date | string): string | null {
+  if (!date) return null
+  
+  let dateObj: Date
+  if (typeof date === 'string') {
+    dateObj = new Date(date)
+  } else {
+    dateObj = date
+  }
+  
+  const utcDate = new Date(Date.UTC( dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate(),dateObj.getHours(), dateObj.getMinutes(), dateObj.getSeconds()))
+  
+  return utcDate.toISOString()
+}
 
 }
