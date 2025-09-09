@@ -3,7 +3,7 @@ import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu.ts'
 import { chatBotController } from "../controller/controller.module.ts";
 import { botServer } from "../index.ts";
-import { reset } from "./flowIdle.ts";
+import { reset, stop } from "./flowIdle.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -93,12 +93,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         await state.update(myState)
         console.log('state.getMyState()', state.getMyState());
         
-        const respuesta = ctx.body
-        if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
-            return gotoFlow(flowMenu)
-        } else if (respuesta != 'no' && respuesta != 'No') {
-            return fallBack()
-        }
+            const respuesta = ctx.body
+        return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
+            
     }, [])
 
 export default flowMonotributo

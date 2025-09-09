@@ -3,7 +3,7 @@ import flowMenu from './flowMenu.ts'
 import { documentosController } from "../controller/controller.module.ts";
 import { chatBotController } from "../controller/controller.module.ts";
 import { botServer } from "../index.ts";
-import { reset } from "./flowIdle.ts";
+import { reset, stop } from "./flowIdle.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -72,9 +72,8 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             delete myState.recibo
             await state.update(myState)
             const respuesta = ctx.body
-            if (respuesta.charAt(0).toUpperCase() == 'S')
-                return gotoFlow(flowMenu)
-            return fallBack()
+            
+            return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
         }, [])
 
 export default flowRecibo
