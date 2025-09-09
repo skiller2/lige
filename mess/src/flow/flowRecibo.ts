@@ -72,11 +72,9 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             delete myState.recibo
             await state.update(myState)
             const respuesta = ctx.body
-            if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
+            if (respuesta.charAt(0).toUpperCase() == 'S')
                 return gotoFlow(flowMenu)
-            } else if (respuesta != 'no' && respuesta != 'No') {
-                return fallBack()
-            }
+            return fallBack()
         }, [])
 
 export default flowRecibo
