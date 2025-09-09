@@ -18,8 +18,8 @@ export class ImporteVentaVigilanciaComponent {
   mes = signal(0)
   reloadForm = model<any>(false)
   private settingsService = inject(SettingsService)
+  objetivoIdSelected = model(0)
 
-  
   ngAfterViewInit(): void {
     const now = new Date(); //date
 

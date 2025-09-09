@@ -122,7 +122,7 @@ async newRecord() {
 
 
 async deleteNovedad() {
-  //await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
+  await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
   this.NovedadCodigo.set(0)
   this.onAddorUpdate.emit('delete')
 }

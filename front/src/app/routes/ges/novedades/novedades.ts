@@ -5,7 +5,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
@@ -129,6 +129,12 @@ export class NovedadesComponent {
   goToAdd() {
     this.selectedIndex.set(4)
     this.childAlta().newRecord()
+  }
+
+  async deleteNovedadInput() {
+
+    await firstValueFrom(this.apiService.deleteNovedad(this.editNovedadNovedadCodigo()))
+    this.listNovedades$.next('')
   }
 
 

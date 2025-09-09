@@ -41,7 +41,7 @@ export class TableOrdenesDeVentaComponent {
   mes = input<any>(0)
   reloadForm = model<any>(false)
   rowLocked = signal<boolean>(false);
-
+  objetivoIdSelected = model(0)
   private readonly loadingSrv = inject(LoadingService);
   private injector = inject(Injector)
   private apiService = inject(ApiService)
@@ -236,6 +236,14 @@ export class TableOrdenesDeVentaComponent {
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
     return column.editable
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    console.log("row", row)
+    if (row?.id)
+      this.objetivoIdSelected.set(row.ObjetivoId)
   }
 
 }

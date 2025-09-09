@@ -14,7 +14,10 @@
           <button nz-button nzType="default" (click)="goToAdd()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus" nzTheme="outline"></span>
           </button>
-         
+          <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo() == 0"
+          nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar esta Novedad?" (nzOnConfirm)="deleteNovedadInput()" 
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete"
+            nzTheme="outline"></span></button>
         </nz-button-group>
   
       </div>
