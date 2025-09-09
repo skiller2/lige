@@ -1843,9 +1843,14 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const totalHoras = result.map(row => row.PersonalLicenciaAplicaPeriodoHorasMensuales).reduce((prev, curr) => prev + curr, 0)
 
       // Objetngo el id del documento de recibo
-      const documentoId = await FileUploadController.getDocumentoIdByPeriodo(personalId, anio, mes, 'REC')
 
-      this.jsonRes({ ingresos: result, total, totalHoras, documentoId }, res);
+      const listRecibos = await queryRunner.query(`SELECT doc.DocumentoId, doc.DocumentoDenominadorDocumento
+        FROM Documento doc
+        WHERE doc.PersonalId=@0 AND doc.DocumentoTipoCodigo=@3 and doc.DocumentoAnio=@1 and doc.DocumentoMes=@2`,[personalId, anio, mes, 'REC'])
+
+      const DocumentoId = (listRecibos.length>0)?listRecibos[0].DocumentoId:null
+      const DocumentoDenominadorDocumento = (listRecibos.length>0)?listRecibos[0].DocumentoDenominadorDocumento:null
+      this.jsonRes({ ingresos: result, total, totalHoras, DocumentoId,DocumentoDenominadorDocumento }, res);
     } catch (error) {
       return next(error)
     }
