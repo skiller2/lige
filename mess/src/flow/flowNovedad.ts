@@ -539,7 +539,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
                     const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoNombreArchivo}`;
 
-                    await flowDynamic([{ body: `Novedad ${NovedadCodigo} ${index+1}/${docsNov.length}`, media: urlDoc, delay }])
+                    await flowDynamic([{ body: `Novedad ${NovedadCodigo}, documento ${index+1}/${docsNov.length}`, media: urlDoc, delay }])
                     await chatBotController.addToDocLog(documento.DocumentoId, ctx.from)
                 }
                 return gotoFlow(flowNovedadPendiente)
