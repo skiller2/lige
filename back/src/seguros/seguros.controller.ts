@@ -348,7 +348,6 @@ export class SegurosController extends BaseController {
               ON sitrev.SituacionRevistaId = persr.PersonalSituacionRevistaSituacionId 
           WHERE persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
             AND ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1))
-            AND sitrev.SituacionRevistaId IN (2,10,11,20,12,7)
           GROUP BY persr.PersonalId
       ) AS psr
       OUTER APPLY (
