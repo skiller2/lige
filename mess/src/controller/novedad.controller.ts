@@ -205,7 +205,7 @@ export class NovedadController extends BaseController {
         , tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, doc.DocumentoNombreArchivo
       FROM Documento doc
       JOIN DocumentoTipo tip ON tip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-      LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id = doc.DocumentoId
+      LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId = doc.DocumentoId
       JOIN DocumentoRelaciones dr ON dr.DocumentoId = doc.DocumentoId AND dr.NovedadCodigo IN (@0)
       `, [NovedadCodigo])
     return result

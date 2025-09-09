@@ -739,11 +739,11 @@ export class AccesoBotController extends BaseController {
          LEFT JOIN (
                 SELECT  doc.PersonalId, 
                 doc.DocumentoId doc_id, @1 AS anio, @2 AS mes, 
-					 MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
+					 MAX(dl.FechaDescarga) fecha_descarga, IIF(dl.DocumentoId IS NOT NULL,1,0) AS visto
                 FROM Documento doc
-                LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.DocumentoId AND dl.personal_id = doc.PersonalId
+                LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId=doc.DocumentoId AND dl.PersonalId = doc.PersonalId
                 WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @1 AND doc.DocumentoMes = @2
-                GROUP BY doc.PersonalId, doc.DocumentoId, doc.DocumentoAnio, doc.DocumentoMes,dl.doc_id
+                GROUP BY doc.PersonalId, doc.DocumentoId, doc.DocumentoAnio, doc.DocumentoMes,dl.DocumentoId
 			) recibo ON recibo.PersonalId = per.PersonalId
             WHERE 
             per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes])

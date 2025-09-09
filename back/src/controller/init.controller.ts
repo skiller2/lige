@@ -167,9 +167,9 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
     try {
       const con = await getConnection()
       const rec = await con.query(
-          `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.doc_id) descargados, dc.DocumentoAnio, dc.DocumentoMes 
+          `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.DocumentoId) descargados, dc.DocumentoAnio, dc.DocumentoMes 
           FROM Documento dc
-          LEFT JOIN lige.dbo.doc_descaga_log lg ON lg.doc_id = dc.DocumentoId
+          LEFT JOIN DocumentoDescargaLog lg ON lg.DocumentoId = dc.DocumentoId
           WHERE dc.DocumentoTipoCodigo='REC' -- AND pe.anio = @1 AND pe.mes = @2
           GROUP BY dc.DocumentoAnio, dc.DocumentoMes
           ORDER BY dc.DocumentoAnio desc, dc.DocumentoMes desc

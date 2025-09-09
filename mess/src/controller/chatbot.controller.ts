@@ -72,7 +72,7 @@ export class ChatBotController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
     const { personal_id } = (await queryRunner.query(`SELECT personal_id FROM lige.dbo.regtelefonopersonal WHERE telefono = @0`, [telefono]))[0]
-    await queryRunner.query(`INSERT INTO lige.dbo.doc_descaga_log (doc_id, fecha_descarga, telefono, personal_id, aud_usuario_ins, aud_ip_ins, aud_fecha_ins)
+    await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
       [doc_id, fechaActual, telefono, personal_id, 'bot', '127.0.0.1', fechaActual])
   }

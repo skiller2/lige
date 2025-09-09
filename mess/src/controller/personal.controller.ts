@@ -8,13 +8,13 @@ export class PersonalController extends BaseController {
     const result = await dbServer.dataSource.query(
       `SELECT doc.personalid PersonalId, 
         doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle, tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, pr.anio, pr.mes, doc.DocumentoNombreArchivo,
-        MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
+        MAX(dl.FechaDescarga) fecha_descarga, IIF(dl.DocumentoId IS NOT NULL,1,0) AS visto
         FROM Documento doc
         JOIN DocumentoTipo tip ON tip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-        LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.anio = doc.Documentoanio AND pr.mes = doc.Documentomes
-        LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.DocumentoId AND dl.personal_id = @0
-        WHERE doc.DocumentoIndividuoDescargaBot = 1  AND dl.fecha_descarga IS NULL AND (doc.personalid =0 OR doc.personalid =  @0) AND Documentofecha > '2025-01-01'
-        GROUP BY doc.personalid, doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle, DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, dl.doc_id, pr.anio, pr.mes, doc.DocumentoNombreArchivo`
+        LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.anio = doc.DocumentoAnio AND pr.mes = doc.DocumentoMes
+        LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId=doc.DocumentoId AND dl.PersonalId = @0
+        WHERE doc.DocumentoIndividuoDescargaBot = 1  AND dl.FechaDescarga IS NULL AND (doc.personalid =0 OR doc.personalid =  @0) AND Documentofecha > '2025-01-01'
+        GROUP BY doc.personalid, doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle, DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, dl.DocumentoId, pr.anio, pr.mes, doc.DocumentoNombreArchivo`
       ,
       [PersonalId]
     )

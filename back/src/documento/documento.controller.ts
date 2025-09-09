@@ -410,20 +410,20 @@ export class DocumentoController extends BaseController {
 
   private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
-      SELECT CONCAT(des.doc_id,'-',ROW_NUMBER() OVER (PARTITION BY des.doc_id ORDER BY des.fecha_descarga)) AS id
-          , des.doc_id
-          , des.fecha_descarga
-          , des.telefono
+      SELECT CONCAT(des.DocumentoId,'-',ROW_NUMBER() OVER (PARTITION BY des.DocumentoId ORDER BY des.FechaDescarga)) AS id
+          , des.DocumentoId
+          , des.FechaDescarga
+          , des.Telefono
           , per.PersonalId
           , CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
           , cuit.PersonalCUITCUILCUIT
           , sitrev.SituacionRevistaDescripcion
-      FROM lige.dbo.doc_descaga_log AS des
-      LEFT JOIN Personal per ON des.personal_id = per.PersonalId
+      FROM DocumentoDescargaLog AS des
+      LEFT JOIN Personal per ON des.PersonalId = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
       LEFT JOIN PersonalSituacionRevista persitrev ON persitrev.PersonalId = per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta, '9999-12-31')>= GETDATE() 
       LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId = persitrev.PersonalSituacionRevistaSituacionId
-      WHERE des.doc_id IN (@0)
+      WHERE des.DocumentoId IN (@0)
       AND ${filterSql}
       ${orderBy}
     `, [doc_id])
@@ -463,7 +463,7 @@ export class DocumentoController extends BaseController {
           sitrev.SituacionRevistaDescripcion 
       FROM Personal per
       LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
-      LEFT JOIN lige.dbo.doc_descaga_log des ON des.telefono = tel.telefono and des.doc_id = @0
+      LEFT JOIN DocumentoDescargaLog des ON des.FechaDescarga = tel.telefono and des.DocumentoId = @0
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       --LEFT JOIN (
       --    SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
@@ -525,9 +525,9 @@ export class DocumentoController extends BaseController {
       await queryRunner.startTransaction()
       //Validaciones
       const telefonos = await dataSource.query(`
-        SELECT telefono
-        FROM lige.dbo.doc_descaga_log
-        WHERE doc_id IN (@0)
+        SELECT Telefono
+        FROM DocumentoDescargaLog
+        WHERE DocumentoId IN (@0)
         `, [doc_id])
 
       if (telefonos.length) {

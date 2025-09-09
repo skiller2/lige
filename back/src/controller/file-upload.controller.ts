@@ -730,9 +730,9 @@ export class FileUploadController extends BaseController {
 
       // Verificar si el documento tiene descargas asociadas
       const telefonos = await dataSource.query(`
-          SELECT telefono
-          FROM lige.dbo.doc_descaga_log
-          WHERE doc_id IN (@0)
+          SELECT Telefono
+          FROM DocumentoDescargaLog
+          WHERE DocumentoId IN (@0)
           `, [deleteId])
 
       if (telefonos.length) throw new ClientException('No se puede eliminar Documentos que tienen movimientos de descarga.')
