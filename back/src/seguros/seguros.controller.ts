@@ -27,7 +27,7 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
-    name: "Nombre",
+    name: "Apellido Nombre",
     type: "string",
     id: "PersonalId",
     field: "PersonalId",
