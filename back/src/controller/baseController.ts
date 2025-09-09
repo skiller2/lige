@@ -374,8 +374,12 @@ export class BaseController {
       Resultado,
       AudFechaIng,
       AudUsuarioIng,
-      AudIpIng
-    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9)`,
+      AudIpIng,
+      AudFechaMod,
+      AudUsuarioMod,
+      AudIpMod
+
+    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @7, @8, @9)`,
       [
         ProcesoAutomaticoLogCodigo,
         NombreProceso,
@@ -399,9 +403,9 @@ export class BaseController {
       `UPDATE ProcesoAutomaticoLog SET FechaFin=@1,
       ProcesoAutomaticoEstadoCod=@2,
       Resultado=@3,
-      AudFechaIng=@4,
-      AudUsuarioIng=@5,
-      AudIpIng=@6
+      AudFechaMod=@4,
+      AudUsuarioMod=@5,
+      AudIpMod=@6
       WHERE ProcesoAutomaticoLogCodigo=@0`,
       [
         ProcesoAutomaticoLogCodigo,

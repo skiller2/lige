@@ -498,10 +498,11 @@ UNION
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
 
+    let segAltas = 0, segBajas = 0
     const queryRunner = dataSource.createQueryRunner();
 
 
-    const { ProcesoAutomaticoLogCodigo }  = await this.procesoAutomaticoLogInicio(
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
       queryRunner,
       `Actualización de Seguros ${mes}/${anio}`,
       { anio, mes, usuario, ip },
@@ -554,8 +555,10 @@ UNION
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle, stm_now, usuario, ip)
         } else {
+          segAltas++
           await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APC', row.detalle, stm_now, usuario, ip)
         }
+        segBajas++
         await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'AP', 'En COTO ' + row.detalle, stm_now, usuario, ip)
       }
 
@@ -564,8 +567,10 @@ UNION
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle, stm_now, usuario, ip)
         } else {
+          segAltas++
           await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APE', row.detalle, stm_now, usuario, ip)
         }
+        segBajas++
         await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En Edesur ' + row.detalle, stm_now, usuario, ip)
       }
 
@@ -574,8 +579,10 @@ UNION
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, rowEnSeguro.TipoSeguroNombre, row.detalle, stm_now, usuario, ip)
         } else {
+          segAltas++
           await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APEA', row.detalle, stm_now, usuario, ip)
         }
+        segBajas++
         await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'En EnergiaArgentina ' + row.detalle, stm_now, usuario, ip)
       }
 
@@ -588,18 +595,21 @@ UNION
 
       for (const row of personalEnSeguroCoto) {
         if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APC', `Sin horas en COTO (${mes}/${anio})`, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEdesur) {
         if (!personalEdesur.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APE', `Sin horas en Edesur (${mes}/${anio})`, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEnergiaArgentina) {
         if (!personalEnergiaArgentina.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APEA', `Sin horas en Energia Argentina (${mes}/${anio})`, stm_now, usuario, ip)
         }
       }
@@ -621,29 +631,38 @@ UNION
           if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
             continue
 
+          segAltas++
           await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'APG', row.detalle, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroGeneral) {
-        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId))
+        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId)) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Coto', stm_now, usuario, ip)
-
-        if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId))
+        }
+        if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Edesur', stm_now, usuario, ip)
-
-        if (personalEnSeguroEnergiaArgentna2.find(r => r.PersonalId == row.PersonalId))
+        }
+        if (personalEnSeguroEnergiaArgentna2.find(r => r.PersonalId == row.PersonalId)) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'Paso a Energia Argentina', stm_now, usuario, ip)
-
+        }
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
 
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', 'No tiene situación revista (2,10,11,20,12,7)', stm_now, usuario, ip)
         } else {
-          if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
+          if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3) {
+            segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
-          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
+          }
+          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId)) {
+            segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
+          }
         }
       }
 
@@ -658,6 +677,7 @@ UNION
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.PersonalSeguroDesde, 'VC', row.detalle, stm_now, usuario, ip)
         } else {
+          segAltas++
           await this.queryAddSeguros(queryRunner, row.PersonalId, PersonalSeguroDesde, 'VC', row.detalle, stm_now, usuario, ip)
         }
       }
@@ -665,12 +685,17 @@ UNION
       for (const row of personalEnSeguroVidCol) {
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
+          segBajas++
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)', stm_now, usuario, ip)
         } else {
-          if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
+          if ([7].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3) {
+            segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
-          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
+          }
+          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId)) {
+            segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
+          }
         }
       }
 
@@ -680,7 +705,7 @@ UNION
         queryRunner,
         ProcesoAutomaticoLogCodigo,
         'COM',
-        { res: 'Procesado correctamente' },
+        { res: `Procesado correctamente`,segAltas,segBajas },
         usuario,
         ip
       );
@@ -689,7 +714,7 @@ UNION
       await this.procesoAutomaticoLogFin(
         queryRunner,
         ProcesoAutomaticoLogCodigo,
-        'COM',
+        'ERR',
         { res: error },
         usuario,
         ip
@@ -698,7 +723,7 @@ UNION
       return next(error)
     }
 
-    return (res) ? this.jsonRes(true, res, "Procesado correctamente") : true
+    return (res) ? this.jsonRes(true, res, `Procesado correctamente altas:${segAltas}, bajas:${segBajas}`) : true
   }
 
   queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, PersonalSeguroDesde: Date, TipoSeguroNombre: string, PersonalSeguroMotivoAdhesion: string, stm_now: Date, usuario: string, ip: string) {
