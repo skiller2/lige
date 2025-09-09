@@ -348,7 +348,6 @@ export class SegurosController extends BaseController {
               ON sitrev.SituacionRevistaId = persr.PersonalSituacionRevistaSituacionId 
           WHERE persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
             AND ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1))
-            AND sitrev.SituacionRevistaId IN (2,10,11,20,12,7)
           GROUP BY persr.PersonalId
       ) AS psr
       OUTER APPLY (
@@ -367,17 +366,26 @@ export class SegurosController extends BaseController {
 
 
   private async getPersonalEnSeguro(queryRunner: any, TipoSeguroNombre: string, anio: number, mes: number) {
-    return queryRunner.query(`SELECT seg.PersonalId, seg.PersonalSeguroDesde, seg.PersonalSeguroHasta, seg.TipoSeguroCodigo, sitrev.PersonalSituacionRevistaSituacionId SituacionRevistaId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde
+    return queryRunner.query(`SELECT seg.PersonalId, seg.PersonalSeguroDesde, seg.PersonalSeguroHasta, seg.TipoSeguroCodigo, sitrev.PersonalSituacionRevistaSituacionId AS SituacionRevistaId, s.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde
       FROM PersonalSeguro seg
-        LEFT JOIN (
-          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
+      OUTER APPLY (
+          SELECT TOP 1 
+                p.PersonalSituacionRevistaSituacionId, 
+                p.PersonalSituacionRevistaDesde, 
+                p.PersonalId
           FROM PersonalSituacionRevista p
-          JOIN SituacionRevista s
-          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
-			 ) sitrev ON sitrev.PersonalId = seg.PersonalId
-
-      WHERE seg.TipoSeguroCodigo = @0 AND seg.PersonalSeguroDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(seg.PersonalSeguroHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
-    `, [TipoSeguroNombre, anio, mes])
+          WHERE p.PersonalId = seg.PersonalId
+            AND p.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+            AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= (DATEFROMPARTS(@1,@2,1))
+          ORDER BY 
+              CASE WHEN p.PersonalSituacionRevistaSituacionId IN (2,10,12) THEN 0 ELSE 1 END, -- prioridad
+              p.PersonalSituacionRevistaDesde DESC
+      ) sitrev
+      LEFT JOIN SituacionRevista s 
+            ON s.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+      WHERE seg.TipoSeguroCodigo = @0
+        AND seg.PersonalSeguroDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+        AND ISNULL(seg.PersonalSeguroHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))`, [TipoSeguroNombre, anio, mes])
   }
 
   private async getPersonalResponableByClientId(queryRunner: any, ClientId: number, anio: number, mes: number) {
@@ -492,22 +500,18 @@ UNION
 
     const queryRunner = dataSource.createQueryRunner();
 
-    let estadoProceso = 'EJE';
-    let resultadoProceso = '';
-    let parametrosEntrada = [anio, mes, usuario, ip]
+
+    const { ProcesoAutomaticoLogCodigo }  = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Actualización de Seguros ${mes}/${anio}`,
+      { anio, mes, usuario, ip },
+      usuario,
+      ip
+    );
 
     let seguro: any[] = []
     try {
       // Log de inicio
-      await this.procesoAutomaticoLog(
-        queryRunner,
-        `Actualización de Seguros ${mes}/${anio}`,
-        estadoProceso,
-        JSON.stringify(parametrosEntrada),
-        'Proceso iniciado',
-        usuario,
-        ip
-      );
 
 
       await queryRunner.startTransaction();
@@ -584,19 +588,19 @@ UNION
 
       for (const row of personalEnSeguroCoto) {
         if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APC', 'No está mas en COTO', stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APC', `Sin horas en COTO (${mes}/${anio})`, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEdesur) {
         if (!personalEdesur.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APE', 'No está mas en Edesur', stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APE', `Sin horas en Edesur (${mes}/${anio})`, stm_now, usuario, ip)
         }
       }
 
       for (const row of personalEnSeguroEnergiaArgentina) {
         if (!personalEnergiaArgentina.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APEA', 'No está mas en Energia Argentina', stm_now, usuario, ip)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APEA', `Sin horas en Energia Argentina (${mes}/${anio})`, stm_now, usuario, ip)
         }
       }
 
@@ -672,35 +676,24 @@ UNION
 
       await queryRunner.commitTransaction()
 
-      parametrosEntrada.push(seguro)
-      // Log de éxito
-      estadoProceso = 'COM';
-      resultadoProceso = 'Procesado correctamente';
-      await this.procesoAutomaticoLog(
+      await this.procesoAutomaticoLogFin(
         queryRunner,
-        `Actualización de Seguros ${mes}/${anio}`,
-        estadoProceso,
-        JSON.stringify(parametrosEntrada),
-        resultadoProceso,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        { res: 'Procesado correctamente' },
         usuario,
         ip
       );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-
-      // Log de error
-      estadoProceso = 'ERR';
-      resultadoProceso = error?.message || 'Error desconocido';
-      await this.procesoAutomaticoLog(
+      await this.procesoAutomaticoLogFin(
         queryRunner,
-        `Actualización de Seguros ${mes}/${anio}`,
-        estadoProceso,
-        JSON.stringify(parametrosEntrada),
-        resultadoProceso,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        { res: error },
         usuario,
         ip
       );
-
 
       return next(error)
     }
