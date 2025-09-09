@@ -34,6 +34,7 @@ export class NovedadesComponent {
     filtros: [],
     sort: null,
   };
+  selectedIndex = signal(0)
 
   childAlta = viewChild.required<NovedadesFormComponent>('novedadesFormAlta')
   childDeta = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
@@ -78,34 +79,22 @@ export class NovedadesComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
+    console.log("handleSelectedRowsChanged", e)
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    console.log(row)
     if (row?.id) {
       this.editNovedadNovedadCodigo.set(row.id)
-    }
-
-  }
-
-  onTabsetChange(_event: any) {
-    switch (_event.index) {
-      case 4: //INSERT
-        this.childAlta().newRecord()
-        break
-      case 3: //DETAIL
-        this.childDeta().viewRecord(true)
-        break;
-      case 2: //EDIT
+      // Asegurar que el componente de edición se inicialice si ya está visible
+      if (this.selectedIndex() === 2) {
         this.childEdit().viewRecord(false)
-        break;
-        default:
-        break;
+      }
     }
 
   }
 
   reloadListado() {
     this.listNovedades$.next('')
+    this.selectedIndex.set(1)
   }
 
   listOptionsChange(options: any) {
@@ -113,9 +102,35 @@ export class NovedadesComponent {
     this.listNovedades$.next('')
   }
 
-  async handleAddOrUpdate(){
+  async handleAddOrUpdate(event: any){
     this.listNovedades$.next('')
+    if (event === 'delete') {
+      //this.editNovedadNovedadCodigo.set(0)
+      this.selectedIndex.set(1)
+      
+    }
+  
   }
+
+  goToEdit() {
+    if (this.editNovedadNovedadCodigo() > 0) {
+      this.selectedIndex.set(2)
+      this.childEdit().viewRecord(false)
+    }
+  }
+
+  goToDetail() {
+    if (this.editNovedadNovedadCodigo() > 0) {
+      this.selectedIndex.set(3)
+      this.childDeta().viewRecord(true)
+    }
+  }
+
+  goToAdd() {
+    this.selectedIndex.set(4)
+    this.childAlta().newRecord()
+  }
+
 
 
 }

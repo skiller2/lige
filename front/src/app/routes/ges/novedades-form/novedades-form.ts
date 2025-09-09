@@ -30,7 +30,7 @@ export class NovedadesFormComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   public router = inject(Router)
-  onAddorUpdate = output()
+  onAddorUpdate = output<('save' | 'delete')>() 
   formChange$ = new BehaviorSubject('');
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
@@ -45,7 +45,7 @@ export class NovedadesFormComponent {
     Descripcion: '',
     Accion: '',
     files: [],
-    DocumentoId: 0
+    DocumentoId: 0,
   })
 
   objetivoDetalleChange(event: any){
@@ -91,17 +91,17 @@ export class NovedadesFormComponent {
     
     try {
         if (this.NovedadCodigo()) {
-console.log("voy a actualizar")
+          console.log("voy a actualizar novedades")
           let result = await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
           await this.load()
 
         } else {
-          console.log("voy a insertar")
+          console.log("voy a insertar novedades")
           let result = await firstValueFrom(this.apiService.addNovedad(form))
           this.NovedadCodigo.set(result.data.novedadId)
           await this.load()
         } 
-        this.onAddorUpdate.emit()
+        this.onAddorUpdate.emit('save') 
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
         
@@ -122,8 +122,9 @@ async newRecord() {
 
 
 async deleteNovedad() {
-  await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
-
+  //await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
+  this.NovedadCodigo.set(0)
+  this.onAddorUpdate.emit('delete')
 }
 
 

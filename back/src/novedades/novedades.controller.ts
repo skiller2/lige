@@ -69,6 +69,16 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
+        name: "Descripcion Obj",
+        type: "string",
+        id: "DescripcionObj",
+        field: "DescripcionObj",
+        fieldName: "DescripcionObj",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
         name: "GrupoActividad",
         type: "string",
         id: "ApellidoNombreJerarquico",
@@ -565,7 +575,7 @@ export class NovedadesController extends BaseController {
             const DocumentoId = await queryRunner.query(`SELECT DocumentoId FROM DocumentoRelaciones WHERE NovedadCodigo = @0`, [NovedadId])
             if (DocumentoId.length > 0) {
                 for (const doc of DocumentoId) {
-                    await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [doc.DocumentoId]);
+                    await FileUploadController.deleteFile(doc.DocumentoId, 'Documento', queryRunner)
                 }
             }
             await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE NovedadCodigo = @0`, [NovedadId])

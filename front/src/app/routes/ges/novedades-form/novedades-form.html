@@ -12,7 +12,7 @@
     <nz-form-item style="display:none">
       <nz-form-label [nzSpan]="3">DocumentoId</nz-form-label>
       <nz-form-control [nzSpan]="19">
-        <input nz-input name="DocumentoId" ngModel  />
+        <input nz-input formControlName="DocumentoId"  />
       </nz-form-control>
     </nz-form-item>
 
@@ -71,13 +71,12 @@
     
   </nz-form-item>
 
-
 <nz-form-item *ngIf="formCli.enabled">
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-      <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine"  >
+      <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine "  >
         {{ 'app.btn.save' | i18n }}
       </button>
-      <button nzType="primary" nz-button nzDanger  nz-popconfirm
+      <button nzType="primary" nz-button nzDanger  nz-popconfirm  [disabled]="NovedadCodigo() === 0" 
       nzPopconfirmTitle="Esta seguro que quiere eliminar esta novedad?"
       (nzOnConfirm)="deleteNovedad()"
       nzPopconfirmPlacement="top"  >
