@@ -492,22 +492,18 @@ UNION
 
     const queryRunner = dataSource.createQueryRunner();
 
-    let estadoProceso = 'EJE';
-    let resultadoProceso = '';
-    let parametrosEntrada = [anio, mes, usuario, ip]
+
+    const { ProcesoAutomaticoLogCodigo }  = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Actualización de Seguros ${mes}/${anio}`,
+      { anio, mes, usuario, ip },
+      usuario,
+      ip
+    );
 
     let seguro: any[] = []
     try {
       // Log de inicio
-      await this.procesoAutomaticoLog(
-        queryRunner,
-        `Actualización de Seguros ${mes}/${anio}`,
-        estadoProceso,
-        JSON.stringify(parametrosEntrada),
-        'Proceso iniciado',
-        usuario,
-        ip
-      );
 
 
       await queryRunner.startTransaction();
@@ -672,35 +668,24 @@ UNION
 
       await queryRunner.commitTransaction()
 
-      parametrosEntrada.push(seguro)
-      // Log de éxito
-      estadoProceso = 'COM';
-      resultadoProceso = 'Procesado correctamente';
-      await this.procesoAutomaticoLog(
+      await this.procesoAutomaticoLogFin(
         queryRunner,
-        `Actualización de Seguros ${mes}/${anio}`,
-        estadoProceso,
-        JSON.stringify(parametrosEntrada),
-        resultadoProceso,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        { res: 'Procesado correctamente' },
         usuario,
         ip
       );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-
-      // Log de error
-      estadoProceso = 'ERR';
-      resultadoProceso = error?.message || 'Error desconocido';
-      await this.procesoAutomaticoLog(
+      await this.procesoAutomaticoLogFin(
         queryRunner,
-        `Actualización de Seguros ${mes}/${anio}`,
-        estadoProceso,
-        JSON.stringify(parametrosEntrada),
-        resultadoProceso,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        { res: error },
         usuario,
         ip
       );
-
 
       return next(error)
     }

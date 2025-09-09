@@ -1,4 +1,5 @@
 import { NextFunction, Response } from "express";
+import { stringify } from "node:querystring";
 import { DataSource, QueryRunner } from "typeorm";
 
 export class ClientException extends Error {
@@ -357,10 +358,10 @@ export class BaseController {
   }
 
   // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
-  async procesoAutomaticoLog(queryRunner: QueryRunner, NombreProceso: string, EstadoCod: string, ParametroEntrada: string, Resultado: string, usuario: string, ip: string) {
+  async procesoAutomaticoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string) {
     const fechaActual = new Date()
-    let procesoCodigo = await this.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
-
+    const ProcesoAutomaticoLogCodigo = await this.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
+    const EstadoCod = 'EJE'
 
     await queryRunner.query(
       `INSERT INTO ProcesoAutomaticoLog (
@@ -376,21 +377,44 @@ export class BaseController {
       AudIpIng
     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9)`,
       [
-        procesoCodigo,
+        ProcesoAutomaticoLogCodigo,
         NombreProceso,
         fechaActual,
         null,
         EstadoCod,
-        ParametroEntrada,
-        Resultado,
+        JSON.stringify(ParametroEntrada),
+        null,
         fechaActual,
         usuario,
         ip
       ]
     );
-    // return procesoCodigo
+    return { ProcesoAutomaticoLogCodigo }
   }
 
+  async procesoAutomaticoLogFin(queryRunner: QueryRunner, ProcesoAutomaticoLogCodigo:number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
+    const fechaActual = new Date()
+
+    await queryRunner.query(
+      `UPDATE ProcesoAutomaticoLog SET FechaFin=@1,
+      ProcesoAutomaticoEstadoCod=@2,
+      Resultado=@3,
+      AudFechaIng=@4,
+      AudUsuarioIng=@5,
+      AudIpIng=@6
+      WHERE ProcesoAutomaticoLogCodigo=@0`,
+      [
+        ProcesoAutomaticoLogCodigo,
+        fechaActual,
+        EstadoCod,
+        JSON.stringify(Resultado),
+        fechaActual,
+        usuario,
+        ip
+      ]
+    );
+    return { ProcesoAutomaticoLogCodigo }
+  }
 
 }
 
