@@ -539,9 +539,10 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
                     const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoNombreArchivo}`;
 
-                    await flowDynamic([{ body: documento.DocumentoTipoDetalle, media: urlDoc, delay }])
+                    await flowDynamic([{ body: `Novedad ${NovedadCodigo} ${index+1}/${docsNov.length}`, media: urlDoc, delay }])
                     await chatBotController.addToDocLog(documento.DocumentoId, ctx.from)
                 }
+                return gotoFlow(flowNovedadPendiente)
             } catch (error) {
                 console.log('Error descargando Archivo', error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
@@ -549,6 +550,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             }
         }
     )
+    /*
     .addAnswer(['L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -562,6 +564,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             return fallBack()
         }
     )
+    */
 
 
 export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
