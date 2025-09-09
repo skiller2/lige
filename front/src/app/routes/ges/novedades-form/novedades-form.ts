@@ -67,7 +67,7 @@ export class NovedadesFormComponent {
   
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getNovedad(this.NovedadCodigo()))
-console.log( "infoObjetivo", infoObjetivo)
+
     this.formCli.reset(infoObjetivo[0])
     this.formCli.patchValue({
       ObjetivoId: infoObjetivo[0].ObjetivoId,
@@ -91,16 +91,14 @@ console.log( "infoObjetivo", infoObjetivo)
     
     try {
         if (this.NovedadCodigo()) {
-
+console.log("voy a actualizar")
           let result = await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
-
           await this.load()
 
         } else {
-
+          console.log("voy a insertar")
           let result = await firstValueFrom(this.apiService.addNovedad(form))
-
-          this.NovedadCodigo.set(result.data.NovedadCodigo || result.data.id || result.data.NovedadId)
+          this.NovedadCodigo.set(result.data.novedadId)
           await this.load()
         } 
         this.onAddorUpdate.emit()

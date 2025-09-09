@@ -379,7 +379,7 @@ export class NovedadesController extends BaseController {
         const usuarioName = res.locals.userName
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body }
-        let ObjObjetivoNew = { }
+        let NovedadIdNew = { } 
 
         try {
             
@@ -398,7 +398,7 @@ export class NovedadesController extends BaseController {
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
-                  Obj.Telefono, usuarioId, ip, novedadId)
+                  Obj.Telefono, usuarioId, ip, novedadId, usuarioName)
 
 
              let doc_id = 0
@@ -409,8 +409,12 @@ export class NovedadesController extends BaseController {
                 }
             }
 
+            NovedadIdNew = {
+                novedadId: novedadId,
+            }
+
             await queryRunner.commitTransaction()
-            return this.jsonRes(ObjObjetivoNew, res, 'Carga de nuevo registro exitoso');
+            return this.jsonRes(NovedadIdNew, res, 'Carga de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -468,15 +472,15 @@ export class NovedadesController extends BaseController {
     }
 
     async addNovedadTable( queryRunner: any,Fecha: any, NovedadTipoCod: any,Descripcion: any,Accion: any,ClienteId: any,
-        ClienteElementoDependienteId: any,Telefono: any,usuarioId: any,ip: any, novedadId: any ) {
+        ClienteElementoDependienteId: any,Telefono: any,usuarioId: any,ip: any, novedadId: any, usuarioName: any ) {
 
         const now = new Date();
         const AudFechaIng = now;
         const AudFechaMod = now;
         const AudIpIng = ip;
         const AudIpMod = ip;
-        const AudUsuarioIng = usuarioId;
-        const AudUsuarioMod = usuarioId;
+        const AudUsuarioIng = usuarioName;
+        const AudUsuarioMod = usuarioName;
 
         const PersonalId = usuarioId
         const telefono =  Telefono ? Telefono : null
