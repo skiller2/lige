@@ -463,7 +463,7 @@ export class DocumentoController extends BaseController {
           sitrev.SituacionRevistaDescripcion 
       FROM Personal per
       LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
-      LEFT JOIN DocumentoDescargaLog des ON des.FechaDescarga = tel.telefono and des.DocumentoId = @0
+      LEFT JOIN DocumentoDescargaLog des ON des.Telefono = tel.telefono and des.DocumentoId = @0
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       --LEFT JOIN (
       --    SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
