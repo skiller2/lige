@@ -367,17 +367,26 @@ export class SegurosController extends BaseController {
 
 
   private async getPersonalEnSeguro(queryRunner: any, TipoSeguroNombre: string, anio: number, mes: number) {
-    return queryRunner.query(`SELECT seg.PersonalId, seg.PersonalSeguroDesde, seg.PersonalSeguroHasta, seg.TipoSeguroCodigo, sitrev.PersonalSituacionRevistaSituacionId SituacionRevistaId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde
+    return queryRunner.query(`SELECT seg.PersonalId, seg.PersonalSeguroDesde, seg.PersonalSeguroHasta, seg.TipoSeguroCodigo, sitrev.PersonalSituacionRevistaSituacionId AS SituacionRevistaId, s.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde
       FROM PersonalSeguro seg
-        LEFT JOIN (
-          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
+      OUTER APPLY (
+          SELECT TOP 1 
+                p.PersonalSituacionRevistaSituacionId, 
+                p.PersonalSituacionRevistaDesde, 
+                p.PersonalId
           FROM PersonalSituacionRevista p
-          JOIN SituacionRevista s
-          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
-			 ) sitrev ON sitrev.PersonalId = seg.PersonalId
-
-      WHERE seg.TipoSeguroCodigo = @0 AND seg.PersonalSeguroDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(seg.PersonalSeguroHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
-    `, [TipoSeguroNombre, anio, mes])
+          WHERE p.PersonalId = seg.PersonalId
+            AND p.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+            AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= (DATEFROMPARTS(@1,@2,1))
+          ORDER BY 
+              CASE WHEN p.PersonalSituacionRevistaSituacionId IN (2,10,12) THEN 0 ELSE 1 END, -- prioridad
+              p.PersonalSituacionRevistaDesde DESC
+      ) sitrev
+      LEFT JOIN SituacionRevista s 
+            ON s.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+      WHERE seg.TipoSeguroCodigo = @0
+        AND seg.PersonalSeguroDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+        AND ISNULL(seg.PersonalSeguroHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))`, [TipoSeguroNombre, anio, mes])
   }
 
   private async getPersonalResponableByClientId(queryRunner: any, ClientId: number, anio: number, mes: number) {
