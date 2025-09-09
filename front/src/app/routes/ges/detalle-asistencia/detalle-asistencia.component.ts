@@ -78,8 +78,9 @@ export class DetalleAsistenciaComponent {
 
   personalIdlist = signal([])
 
-  selectedDocumentoId = 0
 
+  selectedReciboDocumentoId = signal(0)
+  selectedReciboNro = signal(0)
 
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
@@ -215,7 +216,7 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras; this.selectedDocumentoId= data.documentoId })
+        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras; this.selectedReciboDocumentoId.set(data.DocumentoId); this.selectedReciboNro.set(data.DocumentoDenominadorDocumento) })
 
 
         )))
@@ -249,7 +250,7 @@ export class DetalleAsistenciaComponent {
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         (tap(data => { this.listaDescuentosPerTotalC = data.totalC })
-  )))
+        )))
 
   $listaDescuentosPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -263,7 +264,7 @@ export class DetalleAsistenciaComponent {
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         (tap(data => { this.listaDescuentosPerTotalG = data.totalG })
-  )))
+        )))
 
 
   $listaDescuentosObj = this.$selectedObjetivoIdChange.pipe(
@@ -278,7 +279,7 @@ export class DetalleAsistenciaComponent {
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         (tap(data => { this.listaDescuentosObjTotal = data.total })
-  )))
+        )))
 
   $listaCategoriasPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
