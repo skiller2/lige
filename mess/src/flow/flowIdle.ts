@@ -1,5 +1,5 @@
-import { EVENTS, addKeyword } from '@builderbot/bot'
-import type { BotContext, BotStateStandAlone } from '@builderbot/bot';
+import { EVENTS, addKeyword, } from '@builderbot/bot'
+import type { TFlow,BotContext, BotStateStandAlone } from '@builderbot/bot/dist/types.d.ts';
 
 // Object to store timers for each user
 const timers = {};

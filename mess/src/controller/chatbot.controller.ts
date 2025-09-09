@@ -6,6 +6,16 @@ import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
 
 export class ChatBotController extends BaseController {
+  async gotoFlow(req: Request, res: Response, next: NextFunction) {
+    const telefono = req.body.telefono
+    const flow = req.body.flow
+
+    await botServer.runFlow(telefono, flow)
+
+    const ret = null
+    return this.jsonRes(ret, res);
+
+  }
   getChatBotStatus(req: Request, res: Response, next: NextFunction) {
     //  const ret = botServer.status()
     const ret = null

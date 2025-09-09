@@ -6,4 +6,6 @@ chatBotRouter.get(`/qr/:imgcount?`, (req, res, next) => {chatBotController.getCh
 chatBotRouter.get(`/status`, (req, res, next) => {chatBotController.getChatBotStatus(req, res, next)});
 chatBotRouter.get(`/delay`, (req, res, next) => {chatBotController.getChatBotDelay(req, res, next)});
 chatBotRouter.post(`/delay`, (req, res, next) => {chatBotController.setChatBotDelay(req, res, next)});
-chatBotRouter.post(`/sendAlert`, (req, res, next) => {chatBotController.sendAlert(req, res, next)});
+chatBotRouter.post(`/sendAlert`, (req, res, next) => { chatBotController.sendAlert(req, res, next) });
+chatBotRouter.post(`/gotoFlow`, (req, res, next) => { chatBotController.gotoFlow(req, res, next) });
+        

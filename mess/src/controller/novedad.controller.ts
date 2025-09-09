@@ -50,7 +50,7 @@ export class NovedadController extends BaseController {
         // console.log('envio a', PersonalId, telefono, msg)
         await botServer.sendMsg(telefono, msg)
         
-        // await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
+        //await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
 
         //ChatBotController.enqueBotMsg(PersonalId, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
 

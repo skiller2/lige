@@ -592,6 +592,15 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
 
 export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADES"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
+        const currState = state.getMyState()
+        console.log('state',currState)        
+        if (currState)
+            return endFlow()
+
+
+
+
+
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         //Verfico el personal
         const telefono = ctx.from
