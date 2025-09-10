@@ -9,7 +9,7 @@ import { Utils } from "../controller/util.ts";
 const delay = chatBotController.getDelay()
 const personalController = new PersonalController()
 const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { provider, flowDynamic, state  }) => {
+    .addAction(async (ctx, { provider, flowDynamic, state }) => {
         await flowDynamic([{ body: `⏱️ Buscando información ...`, delay: delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
@@ -17,15 +17,15 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
 
-        const infoPersonal = await personalController.getPersonalQuery(ctx.from,personalId)
+        const infoPersonal = await personalController.getPersonalQuery(ctx.from, personalId)
         const PersonalNroLegajo = infoPersonal[0].PersonalNroLegajo
-        const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso)?new Date(infoPersonal[0].PersonalFechaIngreso):null
+        const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso) ? new Date(infoPersonal[0].PersonalFechaIngreso) : null
         //TODO Agregar fecha de ingreso y nro de asociado.
         await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
         await Utils.waitT(5000)
 
-        await flowDynamic(`Su número de socio: ${PersonalNroLegajo}`, {delay:delay * 3 })
-        await flowDynamic(`Su fecha de ingreso: ${personalController.dateOutputFormat(PersonalFechaIngreso)}`, {delay })
+        await flowDynamic(`Su número de socio: ${PersonalNroLegajo}`, { delay: delay * 3 })
+        await flowDynamic(`Su fecha de ingreso: ${personalController.dateOutputFormat(PersonalFechaIngreso)}`, { delay })
         //await flowDynamic(`Su antigüedad: ${socioNro}`, { delay })
 
         const sitrevs: any[] = await PersonalController.getPersonalSitRevista(personalId, anio, mes)
@@ -38,7 +38,7 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         }
 
         const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
-        const catstring: string[] = categs.map(c => ' - '+c.fullName)
+        const catstring: string[] = categs.map(c => ' - ' + c.fullName)
 
         await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
 
@@ -46,12 +46,12 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         if (catstring.length == 1)
             catstring.unshift('Su categoría actual es:')
         else if (catstring.length > 1)
-            catstring.unshift('Sus categorías actuales son:') 
-        else 
+            catstring.unshift('Sus categorías actuales son:')
+        else
             catstring.unshift('No posee categorías asignadas aún')
 
-        await flowDynamic(catstring.join('\n'), { delay:delay*2 })        
-        
+        await flowDynamic(catstring.join('\n'), { delay: delay * 2 })
+
 
         //        for (const cat of categs) {
         //            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
@@ -72,11 +72,13 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         }
     })
 
-    .addAction(async (ctx, { flowDynamic,gotoFlow }) => {
+    .addAction(async (ctx, { flowDynamic, gotoFlow }) => {
         await flowDynamic(`¿Alguna otra consulta?\n("si" o "no")`, { delay: delay * 3 })
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
-    .addAction({ capture: true }, async (ctx, { gotoFlow, state }): Promise<void> => {
+    .addAction({ capture: true }, async (ctx, { gotoFlow, state, fallBack }): Promise<void> => {
+        if (ctx?.type == 'dispatch')
+            return fallBack()
         const respuesta = ctx.body
         return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
     })

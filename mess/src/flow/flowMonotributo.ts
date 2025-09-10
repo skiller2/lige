@@ -20,82 +20,88 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
     //     else
     //         await flowDynamic([{ media:monotributoPdf, delay:delay }]) 
     // })
-    .addAction(async (_, { flowDynamic, state ,gotoFlow }) => {
-        await flowDynamic([{ body:`⏱️ Buscando comprobantes`, delay }])
+    .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
+        await flowDynamic([{ body: `⏱️ Buscando comprobantes`, delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
-        const periodosArray : any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3).then(array =>{return array})
+        const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3).then(array => { return array })
         // console.log('periodos', periodosArray);
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {
-                const today = new Date(obj.anio,obj.mes-1,1);
+                const today = new Date(obj.anio, obj.mes - 1, 1);
                 const month = today.toLocaleString('default', { month: 'short' });
-                resPeriodos += `${index+1}- *${month.toUpperCase()}/${obj.anio}*\n`
+                resPeriodos += `${index + 1}- *${month.toUpperCase()}/${obj.anio}*\n`
             })
         } else {
-            await flowDynamic([{ body:`No hay comprobantes`, delay }])
+            await flowDynamic([{ body: `No hay comprobantes`, delay }])
             return gotoFlow(flowMenu)
         }
-        
-        await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
+
+        await state.update({ recibo: { periodosArray, periodosString: resPeriodos } })
     })
     .addAction(async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
         const resPeriodos = myState.recibo.periodosString
         await flowDynamic([{ body: resPeriodos }])
-        await flowDynamic([{ body: 'Ingrese el número correspondiente al período listado 📝'}])
+        await flowDynamic([{ body: 'Ingrese el número correspondiente al período listado 📝' }])
 
     })
     .addAction({ capture: true, delay },
         async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
-        reset(ctx,gotoFlow,botServer.globalTimeOutMs)
+            if (ctx?.type == 'dispatch')
+                return fallBack()
 
-        const myState = state.getMyState()
-        const periodosArray : any[] = myState.recibo.periodosArray
-        const msj = ctx.body
-        if (parseInt(msj)<1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray?.length ) {
-            return fallBack('El numero ingresado no aparece en la lista  📝\nIngrese otro')
-        }
-        const mes = periodosArray[parseInt(msj)-1]?.mes
-        const anio = periodosArray[parseInt(msj)-1]?.anio
-        const personalId = myState.personalId
-        // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
+            const myState = state.getMyState()
+            const periodosArray: any[] = myState.recibo.periodosArray
+            const msj = ctx.body
+            if (parseInt(msj) < 1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray?.length) {
+                return fallBack('El numero ingresado no aparece en la lista  📝\nIngrese otro')
+            }
+            const mes = periodosArray[parseInt(msj) - 1]?.mes
+            const anio = periodosArray[parseInt(msj) - 1]?.anio
+            const personalId = myState.personalId
+            // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
             //const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
-            const urlDoc = await documentosController.getURLDocumento(personalId, anio, mes,'MONOT')
-            
+            const urlDoc = await documentosController.getURLDocumento(personalId, anio, mes, 'MONOT')
+
 
             if (urlDoc instanceof Error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
             else {
                 //TODO:  Ver tema nueva tabla PersonalComprobantePagoAFIPId, com.PersonalId,
                 try {
-                    
+
                     await flowDynamic([{ body: `Monotributo`, media: urlDoc.URL, delay }])
-                    await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)
+                    await chatBotController.addToDocLog(urlDoc.doc_id, ctx.from)
                 } catch (error) {
                     console.log('Error', error)
                     await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
                 }
 
             }
-    
-    })
-    .addAnswer([
-        '¿Desea consultar algo mas?', 
-        'Responda "Si" o "No"'
-    ], { capture: true, delay },  
-        async (ctx, { gotoFlow, fallBack, state }) => {
-        reset(ctx,gotoFlow,botServer.globalTimeOutMs)
 
-        let myState = state.getMyState()
-        delete myState.recibo
-        await state.update(myState)
-        console.log('state.getMyState()', state.getMyState());
-        
+        })
+    .addAnswer([
+        '¿Desea consultar algo mas?',
+        'Responda "Si" o "No"'
+    ], { capture: true, delay },
+        async (ctx, { gotoFlow, fallBack, state }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
+            let myState = state.getMyState()
+            delete myState.recibo
+            await state.update(myState)
+            console.log('state.getMyState()', state.getMyState());
+
             const respuesta = ctx.body
-        return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
-            
-    }, [])
+            return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
+
+        }, [])
 
 export default flowMonotributo

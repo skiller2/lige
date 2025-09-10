@@ -7,29 +7,28 @@ import flowRemoveTel from './flowRemoveTel.ts';
 import { flowDescargaDocs } from './flowDescargaDocs.ts';
 
 const delay = chatBotController.getDelay()
-const linkVigenciaHs = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
+const linkVigenciaHs = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
 
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
     })
     .addAnswer([`Ingrese el código proporcionado en la página web 'Validación de Identidad', en caso de desconocerlo ingrese 0 para ir al inicio`], { capture: true, delay: delay },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack,endFlow }) => {
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
-            const res = await personalController.getPersonalQuery(telefono,0)
 
-            if (res.length) {
-                if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
-                    await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return endFlow()
-                }
-    
-                await state.update({ personalId: res[0].personalId })
-                await state.update({ cuit: res[0].cuit })
-                await state.update({ codigo: res[0].codigo })
-                await state.update({ name: res[0].name.trim() })
-            }    
+            const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
+            await state.update(stateData)
+
+            if (!activo) {
+                await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
+                stop(ctx, gotoFlow, state)
+                return endFlow()
+            }
+
             const data = state.getMyState()
 
             if (ctx.body == '0') {
@@ -41,15 +40,15 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 personalController.removeCode(telefono)
                 return gotoFlow(flowMenu)
             } else {
-                const reintento = (data.reintento)?data.reintento:0
+                const reintento = (data.reintento) ? data.reintento : 0
                 if (reintento > 3) {
                     const res = await personalController.delTelefonoPersona(telefono)
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx,gotoFlow, state)
+                    stop(ctx, gotoFlow, state)
                     return endFlow()
                 }
 
-                await state.update({ reintento: reintento + 1 })    
+                await state.update({ reintento: reintento + 1 })
                 return fallBack('Código ingresado incorrecto, reintente')
             }
         })
@@ -60,61 +59,50 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         const currState = state.getMyState()
         if (currState?.flowLogin == 1)
             return endFlow()
-        
+
         await state.update({ flowLogin: 1 })
 
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
         const telefono = ctx.from
         await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
-        const res = await personalController.getPersonalQuery(telefono,0)
 
-        //force
-        if (process.env.PERSONALID_TEST) {
-            res.length = 0
-            res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
+        const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
+        await state.update(stateData)
+
+        if (!activo) {
+            await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
+            stop(ctx, gotoFlow, state)
+            return endFlow()
         }
 
-        if (res.length) {
-            if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
-                await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })
-                stop(ctx, gotoFlow, state)
-                await state.update({ flowLogin: 0 })
-                return endFlow()
-            }
-            await state.update({ personalId: res[0].personalId })
-            await state.update({ cuit: res[0].cuit })
-            await state.update({ codigo: res[0].codigo })
-            await state.update({ name: res[0].name.trim() })
+        const ahora = new Date();
+        const horas = ahora.getHours();
+        let mensaje = "";
 
-            const ahora = new Date();
-            const horas = ahora.getHours();
-            let mensaje = "";
-        
-            if (horas >= 5 && horas < 12) {
-                mensaje = "Buen día";
-            } else if (horas >= 12 && horas < 20) {
-                mensaje = "Buenas tardes";
-            } else {
-                mensaje = "Buenas noches";
-            }
-
-            const fistName = res[0].name.trim().split(" ")[0].trim();
-            if (fistName)
-                await flowDynamic(`${mensaje} ${fistName.charAt(0).toUpperCase() + fistName.slice(1).toLowerCase()}`, { delay: delay })
-
-            await state.update({ flowLogin: 0 })
-            if (res[0].codigo) {
-                //Código pendiente de ingreso
-                return gotoFlow(flowValidateCode)
-            } else {
-//                return gotoFlow(flowMenu)
-                return gotoFlow(flowDescargaDocs)
-            }
+        if (horas >= 5 && horas < 12) {
+            mensaje = "Buen día";
+        } else if (horas >= 12 && horas < 20) {
+            mensaje = "Buenas tardes";
+        } else {
+            mensaje = "Buenas noches";
         }
+
+        if (firstName)
+            await flowDynamic(`${mensaje} ${firstName}`, { delay: delay })
+
+        await state.update({ flowLogin: 0 })
+        if (codigo)
+            return gotoFlow(flowValidateCode)
+
+        return gotoFlow(flowDescargaDocs)
+
     })
     .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
             const respSINO = ctx.body
@@ -123,10 +111,10 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
                 await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
-                stopSilence(ctx,gotoFlow, state)
+                stopSilence(ctx, gotoFlow, state)
                 return endFlow()
             } else {
-                stop(ctx,gotoFlow, state)
+                stop(ctx, gotoFlow, state)
             }
 
         })

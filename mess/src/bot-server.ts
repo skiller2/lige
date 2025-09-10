@@ -41,6 +41,7 @@ export class BotServer {
       body: utils.encryptData(`_event_custom_${name}_`),
       name,
       from,
+      type:'dispatch'
     });
   }
 

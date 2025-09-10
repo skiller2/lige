@@ -23,19 +23,6 @@ export class NovedadController extends BaseController {
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
 
-    // const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
-
-    // const msg = `*Novedad:*\n` +
-    //   `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
-    //   `- Hora: ${novedad.Hora ?? 's/d'}\n` +
-    //   `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-    //   `- Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-    //   `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-    //   `- Acción: ${novedad.Accion ?? 's/d'}\n` +
-    //   `- Registrado por: ${infoPersonal[0].fullName ?? 's/d'} (CUIT: ${infoPersonal[0].cuit ?? 's/d'})\n` +
-    //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
-    //   `- Documentos: ${novedad.files.length}\n`
-
     const msg = `Se a registrado una novedas en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}.\n` 
 
     if (supervisor.GrupoActividadId) {

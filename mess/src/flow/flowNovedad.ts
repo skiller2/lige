@@ -46,6 +46,8 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
     .addAnswer([],
         { capture: true, delay },
         async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
 
             const personalId = state.get('personalId')
             const novedad = await novedadController.getBackupNovedad(personalId)
@@ -95,6 +97,9 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
 export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
     .addAnswer(['Ingrese el código del objetivo donde se produjo el hecho', 'M - Volver al menú',], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
@@ -146,6 +151,9 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
     })
     .addAnswer(['Ingrese el número del tipo de situación'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+                        if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
@@ -174,7 +182,10 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
     .addAnswer(['Describa la acción tomada', 'M - Volver al menú',], { capture: true, delay },
-        async (ctx, { state, gotoFlow, }) => {
+        async (ctx, { state, gotoFlow, fallBack}) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
@@ -190,7 +201,10 @@ export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
     .addAnswer(['Describa la situación', 'M - Volver al menú',], { capture: true, delay },
-        async (ctx, { state, gotoFlow, }) => {
+        async (ctx, { state, gotoFlow, fallBack}) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
@@ -213,6 +227,9 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
         'M - Volver al menú',
     ], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const personalId = state.get('personalId')
 
@@ -263,6 +280,9 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
         'M - Volver al menú',
     ], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+                        if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
@@ -307,6 +327,9 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
 export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
     .addAnswer('Enviar al responsable (Si/No)', { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+                        if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const personalId = state.get('personalId')
             const novedad = await novedadController.getBackupNovedad(personalId)
@@ -370,6 +393,9 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
     .addAnswer(["📎 Envíame un documento, foto o video", 'M - Volver al menú de novedad',], { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider, flowDynamic, endFlow }) => {
+                    if (ctx?.type == 'dispatch')
+                return fallBack()
+
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowNovedad)
 
@@ -470,6 +496,9 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+                        if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
@@ -512,6 +541,9 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
     )
     .addAnswer(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+                        if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             if (String(ctx.body).toLowerCase() == 'm') {
@@ -550,22 +582,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             }
         }
     )
-    /*
-    .addAnswer(['L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-
-            const MyState = state.getMyState()
-            delete MyState.novedades
-            delete MyState.NovedadCodigo
-            state.update(MyState)
-            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
-            if (String(ctx.body).toLowerCase() == 'l') return gotoFlow(flowNovedadPendiente)
-            return fallBack()
-        }
-    )
-    */
-
+   
 
 export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
@@ -582,6 +599,9 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
@@ -597,33 +617,32 @@ export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADE
         if (currState)
             return endFlow()
 
-
-
-
+        console.log('continua flowProactivoNovedad')        
 
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-        //Verfico el personal
+
         const telefono = ctx.from
-        const res = await personalController.getPersonalQuery(telefono,0)
 
-        if (res.length) {
-            if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
-                // await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
-                stop(ctx, gotoFlow, state)
-                return endFlow()
-            }
+        const { activo, stateData, PersonalSituacionRevistaSituacionId,firstName,codigo } = await personalController.getPersonaState(telefono)
+        await state.update(stateData)
 
-            await state.update({ personalId: res[0].personalId })
-            await state.update({ cuit: res[0].cuit })
-            await state.update({ codigo: res[0].codigo })
-            await state.update({ name: res[0].name.trim() })
+        if (!activo) {
+            await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
+            stop(ctx, gotoFlow, state)
+            return endFlow()
         }
 
     })
     .addAnswer('¿Desea ver las novedades? (Si/No)', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body
+console.log('atiendo respuesta',ctx)
+            if (ctx?.type == 'dispatch')
+                return fallBack()
             if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
             await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)

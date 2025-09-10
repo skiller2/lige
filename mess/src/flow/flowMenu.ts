@@ -29,6 +29,9 @@ const flowMenu = addKeyword(EVENTS.ACTION)
     ],
         { capture: true, delay },
         async (ctx, { fallBack, gotoFlow, state }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const tema = parseInt(ctx.body)

@@ -28,7 +28,7 @@ export class PersonalController extends BaseController {
     );
   }
 
-  linkVigenciaHs:number = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
+  linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
 
   async delTelefonoPersona(telefono: string) {
 
@@ -101,7 +101,36 @@ export class PersonalController extends BaseController {
       );
     }
   */
-  async getPersonalQuery(telefono: string, PersonalId:number) {
+
+  async getPersonaState(telefono: string) {
+    const res = await this.getPersonalQuery(telefono, 0)
+    let activo = false
+    let PersonalSituacionRevistaSituacionId = 0
+    let stateData = {}
+    let firstName = ""
+    let codigo = 0
+    //force
+    if (process.env.PERSONALID_TEST) {
+      res.length = 0
+      res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
+    }
+
+    if (res.length) {
+      stateData = { personalId: res[0].personalId, cuit: res[0].cuit, codigo: res[0].codigo, name: res[0].name.trim() }
+      if ([2, 9, 23, 12, 10, 16, 28, 18, 26, 11, 20, 22].includes(res[0].PersonalSituacionRevistaSituacionId))
+        activo = true
+      PersonalSituacionRevistaSituacionId = res[0].PersonalSituacionRevistaSituacionId
+
+      const tmpName = String(res[0].name).trim().split(" ")[0].trim();
+      firstName = tmpName.charAt(0).toUpperCase() + tmpName.slice(1).toLowerCase()
+
+      codigo = res[0].codigo
+    }
+
+    return { activo,stateData,PersonalSituacionRevistaSituacionId,firstName,codigo}
+  }
+
+  async getPersonalQuery(telefono: string, PersonalId: number) {
     return await dbServer.dataSource.query(
       `SELECT reg.personal_id personalId, reg.telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
@@ -153,7 +182,7 @@ export class PersonalController extends BaseController {
     //const usuario = 'anon'
     //const ip = 'localhost'
     //const queryRunner = dataSource.createQueryRunner();
-    const dataStr =JSON.stringify({stmgen,data});
+    const dataStr = JSON.stringify({ stmgen, data });
 
     try {
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
@@ -195,10 +224,10 @@ export class PersonalController extends BaseController {
         else
           dni = des_doc_ident_parts[4].trim()
       } else if (CUIT) {
-        
-       } else
+
+      } else
         throw new ClientException('No se pudo obtener el número de dni', { des_doc_ident })
- 
+
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const decrypted = CryptoJS.default.AES.decrypt(
@@ -220,15 +249,15 @@ export class PersonalController extends BaseController {
       const telValid = /^\d+$/.test(telNro);
       const dniValid = /^\d+$/.test(dni);
       let bus = ''
-      if (CUIT) { 
-        bus = CUIT 
+      if (CUIT) {
+        bus = CUIT
       } else {
         if (!telValid || telNro.length < 8)
           throw new ClientException('No se puede verificar el número de teléfono', { telNro })
 
         if (!dniValid || dni.length < 6)
           throw new ClientException('No se puede verificar el número de dni', { dni })
-        bus = "%${dni}_" 
+        bus = "%${dni}_"
       }
       await queryRunner.startTransaction()
 
@@ -277,7 +306,7 @@ export class PersonalController extends BaseController {
     const queryRunner = dbServer.dataSource.createQueryRunner();
 
     try {
- 
+
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const decrypted = CryptoJS.default.AES.decrypt(
@@ -289,10 +318,10 @@ export class PersonalController extends BaseController {
         format: CryptoJS.format.Hex
       });
 
-      const clearTextStr=decrypted.toString(CryptoJS.default.enc.Utf8)
-      if (clearTextStr=='')
+      const clearTextStr = decrypted.toString(CryptoJS.default.enc.Utf8)
+      if (clearTextStr == '')
         throw new ClientException('El enlace proporcionado no es válido, vuelve a saludar al BOT para recibir uno nuevo')
-      
+
       const dataObj = JSON.parse(clearTextStr)
       if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > this.linkVigenciaHs) {
         throw new ClientException('El enlace proporcionado expiró, vuelve a saludar al BOT para recibir uno nuevo')
@@ -304,17 +333,17 @@ export class PersonalController extends BaseController {
       return next(error)
     }
   }
-  
-  static async getPersonalSitRevista(personalId:number, anio:number,mes:number) {
-      const responsables = await dbServer.dataSource.query(
-        `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
+
+  static async getPersonalSitRevista(personalId: number, anio: number, mes: number) {
+    const responsables = await dbServer.dataSource.query(
+      `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
         JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)))
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
         WHERE per.PersonalId=@0
         ORDER BY sitrev.PersonalSituacionRevistaDesde, hastafull`, [personalId, anio, mes])
 
-      return responsables
+    return responsables
   }
 
 
@@ -335,8 +364,8 @@ export class PersonalController extends BaseController {
   }
 
 
-  static async getResponsablesListByPersonal(personalId:number) {
-      return await dbServer.dataSource.query(`
+  static async getResponsablesListByPersonal(personalId: number) {
+    return await dbServer.dataSource.query(`
         SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
         gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
         gaj.GrupoActividadJerarquicoPersonalId PersonalId,
@@ -348,12 +377,12 @@ export class PersonalController extends BaseController {
         WHERE gap.GrupoActividadPersonalPersonalId IN (@0)
         ORDER BY gap.GrupoActividadPersonalDesde DESC
       `, [personalId]
-      );
+    );
 
   }
 
-  static async getTelefono(personalId:number) {
-    return await dbServer.dataSource.query(`SELECT tel.telefono FROM lige.dbo.regtelefonopersonal tel WHERE tel.personal_id IN (@0)`, [personalId] )
+  static async getTelefono(personalId: number) {
+    return await dbServer.dataSource.query(`SELECT tel.telefono FROM lige.dbo.regtelefonopersonal tel WHERE tel.personal_id IN (@0)`, [personalId])
   }
 
 

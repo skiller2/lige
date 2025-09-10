@@ -35,7 +35,10 @@ José Manuel Cuenca – Síndico
         await flowDynamic('¿Alguna otra consulta?\n("si" o "no")', { delay: delay * 3})
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
-    .addAction({ capture: true }, async (ctx, { gotoFlow, state }): Promise<void> => {
+    .addAction({ capture: true }, async (ctx, { gotoFlow, state,fallBack }): Promise<void> => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
         const respuesta = ctx.body
         return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)
     })

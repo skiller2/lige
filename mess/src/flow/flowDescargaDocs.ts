@@ -30,6 +30,8 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {

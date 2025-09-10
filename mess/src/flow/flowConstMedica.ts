@@ -10,7 +10,10 @@ const flowConstMedica = addKeyword(['4','constancia','constancia médica','const
         '¿Desea consultar algo mas?', 
         'Responda "Si" o "No"'
     ], { capture: true, delay: delay },  
-    async (ctx , { gotoFlow, state }) => {
+        async (ctx, { gotoFlow, state,fallBack }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+        
         const respuesta = ctx.body
 
         return (respuesta.toLocaleLowerCase().indexOf('s') != -1) ? gotoFlow(flowMenu) : stop(ctx, gotoFlow, state)

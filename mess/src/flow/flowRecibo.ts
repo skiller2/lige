@@ -35,6 +35,9 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
     })
     .addAction({ capture: true, delay },
         async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const myState = state.getMyState()
@@ -68,7 +71,10 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         'Responda "Si" o "No"'
     ], { capture: true, delay },
         async (ctx, { gotoFlow, fallBack, state }) => {
-            let myState = state.getMyState()
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
+            const myState = state.getMyState()
             delete myState.recibo
             await state.update(myState)
             const respuesta = ctx.body

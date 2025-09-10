@@ -1,30 +1,31 @@
 import { EVENTS, addKeyword, } from '@builderbot/bot'
-import type { TFlow,BotContext, BotStateStandAlone } from '@builderbot/bot/dist/types.d.ts';
+import type { TFlow, BotContext, BotStateStandAlone } from '@builderbot/bot/dist/types.d.ts';
 
 // Object to store timers for each user
 const timers = {};
 
 // Flow for handling inactivity
 const idleFlow = addKeyword(EVENTS.ACTION).addAction(
-  async (_, { endFlow }) => {
+  async (_, { state,endFlow }) => {
+    state.clear()
     return endFlow('Gracias por su tiempo, hasta la próxima 👋');
   }
 );
 
 // Function to start the inactivity timer for a user
 const start = (ctx: BotContext, gotoFlow: (a: addKeyword) => Promise<void>, ms: number) => {
+  if (timers[ctx.from])
+    clearTimeout(timers[ctx.from]);
+
   timers[ctx.from] = setTimeout(() => {
     console.log(`User timeout: ${ctx.from}`);
-    return gotoFlow(idleFlow);
+    return   gotoFlow(idleFlow);
   }, ms);
 }
 
 // Function to reset the inactivity timer for a user
 const reset = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, ms: number) => {
-  if (timers[ctx.from]) {
-    console.log(`reset countdown for the user: ${ctx.from}`);
-    clearTimeout(timers[ctx.from]);
-  }
+  console.log(`reset countdown for the user: ${ctx.from}`);
   start(ctx, gotoFlow, ms);
 }
 
