@@ -325,7 +325,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
 
 
 export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
-    .addAnswer('Enviar al responsable (Si/No)', { capture: true, delay },
+    .addAnswer('Desea notificar al responsable? (Si/No)', { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
                         if (ctx?.type == 'dispatch')
                 return fallBack()
@@ -354,16 +354,16 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                     if (!process.env.PERSONALID_TEST)
                         await novedadController.saveNovedad(personalId, {})
 
-                    await flowDynamic([`Enviado al responsable`, `Redirigiendo al menú ...`], { delay: delay })
+                    await flowDynamic([`Enviado con éxito.`], { delay: delay })
                 } else {
-                    return fallBack()
+                    return gotoFlow(flowNovedad)
                 }
                 await state.update({ reintento: 0 })
                 return gotoFlow(flowMenu)
 
             } catch (error) {
                 console.log('error', error)
-                await flowDynamic([`Ocurrio un error enviando la novedad al responsable. Informe al administrador del sistema.`, `Redirigiendo al menú ...`], { delay: delay })
+                await flowDynamic([`Ocurrio un error enviando la novedad al responsable. Informe al administrador del sistema.`], { delay: delay })
                 return gotoFlow(flowMenu)
 
             }
@@ -423,7 +423,7 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
 
             await novedadController.saveNovedad(personalId, novedad)
             await state.update({ reintento: 0 })
-            await flowDynamic([`Archivo recibido`, `Redirigiendo al menú de novedad ...`], { delay: delay })
+            await flowDynamic([`Archivo recibido.`], { delay: delay })
             return gotoFlow(flowNovedad)
         } else {
             const reintento = state.get('reintento') ?? 0
@@ -480,7 +480,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
         const personalId = state.get('personalId')
         const novedades = await novedadController.getNovedadesByResponsable(personalId)
         if (!novedades.length) {
-            await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
+            await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)
         }
 
@@ -532,14 +532,14 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                 
             } catch (error) {
                 console.log('Error --->', error)
-                await flowDynamic([`Ocurrio un error al mostrar la novedad. Informe al administrador del sistema.`, `Redirigiendo al menú ...`], { delay: delay })
+                await flowDynamic([`Ocurrio un error al mostrar la novedad. Informe al administrador del sistema. Redirigiendo al menú ...`], { delay: delay })
                 return gotoFlow(flowMenu)
             }
             
 
         }
     )
-    .addAnswer(['C - Consultar Documentos relacionados', 'L - Volver al listado de novedades', 'M - Volver al menú'], { delay: delay, capture: true },
+    .addAnswer(['C - Consultar Documentos relacionados\nL - Volver al listado de novedades\nM - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
                         if (ctx?.type == 'dispatch')
                 return fallBack()
@@ -590,7 +590,7 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
         const personalId = state.get('personalId')
         const novedades = await novedadController.getNovedadesByResponsable(personalId)
         if (!novedades.length) {
-            await flowDynamic([`No tienes ninguna novedad pendiente por ver`, `Redirigiendo al menú ...`], { delay: delay })
+            await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)
         }
 
@@ -605,7 +605,6 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
-            await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)
         }
     )
@@ -644,7 +643,6 @@ console.log('atiendo respuesta',ctx)
             if (ctx?.type == 'dispatch')
                 return fallBack()
             if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
-            await flowDynamic([`Redirigiendo al menú ...`], { delay: delay })
             return gotoFlow(flowMenu)
         }
     )
