@@ -36,7 +36,7 @@ export class NovedadController extends BaseController {
     //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
     //   `- Documentos: ${novedad.files.length}\n`
 
-    const msg = `Se a registrado una novedas en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}.\n` 
+    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}.\n` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
