@@ -16,7 +16,7 @@ export class AdelantosController extends BaseController {
       fieldName: "cuit.PersonalCUITCUILCUIT",
       type: "number",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
     },
     {
       name: "Apellido Nombre",
@@ -41,6 +41,18 @@ export class AdelantosController extends BaseController {
       hidden: true,
     },
     {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sit.SituacionRevistaId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+    {
       name: "Situación Revista",
       type: "string",
       id: "SituacionRevistaDescripcion",
@@ -48,7 +60,7 @@ export class AdelantosController extends BaseController {
       fieldName: "sit.SituacionRevistaDescripcion",
       sortable: true,
       hidden: false,
-      searchHidden: false
+      searchHidden: true
     },
     {
       name: "Importe",
@@ -66,6 +78,7 @@ export class AdelantosController extends BaseController {
       id: "PersonalPrestamoDia",
       field: "PersonalPrestamoDia",
       fieldName: "pre.PersonalPrestamoDia",
+      searchComponent: "inpurForFechaSearch",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -76,6 +89,7 @@ export class AdelantosController extends BaseController {
       id: "PersonalPrestamoFechaAprobacion",
       field: "PersonalPrestamoFechaAprobacion",
       fieldName: "pre.PersonalPrestamoFechaAprobacion",
+      searchComponent: "inpurForFechaSearch",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -97,7 +111,7 @@ export class AdelantosController extends BaseController {
       field: "GrupoActividadNumero",
       fieldName: "g.GrupoActividadNumero",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
       hidden: false,
     },
     {
@@ -108,6 +122,17 @@ export class AdelantosController extends BaseController {
       fieldName: "g.GrupoActividadDetalle",
       searchType: "string",
       sortable: true,
+      searchHidden: true
+    },
+    {
+      name: "Grupo Actividad",
+      type: "number",
+      id: "GrupoActividadId",
+      field: "GrupoActividadId",
+      fieldName: "g.GrupoActividadId",
+      searchComponent: 'inpurForGrupoActividadSearch',
+      sortable: false,
+      hidden: true,
       searchHidden: false
     },
     {
