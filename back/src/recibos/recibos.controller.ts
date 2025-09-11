@@ -462,7 +462,30 @@ export class RecibosController extends BaseController {
 
   ) {
     return queryRunner.query(
-      'INSERT INTO Documento(DocumentoId, DocumentoTipoCodigo, PersonalId, ObjetivoId, DocumentoDenominadorDocumento, DocumentoNombreArchivo, DocumentoFecha, DocumentoFechaDocumentoVencimiento, DocumentoPath, DocumentoDetalleDocumento, DocumentoIndividuoDescargaBot, DocumentoAudFechaIng, DocumentoAudUsuarioIng, DocumentoAudIpIng, DocumentoAudFechaMod, DocumentoAudUsuarioMod, DocumentoAudIpMod, DocumentoClienteId, DocumentoAnio, DocumentoMes, DocumentoVersion)',
+      `INSERT INTO Documento(DocumentoId, 
+        DocumentoTipoCodigo, 
+        PersonalId, 
+        ObjetivoId, 
+        DocumentoDenominadorDocumento, 
+        DocumentoNombreArchivo, 
+        DocumentoFecha, 
+        DocumentoFechaDocumentoVencimiento, 
+        DocumentoPath, 
+        DocumentoDetalleDocumento, 
+        DocumentoIndividuoDescargaBot, 
+        DocumentoAudFechaIng, 
+        DocumentoAudUsuarioIng, 
+        DocumentoAudIpIng, 
+        DocumentoAudFechaMod, 
+        DocumentoAudUsuarioMod, 
+        DocumentoAudIpMod, 
+        DocumentoClienteId, 
+        DocumentoAnio, 
+        DocumentoMes, 
+        DocumentoVersion)
+      
+        VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20)
+      `,
       [DocumentoId,
         doctipo_id,
         persona_id,
