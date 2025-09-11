@@ -304,7 +304,7 @@ export class NovedadesController extends BaseController {
             AND gajer.GrupoActividadJerarquicoComo = 'J'
         LEFT JOIN Personal jerper ON jerper.PersonalId = gajer.GrupoActividadJerarquicoPersonalId
         LEFT JOIN Personal visper ON visper.PersonalId = nov.VisualizacionPersonaId
-        WHERE nov.NovedadCodigo = 62
+        WHERE nov.NovedadCodigo = @0
         GROUP BY nov.NovedadCodigo,cli.ClienteId,cli.ClienteDenominacion,
             ele.ClienteElementoDependienteId,obj.ObjetivoId, nov.Fecha, nov.Accion,nov.NovedadTipoCod,nov.Descripcion,
             CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)), ele.ClienteElementoDependienteDescripcion,
