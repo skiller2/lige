@@ -13,7 +13,7 @@ const flowRemoveTel = addKeyword(EVENTS.ACTION)
         const telefono = ctx.from
 
         const res = await personalController.delTelefonoPersona(telefono)
-        stop(ctx,gotoFlow, state)
+        return stop(ctx,gotoFlow, state)
     })
 
 export default flowRemoveTel

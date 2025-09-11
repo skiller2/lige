@@ -61,8 +61,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 if (process.env.PERSONALID_TEST) { 
                     return gotoFlow(flowConsNovedadPendiente)
                 }
-                stop(ctx, gotoFlow, state)
-                return endFlow()
+                return stop(ctx, gotoFlow, state)
             }
         }
     )

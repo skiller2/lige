@@ -111,8 +111,7 @@ export const flowNovedadCodObjetivo = addKeyword(EVENTS.ACTION)
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return endFlow()
+                    return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
@@ -166,8 +165,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return endFlow()
+                    return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
@@ -253,8 +251,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return endFlow()
+                    return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
@@ -305,8 +302,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return endFlow()
+                    return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
@@ -429,8 +425,7 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
             const reintento = state.get('reintento') ?? 0
             if (reintento > 3) {
                 await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                stop(ctx, gotoFlow, state)
-                return endFlow()
+                return stop(ctx, gotoFlow, state)
             }
             await state.update({ reintento: reintento + 1 })
             fallBack('El formato del archivo es desconocido, reintente')
@@ -627,8 +622,7 @@ export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADE
 
         if (!activo) {
             await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
-            stop(ctx, gotoFlow, state)
-            return endFlow()
+            return stopSilence(ctx, gotoFlow, state,endFlow)
         }
 
     })

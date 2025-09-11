@@ -39,13 +39,13 @@ const stop = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, state: Bot
   return gotoFlow(idleFlow);
 }
 
-const stopSilence = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, state: BotStateStandAlone) => {
+const stopSilence = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, state: BotStateStandAlone, endFlow: any) => {
   if (timers[ctx.from]) {
     clearTimeout(timers[ctx.from]);
   }
   state.clear()
   console.log(`User stop: ${ctx.from}`);
-
+  return endFlow()
 }
 
 

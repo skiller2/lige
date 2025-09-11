@@ -25,8 +25,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
 
             if (!activo) {
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
-                stop(ctx, gotoFlow, state)
-                return endFlow()
+                return stop(ctx, gotoFlow, state)
             }
 
             const data = state.getMyState()
@@ -44,8 +43,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 if (reintento > 3) {
                     const res = await personalController.delTelefonoPersona(telefono)
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx, gotoFlow, state)
-                    return endFlow()
+                    return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
@@ -72,8 +70,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
         if (!activo) {
             await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
-            stop(ctx, gotoFlow, state)
-            return endFlow()
+            return stop(ctx, gotoFlow, state)
         }
 
         const ahora = new Date();
@@ -111,10 +108,10 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
                 await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
-                stopSilence(ctx, gotoFlow, state)
-                return endFlow()
+                return stopSilence(ctx, gotoFlow, state, endFlow)
+                
             } else {
-                stop(ctx, gotoFlow, state)
+                return stop(ctx, gotoFlow, state)
             }
 
         })
