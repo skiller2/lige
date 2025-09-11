@@ -7,6 +7,7 @@ import { ChatBotController } from '../controller/chatbot.controller.ts';
 import { ObjetivoController } from '../controller/objetivo.controller.ts';
 import { existsSync, mkdirSync } from "fs";
 import { FileUploadController } from '../controller/file-upload.controller.ts';
+import { Utils } from '../controller/util.ts';
 
 const delay = chatBotController.getDelay()
 const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
@@ -329,10 +330,9 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const personalId = state.get('personalId')
             const novedad = await novedadController.getBackupNovedad(personalId)
-            const respSINO = ctx.body
             const telefono = ctx.from
             try {
-                if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
+                if (Utils.isOKResponse(ctx.body)) {
                     const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
                     novedad.telefonoOrigen = telefono
                     novedad.perdonalId = personalId
@@ -599,7 +599,7 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body
-            if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
+            if (Utils.isOKResponse(ctx.body)) return gotoFlow(flowNovedadPendiente)
             return gotoFlow(flowMenu)
         }
     )
@@ -607,11 +607,8 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
 export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADES"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         const currState = state.getMyState()
-        console.log('state',currState)        
         if (currState)
             return endFlow()
-
-        console.log('continua flowProactivoNovedad')        
 
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
@@ -620,20 +617,16 @@ export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADE
         const { activo, stateData, PersonalSituacionRevistaSituacionId,firstName,codigo } = await personalController.getPersonaState(telefono)
         await state.update(stateData)
 
-        if (!activo) {
-            await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
+        if (!activo)
             return stopSilence(ctx, gotoFlow, state,endFlow)
-        }
-
     })
     .addAnswer('¿Desea ver las novedades? (Si/No)', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const respSINO = ctx.body
-
-            if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
+            
+            if (Utils.isOKResponse(ctx.body)) return gotoFlow(flowNovedadPendiente)
             
             return stop(ctx, gotoFlow, state)
         }

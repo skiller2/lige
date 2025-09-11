@@ -4,6 +4,7 @@ import { chatBotController, personalController } from "../controller/controller.
 import { reset, start, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
 import { flowConsNovedadPendiente } from './flowNovedad.ts';
+import { Utils } from '../controller/util.ts';
 
 const delay = chatBotController.getDelay()
 const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
@@ -33,8 +34,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
             if (ctx?.type == 'dispatch')
                 return fallBack()
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const respSINO = ctx.body
-            if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
+            if (Utils.isOKResponse(ctx.body)) {
                 const docsPend = await state.get('docsPend')
                 const documento = docsPend.pop()
                 

@@ -40,6 +40,11 @@ export class Utils {
     })
   }
 
+  static isOKResponse(inText:string) { 
+    return (inText.charAt(0).toUpperCase() == 'S')?true:false
+  }
+
+
   static removeBotFileSessions() {
 
     const directoryPath = path.join(process.cwd(),'./bot_sessions')

@@ -5,6 +5,7 @@ import { reset, start, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
 import flowRemoveTel from './flowRemoveTel.ts';
 import { flowDescargaDocs } from './flowDescargaDocs.ts';
+import { Utils } from '../controller/util.ts';
 
 const delay = chatBotController.getDelay()
 const linkVigenciaHs = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
@@ -102,8 +103,8 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
-            const respSINO = ctx.body
-            if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
+
+            if (Utils.isOKResponse(ctx.body)) {
                 const ret = await personalController.genTelCode(telefono)
                 await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
                 await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
