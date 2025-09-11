@@ -590,7 +590,7 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
         const personalId = state.get('personalId')
         const novedades = await novedadController.getNovedadesByResponsable(personalId)
         if (!novedades.length) {
-            await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
+            //await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)
         }
 
