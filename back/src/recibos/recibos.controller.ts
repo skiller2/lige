@@ -105,8 +105,8 @@ export class RecibosController extends BaseController {
 
   async generaRecibos(req: Request, res: Response, next: NextFunction) {
 
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
     let isUnique = req.body.isUnique
     const personalId = req.body?.personalId
     const queryRunner = dataSource.createQueryRunner()
@@ -117,7 +117,7 @@ export class RecibosController extends BaseController {
     let den_documento: number
     let directorPathUnique = ""
     const fechaActual = new Date();
-
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner,"Recibos",req.body,usuario,ip)
     try {
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
@@ -204,12 +204,18 @@ export class RecibosController extends BaseController {
 
       await page.close()
       await browser.close()
+//      await queryRunner.commitTransaction()
+
+
+      await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'COM', { res: `Procesado correctamente`,'CantRecibos': movimientosPendientes.length }, usuario, ip)
 
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
 
     } catch (error) {
 
       await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'ERR', { res: error }, usuario, ip)
+
       return next(error)
     } finally {
       //   await queryRunner.release();

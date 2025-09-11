@@ -711,8 +711,7 @@ UNION
       );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(
-        queryRunner,
+      await this.procesoAutomaticoLogFin( queryRunner,
         ProcesoAutomaticoLogCodigo,
         'ERR',
         { res: error },
