@@ -39,6 +39,7 @@ export class NovedadesFormComponent {
 
  fb = inject(FormBuilder)
   formCli = this.fb.group({
+    id: 0,
     ObjetivoId: 0,
     Fecha: null as Date | null,
     TipoNovedadId: 0,
@@ -63,7 +64,7 @@ export class NovedadesFormComponent {
     }else{
       this.formCli.enable()
     }
-    
+    this.formCli.get('id')?.disable()
     this.formCli.markAsPristine()        
 
  }

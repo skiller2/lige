@@ -1,6 +1,13 @@
 
 <form [formGroup]="formCli">
     <br>
+    <nz-form-item >
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Código</nz-form-label>
+      <nz-form-control [nzXs]="8" [nzSm]="8" [nzMd]="8">
+        <input nz-input formControlName="id"  />
+      </nz-form-control>
+    </nz-form-item>
+
     <!-- Objetivo: Buscador de ClienteElementoDependiente -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Objetivo</nz-form-label>
@@ -42,34 +49,6 @@
       </nz-form-control>
     </nz-form-item>
 
-    <!-- VisualizacionFecha -->
-    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionFecha">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Fecha</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-        <input nz-input formControlName="VisualizacionFecha"  [readonly]="true">
-      </nz-form-control>
-    </nz-form-item>
-
-    <!-- VisualizacionPersonaId -->
-    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionPersonaNombre">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Persona</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-        <input nz-input formControlName="VisualizacionPersonaNombre" [readonly]="true">
-      </nz-form-control>
-    </nz-form-item>
-
-    <!-- VisualizacionTelefono -->
-    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionTelefono">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Teléfono</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-        <input nz-input formControlName="VisualizacionTelefono" [readonly]="true">
-      </nz-form-control>
-    </nz-form-item>
-
-    
-
-    
-
     <!-- Descripción -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
@@ -85,6 +64,35 @@
         <input nz-input formControlName="Accion"  placeholder="Ingrese la acción tomada">
       </nz-form-control>
     </nz-form-item>
+
+
+    <div class="input-container1" *ngIf="formCli.getRawValue().VisualizacionFecha || formCli.getRawValue().VisualizacionPersonaNombre || formCli.getRawValue().VisualizacionTelefono">
+      <div class="input-label">Visualización</div>
+    </div>
+
+      <!-- VisualizacionFecha -->
+      <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionFecha">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Fecha</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <input nz-input formControlName="VisualizacionFecha"  [readonly]="true">
+        </nz-form-control>
+      </nz-form-item>
+  
+      <!-- VisualizacionPersonaId -->
+      <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionPersonaNombre">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Persona</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+          <input nz-input formControlName="VisualizacionPersonaNombre" [readonly]="true">
+        </nz-form-control>
+      </nz-form-item>
+  
+      <!-- VisualizacionTelefono -->
+      <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionTelefono">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Teléfono</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+          <input nz-input formControlName="VisualizacionTelefono" [readonly]="true">
+        </nz-form-control>
+      </nz-form-item>
 
     <!-- Apartado para adjuntar documentos -->
   <nz-form-item>
