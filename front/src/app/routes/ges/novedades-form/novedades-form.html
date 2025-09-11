@@ -42,6 +42,32 @@
       </nz-form-control>
     </nz-form-item>
 
+    <!-- VisualizacionFecha -->
+    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionFecha">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Fecha</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+        <input nz-input formControlName="VisualizacionFecha"  [readonly]="true">
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- VisualizacionPersonaId -->
+    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionPersonaNombre">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Persona</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+        <input nz-input formControlName="VisualizacionPersonaNombre" [readonly]="true">
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- VisualizacionTelefono -->
+    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionTelefono">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Teléfono</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+        <input nz-input formControlName="VisualizacionTelefono" [readonly]="true">
+      </nz-form-control>
+    </nz-form-item>
+
+    
+
     
 
     <!-- Descripción -->

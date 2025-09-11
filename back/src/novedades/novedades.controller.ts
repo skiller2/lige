@@ -203,6 +203,8 @@ export class NovedadesController extends BaseController {
                     ,nov.Fecha
                     ,nov.VisualizacionFecha
                     ,nov.Accion
+                    ,nov.VisualizacionPersonaId
+                    ,nov.VisualizacionTelefono 
                     ,1
                     From Novedad nov
                     LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
@@ -268,36 +270,46 @@ export class NovedadesController extends BaseController {
     async getNovedadQuery(queryRunner: any, NovedadId: any) {
        
         return await queryRunner.query(`
-         
-        Select
-            nov.NovedadCodigo id
-            ,cli.ClienteId
-            ,cli.ClienteDenominacion
-            ,ele.ClienteElementoDependienteId
-            ,obj.ObjetivoId
-            ,nov.Fecha
-            ,nov.Accion
-             ,STRING_AGG(CAST(doc.DocumentoId AS VARCHAR), ',') AS DocumentoId
-            ,nov.NovedadTipoCod AS TipoNovedadId
-            ,nov.Descripcion
-            , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
-            ,ele.ClienteElementoDependienteDescripcion DescripcionObj
-            ,1
-            From Novedad nov
-            
-            LEFT JOIN DocumentoRelaciones doc ON doc.NovedadCodigo = nov.NovedadCodigo
-            LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
-            LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-            LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
-            LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-            LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
-            LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
-            LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
-            LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
-             WHERE nov.NovedadCodigo = @0
-            GROUP BY
-                nov.NovedadCodigo,cli.ClienteId,cli.ClienteDenominacion,ele.ClienteElementoDependienteId,obj.ObjetivoId,nov.Fecha,nov.Accion,nov.NovedadTipoCod,nov.Descripcion,CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)),ele.ClienteElementoDependienteDescripcion
-       `,
+       SELECT
+            nov.NovedadCodigo id,
+            cli.ClienteId,
+            cli.ClienteDenominacion,
+            ele.ClienteElementoDependienteId,
+            obj.ObjetivoId,
+            nov.Fecha,
+            nov.Accion,
+            STRING_AGG(CAST(doc.DocumentoId AS VARCHAR), ',') AS DocumentoId,
+            nov.NovedadTipoCod AS TipoNovedadId,
+            nov.Descripcion,
+            CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj,
+            ele.ClienteElementoDependienteDescripcion DescripcionObj,
+            nov.VisualizacionFecha,
+            nov.VisualizacionPersonaId,
+            visper.PersonalApellidoNombre AS VisualizacionPersonaNombre, 
+            nov.VisualizacionTelefono,
+            1
+        FROM Novedad nov
+        LEFT JOIN DocumentoRelaciones doc ON doc.NovedadCodigo = nov.NovedadCodigo
+        LEFT JOIN NovedadTipo novtip ON novtip.NovedadTipoCod = nov.NovedadTipoCod
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = nov.ClienteId AND ele.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
+        LEFT JOIN Cliente cli  ON cli.ClienteId = ele.ClienteId
+        LEFT JOIN Objetivo obj ON obj.ClienteId = nov.ClienteId   AND obj.ClienteElementoDependienteId = nov.ClienteElementoDependienteId
+        LEFT JOIN GrupoActividadObjetivo gaobj ON gaobj.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
+            AND gaobj.GrupoActividadObjetivoDesde <= nov.Fecha 
+            AND ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31') >= nov.Fecha
+        LEFT JOIN GrupoActividad ga  ON ga.GrupoActividadId = gaobj.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gajer ON gajer.GrupoActividadId = ga.GrupoActividadId  
+            AND gajer.GrupoActividadJerarquicoDesde <= nov.Fecha 
+            AND ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31') >= nov.Fecha 
+            AND gajer.GrupoActividadJerarquicoComo = 'J'
+        LEFT JOIN Personal jerper ON jerper.PersonalId = gajer.GrupoActividadJerarquicoPersonalId
+        LEFT JOIN Personal visper ON visper.PersonalId = nov.VisualizacionPersonaId
+        WHERE nov.NovedadCodigo = 62
+        GROUP BY nov.NovedadCodigo,cli.ClienteId,cli.ClienteDenominacion,
+            ele.ClienteElementoDependienteId,obj.ObjetivoId, nov.Fecha, nov.Accion,nov.NovedadTipoCod,nov.Descripcion,
+            CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)), ele.ClienteElementoDependienteDescripcion,
+            nov.VisualizacionFecha,nov.VisualizacionPersonaId, visper.PersonalApellidoNombre, nov.VisualizacionTelefono;
+            `,
             [NovedadId])
         
             

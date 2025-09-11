@@ -15,7 +15,7 @@ import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-novedades-form',
-  imports: [  SHARED_IMPORTS, CommonModule, FileUploadComponent, ObjetivoSearchComponent, NzSelectModule, NzAutocompleteModule, FormsModule],
+  imports: [  SHARED_IMPORTS, CommonModule, FileUploadComponent, ObjetivoSearchComponent, NzSelectModule, NzAutocompleteModule, FormsModule ],
   templateUrl: './novedades-form.html',
   styleUrl: './novedades-form.less',
   providers: [ApiService],
@@ -46,6 +46,9 @@ export class NovedadesFormComponent {
     Accion: '',
     files: [],
     DocumentoId: 0,
+    VisualizacionFecha: null as Date | null,
+    VisualizacionPersonaNombre: '',
+    VisualizacionTelefono: '',
   })
 
   objetivoDetalleChange(event: any){
