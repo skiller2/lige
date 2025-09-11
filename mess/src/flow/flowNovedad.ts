@@ -636,13 +636,11 @@ export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADE
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
-
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const respSINO = ctx.body
-console.log('atiendo respuesta',ctx)
-            if (ctx?.type == 'dispatch')
-                return fallBack()
+
             if (respSINO.charAt(0).toUpperCase() == 'S') return gotoFlow(flowNovedadPendiente)
-            return gotoFlow(flowMenu)
+            
+            return stop(ctx, gotoFlow, state)
         }
     )
