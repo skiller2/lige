@@ -174,7 +174,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
           GROUP BY dc.DocumentoAnio, dc.DocumentoMes
           ORDER BY dc.DocumentoAnio desc, dc.DocumentoMes desc
           `)
-      this.jsonRes({ total: rec[0].total, descargados: rec[0].descargados, anio:rec[0].anio, mes:rec[0].mes }, res);
+      this.jsonRes({ total: rec[0].total, descargados: rec[0].descargados, anio:rec[0].DocumentoAnio, mes:rec[0].DocumentoMes }, res);
 
     } catch (error){ 
       return next(error);
