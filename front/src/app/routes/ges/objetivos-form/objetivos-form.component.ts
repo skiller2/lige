@@ -91,6 +91,7 @@ export class ObjetivosFormComponent {
     ObjetivoId:0,
     Descripcion:"",
     SucursalId:0,
+    CoberturaServicio:"",
     ContratoFechaDesde:"",
     ContratoFechaHasta:"",
     ContratoId:0,

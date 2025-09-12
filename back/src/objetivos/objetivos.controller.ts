@@ -543,6 +543,7 @@ export class ObjetivosController extends BaseController {
                 ,TRIM(eledep.ClienteElementoDependienteDescripcion) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
+                ,eledep.CoberturaServicio
                 ,eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde
                 ,eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta
                 ,eledepcon.ClienteElementoDependienteContratoId AS ContratoId
@@ -773,7 +774,7 @@ export class ObjetivosController extends BaseController {
         //Cliente Elemento Dependiente 
 
         let ClienteElementoDependienteDomicilioId = 1
-        await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId)
+        await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId, Obj.CoberturaServicio)
 
 
         //ClienteElementoDependienteDomicilio
@@ -949,7 +950,7 @@ export class ObjetivosController extends BaseController {
 
                 }
 
-                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId)
+                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
                 await this.updateObjetivoTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion)
 
 
@@ -1071,13 +1072,14 @@ export class ObjetivosController extends BaseController {
         ClienteElementoDependienteId: any,
         ClienteElementoDependienteDescripcion: any,
         ClienteElementoDependienteSucursalId: any,
+        CoberturaServicio:any,
     ) {
 
         return await queryRunner.query(`
             UPDATE ClienteElementoDependiente
-            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
+            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3, CoberturaServicio = @4
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteSucursalId, ClienteElementoDependienteDescripcion])
+            [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteSucursalId, ClienteElementoDependienteDescripcion, CoberturaServicio])
     }
 
     async updateObjetivoTable(
@@ -1310,7 +1312,7 @@ export class ObjetivosController extends BaseController {
             let ClienteElementoDependienteDomicilioId = 1
 
 
-            await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId)
+            await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId, Obj.CoberturaServicio)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
             await this.inserClienteElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
@@ -1431,7 +1433,7 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
     }
 
-    async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, ClienteElementoDependienteDomicilioUltNro: any) {
+    async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, ClienteElementoDependienteDomicilioUltNro: any, CoberturaServicio:any) {
 
         //este codigo arma el ClienteElementoDependienteArmado
         let ElementoDependienteId = 1
@@ -1445,14 +1447,17 @@ export class ObjetivosController extends BaseController {
             ClienteElementoDependienteDescripcion,
             ClienteElementoDependienteArmado,
             ClienteElementoDependienteDomicilioUltNro,
-            ClienteElementoDependienteSucursalId) VALUES (@0,@1,@2,@3,@4,@5,@6 )`,
+            ClienteElementoDependienteSucursalId,
+            CoberturaServicio) VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`,
             [ClienteId,
                 ClienteElementoDependienteId,
                 ElementoDependienteId,
                 ClienteElementoDependienteDescripcion,
                 ClienteElementoDependienteArmado,
                 ClienteElementoDependienteDomicilioUltNro,
-                ClienteElementoDependienteSucursalId])
+                ClienteElementoDependienteSucursalId,
+                CoberturaServicio
+            ])
     }
 
 
