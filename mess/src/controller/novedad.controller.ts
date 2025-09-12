@@ -36,7 +36,7 @@ export class NovedadController extends BaseController {
     //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
     //   `- Documentos: ${novedad.files.length}\n`
 
-    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}.\n` 
+    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
@@ -47,12 +47,13 @@ export class NovedadController extends BaseController {
         telefono = novedad.telefonoOrigen
 
       if (telefono) {
-        // console.log('envio a', PersonalId, telefono, msg)
+        //TODO: Debería encolarse 
+        //ChatBotController.enqueBotMsg(PersonalId, msg, 'HIGH', 'bot', '127.0.0.1')
+
         await botServer.sendMsg(telefono, msg)
         
-        await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
+        //await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
 
-        //ChatBotController.enqueBotMsg(PersonalId, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string)
 
       }
     }
