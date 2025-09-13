@@ -43,13 +43,28 @@ if (!process.env.PERSONALID_TEST) {
       const listmsg = await ChatBotController.getColaMsg()
 
       for (const msg of listmsg) {
-        console.log('sendMsg', BotServer.getSaludo(), msg.telefono, msg.TextoMensaje)
-        await botServer.sendMsg(msg.telefono, BotServer.getSaludo())
-        await delay(1000)
-        await botServer.sendMsg(msg.telefono, msg.TextoMensaje)
-        await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId)
-        await delay(2000)
+        try {
+          const saludo = BotServer.getSaludo();
+          const texto = String(msg.TextoMensaje || '').trim()
+
+          if (texto !== '') {
+            await botServer.sendMsg(msg.telefono, saludo);
+            await delay(1000);
+            await botServer.sendMsg(msg.telefono, texto);
+
+          } else {
+            console.log(`Mensaje vacío para ${msg.telefono}, no se envió TextoMensaje`
+            );
+          }
+
+          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId);
+
+          await delay(2000);
+        } catch (err) {
+          console.error(`Error procesando mensaje ${msg.telefono}:`, err);
+        }
       }
+
     }
   });
 }
