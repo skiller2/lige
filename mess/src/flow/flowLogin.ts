@@ -69,7 +69,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
         await state.update(stateData)
 
-        if (!activo) {
+        if (!activo && state?.personalId>0) {
             await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
             return stop(ctx, gotoFlow, state)
         }
