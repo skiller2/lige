@@ -26,7 +26,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
 
             const data = state.getMyState()
 
-            if (!state?.personalId)
+            if (!data?.personalId)
                 return stop(ctx, gotoFlow, state)
 
             if (!activo) {
@@ -60,7 +60,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
 export const flowLogin = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         //FIX por si entra 2 veces, ignora la segunda
-        const currState = state.getMyState()
+        let currState = state.getMyState()
         if (currState?.flowLogin == 1)
             return endFlow()
 
@@ -73,8 +73,9 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
         const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
         await state.update(stateData)
+        currState = state.getMyState()
 
-        if (!state?.personalId)
+        if (!currState?.personalId)
             return
 
         if (!activo) {
