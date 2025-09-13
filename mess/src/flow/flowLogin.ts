@@ -24,12 +24,17 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
             const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
             await state.update(stateData)
 
+            const data = state.getMyState()
+
+            if (!state?.personalId)
+                return stop(ctx, gotoFlow, state)
+
             if (!activo) {
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
                 return stop(ctx, gotoFlow, state)
             }
 
-            const data = state.getMyState()
+
 
             if (ctx.body == '0') {
                 return gotoFlow(flowRemoveTel)
@@ -69,10 +74,14 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
         await state.update(stateData)
 
-        if (!activo && state?.personalId>0) {
+        if (!state?.personalId)
+            return
+
+        if (!activo) {
             await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
             return stop(ctx, gotoFlow, state)
         }
+
 
         const ahora = new Date();
         const horas = ahora.getHours();
@@ -110,7 +119,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
                 return stopSilence(ctx, gotoFlow, state, endFlow)
-                
+
             } else {
                 return stop(ctx, gotoFlow, state)
             }
