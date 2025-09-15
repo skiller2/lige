@@ -60,11 +60,21 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
 export const flowLogin = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         //FIX por si entra 2 veces, ignora la segunda
-        let currState = state.getMyState()
-        if (currState?.flowLogin == 1)
-            return endFlow()
 
-        await state.update({ flowLogin: 1 })
+        const now = new Date
+        let currState = state.getMyState()
+
+        if (currState?.flowLoginDate) {
+            const lastLogin = new Date(currState.flowLoginDate);
+            const diffMs = now.getTime() - lastLogin.getTime();
+          
+            if (diffMs < 60 * 1000) { // más de 1 minuto
+                return endFlow();
+            }
+        }
+
+
+        await state.update({ flowLoginDate: now })
 
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
