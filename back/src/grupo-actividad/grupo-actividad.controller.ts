@@ -36,12 +36,25 @@ export class GrupoActividadController extends BaseController {
             searchHidden: true
         },
         {
+            name: "Grupo Actividad",
+            type: "number",
+            id: "GrupoActividadId",
+            field: "GrupoActividadId",
+            fieldName: "grup.GrupoActividadId",
+            searchComponent: 'inpurForGrupoActividadSearch',
+            sortable: false,
+            hidden: true,
+            searchHidden: false
+        },
+        {
             name: "Código",
             type: "number",
             id: "GrupoActividadNumero",
             field: "GrupoActividadNumero",
             fieldName: "grup.GrupoActividadNumero",
             sortable: true,
+            hidden: false,
+            searchHidden: true
         },
         {
             name: "NumeroOld",
@@ -60,7 +73,8 @@ export class GrupoActividadController extends BaseController {
             field: "GrupoActividadDetalle",
             fieldName: "grup.GrupoActividadDetalle",
             sortable: true,
-            searchHidden: false
+            hidden: false,
+            searchHidden: true
         },
         {
             name: "Activo",
@@ -72,7 +86,6 @@ export class GrupoActividadController extends BaseController {
             params: { collection: getOptions, },
             type: 'string',
             searchComponent: "inpurForInactivo",
-
             sortable: true
         },
         {
@@ -121,7 +134,7 @@ export class GrupoActividadController extends BaseController {
             searchHidden: false
         },
         {
-            name: "TIPO",
+            name: "Tipo",
             id: "GrupoActividadJerarquicoComo",
             field: "GrupoActividadJerarquicoComo",
             fieldName: "jer.GrupoActividadJerarquicoComo",
