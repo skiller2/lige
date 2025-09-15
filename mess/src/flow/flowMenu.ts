@@ -65,7 +65,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                     return stop(ctx,gotoFlow, state)
                     break;
                 default:
-                    return fallBack()
+                    return fallBack("Ingrese una opción válida")
                     break;
             }
 
