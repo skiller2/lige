@@ -78,10 +78,9 @@ export class ChatBotController extends BaseController {
     }
   }
 
-  async addToDocLog(doc_id: number, telefono: string) {
+  async addToDocLog(doc_id: number, telefono: string, PersonalId:number) {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
-    const { PersonalId } = (await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE Telefono = @0`, [telefono]))[0]
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
       [doc_id, fechaActual, telefono, PersonalId, 'bot', '127.0.0.1', fechaActual])
