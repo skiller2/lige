@@ -81,9 +81,9 @@ export class AccesoBotController extends BaseController {
         {
             name: "Número de teléfono",
             type: "number",
-            id: "telefono",
-            field: "telefono",
-            fieldName: "reg.telefono",
+            id: "Telefono",
+            field: "Telefono",
+            fieldName: "reg.Telefono",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -105,18 +105,18 @@ export class AccesoBotController extends BaseController {
 
         try {
 
-            const regtelefonopersonal = await queryRunner.query(
+            const BotRegTelefonoPersonal = await queryRunner.query(
                 `SELECT
-                reg.personal_id AS id,
+                reg.PersonalId AS id,
                 per.PersonalApellidoNombre AS Nombre, 
                 cuit.PersonalCUITCUILCUIT,
                 doc.PersonalDocumentoNro,
-                reg.telefono,
+                reg.Telefono,
                 aud_fecha_mod
-                FROM lige.dbo.regtelefonopersonal AS reg
-                JOIN personal AS per ON per.PersonalId = reg.personal_id
+                FROM BotRegTelefonoPersonal AS reg
+                JOIN personal AS per ON per.PersonalId = reg.PersonalId
 
-                JOIN PersonalDocumento AS doc ON doc.PersonalId = reg.personal_id
+                JOIN PersonalDocumento AS doc ON doc.PersonalId = reg.PersonalId
                 AND doc.PersonalDocumentoId = ( SELECT MAX(docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId) 
 
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId 
@@ -128,8 +128,8 @@ export class AccesoBotController extends BaseController {
 
             this.jsonRes(
                 {
-                    total: regtelefonopersonal.length,
-                    list: regtelefonopersonal,
+                    total: BotRegTelefonoPersonal.length,
+                    list: BotRegTelefonoPersonal,
                 },
                 res
             );
@@ -157,17 +157,17 @@ export class AccesoBotController extends BaseController {
 
     async getAccessQuery(queryRunner: QueryRunner, PersonalId: any) {
         let selectquery = `SELECT
-                reg.personal_id AS PersonalId,
+                reg.PersonalId,
                 doc.PersonalDocumentoNro,
-                reg.telefono,
+                reg.Telefono,
                 codigo
-                FROM lige.dbo.regtelefonopersonal AS reg
-                JOIN personal AS per ON per.PersonalId = reg.personal_id
+                FROM BotRegTelefonoPersonal AS reg
+                JOIN personal AS per ON per.PersonalId = reg.PersonalId
 
-                JOIN PersonalDocumento AS doc ON doc.PersonalId = reg.personal_id
+                JOIN PersonalDocumento AS doc ON doc.PersonalId = reg.PersonalId
                 AND doc.PersonalDocumentoId = ( SELECT MAX(docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId)
                     
-            WHERE reg.personal_id = @0 `
+            WHERE reg.PersonalId = @0 `
 
         const result = await queryRunner.query(selectquery, [PersonalId])
         return result
@@ -182,7 +182,7 @@ export class AccesoBotController extends BaseController {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            await queryRunner.query(`DELETE FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [PersonalId])
+            await queryRunner.query(`DELETE FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [PersonalId])
 
             this.jsonRes({ list: [] }, res, `Acceso borrado con exito`);
 
@@ -518,18 +518,18 @@ export class AccesoBotController extends BaseController {
 
     async AccesoBotNewQuery(queryRunner: any, PersonalId: any, telefono: any, codigo: any, usuario: any, ip: any, fecha: any) {
 
-        await queryRunner.query(`INSERT INTO lige.dbo.regtelefonopersonal 
+        await queryRunner.query(`INSERT INTO BotRegTelefonoPersonal 
             (
-            	personal_id,
-                telefono,
-                aud_usuario_ins,
-                aud_ip_ins,
-                aud_fecha_ins,
-                aud_usuario_mod,
-                aud_ip_mod,
-                aud_fecha_mod,
-                codigo,
-                des_doc_ident 
+            	PersonalId,
+                Telefono,
+                AudUsuarioIng,
+                AudIpIng,
+                AudFechaIng,
+                AudUsuarioMod,
+                AudIpMod,
+                AudFechaMod,
+                Codigo,
+                DesDocIdent 
             ) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [PersonalId, telefono, usuario, ip, fecha, usuario, ip, fecha, codigo, null])
 
@@ -538,8 +538,8 @@ export class AccesoBotController extends BaseController {
 
     async AccesoBotEditQuery(queryRunner: any, telefono: any, codigo: any, PersonalId: any, PersonalDocumentoNro: any, usuario: any, ip: any, fecha: any) {
 
-        await queryRunner.query(`UPDATE lige.dbo.regtelefonopersonal
-            SET telefono=@0,codigo = @1, aud_usuario_mod = @3, aud_ip_mod = @4 ,aud_fecha_mod = @5
+        await queryRunner.query(`UPDATE BotRegTelefonoPersonal
+            SET Telefono=@0,Codigo = @1, AudUsuarioMod = @3, AudIpMod = @4 ,AudFechaMod = @5
             WHERE Personal_id = @2`, [telefono, codigo, PersonalId, usuario, ip, fecha])
 
 
@@ -704,7 +704,7 @@ export class AccesoBotController extends BaseController {
         const queryRunner = dataSource.createQueryRunner()  
         const fechaActual = new Date()
         try {
-            const existsTel = await queryRunner.query(`SELECT personal_id FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personal_id]) 
+            const existsTel = await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [personal_id]) 
             if (existsTel.length==0) throw new ClientException(`El personal no tiene un telefono registrado.`)
     
             await queryRunner
@@ -730,10 +730,10 @@ export class AccesoBotController extends BaseController {
     FROM lige.dbo.Personal per 
 
       	LEFT JOIN (
-            SELECT tel.personal_id PersonalId, 
-            IIF(tel.personal_id IS NOT NULL AND tel.codigo IS NULL,1,0) registrado
-				FROM lige.dbo.regtelefonopersonal tel 
-				WHERE tel.codigo IS NULL
+            SELECT tel.PersonalId, 
+            IIF(tel.PersonalId IS NOT NULL AND tel.Codigo IS NULL,1,0) registrado
+				FROM BotRegTelefonoPersonal tel 
+				WHERE tel.Codigo IS NULL
 			) botreg ON botreg.PersonalId = per.PersonalId
             
          LEFT JOIN (

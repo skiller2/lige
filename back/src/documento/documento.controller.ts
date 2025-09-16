@@ -457,13 +457,13 @@ export class DocumentoController extends BaseController {
   private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
       
-      SELECT per.PersonalId AS id, tel.telefono,
+      SELECT per.PersonalId AS id, tel.Telefono,
             per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
             cuit.PersonalCUITCUILCUIT,
           sitrev.SituacionRevistaDescripcion 
       FROM Personal per
-      LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
-      LEFT JOIN DocumentoDescargaLog des ON des.Telefono = tel.telefono and des.DocumentoId = @0
+      LEFT JOIN BotRegTelefonoPersonal tel ON tel.PersonalId = per.PersonalId
+      LEFT JOIN DocumentoDescargaLog des ON des.Telefono = tel.Telefono and des.DocumentoId = @0
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       --LEFT JOIN (
       --    SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde

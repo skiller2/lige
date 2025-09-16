@@ -48,12 +48,12 @@ if (!process.env.PERSONALID_TEST) {
           const texto = String(msg.TextoMensaje || '').trim()
 
           if (texto !== '') {
-            await botServer.sendMsg(msg.telefono, saludo);
+            await botServer.sendMsg(msg.Telefono, saludo);
             await delay(1000);
-            await botServer.sendMsg(msg.telefono, texto);
+            await botServer.sendMsg(msg.Telefono, texto);
 
           } else {
-            console.log(`Mensaje vacío para ${msg.telefono}, no se envió TextoMensaje`
+            console.log(`Mensaje vacío para ${msg.Telefono}, no se envió TextoMensaje`
             );
           }
 
