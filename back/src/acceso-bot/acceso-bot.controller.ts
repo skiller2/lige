@@ -160,7 +160,7 @@ export class AccesoBotController extends BaseController {
                 reg.PersonalId,
                 doc.PersonalDocumentoNro,
                 reg.Telefono,
-                codigo
+                reg.Codigo
                 FROM BotRegTelefonoPersonal AS reg
                 JOIN personal AS per ON per.PersonalId = reg.PersonalId
 
@@ -309,7 +309,7 @@ export class AccesoBotController extends BaseController {
 
 
             if (!req.body.nuevoCodigo) {
-                throw new ClientException(`Debe Marcar la opcion de generar un nuevo codigo.`)
+                throw new ClientException(`Debe Marcar la opcion de generar un nuevo código.`)
             }
 
             numeroAleatorio = await this.generarNumeroAleatorio()
@@ -516,7 +516,7 @@ export class AccesoBotController extends BaseController {
     }
 
 
-    async AccesoBotNewQuery(queryRunner: any, PersonalId: any, telefono: any, codigo: any, usuario: any, ip: any, fecha: any) {
+    async AccesoBotNewQuery(queryRunner: any, PersonalId: any, telefono: any, Codigo: any, usuario: any, ip: any, fecha: any) {
 
         await queryRunner.query(`INSERT INTO BotRegTelefonoPersonal 
             (
@@ -531,7 +531,7 @@ export class AccesoBotController extends BaseController {
                 Codigo,
                 DesDocIdent 
             ) 
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [PersonalId, telefono, usuario, ip, fecha, usuario, ip, fecha, codigo, null])
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [PersonalId, telefono, usuario, ip, fecha, usuario, ip, fecha, Codigo, null])
 
 
     }
