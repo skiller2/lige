@@ -64,7 +64,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 return gotoFlow(flowRemoveTel)
             }
 
-            if (data?.codigo == ctx.body) {
+            if (codigo == ctx.body) {
                 await flowDynamic(`Identidad verificada existosamente`, { delay: delay })
                 personalController.removeCode(telefono)
                 return gotoFlow(flowMenu)
@@ -101,7 +101,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-        
+
         const telefono = ctx.from
         await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
 
