@@ -3,7 +3,7 @@ import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { FileUploadController } from "../controller/file-upload.controller"
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { QueryRunner } from "typeorm";
 import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer, QRCodeReader } from '@zxing/library';
 import path from "path";
@@ -629,7 +629,7 @@ export class AccesoBotController extends BaseController {
             const normalizedPath = fullPath.replace(/\\/g, '/');
 
 
-            const resBuffer = Buffer.from(fs.readFileSync(normalizedPath));
+            const resBuffer = Buffer.from(readFileSync(normalizedPath));
 
             const hints = new Map();
             const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX/*, ...*/];
