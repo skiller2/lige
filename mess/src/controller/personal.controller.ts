@@ -87,7 +87,7 @@ export class PersonalController extends BaseController {
     }
 
     if (res.length) {
-      stateData = { personalId: res[0].personalId, cuit: res[0].cuit, codigo: res[0].codigo, name: res[0].name.trim() }
+      stateData = { personalId: res[0].PersonalId, cuit: res[0].cuit, codigo: res[0].codigo, name: res[0].name.trim() }
       if ([2, 9, 23, 12, 10, 16, 28, 18, 26, 11, 20, 22].includes(res[0].PersonalSituacionRevistaSituacionId))
         activo = true
       PersonalSituacionRevistaSituacionId = res[0].PersonalSituacionRevistaSituacionId
@@ -95,7 +95,7 @@ export class PersonalController extends BaseController {
       const tmpName = String(res[0].name).trim().split(" ")[0].trim();
       firstName = tmpName.charAt(0).toUpperCase() + tmpName.slice(1).toLowerCase()
 
-      codigo = res[0].codigo
+      codigo = res[0].Codigo
     }
 
     return { activo,stateData,PersonalSituacionRevistaSituacionId,firstName,codigo}
@@ -103,7 +103,7 @@ export class PersonalController extends BaseController {
 
   async getPersonalQuery(telefono: string, PersonalId: number) {
     return await dbServer.dataSource.query(
-      `SELECT reg.PersonalId personalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, codigo, 
+      `SELECT reg.PersonalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, reg.Codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
       sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso
       FROM BotRegTelefonoPersonal reg
@@ -220,7 +220,7 @@ export class PersonalController extends BaseController {
       const codigo = Math.floor(Math.random() * (999999 - 100000) + 100000)
 
       await queryRunner.query(
-        `IF EXISTS(select Telefono from BotRegTelefonoPersonal where personal_id=@0) UPDATE BotRegTelefonoPersonal SET Codigo=@1, Telefono=@2, DesDocIdent=@6, AudUsuarioMod=@3, AudIpMod=@4, AudFechaMod=@5 WHERE PersonalId=@0 ELSE INSERT INTO BotRegTelefonoPersonal (PersonalId, Codigo, Telefono, DesDocIdent, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
+        `IF EXISTS(select Telefono from BotRegTelefonoPersonal where PersonalId=@0) UPDATE BotRegTelefonoPersonal SET Codigo=@1, Telefono=@2, DesDocIdent=@6, AudUsuarioMod=@3, AudIpMod=@4, AudFechaMod=@5 WHERE PersonalId=@0 ELSE INSERT INTO BotRegTelefonoPersonal (PersonalId, Codigo, Telefono, DesDocIdent, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
         [PersonalId, codigo, telNro, usuario, ip, stmactual, des_doc_ident]
       )
 

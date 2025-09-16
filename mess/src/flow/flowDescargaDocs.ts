@@ -36,11 +36,12 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             if (Utils.isOKResponse(ctx.body)) {
                 const docsPend = await state.get('docsPend')
+                const PersonalId = await state.get('personalId')
                 const documento = docsPend.pop()
                 try {
                     const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
                     await flowDynamic([{ body: documento.DocumentoTipoDetalle, media: urlDoc, delay }])
-                    await chatBotController.addToDocLog(documento.DocumentoId, ctx.from)
+                    await chatBotController.addToDocLog(documento.DocumentoId, ctx.from, PersonalId)
                 } catch (error) {
                     console.log('Error descargando Archivo', error)
                     await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])

@@ -48,11 +48,11 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             }
             const mes = periodosArray[parseInt(msj) - 1]?.mes
             const anio = periodosArray[parseInt(msj) - 1]?.anio
-            const personalId = myState.personalId
+            const PersonalId = await state.get('personalId')
             try {
-                const urlDocRecibo = await documentosController.getURLDocumento(personalId, anio, mes, 'REC')
+                const urlDocRecibo = await documentosController.getURLDocumento(PersonalId, anio, mes, 'REC')
                 await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
-                await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from)
+                await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from,PersonalId)
             } catch (error) {
                 console.log(error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])                
