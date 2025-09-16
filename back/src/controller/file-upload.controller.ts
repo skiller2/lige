@@ -714,7 +714,7 @@ export class FileUploadController extends BaseController {
     const tableForSearch = req.query[1];
     const queryRunner = dataSource.createQueryRunner();
 
-    
+
     let document: any
     let finalurl: any
 
@@ -850,15 +850,20 @@ export class FileUploadController extends BaseController {
   }
 
   static async deleteFile(deleteId: number, tableForSearch: string, queryRunner: QueryRunner) {
-
     try {
+      // Verificar si el documento tiene descargas asociadas
+      const telefonos = await dataSource.query(`
+          SELECT Telefono
+          FROM DocumentoDescargaLog
+          WHERE DocumentoId IN (@0)
+          `, [deleteId])
+
+      if (telefonos.length) throw new ClientException(`No se puede eliminar el registro. El documento ${deleteId} tiene movimientos de descarga.`)
 
       switch (tableForSearch) {
+        case 'documento':
         case 'Documento':
           await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
-          break;
-        case 'docgeneral':
-          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
           break;
         default:
           const document = await queryRunner.query(`
@@ -879,7 +884,6 @@ export class FileUploadController extends BaseController {
             } else {
               await unlink(finalurl);
             }
-
             await queryRunner.query(`
               DELETE FROM ${tableForSearch}
               WHERE ${tableForSearch}Id = @0 AND PersonalId = @1
