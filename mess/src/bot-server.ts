@@ -6,7 +6,7 @@ import { createBot, createProvider, createFlow, addKeyword, utils } from '@build
 //import {MemoryDB as Database } from '@builderbot/bot'
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-import { flowLogin, flowValidateCode } from "./flow/flowLogin.ts";
+import { flowLogin, flowValidateCode,flowSinRegistrar } from "./flow/flowLogin.ts";
 import flowRecibo from "./flow/flowRecibo.ts";
 import flowMonotributo from "./flow/flowMonotributo.ts";
 import flowMenu from "./flow/flowMenu.ts";
@@ -73,7 +73,7 @@ export class BotServer {
       flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo,
       flowRemoveTel, idleFlow, flowInformacionPersonal, flowInformacionEmpresa, flowDescargaDocs,
       flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio,
-      flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad
+      flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad,flowSinRegistrar
     ])
     this.adapterProvider = createProvider(Provider, {
       timeRelease: 10800000, // 3 hours in milliseconds
