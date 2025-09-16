@@ -292,7 +292,7 @@ export class GrupoActividadController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Nombre",
+            name: "Personal",
             type: "string",
             id: "PersonalId",
             field: "PersonalId",
