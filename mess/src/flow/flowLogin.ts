@@ -11,7 +11,7 @@ const delay = chatBotController.getDelay()
 const linkVigenciaHs = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
 
 
-export const flowSinRegistrar = addKeyword()
+export const flowSinRegistrar = addKeyword(utils.setEvent("NOT_REGISTERED"))
     .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             if (ctx?.type == 'dispatch')
