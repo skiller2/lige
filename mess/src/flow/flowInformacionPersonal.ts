@@ -68,7 +68,7 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         if (coordinadorgeneralrec[0].PersonalId) {
             const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
             if (telrec[0])
-                await flowDynamic(`Contacto del coordinador 📞 ${telrec[0].telefono}`, { delay })
+                await flowDynamic(`Contacto del coordinador 📞 ${telrec[0].Telefono}`, { delay })
         }
     })
 

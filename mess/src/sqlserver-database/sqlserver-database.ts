@@ -19,7 +19,7 @@ class SqlServerAdapter extends MemoryDB {
    * @returns {Promise<any>} - A Promise that resolves with the previous entry.
    */
   async getPrevByNumber(from: string): Promise<any> {
-    const lastRow = this.listHistory[from] 
+    const lastRow = this.listHistory[from]
     if (lastRow)
       return lastRow
     else {
@@ -35,22 +35,24 @@ class SqlServerAdapter extends MemoryDB {
    * @returns {Promise<void>} - A Promise that resolves when the data is successfully saved.
    */
   async save(ctx: any): Promise<void> {
-    if (ctx.keyword)
-      this.listHistory[ctx.from] = ctx
-    
-    const options_json = ctx.options ? JSON.stringify(ctx.options) : null
-    let finished=false
-    while (!finished) {
+    if (ctx.keyword) {
+      this.listHistory[ctx.from] = ctx;
+    }
+    const options_json = ctx.options ? JSON.stringify(ctx.options) : null;
+    let intentos = 3;
+    do {
       try {
         await dbServer.dataSource.query(`INSERT INTO BotLog (Stm, Ref, Keyword, Answer, RefSerialize, FromMsg, Options)
-        VALUES (@0,@1,@2,@3,@4,@5,@6)`, [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json])
-        finished=true
-      } catch (error) { 
-        finished=false
+         VALUES (@0,@1,@2,@3,@4,@5,@6)`,
+          [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json]
+        );
+        return;
+      } catch (err: any) {
+        intentos--
+        if (intentos == 0) throw err
       }
-    }
+    } while (true);
   }
-
 }
 
 export { SqlServerAdapter }

@@ -23,7 +23,7 @@ export class PersonalController extends BaseController {
 
   async removeCode(telefono: string) {
     return dbServer.dataSource.query(
-      `UPDATE lige.dbo.regtelefonopersonal SET codigo=NULL WHERE telefono=@0`,
+      `UPDATE BotRegTelefonoPersonal SET Codigo=NULL WHERE Telefono=@0`,
       [telefono]
     );
   }
@@ -33,7 +33,7 @@ export class PersonalController extends BaseController {
   async delTelefonoPersona(telefono: string) {
 
     const result = await dbServer.dataSource.query(
-      `DELETE FROM lige.dbo.regtelefonopersonal WHERE telefono=@0`,
+      `DELETE FROM BotRegTelefonoPersonal WHERE Telefono=@0`,
       [telefono]
     );
     return result
@@ -71,35 +71,6 @@ export class PersonalController extends BaseController {
       }
     }
   
-    async checkTelefonoPersonal(personalId: number, telefono: string, usuario: string, ip: string) {
-      try {
-        let result: any
-        const [telefonoPersonal] = await dbServer.dataSource.query(
-          `SELECT reg.personal_id personalId, reg.telefono telefonoPersonal
-          FROM lige.dbo.regtelefonopersonal reg
-          WHERE reg.personal_id = @0`,
-          [personalId]
-        );
-  
-        if (telefonoPersonal) {
-          result = await this.updateTelefonoPersonalQuery(personalId, telefono, usuario, ip)
-        } else {
-          result = await this.addTelefonoPersonalQuery(personalId, telefono, usuario, ip)
-        }
-        return result
-      } catch (error) {
-        return error
-      }
-    }
-  
-    async addTelefonoPersonalQuery(personalId: number, telefono: string, usuario: string, ip: string) {
-      const fecha = new Date
-      return dbServer.dataSource.query(
-        `INSERT INTO lige.dbo.regtelefonopersonal (personal_id, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) 
-        VALUES(@0,@1,@2,@3,@4,@2,@3,@4)`,
-        [personalId, telefono, usuario, ip, fecha]
-      );
-    }
   */
 
   async getPersonaState(telefono: string) {
@@ -132,51 +103,22 @@ export class PersonalController extends BaseController {
 
   async getPersonalQuery(telefono: string, PersonalId: number) {
     return await dbServer.dataSource.query(
-      `SELECT reg.personal_id personalId, reg.telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, codigo, 
+      `SELECT reg.PersonalId personalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
       sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso
-      FROM lige.dbo.regtelefonopersonal reg
-      LEFT JOIN Personal per ON per.PersonalId = reg.personal_id
+      FROM BotRegTelefonoPersonal reg
+      LEFT JOIN Personal per ON per.PersonalId = reg.PersonalId
       LEFT JOIN PersonalFechaIngreso ing ON ing.PersonalId = per.PersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.personal_id AND cuit.PersonalCUITCUILId =( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = reg.personal_id)
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.PersonalId AND cuit.PersonalCUITCUILId =( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = reg.PersonalId)
       LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@2 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=CAST(@2 AS DATE) 
       LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
 
 
-      WHERE reg.telefono = @0 or reg.personal_id = @1`,
+      WHERE reg.Telefono = @0 or reg.PersonalId = @1`,
       [telefono, PersonalId, new Date()]
     );
   }
-  /*
-    async getPersonalfromTelefono(req: any, res: Response, next: NextFunction) {
-      const telefono = req.params.telefono;
-      try {
-        const result = await this.getPersonalQuery(telefono,0)
-        return this.jsonRes(result, res);
-      } catch (error) {
-        return next(error)
-      }
-    }
   
-    async linkDownloadComprobanteRecibo(
-      personalId: number,
-      year: number,
-      month: number,
-    ) {
-      const result = `http://localhost:3010/api/recibos/download/${year}/${month}/${personalId}`
-      return result
-    }
-  
-    async updateTelefonoPersonalQuery(personalId: number, telefono: string, usuario: string, ip: string) {
-      const fecha = new Date
-      return dbServer.dataSource.query(
-        `UPDATE lige.dbo.regtelefonopersonal SET telefono = @1, aud_usuario_mod = @2, aud_ip_mod= @3, aud_fecha_mod = @4
-        WHERE personal_id = @0`,
-        [personalId, telefono, usuario, ip, fecha]
-      );
-    }
-  */
-
   async genTelCode(data: string) {
     const stmgen = new Date();
     //const usuario = 'anon'
@@ -278,7 +220,7 @@ export class PersonalController extends BaseController {
       const codigo = Math.floor(Math.random() * (999999 - 100000) + 100000)
 
       await queryRunner.query(
-        `IF EXISTS(select telefono from lige.dbo.regtelefonopersonal where personal_id=@0) UPDATE lige.dbo.regtelefonopersonal SET codigo=@1, telefono=@2, des_doc_ident=@6, aud_usuario_mod=@3, aud_ip_mod=@4, aud_fecha_mod=@5 WHERE personal_id=@0 ELSE INSERT INTO lige.dbo.regtelefonopersonal (personal_id, codigo, telefono, des_doc_ident, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
+        `IF EXISTS(select Telefono from BotRegTelefonoPersonal where personal_id=@0) UPDATE BotRegTelefonoPersonal SET Codigo=@1, Telefono=@2, DesDocIdent=@6, AudUsuarioMod=@3, AudIpMod=@4, AudFechaMod=@5 WHERE PersonalId=@0 ELSE INSERT INTO BotRegTelefonoPersonal (PersonalId, Codigo, Telefono, DesDocIdent, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
         [PersonalId, codigo, telNro, usuario, ip, stmactual, des_doc_ident]
       )
 
@@ -382,7 +324,7 @@ export class PersonalController extends BaseController {
   }
 
   static async getTelefono(personalId: number) {
-    return await dbServer.dataSource.query(`SELECT tel.telefono FROM lige.dbo.regtelefonopersonal tel WHERE tel.personal_id IN (@0)`, [personalId])
+    return await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId IN (@0)`, [personalId])
   }
 
 

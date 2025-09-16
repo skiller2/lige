@@ -6,7 +6,7 @@ import { dbServer } from "../index.ts";
 
 export class ClientException extends Error {
   messageArr: string[]
-  constructor(message: string | string[], public extended= null, public code: number = 0) {
+  constructor(message: string | string[], public extended = null, public code: number = 0) {
     if (message instanceof Array) {
       super(message.join(', '))
       this.messageArr = message
@@ -335,23 +335,21 @@ export class BaseController {
 
   pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
   apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
-  
+
   async getURLDocumento(
     personalId: number,
     year: number,
     month: number,
-    tipoDoc:string
+    tipoDoc: string
   ) {
     const queryRunner = dbServer.dataSource.createQueryRunner();
-//    const queryRunner = dataSource.createQueryRunner()
+    //    const queryRunner = dataSource.createQueryRunner()
     const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month, tipoDoc)
     let tmpURL = ''
     if (gettmpfilename[0] && gettmpfilename[0].DocumentoId && existsSync(this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)) {
       tmpURL = `${this.apiPath}/documentos/download/${gettmpfilename[0].DocumentoId}/${gettmpfilename[0].DocumentoTipoCodigo}-${gettmpfilename[0].DocumentoNombreArchivo}`;
-console.log('URL',tmpURL)
-
     } else {
-      throw new ClientException(`Documento no localizado`,this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)
+      throw new ClientException(`Documento no localizado`, this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)
     }
     return { URL: tmpURL, doc_id: gettmpfilename[0].DocumentoId }
   }
@@ -366,7 +364,7 @@ console.log('URL',tmpURL)
     let ip = this.getRemoteAddress(req)
     const DocumentoId = req.params.doc_id
     const queryRunner = dbServer.dataSource.createQueryRunner();
-//    const queryRunner = dataSource.createQueryRunner();
+    //    const queryRunner = dataSource.createQueryRunner();
     try {
       const data = await queryRunner.query(`SELECT doc.DocumentoPath, doc.DocumentoNombreArchivo from Documento doc
       WHERE doc.DocumentoId=@0`,

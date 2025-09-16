@@ -22,26 +22,13 @@ export class NovedadController extends BaseController {
     const mes = Fecha.getMonth() + 1
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
-
-    // const infoPersonal = await personalController.getPersonalQuery(novedad.telefonoOrigen, novedad.personalId)
-
-    // const msg = `*Novedad:*\n` +
-    //   `- Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
-    //   `- Hora: ${novedad.Hora ?? 's/d'}\n` +
-    //   `- Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-    //   `- Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-    //   `- Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-    //   `- Acción: ${novedad.Accion ?? 's/d'}\n` +
-    //   `- Registrado por: ${infoPersonal[0].fullName ?? 's/d'} (CUIT: ${infoPersonal[0].cuit ?? 's/d'})\n` +
-    //   `- Teléfono: ${novedad.telefonoOrigen ?? 's/d'}\n` +
-    //   `- Documentos: ${novedad.files.length}\n`
-
+    
     const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
-      const result = await dbServer.dataSource.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0 `, [PersonalId])
-      let telefono = (result[0]) ? result[0].telefono : ''
+      const result = await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
+      let telefono = (result[0]) ? result[0].Telefono : ''
 
       if (process.env.PERSONALID_TEST)
         telefono = novedad.telefonoOrigen
@@ -65,9 +52,9 @@ export class NovedadController extends BaseController {
 
 
     const res = await queryRunner.query(`
-      UPDATE lige.dbo.regtelefonopersonal
-      SET incidente = @1
-      WHERE personal_id = @0
+      UPDATE BotRegTelefonoPersonal
+      SET JsonNovedad = @1
+      WHERE PersonalId = @0
       `, [personalId, jsonNovedad], true
     )
 
@@ -76,12 +63,12 @@ export class NovedadController extends BaseController {
 
   async getBackupNovedad(personalId: string) {
     const result = await dbServer.dataSource.query(`
-      SELECT incidente AS novedad
-      FROM lige.dbo.regtelefonopersonal
-      WHERE personal_id = @0
+      SELECT JsonNovedad
+      FROM BotRegTelefonoPersonal
+      WHERE PersonalId = @0
       `, [personalId]
     )
-    return JSON.parse(result[0].novedad) ?? {}
+    return JSON.parse(result[0].JsonNovedad) ?? {}
   }
 
 

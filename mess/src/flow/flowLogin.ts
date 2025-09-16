@@ -10,6 +10,30 @@ import { Utils } from '../controller/util.ts';
 const delay = chatBotController.getDelay()
 const linkVigenciaHs = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
 
+
+export const flowSinRegistrar = addKeyword(utils.setEvent("NOT_REGISTERED"))
+    .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            const telefono = ctx.from
+
+            if (Utils.isOKResponse(ctx.body)) {
+                const ret = await personalController.genTelCode(telefono)
+                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
+                await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
+                await state.update({ encTelNro: ret.encTelNro })
+                return stopSilence(ctx, gotoFlow, state, endFlow)
+
+            } else {
+                return stop(ctx, gotoFlow, state)
+            }
+
+        })
+
+
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
     })
@@ -73,11 +97,11 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             }
         }
 
-
         await state.update({ flowLoginDate: now })
 
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
+        
         const telefono = ctx.from
         await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
 
@@ -86,13 +110,12 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         currState = state.getMyState()
 
         if (!currState?.personalId)
-            return
+            return gotoFlow(flowSinRegistrar)
 
         if (!activo) {
             await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
             return stop(ctx, gotoFlow, state)
         }
-
 
         const ahora = new Date();
         const horas = ahora.getHours();
@@ -116,23 +139,3 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         return gotoFlow(flowDescargaDocs)
 
     })
-    .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            if (ctx?.type == 'dispatch')
-                return fallBack()
-
-            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const telefono = ctx.from
-
-            if (Utils.isOKResponse(ctx.body)) {
-                const ret = await personalController.genTelCode(telefono)
-                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
-                await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
-                await state.update({ encTelNro: ret.encTelNro })
-                return stopSilence(ctx, gotoFlow, state, endFlow)
-
-            } else {
-                return stop(ctx, gotoFlow, state)
-            }
-
-        })

@@ -63,26 +63,15 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
             const mes = periodosArray[parseInt(msj) - 1]?.mes
             const anio = periodosArray[parseInt(msj) - 1]?.anio
             const personalId = myState.personalId
-            // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
-            //const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
-            const urlDoc = await documentosController.getURLDocumento(personalId, anio, mes, 'MONOT')
 
-
-            if (urlDoc instanceof Error)
+            try {
+                const urlDoc = await documentosController.getURLDocumento(personalId, anio, mes, 'MONOT')
+                await flowDynamic([{ body: `Monotributo`, media: urlDoc.URL, delay }])
+                await chatBotController.addToDocLog(urlDoc.doc_id, ctx.from)
+            } catch (error) {
+                console.log(error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
-            else {
-                //TODO:  Ver tema nueva tabla PersonalComprobantePagoAFIPId, com.PersonalId,
-                try {
-
-                    await flowDynamic([{ body: `Monotributo`, media: urlDoc.URL, delay }])
-                    await chatBotController.addToDocLog(urlDoc.doc_id, ctx.from)
-                } catch (error) {
-                    console.log('Error', error)
-                    await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
-                }
-
             }
-
         })
     .addAnswer([
         '¿Desea consultar algo mas?',
