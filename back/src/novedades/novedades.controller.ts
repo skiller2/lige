@@ -105,7 +105,7 @@ const listaColumnas: any[] = [
         field: "NovedadTipoCod",
         fieldName: "novtip.NovedadTipoCod",
         sortable: true,
-        hidden: false,
+        hidden: true,
         searchHidden: false,
         searchComponent: "inputForTipoNovedadSearch"
     },
@@ -139,7 +139,7 @@ const listaColumnas: any[] = [
         searchType: "number",
         sortable: true,
         searchHidden: false,
-        hidden: false,
+        hidden: true,
       },
     {
         name: "Telefono",
