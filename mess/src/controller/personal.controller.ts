@@ -220,7 +220,7 @@ export class PersonalController extends BaseController {
       const codigo = Math.floor(Math.random() * (999999 - 100000) + 100000)
 
       await queryRunner.query(
-        `IF EXISTS(select Telefono from BotRegTelefonoPersonal where personal_id=@0) UPDATE BotRegTelefonoPersonal SET Codigo=@1, Telefono=@2, DesDocIdent=@6, AudUsuarioMod=@3, AudIpMod=@4, AudFechaMod=@5 WHERE PersonalId=@0 ELSE INSERT INTO BotRegTelefonoPersonal (PersonalId, Codigo, Telefono, DesDocIdent, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
+        `IF EXISTS(select Telefono from BotRegTelefonoPersonal where PersonalId=@0) UPDATE BotRegTelefonoPersonal SET Codigo=@1, Telefono=@2, DesDocIdent=@6, AudUsuarioMod=@3, AudIpMod=@4, AudFechaMod=@5 WHERE PersonalId=@0 ELSE INSERT INTO BotRegTelefonoPersonal (PersonalId, Codigo, Telefono, DesDocIdent, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
         [PersonalId, codigo, telNro, usuario, ip, stmactual, des_doc_ident]
       )
 
