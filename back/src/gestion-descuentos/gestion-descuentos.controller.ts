@@ -654,9 +654,9 @@ export class GestionDescuentosController extends BaseController {
       FROM PersonalOtroDescuento
       WHERE PersonalId IN (@0) AND PersonalOtroDescuentoDescuentoId IN (@1) AND PersonalOtroDescuentoAnoAplica IN (@2) AND PersonalOtroDescuentoMesesAplica IN (@3)
     `, [PersonalId, DescuentoId, anio, mes])
-    if (PersonalOtroDescuento.length) {
-      return new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
-    }
+    // if (PersonalOtroDescuento.length) {
+    //   return new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
+    // }
 
     const Personal = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
     const PersonalOtroDescuentoId = Personal[0].PersonalOtroDescuentoUltNro + 1
@@ -706,9 +706,9 @@ export class GestionDescuentosController extends BaseController {
       FROM ObjetivoDescuento
       WHERE ObjetivoId IN (@0) AND ObjetivoDescuentoDescuentoId IN (@1) AND ObjetivoDescuentoAnoAplica IN (@2) AND ObjetivoDescuentoMesesAplica IN (@3)
     `, [ObjetivoId, DescuentoId, anio, mes])
-    if (ObjetivoDescuento.length) {
-      throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} del objetivo.`)
-    }
+    // if (ObjetivoDescuento.length) {
+    //   throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} del objetivo.`)
+    // }
 
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
