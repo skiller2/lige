@@ -11,7 +11,7 @@
     "build": "node ./scripts/build.mjs",
     "prod": "node ./dist/index.js",
     "start": "npm run dev",
-    "dev": "node --experimental-strip-types --experimental-transform-types ./src/index.ts",
+    "dev": "node --experimental-strip-types --experimental-transform-types --watch ./src/index.ts",
     "devnew": "node --experimental-strip-types --experimental-transform-types ./src/index.ts",
     "devold": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts"
   },

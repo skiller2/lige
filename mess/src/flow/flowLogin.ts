@@ -97,11 +97,11 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             }
         }
 
-
         await state.update({ flowLoginDate: now })
 
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
+        
         const telefono = ctx.from
         await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
 
