@@ -13,12 +13,12 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const PersonalId = state.get('personalId')
-        const docsPend:any[] = await personalController.getDocsPendDescarga(PersonalId)
+        const docsPend: any[] = await personalController.getDocsPendDescarga(PersonalId)
         await state.update({ docsPend: docsPend })
         if (docsPend.length > 0) {
-            let docsPendStr = (docsPend.length==1)?`Existe un documento pendiente de descarga\n`:`Existen ${docsPend.length} documentos pendientes de descarga:\n`
+            let docsPendStr = (docsPend.length == 1) ? `Existe un documento pendiente de descarga\n` : `Existen ${docsPend.length} documentos pendientes de descarga:\n`
             docsPend.forEach(doc => {
-                const periodo =  (doc.anio && doc.mes) ? `${doc.mes}/${doc.anio}` : ''
+                const periodo = (doc.anio && doc.mes) ? `${doc.mes}/${doc.anio}` : ''
                 docsPendStr += `- ${doc.DocumentoTipoDetalle} ${periodo} Nro. ${doc.DocumentoDenominadorDocumento}\n`
             })
             await flowDynamic(docsPendStr, { delay: delay })
@@ -26,7 +26,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
 
         } else {
             await flowDynamic('No posee documentos pendientes de descarga', { delay: delay })
-            return gotoFlow(flowConsNovedadPendiente)            
+            return gotoFlow(flowConsNovedadPendiente)
         }
     })
     .addAnswer('', { delay: delay, capture: true },
@@ -37,14 +37,12 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
             if (Utils.isOKResponse(ctx.body)) {
                 const docsPend = await state.get('docsPend')
                 const documento = docsPend.pop()
-                
-                const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
-
                 try {
+                    const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
                     await flowDynamic([{ body: documento.DocumentoTipoDetalle, media: urlDoc, delay }])
                     await chatBotController.addToDocLog(documento.DocumentoId, ctx.from)
                 } catch (error) {
-                    console.log('Error descargando Archivo',error)
+                    console.log('Error descargando Archivo', error)
                     await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
                     return gotoFlow(flowMenu)
 
@@ -58,7 +56,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 }
 
             } else {
-                if (process.env.PERSONALID_TEST) { 
+                if (process.env.PERSONALID_TEST) {
                     return gotoFlow(flowConsNovedadPendiente)
                 }
                 return stop(ctx, gotoFlow, state)
