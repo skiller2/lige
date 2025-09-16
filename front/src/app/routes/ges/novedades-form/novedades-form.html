@@ -32,7 +32,8 @@
           nzShowTime="true"
           nzFormat="yyyy-MM-dd HH:mm"
           nzMode="date"
-          style="width: 100%;">
+          style="width: 100%;"
+          [nzDisabled]="true">
         </nz-date-picker>
       </nz-form-control>
     </nz-form-item>
@@ -74,7 +75,13 @@
       <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionFecha">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Fecha</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-          <input nz-input formControlName="VisualizacionFecha"  [readonly]="true">
+        <nz-date-picker
+          formControlName="VisualizacionFecha"
+          nzShowTime="true"
+          nzFormat="yyyy-MM-dd HH:mm"
+          nzMode="date"
+          style="width: 100%;" [nzDisabled]="true">
+        </nz-date-picker> 
         </nz-form-control>
       </nz-form-item>
   
