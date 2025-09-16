@@ -87,7 +87,7 @@ export class PersonalController extends BaseController {
     }
 
     if (res.length) {
-      stateData = { personalId: res[0].personalId, cuit: res[0].cuit, codigo: res[0].codigo, name: res[0].name.trim() }
+      stateData = { personalId: res[0].PersonalId, cuit: res[0].cuit, codigo: res[0].codigo, name: res[0].name.trim() }
       if ([2, 9, 23, 12, 10, 16, 28, 18, 26, 11, 20, 22].includes(res[0].PersonalSituacionRevistaSituacionId))
         activo = true
       PersonalSituacionRevistaSituacionId = res[0].PersonalSituacionRevistaSituacionId
@@ -95,7 +95,7 @@ export class PersonalController extends BaseController {
       const tmpName = String(res[0].name).trim().split(" ")[0].trim();
       firstName = tmpName.charAt(0).toUpperCase() + tmpName.slice(1).toLowerCase()
 
-      codigo = res[0].codigo
+      codigo = res[0].Codigo
     }
 
     return { activo,stateData,PersonalSituacionRevistaSituacionId,firstName,codigo}
@@ -103,7 +103,7 @@ export class PersonalController extends BaseController {
 
   async getPersonalQuery(telefono: string, PersonalId: number) {
     return await dbServer.dataSource.query(
-      `SELECT reg.PersonalId personalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, codigo, 
+      `SELECT reg.PersonalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, reg.Codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
       sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso
       FROM BotRegTelefonoPersonal reg
