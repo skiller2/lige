@@ -98,7 +98,7 @@ export class TableDescuentosPersonalComponent {
             const row = this.angularGrid.dataView.getItemByIdx(rowNum)
             this.tipoint.set(row?.tipoint)
             const id:string = row?.id
-            const ids:string[] = id.split('-')
+            const ids:string[] = row?.perdes_id.split('-')
             this.descuentoId.set(parseInt(ids[1]))
             this.personalId.set(parseInt(ids[2]))
         } else {
