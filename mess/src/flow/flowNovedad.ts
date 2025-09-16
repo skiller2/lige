@@ -574,7 +574,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             } catch (error) {
                 console.log('Error descargando Archivo', error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
-
+                return gotoFlow(flowMenu)
             }
         }
     )
