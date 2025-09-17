@@ -676,7 +676,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
       VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12)
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, 0])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
 
     let PersonalOtroDescuentoCuotaId = 1
     let cuotaAnio = anio
