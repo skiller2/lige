@@ -7,7 +7,7 @@ const delay = chatBotController.getDelay()
 
 const flowRemoveTel = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, {flowDynamic, state,gotoFlow }) => {
-        await flowDynamic([{ body: `⏱️ un momento`, delay }])
+        await flowDynamic([{ body: `⏱️ Un momento.`, delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const telefono = ctx.from
