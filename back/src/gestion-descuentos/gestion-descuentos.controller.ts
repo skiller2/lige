@@ -417,7 +417,7 @@ export class GestionDescuentosController extends BaseController {
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
-        , tipdes.DescuentoDescripcion
+        , tipdes.DescuentoId
         , perdes.mes
         , perdes.anio
         , perdes.desmovimiento
@@ -486,6 +486,7 @@ export class GestionDescuentosController extends BaseController {
       , CONCAT(cli.ClienteId,'/',eledep.ClienteElementoDependienteId) AS CodObjetivo
       , CONCAT(cli.ClienteDenominacion,' ', eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
 
+      , det.DescuentoId
       , det.DescuentoDescripcion
       , des.ObjetivoDescuentoDetalle 
    
@@ -1353,14 +1354,14 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
 
       const descuento = await queryRunner.query(`
-      SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
+     SELECT ObjetivoDescuentoDescuentoId , ObjetivoDescuentoDetalle Detalle
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
       , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
-      , ObjetivoDescuentoId id
+      , ObjetivoDescuentoId 
       , ObjetivoDescuentoDescontar AplicaA
       , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
       , ObjetivoDescuentoFechaAnulacion FechaAnulacion
-      FROM ObjetivoDescuento WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      FROM ObjetivoDescuento WHERE ObjetivoDescuentoDescuentoId = @0 AND ObjetivoId = @1
       `, [DescuentoId, ObjetivoId])
       // throw new ClientException(`DEBUG.`)
 
@@ -1639,16 +1640,31 @@ export class GestionDescuentosController extends BaseController {
   async getImportacionesDescuentosAnteriores(req: any, res: Response, next: NextFunction) {
     const anio = req.params.anio
     const mes = req.params.mes
-    try {
-      const importacionesDescuentosAnteriores = await dataSource.query(
-        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+   try {
+    const importacionesDescuentosAnteriores = await queryRunner.query(
+      `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
         FROM documento 
         WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'DES'`,
-        [Number(anio), Number(mes)])
-      this.jsonRes(importacionesDescuentosAnteriores, res);
-    } catch (error) {
-      return next(error)
-    }
+      [Number(anio), Number(mes)])
+
+    this.jsonRes(
+      {
+        total: importacionesDescuentosAnteriores.length,
+        list: importacionesDescuentosAnteriores,
+      },
+
+      res
+    );
+    await queryRunner.commitTransaction()
+ 
+  } catch (error) {
+    await queryRunner.rollbackTransaction()
+    return next(error)
+  } finally {
   }
+}
 
 }

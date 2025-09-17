@@ -47,7 +47,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 if (this.descuentoId() && this.objetivoId()) {
                     let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.descuentoId()))
                     this.formDesc.reset(infoDesc)
-                     //console.log('infoDesc: ', infoDesc);
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
