@@ -700,7 +700,7 @@ export class GestionDescuentosController extends BaseController {
     }
 
     await queryRunner.query(`UPDATE Personal SET PersonalOtroDescuentoUltNro = @1 WHERE PersonalId =@0`, [PersonalId, PersonalOtroDescuentoId])
-    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId,PersonalOtroDescuentoCuotaId])
+    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId])
     return PersonalOtroDescuentoId
   }
 
@@ -777,7 +777,7 @@ export class GestionDescuentosController extends BaseController {
     }
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
-    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId,ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
     return ObjetivoDescuentoId
   }
 
@@ -959,46 +959,46 @@ export class GestionDescuentosController extends BaseController {
       AND ISNULL(odcx.ObjetivoDescuentoCuotaImporte,0) != ROUND(objdes.ObjetivoDescuentoImporteVariable / objdes.ObjetivoDescuentoCantidadCuotas, 2)
       `, [0, anio, mes])
   }
-/*
-  async objetivoDescuentoAddCuota(
-    queryRunner: any, descuento: any,
-  ) {
-    const objetivoDescuentoId: number = descuento.ObjetivoDescuentoId
-    const objetivoDescuentoCuotaId: number = descuento.ObjetivoDescuentoCuotaId
-    const objetivoId: number = descuento.ObjetivoId
-    const anio: number = descuento.anio
-    const mes: number = descuento.mes
-    const importeCuota: number = descuento.importeCuota
-    const objDescripcion: string = descuento.ClienteElementoDependienteDescripcion
-    const finalizado: boolean = descuento.ObjetivoDescuentoCuotaFinalizado
-    let ultCuota: number = descuento.ObjetivoDescuentoCuotaUltNro
-    if (objetivoDescuentoCuotaId && !finalizado) {
-      await queryRunner.query(`
-        UPDATE ObjetivoDescuentoCuota
-        SET ObjetivoDescuentoCuotaImporte = @3
-        WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaId = @2
-      `, [objetivoDescuentoId, objetivoId, objetivoDescuentoCuotaId, importeCuota]
-      )
-    } else if (!objetivoDescuentoCuotaId) {
-      ultCuota++
-      await queryRunner.query(`
-        INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
-        ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
-        ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
-        ObjetivoDescuentoCuotaProceso)
-        VALUES (@0,@1,@2,@3,@4,@0,@5,0,0,@6)
-      `, [ultCuota, objetivoDescuentoId, objetivoId, anio, mes, importeCuota, 'FA'])
-
-      await queryRunner.query(`
-        UPDATE ObjetivoDescuento
-        SET ObjetivoDescuentoCuotaUltNro = @2, ObjetivoDescuentoCuotasPagas = @2
-        WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
-      `, [objetivoDescuentoId, objetivoId, ultCuota]
-      )
+  /*
+    async objetivoDescuentoAddCuota(
+      queryRunner: any, descuento: any,
+    ) {
+      const objetivoDescuentoId: number = descuento.ObjetivoDescuentoId
+      const objetivoDescuentoCuotaId: number = descuento.ObjetivoDescuentoCuotaId
+      const objetivoId: number = descuento.ObjetivoId
+      const anio: number = descuento.anio
+      const mes: number = descuento.mes
+      const importeCuota: number = descuento.importeCuota
+      const objDescripcion: string = descuento.ClienteElementoDependienteDescripcion
+      const finalizado: boolean = descuento.ObjetivoDescuentoCuotaFinalizado
+      let ultCuota: number = descuento.ObjetivoDescuentoCuotaUltNro
+      if (objetivoDescuentoCuotaId && !finalizado) {
+        await queryRunner.query(`
+          UPDATE ObjetivoDescuentoCuota
+          SET ObjetivoDescuentoCuotaImporte = @3
+          WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaId = @2
+        `, [objetivoDescuentoId, objetivoId, objetivoDescuentoCuotaId, importeCuota]
+        )
+      } else if (!objetivoDescuentoCuotaId) {
+        ultCuota++
+        await queryRunner.query(`
+          INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+          ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
+          ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
+          ObjetivoDescuentoCuotaProceso)
+          VALUES (@0,@1,@2,@3,@4,@0,@5,0,0,@6)
+        `, [ultCuota, objetivoDescuentoId, objetivoId, anio, mes, importeCuota, 'FA'])
+  
+        await queryRunner.query(`
+          UPDATE ObjetivoDescuento
+          SET ObjetivoDescuentoCuotaUltNro = @2, ObjetivoDescuentoCuotasPagas = @2
+          WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
+        `, [objetivoDescuentoId, objetivoId, ultCuota]
+        )
+      }
+      return
     }
-    return
-  }
-*/
+  */
   async updateDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
@@ -1077,7 +1077,7 @@ export class GestionDescuentosController extends BaseController {
 
     if (cuotasEjecutadas.length > 0)
       throw new ClientException(`No se puede modificar descuentos ya tienen cuotas aplicadas.`)
-      
+
 
     const hoy: Date = new Date()
     const hora = this.getTimeString(hoy)
@@ -1119,7 +1119,7 @@ export class GestionDescuentosController extends BaseController {
       cuotaMes = per.cuotaMes
     }
 
-    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId,PersonalOtroDescuentoCuotaId])
+    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId])
   }
 
   private async updateObjetivoDescuento(queryRunner: any, otroDescuento: any, usuarioId: number, ip: string) {
@@ -1176,8 +1176,8 @@ export class GestionDescuentosController extends BaseController {
       DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
     `, [ObjetivoDescuentoId, ObjetivoId])
 
-   
-   
+
+
     let ObjetivoDescuentoCuotaId = 1
     let cuotaAnio = anio
     let cuotaMes = mes
@@ -1198,7 +1198,7 @@ export class GestionDescuentosController extends BaseController {
       cuotaMes = per.cuotaMes
     }
 
-    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId,ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
   }
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
@@ -1232,30 +1232,54 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async cancellationPersonalOtroDescuentoQuery(queryRunner: any, id: number, PersonalId: number, DetalleAnulacion: string) {
+
+
     let res = await queryRunner.query(`
       SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
       , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
       , PersonalOtroDescuentoCuotaUltNro CuotaUltNro, PersonalOtroDescuentoFechaAnulacion FechaAnulacion
       FROM PersonalOtroDescuento
-      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
     `, [id, PersonalId])
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento de la persona.`)
     }
     const PersonalOtroDescuento = res[0]
-    if (PersonalOtroDescuento.FechaAnulacion)
-      throw new ClientException(`No se puede modificar descuentos anulados.`)
-    const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
-    if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
-    const CuotaUltNro = PersonalOtroDescuento.CuotaUltNro
+    if (PersonalOtroDescuento.FechaAnulacion)
+      throw new ClientException(`El descuento se encuentra anulado.`)
+
+    // TODO: cambiar que si el periodo esta cerrado, no se elimine la cuota generada y se eliminen las cuotas de periodos futuros no cerrados.
+    let DescuentoCuotas = await queryRunner.query(`
+      SELECT PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId,PersonalId,PersonalOtroDescuentoCuotaAno,PersonalOtroDescuentoCuotaMes
+      FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId =@0 AND PersonalId =@1 
+    `, [id, PersonalId])
+
+    console.log('descuentoCuota',DescuentoCuotas)
+    if (DescuentoCuotas.length > 0) {
+
+      for (let cuota of DescuentoCuotas) {
+        const periodo = await this.getPeriodoQuery(queryRunner, cuota.PersonalOtroDescuentoCuotaAno, cuota.PersonalOtroDescuentoCuotaMes)
+
+        // Si el período tiene recibos generados, no la elimino
+        if (periodo[0]?.ind_recibos_generados === 1) {
+          console.log(`No se elimina cuota ${cuota.PersonalOtroDescuentoCuotaId}: tiene recibos generados`)
+          continue
+        }
+
+        // Caso contrario, sí la elimino
+        await queryRunner.query(
+          `DELETE FROM PersonalOtroDescuentoCuota 
+        WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1 AND PersonalOtroDescuentoCuotaId = @2`, [id, PersonalId, cuota.PersonalOtroDescuentoCuotaId]
+        )
+      }
+    }
+
     const now = new Date()
     now.setHours(0, 0, 0, 0)
-    await queryRunner.query(`
-      UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @3 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1) AND PersonalOtroDescuentoCuotaId IN (@2)
-      UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @3, PersonalOtroDescuentoDetalleAnulacion = @4 WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
-      `, [id, PersonalId, CuotaUltNro, now, DetalleAnulacion])
+    await queryRunner.query(` UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @2 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
+        UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @2, PersonalOtroDescuentoDetalleAnulacion = @3 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
+          `, [id, PersonalId, now, DetalleAnulacion])
   }
 
 
@@ -1644,28 +1668,28 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction()
-   try {
-    const importacionesDescuentosAnteriores = await queryRunner.query(
-      `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
+    try {
+      const importacionesDescuentosAnteriores = await queryRunner.query(
+        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
         FROM documento 
         WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'DES'`,
-      [Number(anio), Number(mes)])
+        [Number(anio), Number(mes)])
 
-    this.jsonRes(
-      {
-        total: importacionesDescuentosAnteriores.length,
-        list: importacionesDescuentosAnteriores,
-      },
+      this.jsonRes(
+        {
+          total: importacionesDescuentosAnteriores.length,
+          list: importacionesDescuentosAnteriores,
+        },
 
-      res
-    );
-    await queryRunner.commitTransaction()
- 
-  } catch (error) {
-    await queryRunner.rollbackTransaction()
-    return next(error)
-  } finally {
+        res
+      );
+      await queryRunner.commitTransaction()
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+    }
   }
-}
 
 }
