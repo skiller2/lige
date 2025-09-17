@@ -107,7 +107,7 @@ export class AccesoBotFormComponent {
 
      this.ngForm().form.reset()
       if (this.PersonalId() > 0) {
-       let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
+        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()

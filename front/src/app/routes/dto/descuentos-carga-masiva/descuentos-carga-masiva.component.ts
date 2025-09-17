@@ -115,7 +115,16 @@ export class DescuentosCargaMasivaComponent {
       },
     ]
 
-
+    $importacionesAnteriores = this.formChange$.pipe(
+      debounceTime(500),
+      switchMap(() => {
+        return this.apiService
+          .getImportacionesDescuentosAnteriores(this.anio(), this.mes())
+          .pipe(
+         
+        )
+      })
+    )
 
 
     ngOnInit(): void {

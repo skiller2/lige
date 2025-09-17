@@ -12,22 +12,31 @@ const linkVigenciaHs = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIG
 
 
 export const flowSinRegistrar = addKeyword(utils.setEvent("NOT_REGISTERED"))
-    .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
+    .addAnswer('El teléfono ingresado no lo pude localizar. ¿Desea registrarlo? (Si/No)', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            if (ctx?.type == 'dispatch')
-                return fallBack()
+            try {
+                if (ctx?.type == 'dispatch')
+                    return fallBack()
 
-            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const telefono = ctx.from
+                reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+                const telefono = ctx.from
 
-            if (Utils.isOKResponse(ctx.body)) {
-                const ret = await personalController.genTelCode(telefono)
-                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
-                await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo`, { delay: delay })
-                await state.update({ encTelNro: ret.encTelNro })
-                return stopSilence(ctx, gotoFlow, state, endFlow)
+                if (Utils.isOKResponse(ctx.body)) {
+                    console.log('Generando link registro para -------')
+                    const ret = await personalController.genTelCode(telefono)
+                    await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
+                    await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo.`, { delay: delay })
+                    await state.update({ encTelNro: ret.encTelNro })
+                    return stopSilence(ctx, gotoFlow, state, endFlow)
 
-            } else {
+                } else {
+                    return stop(ctx, gotoFlow, state)
+                }
+
+
+            } catch (error) {
+                console.log(error)
+                await flowDynamic(`Ocurrió un error. Por favor, escriba "hola" para iniciar un nuevo chat.`, { delay: delay })
                 return stop(ctx, gotoFlow, state)
             }
 
@@ -37,7 +46,7 @@ export const flowSinRegistrar = addKeyword(utils.setEvent("NOT_REGISTERED"))
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
     })
-    .addAnswer([`Ingrese el código proporcionado en la página web 'Validación de Identidad', en caso de desconocerlo ingrese 0 para ir al inicio`], { capture: true, delay: delay },
+    .addAnswer([`Ingrese el código proporcionado en la página web 'Validación de Identidad', en caso de desconocerlo ingrese 0 para salir.`], { capture: true, delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
@@ -54,7 +63,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 return stop(ctx, gotoFlow, state)
 
             if (!activo) {
-                await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
+                await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}.`, { delay: delay })
                 return stop(ctx, gotoFlow, state)
             }
 
@@ -65,19 +74,19 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
             }
 
             if (codigo == ctx.body) {
-                await flowDynamic(`Identidad verificada existosamente`, { delay: delay })
+                await flowDynamic(`Identidad verificada existosamente.`, { delay: delay })
                 personalController.removeCode(telefono)
                 return gotoFlow(flowMenu)
             } else {
                 const reintento = (data.reintento) ? data.reintento : 0
                 if (reintento > 3) {
                     const res = await personalController.delTelefonoPersona(telefono)
-                    await flowDynamic(`Demasiados reintentos`, { delay: delay })
+                    await flowDynamic(`Demasiados reintentos.`, { delay: delay })
                     return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
-                return fallBack('Código ingresado incorrecto, reintente')
+                return fallBack('Código ingresado incorrecto, reintente.')
             }
         })
 
@@ -91,7 +100,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         if (currState?.flowLoginDate) {
             const lastLogin = new Date(currState.flowLoginDate);
             const diffMs = now.getTime() - lastLogin.getTime();
-          
+
             if (diffMs < 60 * 1000) { // más de 1 minuto
                 return endFlow();
             }
@@ -103,7 +112,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
 
         const telefono = ctx.from
-        await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
+        await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad.`, { delay: delay })
 
         const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
         await state.update(stateData)
@@ -113,7 +122,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             return gotoFlow(flowSinRegistrar)
 
         if (!activo) {
-            await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}`, { delay: delay })
+            await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${PersonalSituacionRevistaSituacionId}.`, { delay: delay })
             return stop(ctx, gotoFlow, state)
         }
 

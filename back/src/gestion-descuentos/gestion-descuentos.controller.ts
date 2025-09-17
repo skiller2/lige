@@ -1636,4 +1636,19 @@ export class GestionDescuentosController extends BaseController {
     return item ? item.value : null;
   }
 
+  async getImportacionesDescuentosAnteriores(req: any, res: Response, next: NextFunction) {
+    const anio = req.params.anio
+    const mes = req.params.mes
+    try {
+      const importacionesDescuentosAnteriores = await dataSource.query(
+        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
+        FROM documento 
+        WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'DES'`,
+        [Number(anio), Number(mes)])
+      this.jsonRes(importacionesDescuentosAnteriores, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

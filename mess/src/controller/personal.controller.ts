@@ -138,7 +138,7 @@ export class PersonalController extends BaseController {
       });
       return { encTelNro: encrypted.toString(CryptoJS.format.Hex) }
     } catch (error) {
-      console.log('encoding', error)
+      console.log('Encoding:', error)
       throw error
     }
   }

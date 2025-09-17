@@ -79,3 +79,7 @@ gestionDescuentosRouter.post("/import-xls-descuentos", [authMiddleware.verifyTok
 gestionDescuentosRouter.get("/aplicaa/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getAplicaAOptions(req, res, next);
 });
+
+gestionDescuentosRouter.get("/importaciones_anteriores/:anio/:mes", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getImportacionesDescuentosAnteriores(req, res, next);
+}); 
