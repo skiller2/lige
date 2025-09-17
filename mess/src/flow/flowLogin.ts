@@ -14,32 +14,22 @@ const linkVigenciaHs = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIG
 export const flowSinRegistrar = addKeyword(utils.setEvent("NOT_REGISTERED"))
     .addAnswer('El teléfono ingresado no lo pude localizar. ¿Desea registrarlo? (Si/No)', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            try {
-                if (ctx?.type == 'dispatch')
-                    return fallBack()
+            if (ctx?.type == 'dispatch')
+                return fallBack()
 
-                reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-                const telefono = ctx.from
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            const telefono = ctx.from
 
-                if (Utils.isOKResponse(ctx.body)) {
-                    console.log('Generando link registro para -------')
-                    const ret = await personalController.genTelCode(telefono)
-                    await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
-                    await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo.`, { delay: delay })
-                    await state.update({ encTelNro: ret.encTelNro })
-                    return stopSilence(ctx, gotoFlow, state, endFlow)
+            if (Utils.isOKResponse(ctx.body)) {
+                const ret = await personalController.genTelCode(telefono)
+                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
+                await flowDynamic(`Recuerda el enlace tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo.`, { delay: delay })
+                await state.update({ encTelNro: ret.encTelNro })
+                return stopSilence(ctx, gotoFlow, state, endFlow)
 
-                } else {
-                    return stop(ctx, gotoFlow, state)
-                }
-
-
-            } catch (error) {
-                console.log(error)
-                await flowDynamic(`Ocurrió un error. Por favor, escriba "hola" para iniciar un nuevo chat.`, { delay: delay })
+            } else {
                 return stop(ctx, gotoFlow, state)
             }
-
         })
 
 
@@ -100,7 +90,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         if (currState?.flowLoginDate) {
             const lastLogin = new Date(currState.flowLoginDate);
             const diffMs = now.getTime() - lastLogin.getTime();
-
+          
             if (diffMs < 60 * 1000) { // más de 1 minuto
                 return endFlow();
             }
