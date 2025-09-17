@@ -37,7 +37,7 @@ export const flowSinRegistrar = addKeyword(utils.setEvent("NOT_REGISTERED"))
             } catch (error) {
                 console.log(error)
                 await flowDynamic(`Ocurrió un error. Por favor, escriba "hola" para iniciar un nuevo chat.`, { delay: delay })
-                return endFlow();
+                return stop(ctx, gotoFlow, state)
             }
 
         })
