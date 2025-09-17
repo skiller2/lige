@@ -1354,10 +1354,10 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
 
       const descuento = await queryRunner.query(`
-     SELECT ObjetivoDescuentoDescuentoId , ObjetivoDescuentoDetalle Detalle
+    SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
       , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
-      , ObjetivoDescuentoId 
+      , ObjetivoDescuentoId id
       , ObjetivoDescuentoDescontar AplicaA
       , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
       , ObjetivoDescuentoFechaAnulacion FechaAnulacion
