@@ -63,6 +63,23 @@
         <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
         [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
     </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
+      <nz-form-control>
+
+        <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
+          <!-- <ng-container > -->
+          <div  class="containerAnterioresDescuentos" nz-tooltip nzTooltipTitle={{1}}>
+             <ng-container>
+                <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
+                <span nz-icon nzType="download" ></span></a>
+              </ng-container>
+            <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
+          </div>
+        </ng-container>
+      </nz-form-control>
+    </nz-form-item>
   </form>
 
   <div nz-tab>
