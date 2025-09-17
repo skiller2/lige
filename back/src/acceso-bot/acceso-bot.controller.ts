@@ -27,33 +27,34 @@ export class AccesoBotController extends BaseController {
             searchHidden: true
         },
         {
-            name: " fecha de modificación",
+            name: "Fecha de Modificación",
             type: "date",
-            id: "aud_fecha_mod",
-            field: "aud_fecha_mod",
-            fieldName: "aud_fecha_mod",
-            searchComponent: "inpurForPersonalSearch",
+            id: "AudFechaMod",
+            field: "AudFechaMod",
+            fieldName: "reg.AudFechaMod",
+            searchComponent: "inpurForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
         },
         {
-            name: "Nombre",
+            name: "Apellido Nombre",
             type: "string",
             id: "Nombre",
             field: "Nombre",
             fieldName: "per.PersonalApellidoNombre",
             searchType: "string",
-            searchHidden: true
+            searchHidden: true,
+            sortable: true
         },
         {
-            name: "Nombre ",
+            name: "Personal",
             type: "number",
             id: "PersonalId",
             field: "PersonalId",
             fieldName: "per.PersonalId",
             searchComponent: "inpurForPersonalSearch",
-            hidden: false,
+            hidden: true,
             searchHidden: false,
             sortable: true
           },
@@ -65,7 +66,7 @@ export class AccesoBotController extends BaseController {
             fieldName: "cuit.PersonalCUITCUILCUIT",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: true
         },
 
         {
@@ -112,7 +113,7 @@ export class AccesoBotController extends BaseController {
                 cuit.PersonalCUITCUILCUIT,
                 doc.PersonalDocumentoNro,
                 reg.Telefono,
-                aud_fecha_mod
+                reg.AudFechaMod
                 FROM BotRegTelefonoPersonal AS reg
                 JOIN personal AS per ON per.PersonalId = reg.PersonalId
 

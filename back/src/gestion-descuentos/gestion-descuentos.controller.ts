@@ -615,17 +615,20 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  parseImporte(str) {
-    if (!str) return 0
-    return Number(str.replace(/\./g, "").replace(",", "."))
-  }
-  
-  dividirImporte(importeStr, cuotas, paraSql = false) {
-    const importe = this.parseImporte(importeStr)
-    const division = importe / cuotas
+  getNextMonthYear(month: number, year: number): { cuotaMes: number, cuotaAnio: number } {
+    if (month < 1 || month > 12) {
+      throw new Error("El mes debe estar entre 1 y 12");
+    }
 
-    return division.toFixed(2); 
-    
+    let nextMonth = month + 1;
+    let nextYear = year;
+
+    if (nextMonth > 12) {
+      nextMonth = 1;
+      nextYear += 1;
+    }
+
+    return { cuotaMes: nextMonth, cuotaAnio: nextYear };
   }
 
   private async addPersonalOtroDescuento(queryRunner: any, otroDescuento: any, usuarioId: number, ip: string) {
@@ -634,21 +637,22 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = otroDescuento.Cuotas
-    const Importe = otroDescuento.Importe
+
     const Detalle: number = otroDescuento.Detalle
 
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
 
 
-    let importeVariable = this.dividirImporte(Importe, Cuotas)
-
+    const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    const importeTotal: Number = Number(Cuotas) * importeCuota
 
     //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
+    /*
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
       FROM PersonalOtroDescuento
@@ -657,7 +661,7 @@ export class GestionDescuentosController extends BaseController {
     // if (PersonalOtroDescuento.length) {
     //   return new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
     // }
-
+    */
     const Personal = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
     const PersonalOtroDescuentoId = Personal[0].PersonalOtroDescuentoUltNro + 1
     const hoy = new Date()
@@ -670,27 +674,46 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
       VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12)
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
 
-      INSERT INTO PersonalOtroDescuentoCuota (
+    let PersonalOtroDescuentoCuotaId = 1
+    let cuotaAnio = anio
+    let cuotaMes = mes
+    for (let cuota = 1; cuota <= Cuotas; cuota++) {
+      PersonalOtroDescuentoCuotaId++
+      await queryRunner.query(`
+          INSERT INTO PersonalOtroDescuentoCuota (
         PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
         PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
         PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
         PersonalOtroDescuentoCuotaProceso)
-        VALUES (1,@0,@1,@3,@4,1,@13,0,0,'FA')
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeVariable])
+        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
+      `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+        cuotaAnio, cuotaMes, cuota,
+        importeCuota, 0, 0, 'FA'])
 
-    await queryRunner.query(`UPDATE Personal SET PersonalOtroDescuentoUltNro = @1 WHERE PersonalId IN (@0)`, [PersonalId, PersonalOtroDescuentoId])
+      const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+      cuotaAnio = per.cuotaAnio
+      cuotaMes = per.cuotaMes
+    }
+
+    await queryRunner.query(`UPDATE Personal SET PersonalOtroDescuentoUltNro = @1 WHERE PersonalId =@0`, [PersonalId, PersonalOtroDescuentoId])
+    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId,PersonalOtroDescuentoCuotaId])
     return PersonalOtroDescuentoId
   }
 
   private async addObjetivoDescuento(queryRunner: any, objDescuento: any, usuarioId: number, ip: string) {
     const AplicaA: string = objDescuento.AplicaA
-    const DescuentoId: number = objDescuento.DescuentoId
+    const ObjetivoDescuentoDescuentoId: number = objDescuento.DescuentoId
     const ObjetivoId: number = objDescuento.ObjetivoId
     const AplicaEl: Date = objDescuento.AplicaEl ? new Date(objDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = objDescuento.Cuotas
-    const Importe: number = Number(objDescuento.Importe)
+
+    const importeCuota = Number((Number(objDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    const importeTotal: Number = Number(Cuotas) * importeCuota
+
+
     const Detalle: number = objDescuento.Detalle
 
     const anio: number = AplicaEl.getFullYear()
@@ -705,7 +728,7 @@ export class GestionDescuentosController extends BaseController {
       SELECT ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica, ObjetivoDescuentoMesesAplica
       FROM ObjetivoDescuento
       WHERE ObjetivoId IN (@0) AND ObjetivoDescuentoDescuentoId IN (@1) AND ObjetivoDescuentoAnoAplica IN (@2) AND ObjetivoDescuentoMesesAplica IN (@3)
-    `, [ObjetivoId, DescuentoId, anio, mes])
+    `, [ObjetivoId, ObjetivoDescuentoDescuentoId, anio, mes])
     // if (ObjetivoDescuento.length) {
     //   throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} del objetivo.`)
     // }
@@ -722,16 +745,37 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
       , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo
       , ObjetivoDescuentoDescontar)
-      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, ROUND(@6/@5, 2), @7, 0, 0, 0, @8, @9, @10, @11, @12, @13)
+      VALUES (@0,@1,@2,@3, @4,@4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12, @13)
 
-      INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
-        ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
-        ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
-        ObjetivoDescuentoCuotaProceso)
-        VALUES (1,@0,@1,@3,@4,1,ROUND(@6/@5, 2),0,0,'FA')
-    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
+    
+    `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
+      mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
+
+
+
+
+    let ObjetivoDescuentoCuotaId = 1
+    let cuotaAnio = anio
+    let cuotaMes = mes
+    for (let cuota = 1; cuota <= Cuotas; cuota++) {
+      ObjetivoDescuentoCuotaId++
+      await queryRunner.query(`
+        INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+          ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
+          ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
+          ObjetivoDescuentoCuotaProceso)
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)
+      `, [ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+        cuotaAnio, cuotaMes, cuota,
+        importeCuota, 0, 0, 'FA'])
+
+      const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+      cuotaAnio = per.cuotaAnio
+      cuotaMes = per.cuotaMes
+    }
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
+    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId,ObjetivoDescuentoCuotaId])
     return ObjetivoDescuentoId
   }
 
@@ -794,23 +838,23 @@ export class GestionDescuentosController extends BaseController {
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (per[0] && per[0].ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
-      const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
+      //const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
 
       //PersonalOtrosDescuentos
-      for (const obj of listOtroDescuento) {
-        await this.personalOtroDescuentoAddCuota(
-          queryRunner, { ...obj, anio, mes }
-        )
-      }
+      //for (const obj of listOtroDescuento) {
+      //  await this.personalOtroDescuentoAddCuota(
+      //    queryRunner, { ...obj, anio, mes }
+      //  )
+      //}
 
       //ObjetivoDescuentos
-      const listObjetivoDescuento = await this.objetivoDescuentoListAddCuotaQuery(queryRunner, anio, mes)
+      //const listObjetivoDescuento = await this.objetivoDescuentoListAddCuotaQuery(queryRunner, anio, mes)
 
-      for (const obj of listObjetivoDescuento) {
-        await this.objetivoDescuentoAddCuota(
-          queryRunner, { ...obj, anio, mes }
-        )
-      }
+      //for (const obj of listObjetivoDescuento) {
+      //  await this.objetivoDescuentoAddCuota(
+      //    queryRunner, { ...obj, anio, mes }
+      //  )
+      //}
 
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
@@ -913,7 +957,7 @@ export class GestionDescuentosController extends BaseController {
       AND ISNULL(odcx.ObjetivoDescuentoCuotaImporte,0) != ROUND(objdes.ObjetivoDescuentoImporteVariable / objdes.ObjetivoDescuentoCantidadCuotas, 2)
       `, [0, anio, mes])
   }
-
+/*
   async objetivoDescuentoAddCuota(
     queryRunner: any, descuento: any,
   ) {
@@ -952,7 +996,7 @@ export class GestionDescuentosController extends BaseController {
     }
     return
   }
-
+*/
   async updateDescuento(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
@@ -990,12 +1034,16 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async updatePersonalOtroDescuento(queryRunner: any, otroDescuento: any, usuarioId: number, ip: string) {
-    const id: number = otroDescuento.id
+    const PersonalOtroDescuentoId: number = otroDescuento.id
     const DescuentoId: number = otroDescuento.DescuentoId
     const PersonalId: number = otroDescuento.PersonalId
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     const Cuotas: number = otroDescuento.Cuotas
-    const Importe: number = Number(otroDescuento.Importe)
+    const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    const importeTotal: Number = Number(Cuotas) * importeCuota
+
+
+
     const Detalle: string = otroDescuento.Detalle
 
     const anio: number = AplicaEl.getFullYear()
@@ -1010,7 +1058,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoFechaAnulacion FechaAnulacion
       FROM PersonalOtroDescuento
       WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
-    `, [id, PersonalId])
+    `, [PersonalOtroDescuentoId, PersonalId])
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento de la persona.`)
     }
@@ -1021,6 +1069,14 @@ export class GestionDescuentosController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
+    const cuotasEjecutadas = await queryRunner.query(`
+      SELECT * FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId =@0 AND PersonalId =@1 AND PersonalOtroDescuentoCuotaMantiene=1
+    `, [PersonalOtroDescuentoId, PersonalId])
+
+    if (cuotasEjecutadas.length > 0)
+      throw new ClientException(`No se puede modificar descuentos ya tienen cuotas aplicadas.`)
+      
+
     const hoy: Date = new Date()
     const hora = this.getTimeString(hoy)
     hoy.setHours(0, 0, 0, 0)
@@ -1028,37 +1084,52 @@ export class GestionDescuentosController extends BaseController {
       UPDATE PersonalOtroDescuento SET
       PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
       , PersonalOtroDescuentoMesesAplica = @4, PersonalOtroDescuentoMes = @4
-      , PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = ROUND(@6/@5, 2)
+      , PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = @6
       , PersonalOtroDescuentoFechaAplica = @7, PersonalOtroDescuentoDetalle = @8
       , PersonalOtroDescuentoPuesto = @9, PersonalOtroDescuentoUsuarioId = @10
       , PersonalOtroDescuentoDia = @11, PersonalOtroDescuentoTiempo = @12
       , PersonalOtroDescuentoCuotasPagas = 1, PersonalOtroDescuentoCuotaUltNro = 1
       WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
-      `, [id, PersonalId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
-    `, [id, PersonalId])
+    `, [PersonalOtroDescuentoId, PersonalId])
 
-    await queryRunner.query(`
-      INSERT INTO PersonalOtroDescuentoCuota (
-      PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
-      PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
-      PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
-      PersonalOtroDescuentoCuotaProceso)
-      VALUES (1,@0,@1,@2,@3,1,ROUND(@5/@4, 2),0,0,'FA')
-    `, [id, PersonalId, anio, mes, Cuotas, Importe])
+    let PersonalOtroDescuentoCuotaId = 1
+    let cuotaAnio = anio
+    let cuotaMes = mes
+    for (let cuota = 1; cuota <= Cuotas; cuota++) {
+      PersonalOtroDescuentoCuotaId++
+      await queryRunner.query(`
+          INSERT INTO PersonalOtroDescuentoCuota (
+        PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+        PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
+        PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
+        PersonalOtroDescuentoCuotaProceso)
+        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
+      `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+        cuotaAnio, cuotaMes, cuota,
+        importeCuota, 0, 0, 'FA'])
+
+      const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+      cuotaAnio = per.cuotaAnio
+      cuotaMes = per.cuotaMes
+    }
+
+    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId,PersonalOtroDescuentoCuotaId])
   }
 
   private async updateObjetivoDescuento(queryRunner: any, otroDescuento: any, usuarioId: number, ip: string) {
-    const id: number = otroDescuento.id
+    const ObjetivoDescuentoId: number = otroDescuento.id
     const AplicaA: string = otroDescuento.AplicaA
     const DescuentoId: number = otroDescuento.DescuentoId
     const ObjetivoId: number = otroDescuento.ObjetivoId
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     const Cuotas: number = otroDescuento.Cuotas
-    const Importe: number = Number(otroDescuento.Importe)
     const Detalle: string = otroDescuento.Detalle
+    const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    const importeTotal: Number = Number(Cuotas) * importeCuota
 
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
@@ -1072,7 +1143,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoFechaAnulacion FechaAnulacion
       FROM ObjetivoDescuento
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [id, ObjetivoId])
+    `, [ObjetivoDescuentoId, ObjetivoId])
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
@@ -1090,27 +1161,42 @@ export class GestionDescuentosController extends BaseController {
       UPDATE ObjetivoDescuento SET
       ObjetivoDescuentoDescuentoId = @2, ObjetivoDescuentoAnoAplica = @3
       , ObjetivoDescuentoMesesAplica = @4, ObjetivoDescuentoMes = @4
-      , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = ROUND(@6/@5, 2)
+      , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = @6
       , ObjetivoDescuentoFechaAplica = @7, ObjetivoDescuentoDetalle = @8
       , ObjetivoDescuentoPuesto = @9, ObjetivoDescuentoUsuarioId = @10
       , ObjetivoDescuentoDia = @11, ObjetivoDescuentoTiempo = @12
       , ObjetivoDescuentoCuotasPagas = 1, ObjetivoDescuentoCuotaUltNro = 1
       , ObjetivoDescuentoDescontar = @13
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [id, ObjetivoId, DescuentoId, anio, mes, Cuotas, Importe, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
+    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
 
     await queryRunner.query(`
       DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [id, ObjetivoId])
+    `, [ObjetivoDescuentoId, ObjetivoId])
 
-    await queryRunner.query(`
-      INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
-      ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
-      ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
-      ObjetivoDescuentoCuotaProceso)
-      VALUES (1,@0,@1,@2,@3,1,ROUND(@5/@4, 2),0,0,'FA')
-    `, [id, ObjetivoId, anio, mes, Cuotas, Importe])
+   
+   
+    let ObjetivoDescuentoCuotaId = 1
+    let cuotaAnio = anio
+    let cuotaMes = mes
+    for (let cuota = 1; cuota <= Cuotas; cuota++) {
+      ObjetivoDescuentoCuotaId++
+      await queryRunner.query(`
+        INSERT ObjetivoDescuentoCuota (ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+          ObjetivoDescuentoCuotaAno, ObjetivoDescuentoCuotaMes, ObjetivoDescuentoCuotaCuota,
+          ObjetivoDescuentoCuotaImporte, ObjetivoDescuentoCuotaMantiene, ObjetivoDescuentoCuotaFinalizado,
+          ObjetivoDescuentoCuotaProceso)
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)
+      `, [ObjetivoDescuentoCuotaId, ObjetivoDescuentoId, ObjetivoId,
+        cuotaAnio, cuotaMes, cuota,
+        importeCuota, 0, 0, 'FA'])
 
+      const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+      cuotaAnio = per.cuotaAnio
+      cuotaMes = per.cuotaMes
+    }
+
+    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId,ObjetivoDescuentoCuotaId])
   }
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
@@ -1393,17 +1479,17 @@ export class GestionDescuentosController extends BaseController {
 
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
-            console.log('row',row);
+            console.log('row', row);
             const isEmpty = (val) =>
               val === null || val === undefined || (typeof val === "string" && val.trim() === "")
 
-              if (
+            if (
               !row[columnsXLS['CUIT']]
               && !row[columnsXLS['Cantidad Cuotas']]
               && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
-            )continue;
- 
+            ) continue;
+
             //Verifica que exista el CUIT
             const PersonalCUITCUIL = await queryRunner.query(`
               SELECT personal.PersonalId
