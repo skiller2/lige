@@ -59,6 +59,15 @@ export class DescuentosCargaMasivaComponent {
         const tableName = this.tableName()
         this.formAltaDesc.get('DescuentoId')?.reset()
       })
+
+
+      effect(() => {
+        const currentAnio = this.anio()
+        const currentMes = this.mes()
+        if (currentAnio > 0 && currentMes > 0) {
+          this.formChange$.next('anio-mes-changed')
+        }
+      })
     }
 
     $optionsTipo = this.searchService.getDecuentosTipoOptions();
