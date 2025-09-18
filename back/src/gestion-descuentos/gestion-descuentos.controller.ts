@@ -1249,13 +1249,13 @@ export class GestionDescuentosController extends BaseController {
     if (PersonalOtroDescuento.FechaAnulacion)
       throw new ClientException(`El descuento se encuentra anulado.`)
 
-    // TODO: cambiar que si el periodo esta cerrado, no se elimine la cuota generada y se eliminen las cuotas de periodos futuros no cerrados.
     let DescuentoCuotas = await queryRunner.query(`
       SELECT PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId,PersonalId,PersonalOtroDescuentoCuotaAno,PersonalOtroDescuentoCuotaMes
       FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId =@0 AND PersonalId =@1 
     `, [id, PersonalId])
 
-    console.log('descuentoCuota',DescuentoCuotas)
+    let cantCuotasProcesadas = 0
+
     if (DescuentoCuotas.length > 0) {
 
       for (let cuota of DescuentoCuotas) {
@@ -1263,7 +1263,7 @@ export class GestionDescuentosController extends BaseController {
 
         // Si el período tiene recibos generados, no la elimino
         if (periodo[0]?.ind_recibos_generados === 1) {
-          console.log(`No se elimina cuota ${cuota.PersonalOtroDescuentoCuotaId}: tiene recibos generados`)
+          cantCuotasProcesadas++
           continue
         }
 
@@ -1277,6 +1277,10 @@ export class GestionDescuentosController extends BaseController {
 
     const now = new Date()
     now.setHours(0, 0, 0, 0)
+
+    console.log({ cantCuotasProcesadas, total: DescuentoCuotas.length })
+    if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
+
     await queryRunner.query(` UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @2 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
         UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @2, PersonalOtroDescuentoDetalleAnulacion = @3 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
           `, [id, PersonalId, now, DetalleAnulacion])
