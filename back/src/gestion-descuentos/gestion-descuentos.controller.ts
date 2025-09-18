@@ -494,7 +494,7 @@ export class GestionDescuentosController extends BaseController {
       , des.ObjetivoDescuentoImporteVariable
       , cuo.cantprocesada
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
-      , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
+      , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidadCuotas) AS importetotal
       , des.ObjetivoDescuentoFechaAnulacion
 
       FROM ObjetivoDescuento des  
@@ -777,7 +777,7 @@ export class GestionDescuentosController extends BaseController {
     }
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
-    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuento SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
     return ObjetivoDescuentoId
   }
 
@@ -1198,7 +1198,7 @@ export class GestionDescuentosController extends BaseController {
       cuotaMes = per.cuotaMes
     }
 
-    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuento SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
   }
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
@@ -1385,7 +1385,9 @@ export class GestionDescuentosController extends BaseController {
       const descuento = await queryRunner.query(`
     SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
-      , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
+      , ObjetivoDescuentoImporteVariable ImporteCuota
+      , (ObjetivoDescuentoImporteVariable * ObjetivoDescuentoCantidadCuotas) Importe
+      , ObjetivoId
       , ObjetivoDescuentoId id
       , ObjetivoDescuentoDescontar AplicaA
       , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
