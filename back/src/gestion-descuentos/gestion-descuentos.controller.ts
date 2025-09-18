@@ -472,8 +472,8 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-   
-   
+
+
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
       , des.ObjetivoId
@@ -635,7 +635,7 @@ export class GestionDescuentosController extends BaseController {
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const importeTotal: Number = Number(Cuotas) * importeCuota
 
-     //Valida que el período no tenga el indicador de recibos generado
+    //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
@@ -1631,7 +1631,7 @@ export class GestionDescuentosController extends BaseController {
               ObjetivoId: ObjetivoId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: row[columnsXLS['Cantidad Cuotas']],
-              Importe: row[columnsXLS['Importe Total']],
+              Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")),
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
