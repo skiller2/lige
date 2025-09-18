@@ -632,11 +632,10 @@ export class GestionDescuentosController extends BaseController {
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
 
-
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const importeTotal: Number = Number(Cuotas) * importeCuota
 
-    //Valida que el período no tenga el indicador de recibos generado
+     //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
@@ -1554,7 +1553,7 @@ export class GestionDescuentosController extends BaseController {
               PersonalId: PersonalCUITCUIL[0].PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: row[columnsXLS['Cantidad Cuotas']],
-              Importe: row[columnsXLS['Importe Total']],
+              Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
