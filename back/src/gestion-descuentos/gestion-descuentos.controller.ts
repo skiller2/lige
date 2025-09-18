@@ -1224,6 +1224,7 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Descuento anulado con exito.');
     } catch (error) {
+      console.log(error)
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -1278,7 +1279,6 @@ export class GestionDescuentosController extends BaseController {
     const now = new Date()
     now.setHours(0, 0, 0, 0)
 
-    console.log({ cantCuotasProcesadas, total: DescuentoCuotas.length })
     if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
 
     await queryRunner.query(` UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @2 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
