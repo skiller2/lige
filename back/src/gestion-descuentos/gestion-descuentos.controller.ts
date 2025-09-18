@@ -137,7 +137,7 @@ const columnsPersonalDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'cuotanro', name: 'Cuota Número', field: 'cuotanro',
+    id: 'cuotanro', name: 'Cuota Nro.', field: 'cuotanro',
     fieldName: 'perdes.cuotanro',
     type: 'number',
     searchType: "number",
@@ -285,7 +285,7 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'mes', name: 'Mes', field: 'mes',
+    id: 'ObjetivoDescuentoCuotaMes', name: 'Mes', field: 'ObjetivoDescuentoCuotaMes',
     fieldName: '',
     type: 'number',
     searchType: 'number',
@@ -296,7 +296,7 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'anio', name: 'Año', field: 'anio',
+    id: 'ObjetivoDescuentoCuotaAno', name: 'Año', field: 'ObjetivoDescuentoCuotaAno',
     fieldName: '',
     type: 'number',
     searchType: 'number',
@@ -329,8 +329,8 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'cantprocesada', name: 'Cuotas Procesadas', field: 'cantprocesada',
-    fieldName: 'cuo.cantprocesada',
+    id: 'ObjetivoDescuentoCuotaCuota', name: 'Cuota Nro.', field: 'ObjetivoDescuentoCuotaCuota',
+    fieldName: 'des.ObjetivoDescuentoCantidadCuotas',
     type: 'number',
     searchType: 'number',
     sortable: true,
@@ -472,10 +472,8 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-    let condition = '1=1'
-    if (anio && mes) {
-      condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (ISNULL(cuo2.cantprocesadasinmes,0) <> des.ObjetivoDescuentoCantidadCuotas)`
-    }
+   
+   
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
       , des.ObjetivoId
@@ -492,7 +490,11 @@ export class GestionDescuentosController extends BaseController {
       , des.ObjetivoDescuentoDetalle 
    
       , des.ObjetivoDescuentoImporteVariable
-      , cuo.cantprocesada
+      , cuo.ObjetivoDescuentoCuotaCuota 
+	    , cuo.ObjetivoDescuentoCuotaAno
+	    , cuo.ObjetivoDescuentoCuotaMes
+	  
+	  
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
       , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidadCuotas) AS importetotal
       , des.ObjetivoDescuentoFechaAnulacion
@@ -500,30 +502,15 @@ export class GestionDescuentosController extends BaseController {
       FROM ObjetivoDescuento des  
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
       JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
-		JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+	  	JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       
-		
-		LEFT JOIN (SELECT cuox.ObjetivoDescuentoId, cuox.ObjetivoId, COUNT(*) cantprocesada
-		  FROM
-		  ObjetivoDescuentoCuota cuox 
-		  GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
-      ) AS cuo ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
+	    Left JOIN ObjetivoDescuentoCuota cuo on cuo.ObjetivoDescuentoId=des.ObjetivoDescuentoId and cuo.ObjetivoId=des.ObjetivoId
 
-		LEFT JOIN (SELECT cuox.ObjetivoDescuentoId, cuox.ObjetivoId, COUNT(*) cantprocesadasinmes
-		  FROM
-		  ObjetivoDescuentoCuota cuox 
-      WHERE cuox.ObjetivoDescuentoCuotaAno*100 + cuox.ObjetivoDescuentoCuotaMes != @1*100+@2
-      GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
-      ) AS cuo2 ON cuo2.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo2.ObjetivoId = des.ObjetivoId
-      
-
-
-		LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       
-      WHERE (${condition})
-      AND (${filterSql})
+      WHERE cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2 and (${filterSql})
       ${orderBy}
     `, [, anio, mes])
   }
@@ -1257,7 +1244,7 @@ export class GestionDescuentosController extends BaseController {
 
     let cantCuotasProcesadas = 0
 
-    if (DescuentoCuotas.length > 0) {
+    if (DescuentoCuotas.length > 0 && DescuentoCuotas != null) {
 
       for (let cuota of DescuentoCuotas) {
         const periodo = await this.getPeriodoQuery(queryRunner, cuota.PersonalOtroDescuentoCuotaAno, cuota.PersonalOtroDescuentoCuotaMes)
@@ -1326,26 +1313,49 @@ export class GestionDescuentosController extends BaseController {
       SELECT ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
       , ObjetivoDescuentoCuotaUltNro CuotaUltNro, ObjetivoDescuentoFechaAnulacion FechaAnulacion
       FROM ObjetivoDescuento
-      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      WHERE ObjetivoDescuentoId = @0 AND ObjetivoId =@1
     `, [id, ObjetivoId])
+
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
-    const ObjetivoDescuento = res[0]
-    if (ObjetivoDescuento.FechaAnulacion)
-      throw new ClientException(`No se puede modificar descuentos anulados.`)
-    const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
-    if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
-    const CuotaUltNro = ObjetivoDescuento.CuotaUltNro
+    const ObjetivoDescuento = res[0]
+    if (ObjetivoDescuento.FechaAnulacion) throw new ClientException(`No se puede modificar descuentos anulados.`)
+
+    let DescuentoCuotas = await queryRunner.query(`
+      SELECT ObjetivoDescuentoCuotaId, ObjetivoDescuentoId,ObjetivoId,ObjetivoDescuentoCuotaAno,ObjetivoDescuentoCuotaMes
+      FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1 
+    `, [id, ObjetivoId])
+
+    let cantCuotasProcesadas = 0
+
+    if (DescuentoCuotas.length > 0 && DescuentoCuotas != null) {
+
+      for (let cuota of DescuentoCuotas) {
+        const periodo = await this.getPeriodoQuery(queryRunner, cuota.ObjetivoDescuentoCuotaAno, cuota.ObjetivoDescuentoCuotaMes)
+        // Si el período tiene recibos generados, no la elimino
+        if (periodo[0]?.ind_recibos_generados === 1) {
+          cantCuotasProcesadas++
+          continue
+        }
+        // Caso contrario, sí la elimino
+        await queryRunner.query(
+          `DELETE FROM ObjetivoDescuentoCuota 
+        WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaId = @2`, [id, ObjetivoId, cuota.ObjetivoDescuentoCuotaId]
+        )
+      }
+    }
+
     const now = new Date()
     now.setHours(0, 0, 0, 0)
-    await queryRunner.query(`
-      UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1) AND ObjetivoDescuentoCuotaId IN (@2)
-      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-      `, [id, ObjetivoId, CuotaUltNro, now, DetalleAnulacion])
 
+    if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
+
+    await queryRunner.query(`
+      UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
+      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4 WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1
+      `, [id, ObjetivoId, null, now, DetalleAnulacion])
   }
 
   async getDescuentoPersona(req: any, res: Response, next: NextFunction) {
