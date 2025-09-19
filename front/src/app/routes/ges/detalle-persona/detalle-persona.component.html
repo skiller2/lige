@@ -1,5 +1,5 @@
 <nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" nzTitle="Período {{mes}}/{{anio}}"
-  (nzOnClose)="closeDrawer()">
+  (nzOnClose)="closeDrawer()" [nzZIndex]="11000">
   <ng-container *nzDrawerContent>
     @if ((personalDetalle$ | async); as personalDetalle){
     <div nz-row>

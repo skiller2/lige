@@ -71,7 +71,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     private destroy$ = new Subject();
 
     selectedPersonalIdChange$ = new BehaviorSubject('');
-    $selectedObjetivoIdChange = new BehaviorSubject(0);
+    selectedObjetivoIdChange$ = new BehaviorSubject(0);
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
 
     fb = inject(FormBuilder)
@@ -85,7 +85,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
     $optionsTipo = this.searchService.getDecuentosTipoOptions();
-    $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
+    $objetivoDetalle = this.selectedObjetivoIdChange$.pipe(
         debounceTime(50),
         switchMap(objetivoId => {
             return this.getObjetivoDetalle(objetivoId, this.anio(), this.mes())
@@ -159,6 +159,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     async onDescuentosChange(event:any){
         this.selectedPersonalIdChange$.next('');
+        this.selectedObjetivoIdChange$.next(this.ObjetivoId());
     }
 
     async save() {
@@ -201,7 +202,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     }
 
     objetivoDetalleChange(event: any){
-        this.$selectedObjetivoIdChange.next(event)
+        this.selectedObjetivoIdChange$.next(event)
     }
 
     importeCuotaChange(){
