@@ -510,7 +510,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro,personalID]
       );
       updateFile=true
-
+     
     } else {  //Hay uno cargado
       const PersonalComprobantePagoAFIPId = alreadyExists[0].PersonalComprobantePagoAFIPId    
       const PersonalComprobantePagoAFIPImporte = alreadyExists[0].PersonalComprobantePagoAFIPImporte
@@ -556,7 +556,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,  fileObj, usuario, ip, queryRunner)
       } else {
-        const currentFileBuffer = readFileSync(file.DocumentoPath);
+        const currentFileBuffer = readFileSync(file.path);
         const fileUploadController = new FileUploadController()
         const pdfDoc = await PDFDocument.create();
         const srcDoc = await PDFDocument.load(currentFileBuffer);
