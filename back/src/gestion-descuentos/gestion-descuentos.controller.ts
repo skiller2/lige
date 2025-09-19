@@ -137,7 +137,7 @@ const columnsPersonalDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'cuotanro', name: 'Cuota Número', field: 'cuotanro',
+    id: 'cuotanro', name: 'Cuota Nro.', field: 'cuotanro',
     fieldName: 'perdes.cuotanro',
     type: 'number',
     searchType: "number",
@@ -201,7 +201,29 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'CodObjetivo', name: 'Código', field: 'CodObjetivo',
+    id: 'ClienteFacturacionCUIT', name: 'CUIT', field: 'ClienteFacturacionCUIT',
+    fieldName: 'fac.ClienteFacturacionCUIT',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id: 'ClienteDenominacion', name: 'Cliente', field: 'ClienteDenominacion',
+    fieldName: "cli.ClienteId",
+    type: 'string',
+    searchComponent: "inpurForClientSearch",
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    // minWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id: 'CodObjetivo', name: 'Código Objetivo', field: 'CodObjetivo',
     fieldName: "CodObjetivo",
     type: 'string',
     searchType: "string",
@@ -235,7 +257,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   */
   {
-    id: 'personal', name: 'Apellido Nombre', field: 'personal.fullName',
+    id: 'personal', name: 'Coordinador', field: 'personal.fullName',
     fieldName: "per.PersonalId",
     type: 'string',
     formatter: 'complexObject',
@@ -274,7 +296,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'DescuentoDescripcion', name: 'Tipo Movimiento', field: 'DescuentoDescripcion',
-    fieldName: 'det.DescuentoDescripcion',
+    fieldName: 'det.DescuentoId',
     searchComponent: 'inpurForDescuentoForObjetivoSearch',
     type: 'string',
     searchType: 'number',
@@ -285,7 +307,7 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'mes', name: 'Mes', field: 'mes',
+    id: 'ObjetivoDescuentoCuotaMes', name: 'Mes', field: 'ObjetivoDescuentoCuotaMes',
     fieldName: '',
     type: 'number',
     searchType: 'number',
@@ -296,7 +318,7 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'anio', name: 'Año', field: 'anio',
+    id: 'ObjetivoDescuentoCuotaAno', name: 'Año', field: 'ObjetivoDescuentoCuotaAno',
     fieldName: '',
     type: 'number',
     searchType: 'number',
@@ -313,13 +335,13 @@ const columnsObjetivosDescuentos: any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id: 'ObjetivoDescuentoImporteVariable', name: 'Importe Cuota', field: 'ObjetivoDescuentoImporteVariable',
-    fieldName: 'cuo.ObjetivoDescuentoImporteVariable',
+    fieldName: 'des.ObjetivoDescuentoImporteVariable',
     type: 'currency',
     searchType: 'currency',
     sortable: true,
@@ -329,8 +351,8 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'cantprocesada', name: 'Cuotas Procesadas', field: 'cantprocesada',
-    fieldName: 'cuo.cantprocesada',
+    id: 'ObjetivoDescuentoCuotaCuota', name: 'Cuota Nro.', field: 'ObjetivoDescuentoCuotaCuota',
+    fieldName: 'des.ObjetivoDescuentoCantidadCuotas',
     type: 'number',
     searchType: 'number',
     sortable: true,
@@ -381,7 +403,7 @@ const tableOptions: any[] = [
 const aplicaAOptions: any[] = [
   { label: 'Cliente', value: 'CL' },
   { label: 'Coordinador', value: 'CO' },
-  { label: 'Ninguno', value: 'NI' }
+  { label: 'Ninguno', value: 'NO' }
 ]
 
 export class GestionDescuentosController extends BaseController {
@@ -472,10 +494,8 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-    let condition = '1=1'
-    if (anio && mes) {
-      condition = `(des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2) OR (ISNULL(cuo2.cantprocesadasinmes,0) <> des.ObjetivoDescuentoCantidadCuotas)`
-    }
+    const now = new Date()
+
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
       , des.ObjetivoId
@@ -484,48 +504,42 @@ export class GestionDescuentosController extends BaseController {
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       , des.ObjetivoDescuentoAnoAplica AS anio
       , des.ObjetivoDescuentoMesesAplica AS mes
+      , cli.ClienteId
+      , cli.ClienteDenominacion
+      , fac.ClienteFacturacionCUIT
       , CONCAT(cli.ClienteId,'/',eledep.ClienteElementoDependienteId) AS CodObjetivo
-      , CONCAT(cli.ClienteDenominacion,' ', eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
+      , eledep.ClienteElementoDependienteDescripcion ObjetivoDescripcion
 
       , det.DescuentoId
       , det.DescuentoDescripcion
       , des.ObjetivoDescuentoDetalle 
    
       , des.ObjetivoDescuentoImporteVariable
-      , cuo.cantprocesada
+      , cuo.ObjetivoDescuentoCuotaCuota 
+	    , cuo.ObjetivoDescuentoCuotaAno
+	    , cuo.ObjetivoDescuentoCuotaMes
+	  
+	  
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
-      , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
+      , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidadCuotas) AS importetotal
       , des.ObjetivoDescuentoFechaAnulacion
 
       FROM ObjetivoDescuento des  
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
       JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
-		JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+	  	JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId AND fac.ClienteFacturacionDesde <= @0 AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
+
       JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       
-		
-		LEFT JOIN (SELECT cuox.ObjetivoDescuentoId, cuox.ObjetivoId, COUNT(*) cantprocesada
-		  FROM
-		  ObjetivoDescuentoCuota cuox 
-		  GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
-      ) AS cuo ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
+	    Left JOIN ObjetivoDescuentoCuota cuo on cuo.ObjetivoDescuentoId=des.ObjetivoDescuentoId and cuo.ObjetivoId=des.ObjetivoId
 
-		LEFT JOIN (SELECT cuox.ObjetivoDescuentoId, cuox.ObjetivoId, COUNT(*) cantprocesadasinmes
-		  FROM
-		  ObjetivoDescuentoCuota cuox 
-      WHERE cuox.ObjetivoDescuentoCuotaAno*100 + cuox.ObjetivoDescuentoCuotaMes != @1*100+@2
-      GROUP BY cuox.ObjetivoDescuentoId, cuox.ObjetivoId
-      ) AS cuo2 ON cuo2.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo2.ObjetivoId = des.ObjetivoId
-      
-
-
-		LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       
-      WHERE (${condition})
-      AND (${filterSql})
+      WHERE cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2 and (${filterSql})
       ${orderBy}
-    `, [, anio, mes])
+    `, [now, anio, mes])
   }
 
   async getDescuentosObjetivos(req: any, res: Response, next: NextFunction) {
@@ -644,7 +658,6 @@ export class GestionDescuentosController extends BaseController {
 
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
-
 
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const importeTotal: Number = Number(Cuotas) * importeCuota
@@ -777,7 +790,7 @@ export class GestionDescuentosController extends BaseController {
     }
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
-    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuento SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
     return ObjetivoDescuentoId
   }
 
@@ -1198,7 +1211,7 @@ export class GestionDescuentosController extends BaseController {
       cuotaMes = per.cuotaMes
     }
 
-    await queryRunner.query(`UPDATE ObjetivoDescuentoCuotaUltNro SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuento SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
   }
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
@@ -1224,6 +1237,7 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Descuento anulado con exito.');
     } catch (error) {
+      console.log(error)
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -1256,7 +1270,7 @@ export class GestionDescuentosController extends BaseController {
 
     let cantCuotasProcesadas = 0
 
-    if (DescuentoCuotas.length > 0) {
+    if (DescuentoCuotas.length > 0 && DescuentoCuotas != null) {
 
       for (let cuota of DescuentoCuotas) {
         const periodo = await this.getPeriodoQuery(queryRunner, cuota.PersonalOtroDescuentoCuotaAno, cuota.PersonalOtroDescuentoCuotaMes)
@@ -1278,7 +1292,6 @@ export class GestionDescuentosController extends BaseController {
     const now = new Date()
     now.setHours(0, 0, 0, 0)
 
-    console.log({ cantCuotasProcesadas, total: DescuentoCuotas.length })
     if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
 
     await queryRunner.query(` UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @2 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
@@ -1326,26 +1339,49 @@ export class GestionDescuentosController extends BaseController {
       SELECT ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
       , ObjetivoDescuentoCuotaUltNro CuotaUltNro, ObjetivoDescuentoFechaAnulacion FechaAnulacion
       FROM ObjetivoDescuento
-      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+      WHERE ObjetivoDescuentoId = @0 AND ObjetivoId =@1
     `, [id, ObjetivoId])
+
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento del objetivo.`)
     }
-    const ObjetivoDescuento = res[0]
-    if (ObjetivoDescuento.FechaAnulacion)
-      throw new ClientException(`No se puede modificar descuentos anulados.`)
-    const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
-    if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
-    const CuotaUltNro = ObjetivoDescuento.CuotaUltNro
+    const ObjetivoDescuento = res[0]
+    if (ObjetivoDescuento.FechaAnulacion) throw new ClientException(`No se puede modificar descuentos anulados.`)
+
+    let DescuentoCuotas = await queryRunner.query(`
+      SELECT ObjetivoDescuentoCuotaId, ObjetivoDescuentoId,ObjetivoId,ObjetivoDescuentoCuotaAno,ObjetivoDescuentoCuotaMes
+      FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1 
+    `, [id, ObjetivoId])
+
+    let cantCuotasProcesadas = 0
+
+    if (DescuentoCuotas.length > 0 && DescuentoCuotas != null) {
+
+      for (let cuota of DescuentoCuotas) {
+        const periodo = await this.getPeriodoQuery(queryRunner, cuota.ObjetivoDescuentoCuotaAno, cuota.ObjetivoDescuentoCuotaMes)
+        // Si el período tiene recibos generados, no la elimino
+        if (periodo[0]?.ind_recibos_generados === 1) {
+          cantCuotasProcesadas++
+          continue
+        }
+        // Caso contrario, sí la elimino
+        await queryRunner.query(
+          `DELETE FROM ObjetivoDescuentoCuota 
+        WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaId = @2`, [id, ObjetivoId, cuota.ObjetivoDescuentoCuotaId]
+        )
+      }
+    }
+
     const now = new Date()
     now.setHours(0, 0, 0, 0)
-    await queryRunner.query(`
-      UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1) AND ObjetivoDescuentoCuotaId IN (@2)
-      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4 WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-      `, [id, ObjetivoId, CuotaUltNro, now, DetalleAnulacion])
 
+    if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
+
+    await queryRunner.query(`
+      UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
+      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4 WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1
+      `, [id, ObjetivoId, null, now, DetalleAnulacion])
   }
 
   async getDescuentoPersona(req: any, res: Response, next: NextFunction) {
@@ -1385,7 +1421,9 @@ export class GestionDescuentosController extends BaseController {
       const descuento = await queryRunner.query(`
     SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
-      , ObjetivoDescuentoImporteVariable Importe, ObjetivoId
+      , ObjetivoDescuentoImporteVariable ImporteCuota
+      , (ObjetivoDescuentoImporteVariable * ObjetivoDescuentoCantidadCuotas) Importe
+      , ObjetivoId
       , ObjetivoDescuentoId id
       , ObjetivoDescuentoDescontar AplicaA
       , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
@@ -1542,7 +1580,7 @@ export class GestionDescuentosController extends BaseController {
               PersonalId: PersonalCUITCUIL[0].PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: row[columnsXLS['Cantidad Cuotas']],
-              Importe: row[columnsXLS['Importe Total']],
+              Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
@@ -1555,11 +1593,13 @@ export class GestionDescuentosController extends BaseController {
         case 'ObjetivoDescuento':
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['Aplica A'])) columnsnNotFound.push('- Aplica A')
-          if (isNaN(columnsXLS['Codigo'])) columnsnNotFound.push('- Codigo')
+          if (isNaN(columnsXLS['Código Objetivo'])) columnsnNotFound.push('- Código Objetivo')
           if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
           if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
           if (isNaN(columnsXLS['CUIT Cliente'])) columnsnNotFound.push('- CUIT Cliente')
+
+
 
           if (columnsnNotFound.length) {
             columnsnNotFound.unshift('Faltan las siguientes columnas:')
@@ -1572,7 +1612,7 @@ export class GestionDescuentosController extends BaseController {
             //Finaliza cuando la fila esta vacia
             if (
               !row[columnsXLS['Aplica A']]
-              && !row[columnsXLS['Codigo']]
+              && !row[columnsXLS['Código Objetivo']]
               && !row[columnsXLS['Cantidad Cuotas']]
               && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
@@ -1580,14 +1620,13 @@ export class GestionDescuentosController extends BaseController {
             ) break
 
             //Verifica que exista el Codigo del objetivo
-            const array = row[columnsXLS['Codigo']].split('/')
+            const array = row[columnsXLS['Código Objetivo']].split('/')
             const ClienteId: number = parseInt(array[0])
             const ClienteElementoDependienteId: number = parseInt(array[1])
-            const Objetivo = await queryRunner.query(`
-              SELECT ObjetivoId FROM Objetivo WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1
-            `, [ClienteId, ClienteElementoDependienteId])
+            const Objetivo = await queryRunner.query(`SELECT ObjetivoId FROM Objetivo WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+
             if (!Objetivo.length) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Codigo']], Detalle: 'Codigo no encontrado' })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: 'Código Objetivo no encontrado' })
               continue
             }
             const ObjetivoId = Objetivo[0].ObjetivoId
@@ -1601,17 +1640,17 @@ export class GestionDescuentosController extends BaseController {
             `, [fechaActual, clienteCUIT])
 
             if (cliente.length == 0) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Codigo']], Detalle: `El CUIT no existe en la base de datos` })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no existe en la base de datos` })
               continue
             }
             if (cliente[0].ClienteId != ClienteId) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Codigo']], Detalle: `El CUIT no coincide con el código del objetivo` })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no coincide con el código del objetivo` })
               continue
             }
             //Verifico que exita el Aplica A
             const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
             if (!AplicaA) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Codigo']], Detalle: 'Aplica A no identificado' })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: 'Aplica A no identificado' })
               continue
             }
             const otroDescuento: any = {
@@ -1620,12 +1659,12 @@ export class GestionDescuentosController extends BaseController {
               ObjetivoId: ObjetivoId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: row[columnsXLS['Cantidad Cuotas']],
-              Importe: row[columnsXLS['Importe Total']],
+              Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")),
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
             if (result instanceof ClientException) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Codigo']], Detalle: result.messageArr })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
               continue
             }
           }

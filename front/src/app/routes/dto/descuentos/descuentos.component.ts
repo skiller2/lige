@@ -10,6 +10,7 @@ import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/t
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
 import { DescuentosCargaMasivaComponent } from '../descuentos-carga-masiva/descuentos-carga-masiva.component';
 import { LoadingService } from '@delon/abc/loading';
+import { SettingsService } from '@delon/theme';
 @Component({
     selector: 'app-descuentos',
     templateUrl: './descuentos.component.html',
@@ -29,6 +30,7 @@ export class DescuentosComponent {
     selectedPeriod = { year: 0, month: 0 };
     private apiService = inject(ApiService)
     private readonly loadingSrv = inject(LoadingService);
+    private settingsService = inject(SettingsService)
 
     async addCuotaReg() {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -44,6 +46,7 @@ export class DescuentosComponent {
 
     ngOnInit() {
         this.selectedDate()
+        this.settingsService.setLayout('collapsed', true)
     }
 
     selectedDate (){
