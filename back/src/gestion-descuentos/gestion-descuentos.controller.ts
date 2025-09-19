@@ -215,6 +215,7 @@ const columnsObjetivosDescuentos: any[] = [
     id: 'ClienteDenominacion', name: 'Cliente', field: 'ClienteDenominacion',
     fieldName: "cli.ClienteId",
     type: 'string',
+    searchComponent: "inpurForClientSearch",
     searchType: "number",
     sortable: true,
     hidden: false,
@@ -295,7 +296,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'DescuentoDescripcion', name: 'Tipo Movimiento', field: 'DescuentoDescripcion',
-    fieldName: 'det.DescuentoDescripcion',
+    fieldName: 'det.DescuentoId',
     searchComponent: 'inpurForDescuentoForObjetivoSearch',
     type: 'string',
     searchType: 'number',
@@ -340,7 +341,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ObjetivoDescuentoImporteVariable', name: 'Importe Cuota', field: 'ObjetivoDescuentoImporteVariable',
-    fieldName: 'cuo.ObjetivoDescuentoImporteVariable',
+    fieldName: 'des.ObjetivoDescuentoImporteVariable',
     type: 'currency',
     searchType: 'currency',
     sortable: true,
