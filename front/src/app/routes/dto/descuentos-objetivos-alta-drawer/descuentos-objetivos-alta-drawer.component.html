@@ -39,9 +39,26 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5" [nzSpan]="5">Responsable</nz-form-label>
         <nz-form-control [nzMd]="18" [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
-            @if (objetivoDetalle.responsable.length==0 && ObjetivoId()>0) { <nz-alert nzShowIcon
-                nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
+            @if (objetivoDetalle.responsable.length==0 && ObjetivoId()>0) {
+              <nz-alert nzShowIcon nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert>
+            }
             <app-view-responsable [list]="objetivoDetalle.responsable" ></app-view-responsable>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
+        <nz-form-control [nzMd]="18" [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
+          @if (objetivoDetalle.contratos.length==0 && ObjetivoId()>0) {
+            <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
+          }
+          <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
+            <li>
+              <span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}}
+              <span *ngIf="contrato.ContratoFechaHasta">-</span>
+                {{ contrato.ContratoFechaHasta | date}}
+            </li>
+          </ng-container>
         </nz-form-control>
       </nz-form-item>
 

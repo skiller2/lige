@@ -48,7 +48,7 @@ export class SearchService {
   }
 
   getAsistenciaPeriodo(ObjetivoId: number, anio: number, mes: number) {
-    if (!ObjetivoId)
+    if (!ObjetivoId || !anio || !mes)
       return of([])
     return this.http
       .get<ResponseJSON<any>>(`api/asistencia/periodo/${anio}/${mes}/${ObjetivoId}`)
@@ -105,7 +105,7 @@ export class SearchService {
   }
 
   getObjetivoContratos(objetivoId: number, anio: number, mes: number) {
-    if (!objetivoId) {
+    if (!objetivoId || !anio || !mes) {
       return of([]);
     }
     return this.http
@@ -135,7 +135,7 @@ export class SearchService {
   }
 
   getObjetivoResponsables(objetivoId: number, anio: number, mes: number) {
-    if (!objetivoId) {
+    if (!objetivoId || !anio || !mes) {
       return of([]);
     }
     return this.http
