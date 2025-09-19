@@ -335,7 +335,7 @@ const columnsObjetivosDescuentos: any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
   },
