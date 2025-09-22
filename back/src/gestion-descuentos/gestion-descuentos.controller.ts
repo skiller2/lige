@@ -7,6 +7,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "f
 import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { FileUploadController } from "src/controller/file-upload.controller";
+import { ObjetivoController } from "src/controller/objetivo.controller";
 
 const columnsPersonalDescuentos: any[] = [
   {
@@ -739,19 +740,15 @@ export class GestionDescuentosController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
-    let ObjetivoDescuento = await queryRunner.query(`
-      SELECT ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica, ObjetivoDescuentoMesesAplica
-      FROM ObjetivoDescuento
-      WHERE ObjetivoId IN (@0) AND ObjetivoDescuentoDescuentoId IN (@1) AND ObjetivoDescuentoAnoAplica IN (@2) AND ObjetivoDescuentoMesesAplica IN (@3)
-    `, [ObjetivoId, ObjetivoDescuentoDescuentoId, anio, mes])
-    // if (ObjetivoDescuento.length) {
-    //   throw new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} del objetivo.`)
-    // }
+    
+    await this.validateObjetivoDescuentoAplicaA(queryRunner, AplicaA, ObjetivoId, anio, mes)
 
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
     const hoy = new Date()
     const hora = this.getTimeString(hoy)
+
+
     await queryRunner.query(`
       INSERT INTO ObjetivoDescuento (
       ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica
@@ -1640,19 +1637,40 @@ export class GestionDescuentosController extends BaseController {
             `, [fechaActual, clienteCUIT])
 
             if (cliente.length == 0) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no existe en la base de datos` })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
               continue
             }
             if (cliente[0].ClienteId != ClienteId) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no coincide con el código del objetivo` })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
               continue
             }
             //Verifico que exita el Aplica A
             const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
             if (!AplicaA) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: 'Aplica A no identificado' })
+              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: 'Aplica A no identificado.' })
               continue
             }
+
+            // todo: validar que el objetivo tenga contrato vigente para el periodo si se elige aplica a 'CL' y validar que el objetivo tenga coordinador vigente para el periodo si se elige 'CO'
+            if (AplicaA === 'CL') {
+              const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anioRequest, mesRequest, queryRunner)
+            
+              if (!tieneContratoVigente) {
+                dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene contrato vigente para el período indicado.` })
+                continue
+              }
+            }
+            if (AplicaA === 'CO') {
+              const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anioRequest, mesRequest, queryRunner);
+              const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+
+              if (!tieneCoordinadorVigente) {
+                dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene coordinador vigente para el período indicado.` })
+                continue
+              }
+            }
+
+
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
               AplicaA: AplicaA,
@@ -1671,12 +1689,12 @@ export class GestionDescuentosController extends BaseController {
           break;
 
         default:
-          throw new ClientException(`Tipo de carga no identificado`)
+          throw new ClientException(`Tipo de carga no identificado.`)
           break;
       }
 
       if (dataset.length > 0) {
-        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
       }
 
       await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
@@ -1734,5 +1752,69 @@ export class GestionDescuentosController extends BaseController {
     } finally {
     }
   }
+
+  async validateObjetivoDescuentoAplicaA(queryRunner: any, AplicaA: string, ObjetivoId: number, anio: number, mes: number) {
+
+    try {
+      await queryRunner.startTransaction()
+      if (!AplicaA) throw new ClientException("Faltó indicar Aplica A");
+      if (!ObjetivoId) throw new ClientException("Faltó indicar el objetivo");
+
+
+      const objetivo = await queryRunner.query(`
+        SELECT  DISTINCT obj.ObjetivoId
+        , obj.ClienteId
+        , obj.ClienteElementoDependienteId
+        , CONCAT(ISNULL(obj.ClienteId,0), '/', ISNULL(obj.ClienteElementoDependienteId,0)) CodObj
+        , cli.ClienteDenominacion
+        ,eledepcon.ClienteElementoDependienteContratoId ContratoId
+        ,eledepcon.ClienteElementoDependienteContratoFechaDesde ContratoFechaDesde
+        ,eledepcon.ClienteElementoDependienteContratoFechaHasta ContratoFechaHasta
+        
+        ,opj.ObjetivoPersonalJerarquicoId CoordinadorId
+        ,opj.ObjetivoPersonalJerarquicoDesde CoordinadorDesde
+        ,opj.ObjetivoPersonalJerarquicoHasta CoordinadorHasta
+        
+        FROM Objetivo obj 
+
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+        AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+            
+        LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
+        LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+
+        LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND 
+                EOMONTh(DATEFROMPARTS(@1,@2,1)) >   opj.ObjetivoPersonalJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') 
+        LEFT JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+            
+        WHERE  obj.ObjetivoId = @0
+
+        `,
+        [ObjetivoId,anio,mes])
+
+      // todo: validar si aplica a es CL si tiene cotnrato y si es CO si tiene coordinador
+
+
+      if (!objetivo.length) throw new ClientException("No se encontró el objetivo");
+      const obj = objetivo[0]
+      if (AplicaA === 'CL') {
+        if (!obj.ContratoId) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Obj. ${obj.CodObj} no tiene contrato vigente en el período ${mes}/${anio}.`);
+      }
+      if (AplicaA === 'CO') {
+        if (!obj.CoordinadorId) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Obj. ${obj.CodObj} no tiene coordinador vigente en el período ${mes}/${anio}.`);
+      }
+      
+      await queryRunner.commitTransaction()
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      console.log('error', error)
+      throw error
+    }
+  }
+
+  
+
 
 }

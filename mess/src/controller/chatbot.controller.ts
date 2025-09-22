@@ -52,8 +52,8 @@ export class ChatBotController extends BaseController {
       return this.jsonRes(ret, res);
       
     try {
-      await botServer.sendMsg('5491144050522', `Nodo ${nodo} ${estado}`)
-      await botServer.sendMsg('5491131624773', `Nodo ${nodo} ${estado}`)
+      //await botServer.sendMsg('5491144050522', `Nodo ${nodo} ${estado}`)
+      //await botServer.sendMsg('5491131624773', `Nodo ${nodo} ${estado}`)
       
     } catch (error) {
 //      console.log('Error enviando msg',error)    

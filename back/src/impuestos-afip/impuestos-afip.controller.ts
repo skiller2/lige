@@ -62,7 +62,7 @@ const periodoRegex = [
   /PERIODO: (\d{2})\/(\d{4})$/m,
   /PERIODO\nFISCAL\n(\d{4})\/(\d{2})$/m,
   /Nro.Factura: (\d{2})\/(\d{4})$/m,
-  
+
 ];
 const importeMontoRegex = [
   /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,
@@ -70,7 +70,7 @@ const importeMontoRegex = [
   /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
   /^Importe\n\$\n(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
   /^Importe:\s(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))/m,
-    
+
 ];
 
 export class ImpuestosAfipController extends BaseController {
@@ -99,8 +99,8 @@ export class ImpuestosAfipController extends BaseController {
         .map((descuento, index) => {
           return {
             name: `${periodo.year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
-            DocumentoId:descuento.DocumentoId,
-            DocumentoPath:descuento.DocumentoPath,
+            DocumentoId: descuento.DocumentoId,
+            DocumentoPath: descuento.DocumentoPath,
             apellidoNombre: descuento.ApellidoNombre,
             GrupoActividadDetalle: descuento.GrupoActividadDetalle,
           };
@@ -118,7 +118,7 @@ export class ImpuestosAfipController extends BaseController {
       });
 
 
-      
+
     } catch (error) {
       return next(error)
     }
@@ -394,6 +394,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         res
       );
     } catch (error) {
+      console.log(error)
       return next(error)
     }
   }
@@ -403,16 +404,16 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     CUIT,
     anioRequest,
     mesRequest,
-    importeMonto:number,
+    importeMonto: number,
     file,
     pagenum,
     forzado: boolean,
-    ip:string,
-    usuarioId:number,
-    usuario:string
+    ip: string,
+    usuarioId: number,
+    usuario: string
   ) {
     let updateFile = false
-  
+
     const actual = new Date()
     const time = this.getTimeString(actual)
     actual.setHours(0, 0, 0, 0)
@@ -424,13 +425,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
  
       WHERE cuit.PersonalCUITCUILCUIT = @0`,
-      [Number(CUIT),anioRequest,mesRequest]
+      [Number(CUIT), anioRequest, mesRequest]
     );
 
     if (!personalIDQuery?.PersonalId)
       throw new ClientException(`No se pudo encontrar el CUIT ${CUIT}`);
 
-    if (importeMonto<1000)
+    if (importeMonto < 1000)
       throw new ClientException(`El importe no es válido`);
 
     const personalID = personalIDQuery.PersonalId;
@@ -454,9 +455,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
 
-    const DocumentoId = alreadyExists[0]?.DocumentoId    
+    const DocumentoId = alreadyExists[0]?.DocumentoId
 
-    updateFile=false
+    updateFile = false
     if (alreadyExists.length == 0) {
       const now = new Date();
 
@@ -475,7 +476,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         ]
       );
 
-      
+
 
       if (PersonalExencionCUIT != 1) {
         PersonalOtroDescuentoUltNro++
@@ -507,12 +508,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       }
       await queryRunner.query(
         `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
-        [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro,personalID]
+        [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro, personalID]
       );
-      updateFile=true
+      updateFile = true
 
     } else {  //Hay uno cargado
-      const PersonalComprobantePagoAFIPId = alreadyExists[0].PersonalComprobantePagoAFIPId    
+      const PersonalComprobantePagoAFIPId = alreadyExists[0].PersonalComprobantePagoAFIPId
       const PersonalComprobantePagoAFIPImporte = alreadyExists[0].PersonalComprobantePagoAFIPImporte
       if (PersonalComprobantePagoAFIPImporte != importeMonto) {
         await queryRunner.query(
@@ -526,37 +527,37 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             [PersonalComprobantePagoAFIPId, personalID, importeMonto, Number(process.env.OTRO_DESCUENTO_ID), anioRequest, mesRequest]
           );
         }
-        updateFile=true
+        updateFile = true
       }
 
     }
     if (updateFile || forzado) {
-        const fileObj = {
-          doctipo_id: "MONOT", 
-          tableForSearch: "Documento", 
-          ind_descarga_bot: 0, 
-          tempfilename: file.filename, 
-          originalname: file.originalname, 
-          fielname: '',
-          mimetype: file.mimetype
-        } 
-/*
-      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-      const newFilePath = `${this.directory
-        }/${anioRequest}/${anioRequest}-${mesRequest
-          .toString()
-          .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
-
-      if (existsSync(newFilePath)) {
-        unlinkSync(newFilePath)
+      const fileObj = {
+        doctipo_id: "MONOT",
+        tableForSearch: "Documento",
+        ind_descarga_bot: 0,
+        tempfilename: file.filename,
+        originalname: file.originalname,
+        fielname: '',
+        mimetype: file.mimetype
       }
-*/
+      /*
+            mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+            const newFilePath = `${this.directory
+              }/${anioRequest}/${anioRequest}-${mesRequest
+                .toString()
+                .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
+      
+            if (existsSync(newFilePath)) {
+              unlinkSync(newFilePath)
+            }
+      */
 
       if (pagenum == null) {
-
-        await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,  fileObj, usuario, ip, queryRunner)
+        
+        await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest, mesRequest - 1, 21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest, mesRequest, fileObj, usuario, ip, queryRunner)
       } else {
-        const currentFileBuffer = readFileSync(file.DocumentoPath);
+        const currentFileBuffer = readFileSync(file.path);
         const fileUploadController = new FileUploadController()
         const pdfDoc = await PDFDocument.create();
         const srcDoc = await PDFDocument.load(currentFileBuffer);
@@ -570,7 +571,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         const tempfilename = fileUploadController.getRandomTempFileName('.pdf')
         writeFileSync(tempfilename, buffer);
         fileObj.tempfilename = basename(tempfilename)
-        await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest,mesRequest-1,21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest,mesRequest,fileObj, usuario, ip, queryRunner)
+        await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest, mesRequest - 1, 21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest, mesRequest, fileObj, usuario, ip, queryRunner)
 
       }
     }
@@ -578,12 +579,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
 
   removeDotsExceptLast(input: string): string {
-    const lastDotIndex = input.lastIndexOf('.');
-    if (lastDotIndex === -1) return input;
+    const lastDotIndex = input.lastIndexOf('.');
+    if (lastDotIndex === -1) return input;
 
-    const beforeLastDot = input.slice(0, lastDotIndex).replace(/\./g, '');
-    const afterLastDot = input.slice(lastDotIndex);
-    return beforeLastDot + afterLastDot;
+    const beforeLastDot = input.slice(0, lastDotIndex).replace(/\./g, '');
+    const afterLastDot = input.slice(lastDotIndex);
+    return beforeLastDot + afterLastDot;
   }
 
 
@@ -615,7 +616,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         //Call to writefile
         await queryRunner.startTransaction()
-        const usuarioId = await this.getUsuarioId(res,queryRunner)
+        const usuarioId = await this.getUsuarioId(res, queryRunner)
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
 
@@ -651,15 +652,15 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             textContent.items.filter(function (value: any, index, arr) {
               return value.str.trim() != "";
             });
-          
+
           let textdocument = "";
 
           textContent.items.forEach((item: TextItem) => {
-            textdocument+=item.str+'\n'
+            textdocument += item.str + '\n'
           });
 
           textContent.items.forEach((item: TextItem) => {
-            textdocument+=item.str + ((item.hasEOL)?'\n':'')
+            textdocument += item.str + ((item.hasEOL) ? '\n' : '')
           });
 
           let [, periodoAnio, periodoMes] = this.getByRegexText(
@@ -699,7 +700,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           periodoIsValid =
             Number(periodoAnio) == anioRequest &&
             Number(periodoMes) == mesRequest;
-          
+
           if (!periodoIsValid)
             throw new ClientException(
               `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
@@ -709,11 +710,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
           try {
             await queryRunner.startTransaction()
-            const usuarioId = await this.getUsuarioId(res,queryRunner)
+            const usuarioId = await this.getUsuarioId(res, queryRunner)
             const ip = this.getRemoteAddress(req)
             const usuario = res.locals.userName
 
-        
+
             await this.insertPDF(
               queryRunner,
               CUIT,
@@ -723,7 +724,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               file,
               pagenum,
               forzado,
-              ip,usuarioId,usuario
+              ip, usuarioId, usuario
             );
 
             await queryRunner.commitTransaction()
@@ -749,6 +750,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
+      console.log(error)
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -799,8 +801,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       let filtros: Filtro[] = []
 
-//      if (personalIdRel != '')
-//        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
+      //      if (personalIdRel != '')
+      //        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
@@ -833,6 +835,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         unlinkSync(tmpfilename);
       });
     } catch (error) {
+      console.log(error)
       return next(error)
     }
   }
@@ -842,7 +845,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       name: string;
       apellidoNombre: string;
       GrupoActividadDetalle: string;
-      DocumentoPath:string
+      DocumentoPath: string
     }[],
     cantxpag: number
   ) {
@@ -857,7 +860,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       currentFileBuffer = null;
       currentFilePDF = null;
       currentFilePDFPage = null;
-      const fullPath =   join(FileUploadController.pathDocuments, file.DocumentoPath)
+      const fullPath = join(FileUploadController.pathDocuments, file.DocumentoPath)
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
@@ -1023,7 +1026,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
   async downloadPersonaF184(PersonalId: number, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
       const fechaActual = new Date();
       const ds = await queryRunner
@@ -1039,14 +1042,15 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (ds.length == 0)
         throw new ClientException(`Documento no existe para la persona`);
 
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
 
       if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo F184 no existe`,{'path':downloadPath});
+        throw new ClientException(`El archivo F184 no existe`, { 'path': downloadPath });
 
-      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => {});
+      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => { });
 
     } catch (error) {
+      console.log(error)
       return next(error)
     }
   }
@@ -1064,7 +1068,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const queryRunner = dataSource.createQueryRunner();
 
     const fileUploadController = new FileUploadController();
-    const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');    
+    const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');
     try {
       const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
@@ -1090,7 +1094,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
-      const fullPath = join(FileUploadController.pathDocuments,comprobante.DocumentoPath)
+      const fullPath = join(FileUploadController.pathDocuments, comprobante.DocumentoPath)
       const nombre_archivo = comprobante.nombre_archivo
 
       //const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
@@ -1115,6 +1119,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         unlinkSync(tmpfilename);
       });
     } catch (error) {
+      console.log(error)
       return next(error)
     }
   }
@@ -1258,9 +1263,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     return newPdf.save();
   }
 
-  async downloadImpuestoAFIP(req:any, res: Response, next: NextFunction) {
+  async downloadImpuestoAFIP(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const DocumentoImagenImpuestoAFIPId = req.params.id
     try {
       const ds = await queryRunner
@@ -1277,14 +1282,15 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (ds.length == 0)
         throw new ClientException(`Documento no existe para la persona`);
 
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
 
       if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo ${ds[0].DocumentoImagenParametroDe} no existe`,{'path':downloadPath});
+        throw new ClientException(`El archivo ${ds[0].DocumentoImagenParametroDe} no existe`, { 'path': downloadPath });
 
-      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => {});
+      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => { });
 
     } catch (error) {
+      console.log(error)
       return next(error)
     }
   }
