@@ -66,7 +66,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
     
     private destroy$ = new Subject();
-
+    $selectedPersonalIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
     fb = inject(FormBuilder)
@@ -77,6 +77,21 @@ export class DescuentosPersonalAltaDrawerComponent {
         DetalleAnulacion:'', importeCuota: '',
         FechaAnulacion: null
     })
+
+    
+
+
+    $sitrevista = this.formDesc.get('PersonalId')!.valueChanges.pipe(
+        debounceTime(500),
+        switchMap(() =>
+          this.apiService
+            .getPersonaSitRevista(
+              Number(this.PersonalId()),
+              this.anio(),
+              this.mes()
+            )
+        )
+    )
 
     $optionsTipo = this.searchService.getDecuentosTipoOptions();
 
