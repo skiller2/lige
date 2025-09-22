@@ -34,7 +34,7 @@ export class DocumentoController extends BaseController {
       id: "DocumentoId", name: "Id", field: "DocumentoId",
       fieldName: "docg.DocumentoId",
       type: "number",
-      sortable: false,
+      sortable: true,
       searchHidden: false,
       hidden: false,
       maxWidth: 150,
