@@ -1496,6 +1496,9 @@ export class GestionDescuentosController extends BaseController {
     let dataset: any = []
     let idError: number = 0
 
+    let descuentosAplicadosObjetivos = []
+    let descuentosAplicadosPersonal = []
+
 
     try {
       if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
@@ -1588,6 +1591,7 @@ export class GestionDescuentosController extends BaseController {
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: result.messageArr })
               continue
             }
+            descuentosAplicadosPersonal.push({ PersonalId: otroDescuento.PersonalId, PersonalOtroDescuentoId: result })
           }
           break;
         case 'ObjetivoDescuento':
@@ -1686,10 +1690,12 @@ export class GestionDescuentosController extends BaseController {
               Detalle: row[columnsXLS['Detalle']],
             }
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
+
             if (result instanceof ClientException) {
               dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
               continue
             }
+            descuentosAplicadosObjetivos.push({ ObjetivoDescuentoId: result, ObjetivoId: otroDescuento.ObjetivoId })
           }
           break;
 
@@ -1702,8 +1708,19 @@ export class GestionDescuentosController extends BaseController {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
       }
 
-      await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
 
+      const newdoc = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+      const DocumentoId = newdoc ? newdoc.doc_id : null;
+
+      if (descuentosAplicadosPersonal.length > 0)
+        for (const descuento of descuentosAplicadosPersonal) {
+          await queryRunner.query(`UPDATE PersonalOtroDescuento SET ImportacionDocumentoId = @1 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @2`, [descuento.PersonalOtroDescuentoId, DocumentoId, descuento.PersonalId])
+        }
+      if (descuentosAplicadosObjetivos.length > 0) {
+        for (const descuento of descuentosAplicadosObjetivos) {
+          await queryRunner.query(`UPDATE ObjetivoDescuento SET ImportacionDocumentoId = @1 WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @2`, [descuento.ObjetivoDescuentoId, DocumentoId, descuento.ObjetivoId])
+        }
+      }
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "XLS Recibido y procesado!");
     } catch (error) {
