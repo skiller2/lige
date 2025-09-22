@@ -1626,7 +1626,7 @@ export class GestionDescuentosController extends BaseController {
             const Objetivo = await queryRunner.query(`SELECT ObjetivoId FROM Objetivo WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
 
             if (!Objetivo.length) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: 'Código Objetivo no encontrado' })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: 'Código Objetivo no encontrado' })
               continue
             }
             const ObjetivoId = Objetivo[0].ObjetivoId
@@ -1640,38 +1640,41 @@ export class GestionDescuentosController extends BaseController {
             `, [fechaActual, clienteCUIT])
 
             if (cliente.length == 0) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
               continue
             }
             if (cliente[0].ClienteId != ClienteId) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
               continue
             }
             //Verifico que exita el Aplica A
             const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
             if (!AplicaA) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: 'Aplica A no identificado.' })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Ninguno'.` })
               continue
             }
+            switch (AplicaA) {
+              case 'CL':
+                const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anioRequest, mesRequest, queryRunner)
+                if (!tieneContratoVigente) {
+                  dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene contrato vigente para el período indicado.` })
+                  continue
+                }
+                break;
+              case 'CO':
+                const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anioRequest, mesRequest, queryRunner);
+                const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
 
-            if (AplicaA === 'CL') {
-              const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anioRequest, mesRequest, queryRunner)
-
-              if (!tieneContratoVigente) {
-                dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene contrato vigente para el período indicado.` })
-                continue
-              }
+                if (!tieneCoordinadorVigente) {
+                  dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene coordinador vigente para el período indicado.` })
+                  continue
+                }
+              case 'NO':
+                break;
+              // default:
+              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Ninguno'.` })
+              //   continue
             }
-            if (AplicaA === 'CO') {
-              const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anioRequest, mesRequest, queryRunner);
-              const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-
-              if (!tieneCoordinadorVigente) {
-                dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene coordinador vigente para el período indicado.` })
-                continue
-              }
-            }
-
 
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
@@ -1684,7 +1687,7 @@ export class GestionDescuentosController extends BaseController {
             }
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
             if (result instanceof ClientException) {
-              dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
               continue
             }
           }
