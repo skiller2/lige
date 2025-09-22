@@ -661,7 +661,6 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = AplicaEl.getMonth() + 1
 
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
-    const importeTotal: Number = Number(Cuotas) * importeCuota
 
     //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -690,7 +689,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
       VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12)
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, null, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
 
     let PersonalOtroDescuentoCuotaId = 1
     let cuotaAnio = anio
@@ -725,13 +724,8 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl: Date = objDescuento.AplicaEl ? new Date(objDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = objDescuento.Cuotas
-
     const importeCuota = Number((Number(objDescuento.Importe) / Number(Cuotas)).toFixed(2))
-    const importeTotal: Number = Number(Cuotas) * importeCuota
-
-
     const Detalle: number = objDescuento.Detalle
-
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
 
@@ -740,14 +734,10 @@ export class GestionDescuentosController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
-    
-    await this.validateObjetivoDescuentoAplicaA(queryRunner, AplicaA, ObjetivoId, anio, mes)
-
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
     const hoy = new Date()
     const hora = this.getTimeString(hoy)
-
 
     await queryRunner.query(`
       INSERT INTO ObjetivoDescuento (
@@ -762,9 +752,6 @@ export class GestionDescuentosController extends BaseController {
     
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
       mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
-
-
-
 
     let ObjetivoDescuentoCuotaId = 1
     let cuotaAnio = anio
@@ -795,31 +782,47 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
+    const AplicaEl: Date = req.body.AplicaEl ? new Date(req.body.AplicaEl) : null
+    const AplicaA: string = req.body.AplicaA
+    const anio: number = AplicaEl.getFullYear()
+    const mes: number = AplicaEl.getMonth() + 1
     let id: number = 0
+
     try {
       await queryRunner.startTransaction()
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
-      if (PersonalId && !ObjetivoId) {
 
-        if (!req.body.Detalle) {
-          throw new ClientException('Debe de ingresar un detalle')
-        }
+      if (PersonalId && !ObjetivoId) {
+        this.valFormularioDescuento(req.body, 'P')
 
         const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
       } else if (ObjetivoId && !PersonalId) {
+        this.valFormularioDescuento(req.body, 'O')
 
-        if (!req.body.Detalle) {
-          throw new ClientException('Debe de ingresar un detalle')
+        // agrego validaciones según AplicaA para no duplicar en addDescuentoObjetivo, ya que dicha funcion es llamada desde el importador de excel
+        switch (AplicaA) {
+          case 'CL':
+            const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
+            console.log('tieneContratoVigente:', tieneContratoVigente);
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
+            break;
+          case 'CO':
+            const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
+            console.log('objetivoResponsables:', objetivoResponsables);
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+            console.log('tieneCoordinadorVigente:', tieneCoordinadorVigente);
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            break;
         }
 
         const result = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
       } else {
-        throw new ClientException('Debe de ingresar solo una Objetivo o Personal')
+        throw new ClientException('Debe completar el formulario de descuento a un Objetivo o Personal')
       }
 
       await queryRunner.commitTransaction()
@@ -1651,10 +1654,9 @@ export class GestionDescuentosController extends BaseController {
               continue
             }
 
-            // todo: validar que el objetivo tenga contrato vigente para el periodo si se elige aplica a 'CL' y validar que el objetivo tenga coordinador vigente para el periodo si se elige 'CO'
             if (AplicaA === 'CL') {
               const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anioRequest, mesRequest, queryRunner)
-            
+
               if (!tieneContratoVigente) {
                 dataset.push({ id: idError++, CódigoObjetivo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene contrato vigente para el período indicado.` })
                 continue
@@ -1753,68 +1755,41 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async validateObjetivoDescuentoAplicaA(queryRunner: any, AplicaA: string, ObjetivoId: number, anio: number, mes: number) {
+  valFormularioDescuento(formInputs: any, descuentoA: string) {
+    let campos_vacios: any[] = []
 
-    try {
-      await queryRunner.startTransaction()
-      if (!AplicaA) throw new ClientException("Faltó indicar Aplica A");
-      if (!ObjetivoId) throw new ClientException("Faltó indicar el objetivo");
+    switch (descuentoA) {
+      case 'O':
+        if (!formInputs.ObjetivoId) campos_vacios.push(`- Objetivo`)
+        if (!formInputs.AplicaA) campos_vacios.push(`- Aplica A`)
+        break;
+      case 'P':
+        if (!formInputs.PersonalId) campos_vacios.push(`- Personal`)
+        break;
+      default:
+        campos_vacios.push(`- Descuento A`)
+        break;
+    }
 
+    if (!formInputs.AplicaEl) campos_vacios.push(`- Aplica el`)
+    if (!formInputs.Cuotas) {
+      campos_vacios.push(`- Cantidad de cuotas`)
+    } else if (isNaN(Number(formInputs.Cuotas)) || Number(formInputs.Cuotas) <= 0) {
+      campos_vacios.push(`- Cantidad de cuotas (debe ser mayor a 0)`);
+    }
+    if (!formInputs.Importe) {
+      campos_vacios.push(`- Importe total`)
+    } else if (isNaN(Number(formInputs.Importe)) || Number(formInputs.Importe) <= 0) {
+      campos_vacios.push(`- Importe total (debe ser un número mayor a 0)`);
+    }
+    if (!formInputs.Detalle) campos_vacios.push(`- Detalle`)
+    if (!formInputs.DescuentoId) campos_vacios.push(`- Tipo de descuento`)
 
-      const objetivo = await queryRunner.query(`
-        SELECT  DISTINCT obj.ObjetivoId
-        , obj.ClienteId
-        , obj.ClienteElementoDependienteId
-        , CONCAT(ISNULL(obj.ClienteId,0), '/', ISNULL(obj.ClienteElementoDependienteId,0)) CodObj
-        , cli.ClienteDenominacion
-        ,eledepcon.ClienteElementoDependienteContratoId ContratoId
-        ,eledepcon.ClienteElementoDependienteContratoFechaDesde ContratoFechaDesde
-        ,eledepcon.ClienteElementoDependienteContratoFechaHasta ContratoFechaHasta
-        
-        ,opj.ObjetivoPersonalJerarquicoId CoordinadorId
-        ,opj.ObjetivoPersonalJerarquicoDesde CoordinadorDesde
-        ,opj.ObjetivoPersonalJerarquicoHasta CoordinadorHasta
-        
-        FROM Objetivo obj 
-
-        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-        AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-            
-        LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
-        LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
-
-        LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND 
-                EOMONTh(DATEFROMPARTS(@1,@2,1)) >   opj.ObjetivoPersonalJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') 
-        LEFT JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-            
-        WHERE  obj.ObjetivoId = @0
-
-        `,
-        [ObjetivoId,anio,mes])
-
-      // todo: validar si aplica a es CL si tiene cotnrato y si es CO si tiene coordinador
-
-
-      if (!objetivo.length) throw new ClientException("No se encontró el objetivo");
-      const obj = objetivo[0]
-      if (AplicaA === 'CL') {
-        if (!obj.ContratoId) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Obj. ${obj.CodObj} no tiene contrato vigente en el período ${mes}/${anio}.`);
-      }
-      if (AplicaA === 'CO') {
-        if (!obj.CoordinadorId) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Obj. ${obj.CodObj} no tiene coordinador vigente en el período ${mes}/${anio}.`);
-      }
-      
-      await queryRunner.commitTransaction()
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      console.log('error', error)
-      throw error
+    if (campos_vacios.length) {
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      throw new ClientException(campos_vacios)
     }
   }
-
-  
 
 
 }
