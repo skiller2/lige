@@ -61,6 +61,9 @@ export class DescuentosObjetivosAltaDrawerComponent {
                     this.formDesc.enable()
                 }
                 
+                this.formDesc.get('FechaAnulacion')?.disable()
+                this.formDesc.get('DetalleAnulacion')?.disable()
+                this.formDesc.get('ImportacionDocumentoId')?.disable()
             }
             else {
                 this.formDesc.reset()
@@ -80,7 +83,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         AplicaA:'', DescuentoId:0, ObjetivoId:0, AplicaEl:new Date(),
         Cuotas:null, Importe:null, Detalle:'',
         DetalleAnulacion:'', importeCuota:'',
-        FechaAnulacion: null
+        FechaAnulacion: null,
+        ImportacionDocumentoId: null
     })
 
     $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
