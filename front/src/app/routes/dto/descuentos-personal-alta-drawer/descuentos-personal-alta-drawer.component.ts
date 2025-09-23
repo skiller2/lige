@@ -59,7 +59,6 @@ export class DescuentosPersonalAltaDrawerComponent {
                 }
                
                 this.formDesc.get('FechaAnulacion')?.disable()
-                this.formDesc.get('DetalleAnulacion')?.disable()
                 this.formDesc.get('ImportacionDocumentoId')?.disable()
             } else {
                 this.formDesc.reset()

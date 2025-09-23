@@ -62,7 +62,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 }
                 
                 this.formDesc.get('FechaAnulacion')?.disable()
-                this.formDesc.get('DetalleAnulacion')?.disable()
                 this.formDesc.get('ImportacionDocumentoId')?.disable()
             }
             else {
