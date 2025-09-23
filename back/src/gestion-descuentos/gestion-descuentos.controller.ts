@@ -1398,6 +1398,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoId id
       , PersonalOtroDescuentoDetalleAnulacion DetalleAnulacion
       , PersonalOtroDescuentoFechaAnulacion FechaAnulacion
+      , ImportacionDocumentoId
       FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
       `, [DescuentoId, PersonalId])
       // throw new ClientException(`DEBUG.`)
@@ -1428,6 +1429,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoDescontar AplicaA
       , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
       , ObjetivoDescuentoFechaAnulacion FechaAnulacion
+      , ImportacionDocumentoId
       FROM ObjetivoDescuento WHERE ObjetivoDescuentoDescuentoId = @0 AND ObjetivoId = @1
       `, [DescuentoId, ObjetivoId])
       // throw new ClientException(`DEBUG.`)
