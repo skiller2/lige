@@ -42,7 +42,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
                     this.formDesc.reset(infoDes)
-                    // console.log('infoDes: ', infoDes);
+                     //console.log('infoDes: ', infoDes);
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
@@ -57,7 +57,10 @@ export class DescuentosPersonalAltaDrawerComponent {
                 } else {
                     this.formDesc.enable()
                 }
-                
+               
+                this.formDesc.get('FechaAnulacion')?.disable()
+                this.formDesc.get('DetalleAnulacion')?.disable()
+                this.formDesc.get('ImportacionDocumentoId')?.disable()
             } else {
                 this.formDesc.reset()
                 this.formDesc.enable()
@@ -75,7 +78,8 @@ export class DescuentosPersonalAltaDrawerComponent {
         DescuentoId: 0, PersonalId:0, AplicaEl:new Date(),
         Cuotas:null, Importe:null, Detalle:'',
         DetalleAnulacion:'', importeCuota: '',
-        FechaAnulacion: null
+        FechaAnulacion: null,
+        ImportacionDocumentoId: null,
     })
 
     

@@ -87,6 +87,28 @@
         </nz-form-control>
       </nz-form-item>
 
+
+      <nz-form-item class="marginElement" *ngIf="formDesc.get('ImportacionDocumentoId')?.value">
+        <nz-form-label [nzXs]="5">Importación documento</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="ImportacionDocumentoId" type="text" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement" *ngIf="formDesc.get('FechaAnulacion')?.value">
+        <nz-form-label [nzXs]="5">Fecha anulación</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-date-picker formControlName="FechaAnulacion" nzFormat="dd/MM/yyyy" ></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement" *ngIf="formDesc.get('DetalleAnulacion')?.value" >
+        <nz-form-label [nzXs]="5">Detalle anulación</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="DetalleAnulacion" type="text" />
+        </nz-form-control>
+      </nz-form-item>
+
       
 
       <nz-form-item>
