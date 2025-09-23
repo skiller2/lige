@@ -661,6 +661,7 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = AplicaEl.getMonth() + 1
 
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    const DocumentoId: number = otroDescuento.DocumentoId
 
     //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -687,9 +688,9 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
-      , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
-      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12)
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, null, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
+      , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo, ImportacionDocumentoId)
+      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12, @6)
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
 
     let PersonalOtroDescuentoCuotaId = 1
     let cuotaAnio = anio
@@ -728,6 +729,7 @@ export class GestionDescuentosController extends BaseController {
     const Detalle: number = objDescuento.Detalle
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
+    const DocumentoId: number = objDescuento.DocumentoId
 
     //Valida que el período no tenga el indicador de recibos generado
     const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -746,12 +748,12 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoImporteVariable, ObjetivoDescuentoFechaAplica, ObjetivoDescuentoCuotasPagas
       , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
       , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo
-      , ObjetivoDescuentoDescontar)
-      VALUES (@0,@1,@2,@3, @4,@4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12, @13)
+      , ObjetivoDescuentoDescontar, ImportacionDocumentoId)
+      VALUES (@0,@1,@2,@3, @4,@4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12, @13, @14)
 
     
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
-      mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
+      mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA, DocumentoId])
 
     let ObjetivoDescuentoCuotaId = 1
     let cuotaAnio = anio
@@ -1498,9 +1500,7 @@ export class GestionDescuentosController extends BaseController {
     let dataset: any = []
     let idError: number = 0
 
-    let descuentosAplicadosObjetivos = []
-    let descuentosAplicadosPersonal = []
-
+    // todo: agregar proceso de registro de logs
 
     try {
       if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
@@ -1534,6 +1534,7 @@ export class GestionDescuentosController extends BaseController {
       `, [descuentoIdRequest])
       const DescuentoDescripcion = Descuento[0].Descripcion
 
+
       switch (tableNameRequest) {
         case 'PersonalOtroDescuento':
 
@@ -1549,7 +1550,8 @@ export class GestionDescuentosController extends BaseController {
           }
 
           den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
-
+          let docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+          
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
             console.log('row', row);
@@ -1580,6 +1582,7 @@ export class GestionDescuentosController extends BaseController {
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
               continue
             }
+
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
               PersonalId: PersonalCUITCUIL[0].PersonalId,
@@ -1587,13 +1590,13 @@ export class GestionDescuentosController extends BaseController {
               Cuotas: row[columnsXLS['Cantidad Cuotas']],
               Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
               Detalle: row[columnsXLS['Detalle']],
+              DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
             }
             const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
             if (result instanceof ClientException) {
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: result.messageArr })
               continue
             }
-            descuentosAplicadosPersonal.push({ PersonalId: otroDescuento.PersonalId, PersonalOtroDescuentoId: result })
           }
           break;
         case 'ObjetivoDescuento':
@@ -1613,6 +1616,7 @@ export class GestionDescuentosController extends BaseController {
           }
 
           den_documento = `Objetivo-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
+          let docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
 
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
@@ -1690,6 +1694,7 @@ export class GestionDescuentosController extends BaseController {
               Cuotas: row[columnsXLS['Cantidad Cuotas']],
               Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")),
               Detalle: row[columnsXLS['Detalle']],
+              DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
             }
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
 
@@ -1697,7 +1702,6 @@ export class GestionDescuentosController extends BaseController {
               dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
               continue
             }
-            descuentosAplicadosObjetivos.push({ ObjetivoDescuentoId: result, ObjetivoId: otroDescuento.ObjetivoId })
           }
           break;
 
@@ -1709,20 +1713,7 @@ export class GestionDescuentosController extends BaseController {
       if (dataset.length > 0) {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
       }
-
-
-      const newdoc = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
-      const DocumentoId = newdoc ? newdoc.doc_id : null;
-
-      if (descuentosAplicadosPersonal.length > 0)
-        for (const descuento of descuentosAplicadosPersonal) {
-          await queryRunner.query(`UPDATE PersonalOtroDescuento SET ImportacionDocumentoId = @1 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @2`, [descuento.PersonalOtroDescuentoId, DocumentoId, descuento.PersonalId])
-        }
-      if (descuentosAplicadosObjetivos.length > 0) {
-        for (const descuento of descuentosAplicadosObjetivos) {
-          await queryRunner.query(`UPDATE ObjetivoDescuento SET ImportacionDocumentoId = @1 WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @2`, [descuento.ObjetivoDescuentoId, DocumentoId, descuento.ObjetivoId])
-        }
-      }
+    
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "XLS Recibido y procesado!");
     } catch (error) {

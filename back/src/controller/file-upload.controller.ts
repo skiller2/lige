@@ -539,7 +539,7 @@ export class FileUploadController extends BaseController {
         )
 
         ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores, doc_id)
-        return 0
+        return { doc_id: 0, ArchivosAnteriores: [] } // No tiene sentido devolver archivos anteriores en este caso?
         break;
       default:
 
