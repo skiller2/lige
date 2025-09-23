@@ -1501,7 +1501,9 @@ export class GestionDescuentosController extends BaseController {
     let idError: number = 0
 
     let altaDescuentos = 0
-    // todo: agregar proceso de registro de logs
+
+    let docFilePath: string | null = null
+
 
     const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
       queryRunner,
@@ -1561,6 +1563,8 @@ export class GestionDescuentosController extends BaseController {
 
           den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
           const docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+          console.log('docDescuentoPersonal', docDescuentoPersonal)
+          docFilePath = docDescuentoPersonal?.newFilePath
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
             const isEmpty = (val) =>
@@ -1626,7 +1630,7 @@ export class GestionDescuentosController extends BaseController {
 
           den_documento = `Objetivo-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
           const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
-
+          docFilePath = docDescuentoPersonal?.newFilePath
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
             if (
@@ -1721,7 +1725,6 @@ export class GestionDescuentosController extends BaseController {
       }
 
       if (dataset.length > 0) {
-
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
       }
 
@@ -1737,6 +1740,9 @@ export class GestionDescuentosController extends BaseController {
       this.jsonRes([], res, "XLS Recibido y procesado!");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+
+      if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
+
       await this.procesoAutomaticoLogFin(queryRunner,
         ProcesoAutomaticoLogCodigo,
         'ERR',
