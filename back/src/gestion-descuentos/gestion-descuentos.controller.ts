@@ -1500,7 +1500,17 @@ export class GestionDescuentosController extends BaseController {
     let dataset: any = []
     let idError: number = 0
 
+    let altaDescuentos = 0
     // todo: agregar proceso de registro de logs
+
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Importación xls Descuentos ${tableNameRequest} ${mesRequest}/${anioRequest}`,
+      { anioRequest, mesRequest, usuario, ip },
+      usuario,
+      ip
+    );
+
 
     try {
       if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
@@ -1550,11 +1560,9 @@ export class GestionDescuentosController extends BaseController {
           }
 
           den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
-          let docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
-          
+          const docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
-            console.log('row', row);
             const isEmpty = (val) =>
               val === null || val === undefined || (typeof val === "string" && val.trim() === "")
 
@@ -1593,6 +1601,7 @@ export class GestionDescuentosController extends BaseController {
               DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
             }
             const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
+            altaDescuentos++
             if (result instanceof ClientException) {
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: result.messageArr })
               continue
@@ -1616,7 +1625,7 @@ export class GestionDescuentosController extends BaseController {
           }
 
           den_documento = `Objetivo-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
-          let docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+          const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
 
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
@@ -1696,8 +1705,9 @@ export class GestionDescuentosController extends BaseController {
               Detalle: row[columnsXLS['Detalle']],
               DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
             }
-            const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
 
+            const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuarioId, ip)
+            altaDescuentos++
             if (result instanceof ClientException) {
               dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
               continue
@@ -1711,13 +1721,29 @@ export class GestionDescuentosController extends BaseController {
       }
 
       if (dataset.length > 0) {
+
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
       }
-    
+
       await queryRunner.commitTransaction();
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, altaDescuentos },
+        usuario,
+        ip
+      );
       this.jsonRes([], res, "XLS Recibido y procesado!");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release();
