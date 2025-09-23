@@ -1505,8 +1505,8 @@ export class GestionDescuentosController extends BaseController {
 
     const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
       queryRunner,
-      `Importación xls Descuentos ${tableNameRequest} ${mesRequest}/${anioRequest}`,
-      { anioRequest, mesRequest, usuario, ip },
+      `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
+      { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
       usuario,
       ip
     );
