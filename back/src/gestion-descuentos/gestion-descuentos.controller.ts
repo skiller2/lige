@@ -692,7 +692,7 @@ export class GestionDescuentosController extends BaseController {
       VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12, @6)
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
 
-    let PersonalOtroDescuentoCuotaId = 1
+    let PersonalOtroDescuentoCuotaId = 0
     let cuotaAnio = anio
     let cuotaMes = mes
     for (let cuota = 1; cuota <= Cuotas; cuota++) {
@@ -755,7 +755,7 @@ export class GestionDescuentosController extends BaseController {
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
       mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA, DocumentoId])
 
-    let ObjetivoDescuentoCuotaId = 1
+    let ObjetivoDescuentoCuotaId = 0
     let cuotaAnio = anio
     let cuotaMes = mes
     for (let cuota = 1; cuota <= Cuotas; cuota++) {
