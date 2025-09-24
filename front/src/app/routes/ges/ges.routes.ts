@@ -165,7 +165,13 @@ export const GesRoutes: Routes = [
     path: 'facturacion/:tab',
     loadComponent: () => import('./facturacion/facturacion').then(c => c.FacturacionComponent),
   },
-  
+  {
+    path: 'procesos-automaticos', redirectTo: 'procesos-automaticos/listado'
+  },
+  {
+    path: 'procesos-automaticos/:tab',
+    loadComponent: () => import('./procesos-automaticos/procesos-automaticos').then(c => c.ProcesosAutomaticosComponent),
+  },
 
   
 ];

@@ -47,6 +47,7 @@ import { AdministradoresRouter } from "../administradores/administradores.routes
 import { importeVentaVigilanciaRouter } from "../importe-venta-vigilancia/importe-venta-vigilancia.routes";
 import { facturacionRouter } from "../facturacion/facturacion.routes";
 import { novedadesRouter } from "../novedades/novedades.routes";
+import { procesosAutomaticosRouter } from "../procesos-automaticos/procesos-automaticos.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -97,4 +98,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/importe-venta-vigilancia",importeVentaVigilanciaRouter)
   server.setRoute("/api/facturacion",facturacionRouter)
   server.setRoute("/api/novedades",novedadesRouter)
+  server.setRoute("/api/procesos-automaticos",procesosAutomaticosRouter)
 }

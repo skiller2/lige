@@ -513,7 +513,7 @@ export class FileUploadController extends BaseController {
 
         }
         //throw new ClientException(`Error al actualizar el documento test`)
-        return { doc_id, ArchivosAnteriores }
+        return { doc_id, newFilePath, ArchivosAnteriores }
 
       case "DocumentoImagenEstudio":
         const DocumentoImagenParametroId = 20 // CURSO
@@ -617,7 +617,7 @@ export class FileUploadController extends BaseController {
 
         }
         //throw new ClientException(`Error al actualizar el documento test`)
-        return { doc_id, ArchivosAnteriores }
+        return { doc_id, newFilePath, ArchivosAnteriores }
         break;
     }
   }
@@ -1109,6 +1109,19 @@ export class FileUploadController extends BaseController {
 
   }
 
+  static async deletePhysicalFile(filePath: string): Promise<void> {
+    try {
+      const fullPath = `${process.env.PATH_DOCUMENTS}/${filePath}`;
+
+      if (existsSync(fullPath)) {
+        await unlink(fullPath);
+      } else {
+        console.log(`Archivo no encontrado para eliminar: ${fullPath}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
 
 

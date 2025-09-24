@@ -84,6 +84,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsTipoCuenta = this.apiService.getTipoCuenta();
   $optionsTipoNovedad = this.searchService.getTipoNovedad();
   $optionsTipoDescuento = this.searchService.getDecuentosTipoOptions();
+  $optionsProcAutoEstado = this.searchService.getProcAutoEstadosOptions();
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
     filtros: [],
@@ -99,6 +100,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
   $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
   $optionsCentroCapacitacion = this.searchService.getCentroCapacitacionSearch()
+  
   isFiltroBuilder = false;
 
   listOfSelectedValue = [];

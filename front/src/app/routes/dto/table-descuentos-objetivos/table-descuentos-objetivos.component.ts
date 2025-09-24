@@ -106,7 +106,7 @@ export class TableDescuentosObjetivosComponent {
         if (e.detail.args.changedSelectedRows.length ==1) {
             const rowNum = e.detail.args.changedSelectedRows[0]
             const row = this.angularGrid.dataView.getItemByIdx(rowNum)
-            this.descuentoId.set(Number(row?.DescuentoId))
+            this.descuentoId.set(Number(row?.ObjetivoDescuentoId))
             this.objetivoId.set(row?.objetivo.id)
             
         } else {
