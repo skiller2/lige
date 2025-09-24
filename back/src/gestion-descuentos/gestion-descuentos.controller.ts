@@ -1540,7 +1540,7 @@ export class GestionDescuentosController extends BaseController {
 
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
-          if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
+          // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
           if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- ImporteTotal')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
 
@@ -1566,6 +1566,13 @@ export class GestionDescuentosController extends BaseController {
             ) continue;
 
             //Verifica que exista el CUIT
+            const cuit = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
+            if (cuit.length != 11) {
+              console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
+              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT con formato incorrecto' })
+              continue
+            }
+
             const PersonalCUITCUIL = await queryRunner.query(`
               SELECT personal.PersonalId
               FROM Personal personal
@@ -1576,19 +1583,21 @@ export class GestionDescuentosController extends BaseController {
                       FROM PersonalCUITCUIL cuitmax 
                       WHERE cuitmax.PersonalId = personal.PersonalId)
               WHERE cuit.PersonalCUITCUILCUIT IN (@0)
-            `, [row[columnsXLS['CUIT']]])
+            `, [cuit])
             if (!PersonalCUITCUIL.length) {
               console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
               continue
             }
 
+            let CantidadCuotas: number = (!row[columnsXLS['Cantidad Cuotas']] || isNaN(row[columnsXLS['Cantidad Cuotas']]) || row[columnsXLS['Cantidad Cuotas']] == 0) ? 1 : Number(row[columnsXLS['Cantidad Cuotas']])
+
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
               PersonalId: PersonalCUITCUIL[0].PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
-              Cuotas: row[columnsXLS['Cantidad Cuotas']],
-              Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+              Cuotas: CantidadCuotas,
+              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
               Detalle: row[columnsXLS['Detalle']],
               DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
             }
@@ -1604,10 +1613,10 @@ export class GestionDescuentosController extends BaseController {
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['Aplica A'])) columnsnNotFound.push('- Aplica A')
           if (isNaN(columnsXLS['Código Objetivo'])) columnsnNotFound.push('- Código Objetivo')
-          if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
+          // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
           if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
-          if (isNaN(columnsXLS['CUIT Cliente'])) columnsnNotFound.push('- CUIT Cliente')
+          if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
 
 
 
@@ -1627,7 +1636,7 @@ export class GestionDescuentosController extends BaseController {
               && !row[columnsXLS['Cantidad Cuotas']]
               && !row[columnsXLS['Importe Total']]
               && !row[columnsXLS['Detalle']]
-              && !row[columnsXLS['CUIT Cliente']]
+              && !row[columnsXLS['CUIT']]
             ) break
 
             //Verifica que exista el Codigo del objetivo
@@ -1642,7 +1651,12 @@ export class GestionDescuentosController extends BaseController {
             }
             const ObjetivoId = Objetivo[0].ObjetivoId
             //Verifica que exista el cuit del cliente y que el id sea el mismo del excel
-            const clienteCUIT = row[columnsXLS['CUIT Cliente']]
+            const clienteCUIT = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
+
+            if (clienteCUIT.length != 11) {
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no tiene el formato correcto.` })
+              continue
+            }
             const cliente = await queryRunner.query(`
               SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
                 LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
@@ -1687,13 +1701,15 @@ export class GestionDescuentosController extends BaseController {
               //   continue
             }
 
+            let CantidadCuotas: number = (!row[columnsXLS['Cantidad Cuotas']] || isNaN(row[columnsXLS['Cantidad Cuotas']]) || row[columnsXLS['Cantidad Cuotas']] == 0) ? 1 : Number(row[columnsXLS['Cantidad Cuotas']])
+
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
               AplicaA: AplicaA,
               ObjetivoId: ObjetivoId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
-              Cuotas: row[columnsXLS['Cantidad Cuotas']],
-              Importe: Number(String(row[columnsXLS['Importe Total']]).replace(/\./g, "").replace(",", ".")),
+              Cuotas: CantidadCuotas,
+              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\./g, "").replace(",", ".")),
               Detalle: row[columnsXLS['Detalle']],
               DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
             }
@@ -1812,7 +1828,7 @@ export class GestionDescuentosController extends BaseController {
     }
     if (!formInputs.Importe) {
       campos_vacios.push(`- Importe total`)
-    } else if (isNaN(Number(formInputs.Importe)) || Number(formInputs.Importe) <= 0) {
+    } else if (isNaN(Number(formInputs.Importe)) || Number(formInputs.Importe) < 0) {
       campos_vacios.push(`- Importe total (debe ser un número mayor a 0)`);
     }
     if (!formInputs.Detalle) campos_vacios.push(`- Detalle`)
