@@ -1252,7 +1252,7 @@ export class GestionDescuentosController extends BaseController {
 
     let res = await queryRunner.query(`
       SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
-      , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica
+      , PersonalOtroDescuentoAnoAplica AnoAplica, PersonalOtroDescuentoMesesAplica MesesAplica, PersonalOtroDescuentoCantidadCuotas CantidadCuotas
       , PersonalOtroDescuentoCuotaUltNro CuotaUltNro, PersonalOtroDescuentoFechaAnulacion FechaAnulacion
       FROM PersonalOtroDescuento
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
@@ -1262,43 +1262,36 @@ export class GestionDescuentosController extends BaseController {
     }
     const PersonalOtroDescuento = res[0]
 
-    if (PersonalOtroDescuento.FechaAnulacion)
-      throw new ClientException(`El descuento se encuentra anulado.`)
+    if (PersonalOtroDescuento.FechaAnulacion) throw new ClientException(`El descuento se encuentra anulado.`)
 
     let DescuentoCuotas = await queryRunner.query(`
-      SELECT PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId,PersonalId,PersonalOtroDescuentoCuotaAno,PersonalOtroDescuentoCuotaMes
-      FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId =@0 AND PersonalId =@1 
+      SELECT perotrdes.PersonalOtroDescuentoCuotaId, perotrdes.PersonalOtroDescuentoId,perotrdes.PersonalId,perotrdes.PersonalOtroDescuentoCuotaAno,perotrdes.PersonalOtroDescuentoCuotaMes, ISNULL(per.ind_recibos_generados,0) ind_recibos_generados
+      FROM PersonalOtroDescuentoCuota perotrdes
+      LEFT JOIN lige.dbo.liqmaperiodo per on per.anio=perotrdes.PersonalOtroDescuentoCuotaAno and perotrdes.PersonalOtroDescuentoCuotaMes=per.mes
+      WHERE PersonalOtroDescuentoId =@0 AND PersonalId =@1 
     `, [id, PersonalId])
 
-    let cantCuotasProcesadas = 0
+    if (DescuentoCuotas?.length > 0) {
 
-    if (DescuentoCuotas.length > 0 && DescuentoCuotas != null) {
+      const todasConReciboGenerado = DescuentoCuotas.every((c) => c.ind_recibos_generados === 1)
+      if (todasConReciboGenerado) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
 
-      for (let cuota of DescuentoCuotas) {
-        const periodo = await this.getPeriodoQuery(queryRunner, cuota.PersonalOtroDescuentoCuotaAno, cuota.PersonalOtroDescuentoCuotaMes)
+      const cuotasAEliminar = DescuentoCuotas.filter((c) => c.ind_recibos_generados === 0).map((c) => c.PersonalOtroDescuentoCuotaId)
 
-        // Si el período tiene recibos generados, no la elimino
-        if (periodo[0]?.ind_recibos_generados === 1) {
-          cantCuotasProcesadas++
-          continue
-        }
-
-        // Caso contrario, sí la elimino
-        await queryRunner.query(
-          `DELETE FROM PersonalOtroDescuentoCuota 
-        WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1 AND PersonalOtroDescuentoCuotaId = @2`, [id, PersonalId, cuota.PersonalOtroDescuentoCuotaId]
+      if (cuotasAEliminar.length > 0) {
+        await queryRunner.query(`DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1 AND PersonalOtroDescuentoCuotaId IN (${cuotasAEliminar.join(",")})`,
+          [id, PersonalId]
         )
       }
+    } else {
+      throw new ClientException(`No se encontraron cuotas para el descuento.`)
     }
 
     const now = new Date()
     now.setHours(0, 0, 0, 0)
-
-    if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
-
-    await queryRunner.query(` UPDATE PersonalOtroDescuentoCuota SET PersonalOtroDescuentoCuotaAnulacion = @2 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
-        UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @2, PersonalOtroDescuentoDetalleAnulacion = @3 WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
-          `, [id, PersonalId, now, DetalleAnulacion])
+    await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoFechaAnulacion = @2, PersonalOtroDescuentoDetalleAnulacion = @3,PersonalOtroDescuentoLiquidoFinanzas=@4  
+      WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1;
+          `, [id, PersonalId, now, DetalleAnulacion, 0])
   }
 
 
@@ -1352,38 +1345,32 @@ export class GestionDescuentosController extends BaseController {
     if (ObjetivoDescuento.FechaAnulacion) throw new ClientException(`No se puede modificar descuentos anulados.`)
 
     let DescuentoCuotas = await queryRunner.query(`
-      SELECT ObjetivoDescuentoCuotaId, ObjetivoDescuentoId,ObjetivoId,ObjetivoDescuentoCuotaAno,ObjetivoDescuentoCuotaMes
-      FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1 
+      SELECT objdes.ObjetivoDescuentoCuotaId, objdes.ObjetivoDescuentoId,objdes.ObjetivoId,objdes.ObjetivoDescuentoCuotaAno,objdes.ObjetivoDescuentoCuotaMes, ISNULL(per.ind_recibos_generados,0) ind_recibos_generados
+      FROM ObjetivoDescuentoCuota objdes
+      LEFT JOIN lige.dbo.liqmaperiodo per on per.anio=objdes.ObjetivoDescuentoCuotaAno and objdes.ObjetivoDescuentoCuotaMes=per.mes
+      WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1 
+      
     `, [id, ObjetivoId])
 
-    let cantCuotasProcesadas = 0
+    if (DescuentoCuotas?.length > 0) {
+      const todasConReciboGenerado = DescuentoCuotas.every((c) => c.ind_recibos_generados === 1)
+      if (todasConReciboGenerado) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
+      const cuotasAEliminar = DescuentoCuotas.filter((c) => c.ind_recibos_generados === 0).map((c) => c.ObjetivoDescuentoCuotaId)
 
-    if (DescuentoCuotas.length > 0 && DescuentoCuotas != null) {
-
-      for (let cuota of DescuentoCuotas) {
-        const periodo = await this.getPeriodoQuery(queryRunner, cuota.ObjetivoDescuentoCuotaAno, cuota.ObjetivoDescuentoCuotaMes)
-        // Si el período tiene recibos generados, no la elimino
-        if (periodo[0]?.ind_recibos_generados === 1) {
-          cantCuotasProcesadas++
-          continue
-        }
-        // Caso contrario, sí la elimino
-        await queryRunner.query(
-          `DELETE FROM ObjetivoDescuentoCuota 
-        WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaId = @2`, [id, ObjetivoId, cuota.ObjetivoDescuentoCuotaId]
-        )
+      if (cuotasAEliminar.length > 0) {
+        await queryRunner.query(`DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1 AND ObjetivoDescuentoCuotaId IN (${cuotasAEliminar.join(",")})`,
+          [id, ObjetivoId])
       }
+    } else {
+      throw new ClientException(`No se encontraron cuotas para el descuento.`)
     }
-
     const now = new Date()
     now.setHours(0, 0, 0, 0)
 
-    if (cantCuotasProcesadas == DescuentoCuotas.length) throw new ClientException(`No se puede anular el descuento, todas las cuotas se encuentran en períodos con recibos generados.`)
-
     await queryRunner.query(`
-      UPDATE ObjetivoDescuentoCuota SET ObjetivoDescuentoCuotaAnulacion = @3 WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
-      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4 WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1
-      `, [id, ObjetivoId, null, now, DetalleAnulacion])
+      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4, ObjetivoDescuentoLiquidoFinanzas=@2 
+      WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1
+      `, [id, ObjetivoId, 0, now, DetalleAnulacion])
   }
 
   async getDescuentoPersona(req: any, res: Response, next: NextFunction) {
