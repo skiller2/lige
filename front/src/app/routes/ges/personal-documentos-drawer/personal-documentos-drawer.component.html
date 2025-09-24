@@ -2,85 +2,87 @@
   [nzTitle]="'Documentos: '  + PersonalNombre()" (nzOnClose)="visibleDocumentos.set(false)">
   <ng-container *nzDrawerContent>
 
-    <nz-card nzType="inner" nzTitle="Agregar Nuevo Documento" >
-    <form [formGroup]="formDocumento">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Tipo de documento</nz-form-label>
-        <nz-form-control [nzSpan]="15">
-          <nz-select formControlName="DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear 
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
-          (ngModelChange)="selectLabel($event)">
-            <ng-container *ngFor="let option of optionsLabels() || []" >
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
-            </ng-container>
-          </nz-select> 
-        </nz-form-control>
-      </nz-form-item>
+    <nz-card nzType="inner" nzTitle="Agregar Nuevo Documento">
+      <form [formGroup]="formDocumento">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Tipo de documento</nz-form-label>
+          <nz-form-control [nzSpan]="15">
+            <nz-select formControlName="DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
+              (ngModelChange)="selectLabel($event)">
+              <ng-container *ngFor="let option of optionsLabels() || []">
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              </ng-container>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item style="display: none;" >
-        <nz-form-label [nzSpan]="7" >{{ label() }}</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <input nz-input formControlName="DocumentoDenominadorDocumento"/>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item style="display: none;">
+          <nz-form-label [nzSpan]="7">{{ label() }}</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            <input nz-input formControlName="DocumentoDenominadorDocumento" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Desde</nz-form-label>
-        <nz-form-control [nzXs]="7">
-          <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="Documentofecha"></nz-date-picker>
-        </nz-form-control>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Desde</nz-form-label>
+          <nz-form-control [nzXs]="7">
+            <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="Documentofecha"></nz-date-picker>
+          </nz-form-control>
 
-        <nz-form-label [nzSpan]="3">Hasta</nz-form-label>
-        <nz-form-control [nzXs]="7">
-          <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="DocumentoFechaDocumentoVencimiento"></nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-    
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
-        <nz-form-control>
-          <app-file-upload formControlName="archivo" [cantMaxFiles]="1"
-          [idForSearh]="0" [textForSearch]="doctipo_id()"
-          [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" 
-          [previewFile]="true"></app-file-upload>
-        </nz-form-control>
-      </nz-form-item>
+          <nz-form-label [nzSpan]="3">Hasta</nz-form-label>
+          <nz-form-control [nzXs]="7">
+            <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="DocumentoFechaDocumentoVencimiento"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDocumento.pristine">
-            {{ 'app.btn.save' | i18n }}
-          </button>
-          <button *ngIf="doc_id()" nzType="primary" nz-button (click)="resetForm()">
-            {{ 'app.btn.clear.form' | i18n }}
-          </button>
-        </nz-form-control>
-      </nz-form-item>
-    </form>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
+          <nz-form-control>
+            <app-file-upload formControlName="archivo" [cantMaxFiles]="1" [idForSearh]="0"
+              [textForSearch]="doctipo_id()" [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'"
+              [previewFile]="true"></app-file-upload>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
+              [disabled]="formDocumento.pristine">
+              {{ 'app.btn.save' | i18n }}
+            </button>
+            <button *ngIf="doc_id()" nzType="primary" nz-button (click)="resetForm()">
+              {{ 'app.btn.clear.form' | i18n }}
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
     </nz-card>
-    
+
     <nz-form-control *ngIf="$listaDocumentosPer | async as listaDocumentosPer ">
-        <nz-table #asistPer [nzData]="listaDocumentosPer" nzSize="small" [nzPageSize]="100000000"
-          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-          <thead>
-            <tr>
-              <th>Tipo</th>
-              <th>Documento</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let data of asistPer.data" class="">
-              <td>{{ data.Descripcion }}</td>
-              <td>
-                <a *ngIf="data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg'" nz-icon nzType="search" nzTheme="outline"
-                  (click)="LoadImage(data.url, data.NombreArchivo)"></a>
-                <a *ngIf="data.TipoArchivo == 'pdf'" nz-icon nzType="search" nzTheme="outline"
-                  (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
-                {{ data.NombreArchivo }}
-              </td>
-            </tr>
-          </tbody>
-        </nz-table>
+      <nz-table #asistPer [nzData]="listaDocumentosPer" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Periodo</th>
+            <th>Documento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of asistPer.data" class="">
+            <td>{{ data.Descripcion }}</td>
+            <td>{{ data.periodo }}</td>
+            <td>
+              <a *ngIf="data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg'" nz-icon nzType="search"
+                nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
+              <a *ngIf="data.TipoArchivo == 'pdf'" nz-icon nzType="search" nzTheme="outline"
+                (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
+              {{ data.NombreArchivo }}
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
     </nz-form-control>
   </ng-container>
 </nz-drawer>
@@ -98,6 +100,6 @@
 <nz-modal [(nzVisible)]="modalViewerVisiable2" nzTitle="" nzWidth="700" nzOkDisabled="true"
   (nzOnCancel)="handleCancel()">
   <ng-container *nzModalContent>
-    <app-image-loader [src]="srcImg()"/>
+    <app-image-loader [src]="srcImg()" />
   </ng-container>
 </nz-modal>
