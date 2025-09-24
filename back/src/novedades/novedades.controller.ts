@@ -20,9 +20,9 @@ const listaColumnas: any[] = [
     {
         name: "Codigo",
         type: "number",
-        id: "id",
-        field: "id",
-        fieldName: "id",
+        id: "NovedadCodigo",
+        field: "NovedadCodigo",
+        fieldName: "nov.NovedadCodigo",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -40,24 +40,35 @@ const listaColumnas: any[] = [
     {
         name: "Sucursal",
         type: "string",
-        id: "SucursalDescripcion",
-        field: "SucursalDescripcion",
-        fieldName: "suc.SucursalId",
+        id: "SucursalId",
+        field: "SucursalId",
+        fieldName: "suc.SucursalId", 
         searchComponent: "inpurForSucursalSearch",
         sortable: false,
         hidden: true,
         searchHidden: false
     },
     {
-        name: "Razón Social",
+        name: "Cliente",
         type: "string",
         id: "ClienteDenominacion",
         field: "ClienteDenominacion",
         fieldName: "cli.ClienteDenominacion",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
+    {
+        name: "Cliente",
+        type: "string",
+        id: "ClienteId",
+        field: "ClienteId",
+        fieldName: "cli.ClienteId",
+        searchComponent: "inpurForClientSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+      },
     {
         name: "Cod Obj",
         type: "string",
@@ -67,6 +78,18 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true
+    },
+    
+    {
+        name: "Objetivo",
+        type: "number",
+        id: "ObjetivoId",
+        field: "ObjetivoId",
+        fieldName: " obj.ObjetivoId",
+        searchComponent: "inpurForObjetivoSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
     },
     {
         name: "Descripcion Obj",
@@ -86,8 +109,20 @@ const listaColumnas: any[] = [
         fieldName: "ApellidoNombreJerarquico",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
+    
+    {
+        name: "Grupo Actividad",
+        type: "number",
+        id: "GrupoActividadId",
+        field: "GrupoActividadId",
+        fieldName: "ga.GrupoActividadId",
+        searchComponent: 'inpurForGrupoActividadSearch',
+        sortable: false,
+        hidden: true,
+        searchHidden: false
+      },
     {
         name: "Tipo Nov.",
         type: "string",
@@ -159,7 +194,7 @@ const listaColumnas: any[] = [
         fieldName: "nov.VisualizacionFecha",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     }
 ];
 
@@ -184,6 +219,7 @@ export class NovedadesController extends BaseController {
             const objetivos = await queryRunner.query(
                 `Select
                     nov.NovedadCodigo id
+                    ,nov.NovedadCodigo
                     ,suc.SucursalId
                     ,suc.SucursalDescripcion
                     ,cli.ClienteId
