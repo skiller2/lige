@@ -500,6 +500,7 @@ export class GestionDescuentosController extends BaseController {
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
       , des.ObjetivoId
+      , des.ObjetivoDescuentoId
       , per.PersonalId
       , 'C' tipocuenta_id
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
@@ -1419,7 +1420,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
       , ObjetivoDescuentoFechaAnulacion FechaAnulacion
       , ImportacionDocumentoId
-      FROM ObjetivoDescuento WHERE ObjetivoDescuentoDescuentoId = @0 AND ObjetivoId = @1
+      FROM ObjetivoDescuento WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
       `, [DescuentoId, ObjetivoId])
       // throw new ClientException(`DEBUG.`)
 
