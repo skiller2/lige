@@ -221,6 +221,11 @@
           "link": "/ges/novedades"
         },
         {
+          "text": "Procesos Automáticos #",
+          "icon": "anticon-profile",
+          "link": "/ges/procesos-automaticos"
+        },
+        {
           "text": "Configuración",
           "icon": "anticon-profile",
           "children": [

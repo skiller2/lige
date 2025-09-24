@@ -619,6 +619,16 @@ export class SearchService {
     );
   }
 
+  getProcAutoEstadosOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/procesos-automaticos/estado/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getInfoFromPersonalId(id: string): Observable<PersonaObj> {
     const dummy: PersonaObj = {
       PersonalId: 0,

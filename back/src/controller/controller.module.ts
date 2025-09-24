@@ -54,6 +54,7 @@ import { AdministradoresController } from "../administradores/administradores.co
 import { ImporteVentaVigilanciaController } from "../importe-venta-vigilancia/importe-venta-vigilancia.controller";
 import { FacturacionController } from "../facturacion/facturacion.controller";
 import { NovedadesController } from "../novedades/novedades.controller";
+import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-automaticos.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -111,3 +112,4 @@ export const administradoresController = new AdministradoresController()
 export const importeVentaVigilanciaController = new ImporteVentaVigilanciaController()
 export const facturacionController = new FacturacionController() 
 export const novedadesController = new NovedadesController()
+export const procesosAutomaticosController = new ProcesosAutomaticosController()
