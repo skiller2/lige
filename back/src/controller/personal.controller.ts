@@ -2103,7 +2103,7 @@ cuit.PersonalCUITCUILCUIT,
         'Documento' tableName
         FROM Documento gen
         LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = gen.DocumentoTipoCodigo
-        WHERE gen.PersonalId IN (@0) AND gen.DocumentoTipoCodigo NOT IN ('REC')
+        WHERE gen.PersonalId IN (@0) -- AND gen.DocumentoTipoCodigo NOT IN ('REC')
         `, [personalId]
       )
 
