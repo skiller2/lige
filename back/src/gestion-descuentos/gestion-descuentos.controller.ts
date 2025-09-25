@@ -1033,9 +1033,6 @@ export class GestionDescuentosController extends BaseController {
       const AplicaEl: Date = new Date(req.body.AplicaEl)
       const anio = AplicaEl.getFullYear()
       const mes = AplicaEl.getMonth() + 1
-      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
-      if (checkrecibos[0]?.ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
       if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
         this.valFormularioDescuento(req.body, 'P')
@@ -1090,9 +1087,10 @@ export class GestionDescuentosController extends BaseController {
     const PersonalOtroDescuento = res[0]
     if (PersonalOtroDescuento.FechaAnulacion)
       throw new ClientException(`No se puede modificar descuentos anulados.`)
+
     const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+      throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
 
     const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
     if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
@@ -1164,8 +1162,6 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
 
-    console.log(otroDescuento)
-
     if (oldObjetivoId != ObjetivoId) throw new ClientException(`No se puede modificar el objetivo.`)
 
     let res = await queryRunner.query(`
@@ -1185,7 +1181,7 @@ export class GestionDescuentosController extends BaseController {
       throw new ClientException(`No se puede modificar descuentos anulados.`)
     const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+      throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
 
     switch (AplicaA) {
       case 'CL':
