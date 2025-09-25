@@ -1100,7 +1100,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoDetalle Detalle, PersonalOtroDescuentoCuotaUltNro CuotaUltNro
       , PersonalOtroDescuentoFechaAnulacion FechaAnulacion
       FROM PersonalOtroDescuento
-      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
     `, [PersonalOtroDescuentoId, PersonalId])
     if (!res.length) {
       throw new ClientException(`No se encontro el descuento de la persona.`)
@@ -1133,7 +1133,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoPuesto = @9, PersonalOtroDescuentoUsuarioId = @10
       , PersonalOtroDescuentoDia = @11, PersonalOtroDescuentoTiempo = @12
       , PersonalOtroDescuentoCuotasPagas = 1, PersonalOtroDescuentoCuotaUltNro = 1
-      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
 
     await queryRunner.query(`
