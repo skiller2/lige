@@ -65,14 +65,14 @@
         <thead>
           <tr>
             <th>Tipo</th>
-            <th>Periodo</th>
+            <th class="periodoStyle">Periodo</th>
             <th>Documento</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let data of asistPer.data" class="">
             <td>{{ data.Descripcion }}</td>
-            <td>{{ data.periodo }}</td>
+            <td class="periodoStyle">{{ data.periodo }}</td>
             <td>
               <a *ngIf="data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg'" nz-icon nzType="search"
                 nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
