@@ -35,14 +35,14 @@ export class DescuentosPersonalAltaDrawerComponent {
         private apiService: ApiService,
         // private settingService: SettingsService,
     ) {
-        effect(async() => { 
+        effect(async () => {
             const visible = this.visibleDesc()
-           
+
             if (visible) {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
                     this.formDesc.reset(infoDes)
-                     //console.log('infoDes: ', infoDes);
+                    //console.log('infoDes: ', infoDes);
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
                     this.formDesc.markAsPristine()
@@ -50,21 +50,21 @@ export class DescuentosPersonalAltaDrawerComponent {
 
                 // Usar setTimeout para asegurar que las configuraciones se apliquen después del reset
                 setTimeout(() => {
-                    
+
                     this.formDesc.get('FechaAnulacion')?.disable()
                     this.formDesc.get('ImportacionDocumentoId')?.disable()
-                    
-                 
+
+
                     if (this.disabled()) {
                         this.formDesc.get('PersonalId')?.disable()
                     } else {
                         this.formDesc.get('PersonalId')?.enable()
                     }
 
-                    if (this.disabled())  {
+                    if (this.disabled()) {
                         this.formDesc.disable();
                         if (this.isAnulacion()) {
-                          this.formDesc.get('DetalleAnulacion')?.enable(); 
+                            this.formDesc.get('DetalleAnulacion')?.enable();
                         }
                     } else {
                         this.formDesc.enable()
@@ -81,7 +81,7 @@ export class DescuentosPersonalAltaDrawerComponent {
             }
         })
     }
-    
+
     private destroy$ = new Subject();
     $selectedPersonalIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
@@ -89,25 +89,26 @@ export class DescuentosPersonalAltaDrawerComponent {
     fb = inject(FormBuilder)
     formDesc = this.fb.group({
         id: 0,
-        DescuentoId: 0, PersonalId:0, AplicaEl:new Date(),
-        Cuotas:null, Importe:null, Detalle:'',
-        DetalleAnulacion:'', importeCuota: '',
+        DescuentoId: 0, PersonalId: 0, AplicaEl: new Date(),
+        Cuotas: null, Importe: null, Detalle: '',
+        DetalleAnulacion: '', importeCuota: '',
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
+        oldPersonalId: 0,
     })
 
-    
+
 
 
     $sitrevista = this.formDesc.get('PersonalId')!.valueChanges.pipe(
         debounceTime(500),
         switchMap(() =>
-          this.apiService
-            .getPersonaSitRevista(
-              Number(this.PersonalId()),
-              this.anio(),
-              this.mes()
-            )
+            this.apiService
+                .getPersonaSitRevista(
+                    Number(this.PersonalId()),
+                    this.anio(),
+                    this.mes()
+                )
         )
     )
 
@@ -115,80 +116,80 @@ export class DescuentosPersonalAltaDrawerComponent {
 
     $listaDecuentosPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
-        switchMap(() =>{
+        switchMap(() => {
             return this.searchService.getDescuentosByPersonalId(this.PersonalId(), this.anio(), this.mes())
         })
     );
 
-    id():number {
+    id(): number {
         const value = this.formDesc.get("id")?.value
         if (value) {
-          return value
+            return value
         }
         return 0
     }
 
-    PersonalId():number {
+    PersonalId(): number {
         const value = this.formDesc.get("PersonalId")?.value
         if (value) {
-          return value
+            return value
         }
         return 0
     }
 
-    anio():number {
+    anio(): number {
         const value = this.formDesc.get("AplicaEl")?.value
-        if(value){
+        if (value) {
             const date = new Date(value)
             return date.getFullYear()
         }
         return 0
     }
 
-    mes():number {
+    mes(): number {
         const value = this.formDesc.get("AplicaEl")?.value
-        if(value) {
+        if (value) {
             const date = new Date(value)
-            return date.getMonth()+1
+            return date.getMonth() + 1
         }
         return 0
     }
 
-    Importe():number {
+    Importe(): number {
         const value = this.formDesc.get("Importe")?.value
         if (value) return value
         return 0
     }
 
-    Cuotas():number {
+    Cuotas(): number {
         const value = this.formDesc.get("Cuotas")?.value
         if (value) return value
         return 0
     }
 
-    DetalleAnulacion():string {
+    DetalleAnulacion(): string {
         const value = this.formDesc.get("DetalleAnulacion")?.value
         if (value?.length) return value
         return ''
     }
 
-    FechaAnulacion():Date | null {
+    FechaAnulacion(): Date | null {
         const value = this.formDesc.get("FechaAnulacion")?.value
-        if(value){
+        if (value) {
             const date = new Date(value)
             return date
         }
         return null
     }
 
-    async ngOnInit(){}
+    async ngOnInit() { }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
     }
 
-    async onDescuentosChange(event:any){
+    async onDescuentosChange(event: any) {
         this.selectedPersonalIdChange$.next('');
     }
 
@@ -197,8 +198,9 @@ export class DescuentosPersonalAltaDrawerComponent {
         let values = this.formDesc.getRawValue()
         try {
             if (values.id) {
+                values = {...values,oldPersonalId: this.personalId(),}
                 await firstValueFrom(this.apiService.updateDescuento(values))
-            }else{
+            } else {
                 const res = await firstValueFrom(this.apiService.addDescuento(values))
                 if (res.data.id)
                     this.formDesc.patchValue({ id: res.data.id })
@@ -217,14 +219,14 @@ export class DescuentosPersonalAltaDrawerComponent {
         this.formDesc.reset()
     }
 
-    importeCuotaChange(){
+    importeCuotaChange() {
         if (this.Importe() && this.Cuotas())
             this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
         else
             this.formDesc.get('importeCuota')?.setValue('')
     }
 
-    async cancel(){
+    async cancel() {
         this.isLoading.set(true)
         let values = this.formDesc.getRawValue()
         try {
@@ -235,7 +237,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                 this.formDesc.markAsUntouched()
                 this.formDesc.markAsPristine()
             }
-        } catch (e) {}
+        } catch (e) { }
         this.isLoading.set(false)
     }
 

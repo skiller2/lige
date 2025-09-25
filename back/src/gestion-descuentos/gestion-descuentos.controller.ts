@@ -662,20 +662,11 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = otroDescuento.Cuotas
-
     const Detalle: number = otroDescuento.Detalle
-
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
-
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const DocumentoId: number = otroDescuento.DocumentoId
-
-    //Valida que el período no tenga el indicador de recibos generado
-    const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
-    if (checkrecibos[0]?.ind_recibos_generados == 1)
-      return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
-
     /*
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
@@ -739,11 +730,6 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = AplicaEl.getMonth() + 1
     const DocumentoId: number = objDescuento.DocumentoId
 
-    //Valida que el período no tenga el indicador de recibos generado
-    const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
-    if (checkrecibos[0]?.ind_recibos_generados == 1)
-      return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
-
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
     const hoy = new Date()
@@ -806,6 +792,12 @@ export class GestionDescuentosController extends BaseController {
       if (PersonalId && !ObjetivoId) {
         this.valFormularioDescuento(req.body, 'P')
 
+        // agrego validacion aca para no repetir con el importador de excel
+        const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+        if (checkrecibos[0]?.ind_recibos_generados == 1)
+          throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+
+        // agrego validaciones según si la persona esta activa en el periodo para no duplicar en addPersonalOtroDescuento, ya que dicha funcion es llamada desde el importador de excel
         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
         if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
 
@@ -814,6 +806,11 @@ export class GestionDescuentosController extends BaseController {
         else id = result
       } else if (ObjetivoId && !PersonalId) {
         this.valFormularioDescuento(req.body, 'O')
+
+        // agrego validacion aca para no repetir con el importador de excel
+        const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+        if (checkrecibos[0]?.ind_recibos_generados == 1)
+          throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
         // agrego validaciones según AplicaA para no duplicar en addDescuentoObjetivo, ya que dicha funcion es llamada desde el importador de excel
         switch (AplicaA) {
@@ -1026,7 +1023,6 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
-    const AplicaA: string = req.body.AplicaA
 
     // let errors : string[] = []
     try {
@@ -1043,23 +1039,10 @@ export class GestionDescuentosController extends BaseController {
 
       if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
         this.valFormularioDescuento(req.body, 'P')
-         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
-        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
-
         await this.updatePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
       } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
         this.valFormularioDescuento(req.body, 'O')
-        switch (AplicaA) {
-          case 'CL':
-            const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. El Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
-            break;
-          case 'CO':
-            const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
-            break;
-        }
+
         await this.updateObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
       } else {
         throw new ClientException(`Todos los campos del formulario deben completarse.`)
@@ -1084,14 +1067,13 @@ export class GestionDescuentosController extends BaseController {
     const Cuotas: number = otroDescuento.Cuotas
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const importeTotal: Number = Number(Cuotas) * importeCuota
-
-
-
+    const oldPersonalId: number = otroDescuento.oldPersonalId
     const Detalle: string = otroDescuento.Detalle
-
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
+
+    if (oldPersonalId != PersonalId) throw new ClientException(`No se puede modificar a la persona.`)
 
     let res = await queryRunner.query(`
       SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoFechaAplica AplicaEl
@@ -1111,6 +1093,9 @@ export class GestionDescuentosController extends BaseController {
     const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
+
+    const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
+    if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
 
     const cuotasEjecutadas = await queryRunner.query(`
       SELECT * FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId =@0 AND PersonalId =@1 AND PersonalOtroDescuentoCuotaMantiene=1
@@ -1169,15 +1154,19 @@ export class GestionDescuentosController extends BaseController {
     const AplicaA: string = otroDescuento.AplicaA
     const DescuentoId: number = otroDescuento.DescuentoId
     const ObjetivoId: number = otroDescuento.ObjetivoId
+    const oldObjetivoId: Number = otroDescuento.oldObjetivoId
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     const Cuotas: number = otroDescuento.Cuotas
     const Detalle: string = otroDescuento.Detalle
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const importeTotal: Number = Number(Cuotas) * importeCuota
-
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
+
+    console.log(otroDescuento)
+
+    if (oldObjetivoId != ObjetivoId) throw new ClientException(`No se puede modificar el objetivo.`)
 
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
@@ -1198,6 +1187,17 @@ export class GestionDescuentosController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar descuentos de periodos ya cerrados.`)
 
+    switch (AplicaA) {
+      case 'CL':
+        const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
+        if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. El Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
+        break;
+      case 'CO':
+        const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
+        const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+        if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+        break;
+    }
     const hoy: Date = new Date()
     const hora = this.getTimeString(hoy)
     hoy.setHours(0, 0, 0, 0)
@@ -1502,22 +1502,17 @@ export class GestionDescuentosController extends BaseController {
     const descuentoIdRequest = Number(req.body.DescuentoId)
     const tableNameRequest = req.body.tableName
     const queryRunner = dataSource.createQueryRunner();
-
     const usuario = res.locals.userName
     const usuarioId = await this.getUsuarioId(res, queryRunner)
     const ip = this.getRemoteAddress(req)
     let den_documento: string = ''
     const fechaActual: Date = new Date()
     const file = req.body.files
-
     let columnsnNotFound = []
     let dataset: any = []
     let idError: number = 0
-
     let altaDescuentos = 0
-
     let docFilePath: string | null = null
-
 
     const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
       queryRunner,
@@ -1527,12 +1522,17 @@ export class GestionDescuentosController extends BaseController {
       ip
     );
 
-
     try {
-      if (!tableNameRequest) throw new ClientException("Faltó indicar Tipo de carga");
-      if (!descuentoIdRequest) throw new ClientException("Faltó indicar Tipo de descuento");
-      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
-      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
+      let campos_vacios: any[] = []
+
+      if (!anioRequest || !mesRequest) campos_vacios.push(`- Periodo`);
+      if (!tableNameRequest) campos_vacios.push(`- Tipo de carga`)
+      if (!descuentoIdRequest) campos_vacios.push(`- Tipo de descuento`);
+
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
+      }
 
       await queryRunner.connect();
       await queryRunner.startTransaction();

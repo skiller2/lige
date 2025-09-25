@@ -83,7 +83,9 @@ export class DescuentosObjetivosAltaDrawerComponent {
         Cuotas:null, Importe:null, Detalle:'',
         DetalleAnulacion:'', importeCuota:'',
         FechaAnulacion: null,
-        ImportacionDocumentoId: null
+        ImportacionDocumentoId: null,
+        oldObjetivoId:0
+        
     })
 
     $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
@@ -170,6 +172,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         let values = this.formDesc.getRawValue()
         try {
             if (values.id) {
+                values = {...values,oldObjetivoId:this.objetivoId()}
+                console.log(values)
                 await firstValueFrom(this.apiService.updateDescuento(values))
             }else{
                 const res = await firstValueFrom(this.apiService.addDescuento(values))
