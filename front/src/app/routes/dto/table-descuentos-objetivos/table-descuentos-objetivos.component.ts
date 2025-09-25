@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input,Injector } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
+import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input, Injector } from '@angular/core';
+import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -18,7 +18,7 @@ import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-
     styleUrls: ['./table-descuentos-objetivos.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosObjetivosAltaDrawerComponent ],
+    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosObjetivosAltaDrawerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableDescuentosObjetivosComponent {
@@ -39,7 +39,7 @@ export class TableDescuentosObjetivosComponent {
     };
     startFilters: any[] = []
     columnDefinitions: Column[] = []
-    descuentoId = signal<number>(0)
+    ObjetivoDescuentoId = signal<number>(0)
     objetivoId = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
@@ -49,7 +49,7 @@ export class TableDescuentosObjetivosComponent {
     constructor(
         // private searchService: SearchService,
         private apiService: ApiService,
-        private angularUtilService : AngularUtilService,
+        private angularUtilService: AngularUtilService,
         // private injector : Injector,
     ) {
         effect(async () => {
@@ -71,11 +71,11 @@ export class TableDescuentosObjetivosComponent {
         switchMap(() => {
             this.loadingSrv.open({ type: 'spin', text: '' })
             return this.apiService.getDescuentosObjetivos(this.listOptions, this.anio(), this.mes())
-            .pipe(
-                map(data => { return data }),
-                doOnSubscribe(() => { }),
-                tap({ complete: () => { this.loadingSrv.close() } })
-            )
+                .pipe(
+                    map(data => { return data }),
+                    doOnSubscribe(() => { }),
+                    tap({ complete: () => { this.loadingSrv.close() } })
+                )
         })
     )
 
@@ -103,14 +103,13 @@ export class TableDescuentosObjetivosComponent {
     }
 
     handleSelectedRowsChanged(e: any): void {
-        if (e.detail.args.changedSelectedRows.length ==1) {
+        if (e.detail.args.changedSelectedRows.length == 1) {
             const rowNum = e.detail.args.changedSelectedRows[0]
             const row = this.angularGrid.dataView.getItemByIdx(rowNum)
-            this.descuentoId.set(Number(row?.ObjetivoDescuentoId))
+            this.ObjetivoDescuentoId.set(Number(row?.ObjetivoDescuentoId))
             this.objetivoId.set(row?.objetivo.id)
-            
         } else {
-            this.descuentoId.set(0)
+            this.ObjetivoDescuentoId.set(0)
             this.objetivoId.set(0)
         }
     }
@@ -124,33 +123,33 @@ export class TableDescuentosObjetivosComponent {
         this.listDescuento$.next(event);
     }
 
-    openDrawerforAltaDescuentos(){
+    openDrawerforAltaDescuentos() {
         this.visibleAltaDesc.set(true)
         this.isAnulacion.set(false)
     }
 
-    openDrawerforEditDescuentos(){
+    openDrawerforEditDescuentos() {
         this.disabledForm.set(false)
         this.cancelDesc.set(false)
         this.visibleEditDesc.set(true)
         this.isAnulacion.set(false)
     }
 
-    openDrawerforDetailDescuentos(){
+    openDrawerforDetailDescuentos() {
         this.cancelDesc.set(false)
         this.disabledForm.set(true)
-        this.visibleEditDesc.set(true) 
+        this.visibleEditDesc.set(true)
         this.isAnulacion.set(false)
     }
 
-    openDrawerforCancelDescuentos(){
+    openDrawerforCancelDescuentos() {
         this.disabledForm.set(true)
         this.cancelDesc.set(true)
         this.visibleEditDesc.set(true)
         this.isAnulacion.set(true)
     }
 
-    onAddorUpdate(_e:any) {
+    onAddorUpdate(_e: any) {
         this.listDescuento('')
     }
 }

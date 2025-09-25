@@ -130,7 +130,7 @@ export class ApiService {
   }
 
   getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number, DocumentoTipoCodigo: string) {
-    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}/${DocumentoTipoCodigo}`).pipe( 
+    return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}/${DocumentoTipoCodigo}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -313,7 +313,7 @@ export class ApiService {
       excelExportOptions: {
         exportWithFormatter: true
       },
-      formatterOptions:{ decimalSeparator: this.decimal_mark as "."|",", thousandSeparator: this.thousand_sep as "."|","|""|" "}
+      formatterOptions: { decimalSeparator: this.decimal_mark as "." | ",", thousandSeparator: this.thousand_sep as "." | "," | "" | " " }
     };
 
 
@@ -383,7 +383,7 @@ export class ApiService {
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['decimal'],
-            col.params = { maxDecimal: 2, minDecimal: 0 }
+              col.params = { maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.type = FieldType.float
             col.cssClass = 'text-right'
@@ -625,7 +625,7 @@ export class ApiService {
 
   getListOrdenesDeVenta(options: any, anio: any, mes: any) {
     const parameter = { options, anio, mes }
-    return this.http.post<ResponseJSON<any>>('/api/importe-venta-vigilancia/list', parameter).pipe( 
+    return this.http.post<ResponseJSON<any>>('/api/importe-venta-vigilancia/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
@@ -1024,7 +1024,7 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
-  setHorasFacturacion(anio: number, mes: number, ObjetivoId: number, TotalHoraA: number,TotalHoraB: number) {
+  setHorasFacturacion(anio: number, mes: number, ObjetivoId: number, TotalHoraA: number, TotalHoraB: number) {
     return this.http.post<ResponseJSON<any>>('api/asistencia/horasFacturacion', { anio, mes, ObjetivoId, TotalHoraA, TotalHoraB }).pipe(map(res => res.data))
   }
 
@@ -1032,13 +1032,13 @@ export class ApiService {
   addAsistencia(asistencia: any) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
-  
+
   eliminaCargaGrilla(anio: number, mes: number, ObjetivoId: number) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/eliminargrilla`, { anio, mes, ObjetivoId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  eliminaGrillaPersona(anio: number, mes: number, ObjetivoId: number, PersonalId:number) {
+  eliminaGrillaPersona(anio: number, mes: number, ObjetivoId: number, PersonalId: number) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/eliminarpersona`, { anio, mes, ObjetivoId, PersonalId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -1076,8 +1076,8 @@ export class ApiService {
 
   }
 
-  saveFacturacion(formValue: any,rowSelected:any) {
-    let parameter = [formValue,rowSelected]  
+  saveFacturacion(formValue: any, rowSelected: any) {
+    let parameter = [formValue, rowSelected]
     return this.http.post<ResponseJSON<any>>('/api/facturacion/save', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1342,7 +1342,7 @@ export class ApiService {
     )
   }
 
-  updateNovedad(novedad: any, NovedadCodigo: any) {  
+  updateNovedad(novedad: any, NovedadCodigo: any) {
     return this.http.post<ResponseJSON<any>>(`/api/novedades/update/${NovedadCodigo}`, novedad).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1487,8 +1487,10 @@ export class ApiService {
   }
 
   getDescuentosObjetivos(options: any, anio: number, mes: number) {
-    if (!anio && !mes) return of([]);
-    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/objetivos`, { options, anio, mes })
+    if (!anio && !mes && !options.filtros.length) {
+      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    } return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/objetivos`, { options, anio, mes })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
@@ -1496,15 +1498,15 @@ export class ApiService {
   }
 
   setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number) {
-    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA,TotalHoraB }).pipe(map(res => res.data))
+    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB }).pipe(map(res => res.data))
   }
 
   importXLSImporteVenta(files: any, anio: number, mes: number) {
     const parameter = { files, anio, mes }
     return this.http.post<ResponseJSON<any>>(`api/importe-venta-vigilancia/import-xls`, parameter)
       .pipe(
-          tap((res: ResponseJSON<any>) => this.response(res)),
-    );
+        tap((res: ResponseJSON<any>) => this.response(res)),
+      );
 
   }
 
@@ -1512,8 +1514,8 @@ export class ApiService {
     const parameter = { files, anio, mes, fecha }
     return this.http.post<ResponseJSON<any>>(`api/telefonia/import-xls-telefonia`, parameter)
       .pipe(
-          tap((res: ResponseJSON<any>) => this.response(res)),
-    );
+        tap((res: ResponseJSON<any>) => this.response(res)),
+      );
 
   }
 
@@ -1521,8 +1523,8 @@ export class ApiService {
     const parameter = { files, anio, mes, fecha, DescuentoId, tableName }
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/import-xls-descuentos`, parameter)
       .pipe(
-          tap((res: ResponseJSON<any>) => this.response(res)),
-    );
+        tap((res: ResponseJSON<any>) => this.response(res)),
+      );
 
   }
 
@@ -1673,7 +1675,7 @@ export class ApiService {
     );
   }
 
-  cancellationObjetivoDescuento(params:any) {
+  cancellationObjetivoDescuento(params: any) {
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/cancellation/objetivo/`, params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
@@ -1714,9 +1716,9 @@ export class ApiService {
 
   getListProcesosAutomaticos(options: any) {
     return this.http.post<ResponseJSON<any>>(`api/procesos-automaticos/list`, { options }).pipe(
-        map(res => res.data),
-        catchError(() => of([]))
-      );
+      map(res => res.data),
+      catchError(() => of([]))
+    );
   }
 
 }

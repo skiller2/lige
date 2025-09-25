@@ -3028,4 +3028,15 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
+  static async getSitRevistaActiva(queryRunner: any, PersonalId: number, mes: number, anio: number) {
+    return await queryRunner.query(`
+      SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
+        FROM Personal per
+        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaSituacionId in (2,10,12) and sitrev.PersonalSituacionRevistaDesde<=EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE per.PersonalId=@0
+
+      `, [PersonalId, anio, mes])
+  }
+
 }

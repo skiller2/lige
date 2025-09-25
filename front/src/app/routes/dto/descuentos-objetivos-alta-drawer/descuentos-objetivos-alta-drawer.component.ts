@@ -27,7 +27,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     isLoading = signal(false);
     visibleDesc = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
-    descuentoId = model<number>(0);
+    ObjetivoDescuentoId = model<number>(0);
     objetivoId = model<number>(0);
     disabled = input<boolean>(false);
     cancelDesc = input<boolean>(false);
@@ -44,8 +44,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         effect(async() => { 
             const visible = this.visibleDesc()
             if (visible) {
-                if (this.descuentoId() && this.objetivoId()) {
-                    let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.descuentoId()))
+                if (this.ObjetivoDescuentoId() && this.objetivoId()) {
+                    let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
                     this.formDesc.reset(infoDesc)
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
@@ -219,7 +219,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         this.isLoading.set(true)
         let values = this.formDesc.getRawValue()
         try {
-            if (this.descuentoId() && this.objetivoId()) {
+            if (this.ObjetivoDescuentoId() && this.objetivoId()) {
                 await firstValueFrom(this.apiService.cancellationObjetivoDescuento(values))
                 this.onAddorUpdate.emit()
                 this.selectedPersonalIdChange$.next('')

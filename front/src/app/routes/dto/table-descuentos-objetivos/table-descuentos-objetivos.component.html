@@ -13,17 +13,17 @@
         </button>
         <!-- Editar Descuento -->
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="openDrawerforEditDescuentos()"
-          [disabled]="descuentoId() == 0 && objetivoId() == 0">
+          [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
           <span nz-icon nzType="edit" nzTheme="outline"></span>
         </button>
         <!-- Detalle Descuento -->
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.detail' | i18n }}" (click)="openDrawerforDetailDescuentos()"
-          [disabled]="descuentoId() == 0 && objetivoId() == 0">
+          [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>
         <!-- Anular Descuento -->
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" (click)="openDrawerforCancelDescuentos()"
-          [disabled]="descuentoId() == 0 && objetivoId() == 0">
+          [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
           <span nz-icon nzType="delete" nzTheme="outline"></span>
         </button>
       </nz-button-group>
@@ -36,7 +36,6 @@
       </angular-slickgrid>
     </div>
   </div>
-  
 </nz-card>
 
 @defer( when visibleAltaDesc()){
@@ -44,5 +43,5 @@
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [descuentoId]="descuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
+  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [ObjetivoDescuentoId]="ObjetivoDescuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
 }

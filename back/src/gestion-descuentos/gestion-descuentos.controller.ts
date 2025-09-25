@@ -8,6 +8,7 @@ import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { FileUploadController } from "src/controller/file-upload.controller";
 import { ObjetivoController } from "src/controller/objetivo.controller";
+import { PersonalController } from "src/controller/personal.controller"
 
 const columnsPersonalDescuentos: any[] = [
   {
@@ -202,6 +203,17 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
+    id: 'ObjetivoDescuentoId', name: 'ObjetivoDescuentoId', field: 'ObjetivoDescuentoId',
+    fieldName: 'des.ObjetivoDescuentoId',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
     id: 'ClienteFacturacionCUIT', name: 'CUIT', field: 'ClienteFacturacionCUIT',
     fieldName: 'fac.ClienteFacturacionCUIT',
     type: 'number',
@@ -244,19 +256,6 @@ const columnsObjetivosDescuentos: any[] = [
     // maxWidth: 170,
     // minWidth: 100,
   },
-  /*
-  {
-    id:'CUIT', name:'CUIT', field:'CUIT',
-    fieldName:'cuit.PersonalCUITCUILCUIT',
-    type:'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  */
   {
     id: 'personal', name: 'Coordinador', field: 'personal.fullName',
     fieldName: "per.PersonalId",
@@ -430,10 +429,9 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-    // let condition = '(1=1)'
-    // if (anio && mes) {
-    //   condition = `perdes.anio IN (@1) AND perdes.mes IN (@2)`
-    // }
+    let condition = '(1=1)'
+    if (anio && mes) condition = `perdes.anio = @1 AND perdes.mes = @2`
+
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
@@ -457,8 +455,7 @@ export class GestionDescuentosController extends BaseController {
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      WHERE perdes.anio IN (@1) AND perdes.mes IN (@2)
-      AND (${filterSql})
+      WHERE ${condition} AND (${filterSql})
       ${orderBy}
     `, [, anio, mes])
   }
@@ -496,6 +493,16 @@ export class GestionDescuentosController extends BaseController {
 
   private async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
     const now = new Date()
+
+    let condition = '(1=1)'
+    let join = `DATEFROMPARTS(cuo.ObjetivoDescuentoCuotaAno,cuo.ObjetivoDescuentoCuotaMes,28) > coo.ObjetivoPersonalJerarquicoDesde 
+                AND DATEFROMPARTS(cuo.ObjetivoDescuentoCuotaAno,cuo.ObjetivoDescuentoCuotaMes,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
+    if (anio && mes) {
+      condition = `cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2`
+      join = `DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
+    }
+
+
 
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
@@ -536,10 +543,10 @@ export class GestionDescuentosController extends BaseController {
       
 	    Left JOIN ObjetivoDescuentoCuota cuo on cuo.ObjetivoDescuentoId=des.ObjetivoDescuentoId and cuo.ObjetivoId=des.ObjetivoId
 
-	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND coo.ObjetivoPersonalJerarquicoDescuentos = 1 AND ${join}
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       
-      WHERE cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2 and (${filterSql})
+      WHERE ${condition} and (${filterSql})
       ${orderBy}
     `, [now, anio, mes])
   }
@@ -799,6 +806,9 @@ export class GestionDescuentosController extends BaseController {
       if (PersonalId && !ObjetivoId) {
         this.valFormularioDescuento(req.body, 'P')
 
+        const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
+        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
+
         const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
@@ -809,15 +819,12 @@ export class GestionDescuentosController extends BaseController {
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            console.log('tieneContratoVigente:', tieneContratoVigente);
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`)
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            console.log('objetivoResponsables:', objetivoResponsables);
             const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            console.log('tieneCoordinadorVigente:', tieneCoordinadorVigente);
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
             break;
         }
 
@@ -825,7 +832,7 @@ export class GestionDescuentosController extends BaseController {
         if (result instanceof ClientException) throw result
         else id = result
       } else {
-        throw new ClientException('Debe completar el formulario de descuento a un Objetivo o Personal')
+        throw new ClientException('Todos los campos del formulario deben completarse.')
       }
 
       await queryRunner.commitTransaction()
@@ -1019,6 +1026,8 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
+    const AplicaA: string = req.body.AplicaA
+
     // let errors : string[] = []
     try {
       await queryRunner.startTransaction()
@@ -1033,11 +1042,27 @@ export class GestionDescuentosController extends BaseController {
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
       if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
+        this.valFormularioDescuento(req.body, 'P')
+         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
+        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
+
         await this.updatePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
       } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
+        this.valFormularioDescuento(req.body, 'O')
+        switch (AplicaA) {
+          case 'CL':
+            const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. El Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
+            break;
+          case 'CO':
+            const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            break;
+        }
         await this.updateObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
       } else {
-        throw new ClientException(`Error de busqueda.`)
+        throw new ClientException(`Todos los campos del formulario deben completarse.`)
       }
 
       // throw new ClientException(`DEBUG.`)
@@ -1093,6 +1118,7 @@ export class GestionDescuentosController extends BaseController {
 
     if (cuotasEjecutadas.length > 0)
       throw new ClientException(`No se puede modificar descuentos ya tienen cuotas aplicadas.`)
+
 
 
     const hoy: Date = new Date()
@@ -1568,7 +1594,7 @@ export class GestionDescuentosController extends BaseController {
             //Verifica que exista el CUIT
             const cuit = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
             if (cuit.length != 11) {
-              console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
+              // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT con formato incorrecto' })
               continue
             }
@@ -1576,17 +1602,19 @@ export class GestionDescuentosController extends BaseController {
             const PersonalCUITCUIL = await queryRunner.query(`
               SELECT personal.PersonalId
               FROM Personal personal
-              LEFT JOIN PersonalCUITCUIL cuit 
-                  ON cuit.PersonalId = personal.PersonalId
-                AND cuit.PersonalCUITCUILId = (
-                      SELECT MAX(cuitmax.PersonalCUITCUILId) 
-                      FROM PersonalCUITCUIL cuitmax 
-                      WHERE cuitmax.PersonalId = personal.PersonalId)
+              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = personal.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = personal.PersonalId)
               WHERE cuit.PersonalCUITCUILCUIT IN (@0)
             `, [cuit])
             if (!PersonalCUITCUIL.length) {
-              console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
+              // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
+              continue
+            }
+
+            const PersonalId = PersonalCUITCUIL[0].PersonalId
+            const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
+            if (!Array.isArray(isActivo) || isActivo.length === 0) {
+              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período` })
               continue
             }
 
@@ -1594,7 +1622,7 @@ export class GestionDescuentosController extends BaseController {
 
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
-              PersonalId: PersonalCUITCUIL[0].PersonalId,
+              PersonalId: PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: CantidadCuotas,
               Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
