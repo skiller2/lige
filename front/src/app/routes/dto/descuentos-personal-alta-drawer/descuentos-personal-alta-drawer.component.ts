@@ -37,7 +37,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     ) {
         effect(async() => { 
             const visible = this.visibleDesc()
-          
+           
             if (visible) {
                 if (this.descuentoId() && this.personalId()) {
                     let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
@@ -48,18 +48,33 @@ export class DescuentosPersonalAltaDrawerComponent {
                     this.formDesc.markAsPristine()
                 }
 
-                if (this.disabled())  {
-                    this.formDesc.disable();
+                // Usar setTimeout para asegurar que las configuraciones se apliquen después del reset
+                setTimeout(() => {
                     
-                    if (this.isAnulacion()) {
-                      this.formDesc.get('DetalleAnulacion')?.enable(); 
+                    this.formDesc.get('FechaAnulacion')?.disable()
+                    this.formDesc.get('ImportacionDocumentoId')?.disable()
+                    
+                 
+                    if (this.disabled()) {
+                        this.formDesc.get('PersonalId')?.disable()
+                    } else {
+                        this.formDesc.get('PersonalId')?.enable()
                     }
-                } else {
-                    this.formDesc.enable()
-                }
-               
-                this.formDesc.get('FechaAnulacion')?.disable()
-                this.formDesc.get('ImportacionDocumentoId')?.disable()
+
+                    if (this.disabled())  {
+                        this.formDesc.disable();
+                        if (this.isAnulacion()) {
+                          this.formDesc.get('DetalleAnulacion')?.enable(); 
+                        }
+                    } else {
+                        this.formDesc.enable()
+                        this.formDesc.get('FechaAnulacion')?.disable()
+                        this.formDesc.get('ImportacionDocumentoId')?.disable()
+                        if (this.disabled()) {
+                            this.formDesc.get('PersonalId')?.disable()
+                        }
+                    }
+                }, 0);
             } else {
                 this.formDesc.reset()
                 this.formDesc.enable()
