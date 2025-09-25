@@ -8,6 +8,7 @@ import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { FileUploadController } from "src/controller/file-upload.controller";
 import { ObjetivoController } from "src/controller/objetivo.controller";
+import { PersonalController } from "src/controller/personal.controller"
 
 const columnsPersonalDescuentos: any[] = [
   {
@@ -805,6 +806,9 @@ export class GestionDescuentosController extends BaseController {
       if (PersonalId && !ObjetivoId) {
         this.valFormularioDescuento(req.body, 'P')
 
+        const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
+        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal porque no se encuentra 'Activo' en el período ${mes}/${anio}.`)
+
         const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
         else id = result
@@ -815,14 +819,11 @@ export class GestionDescuentosController extends BaseController {
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            console.log('tieneContratoVigente:', tieneContratoVigente);
             if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            console.log('objetivoResponsables:', objetivoResponsables);
             const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            console.log('tieneCoordinadorVigente:', tieneCoordinadorVigente);
             if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
             break;
         }
@@ -1582,17 +1583,19 @@ export class GestionDescuentosController extends BaseController {
             const PersonalCUITCUIL = await queryRunner.query(`
               SELECT personal.PersonalId
               FROM Personal personal
-              LEFT JOIN PersonalCUITCUIL cuit 
-                  ON cuit.PersonalId = personal.PersonalId
-                AND cuit.PersonalCUITCUILId = (
-                      SELECT MAX(cuitmax.PersonalCUITCUILId) 
-                      FROM PersonalCUITCUIL cuitmax 
-                      WHERE cuitmax.PersonalId = personal.PersonalId)
+              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = personal.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = personal.PersonalId)
               WHERE cuit.PersonalCUITCUILCUIT IN (@0)
             `, [cuit])
             if (!PersonalCUITCUIL.length) {
-              console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
+              // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
+              continue
+            }
+
+            const PersonalId = PersonalCUITCUIL[0].PersonalId
+            const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
+            if (!Array.isArray(isActivo) || isActivo.length === 0) {
+              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento al Personal porque no se encuentra 'Activo' en el período` })
               continue
             }
 
@@ -1600,7 +1603,7 @@ export class GestionDescuentosController extends BaseController {
 
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
-              PersonalId: PersonalCUITCUIL[0].PersonalId,
+              PersonalId: PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: CantidadCuotas,
               Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
