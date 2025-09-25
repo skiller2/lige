@@ -201,7 +201,7 @@ const columnsObjetivosDescuentos: any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
-    {
+  {
     id: 'ObjetivoDescuentoId', name: 'ObjetivoDescuentoId', field: 'ObjetivoDescuentoId',
     fieldName: 'des.ObjetivoDescuentoId',
     type: 'number',
@@ -428,10 +428,9 @@ export class GestionDescuentosController extends BaseController {
   }
 
   private async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-    // let condition = '(1=1)'
-    // if (anio && mes) {
-    //   condition = `perdes.anio IN (@1) AND perdes.mes IN (@2)`
-    // }
+    let condition = '(1=1)'
+    if (anio && mes) condition = `perdes.anio = @1 AND perdes.mes = @2`
+
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
@@ -455,8 +454,7 @@ export class GestionDescuentosController extends BaseController {
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      WHERE perdes.anio IN (@1) AND perdes.mes IN (@2)
-      AND (${filterSql})
+      WHERE ${condition} AND (${filterSql})
       ${orderBy}
     `, [, anio, mes])
   }
@@ -494,6 +492,16 @@ export class GestionDescuentosController extends BaseController {
 
   private async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
     const now = new Date()
+
+    let condition = '(1=1)'
+    let join = `DATEFROMPARTS(cuo.ObjetivoDescuentoCuotaAno,cuo.ObjetivoDescuentoCuotaMes,28) > coo.ObjetivoPersonalJerarquicoDesde 
+                AND DATEFROMPARTS(cuo.ObjetivoDescuentoCuotaAno,cuo.ObjetivoDescuentoCuotaMes,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
+    if (anio && mes) {
+      condition = `cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2`
+      join = `DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
+    }
+
+
 
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
@@ -534,10 +542,10 @@ export class GestionDescuentosController extends BaseController {
       
 	    Left JOIN ObjetivoDescuentoCuota cuo on cuo.ObjetivoDescuentoId=des.ObjetivoDescuentoId and cuo.ObjetivoId=des.ObjetivoId
 
-	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND coo.ObjetivoPersonalJerarquicoDescuentos = 1 AND ${join}
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
       
-      WHERE cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2 and (${filterSql})
+      WHERE ${condition} and (${filterSql})
       ${orderBy}
     `, [now, anio, mes])
   }
