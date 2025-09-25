@@ -1030,10 +1030,6 @@ export class GestionDescuentosController extends BaseController {
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
-      const AplicaEl: Date = new Date(req.body.AplicaEl)
-      const anio = AplicaEl.getFullYear()
-      const mes = AplicaEl.getMonth() + 1
-
       if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
         this.valFormularioDescuento(req.body, 'P')
         await this.updatePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
