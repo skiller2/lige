@@ -807,7 +807,7 @@ export class GestionDescuentosController extends BaseController {
         this.valFormularioDescuento(req.body, 'P')
 
         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
-        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal porque no se encuentra 'Activo' en el período ${mes}/${anio}.`)
+        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
 
         const result = await this.addPersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
         if (result instanceof ClientException) throw result
@@ -819,12 +819,12 @@ export class GestionDescuentosController extends BaseController {
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`)
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
             const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
             break;
         }
 
@@ -1044,7 +1044,7 @@ export class GestionDescuentosController extends BaseController {
       if (PersonalId && !ObjetivoId) { //PersonalOtrosDescuentos
         this.valFormularioDescuento(req.body, 'P')
          const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
-        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal porque no se encuentra 'Activo' en el período ${mes}/${anio}.`)
+        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
 
         await this.updatePersonalOtroDescuento(queryRunner, req.body, usuarioId, ip)
       } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
@@ -1052,12 +1052,12 @@ export class GestionDescuentosController extends BaseController {
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente porque el Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. El Objetivo no tiene contrato vigente en el período ${mes}/${anio}.`)
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
             const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador porque el Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
             break;
         }
         await this.updateObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
@@ -1594,7 +1594,7 @@ export class GestionDescuentosController extends BaseController {
             //Verifica que exista el CUIT
             const cuit = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
             if (cuit.length != 11) {
-              console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
+              // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
               dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT con formato incorrecto' })
               continue
             }
@@ -1614,7 +1614,7 @@ export class GestionDescuentosController extends BaseController {
             const PersonalId = PersonalCUITCUIL[0].PersonalId
             const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
             if (!Array.isArray(isActivo) || isActivo.length === 0) {
-              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento al Personal porque no se encuentra 'Activo' en el período` })
+              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período` })
               continue
             }
 
