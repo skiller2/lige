@@ -67,6 +67,7 @@ export class NovedadesFormComponent {
     this.formCli.get('id')?.disable()
     this.formCli.get('VisualizacionPersonaNombre')?.disable()
     this.formCli.get('VisualizacionTelefono')?.disable()
+    this.formCli.get('VisualizacionFecha')?.disable()
     this.formCli.markAsPristine()        
 
  }
