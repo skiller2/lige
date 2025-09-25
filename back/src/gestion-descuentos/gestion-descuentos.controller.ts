@@ -201,6 +201,17 @@ const columnsObjetivosDescuentos: any[] = [
     // maxWidth: 50,
     // minWidth: 10,
   },
+    {
+    id: 'ObjetivoDescuentoId', name: 'ObjetivoDescuentoId', field: 'ObjetivoDescuentoId',
+    fieldName: 'des.ObjetivoDescuentoId',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
   {
     id: 'ClienteFacturacionCUIT', name: 'CUIT', field: 'ClienteFacturacionCUIT',
     fieldName: 'fac.ClienteFacturacionCUIT',
@@ -244,19 +255,6 @@ const columnsObjetivosDescuentos: any[] = [
     // maxWidth: 170,
     // minWidth: 100,
   },
-  /*
-  {
-    id:'CUIT', name:'CUIT', field:'CUIT',
-    fieldName:'cuit.PersonalCUITCUILCUIT',
-    type:'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
-  },
-  */
   {
     id: 'personal', name: 'Coordinador', field: 'personal.fullName',
     fieldName: "per.PersonalId",

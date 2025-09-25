@@ -132,7 +132,7 @@
           <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine" *ngIf="formDesc.enabled && !cancelDesc()">
             {{ 'app.btn.save' | i18n }}
           </button>
-          <button *ngIf="id() && !descuentoId() && !objetivoId()" nzType="primary" nz-button (click)="resetForm()">
+          <button *ngIf="id() && !ObjetivoDescuentoId() && !objetivoId()" nzType="primary" nz-button (click)="resetForm()">
             {{ 'app.btn.clear.form' | i18n }}
           </button>
           <button nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine" *ngIf="cancelDesc() && formDesc.enabled">

@@ -142,7 +142,7 @@ export class TableDescuentosPersonalComponent {
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
         }else{
-            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+            this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
@@ -153,7 +153,7 @@ export class TableDescuentosPersonalComponent {
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
         }else{
-            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+            this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
@@ -164,7 +164,7 @@ export class TableDescuentosPersonalComponent {
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(true)
         }else{
-            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+            this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
@@ -174,7 +174,7 @@ export class TableDescuentosPersonalComponent {
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
         }else{
-            this.notification.warning('Advertencia', `'No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente.`);
+            this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
