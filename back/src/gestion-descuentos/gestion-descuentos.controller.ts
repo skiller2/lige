@@ -1559,7 +1559,7 @@ export class GestionDescuentosController extends BaseController {
           //Validar que esten las columnas nesesarias
           if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
           // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
-          if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- ImporteTotal')
+          if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
           if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
 
           if (columnsnNotFound.length) {
@@ -1617,7 +1617,7 @@ export class GestionDescuentosController extends BaseController {
               PersonalId: PersonalId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: CantidadCuotas,
-              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\./g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
               Detalle: row[columnsXLS['Detalle']],
               DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
             }
@@ -1729,7 +1729,7 @@ export class GestionDescuentosController extends BaseController {
               ObjetivoId: ObjetivoId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: CantidadCuotas,
-              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\./g, "").replace(",", ".")),
+              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")),
               Detalle: row[columnsXLS['Detalle']],
               DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
             }
@@ -1849,7 +1849,7 @@ export class GestionDescuentosController extends BaseController {
     if (!formInputs.Importe) {
       campos_vacios.push(`- Importe total`)
     } else if (isNaN(Number(formInputs.Importe)) || Number(formInputs.Importe) < 0) {
-      campos_vacios.push(`- Importe total (debe ser un número mayor a 0)`);
+      campos_vacios.push(`- Importe total (debe ser un número mayor ó igual a 0)`);
     }
     if (!formInputs.Detalle) campos_vacios.push(`- Detalle`)
     if (!formInputs.DescuentoId) campos_vacios.push(`- Tipo de descuento`)
