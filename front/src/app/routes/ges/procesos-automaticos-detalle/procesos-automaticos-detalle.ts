@@ -13,18 +13,15 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { ObjectViewerComponent } from '../../../shared/object-viewer/object-viewer';
 
 @Component({
-  selector: 'app-procesos-automaticos-drawer',
+  selector: 'app-procesos-automaticos-detalle',
   imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, 
     CommonModule, FormsModule, NzInputModule, ObjectViewerComponent, ],
-  templateUrl: './procesos-automaticos-drawer.html',
-  styleUrl: './procesos-automaticos-drawer.less'
+  templateUrl: './procesos-automaticos-detalle.html',
+  styleUrl: './procesos-automaticos-detalle.less'
 })
 
-export class ProcesosAutomaticosDrawerComponent {
+export class ProcesosAutomaticosDetalleComponent {
 
-  visible = model<boolean>(false);
-  placement: NzDrawerPlacement = 'left';
-  tituloDrawer = signal<string>("Detalle");
   logCod = model<number>(0);
   ParametroEntrada = signal<any>(null)
   Resultado = signal<any>(null)
@@ -46,19 +43,15 @@ export class ProcesosAutomaticosDrawerComponent {
   constructor(private searchService: SearchService) { 
     
     effect(async() => { 
-      const visible = this.visible()
-      if (visible) {
-        if (this.logCod()) {
-          let res = await firstValueFrom(this.searchService.getProcesoAutomatico(this.logCod()))
-          
-          this.ParametroEntrada.set(JSON.parse(res[0].ParametroEntrada))
-          this.Resultado.set(JSON.parse(res[0].Resultado))
-          this.formProcAuto.reset(res[0])
-        }else{
-          this.ParametroEntrada.set(null)
-          this.Resultado.set(null)
-        }
+      if (this.logCod()) {
+        let res = await firstValueFrom(this.searchService.getProcesoAutomatico(this.logCod()))
         
+        this.ParametroEntrada.set(JSON.parse(res[0].ParametroEntrada))
+        this.Resultado.set(JSON.parse(res[0].Resultado))
+        this.formProcAuto.reset(res[0])
+      }else{
+        this.ParametroEntrada.set(null)
+        this.Resultado.set(null)
       }
       
     })

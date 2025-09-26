@@ -1,27 +1,19 @@
 <nz-card class="small-margin">
 
-    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
-      <!-- <div nz-row nzSpan="12">
-        <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;" (ngModelChange)="dateChange($event)"/>
-        </nz-form-control>
-      </div> -->
-  
-      <ul nz-menu nzMode="horizontal">
+  <div nz-row class="contentStyle">
+    <div nz-col nzSpan="13" class="listStyletex">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'listado']" (click)="listProcesosAutomaticos()">Lista</a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'detalle']">Detalle</a>
+        </li>
       </ul>
-      
-      <nz-button-group>
-        <button nzType="default" nz-button nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"
-        (click)="openDrawerforDetalle()" [disabled]="logCodigo() == 0">
-          <span nz-icon nzType="info-circle" nzTheme="outline"></span>
-        </button>
-      </nz-button-group>
     </div>
+  </div>
   
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
 
@@ -40,8 +32,11 @@
           </div>
         </ng-template>
       </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/procesos-automaticos/detalle">Detalle</a>
+        <app-procesos-automaticos-detalle [logCod]="logCodigo()"></app-procesos-automaticos-detalle>
+      </nz-tab>
   
     </nz-tabset>
 </nz-card>
-
-<app-procesos-automaticos-drawer [(visible)]="visibleDetalle" [logCod]="logCodigo()"></app-procesos-automaticos-drawer>

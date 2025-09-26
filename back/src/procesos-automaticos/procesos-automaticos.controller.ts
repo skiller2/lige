@@ -14,7 +14,7 @@ const listaColumnas: any[] = [
     searchHidden: true,
   },
   {
-    id: 'ProcesoAutomaticoLogCodigo', name: 'Log Codigo', field: 'ProcesoAutomaticoLogCodigo',
+    id: 'ProcesoAutomaticoLogCodigo', name: 'Codigo', field: 'ProcesoAutomaticoLogCodigo',
     fieldName: 'palog.ProcesoAutomaticoLogCodigo',
     // searchComponent: '',
     type: 'number',
@@ -26,7 +26,7 @@ const listaColumnas: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'NombreProceso', name: 'Nombre Proceso', field: 'NombreProceso',
+    id: 'NombreProceso', name: 'Nombre', field: 'NombreProceso',
     fieldName: 'palog.NombreProceso',
     // searchComponent: '',
     type: 'string',
@@ -36,7 +36,7 @@ const listaColumnas: any[] = [
     searchHidden: false,
   },
   {
-    id: 'FechaInicio', name: 'Fecha Inicio', field: 'FechaInicio',
+    id: 'FechaInicio', name: 'Inicio', field: 'FechaInicio',
     fieldName: 'palog.FechaInicio',
     searchComponent: 'inpurForFechaSearch',
     type: 'date',
@@ -46,7 +46,7 @@ const listaColumnas: any[] = [
     searchHidden: false,
   },
   {
-    id: 'FechaFin', name: 'Fecha Fin', field: 'FechaFin',
+    id: 'FechaFin', name: 'Fin', field: 'FechaFin',
     fieldName: 'palog.FechaFin',
     searchComponent: 'inpurForFechaSearch',
     type: 'date',

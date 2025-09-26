@@ -11,14 +11,14 @@ import { ApiService } from '../../../services/api.service';
 import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { ProcesosAutomaticosDrawerComponent } from "../procesos-automaticos-drawer/procesos-automaticos-drawer";
+import { ProcesosAutomaticosDetalleComponent } from "../procesos-automaticos-detalle/procesos-automaticos-detalle";
 
 @Component({
     selector: 'app-procesos-automaticos',
     templateUrl: './procesos-automaticos.html',
     styleUrl:'./procesos-automaticos.less',
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDrawerComponent ],
+    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent ],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProcesosAutomaticosComponent {

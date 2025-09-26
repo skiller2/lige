@@ -1,0 +1,58 @@
+
+<br>
+<form [formGroup]="formProcAuto">
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="3">Código</nz-form-label>
+    <nz-form-control [nzMd]="19">
+      <input nz-input placeholder="" formControlName="ProcesoAutomaticoLogCodigo" type="number" [readonly]="true"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="3">Nombre</nz-form-label>
+    <nz-form-control [nzMd]="19">
+      <input nz-input placeholder="" formControlName="NombreProceso" type="text" [readonly]="true"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="3">Inicio</nz-form-label>
+    <nz-form-control [nzMd]="19">
+      <nz-date-picker formControlName="FechaInicio" [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm" [nzDisabled]="true"></nz-date-picker>
+      <!-- <input nz-input placeholder="" formControlName="FechaInicio" type="text" [readonly]="true"/> -->
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="3">Fin</nz-form-label>
+    <nz-form-control [nzMd]="19">
+      <nz-date-picker formControlName="FechaFin" [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm" [nzDisabled]="true"></nz-date-picker>
+      <!-- <input nz-input placeholder="" formControlName="FechaFin" type="text" [readonly]="true"/> -->
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="3">Descripcion</nz-form-label>
+    <nz-form-control [nzMd]="19">
+      <input nz-input placeholder="" formControlName="Descripcion" type="text" [readonly]="true"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-control [nzXs]="1"></nz-form-control>
+    <nz-form-control [nzXs]="22">
+      <h3>Parametro Entrada</h3>
+      <app-object-viewer [data]="ParametroEntrada()"></app-object-viewer>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-control [nzXs]="1"></nz-form-control>
+    <nz-form-control [nzXs]="22">
+      <h3>Resultado</h3>
+      <app-object-viewer [data]="Resultado()"></app-object-viewer>
+    </nz-form-control>
+  </nz-form-item>
+
+</form>
