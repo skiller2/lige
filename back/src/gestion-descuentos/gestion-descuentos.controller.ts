@@ -91,8 +91,8 @@ const columnsPersonalDescuentos: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
+    maxWidth: 50,
+    minWidth: 10,
   },
   {
     id: 'anio', name: 'Año', field: 'anio',
@@ -102,8 +102,8 @@ const columnsPersonalDescuentos: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
+    maxWidth: 50,
+    minWidth: 10,
   },
   {
     id: 'desmovimiento', name: 'Detalle', field: 'desmovimiento',
