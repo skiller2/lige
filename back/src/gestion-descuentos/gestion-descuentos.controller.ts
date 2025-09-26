@@ -272,6 +272,17 @@ const columnsObjetivosDescuentos: any[] = [
     // maxWidth: 170,
     // minWidth: 100,
   },
+   {
+    id: 'DescontarDetalle', name: 'Aplica A', field: 'DescontarDetalle',
+    fieldName: "des.ObjetivoDescuentoDescontar",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // minWidth: 50,
+    // minWidth: 10,
+  },
   {
     id: 'GrupoActividadId', name: 'GrupoActividadId', field: 'GrupoActividadId',
     fieldName: "gap.GrupoActividadId",
@@ -314,8 +325,8 @@ const columnsObjetivosDescuentos: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
+    maxWidth: 50,
+    minWidth: 10,
   },
   {
     id: 'ObjetivoDescuentoCuotaAno', name: 'Año', field: 'ObjetivoDescuentoCuotaAno',
@@ -325,8 +336,8 @@ const columnsObjetivosDescuentos: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    // maxWidth: 50,
-    // minWidth: 10,
+    maxWidth: 50,
+    minWidth: 10,
   },
   {
     id: 'ObjetivoDescuentoDetalle', name: 'Detalle', field: 'ObjetivoDescuentoDetalle',
@@ -513,6 +524,12 @@ export class GestionDescuentosController extends BaseController {
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       , des.ObjetivoDescuentoAnoAplica AS anio
       , des.ObjetivoDescuentoMesesAplica AS mes
+      , des.ObjetivoDescuentoDescontar
+      , CASE 
+        WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coordinador'
+        WHEN des.ObjetivoDescuentoDescontar = 'CL' THEN 'Cliente'
+        WHEN des.ObjetivoDescuentoDescontar = 'NO' THEN 'Ninguno'
+      END AS  DescontarDetalle
       , cli.ClienteId
       , cli.ClienteDenominacion
       , fac.ClienteFacturacionCUIT
