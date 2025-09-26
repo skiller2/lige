@@ -58,7 +58,7 @@ const fileFilterPdf = (
   file: Express.Multer.File,
   callback: FileFilterCallback
 ): void => {
-  const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","video/mp4"];
+  const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","video/mp4", "application/vnd.ms-excel"];
   if (!allowedMimeTypes.includes(file.mimetype)) {
     callback(new ClientException(`El archivo no es del tipo seleccionado, ${file.mimetype}`));
     return;
