@@ -86,7 +86,7 @@ export class AuthController extends BaseController {
 
     if (password == null) //Valida undefined or null
       throw new ClientException("Contraseña vacía")
-    
+
     const usernamenodomain = user.split("@")[0];
 
     try {
@@ -275,7 +275,7 @@ export class AuthController extends BaseController {
 
   encryptPassword(password: string) {
     const salt = bcryptjs.getSalt("10");
-//    const salt = "10";
+    //    const salt = "10";
     return bcryptjs.hash(password, salt);
   }
 
@@ -293,18 +293,18 @@ export class AuthController extends BaseController {
 
       const persona_cuit = Number(user.description)
 
-      
+
       let result = await queryRunner.query(
         `SELECT per.PersonalId
         FROM Personal per
         JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         WHERE cuit.PersonalCUITCUILCUIT = @0 OR per.PersonalId IN (SELECT usu.UsuarioPersonalId FROM Usuario usu WHERE usu.UsuarioNombreLDAP = @1)
         `, [
-        persona_cuit,userName
+        persona_cuit, userName
       ])
       const row = result[0]
       user.PersonalId = (row) ? row['PersonalId'] : 0
-      
+
       const GrupoActividadList = await queryRunner.query(
         `SELECT DISTINCT ga.GrupoActividadId, g.GrupoActividadNumero
         -- , ga.GrupoActividadJerarquicoComo, 1
@@ -315,11 +315,13 @@ export class AuthController extends BaseController {
         @1 > ga.GrupoActividadJerarquicoDesde AND @1 <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
         [user.PersonalId, new Date()]
       )
-      user.GrupoActividad = []
-      for (const row of GrupoActividadList )
-        user.GrupoActividad.push(row.GrupoActividadNumero)
       
-
+      // Agregar información de consulta como propiedad separada
+      user.GrupoActividad = {
+        ids: GrupoActividadList.map(row => row.GrupoActividadId),
+        date: new Date(),
+        count: GrupoActividadList.length
+      }
 
       const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
       const token = jsonwebtoken.sign(user, jwtsecret, {
