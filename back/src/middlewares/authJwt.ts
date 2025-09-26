@@ -44,7 +44,6 @@ export class AuthMiddleware {
   hasGroup = (group: string[]) => {
     return (req, res, next) => {
       if (res.locals?.skipMiddleware) return next()
-
       for (const myGrp of req?.groups) {
         for (const grp of group) {
           if (myGrp.toLowerCase() === grp.toLowerCase()) return next()
@@ -54,6 +53,22 @@ export class AuthMiddleware {
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
 
+    }
+  }
+
+  hasNotGroup = (groups: string[]) => {
+    return (req, res, next) => {
+      if (!req?.groups) return next();
+      for (const myGrp of req.groups) {
+        for (const grp of groups) {
+          if (myGrp.toLowerCase() === grp.toLowerCase()) {
+            // Si pertenece a alguno, bloquea
+            res.locals.authADGroup = true
+          }
+        }
+      }
+      // Si no pertenece a ninguno, continúa
+      return next();
     }
   }
 
@@ -325,7 +340,7 @@ export class AuthMiddleware {
                 const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
                 const listGrupos = grupos.map(row => row.GrupoActividadId);
 
-                
+
                 if (listGrupos.length > 0) {
                   const resPers = await queryRunner.query(`
                     SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
@@ -414,4 +429,51 @@ export class AuthMiddleware {
       }
     }
   }
+
+  // Middleware directo - Solo valida y guarda grupos de actividad en res.locals
+  verifyGrupoActividad = async (req: any, res: any, next: any) => {
+    console.log('verifyGrupoActividad', res.locals);
+    if (res.locals?.authADGroup) return next()
+    try {
+      console.log('Verificando grupos de actividad para PersonalId:', res.locals.PersonalId);
+      const PersonalId = res.locals.PersonalId;
+
+      if (PersonalId < 1) {
+        return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." });
+      }
+
+      const stmActual = new Date();
+      const anio = stmActual.getFullYear();
+      const mes = stmActual.getMonth() + 1;
+
+      const queryRunner = dataSource.createQueryRunner();
+
+      try {
+        const grupos = await BaseController.getGruposActividad(queryRunner, PersonalId, anio, mes);
+
+        if (grupos.length > 0) {
+          // Tiene grupos de actividad, guardar en res.locals para uso posterior
+          res.locals.gruposActividad = grupos.map(row => row.GrupoActividadId);
+          res.locals.hasGrupoActividad = true;
+          return next();
+        } else {
+          // No tiene grupos de actividad ni permisos de operaciones
+          return res.status(403).json({
+            msg: "No tiene permisos para acceder. Requiere ser Jerárquico de un grupo de actividad"
+          });
+        }
+      } finally {
+        await queryRunner.release();
+      }
+
+    } catch (error) {
+      console.error("Error en verifyGroupoActividad:", error);
+      return res.status(500).json({
+        msg: "Error al verificar grupos de actividad",
+        error: error.message
+      });
+    }
+  }
+
+
 }
