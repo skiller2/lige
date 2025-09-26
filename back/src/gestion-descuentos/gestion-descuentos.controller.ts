@@ -275,11 +275,12 @@ const columnsObjetivosDescuentos: any[] = [
    {
     id: 'DescontarDetalle', name: 'Aplica A', field: 'DescontarDetalle',
     fieldName: "des.ObjetivoDescuentoDescontar",
+    searchComponent: "inpurForAplicaASearch",
     type: 'string',
     searchType: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     // minWidth: 50,
     // minWidth: 10,
   },

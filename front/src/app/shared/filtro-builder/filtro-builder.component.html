@@ -153,6 +153,15 @@
       </nz-select>
 
       <nz-select ngModel nzAllowClear style="width:100%"
+      *ngIf="selections.field.searchComponent=='inpurForAplicaASearch'" nzPlaceHolder="Aplica A" nzShowSearch  
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      <ng-container *ngFor="let option of $optionsAplicaA | async">
+        <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+      </ng-container>
+    </nz-select>
+
+      <nz-select ngModel nzAllowClear style="width:100%"
         *ngIf="selections.field.searchComponent=='inpurForEstadoCustSearch'" nzPlaceHolder="Estado" nzShowSearch
         (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">

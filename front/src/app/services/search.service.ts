@@ -231,6 +231,18 @@ export class SearchService {
 
   // estudios
 
+   //SearchEstudio
+   getAplicaAOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/aplicaa/options`).pipe(  
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+
+  }
+
   //SearchEstudio
   getEstudioSearch(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/estudio/search`).pipe(
