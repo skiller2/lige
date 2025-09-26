@@ -795,7 +795,7 @@ export class GestionDescuentosController extends BaseController {
         // agrego validacion aca para no repetir con el importador de excel
         const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
         if (checkrecibos[0]?.ind_recibos_generados == 1)
-          throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+          throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}, no se puede hacer modificaciones`)
 
         // agrego validaciones según si la persona esta activa en el periodo para no duplicar en addPersonalOtroDescuento, ya que dicha funcion es llamada desde el importador de excel
         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
@@ -810,7 +810,7 @@ export class GestionDescuentosController extends BaseController {
         // agrego validacion aca para no repetir con el importador de excel
         const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
         if (checkrecibos[0]?.ind_recibos_generados == 1)
-          throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+          throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}, no se puede hacer modificaciones`)
 
         // agrego validaciones según AplicaA para no duplicar en addDescuentoObjetivo, ya que dicha funcion es llamada desde el importador de excel
         switch (AplicaA) {
@@ -859,7 +859,7 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (per[0] && per[0].ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
       //const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
 
       //PersonalOtrosDescuentos
@@ -1086,7 +1086,7 @@ export class GestionDescuentosController extends BaseController {
 
     const checkrecibos = await this.getPeriodoQuery(queryRunner, PersonalOtroDescuento.AnoAplica, PersonalOtroDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
+      throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
 
     const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
     if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
@@ -1177,7 +1177,7 @@ export class GestionDescuentosController extends BaseController {
       throw new ClientException(`No se puede modificar descuentos anulados.`)
     const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
-      throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
+      throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
 
     switch (AplicaA) {
       case 'CL':
