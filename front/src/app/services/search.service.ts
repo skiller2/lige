@@ -1913,4 +1913,17 @@ export class SearchService {
     );
   }
 
+  getProcesoAutomatico(logCod: number) {
+    if (!logCod ) {
+      return of({});
+    }
+    return this.http.get<ResponseJSON<any>>(`api/procesos-automaticos/${logCod}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

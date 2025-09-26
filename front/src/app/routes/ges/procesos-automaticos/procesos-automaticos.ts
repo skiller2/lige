@@ -11,13 +11,14 @@ import { ApiService } from '../../../services/api.service';
 import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
+import { ProcesosAutomaticosDrawerComponent } from "../procesos-automaticos-drawer/procesos-automaticos-drawer";
 
 @Component({
     selector: 'app-procesos-automaticos',
     templateUrl: './procesos-automaticos.html',
     styleUrl:'./procesos-automaticos.less',
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent ],
+    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDrawerComponent ],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProcesosAutomaticosComponent {
@@ -26,6 +27,7 @@ export class ProcesosAutomaticosComponent {
   mes = computed(() => this.periodo()?.getMonth()+1);
   reload = signal<number>(0);
   logCodigo = signal<number>(0);
+  visibleDetalle = model<boolean>(false);
   gridOptions!: GridOption;
   gridData: any;
   startFilters: any[] = [];
@@ -117,6 +119,10 @@ export class ProcesosAutomaticosComponent {
   listOptionsChange(options: any) {
     this.listOptions = options;
     this.listProcesosAutomaticos()
+  }
+
+  openDrawerforDetalle(): void{
+    this.visibleDetalle.set(true) 
   }
     
 }

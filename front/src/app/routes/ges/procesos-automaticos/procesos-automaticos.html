@@ -16,7 +16,8 @@
       </ul>
       
       <nz-button-group>
-        <button nzType="default" nz-button nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" >
+        <button nzType="default" nz-button nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"
+        (click)="openDrawerforDetalle()" [disabled]="logCodigo() == 0">
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>
       </nz-button-group>
@@ -42,3 +43,5 @@
   
     </nz-tabset>
 </nz-card>
+
+<app-procesos-automaticos-drawer [(visible)]="visibleDetalle" [logCod]="logCodigo()"></app-procesos-automaticos-drawer>

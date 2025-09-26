@@ -1,0 +1,13 @@
+<nz-descriptions nzBordered [nzColumn]="1" [nzSize]="'small'">
+  @if (data()) {
+    @for (key of objectKeys(data()); track key) {
+      <nz-descriptions-item [nzTitle]="key">
+        @if (isObject(data()[key])) {
+          <app-object-viewer [data]="data()[key]"></app-object-viewer>
+        } @else {
+          {{ data()[key] }}
+        }
+      </nz-descriptions-item>
+    }
+  }
+</nz-descriptions>

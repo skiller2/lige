@@ -1,0 +1,62 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="900"
+  [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+    <br>
+    <form [formGroup]="formProcAuto">
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="4">LogCodigo</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="ProcesoAutomaticoLogCodigo" type="number" [readonly]="true"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="4">Nombre Proceso</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="NombreProceso" type="text" [readonly]="true"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="4">Fecha Inicio</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-date-picker formControlName="FechaInicio" [nzInputReadOnly]="true"></nz-date-picker>
+          <!-- <input nz-input placeholder="" formControlName="FechaInicio" type="text" [readonly]="true"/> -->
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="4">Fecha Fin</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-date-picker formControlName="FechaFin" [nzInputReadOnly]="true"></nz-date-picker>
+          <!-- <input nz-input placeholder="" formControlName="FechaFin" type="text" /> -->
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="4">Descripcion</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="Descripcion" type="text" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-control [nzXs]="1"></nz-form-control>
+        <nz-form-control [nzXs]="23">
+          <h3>Parametro Entrada</h3>
+          <app-object-viewer [data]="ParametroEntrada()"></app-object-viewer>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-control [nzXs]="1"></nz-form-control>
+        <nz-form-control [nzXs]="23">
+          <h3>Resultado</h3>
+          <app-object-viewer [data]="Resultado()"></app-object-viewer>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </ng-container>
+</nz-drawer>
