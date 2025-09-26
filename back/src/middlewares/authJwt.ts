@@ -37,6 +37,9 @@ export class AuthMiddleware {
         grupos = decoded.groups
 
       req.groups = grupos.map(r => r.match(/CN=([^,]+)/)![1])
+
+      // todo: agregar si pasado x tiempo del date de GrupoActividad.date, recargar consulta de grupos
+      
       return next();
     });
   };
