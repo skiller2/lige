@@ -408,13 +408,11 @@ export class FileUploadController extends BaseController {
 
           let type = file.mimetype.split('/')[1]
 
-          if (type == 'pdf') {
-            detalle_documento = await FileUploadController.FileData(file.tempfilename)
-          }
+          if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
 
-          if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-            type = 'xlsx'
-          }
+          if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet' ) type = 'xlsx'
+
+          if (type == 'vnd.ms-excel') type = 'xls'
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
           //console.log("newFilePath", newFilePath)
