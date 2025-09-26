@@ -1476,7 +1476,7 @@ export class ApiService {
 
   getDescuentosPersonal(options: any, anio: number, mes: number) {
     if (!anio && !mes && !options.filtros.length) {
-      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
       return of([]);
     }
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/personal`, { options, anio, mes })
@@ -1488,7 +1488,7 @@ export class ApiService {
 
   getDescuentosObjetivos(options: any, anio: number, mes: number) {
     if (!anio && !mes && !options.filtros.length) {
-      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
       return of([]);
     } return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/objetivos`, { options, anio, mes })
       .pipe(
