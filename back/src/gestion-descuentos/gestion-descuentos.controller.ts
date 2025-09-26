@@ -71,7 +71,7 @@ const columnsPersonalDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'DescuentoDescripcion', name: 'Tipo Movimiento', field: 'DescuentoDescripcion',
+    id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
     fieldName: 'tipdes.DescuentoDescripcion',
     // searchComponent: "",
     type: 'string',
@@ -306,7 +306,7 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'DescuentoDescripcion', name: 'Tipo Movimiento', field: 'DescuentoDescripcion',
+    id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
     fieldName: 'det.DescuentoId',
     searchComponent: 'inpurForDescuentoForObjetivoSearch',
     type: 'string',
