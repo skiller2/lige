@@ -318,9 +318,11 @@ export class AuthController extends BaseController {
 
       // Agregar información de consulta como propiedad separada
       user.GrupoActividad = []
-      for (const row of GrupoActividadList)
-        user.GrupoActividad.push(row.GrupoActividadNumero)
+      user.GrupoActividadIds = []
+      for (const row of GrupoActividadList) user.GrupoActividad.push(row.GrupoActividadNumero)
+      for (const row of GrupoActividadList) user.GrupoActividadIds.push(row.GrupoActividadId)
 
+      user.lastDbQueryTime = new Date()
 
       const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
       const token = jsonwebtoken.sign(user, jwtsecret, {

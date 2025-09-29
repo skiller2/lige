@@ -16,13 +16,16 @@ export class AuthMiddleware {
   }
 
   verifyToken = (req: any, res: any, next: any) => {
+    const now = new Date()
+    const anio = now.getFullYear()
+    const mes = now.getMonth() + 1
     const parsetoken = (req.headers.token) ? req.headers.token.split(" ") : "";
 
     const token = (parsetoken[1]) ? parsetoken[1] : req.headers.token;
 
     if (!token) return res.status(403).json({ msg: "No token provided" });
     const jwtsecret = (process.env.JWT_SECRET) ? process.env.JWT_SECRET : ""
-    jwt.verify(token, jwtsecret, (err: any, decoded: any) => {
+    jwt.verify(token, jwtsecret, async (err: any, decoded: any) => {
       if (err) return this.catchError(err, res);
       req.decoded_token = decoded;
       req.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
@@ -38,8 +41,26 @@ export class AuthMiddleware {
 
       req.groups = grupos.map(r => r.match(/CN=([^,]+)/)![1])
 
-      // todo: agregar si pasado x tiempo del date de GrupoActividad.date, recargar consulta de grupos
-      
+      // pasado 20 min, recargar consulta de grupos
+      res.locals.GrupoActividadIds = (decoded.GrupoActividadIds != undefined) ? decoded.GrupoActividadIds : [];
+      res.locals.lastDbQueryTime = (decoded.lastDbQueryTime != undefined) ? decoded.lastDbQueryTime : '';
+
+      if (!res.locals.lastDbQueryTime || ((now.getTime() - new Date(res.locals.lastDbQueryTime).getTime()) > 20 * 60 * 1000)) {
+        // si la consulta es mayor a 20 minutos, recarga
+        const queryRunner = dataSource.createQueryRunner()
+        try {
+          const rows = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+          const listGrupos = rows.map(row => row.GrupoActividadId);
+          res.locals.GrupoActividadIds = listGrupos;
+          res.locals.lastDbQueryTime = now;
+        } catch (err) {
+          console.log('error recargando grupos', err);
+          return res.status(500).json({ msg: "Error recargando grupos de actividad", error: err, stamp: new Date() });
+        } finally {
+          await queryRunner.release();
+
+        }
+      }
       return next();
     });
   };
