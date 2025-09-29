@@ -315,13 +315,12 @@ export class AuthController extends BaseController {
         @1 > ga.GrupoActividadJerarquicoDesde AND @1 <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
         [user.PersonalId, new Date()]
       )
-      
+
       // Agregar información de consulta como propiedad separada
-      user.GrupoActividad = {
-        ids: GrupoActividadList.map(row => row.GrupoActividadId),
-        date: new Date(),
-        count: GrupoActividadList.length
-      }
+      user.GrupoActividad = []
+      for (const row of GrupoActividadList)
+        user.GrupoActividad.push(row.GrupoActividadNumero)
+
 
       const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
       const token = jsonwebtoken.sign(user, jwtsecret, {
