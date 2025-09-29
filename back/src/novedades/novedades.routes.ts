@@ -5,19 +5,19 @@ import { novedadesController, objetivosController } from "../controller/controll
 export const novedadesRouter = Router();
 
 
-novedadesRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasNotGroup(['gOperaciones'])], (req, res) => {
+novedadesRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res) => {
   novedadesController.getGridCols(req, res);
 });
 
-novedadesRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasNotGroup(['gOperaciones'])], (req, res, next) => {
+novedadesRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
   novedadesController.list(req, res, next)
 })
 
-novedadesRouter.get('/tipo_novedad', [authMiddleware.verifyToken ,authMiddleware.hasNotGroup(['gOperaciones'])], (req, res, next) => {
+novedadesRouter.get('/tipo_novedad', [authMiddleware.verifyToken ,authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
   novedadesController.getTipoNovedad(req, res, next);
 });
 
-novedadesRouter.get('/infNovedad/:NovedadId', [authMiddleware.verifyToken,authMiddleware.hasNotGroup(['gOperaciones'])], (req, res, next) => {
+novedadesRouter.get('/infNovedad/:NovedadId', [authMiddleware.verifyToken,authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
   novedadesController.infNovedad(req, res, next)
 })
 

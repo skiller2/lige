@@ -80,13 +80,13 @@ export class AuthMiddleware {
     }
   }
 
-  hasNotGroup = (groups: string[]) => {
+  authADGroup = (groups: string[]) => {
     return (req, res, next) => {
       if (!req?.groups) return next();
       for (const myGrp of req.groups) {
         for (const grp of groups) {
           if (myGrp.toLowerCase() === grp.toLowerCase()) {
-            // Si pertenece a alguno, bloquea
+            // Si pertenece a alguno, permite el acceso total 
             res.locals.authADGroup = true
           }
         }
@@ -458,45 +458,24 @@ export class AuthMiddleware {
   verifyGrupoActividad = async (req: any, res: any, next: any) => {
     console.log('verifyGrupoActividad', res.locals);
     if (res.locals?.authADGroup) return next()
-    try {
-      console.log('Verificando grupos de actividad para PersonalId:', res.locals.PersonalId);
-      const PersonalId = res.locals.PersonalId;
 
-      if (PersonalId < 1) {
-        return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." });
-      }
+    const PersonalId = res.locals.PersonalId;
+    const GrupoActividadIds = res.locals.GrupoActividadIds;
 
-      const stmActual = new Date();
-      const anio = stmActual.getFullYear();
-      const mes = stmActual.getMonth() + 1;
-
-      const queryRunner = dataSource.createQueryRunner();
-
-      try {
-        const grupos = await BaseController.getGruposActividad(queryRunner, PersonalId, anio, mes);
-
-        if (grupos.length > 0) {
-          // Tiene grupos de actividad, guardar en res.locals para uso posterior
-          res.locals.gruposActividad = grupos.map(row => row.GrupoActividadId);
-          res.locals.hasGrupoActividad = true;
-          return next();
-        } else {
-          // No tiene grupos de actividad ni permisos de operaciones
-          return res.status(403).json({
-            msg: "No tiene permisos para acceder. Requiere ser Jerárquico de un grupo de actividad"
-          });
-        }
-      } finally {
-        await queryRunner.release();
-      }
-
-    } catch (error) {
-      console.error("Error en verifyGroupoActividad:", error);
-      return res.status(500).json({
-        msg: "Error al verificar grupos de actividad",
-        error: error.message
+    if (PersonalId < 1) {
+      return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." });
+    }
+    if (!GrupoActividadIds || GrupoActividadIds.length > 0) {
+      // Tiene grupos de actividad, guardar en res.locals para uso posterior
+      return next();
+    } else {
+      // No tiene grupos de actividad ni permisos de operaciones
+      return res.status(403).json({
+        msg: "No tiene permisos para acceder. Requiere ser Jerárquico de un grupo de actividad"
       });
     }
+
+
   }
 
 
