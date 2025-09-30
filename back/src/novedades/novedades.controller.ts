@@ -18,14 +18,16 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
-        name: "Codigo",
+        name: "Código",
         type: "number",
         id: "NovedadCodigo",
         field: "NovedadCodigo",
         fieldName: "nov.NovedadCodigo",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: false,
+        maxWidth: 55
+
     },
     {
         name: "Sucursal",
@@ -35,7 +37,8 @@ const listaColumnas: any[] = [
         fieldName: "suc.SucursalDescripcion",
         sortable: true,
         hidden: false,
-        searchHidden: true
+        searchHidden: true,
+        
     },
     {
         name: "Sucursal",
@@ -70,14 +73,15 @@ const listaColumnas: any[] = [
         searchHidden: false
       },
     {
-        name: "Cod Obj",
+        name: "Código Objetivo",
         type: "string",
         id: "CodObj",
         field: "CodObj",
         fieldName: "CodObj",
         sortable: true,
         hidden: false,
-        searchHidden: true
+        searchHidden: true,
+        maxWidth: 65
     },
     
     {
@@ -92,7 +96,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Descripcion Obj",
+        name: "Objetivo",
         type: "string",
         id: "DescripcionObj",
         field: "DescripcionObj",
@@ -124,7 +128,7 @@ const listaColumnas: any[] = [
         searchHidden: false
       },
     {
-        name: "Tipo Nov.",
+        name: "Tipo novedad.",
         type: "string",
         id: "NovedadTipo",
         field: "NovedadTipo",
@@ -134,7 +138,7 @@ const listaColumnas: any[] = [
         searchHidden: true,
     },
     {
-        name: "Tipo Nov.",
+        name: "Tipo novedad",
         type: "string",
         id: "NovedadTipoCod",
         field: "NovedadTipoCod",
@@ -177,7 +181,7 @@ const listaColumnas: any[] = [
         hidden: true,
       },
     {
-        name: "Telefono",
+        name: "Teléfono",
         type: "string",
         id: "Telefono",
         field: "Telefono",
@@ -187,17 +191,18 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Fecha Visualizacion",
+        name: "Visto",
         type: "date",
         id: "VisualizacionFecha",
         field: "VisualizacionFecha",
         fieldName: "nov.VisualizacionFecha",
         sortable: true,
         hidden: false,
-        searchHidden: true
+        searchHidden: true,
+        
     },
         {
-        name: "Descripcion",
+        name: "Descripción",
         type: "string",
         id: "Descripcion",
         field: "Descripcion",
