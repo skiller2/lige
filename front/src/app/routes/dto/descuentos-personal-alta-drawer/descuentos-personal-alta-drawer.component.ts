@@ -40,7 +40,8 @@ export class DescuentosPersonalAltaDrawerComponent {
 
             if (visible) {
                 if (this.descuentoId() && this.personalId()) {
-                    let infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
+                    const infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
+                    infoDes.oldPersonalId = infoDes.PersonalId
                     this.formDesc.reset(infoDes)
                     //console.log('infoDes: ', infoDes);
                     this.importeCuotaChange()
@@ -198,12 +199,11 @@ export class DescuentosPersonalAltaDrawerComponent {
         let values = this.formDesc.getRawValue()
         try {
             if (values.id) {
-                values = {...values,oldPersonalId: this.personalId(),}
                 await firstValueFrom(this.apiService.updateDescuento(values))
             } else {
                 const res = await firstValueFrom(this.apiService.addDescuento(values))
                 if (res.data.id)
-                    this.formDesc.patchValue({ id: res.data.id })
+                    this.formDesc.patchValue({ id: res.data.id,oldPersonalId: values.PersonalId})
             }
             this.onAddorUpdate.emit()
             this.selectedPersonalIdChange$.next('')
