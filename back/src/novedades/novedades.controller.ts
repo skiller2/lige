@@ -195,7 +195,28 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true
-    }
+    },
+        {
+        name: "Descripcion",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "nov.Descripcion",
+        sortable: false,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Accion",
+        type: "string",
+        id: "Accion",
+        field: "Accion",
+        fieldName: "nov.Accion",
+        sortable: false,
+        hidden: false,
+        searchHidden: false
+    },
+
 ];
 
 
@@ -239,6 +260,7 @@ export class NovedadesController extends BaseController {
                     ,nov.Fecha
                     ,nov.VisualizacionFecha
                     ,nov.Accion
+                    ,nov.Descripcion
                     ,nov.VisualizacionPersonaId
                     ,nov.VisualizacionTelefono 
                     ,1
