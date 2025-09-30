@@ -45,7 +45,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
             const visible = this.visibleDesc()
             if (visible) {
                 if (this.ObjetivoDescuentoId() && this.objetivoId()) {
-                    let infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
+                    const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
+                    infoDesc.oldObjetivoId= infoDesc.ObjetivoId
                     this.formDesc.reset(infoDesc)
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
@@ -172,13 +173,11 @@ export class DescuentosObjetivosAltaDrawerComponent {
         let values = this.formDesc.getRawValue()
         try {
             if (values.id) {
-                values = {...values,oldObjetivoId:this.objetivoId()}
-                console.log(values)
                 await firstValueFrom(this.apiService.updateDescuento(values))
             }else{
                 const res = await firstValueFrom(this.apiService.addDescuento(values))
                 if (res.data.id)
-                    this.formDesc.patchValue({ id: res.data.id })
+                    this.formDesc.patchValue({ id: res.data.id, oldObjetivoId: values.ObjetivoId })
             }
             this.onAddorUpdate.emit()
             this.selectedPersonalIdChange$.next('')

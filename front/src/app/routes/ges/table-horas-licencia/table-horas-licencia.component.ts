@@ -191,9 +191,9 @@ export class  TableHorasLicenciaComponent {
         this.rowLocked = false
       } catch (e: any) {
 
-
+        console.log('cancelar y volver al anterior',row)
         //marcar el row en rojo
-        if (row.GrupoActividadNumeroOld) {
+//        if (row.GrupoActividadNumeroOld) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)
           if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
             const fld = editCommand.editor.args.column.field
@@ -201,12 +201,12 @@ export class  TableHorasLicenciaComponent {
             item[fld] = editCommand.editor.args.item[fld]
           }
           this.angularGridEdit.gridService.updateItemById(row.id, item)
-        } else {
+//        } else {
           //marcar el row en rojo
 
-          this.angularGridEdit.slickGrid.setSelectedRows([]);
-          this.angularGridEdit.slickGrid.render();
-        }
+//          this.angularGridEdit.slickGrid.setSelectedRows([]);
+//          this.angularGridEdit.slickGrid.render();
+//        }
         this.rowLocked = false
       }
     }
