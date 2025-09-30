@@ -1342,7 +1342,7 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
       // const usuarioId = await this.getUsuarioId(res, queryRunner)
       // const ip = this.getRemoteAddress(req)
-      if (!DetalleAnulacion.length) campos_vacios.push("- Motivo de anulación");
+      if (!DetalleAnulacion) campos_vacios.push("- Motivo de anulación");
 
       if (campos_vacios.length) {
         campos_vacios.unshift('Debe completar los siguientes campos: ')
