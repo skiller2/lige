@@ -4,6 +4,76 @@ import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 
 export class PersonalController extends BaseController {
+  async setPersonalAdelanto(personalId: any, anio: any, mes: any, monto: number) {
+    const now = new Date()
+    const hora = this.getTimeString(now)
+    let today = now
+    today.setHours(0, 0, 0, 0)
+    const ip = this.getRemoteAddress(null)
+
+    const prestamoId =
+      Number((
+        await dbServer.dataSource.query(
+          `
+            SELECT per.PersonalPrestamoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
+          [personalId]
+        )
+      )[0].max) + 1;
+
+    const usuarioId = null
+    const FormaPrestamoId = 7 //Adelanto
+    const result = await dbServer.dataSource.query(
+      `INSERT INTO PersonalPrestamo(
+                    PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
+                    PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
+                    PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
+                    -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
+                    PersonalPrestamoDia, PersonalPrestamoTiempo)
+                    VALUES(
+                    @0, @1, @2, @3,
+                    @4, @5, @6, @7,
+                    @8, @9, @10, @11,
+                    -- @12, @13, @14,
+                    @15, @16)
+                `,
+      [
+        prestamoId, //PersonalPrestamoId
+        personalId, //PersonalId
+        monto, //PersonalPrestamoMonto
+        FormaPrestamoId, //FormaPrestamoId = 7 Adelanto
+
+        null, //PersonalPrestamoAprobado
+        null, //PersonalPrestamoFechaAprobacion
+        1,  //PersonalPrestamoCantidadCuotas
+        `${mes.toString().padStart(2, '0')}/${anio}`, //PersonalPrestamoAplicaEl
+
+        null, //PersonalPrestamoLiquidoFinanzas
+        "", //PersonalPrestamoUltimaLiquidacion
+        null, //PersonalPrestamoCuotaUltNro
+        0, //PersonalPrestamoMonto
+
+        null, //PersonalPrestamoJerarquicoId
+        ip, //PersonalPrestamoPuesto
+        usuarioId, //PersonalPrestamoUsuarioId
+
+        today, //PersonalPrestamoDia
+        hora, //PersonalPrestamoTiempo  
+
+      ]
+    );
+
+    const resultAdelanto = await dbServer.dataSource.query(
+      `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
+      [
+        personalId,
+        prestamoId,
+      ]
+    );
+
+
+  }
+
+
   async getDocsPendDescarga(PersonalId: number) {
     const result = await dbServer.dataSource.query(
       `SELECT doc.personalid PersonalId, 
@@ -98,7 +168,7 @@ export class PersonalController extends BaseController {
       codigo = res[0].Codigo
     }
 
-    return { activo,stateData,PersonalSituacionRevistaSituacionId,firstName,codigo}
+    return { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo }
   }
 
   async getPersonalQuery(telefono: string, PersonalId: number) {
@@ -118,7 +188,7 @@ export class PersonalController extends BaseController {
       [telefono, PersonalId, new Date()]
     );
   }
-  
+
   async genTelCode(data: string) {
     const stmgen = new Date();
     //const usuario = 'anon'
@@ -320,6 +390,16 @@ export class PersonalController extends BaseController {
         ORDER BY gap.GrupoActividadPersonalDesde DESC
       `, [personalId]
     );
+
+  }
+
+  static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
+    return await dbServer.dataSource.query(`
+      SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
+      WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
+      AND ade.PersonalId = @0
+      `, [personalId, anio, mes]
+    )
 
   }
 
