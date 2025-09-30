@@ -42,17 +42,19 @@ export class AuthMiddleware {
       req.groups = grupos.map(r => r.match(/CN=([^,]+)/)![1])
 
       // pasado 20 min, recargar consulta de grupos
-      res.locals.GrupoActividadIds = (decoded.GrupoActividadIds != undefined) ? decoded.GrupoActividadIds : [];
+      res.locals.GrupoActividad = (decoded.GrupoActividad != undefined) ? decoded.GrupoActividad : [];
       res.locals.lastDbQueryTime = (decoded.lastDbQueryTime != undefined) ? decoded.lastDbQueryTime : '';
 
       if (!res.locals.lastDbQueryTime || ((now.getTime() - new Date(res.locals.lastDbQueryTime).getTime()) > 20 * 60 * 1000)) {
         // si la consulta es mayor a 20 minutos, recarga
         const queryRunner = dataSource.createQueryRunner()
         try {
-          const rows = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
-          const listGrupos = rows.map(row => row.GrupoActividadId);
-          res.locals.GrupoActividadIds = listGrupos;
-          res.locals.lastDbQueryTime = now;
+          res.locals.GrupoActividad = []
+          const listGrupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+          for (const row of listGrupos) {
+            res.locals.GrupoActividad.push({ GrupoActividadNumero: row.GrupoActividadNumero, GrupoActividadId: row.GrupoActividadId })
+          }
+          res.locals.lastDbQueryTime = new Date()
         } catch (err) {
           console.log('error recargando grupos', err);
           return res.status(500).json({ msg: "Error recargando grupos de actividad", error: err, stamp: new Date() });
@@ -460,23 +462,16 @@ export class AuthMiddleware {
     if (res.locals?.authADGroup) return next()
 
     const PersonalId = res.locals.PersonalId;
-    const GrupoActividadIds = res.locals.GrupoActividadIds;
+    const GrupoActividad = res.locals.GrupoActividad;
 
     if (PersonalId < 1) {
       return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." });
     }
-    if (!GrupoActividadIds || GrupoActividadIds.length > 0) {
+    if (!GrupoActividad || GrupoActividad.length > 0) {
       // Tiene grupos de actividad, guardar en res.locals para uso posterior
       return next();
-    } else {
-      // No tiene grupos de actividad ni permisos de operaciones
-      return res.status(403).json({
-        msg: "No tiene permisos para acceder. Requiere ser Jerárquico de un grupo de actividad"
-      });
     }
-
-
+    // No tiene grupos de actividad ni permisos de operaciones
+    return res.status(403).json({ msg: "No tiene permisos para acceder. Requiere ser Jerárquico de un grupo de actividad." });
   }
-
-
 }

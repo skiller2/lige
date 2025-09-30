@@ -33,10 +33,10 @@ type listOptionsT = {
 }
 
 @Component({
-    imports: [
-        SHARED_IMPORTS,
-    ],
-    template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
+  imports: [
+    SHARED_IMPORTS,
+  ],
+  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
            ><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
@@ -48,16 +48,16 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-    selector: 'objetivos-pendasis',
-    templateUrl: './objetivos-pendasis.component.html',
-    imports: [
-        SHARED_IMPORTS,
-        CommonModule,
-        NzAffixModule,
-        FiltroBuilderComponent,
-    ],
-    styleUrls: ['./objetivos-pendasis.component.less'],
-    providers: [AngularUtilService]
+  selector: 'objetivos-pendasis',
+  templateUrl: './objetivos-pendasis.component.html',
+  imports: [
+    SHARED_IMPORTS,
+    CommonModule,
+    NzAffixModule,
+    FiltroBuilderComponent,
+  ],
+  styleUrls: ['./objetivos-pendasis.component.less'],
+  providers: [AngularUtilService]
 })
 export class ObjetivosPendAsisComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
@@ -65,7 +65,7 @@ export class ObjetivosPendAsisComponent {
   private readonly route = inject(ActivatedRoute);
 
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService: SearchService) { }
   anio = 0
   mes = 0
   formChange$ = new BehaviorSubject('');
@@ -78,7 +78,7 @@ export class ObjetivosPendAsisComponent {
       }
       return col
     });
-    return mapped    
+    return mapped
   }));
 
   excelExportService = new ExcelExportService()
@@ -111,7 +111,7 @@ export class ObjetivosPendAsisComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
-      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
+      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
       return this.apiService
         .getObjetivosPendAsis(
           { options: this.listOptions }
@@ -140,24 +140,31 @@ export class ObjetivosPendAsisComponent {
 
     const user: any = this.settingService.getUser()
 
-    this.startfilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.join(';'), forced: false }])
+    this.startfilters.set([{
+      field: 'GrupoActividadNumero',
+      condition: 'AND',
+      operator: '=',
+      value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'),
+      forced: false
+    }])
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     switch (colDef.id) {
       case 'ClienteElementoDependienteDescripcion':
-        Object.assign(componentOutput.componentRef.instance, { link: '/ges/carga_asistencia', params: {ObjetivoId:dataContext.ObjetivoId}, detail:cellNode.innerText
-       })
-        
+        Object.assign(componentOutput.componentRef.instance, {
+          link: '/ges/carga_asistencia', params: { ObjetivoId: dataContext.ObjetivoId }, detail: cellNode.innerText
+        })
+
         break;
-    
+
       default:
         break;
     }
 
     cellNode.replaceChildren(componentOutput.domElement)
-}
+  }
 
 
 
@@ -207,11 +214,11 @@ export class ObjetivosPendAsisComponent {
     this.angularGridOPA = angularGrid.detail
 
     if (this.apiService.isMobile())
-      this.angularGridOPA.gridService.hideColumnByIds(['SucursalDescripcion','GrupoActividadNumero','AsistenciaHoras'])
+      this.angularGridOPA.gridService.hideColumnByIds(['SucursalDescripcion', 'GrupoActividadNumero', 'AsistenciaHoras'])
 
-    this.angularGridOPA.dataView.onRowsChanged.subscribe((e:any, arg:any) => {
+    this.angularGridOPA.dataView.onRowsChanged.subscribe((e: any, arg: any) => {
       totalRecords(this.angularGridOPA)
-    })    
+    })
   }
 
   angularGridReadyOPAT(angularGrid: any) {
@@ -219,11 +226,11 @@ export class ObjetivosPendAsisComponent {
     this.angularGridOPAT = angularGrid.detail
 
     if (this.apiService.isMobile())
-      this.angularGridOPAT.gridService.hideColumnByIds(['SucursalDescripcion','GrupoActividadNumero','AsistenciaHoras'])
+      this.angularGridOPAT.gridService.hideColumnByIds(['SucursalDescripcion', 'GrupoActividadNumero', 'AsistenciaHoras'])
 
-    this.angularGridOPAT.dataView.onRowsChanged.subscribe((e:any, arg:any) => {
+    this.angularGridOPAT.dataView.onRowsChanged.subscribe((e: any, arg: any) => {
       totalRecords(this.angularGridOPAT)
-    })    
+    })
   }
 
   exportGrid() {

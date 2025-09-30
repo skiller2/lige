@@ -337,8 +337,9 @@ export class BaseController {
 
   static async getGruposActividad(queryRunner: any, PersonalId: number, anio: number, mes: number) {
     return await queryRunner.query(
-      `SELECT DISTINCT gaj.GrupoActividadId, gaj.GrupoActividadJerarquicoComo, 1
-      FroM GrupoActividadJerarquico gaj 
+      `SELECT DISTINCT gaj.GrupoActividadId, gaj.GrupoActividadJerarquicoComo, ga.GrupoActividadNumero, 1
+      FROM GrupoActividadJerarquico gaj
+      left join GrupoActividad ga on ga.GrupoActividadId = gaj.GrupoActividadId
       WHERE gaj.GrupoActividadJerarquicoPersonalId = @0
       AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <=  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31')`,
       [PersonalId, anio, mes])

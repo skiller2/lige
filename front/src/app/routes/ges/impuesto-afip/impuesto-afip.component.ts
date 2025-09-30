@@ -37,10 +37,10 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { SettingsService } from '@delon/theme';
 
 @Component({
-    imports: [
-        SHARED_IMPORTS,
-    ],
-    template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
+  imports: [
+    SHARED_IMPORTS,
+  ],
+  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
            style="float:right;padding-right: 5px;"><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
@@ -53,17 +53,17 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-    selector: 'app-impuesto-afip',
-    templateUrl: './impuesto-afip.component.html',
-    imports: [
-        CommonModule,
-        SHARED_IMPORTS,
-        NzAffixModule,
-        FiltroBuilderComponent,
-        NzUploadModule
-    ],
-    styleUrls: ['./impuesto-afip.component.less'],
-    providers: [AngularUtilService]
+  selector: 'app-impuesto-afip',
+  templateUrl: './impuesto-afip.component.html',
+  imports: [
+    CommonModule,
+    SHARED_IMPORTS,
+    NzAffixModule,
+    FiltroBuilderComponent,
+    NzUploadModule
+  ],
+  styleUrls: ['./impuesto-afip.component.less'],
+  providers: [AngularUtilService]
 })
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
@@ -73,7 +73,7 @@ export class ImpuestoAfipComponent {
   url_forzado = '/api/impuestos_afip/forzado';
   toggle = false;
   //  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-//  sharedFiltroBuilder = viewChild.required(FiltroBuilderComponent);
+  //  sharedFiltroBuilder = viewChild.required(FiltroBuilderComponent);
   sharedFiltroBuilder = viewChild.required<FiltroBuilderComponent>('sfb');
 
   files: NzUploadFile[] = [];
@@ -102,7 +102,7 @@ export class ImpuestoAfipComponent {
     let mapped = cols.map((col: any) => {
       if (col.id == 'monto') {
         col.asyncPostRender = this.renderAngularComponent.bind(this)
-        col.params = { angularUtilService : this.angularUtilService, component : CustomDescargaComprobanteComponent  }
+        col.params = { angularUtilService: this.angularUtilService, component: CustomDescargaComprobanteComponent }
       }
       return col
     });
@@ -111,7 +111,7 @@ export class ImpuestoAfipComponent {
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-  startFilters: any[]=[]
+  startFilters: any[] = []
 
   listOptions: listOptionsT = {
     filtros: [],
@@ -134,7 +134,7 @@ export class ImpuestoAfipComponent {
           { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions, toggle: this.toggle }
         )
         .pipe(
-          map((data:any) => {
+          map((data: any) => {
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -153,7 +153,7 @@ export class ImpuestoAfipComponent {
           0
         )
         .pipe(
-          map((items:any) => {
+          map((items: any) => {
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,
@@ -174,12 +174,11 @@ export class ImpuestoAfipComponent {
 
 
     const user: any = this.settingService.getUser()
-    const gruposActividadList = user.GrupoActividad
-    this.startFilters = [
-      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';') },
-      { field: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: 'null' },
-      { field: 'monto', condition: 'AND', operator: '=', value: 'null' }
-    ]
+      this.startFilters = [
+        { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') },
+        { field: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: 'null' },
+        { field: 'monto', condition: 'AND', operator: '=', value: 'null' }
+      ]
 
 
   }
