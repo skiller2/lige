@@ -215,6 +215,13 @@ export class NovedadesController extends BaseController {
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
 
+        let grupoActividadFilter = ''
+
+        const GrupoActividadIds = res.locals.GrupoActividadIds ? res.locals.GrupoActividadIds : []
+        if (!res.locals?.authADGroup && (GrupoActividadIds.length > 0)) {
+            grupoActividadFilter = `AND ga.GrupoActividadId IN (${GrupoActividadIds.join(',')}) `
+        }
+
         try {
             const objetivos = await queryRunner.query(
                 `Select
@@ -254,7 +261,7 @@ export class NovedadesController extends BaseController {
                     LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
                     LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
 
-                WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
+                WHERE ${filterSql} ${grupoActividadFilter} ${orderBy}`, [anio, mes, fechaActual])
 
             this.jsonRes(
                 {
