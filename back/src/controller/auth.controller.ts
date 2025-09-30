@@ -318,7 +318,6 @@ export class AuthController extends BaseController {
 
       // Agregar información de consulta como propiedad separada
       user.GrupoActividad = []
-      user.GrupoActividadIds = []
       for (const row of GrupoActividadList) {
         user.GrupoActividad.push({ GrupoActividadNumero: row.GrupoActividadNumero, GrupoActividadId: row.GrupoActividadId })
       }

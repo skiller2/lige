@@ -217,8 +217,9 @@ export class NovedadesController extends BaseController {
 
         let grupoActividadFilter = ''
 
-        const GrupoActividadIds = res.locals.GrupoActividadIds ? res.locals.GrupoActividadIds : []
+        const GrupoActividadIds = res.locals.GrupoActividad ? res.locals.GrupoActividad : []
         if (!res.locals?.authADGroup && (GrupoActividadIds.length > 0)) {
+            const GrupoActividadIds = res.locals.GrupoActividad.map((g: any) => g.GrupoActividadId)
             grupoActividadFilter = `AND ga.GrupoActividadId IN (${GrupoActividadIds.join(',')}) `
         }
 

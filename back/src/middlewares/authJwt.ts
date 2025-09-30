@@ -462,12 +462,12 @@ export class AuthMiddleware {
     if (res.locals?.authADGroup) return next()
 
     const PersonalId = res.locals.PersonalId;
-    const GrupoActividadIds = res.locals.GrupoActividadIds;
+    const GrupoActividad = res.locals.GrupoActividad;
 
     if (PersonalId < 1) {
       return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." });
     }
-    if (!GrupoActividadIds || GrupoActividadIds.length > 0) {
+    if (!GrupoActividad || GrupoActividad.length > 0) {
       // Tiene grupos de actividad, guardar en res.locals para uso posterior
       return next();
     }
