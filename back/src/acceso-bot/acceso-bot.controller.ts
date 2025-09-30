@@ -718,35 +718,63 @@ export class AccesoBotController extends BaseController {
         }
     }
 
+    static getPreviousMonthYear(year: number,month: number): { year: number,month: number } {
+        if (month === 1) {
+            return { year: year - 1, month: 12 };
+        } else {
+            return { year: year, month: month - 1  };
+        }
+    }    
 
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
-        if (personalIdList.length==0) return []
+        if (personalIdList.length == 0) return []
+        const { year, month } = AccesoBotController.getPreviousMonthYear(anio,mes)
+
         return queryRunner
             .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
-		 recibo.fecha_descarga, recibo.doc_id, @1 AS anio, @2 AS mes, 
-		 IIF(recibo.visto=1,CONCAT('Recibo visto ',recibo.mes,'/',recibo.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
-         ISNULL(recibo.visto,0) visto,
-         ISNULL(botreg.registrado,0) registrado,
-		 1
-    FROM lige.dbo.Personal per 
+                 recibo.fecha_descarga, recibo.doc_id, @1 AS anio, @2 AS mes,    
+                 reciboant.fecha_descarga fecha_descarga_ant, reciboant.doc_id doc_id_ant, reciboant.anio AS anio_ant, reciboant.mes AS mes_ant, 
 
-      	LEFT JOIN (
-            SELECT tel.PersonalId, 
-            IIF(tel.PersonalId IS NOT NULL AND tel.Codigo IS NULL,1,0) registrado
-				FROM BotRegTelefonoPersonal tel 
-				WHERE tel.Codigo IS NULL
-			) botreg ON botreg.PersonalId = per.PersonalId
-            
+                 IIF(recibo.visto=1,CONCAT('Recibo visto ',recibo.mes,'/',recibo.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
+                 IIF(reciboant.visto=1,CONCAT('Recibo visto ',reciboant.mes,'/',reciboant.anio),CONCAT('Recibo ',reciboant.mes,'/',reciboant.anio,' pendiente')) AS descarga_ant,        
+
+         ISNULL(recibo.visto,0) visto,
+         ISNULL(reciboant.visto,0) visto_ant,
+         ISNULL(botreg.registrado,0) registrado,
+                 1
+    FROM lige.dbo.Personal per
+
+        LEFT JOIN (
+            SELECT tel.PersonalId,
+            IIF(tel.PersonalId IS NOT NULL AND tel.Codigo IS NULL,1,0) registrado                                FROM BotRegTelefonoPersonal tel
+                                WHERE tel.Codigo IS NULL
+                        ) botreg ON botreg.PersonalId = per.PersonalId
+
          LEFT JOIN (
-                SELECT  doc.PersonalId, 
-                doc.DocumentoId doc_id, @1 AS anio, @2 AS mes, 
-					 MAX(dl.FechaDescarga) fecha_descarga, IIF(dl.DocumentoId IS NOT NULL,1,0) AS visto
+                SELECT  doc.PersonalId,
+                doc.DocumentoId doc_id, @1 AS anio, @2 AS mes,
+                                         MAX(dl.FechaDescarga) fecha_descarga, IIF(dl.DocumentoId IS NOT NULL,1,0) AS visto
                 FROM Documento doc
                 LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId=doc.DocumentoId AND dl.PersonalId = doc.PersonalId
-                WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @1 AND doc.DocumentoMes = @2
+                WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @1 
+AND doc.DocumentoMes = @2
                 GROUP BY doc.PersonalId, doc.DocumentoId, doc.DocumentoAnio, doc.DocumentoMes,dl.DocumentoId
-			) recibo ON recibo.PersonalId = per.PersonalId
-            WHERE 
-            per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes])
+                        ) recibo ON recibo.PersonalId = per.PersonalId
+
+
+         LEFT JOIN (
+                SELECT  doc.PersonalId,
+                doc.DocumentoId doc_id, doc.DocumentoAnio anio, doc.DocumentoMes mes,
+                                         MAX(dl.FechaDescarga) fecha_descarga, IIF(dl.DocumentoId IS NOT NULL,1,0) AS visto
+                FROM Documento doc
+                LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId=doc.DocumentoId AND dl.PersonalId = doc.PersonalId
+                WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @3 
+AND doc.DocumentoMes = @4
+                GROUP BY doc.PersonalId, doc.DocumentoId, doc.DocumentoAnio, doc.DocumentoMes,dl.DocumentoId
+                        ) reciboant ON reciboant.PersonalId = per.PersonalId        
+
+
+            WHERE
+            per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes, year,month])
     }
 }

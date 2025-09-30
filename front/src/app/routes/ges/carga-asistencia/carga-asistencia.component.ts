@@ -348,7 +348,7 @@ console.log('ver',data)
 
             } catch (e: any) {
                 let item = this.angularGridEdit.dataView.getItemById(row.id)
-                if (e.error.data.categoria || e.error.data.forma) {
+                if (e.error?.data?.categoria || e.error?.data?.forma) {
                     item.categoria = e.error.data.categoria ? e.error.data.categoria : row.categoria
                     item.forma = e.error.data.forma ? e.error.data.forma : row.forma
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {

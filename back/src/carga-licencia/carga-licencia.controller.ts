@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { FileUploadController } from "../controller/file-upload.controller"
+import { AccesoBotController } from "../acceso-bot/acceso-bot.controller";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -1167,6 +1168,8 @@ export class CargaLicenciaController extends BaseController {
   }
 
   async changehours(req: any, res: Response, next: NextFunction) {
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
 
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -1185,6 +1188,27 @@ export class CargaLicenciaController extends BaseController {
         `, [null, anio, mes])
       if (recibo.length > 0 && recibo[0]['ind_recibos_generados'] == 1)
         throw new ClientException(`Ya se generó recibo para el período ${mes}/${anio}, no se pueden modificar las horas`)
+
+
+      const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+
+      const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [PersonalId])
+
+      if (bot[0].visto != 1 && bot[0].doc_id > 0 && bot[0].visto_ant != 1 && bot[0].doc_id_ant > 0) {
+        let errormsg: string[] = []
+
+        if (bot[0].registrado == 0) {
+          errormsg.push(`No se puede cargar horas, la persona no se encuentra registrada en el Bot`)
+        } else {
+          const msgRecPend = `No se puede cargar horas, recibos no vistos:  ` + bot[0].descarga + ((bot[0].mes_ant) ? `, ${bot[0].descarga_ant}` : '')
+          errormsg.push(msgRecPend)
+
+          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+          //if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+        }
+        throw new ClientException(errormsg)
+      }
+
 
 
       let det: any = {}

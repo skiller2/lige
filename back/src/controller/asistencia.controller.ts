@@ -1846,11 +1846,11 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       const listRecibos = await queryRunner.query(`SELECT doc.DocumentoId, doc.DocumentoDenominadorDocumento
         FROM Documento doc
-        WHERE doc.PersonalId=@0 AND doc.DocumentoTipoCodigo=@3 and doc.DocumentoAnio=@1 and doc.DocumentoMes=@2`,[personalId, anio, mes, 'REC'])
+        WHERE doc.PersonalId=@0 AND doc.DocumentoTipoCodigo=@3 and doc.DocumentoAnio=@1 and doc.DocumentoMes=@2`, [personalId, anio, mes, 'REC'])
 
-      const DocumentoId = (listRecibos.length>0)?listRecibos[0].DocumentoId:null
-      const DocumentoDenominadorDocumento = (listRecibos.length>0)?listRecibos[0].DocumentoDenominadorDocumento:null
-      this.jsonRes({ ingresos: result, total, totalHoras, DocumentoId,DocumentoDenominadorDocumento }, res);
+      const DocumentoId = (listRecibos.length > 0) ? listRecibos[0].DocumentoId : null
+      const DocumentoDenominadorDocumento = (listRecibos.length > 0) ? listRecibos[0].DocumentoDenominadorDocumento : null
+      this.jsonRes({ ingresos: result, total, totalHoras, DocumentoId, DocumentoDenominadorDocumento }, res);
     } catch (error) {
       return next(error)
     }
@@ -2286,6 +2286,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
   }
 
   async addOrUpdateAsistencia(queryRunner: QueryRunner, personalIdExiste: number, objetivoId: number, anioId: number, mesId: number, mes: number, personalId: number, tipoAsociadoId: number, categoriaPersonalId: number, formaLiquidacion: string, columnsDays: string, columnsDay: string, valueColumnsDays: string, totalhs: number, row: any) {
+
     let newAsistenciaPersonalDiasId = 0
 
     const num = Math.round(totalhs % 1 * 60)
@@ -2297,6 +2298,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     const horas = Math.trunc(totalhs).toString()
 
     if (!personalIdExiste) {
+
       const objAsistenciaUltsNros = await queryRunner.query(`
       SELECT ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro 
       FROM ObjetivoAsistenciaAnoMes
@@ -2486,6 +2488,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
 
     try {
       await queryRunner.startTransaction()
@@ -2534,8 +2538,32 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         }
         req.body.formaLiquidacion = valPersonalRegistrado.extended.forma.id
         personal = valPersonalRegistrado.extended.personal
+
       } else {
+
         personal = valPersonalRegistrado
+
+        if (Number(personal?.total) == 0 || personal?.total==null) {
+          const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+
+          const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [req.body.personalId])
+
+          if (bot[0].visto != 1 && bot[0].doc_id > 0 && bot[0].visto_ant != 1 && bot[0].doc_id_ant > 0) {
+            let errormsg: string[] = []
+
+            if (bot[0].registrado == 0) {
+              errormsg.push(`No se puede cargar horas, la persona no se encuentra registrada en el Bot`)
+            } else {
+              const msgRecPend = `No se puede cargar horas, recibos no vistos:  ` + bot[0].descarga + ((bot[0].mes_ant) ? `, ${bot[0].descarga_ant}` : '')
+              errormsg.push(msgRecPend)
+
+              const sendit = await AccesoBotController.enqueBotMsg(req.body.personalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+              //if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+            }
+            throw new ClientException(errormsg)
+          }
+        }
+
       }
 
       //Validaciónes de los días del mes
