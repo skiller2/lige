@@ -25,7 +25,7 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         } else {
             await flowDynamic([{ body: `Ya posee un adelanto solicitado de pesos ${adelanto[0].PersonalPrestamoMonto}`, delay }])
             if (!adelanto[0].PersonalPrestamoFechaAprobacion)
-                await flowDynamic([{ body: `No ha sido confirmado aún.  Quieres puedes modicar el importe? (Si/No)`, delay }])
+                await flowDynamic([{ body: `No ha sido confirmado aún.  Quieres modicar el importe? (Si/No)`, delay }])
             else
                 return gotoFlow(flowMenu)
         }
