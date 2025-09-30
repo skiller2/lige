@@ -10,7 +10,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NovedadesFormComponent } from '../novedades-form/novedades-form';
-
+import { SettingsService } from '@delon/theme';
 
 @Component({
   selector: 'app-novedades',
@@ -42,8 +42,9 @@ export class NovedadesComponent {
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
+  private settingService = inject(SettingsService)
   private apiService = inject(ApiService)
-  startFilters: any[] = []
+  startFilters = signal<any[]>([])
 
   columns$ = this.apiService.getCols('/api/novedades/cols')
 
@@ -54,6 +55,14 @@ export class NovedadesComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+
+  }
+
+  ngAfterContentInit(): void {
+    const user: any = this.settingService.getUser()
+    this.startFilters.set([
+      { field: 'GrupoActividadId', condition: 'AND', operator: '=', value: 26, forced: true },])
+
 
   }
 
