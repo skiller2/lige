@@ -415,7 +415,7 @@ const tableOptions: any[] = [
 const aplicaAOptions: any[] = [
   { label: 'Cliente', value: 'CL' },
   { label: 'Coordinador', value: 'CO' },
-  { label: 'Ninguno', value: 'NO' }
+  { label: 'Lince', value: 'NO' }
 ]
 
 export class GestionDescuentosController extends BaseController {
@@ -529,7 +529,7 @@ export class GestionDescuentosController extends BaseController {
       , CASE 
         WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coordinador'
         WHEN des.ObjetivoDescuentoDescontar = 'CL' THEN 'Cliente'
-        WHEN des.ObjetivoDescuentoDescontar = 'NO' THEN 'Ninguno'
+        WHEN des.ObjetivoDescuentoDescontar = 'NO' THEN 'Lince'
       END AS  DescontarDetalle
       , cli.ClienteId
       , cli.ClienteDenominacion
@@ -1713,7 +1713,7 @@ export class GestionDescuentosController extends BaseController {
             //Verifico que exita el Aplica A
             const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
             if (!AplicaA) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Ninguno'.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Lince'.` })
               continue
             }
             switch (AplicaA) {
@@ -1735,7 +1735,7 @@ export class GestionDescuentosController extends BaseController {
               case 'NO':
                 break;
               // default:
-              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Ninguno'.` })
+              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Lince'.` })
               //   continue
             }
 
