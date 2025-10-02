@@ -8,7 +8,7 @@ import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/table-descuentos-personal.component';
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
-import { DescuentosCargaMasivaComponent } from '../descuentos-carga-masiva/descuentos-carga-masiva.component';
+import { DescuentosImportacionMasivaComponent } from '../descuentos-importacion-masiva/descuentos-importacion-masiva.component';
 import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 @Component({
@@ -17,7 +17,7 @@ import { SettingsService } from '@delon/theme';
     styleUrls: ['./descuentos.component.less'],
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule, TableDescuentosPersonalComponent,
-        TableDescuentosObjetivosComponent, DescuentosCargaMasivaComponent],
+        TableDescuentosObjetivosComponent, DescuentosImportacionMasivaComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DescuentosComponent {

@@ -18,15 +18,15 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 
 
 @Component({
-    selector: 'app-descuentos-carga-masiva-drawer',
-    templateUrl: './descuentos-carga-masiva.component.html',
-    styleUrl: './descuentos-carga-masiva.component.less',
+    selector: 'app-descuentos-importacion-masiva-drawer',
+    templateUrl: './descuentos-importacion-masiva.component.html',
+    styleUrl: './descuentos-importacion-masiva.component.less',
     encapsulation: ViewEncapsulation.None,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule, FileUploadComponent],
     providers: [AngularUtilService],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DescuentosCargaMasivaComponent {
+export class DescuentosImportacionMasivaComponent {
     gridDataLen = 0
     gridDataImportLen = 0
     uploading$ = new BehaviorSubject({loading:false,event:null});

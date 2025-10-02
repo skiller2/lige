@@ -19,7 +19,7 @@
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'dto', 'descuentos', 'carga']">Carga</a>
+          <a [routerLink]="['/', 'dto', 'descuentos', 'importacion']">Importación</a>
         </li>
       </ul>
       
@@ -48,9 +48,9 @@
       </nz-tab>
 
       <nz-tab>
-        <a nz-tab-link routerLink="/dto/descuentos/carga">Carga</a>
+        <a nz-tab-link routerLink="/dto/descuentos/importacion">Importación</a>
         <ng-template nz-tab>
-          <app-descuentos-carga-masiva-drawer [anio]="anio()" [mes]="mes()"></app-descuentos-carga-masiva-drawer>
+          <app-descuentos-importacion-masiva-drawer [anio]="anio()" [mes]="mes()"></app-descuentos-importacion-masiva-drawer>
         </ng-template>
       </nz-tab>
   
