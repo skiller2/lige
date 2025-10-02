@@ -1,0 +1,31 @@
+<nz-card class="small-margin">
+    <br>
+  
+    <form [formGroup]="formDescuentosCargaManual">
+  
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="4">Tipo de Carga</nz-form-label>
+        <nz-form-control [nzMd]="5">
+          <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsTable | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+        
+  
+      <nz-form-item *ngIf="formDescuentosCargaManual.get('tableName')?.value === 'PersonalOtroDescuento'">
+        <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
+        <nz-form-control [nzMd]="5">
+          <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsTipo | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </nz-card>
