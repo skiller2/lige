@@ -407,6 +407,40 @@ const columnsObjetivosDescuentos: any[] = [
   },
 ]
 
+const columnsPersonalDescuentosCargaManualPersonal: any[] = [
+  {
+    id: 'id', name: 'Id', field: 'id',
+    fieldName: 'id',
+    type: 'string',
+    searchType: 'string',
+  },
+  {
+    id: 'ApellidoNombre', name: 'Personal', field: 'Personal',
+    fieldName: 'Personal',
+    type: 'string',
+    searchType: 'string',
+  },
+  {
+    id: 'CantidadCuotas', name: 'Cantidad Cuotas', field: 'Cantidad Cuotas',
+    fieldName: 'Cantidad Cuotas',
+    type: 'number',
+    searchType: 'number',
+  },
+  {
+    id: 'ImporteTotal', name: 'Importe total', field: 'Importe total',
+    fieldName: 'Importe total',
+    type: 'number',
+    searchType: 'number',
+  },
+  {
+    id: 'Detalle', name: 'Detalle', field: 'Detalle',
+    fieldName: 'Detalle',
+    type: 'string',
+    searchType: 'string',
+  },
+
+]
+
 const tableOptions: any[] = [
   { label: 'Personal', value: 'PersonalOtroDescuento' },
   { label: 'Objetivo', value: 'ObjetivoDescuento' }
@@ -438,6 +472,10 @@ export class GestionDescuentosController extends BaseController {
 
   async getObjetivosGridColumns(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsObjetivosDescuentos, res)
+  }
+
+  async getPersonalGridColumnsCargaManualPersonal(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsPersonalDescuentosCargaManualPersonal, res)
   }
 
   private async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {

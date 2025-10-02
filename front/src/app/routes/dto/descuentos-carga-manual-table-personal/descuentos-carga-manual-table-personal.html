@@ -1,0 +1,15 @@
+<nz-card #descuentosCargaManualTablePersonalForm class="small-margin">
+    <ng-container>
+      @if(columns$ | async; as columnas) {
+        <div class="gridContainercargaManual container-fluid">
+          <angular-slickgrid 
+            gridId="gridCargaManualPersonal" 
+            [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptionsEdit" 
+            [dataset]="gridDataInsert || []"
+            (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+        </div>
+      }
+    </ng-container>
+  </nz-card> 

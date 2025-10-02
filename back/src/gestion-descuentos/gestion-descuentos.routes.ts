@@ -83,3 +83,7 @@ gestionDescuentosRouter.get("/aplicaa/options", [authMiddleware.verifyToken,auth
 gestionDescuentosRouter.get("/importaciones_anteriores/:anio/:mes", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
     gestionDescuentosController.getImportacionesDescuentosAnteriores(req, res, next);
 }); 
+
+gestionDescuentosRouter.get("/cols/carga-manual-personal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+    gestionDescuentosController.getPersonalGridColumnsCargaManualPersonal(req, res, next);
+});
