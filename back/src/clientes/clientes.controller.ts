@@ -524,11 +524,11 @@ ${orderBy}`, [fechaActual])
                 //Agregar nexo tambien
                 await queryRunner.query(`INSERT INTO Domicilio (
                     DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
-                    DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioActual) 
-                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
+                    DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
                     domicilio.DomicilioDomLugar, domicilio.DomicilioDomCalle, domicilio.DomicilioDomNro,
                     domicilio.DomicilioCodigoPostal, 1, domicilio.DomicilioProvinciaId, domicilio.DomicilioLocalidadId,
-                    domicilio.DomicilioBarrioId, 1
+                    domicilio.DomicilioBarrioId
                 ])
                 const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
                 domicilios[idx].DomicilioId = resDomicilio[0][''] 
