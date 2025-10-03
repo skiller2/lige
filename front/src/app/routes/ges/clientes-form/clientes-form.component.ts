@@ -85,16 +85,16 @@ export class ClientesFormComponent {
   }
 
   objDomiclio = {
-    ClienteDomicilioId: 0,
-    ClienteDomicilioDomCalle: "",
-    ClienteDomicilioDomNro: "",
+    DomicilioId: 0,
+    DomicilioDomCalle: "",
+    DomicilioDomNro: "",
     referencia: "",
-    ClienteDomicilioCodigoPostal: "",
-    ClienteDomicilioDomLugar: null,
+    DomicilioCodigoPostal: "",
+    DomicilioDomLugar: null,
     domiciliopais: "",
-    ClienteDomicilioProvinciaId: null,
-    ClienteDomicilioLocalidadId: null,
-    ClienteDomicilioBarrioId: null
+    DomicilioProvinciaId: null,
+    DomicilioLocalidadId: null,
+    DomicilioBarrioId: null
   }
 
   fb = inject(FormBuilder)
@@ -111,7 +111,7 @@ export class ClientesFormComponent {
     ContactoTelefonoUltNro: 0,
     ContactoEmailUltNro: 0,
     MaxContactoId: 0,
-    AdministradorId: 0, ClienteAdministradorUltNro: 0, ClienteDomicilioUltNro: 0,
+    AdministradorId: 0, ClienteAdministradorUltNro: 0, 
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
     infoClienteContactoOriginal: this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
     infoDomicilio: this.fb.array([this.fb.group({ ...this.objDomiclio })]),

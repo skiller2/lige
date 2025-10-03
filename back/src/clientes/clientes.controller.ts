@@ -79,7 +79,7 @@ export class ClientesController extends BaseController {
             type: "string",
             id: "Domicilio",
             field: "Domicilio",
-            fieldName: "domcli.ClienteDomicilioDomCalle",
+            fieldName: "domcli.DomicilioDomCalle",
             sortable: true,
             searchHidden: true
         },
@@ -150,8 +150,8 @@ export class ClientesController extends BaseController {
         cli.ClienteNombreFantasia, 
         cli.ClienteFechaAlta,
         CONCAT_WS(' ', 
-            TRIM(domcli.ClienteDomicilioDomCalle), 
-            TRIM(domcli.ClienteDomicilioDomNro)
+            TRIM(domcli.DomicilioDomCalle), 
+            TRIM(domcli.DomicilioDomNro)
         ) AS Domicilio,
         cant.CantidadObjetivos
     FROM 
@@ -163,19 +163,19 @@ export class ClientesController extends BaseController {
         LEFT JOIN (
             SELECT 
                 domcli.ClienteId, 
-                domcli.ClienteDomicilioDomCalle, 
-                domcli.ClienteDomicilioDomNro
+                 dom.DomicilioDomCalle, 
+                 dom.DomicilioDomNro
             FROM 
-                ClienteDomicilio domcli
+                NexoDomicilio domcli
+                JOIN Domicilio dom ON dom.DomicilioId = domcli.DomicilioId
             WHERE 
-                domcli.ClienteDomicilioActual = 1
-            AND domcli.ClienteDomicilioId = (
-                SELECT MAX(ClienteDomicilioId) 
-                FROM ClienteDomicilio 
+                domcli.NexoDomicilioActual = 1 AND domcli.ClienteId IS NOT NULL
+            AND domcli.DomicilioId = (
+                SELECT MAX(DomicilioId) 
+                FROM NexoDomicilio 
                 WHERE ClienteId = domcli.ClienteId 
-                AND ClienteDomicilioActual = 1
-            )
-        ) AS domcli ON domcli.ClienteId = cli.ClienteId
+                AND NexoDomicilioActual = 1
+            )        ) AS domcli ON domcli.ClienteId = cli.ClienteId
 			LEFT JOIN (SELECT DISTINCT 
    obj.ClienteId, 
 	COUNT(DISTINCT obj.ObjetivoId) CantidadObjetivos
@@ -245,21 +245,21 @@ ${orderBy}`, [fechaActual])
     async getClienteDomicilioQuery(queryRunner: any, clienteId: any) {
 
         return await queryRunner.query(`
-            SELECT 
-                 domcli.ClienteDomicilioId
-                ,TRIM(domcli.ClienteDomicilioDomCalle) AS ClienteDomicilioDomCalle
-                ,TRIM(domcli.ClienteDomicilioDomNro) AS ClienteDomicilioDomNro
-                ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS ClienteDomicilioCodigoPostal
-                ,domcli.ClienteDomicilioPaisId AS domiciliopais
-                ,domcli.ClienteDomicilioProvinciaId
-                ,domcli.ClienteDomicilioLocalidadId
-                ,domcli.ClienteDomicilioBarrioId
-                ,TRIM(domcli.ClienteDomicilioDomLugar) AS ClienteDomicilioDomLugar
-            FROM ClienteDomicilio AS domcli
-            WHERE domcli.ClienteId = @0
-                AND domcli.ClienteDomicilioActual = 1
-            ORDER BY domcli.ClienteDomicilioId DESC `, [clienteId])
-
+                        SELECT 
+                 dom.DomicilioId
+                ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
+                ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
+                ,TRIM(dom.DomicilioCodigoPostalNuevo) AS DomicilioCodigoPostal
+                ,dom.DomicilioPaisId AS domiciliopais
+                ,dom.DomicilioProvinciaId
+                ,dom.DomicilioLocalidadId
+                ,dom.DomicilioBarrioId
+                ,TRIM(dom.DomicilioDomLugar) AS DomicilioDomLugar
+            FROM Domicilio AS dom
+            JOIN NexoDomicilio nex ON nex.DomicilioId =dom.DomicilioId
+            WHERE nex.ClienteId = @0
+                AND nex.NexoDomicilioActual = 1
+            ORDER BY dom.DomicilioId DESC `, [clienteId])
     }
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
@@ -306,7 +306,7 @@ ${orderBy}`, [fechaActual])
             ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
             ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
             ,adm.AdministradorId
-            ,cli.ClienteDomicilioUltNro
+
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac 
             ON fac.ClienteId = cli.ClienteId
@@ -326,7 +326,7 @@ ${orderBy}`, [fechaActual])
             ORDER BY ca.ClienteAdministradorId DESC
         ) AS adm 
             ON adm.ClienteId = cli.ClienteId
-        WHERE cli.ClienteId = @0;
+        WHERE cli.ClienteId = @0
         `,
             [clienteId, anio, mes, fechaActual])
     }
@@ -478,9 +478,6 @@ ${orderBy}`, [fechaActual])
             const ClienteFacturacionId = await this.ClienteFacturacion(queryRunner, ObjCliente, ClienteId)
             ObjCliente.ClienteFacturacionId = ClienteFacturacionId
 
-            // se actualiza el domicilio
-
-            //            ObjClienteNew = await this.ClienteDomicilioUpdate(queryRunner,ClienteId,ObjCliente)
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
@@ -506,38 +503,47 @@ ${orderBy}`, [fechaActual])
     }
 
     async ClienteDomicilioUpdate(queryRunner: any, domicilios: any, ClienteId: number) {
-        const DomicilioIds = domicilios.map((row: { ClienteDomicilioId: any; }) => row.ClienteDomicilioId).filter((id) => id !== null && id !== undefined);
+        throw new ClientException("ClienteDomicilioUpdate",domicilios)
+        const DomicilioIds = domicilios.map((row: { DomicilioId: any; }) => row.DomicilioId).filter((id) => id !== null && id !== undefined);
         console.log("DomicilioIds ", DomicilioIds)
-        if (DomicilioIds.length > 0)
-            await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
-
-        const res = await queryRunner.query(`SELECT ClienteDomicilioUltNro FROM Cliente WHERE ClienteId = @0`, [ClienteId])
-        let ClienteDomicilioUltNro = (res[0].ClienteDomicilioUltNro) ? res[0].ClienteDomicilioUltNro : 0
-
-        for (const [idx, domicilio] of domicilios.entries()) {
-            if (domicilio.ClienteDomicilioId) {
-                await queryRunner.query(`UPDATE ClienteDomicilio
-                    SET ClienteDomicilioDomCalle = @2,ClienteDomicilioDomNro = @3, ClienteDomicilioCodigoPostal = @4, 
-                    ClienteDomicilioProvinciaId = @5,ClienteDomicilioLocalidadId = @6,ClienteDomicilioBarrioId = @7,ClienteDomicilioDomLugar=@8
-                    WHERE ClienteId = @0 AND ClienteDomicilioId = @1`, [
-                    ClienteId, domicilio.ClienteDomicilioId, domicilio.ClienteDomicilioDomCalle, domicilio.ClienteDomicilioDomNro, domicilio.ClienteDomicilioCodigoPostal,
-                    domicilio.ClienteDomicilioProvinciaId, domicilio.ClienteDomicilioLocalidadId, domicilio.ClienteDomicilioBarrioId, domicilio.ClienteDomicilioDomLugar])
-            } else {
-                ClienteDomicilioUltNro++
-                await queryRunner.query(`INSERT INTO ClienteDomicilio (
-                    ClienteId, ClienteDomicilioId, ClienteDomicilioDomLugar, ClienteDomicilioDomCalle, ClienteDomicilioDomNro, ClienteDomicilioCodigoPostal, 
-                    ClienteDomicilioPaisId, ClienteDomicilioProvinciaId, ClienteDomicilioLocalidadId, ClienteDomicilioBarrioId, ClienteDomicilioActual) 
-                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10 )`, [ClienteId,
-                    ClienteDomicilioUltNro, domicilio.ClienteDomicilioDomLugar, domicilio.ClienteDomicilioDomCalle, domicilio.ClienteDomicilioDomNro,
-                    domicilio.ClienteDomicilioCodigoPostal, 1, domicilio.ClienteDomicilioProvinciaId, domicilio.ClienteDomicilioLocalidadId,
-                    domicilio.ClienteDomicilioBarrioId, 1
-                ])
-                domicilios[idx].ClienteDomicilioId = ClienteDomicilioUltNro
-            }
+        if (DomicilioIds.length > 0) {
+            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
+            await queryRunner.query(`DELETE FROM Domicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
         }
 
-        await queryRunner.query(`UPDATE Cliente SET ClienteDomicilioUltNro = @1 WHERE ClienteId = @0`, [ClienteId, ClienteDomicilioUltNro])
+        for (const [idx, domicilio] of domicilios.entries()) {
+            if (domicilio.DomicilioId) {
+                await queryRunner.query(`UPDATE Domicilio
+                    SET DomicilioDomCalle = @2,DomicilioDomNro = @3, DomicilioCodigoPostalNuevo = @4, 
+                    DomicilioProvinciaId = @5,DomicilioLocalidadId = @6,DomicilioBarrioId = @7,DomicilioDomLugar=@8
+                    WHERE DomicilioId = @0`, [
+                    domicilio.DomicilioId, null, domicilio.DomicilioDomCalle, domicilio.DomicilioDomNro, domicilio.DomicilioCodigoPostal,
+                    domicilio.DomicilioProvinciaId, domicilio.DomicilioLocalidadId, domicilio.DomicilioBarrioId, domicilio.DomicilioDomLugar])
+            } else {
 
+                //Agregar nexo tambien
+                await queryRunner.query(`INSERT INTO Domicilio (
+                    DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
+                    DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioActual) 
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
+                    domicilio.DomicilioDomLugar, domicilio.DomicilioDomCalle, domicilio.DomicilioDomNro,
+                    domicilio.DomicilioCodigoPostal, 1, domicilio.DomicilioProvinciaId, domicilio.DomicilioLocalidadId,
+                    domicilio.DomicilioBarrioId, 1
+                ])
+                const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
+                domicilios[idx].DomicilioId = resDomicilio[0][''] 
+
+                await queryRunner.query(`INSERT INTO NexoDomicilio (
+                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido,NexoDomicilioLegal
+                    ) 
+                    VALUES ( @0,@1,@2,@3,@4,@5)`, [
+                    domicilios[idx].DomicilioId, 1, 1, 1, 1, 1
+                ])
+
+
+
+            }
+        }
         return domicilios
     }
 
@@ -707,9 +713,7 @@ ${orderBy}`, [fechaActual])
 
             }
 
-            let ClienteDomicilioUltNro = 1
             let ClienteFacturacionId = 1
-            let ClienteDomicilioId = 1
 
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
@@ -718,7 +722,7 @@ ${orderBy}`, [fechaActual])
 
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
-            const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteDomicilioUltNro, ClienteAdministradorId, ObjCliente.ClienteTerminoPago)
+            const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ObjCliente.ClienteTerminoPago)
 
             ObjClienteNew.ClienteId = ClienteId
             ObjClienteNew.ClienteFacturacionId = ClienteFacturacionId
@@ -752,7 +756,7 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner: any, ClienteNombreFantasia: any, ClienteDenominacion: any, ClienteFechaAlta: any, ClienteDomicilioUltNro: any, ClienteAdministradorUltNro: any, ClienteTerminoPago:any,
+    async insertCliente(queryRunner: any, ClienteNombreFantasia: any, ClienteDenominacion: any, ClienteFechaAlta: any, ClienteAdministradorUltNro: any, ClienteTerminoPago:any,
     ) {
 
         await queryRunner.query(`INSERT INTO Cliente (
@@ -760,17 +764,15 @@ ${orderBy}`, [fechaActual])
             ClienteNombreFantasia,
             ClienteApellidoNombre,
             ClienteFechaAlta,
-            ClienteDomicilioUltNro,
             ClienteAdministradorUltNro,
             ClienteTerminoPago
             ) VALUES (
-            @0,@1,@2,@3,@4,@5,@6
+            @0,@1,@2,@3,@4,@5
             )`, [
             ClienteDenominacion,
             ClienteNombreFantasia,
             ClienteDenominacion,
             ClienteFechaAlta,
-            ClienteDomicilioUltNro,
             ClienteAdministradorUltNro,
             ClienteTerminoPago
         ])
@@ -793,37 +795,6 @@ ${orderBy}`, [fechaActual])
         ClienteFacturacionHasta) VALUES (
         @0,@1,@2,@3,@4,@5,@6,@7)`, [ClienteId, ClienteFacturacionId, CondicionAnteIVAId, ClienteFacturacionCUIT, null, null, FechaActual, null])
     }
-
-    async inserClientetDomicilioOLD(queryRunner: any, ClienteId: any, ClienteDomicilioId: any, ClienteDomicilioDomLugar: any, ClienteDomicilioDomCalle: any,
-        ClienteDomicilioDomNro: any, ClienteDomicilioCodigoPostal: any, ClienteDomicilioProvinciaId: any, ClienteDomicilioLocalidadId: any, ClienteDomicilioBarrioId: any,
-    ) {
-
-        await queryRunner.query(`INSERT INTO ClienteDomicilio (
-            ClienteId,
-            ClienteDomicilioId,
-            ClienteDomicilioDomLugar,
-            ClienteDomicilioDomCalle,
-            ClienteDomicilioDomNro,
-            ClienteDomicilioCodigoPostal,
-            ClienteDomicilioPaisId,
-            ClienteDomicilioProvinciaId,
-            ClienteDomicilioLocalidadId,
-            ClienteDomicilioBarrioId,
-            ClienteDomicilioActual) VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10
-            )`, [ClienteId,
-            ClienteDomicilioId,
-            ClienteDomicilioDomLugar,
-            ClienteDomicilioDomCalle,
-            ClienteDomicilioDomNro,
-            ClienteDomicilioCodigoPostal,
-            1,
-            ClienteDomicilioProvinciaId,
-            ClienteDomicilioLocalidadId,
-            ClienteDomicilioBarrioId,
-            1
-        ])
-    }
-
 
     async insertClienteAdministrador(queryRunner: any, ClienteId: number, ClienteAdministradorId: number, ClienteFechaAlta: Date, ClienteAdministradorAdministradorId: number) {
 
@@ -929,31 +900,31 @@ ${orderBy}`, [fechaActual])
 
             //Domicilio
 
-            if (!obj.ClienteDomicilioDomCalle) {
+            if (!obj.DomicilioDomCalle) {
                 throw new ClientException(`Debe completar el campo Dirección Calle.`)
             }
 
-            if (!obj.ClienteDomicilioDomNro) {
+            if (!obj.DomicilioDomNro) {
                 throw new ClientException(`Debe completar el campo Domicilio Nro.`)
             }
 
-            if (obj.ClienteDomicilioDomNro.length > 5) {
+            if (obj.DomicilioDomNro.length > 5) {
                 throw new ClientException(`Debe completar el campo Domicilio Nro.`)
             }
 
-            if (!obj.ClienteDomicilioCodigoPostal) {
+            if (!obj.DomicilioCodigoPostal) {
                 throw new ClientException(`Debe completar el campo Cod Postal.`)
             }
 
-            if (obj.ClienteDomicilioCodigoPostal.length > 8) {
+            if (obj.DomicilioCodigoPostal.length > 8) {
                 throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
             }
 
-            if (!obj.ClienteDomicilioProvinciaId) {
+            if (!obj.DomicilioProvinciaId) {
                 throw new ClientException(`Debe completar el campo Provincia.`)
             }
 
-            if (!obj.ClienteDomicilioLocalidadId) {
+            if (!obj.DomicilioLocalidadId) {
                 throw new ClientException(`Debe completar el campo Localidad.`)
             }
 

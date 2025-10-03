@@ -65,14 +65,15 @@ export class ClienteController extends BaseController {
       for (const id of clientesIds) {
         let info = await queryRunner.query(`
           SELECT cli.ClienteId AS ClienteId, TRIM(cli.ClienteDenominacion) AS ClienteDenominacion, fac.ClienteFacturacionCUIT AS CUIT,
-          CONCAT_WS(' ', TRIM(domcli.ClienteDomicilioDomCalle), TRIM(domcli.ClienteDomicilioDomNro), TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
+          CONCAT_WS(' ', TRIM(dom.DomicilioDomCalle), TRIM(dom.DomicilioDomNro), TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
           FROM Cliente cli
           LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
             AND fac.ClienteFacturacionDesde <= @1 
             AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @1
-          LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND domcli.ClienteDomicilioId = cli.ClienteDomicilioUltNro AND ClienteDomicilioActual = 1
-          LEFT JOIN Localidad loc ON loc.LocalidadId = domcli.ClienteDomicilioLocalidadId AND loc.ProvinciaId = domcli.ClienteDomicilioProvinciaId AND loc.PaisId = domcli.ClienteDomicilioPaisId
-          LEFT JOIN Provincia prov ON prov.ProvinciaId = domcli.ClienteDomicilioProvinciaId AND prov.PaisId = domcli.ClienteDomicilioPaisId
+          LEFT JOIN NexoDomicilio nex ON nex.ClienteId = cli.ClienteId AND nex.NexoDomicilioActual = 1
+          LEFT JOIN Domicilio dom ON dom.DomicilioId = nex.DomicilioId 
+          LEFT JOIN Localidad loc ON loc.LocalidadId = dom.DomicilioLocalidadId AND loc.ProvinciaId = dom.DomicilioProvinciaId AND loc.PaisId = dom.DomicilioPaisId
+          LEFT JOIN Provincia prov ON prov.ProvinciaId = dom.DomicilioProvinciaId AND prov.PaisId = dom.DomicilioPaisId
           WHERE cli.ClienteId = @0`, [id, now]
         )
         infoCliente.push(info[0])

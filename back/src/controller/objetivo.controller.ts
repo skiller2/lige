@@ -47,7 +47,6 @@ export class ObjetivoController extends BaseController {
     AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     
     LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
-    LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
     
   WHERE 
      eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
@@ -166,7 +165,6 @@ export class ObjetivoController extends BaseController {
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         
       LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId AND domdep.ClienteElementoDependienteDomicilioDomicilioActual = 1
-      LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL AND domcli.ClienteDomicilioActual = 1
         
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
         
@@ -206,7 +204,6 @@ export class ObjetivoController extends BaseController {
       clidep.ClienteElementoDependienteId,
       
       domdep.ClienteElementoDependienteDomicilioDomCalle, domdep.ClienteElementoDependienteDomicilioDomNro,
-      domcli.ClienteDomicilioDomCalle, domcli.ClienteDomicilioDomNro,
       
       1
       FROM Objetivo obj
@@ -215,7 +212,6 @@ export class ObjetivoController extends BaseController {
       LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
       
       LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId AND domdep.ClienteElementoDependienteDomicilioDomicilioActual = 1
-      LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL AND domcli.ClienteDomicilioActual = 1
       
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 

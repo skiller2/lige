@@ -485,21 +485,6 @@ export class ObjetivosController extends BaseController {
 
         } else {
 
-            return await queryRunner.query(`SELECT TOP 1 
-                 domcli.ClienteDomicilioId AS DomicilioId
-                ,TRIM(domcli.ClienteDomicilioDomCalle) AS DomicilioDomCalle
-                ,TRIM(domcli.ClienteDomicilioDomNro) AS DomicilioDomNro
-                ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS DomicilioCodigoPostal
-                ,domcli.ClienteDomicilioPaisId AS DomicilioPaisId
-                ,domcli.ClienteDomicilioProvinciaId AS DomicilioProvinciaId
-                ,domcli.ClienteDomicilioLocalidadId AS DomicilioLocalidadId
-                ,domcli.ClienteDomicilioBarrioId AS DomicilioBarrioId
-                ,domcli.ClienteDomicilioDomLugar AS DomicilioDomLugar
-            FROM ClienteDomicilio AS domcli
-            WHERE domcli.ClienteId = @0
-                AND domcli.ClienteDomicilioActual = 1
-            ORDER BY domcli.ClienteDomicilioId DESC`,
-                [ObjetivoId])
         }
 
     }
@@ -957,9 +942,6 @@ export class ObjetivosController extends BaseController {
 
             } else {
                 throw new ClientException('El objetivo no puede ser un cliente')
-                //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                //await ClientesController.updateClienteDomicilioTable(queryRunner, Obj.ClienteId, Obj)
-                //await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
             }
 
 
