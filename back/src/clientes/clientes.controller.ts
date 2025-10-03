@@ -503,12 +503,12 @@ ${orderBy}`, [fechaActual])
     }
 
     async ClienteDomicilioUpdate(queryRunner: any, domicilios: any, ClienteId: number) {
-        throw new ClientException("ClienteDomicilioUpdate",domicilios)
         const DomicilioIds = domicilios.map((row: { DomicilioId: any; }) => row.DomicilioId).filter((id) => id !== null && id !== undefined);
-        console.log("DomicilioIds ", DomicilioIds)
+
         if (DomicilioIds.length > 0) {
+            await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0
+               WHERE dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
             await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
-            await queryRunner.query(`DELETE FROM Domicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
         }
 
         for (const [idx, domicilio] of domicilios.entries()) {
@@ -534,7 +534,7 @@ ${orderBy}`, [fechaActual])
                 domicilios[idx].DomicilioId = resDomicilio[0][''] 
 
                 await queryRunner.query(`INSERT INTO NexoDomicilio (
-                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido,NexoDomicilioLegal
+                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal
                     ) 
                     VALUES ( @0,@1,@2,@3,@4,@5)`, [
                     domicilios[idx].DomicilioId, 1, 1, 1, 1, 1
