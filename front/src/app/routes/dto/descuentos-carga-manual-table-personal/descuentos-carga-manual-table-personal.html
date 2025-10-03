@@ -1,4 +1,11 @@
 <nz-card #descuentosCargaManualTablePersonalForm class="small-margin">
+    <p>gridDataInsert: {{gridDataInsert.length}}</p>
+    <button *ngIf="(gridDataInsert.length >= 1)" nz-popconfirm nzType="primary" class="btn-add"
+        nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
+        nz-button>
+        Confirmar nuevo registro
+      </button>
+
     <ng-container>
       @if(columns$ | async; as columnas) {
         <div class="gridContainercargaManual container-fluid">

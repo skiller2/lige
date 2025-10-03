@@ -754,6 +754,17 @@ export class ApiService {
 
   }
 
+
+  setAgregarRegistrosDescuentosPersonalManual(gridDataInsert: any, periodo: any) {
+    const parameter = [periodo, gridDataInsert]
+    this.notification.success('Respuesta', `Inicio insercion `);
+
+    return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addManualPersonal', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
   setDeleteImportacion(deleteId: any, anio: number, mes: number) {
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', { deleteId, anio, mes }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

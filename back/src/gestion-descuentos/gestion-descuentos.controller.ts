@@ -415,28 +415,24 @@ const columnsPersonalDescuentosCargaManualPersonal: any[] = [
     searchType: 'string',
   },
   {
-    id: 'ApellidoNombre', name: 'Personal', field: 'Personal',
-    fieldName: 'Personal',
-    type: 'string',
-    searchType: 'string',
+    id: 'ApellidoNombre', name: 'Personal', field: 'ApellidoNombre',
+    fieldName: 'ApellidoNombre',
+
   },
   {
-    id: 'CantidadCuotas', name: 'Cantidad Cuotas', field: 'Cantidad Cuotas',
-    fieldName: 'Cantidad Cuotas',
-    type: 'number',
-    searchType: 'number',
+    id: 'CantidadCuotas', name: 'Cantidad Cuotas', field: 'CantidadCuotas',
+    fieldName: 'CantidadCuotas',
+
   },
   {
-    id: 'ImporteTotal', name: 'Importe total', field: 'Importe total',
-    fieldName: 'Importe total',
-    type: 'number',
-    searchType: 'number',
+    id: 'ImporteTotal', name: 'Importe total', field: 'ImporteTotal',
+    fieldName: 'ImporteTotal',
+
   },
   {
     id: 'Detalle', name: 'Detalle', field: 'Detalle',
     fieldName: 'Detalle',
-    type: 'string',
-    searchType: 'string',
+
   },
 
 ]
@@ -1914,6 +1910,10 @@ export class GestionDescuentosController extends BaseController {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       throw new ClientException(campos_vacios)
     }
+  }
+
+  async getObjetivoGridColumnsCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
+    console.log('estoy en el backend.................')
   }
 
 

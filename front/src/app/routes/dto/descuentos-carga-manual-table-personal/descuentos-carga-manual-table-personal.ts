@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input,signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters, FieldType, Editors } from 'angular-slickgrid';
@@ -16,14 +16,14 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
   imports: [ SHARED_IMPORTS, CommonModule,],
   templateUrl: './descuentos-carga-manual-table-personal.html',
   styleUrl: './descuentos-carga-manual-table-personal.less',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [AngularUtilService]
 })
 export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
   @ViewChild('descuentosCargaManualTablePersonalForm' , { static: true }) descuentosCargaManualTablePersonalForm: NgForm = new NgForm([], []) 
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
-  private angularGridEdit!: AngularGridInstance;
+  angularGridEdit!: AngularGridInstance;
   private gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
   gridOptions!: GridOption;
@@ -32,12 +32,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   gridDataInsert = [];
   anio = input<number>(0)
   mes = input<number>(0)
-  
-
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService
-  ) { }
+  private angularUtilService = inject(AngularUtilService);
+  private apiService = inject(ApiService);
 
   columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/carga-manual-personal').pipe(map((cols) => {
     
@@ -103,8 +99,6 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   
       this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
         editCommand.execute()
-          console.log('row ApellidoNombre: ', row.ApellidoNombre);
-          console.log("row",row )
         // Determina si la fila está completa o incompleta
         if (
           row.ApellidoNombre &&
@@ -112,10 +106,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
           row.ImporteTotal &&
           row.Detalle
         ) {
-          console.log('Fila completa');
           row.isfull = 1; // completa
         } else {
-          console.log('Fila incompleta');
           row.isfull = 2; // incompleta
         }
 
@@ -126,20 +118,17 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
           !row.ImporteTotal &&
           !row.Detalle
         ) {
-          console.log('Eliminando fila porque todos los campos relevantes están vacíos');
           this.angularGridEdit.gridService.deleteItem(row);
         } else {
-          console.log('Actualizando fila porque todos los campos relevantes no están vacíos');
           this.angularGridEdit.gridService.updateItem(row);
         }
   
         this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-  
         this.angularGridEdit.slickGrid.invalidate();
         this.angularGridEdit.slickGrid.render();
   
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-        if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ClienteElementoDependienteDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
+        if (lastrow && (lastrow.ApellidoNombre || lastrow.CantidadCuotas || lastrow.ImporteTotal || lastrow.Detalle))  {
           this.addNewItem("bottom")
         }
       }
@@ -183,7 +172,6 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       isfull: 0,
       periodo: this.anio() + "/" + this.mes(),
       fecha: new Date(),
-      detalle: ""
 
     };
   }
@@ -218,6 +206,43 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       }
       return meta;
     };
+  }
+
+  confirmNewItem() {
+    console.log('this.gridDataInsert', this.gridDataInsert)
+    const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
+    console.log('altas', altas)
+
+    let periodoM = this.mes();
+    let periodoY = this.anio();
+    const valuePeriodo = periodoM + "/" + periodoY;
+    if (altas.length > 0) {
+      this.apiService.setAgregarRegistrosDescuentosPersonalManual({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
+        this.formChange$.next('')
+        this.cleanTable()
+      });
+    }
+  }
+
+
+  cleanTable() {
+
+    const ids = this.gridDataInsert.filter((f: any) => f.isfull == 1);
+
+    this.gridDataInsert.forEach(objeto => {
+      ids.push(objeto["id"]); 
+    });
+
+    ids.pop();
+
+    for (let index = 0; index <= ids.length; index++) {
+
+      this.angularGridEdit.gridService.deleteItemById(ids[index]["id"]);
+
+    }
+
+    this.gridDataInsert = [];
+
   }
 
   
