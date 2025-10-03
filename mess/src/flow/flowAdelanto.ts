@@ -1,9 +1,10 @@
 import { addKeyword, EVENTS } from "@builderbot/bot";
 import flowMenu from './flowMenu.ts'
-import { chatBotController } from "../controller/controller.module.ts";
+import { chatBotController, personalController } from "../controller/controller.module.ts";
 import { reset, stop } from "./flowIdle.ts";
 import { PersonalController } from "../controller/personal.controller.ts";
 import { botServer } from "../index.ts";
+import { Utils } from '../controller/util.ts';
 
 const delay = chatBotController.getDelay()
 
@@ -17,42 +18,88 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         const mes = actual.getMonth() + 1
         const maxImporte = 100000
 
+        const adelanto = await PersonalController.getPersonalAdelanto(personalId, anio, mes)
+
         await state.update({ adelanto: { anio, mes, maxImporte } })
 
-        const adelanto = await PersonalController.getPersonalAdelanto(personalId, anio, mes)
-        if (adelanto.length == 0) {
-
+        if (adelanto.length == 0){
+            await state.update({ adelanto: { anio, mes, maxImporte } })
+            await flowDynamic([{ body: `Aun no se ha solicitado un adelanto`, delay }])
+            return gotoFlow(flowFormAdelanto)
         } else {
-            await flowDynamic([{ body: `Ya posee un adelanto solicitado de pesos ${adelanto[0].PersonalPrestamoMonto}`, delay }])
-            if (!adelanto[0].PersonalPrestamoFechaAprobacion)
-                await flowDynamic([{ body: `No ha sido confirmado aún.  Quieres modicar el importe? (Si/No)`, delay }])
-            else
+            await flowDynamic([{ body: `Ya posee un adelanto solicitado de $${adelanto[0].PersonalPrestamoMonto}`, delay }])
+            if (!adelanto[0].PersonalPrestamoFechaAprobacion){
+                await flowDynamic([{ body: `No ha sido confirmado aún. ¿Quieres modicar el importe? (Si/No)`, delay }])
+            } else{
+                await flowDynamic([
+                    { body: `Ya ha sido confirmado. No se puede solicitar nuevo adelanto`, delay },
+                    { body: `Redirigiendo al menú ...`, delay }
+                ])
                 return gotoFlow(flowMenu)
+            }
         }
-
     })
-    .addAction({ capture: true, delay },
+    .addAnswer('', { capture: true, delay }, 
         async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
-            const personalControler = new PersonalController()
+            
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
-            const myState = state.getMyState()
-            const importe = parseInt(ctx.body)
-            const maxImporte = myState.adelanto.maxImporte
-            const anio = myState.adelanto.anio
-            const mes = myState.adelanto.mes
-            const personalId = myState.personalId
-
-
-            if (importe < 0 || importe > maxImporte) {
-                return fallBack('El valor ingresado no es válido')
+            if (Utils.isOKResponse(ctx.body)){
+                return gotoFlow(flowFormAdelanto)
             }
 
-            await personalControler.setPersonalAdelanto(personalId, anio, mes, importe)
-            await flowDynamic([{ body: `Solicitud de adelanto agregada`, delay }])
+            const myState:any = state.getMyState()
+            delete myState.adelanto
+            state.update(myState)
+            
+            await flowDynamic([{ body: `Redirigiendo al menú ...`, delay }])
             return gotoFlow(flowMenu)
         })
+
+export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const myState = state.getMyState()
+        const maxImporte = myState.adelanto.maxImporte
+    
+        await flowDynamic([{ body: `Ingrese el importe del adelanto (importe maximo: ${maxImporte})`, delay }])
+    })
+    .addAnswer('', { capture: true, delay },
+        async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+
+            const myState:any = state.getMyState()
+            const importe:number = parseInt(ctx.body)
+            const maxImporte:number = myState.adelanto.maxImporte
+            const anio:number = myState.adelanto.anio
+            const mes:number = myState.adelanto.mes
+            const personalId = myState.personalId
+
+            if (importe < 0 || importe > maxImporte) {
+                return fallBack('El valor ingresado no es válido, reintente')
+            }
+
+            try {
+                await personalController.setPersonalAdelanto(personalId, anio, mes, importe)
+            } catch (error) {
+                console.log('error', error)
+                await flowDynamic([`Ocurrio un error. Informe al administrador del sistema.`], { delay: delay })
+                return gotoFlow(flowMenu)
+            }
+            
+            delete myState.adelanto
+            state.update(myState)
+
+            await flowDynamic([
+                { body: `Solicitud de adelanto agregada`, delay },
+                { body: `Redirigiendo al menú ...`, delay }
+            ])
+            return gotoFlow(flowMenu)
+    })
 
 //export default flowAdelanto

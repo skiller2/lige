@@ -10,32 +10,35 @@ export class PersonalController extends BaseController {
     let today = now
     today.setHours(0, 0, 0, 0)
     const ip = this.getRemoteAddress(null)
+    const usuarioId = null
+    const FormaPrestamoId = 7 //Adelanto
+
+    await dbServer.dataSource.query(
+      `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
+      , [personalId, FormaPrestamoId, anio, mes]
+    );
 
     const prestamoId =
       Number((
         await dbServer.dataSource.query(
-          `
-            SELECT per.PersonalPrestamoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
+          `SELECT per.PersonalPrestamoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
           [personalId]
         )
       )[0].max) + 1;
 
-    const usuarioId = null
-    const FormaPrestamoId = 7 //Adelanto
-    const result = await dbServer.dataSource.query(
+    await dbServer.dataSource.query(
       `INSERT INTO PersonalPrestamo(
-                    PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
-                    PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
-                    PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
-                    -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
-                    PersonalPrestamoDia, PersonalPrestamoTiempo)
-                    VALUES(
-                    @0, @1, @2, @3,
-                    @4, @5, @6, @7,
-                    @8, @9, @10, @11,
-                    -- @12, @13, @14,
-                    @15, @16)
-                `,
+      PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
+      PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
+      PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
+      -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
+      PersonalPrestamoDia, PersonalPrestamoTiempo)
+      VALUES(
+      @0, @1, @2, @3,
+      @4, @5, @6, @7,
+      @8, @9, @10, @11,
+      -- @12, @13, @14,
+      @15, @16)`,
       [
         prestamoId, //PersonalPrestamoId
         personalId, //PersonalId
@@ -62,7 +65,7 @@ export class PersonalController extends BaseController {
       ]
     );
 
-    const resultAdelanto = await dbServer.dataSource.query(
+    await dbServer.dataSource.query(
       `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
       [
         personalId,
@@ -72,7 +75,6 @@ export class PersonalController extends BaseController {
 
 
   }
-
 
   async getDocsPendDescarga(PersonalId: number) {
     const result = await dbServer.dataSource.query(
@@ -153,7 +155,7 @@ export class PersonalController extends BaseController {
     //force
     if (process.env.PERSONALID_TEST) {
       res.length = 0
-      res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
+      res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, PersonalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
     }
 
     if (res.length) {

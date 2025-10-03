@@ -266,12 +266,12 @@ export class AdelantosController extends BaseController {
       if (!FormaPrestamoDescripcion)
         throw new ClientException(`Formato de la ayuda no reconocido ${FormaPrestamoId}`)
 
-      const adelantoExistente = await queryRunner.query(
-        `DELETE From PersonalPrestamo 
-                WHERE PersonalPrestamoAprobado IS NULL
-                AND FormaPrestamoId = @1
-                AND PersonalId = @0`,
-        [personalId,FormaPrestamoId]
+      const adelantoExistente = await queryRunner.query(`
+        DELETE FROM PersonalPrestamo 
+        WHERE PersonalPrestamoAprobado IS NULL
+        AND FormaPrestamoId = @1
+        AND PersonalId = @0
+        `, [personalId, FormaPrestamoId]
       );
       const now = new Date()
       const hora = this.getTimeString(now)
