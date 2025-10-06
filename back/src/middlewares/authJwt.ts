@@ -94,6 +94,8 @@ export class AuthMiddleware {
       }
 
       if (res.locals?.verifyGrupoActividad) return next()
+      if (res.locals?.hasAuthObjetivo) return next()
+
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
 
@@ -470,4 +472,44 @@ export class AuthMiddleware {
     }
     return next()
   }
+
+  hasAuthObjetivo = async (req: any, res: any, next: any) => {
+    const PersonalId = res.locals.PersonalId
+    const GrupoActividad = res.locals.GrupoActividad
+    const ObjetivoId = req.params.ObjetivoId || req.body.ObjetivoId
+
+    if (PersonalId < 1) return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
+
+    if (!ObjetivoId) return res.status(400).json({ msg: "No se especificó ObjetivoId" })
+
+    // Extraer los IDs de grupos de actividad del usuario
+    if (!GrupoActividad || GrupoActividad.length === 0) return next() 
+    const grupos = GrupoActividad.map((grupo: any) => grupo.GrupoActividadId)
+
+    if (grupos.length === 0) return next() 
+
+    const queryRunner = dataSource.createQueryRunner()
+
+    try {
+      // Verificar que el objetivo pertenezca a alguno de los grupos de actividad del usuario
+      const resultado = await queryRunner.query(`
+        SELECT COUNT(*) as count 
+        FROM Objetivo obj
+        LEFT JOIN GrupoActividadObjetivo gao ON gao.ObjetivoId = obj.ObjetivoId and gao.GrupoActividadObjetivoDesde <= GETDATE() AND
+            ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= GETDATE()
+        WHERE obj.ObjetivoId = @0 AND gao.GrupoActividadId IN (${grupos.map((_, i) => `@${i + 1}`).join(',')})
+      `, [ObjetivoId, ...grupos])
+
+      if (resultado[0].count > 0) res.locals.hasAuthObjetivo = true
+
+      return next()
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ msg: "Error al verificar permisos del objetivo", error: error.message })
+    } finally {
+      await queryRunner.release()
+    }
+
+  }
+
 }

@@ -21,7 +21,7 @@ novedadesRouter.get('/infNovedad/:NovedadId', [authMiddleware.verifyToken, authM
   novedadesController.infNovedad(req, res, next)
 })
 
-novedadesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
+novedadesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.hasAuthObjetivo, authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
   novedadesController.updateNovedad(req, res, next)
 })
 
