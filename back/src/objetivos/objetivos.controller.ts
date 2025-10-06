@@ -871,13 +871,12 @@ export class ObjetivosController extends BaseController {
                 await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2  WHERE GrupoActividadObjetivoId=@0 AND GrupoActividadId=@1`, [ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoId, ObjObjetivoNew.infoActividad[0].GrupoActividadId, Obj.ContratoFechaHasta])
             }
 
-        throw new ClientException("PENDIENTE")
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 if (Obj.DireccionModificada) {
 
-                    await this.inserClienteElementoDependienteDomicilio(
+                    await this.addElementoDependienteDomicilio(
                         queryRunner
                         , Obj.ClienteId
                         , Obj.ClienteElementoDependienteId
@@ -920,11 +919,6 @@ export class ObjetivosController extends BaseController {
 
 
                 await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
-
-
-                //ClienteElementoDependienteDomicilio
-                await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-                    [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
 
                 //ClienteElementoDependienteContrato
                 await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
@@ -1177,24 +1171,24 @@ export class ObjetivosController extends BaseController {
 
     async deleteObjetivo(req: Request, res: Response, next: NextFunction) {
 
-        let { ClienteId, ObjetivoId, ClienteElementoDependienteId, DomicilioId, ContratoId } = req.query
+        const { ClienteId, ObjetivoId, ClienteElementoDependienteId, DomicilioId, ContratoId } = req.query
         const queryRunner = dataSource.createQueryRunner();
 
         try {
+            if (!ClienteElementoDependienteId || !ClienteId)
+                throw new ClientException("Debe seleccionar un Objetivo")
+
+
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
             await this.deletePersonalJerarquicoQuery(queryRunner, Number(ObjetivoId))
+            await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
+            await this.deleteClienteElementoDependienteContratoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
+            await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
 
-            if (ClienteElementoDependienteId != 'null') {
-
-                await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
-                await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
-                await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId), Number(DomicilioId))
-                await this.deleteClienteElementoDependienteContratoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId), Number(ContratoId))
-                await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
-            }
+            await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
+            await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
 
             await queryRunner.commitTransaction();
 
@@ -1217,21 +1211,14 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, DomicilioId: number) {
-
-        return await queryRunner.query(`DELETE FROM ClienteElementoDependienteDomicilio  WHERE 
-             ClienteId = @0
-             AND ClienteElementoDependienteId = @1 
-             AND ClienteElementoDependienteDomicilioDomicilioId=@2;`,
-            [ClienteId, ClienteElementoDependienteId, DomicilioId])
+    async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+        await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 AND nex.ClienteElementoDependienteId = @1`, [ClienteId,ClienteElementoDependienteId])
+        await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId,ClienteElementoDependienteId])
     }
-    async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, ContratoId: number) {
 
-        return await queryRunner.query(`DELETE FROM ClienteElementoDependienteContrato  WHERE 
-             ClienteId = @0
-             AND ClienteElementoDependienteId = @1 
-             AND ClienteElementoDependienteContratoId=@2;`,
-            [ClienteId, ClienteElementoDependienteId, ContratoId])
+    async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+        return await queryRunner.query(`DELETE FROM ClienteElementoDependienteContrato  WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
+            [ClienteId, ClienteElementoDependienteId])
     }
 
     async deleteClienteEleDepRubroQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
@@ -1289,7 +1276,7 @@ export class ObjetivosController extends BaseController {
 
             await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
-            await this.inserClienteElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
+            await this.addElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
@@ -1361,37 +1348,28 @@ export class ObjetivosController extends BaseController {
             ])
     }
 
-    async inserClienteElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
+    async addElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
         DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
 
-        await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (
-            ClienteId,
-            ClienteElementoDependienteId,
-            ClienteElementoDependienteDomicilioId,
-            ClienteElementoDependienteDomicilioDomLugar,
-            ClienteElementoDependienteDomicilioDomCalle,
-            ClienteElementoDependienteDomicilioDomNro,
-            ClienteElementoDependienteDomicilioCodigoPostal,
-            ClienteElementoDependienteDomicilioPaisId,
-            ClienteElementoDependienteDomicilioProvinciaId,
-            ClienteElementoDependienteDomicilioLocalidadId,
-            ClienteElementoDependienteDomicilioBarrioId,
-            ClienteElementoDependienteDomicilioDomicilioActual) 
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`,
-            [ClienteId,
-                ClienteElementoDependienteId,
-                ClienteElementoDependienteDomicilioId,
-                DomicilioDomLugar,
-                DomicilioDomCalle,
-                DomicilioDomNro,
-                DomicilioCodigoPostal,
-                1,
-                DomicilioProvinciaId,
-                DomicilioLocalidadId,
-                DomicilioBarrioId,
-                1
-            ])
+
+        await queryRunner.query(`INSERT INTO Domicilio (
+                    DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
+                    DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
+            DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro,
+            DomicilioCodigoPostal, 1, DomicilioProvinciaId, DomicilioLocalidadId,
+            DomicilioBarrioId
+        ])
+        const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
+        const DomicilioId = resDomicilio[0]['']
+
+        await queryRunner.query(`INSERT INTO NexoDomicilio (
+                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal
+                    ) 
+                    VALUES ( @0,@1,@2,@3,@4,@5)`, [
+            DomicilioId, 1, 0, 1, 0, 0
+        ])
     }
 
     async insertObjetivoSql(queryRunner: any, ClienteId: number, ClienteElementoDependienteDescripcion: string, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
