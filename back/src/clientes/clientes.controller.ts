@@ -249,7 +249,7 @@ ${orderBy}`, [fechaActual])
                  dom.DomicilioId
                 ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
                 ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
-                ,TRIM(dom.DomicilioCodigoPostalNuevo) AS DomicilioCodigoPostal
+                ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
                 ,dom.DomicilioPaisId AS domiciliopais
                 ,dom.DomicilioProvinciaId
                 ,dom.DomicilioLocalidadId
@@ -514,7 +514,7 @@ ${orderBy}`, [fechaActual])
         for (const [idx, domicilio] of domicilios.entries()) {
             if (domicilio.DomicilioId) {
                 await queryRunner.query(`UPDATE Domicilio
-                    SET DomicilioDomCalle = @2,DomicilioDomNro = @3, DomicilioCodigoPostalNuevo = @4, 
+                    SET DomicilioDomCalle = @2,DomicilioDomNro = @3, DomicilioCodigoPostal = @4, 
                     DomicilioProvinciaId = @5,DomicilioLocalidadId = @6,DomicilioBarrioId = @7,DomicilioDomLugar=@8
                     WHERE DomicilioId = @0`, [
                     domicilio.DomicilioId, null, domicilio.DomicilioDomCalle, domicilio.DomicilioDomNro, domicilio.DomicilioCodigoPostal,

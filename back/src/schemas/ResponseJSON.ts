@@ -42,8 +42,8 @@ export interface Objetivo {
   ObjetivoId: number;
   ClienteId: number;
   ClienteElementoDependienteId: number | null;
-  ClienteElementoDependienteDomicilioDomCalle: string | null;
-  ClienteElementoDependienteDomicilioDomNro: number | null;
+  DomicilioDomCalle: string | null;
+  DomicilioDomNro: number | null;
 }
 
 export interface ObjetivoInfo {

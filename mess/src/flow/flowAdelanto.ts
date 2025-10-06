@@ -85,7 +85,13 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             }
 
             try {
-                await personalController.setPersonalAdelanto(personalId, anio, mes, importe)
+                if (importe == 0) {
+                    await personalController.deletePersonalAdelanto(personalId, anio, mes)
+                    await flowDynamic([`Sea a eliminado la solicitud de adelanto`], { delay: delay })
+                } else {
+                    await personalController.setPersonalAdelanto(personalId, anio, mes, importe)
+                    await flowDynamic([`Solicitud de adelanto agregada`], { delay: delay })
+                }
             } catch (error) {
                 console.log('error', error)
                 await flowDynamic([`Ocurrio un error. Informe al administrador del sistema.`], { delay: delay })
@@ -95,10 +101,7 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             delete myState.adelanto
             state.update(myState)
 
-            await flowDynamic([
-                { body: `Solicitud de adelanto agregada`, delay },
-                { body: `Redirigiendo al menú ...`, delay }
-            ])
+            await flowDynamic([{ body: `Redirigiendo al menú ...`, delay }])
             return gotoFlow(flowMenu)
     })
 

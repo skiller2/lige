@@ -96,7 +96,6 @@ export class ObjetivosFormComponent {
     ContratoFechaHasta:"",
     ContratoId:0,
     ClienteElementoDependienteContratoUltNro:0,
-    ClienteElementoDependienteDomicilioUltNro:0,
     RubroUltNro:0,
     DomicilioId:0,DomicilioDomCalle: "",
     DomicilioFulllAdress:"",
