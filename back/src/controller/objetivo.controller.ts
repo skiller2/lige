@@ -45,11 +45,12 @@ export class ObjetivoController extends BaseController {
     LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
     LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
     AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-    
-    LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
+LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.ClienteElementoDependienteId AND nexdom.ClienteId = eledep.ClienteId AND nexdom.NexoDomicilioActual = 1
+	 LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId 
     
   WHERE 
      eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
+
     ${buscaObjetivo}`,
         [objetivoId, anio, mes]
       )
@@ -164,7 +165,8 @@ export class ObjetivoController extends BaseController {
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         
-      LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId AND domdep.ClienteElementoDependienteDomicilioDomicilioActual = 1
+        LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.ClienteElementoDependienteId AND nexdom.ClienteId = eledep.ClienteId AND nexdom.NexoDomicilioActual = 1
+	      LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId 
         
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
         
@@ -203,7 +205,7 @@ export class ObjetivoController extends BaseController {
       obj.ClienteId,
       clidep.ClienteElementoDependienteId,
       
-      domdep.ClienteElementoDependienteDomicilioDomCalle, domdep.ClienteElementoDependienteDomicilioDomNro,
+      dom.DomicilioDomCalle, dom.DomicilioDomNro,
       
       1
       FROM Objetivo obj
@@ -211,7 +213,8 @@ export class ObjetivoController extends BaseController {
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
       
-      LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId AND domdep.ClienteElementoDependienteDomicilioDomicilioActual = 1
+   LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = clidep.ClienteElementoDependienteId AND nexdom.ClienteId = clidep.ClienteId AND nexdom.NexoDomicilioActual = 1
+	 LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId 
       
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 

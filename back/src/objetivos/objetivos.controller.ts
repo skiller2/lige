@@ -184,7 +184,7 @@ const columnasGrillaHistoryDomicilio: any[] = [
         type: "string",
         id: "calle",
         field: "calle",
-        fieldName: "dom.ClienteElementoDependienteDomicilioDomCalle",
+        fieldName: "dom.DomicilioDomCalle",
         hidden: false,
         searchHidden: false,
         sortable: false
@@ -194,7 +194,7 @@ const columnasGrillaHistoryDomicilio: any[] = [
         type: "string",
         id: "postal",
         field: "postal",
-        fieldName: "dom.ClienteElementoDependienteDomicilioCodigoPostal",
+        fieldName: "dom.DomicilioCodigoPostal",
         hidden: false,
         searchHidden: false,
         sortable: false
@@ -204,7 +204,7 @@ const columnasGrillaHistoryDomicilio: any[] = [
         type: "string",
         id: "DomicilioDomLugar",
         field: "DomicilioDomLugar",
-        fieldName: "dom.ClienteElementoDependienteDomicilioDomLugar",
+        fieldName: "dom.DomicilioDomLugar",
         hidden: false,
         searchHidden: false,
         sortable: false
@@ -466,21 +466,20 @@ export class ObjetivosController extends BaseController {
         if (ClienteElementoDependienteId) {
 
             return await queryRunner.query(`SELECT TOP 1 
-                 domcli.ClienteElementoDependienteDomicilioId AS DomicilioId
-                ,TRIM(domcli.ClienteElementoDependienteDomicilioDomCalle) AS DomicilioDomCalle
-                ,TRIM(domcli.ClienteElementoDependienteDomicilioDomNro) AS DomicilioDomNro
-                ,TRIM(domcli.ClienteElementoDependienteDomicilioCodigoPostal) AS DomicilioCodigoPostal
-                ,domcli.ClienteElementoDependienteDomicilioPaisId AS DomicilioPaisId
-                ,domcli.ClienteElementoDependienteDomicilioProvinciaId AS DomicilioProvinciaId
-                ,domcli.ClienteElementoDependienteDomicilioLocalidadId AS DomicilioLocalidadId
-                ,domcli.ClienteElementoDependienteDomicilioBarrioId AS DomicilioBarrioId
-                ,domcli.ClienteElementoDependienteDomicilioDomLugar AS DomicilioDomLugar
+                 dom.DomicilioId AS DomicilioId
+                ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
+                ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
+                ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
+                ,dom.DomicilioPaisId AS DomicilioPaisId
+                ,dom.DomicilioProvinciaId AS DomicilioProvinciaId
+                ,dom.DomicilioLocalidadId AS DomicilioLocalidadId
+                ,dom.DomicilioBarrioId AS DomicilioBarrioId
+                ,dom.DomicilioDomLugar AS DomicilioDomLugar
 
-            FROM ClienteElementoDependienteDomicilio AS domcli
-            WHERE domcli.ClienteId = @0
-                AND domcli.ClienteElementoDependienteId = @1
-                AND domcli.ClienteElementoDependienteDomicilioDomicilioActual = 1
-            ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC`,
+            FROM Domicilio AS dom
+            JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
+            WHERE nexdom.ClienteElementoDependienteId = @1 AND nexdom.ClienteId = @0 AND nexdom.NexoDomicilioActual = 1
+            ORDER BY dom.DomicilioId DESC`,
                 [ClienteId, ClienteElementoDependienteId])
 
         } else {
@@ -532,7 +531,6 @@ export class ObjetivosController extends BaseController {
                 ,eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde
                 ,eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta
                 ,eledepcon.ClienteElementoDependienteContratoId AS ContratoId
-                ,eledep.ClienteElementoDependienteDomicilioUltNro
                 ,eledep.ClienteElementoDependienteContratoUltNro
 
             FROM Objetivo obj
@@ -750,49 +748,6 @@ export class ObjetivosController extends BaseController {
         return true
     }
 
-    async validateCliente(queryRunner: any, Obj: any, ClienteElementoDependienteUltNro: any) {
-
-        //oobjetivo
-        //ElementoDependiente
-        // donse se guarda el archivo archivo
-
-        //Cliente Elemento Dependiente 
-
-        let ClienteElementoDependienteDomicilioId = 1
-        await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId, Obj.CoberturaServicio)
-
-
-        //ClienteElementoDependienteDomicilio
-        await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
-
-        //ClienteElementoDependienteContrato
-        await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
-
-        //ClienteEleDepRubro
-
-        await queryRunner.query(`UPDATE ClienteEleDepRubro SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
-
-
-        //objetivo 
-        // await this.deleteObjetivoQuery(queryRunner,Number(Obj.ObjetivoId),Number(Obj.ClienteId))
-        // await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
-
-        await queryRunner.query(`UPDATE Objetivo SET ClienteId = @0, ObjetivoDescripcion = @1, ClienteElementoDependienteId = @2 WHERE ObjetivoId = @3`,
-            [Obj.ClienteId, Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.ObjetivoId])
-
-        //objetivopersonal jerarquico
-        //se modifico objetivo no es necesario modificar el personal jerarquico
-
-        // cliente
-        await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
-        await this.deleteClienteElementoDependienteQuery(queryRunner, Number(Obj.clienteOld), Number(Obj.ClienteElementoDependienteId))
-
-
-    }
-
     async grupoActividad(queryRunner: any, infoActividad: any, GrupoActividadObjetivoObjetivoId: number, GrupoActividadObjetivoPuesto: any, usuarioId: number) {
 
         const now = new Date();
@@ -916,6 +871,8 @@ export class ObjetivosController extends BaseController {
                 await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2  WHERE GrupoActividadObjetivoId=@0 AND GrupoActividadId=@1`, [ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoId, ObjObjetivoNew.infoActividad[0].GrupoActividadId, Obj.ContratoFechaHasta])
             }
 
+        throw new ClientException("PENDIENTE")
+
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 if (Obj.DireccionModificada) {
@@ -960,7 +917,44 @@ export class ObjetivosController extends BaseController {
                 let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`, [Number(Obj.ClienteId)])
                 let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
                 ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 : ClienteElementoDependienteUltNro + 1
-                await this.validateCliente(queryRunner, Obj, ClienteElementoDependienteUltNro)
+
+
+                await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
+
+
+                //ClienteElementoDependienteDomicilio
+                await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+                    [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
+
+                //ClienteElementoDependienteContrato
+                await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+                    [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
+
+                //ClienteEleDepRubro
+
+                await queryRunner.query(`UPDATE ClienteEleDepRubro SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+                    [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
+
+
+                //objetivo 
+                // await this.deleteObjetivoQuery(queryRunner,Number(Obj.ObjetivoId),Number(Obj.ClienteId))
+                // await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
+
+                await queryRunner.query(`UPDATE Objetivo SET ClienteId = @0, ObjetivoDescripcion = @1, ClienteElementoDependienteId = @2 WHERE ObjetivoId = @3`,
+                    [Obj.ClienteId, Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.ObjetivoId])
+
+                //objetivopersonal jerarquico
+                //se modifico objetivo no es necesario modificar el personal jerarquico
+
+                // cliente
+                await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
+                await this.deleteClienteElementoDependienteQuery(queryRunner, Number(Obj.clienteOld), Number(Obj.ClienteElementoDependienteId))
+
+
+
+
+
+
                 ObjObjetivoNew.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
                 ObjObjetivoNew.ClienteId = Obj.ClienteId
             }
@@ -1054,7 +1048,7 @@ export class ObjetivosController extends BaseController {
         ClienteElementoDependienteId: any,
         ClienteElementoDependienteDescripcion: any,
         ClienteElementoDependienteSucursalId: any,
-        CoberturaServicio:any,
+        CoberturaServicio: any,
     ) {
 
         return await queryRunner.query(`
@@ -1291,10 +1285,9 @@ export class ObjetivosController extends BaseController {
             //Agrego los valores al objeto original para retornar
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
             Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
-            let ClienteElementoDependienteDomicilioId = 1
 
 
-            await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId, Obj.CoberturaServicio)
+            await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
             await this.inserClienteElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
@@ -1370,10 +1363,7 @@ export class ObjetivosController extends BaseController {
 
     async inserClienteElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
         DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
-
-        const ultnro = await queryRunner.query(`SELECT ClienteElementoDependienteDomicilioUltNro FROM ClienteElementoDependiente WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
-        const ClienteElementoDependienteDomicilioId = (ultnro[0]?.ClienteElementoDependienteDomicilioUltNro) ? ultnro[0]?.ClienteElementoDependienteDomicilioUltNro + 1 : 1
-        await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteElementoDependienteDomicilioDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
+        await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
 
         await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (
             ClienteId,
@@ -1402,7 +1392,6 @@ export class ObjetivosController extends BaseController {
                 DomicilioBarrioId,
                 1
             ])
-        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteDomicilioUltNro=@2  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId, ClienteElementoDependienteDomicilioId])
     }
 
     async insertObjetivoSql(queryRunner: any, ClienteId: number, ClienteElementoDependienteDescripcion: string, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
@@ -1415,8 +1404,7 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
     }
 
-    async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, ClienteElementoDependienteDomicilioUltNro: any, CoberturaServicio:any) {
-
+    async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, CoberturaServicio: any) {
         //este codigo arma el ClienteElementoDependienteArmado
         let ElementoDependienteId = 1
         let infoElementoDependiente = await queryRunner.query(`SELECT ElementoDependienteDescripcion FROM ElementoDependiente WHERE ElementoDependienteId = @0`, [ElementoDependienteId])
@@ -1428,15 +1416,13 @@ export class ObjetivosController extends BaseController {
             ElementoDependienteId,
             ClienteElementoDependienteDescripcion,
             ClienteElementoDependienteArmado,
-            ClienteElementoDependienteDomicilioUltNro,
             ClienteElementoDependienteSucursalId,
-            CoberturaServicio) VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`,
+            CoberturaServicio) VALUES (@0,@1,@2,@3,@4,@5,@6)`,
             [ClienteId,
                 ClienteElementoDependienteId,
                 ElementoDependienteId,
                 ClienteElementoDependienteDescripcion,
                 ClienteElementoDependienteArmado,
-                ClienteElementoDependienteDomicilioUltNro,
                 ClienteElementoDependienteSucursalId,
                 CoberturaServicio
             ])
@@ -1520,23 +1506,25 @@ export class ObjetivosController extends BaseController {
 
             if (ClienteElementoDependienteId && ClienteElementoDependienteId > 0)
                 listCargaContratoHistory = await queryRunner.query(`  
-                SELECT ROW_NUMBER() OVER (ORDER BY dom.ClienteElementoDependienteDomicilioId) AS id,  
-                    CONCAT(dom.ClienteElementoDependienteDomicilioDomCalle, ' ', ISNULL(dom.ClienteElementoDependienteDomicilioDomNro, 0)) AS calle,
-                    dom.ClienteElementoDependienteDomicilioCodigoPostal AS postal,
+                SELECT ROW_NUMBER() OVER (ORDER BY dom.DomicilioId) AS id,  
+                    CONCAT(dom.DomicilioDomCalle, ' ', ISNULL(dom.DomicilioDomNro, 0)) AS calle,
+                    dom.DomicilioCodigoPostal AS postal,
                     prov.provinciadescripcion AS provincia,
                     local.localidaddescripcion AS localidad,
                     bar.barriodescripcion AS barrio,
-                    dom.ClienteElementoDependienteDomicilioDomLugar AS DomicilioDomLugar
-                FROM ClienteElementoDependienteDomicilio dom
-                LEFT JOIN  provincia prov ON prov.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
+                    dom.DomicilioDomLugar
+                FROM Domicilio dom
+                JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
+                LEFT JOIN  provincia prov ON prov.provinciaid = dom.DomicilioProvinciaid
                         AND prov.PaisId = 1
-                LEFT JOIN  localidad local ON local.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
-                    AND local.localidadid = dom.ClienteElementoDependienteDomicilioLocalidadid AND local.PaisId = 1
-                LEFT JOIN  barrio bar ON bar.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
-                    AND bar.localidadid = dom.ClienteElementoDependienteDomicilioLocalidadid 
-                    AND bar.BarrioId = dom.ClienteElementoDependienteDomicilioBarrioId
+                LEFT JOIN  localidad local ON local.provinciaid = dom.DomicilioProvinciaid
+                    AND local.localidadid = dom.DomicilioLocalidadid AND local.PaisId = 1
+                LEFT JOIN  barrio bar ON bar.provinciaid = dom.DomicilioProvinciaid
+                    AND bar.localidadid = dom.DomicilioLocalidadid 
+                    AND bar.BarrioId = dom.DomicilioBarrioId
                     AND bar.PaisId = 1
-                WHERE  ClienteElementoDependienteId = @1 AND ClienteId = @0;`, [ClienteId, ClienteElementoDependienteId])
+
+                WHERE  nexdom.ClienteElementoDependienteId = @1 AND nexdom.ClienteId = @0;`, [ClienteId, ClienteElementoDependienteId])
 
             this.jsonRes(
                 {
