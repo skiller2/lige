@@ -89,5 +89,14 @@ gestionDescuentosRouter.get("/cols/carga-manual-personal", [authMiddleware.verif
 });
 
 gestionDescuentosRouter.get("/cols/carga-manual-objetivo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-    gestionDescuentosController.getObjetivoGridColumnsCargaManualObjetivo(req, res, next);
+    gestionDescuentosController.getPersonalGridColumnsCargaManualObjetivo(req, res, next);
+});
+
+
+gestionDescuentosRouter.get("/addDescuentoCargaManualPersonal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+    gestionDescuentosController.addDescuentoCargaManualPersonal(req, res, next);
+});
+
+gestionDescuentosRouter.get("/addDescuentoCargaManualObjetivo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+    gestionDescuentosController.addDescuentoCargaManualObjetivo(req, res, next); 
 }); 

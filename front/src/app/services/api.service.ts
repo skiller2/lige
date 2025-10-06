@@ -755,11 +755,21 @@ export class ApiService {
   }
 
 
-  setAgregarRegistrosDescuentosPersonalManual(gridDataInsert: any, periodo: any) {
+  addDescuentoCargaManualPersonal(gridDataInsert: any, periodo: any) {
     const parameter = [periodo, gridDataInsert]
     this.notification.success('Respuesta', `Inicio insercion `);
 
-    return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addManualPersonal', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualPersonal', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+  addDescuentoCargaManualObjetivo(gridDataInsert: any, periodo: any) {
+    const parameter = [periodo, gridDataInsert]
+    this.notification.success('Respuesta', `Inicio insercion `);
+
+    return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualObjetivo', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 

@@ -8,19 +8,19 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { NgForm } from '@angular/forms';
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
-import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
+import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 
 @Component({
-  selector: 'app-descuentos-carga-manual-table-personal',
+  selector: 'app-descuentos-carga-manual-table-objetivo',
   imports: [ SHARED_IMPORTS, CommonModule,],
-  templateUrl: './descuentos-carga-manual-table-personal.html',
-  styleUrl: './descuentos-carga-manual-table-personal.less',
+  templateUrl: './descuentos-carga-manual-table-objetivo.html',
+  styleUrl: './descuentos-carga-manual-table-objetivo.less',
   providers: [AngularUtilService]
 })
-export class DescuentosCargaManualTablePersonalComponent implements OnInit {
+export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
 
-  @ViewChild('descuentosCargaManualTablePersonalForm' , { static: true }) descuentosCargaManualTablePersonalForm: NgForm = new NgForm([], []) 
+  @ViewChild('descuentosCargaManualTableObjetivoForm' , { static: true }) descuentosCargaManualTableObjetivoForm: NgForm = new NgForm([], []) 
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
   angularGridEdit!: AngularGridInstance;
@@ -35,24 +35,33 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   private angularUtilService = inject(AngularUtilService);
   private apiService = inject(ApiService);
 
-  columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/carga-manual-personal').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/carga-manual-objetivo').pipe(map((cols) => {
     
     let mapped = cols.map((col: Column) => {
-      if (col.id === 'ApellidoNombre') {
+      if (col.id === 'ObjetivoNombre') {
         col.formatter = Formatters['complexObject'],
         col.params = {
-          complexFieldLabel: 'ApellidoNombre.fullName',
+          complexFieldLabel: 'ObjetivoNombre.fullName',
         },
         col.editor = {
           model: CustomInputEditor,
           collection: [],
           params: {
-            component: EditorPersonaComponent,
+            component: EditorObjetivoComponent,
           },
           alwaysSaveOnEnterKey: true,
           required: true
         }
       }
+
+    if (col.id === 'AplicaA') {
+        col.type = FieldType.string,
+        col.maxWidth = 250,
+        col.editor = {
+          model: Editors['text'],
+          required: true
+        }
+    }
 
     if (col.id === 'CantidadCuotas') {
       col.type = FieldType.float,
@@ -91,7 +100,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
     async ngOnInit() {
   
-      this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainercargaManual', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+      this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainercargaManualobjetivo', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
       this.gridOptionsEdit.enableRowDetailView = false
       this.gridOptionsEdit.autoEdit = true
       this.gridOptionsEdit.editable = true 
@@ -217,7 +226,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     let periodoY = this.anio();
     const valuePeriodo = periodoM + "/" + periodoY;
     if (altas.length > 0) {
-      this.apiService.addDescuentoCargaManualPersonal({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
+      this.apiService.addDescuentoCargaManualObjetivo({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
         this.formChange$.next('')
         this.cleanTable()
       });

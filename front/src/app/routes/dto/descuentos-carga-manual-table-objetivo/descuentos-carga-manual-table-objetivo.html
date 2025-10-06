@@ -3,14 +3,14 @@
     <button  nz-popconfirm nzType="primary" class="btn-add"
         nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
         nz-button>
-        Confirmar nuevo registro personal
+        Confirmar nuevo registro objetivo
       </button>
     </div>
     <ng-container>
       @if(columns$ | async; as columnas) {
-        <div class="gridContainercargaManual container-fluid">
+        <div class="gridContainercargaManualobjetivo container-fluid">
           <angular-slickgrid 
-            gridId="gridCargaManualPersonal" 
+            gridId="gridCargaManualObjetivo" 
             [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptionsEdit" 
             [dataset]="gridDataInsert || []"

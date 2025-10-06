@@ -413,6 +413,7 @@ const columnsPersonalDescuentosCargaManualPersonal: any[] = [
     fieldName: 'id',
     type: 'string',
     searchType: 'string',
+    hidden: true,
   },
   {
     id: 'ApellidoNombre', name: 'Personal', field: 'ApellidoNombre',
@@ -436,6 +437,43 @@ const columnsPersonalDescuentosCargaManualPersonal: any[] = [
   },
 
 ]
+
+const columnsPersonalDescuentosCargaManualObjetivo: any[] = [
+  {
+    id: 'id', name: 'Id', field: 'id',
+    fieldName: 'id',
+    type: 'string',
+    searchType: 'string',
+    hidden: true,
+  }, 
+  {
+    id: 'AplicaA', name: 'Aplica A', field: 'AplicaA',
+    fieldName: 'AplicaA',
+  },
+  {
+    id: 'ObjetivoNombre', name: 'Objetivo', field: 'ObjetivoNombre',
+    fieldName: 'ObjetivoNombre',
+  },
+  {
+    id: 'CantidadCuotas', name: 'Cantidad Cuotas', field: 'CantidadCuotas',
+    fieldName: 'CantidadCuotas',
+
+  },
+  {
+    id: 'ImporteTotal', name: 'Importe total', field: 'ImporteTotal',
+    fieldName: 'ImporteTotal',
+
+  },
+  {
+    id: 'Detalle', name: 'Detalle', field: 'Detalle',
+    fieldName: 'Detalle',
+
+  },
+
+]
+
+
+
 
 const tableOptions: any[] = [
   { label: 'Personal', value: 'PersonalOtroDescuento' },
@@ -472,6 +510,10 @@ export class GestionDescuentosController extends BaseController {
 
   async getPersonalGridColumnsCargaManualPersonal(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsPersonalDescuentosCargaManualPersonal, res)
+  }
+
+  async getPersonalGridColumnsCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsPersonalDescuentosCargaManualObjetivo, res)
   }
 
   private async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
@@ -1912,9 +1954,14 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async getObjetivoGridColumnsCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
-    console.log('estoy en el backend.................')
+  async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
+    console.log('estoy en el backend personal.................')
   }
 
+  async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
+    console.log('estoy en el backend objetivo.................')
+  }
+
+  async 
 
 }
