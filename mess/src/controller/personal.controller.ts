@@ -72,8 +72,24 @@ export class PersonalController extends BaseController {
         prestamoId,
       ]
     );
+  }
 
+  async deletePersonalAdelanto(personalId: any, anio: any, mes: any) {
+    const FormaPrestamoId = 7 //Adelanto
 
+    const adelanto:any = await dbServer.dataSource.query(`
+      SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
+      WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
+      AND ade.PersonalId = @0
+      `, [personalId, anio, mes]
+    )
+
+    if (adelanto.length && !adelanto[0].PersonalPrestamoFechaAprobacion) {
+      await dbServer.dataSource.query(
+        `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
+        , [personalId, FormaPrestamoId, anio, mes]
+      );
+    }
   }
 
   async getDocsPendDescarga(PersonalId: number) {
