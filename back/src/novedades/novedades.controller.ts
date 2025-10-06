@@ -26,7 +26,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false,
-        maxWidth: 55
+        // maxWidth: 55
 
     },
     {
@@ -38,14 +38,14 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        
+
     },
     {
         name: "Sucursal",
         type: "string",
         id: "SucursalId",
         field: "SucursalId",
-        fieldName: "suc.SucursalId", 
+        fieldName: "suc.SucursalId",
         searchComponent: "inpurForSucursalSearch",
         sortable: false,
         hidden: true,
@@ -71,7 +71,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: true,
         searchHidden: false
-      },
+    },
     {
         name: "Código Objetivo",
         type: "string",
@@ -83,7 +83,7 @@ const listaColumnas: any[] = [
         searchHidden: true,
         maxWidth: 65
     },
-    
+
     {
         name: "Objetivo",
         type: "number",
@@ -115,7 +115,7 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: true
     },
-    
+
     {
         name: "Grupo Actividad",
         type: "number",
@@ -126,7 +126,17 @@ const listaColumnas: any[] = [
         sortable: false,
         hidden: true,
         searchHidden: false
-      },
+    },
+     {
+        name: "GrupoActividadNumero",
+        type: "string",
+        id: "GrupoActividadNumero",
+        field: "GrupoActividadNumero",
+        fieldName: "ga.GrupoActividadNumero",
+        sortable: false,
+        hidden: true,
+        searchHidden: true
+    },
     {
         name: "Tipo novedad.",
         type: "string",
@@ -179,7 +189,7 @@ const listaColumnas: any[] = [
         sortable: true,
         searchHidden: false,
         hidden: true,
-      },
+    },
     {
         name: "Teléfono",
         type: "string",
@@ -199,9 +209,9 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        
+
     },
-        {
+    {
         name: "Descripción",
         type: "string",
         id: "Descripcion",
@@ -241,6 +251,12 @@ export class NovedadesController extends BaseController {
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
 
+        const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadId).join(',') : '';
+        let whereGrupoActividad = ''
+        if (!res.locals?.authADGroup && grupoActividad) {
+            whereGrupoActividad = ` AND ga.GrupoActividadId IN (${grupoActividad})`
+        }
+
         try {
             const objetivos = await queryRunner.query(
                 `Select
@@ -254,9 +270,10 @@ export class NovedadesController extends BaseController {
                     ,obj.ObjetivoId
                     , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
                     ,ele.ClienteElementoDependienteDescripcion DescripcionObj
-
+                
                     ,CONCAT(TRIM(jerper.PersonalApellido),', ', TRIM(jerper.PersonalNombre)) as ApellidoNombreJerarquico
-
+                    , ga.GrupoActividadId
+                    , ga.GrupoActividadNumero
                     ,per.PersonalId
                     ,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) as ApellidoNombrePersonal
                     ,nov.Telefono
@@ -281,8 +298,7 @@ export class NovedadesController extends BaseController {
                     LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
                     LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
 
-                WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
-
+                WHERE ${filterSql} ${whereGrupoActividad} ${orderBy}`, [anio, mes, fechaActual])
             this.jsonRes(
                 {
                     total: objetivos.length,
@@ -329,9 +345,9 @@ export class NovedadesController extends BaseController {
     }
 
 
-    
+
     async getNovedadQuery(queryRunner: any, NovedadId: any) {
-       
+
         return await queryRunner.query(`
        SELECT
             nov.NovedadCodigo id,
@@ -374,8 +390,8 @@ export class NovedadesController extends BaseController {
             nov.VisualizacionFecha,nov.VisualizacionPersonaId, visper.PersonalApellidoNombre, nov.VisualizacionTelefono;
             `,
             [NovedadId])
-        
-            
+
+
     }
 
     async updateNovedad(req: any, res: Response, next: NextFunction) {
@@ -390,23 +406,23 @@ export class NovedadesController extends BaseController {
             let ObjObjetivoNew = {}
             const AudFechaMod = new Date()
 
-           // console.log("res.local.PersonalId", res.locals.PersonalId)
-           // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
-            const usuarioId =  res.locals.PersonalId
+            // console.log("res.local.PersonalId", res.locals.PersonalId)
+            // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
+            const usuarioId = res.locals.PersonalId
 
-           //throw new ClientException(`test.`)
-           
+            //throw new ClientException(`test.`)
+
             await queryRunner.startTransaction()
 
             await this.FormValidations(Obj)
 
-            
+
             const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
             Obj.ClienteId = objetivo[0].ClienteId
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
             await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip, Obj.ClienteId, Obj.ClienteElementoDependienteId)
-            
+
             let array_id = []
             let doc_id = 0
             if (Obj.files?.length > 0) {
@@ -416,7 +432,7 @@ export class NovedadesController extends BaseController {
             }
 
             //validacion de barrio
-            
+
             await queryRunner.commitTransaction()
 
             return this.jsonRes(ObjObjetivoNew, res, 'Modificación  Exitosa');
@@ -452,10 +468,10 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any,  ClienteId: any, ClienteElementoDependienteId: any) {
+    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any, ClienteId: any, ClienteElementoDependienteId: any) {
         await queryRunner.query(`
             UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ClienteId = @8, ClienteElementoDependienteId = @9 where NovedadCodigo = @4`
-            , [ Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod, ClienteId, ClienteElementoDependienteId])
+            , [Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod, ClienteId, ClienteElementoDependienteId])
     }
 
 
@@ -464,18 +480,18 @@ export class NovedadesController extends BaseController {
         const usuarioName = res.locals.userName
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body }
-        let NovedadIdNew = { } 
+        let NovedadIdNew = {}
 
         try {
-            
+
             const ip = this.getRemoteAddress(req)
-           // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
+            // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
             const usuarioId = res.locals.PersonalId ? res.locals.PersonalId : null
-           
+
             await queryRunner.startTransaction()
             await this.FormValidations(Obj)
 
-          
+
             const novedadId = await this.getProxNumero(queryRunner, `Novedad`, res.locals.PersonalId, ip)
 
             const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
@@ -483,11 +499,11 @@ export class NovedadesController extends BaseController {
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
-                  Obj.Telefono, usuarioId, ip, novedadId, usuarioName)
+                Obj.Telefono, usuarioId, ip, novedadId, usuarioName)
 
 
-             let doc_id = 0
-             let array_id = []
+            let doc_id = 0
+            let array_id = []
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
                     await this.fileNovedadUpload(queryRunner, Obj, usuarioId, ip, novedadId, usuarioName, file, array_id, doc_id)
@@ -508,18 +524,18 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async fileNovedadUpload(queryRunner: any, Obj: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any, file: any, array_id: any, doc_id: any ) {
+    async fileNovedadUpload(queryRunner: any, Obj: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any, file: any, array_id: any, doc_id: any) {
 
         let result = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(), null, file.doctipo_id, null, null, file, usuarioName, ip, queryRunner)
 
 
-         if (result && typeof result === 'object') {
-             ({ doc_id } = result)
-             array_id.push(doc_id)
-         }
+        if (result && typeof result === 'object') {
+            ({ doc_id } = result)
+            array_id.push(doc_id)
+        }
 
-         if (file.tempfilename && !file.id) {
-             await queryRunner.query(`INSERT INTO DocumentoRelaciones (
+        if (file.tempfilename && !file.id) {
+            await queryRunner.query(`INSERT INTO DocumentoRelaciones (
              DocumentoId,
              PersonalId,
              ObjetivoId,
@@ -535,29 +551,29 @@ export class NovedadesController extends BaseController {
          ) VALUES (
              @0, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7, @8
          )`, [
-             doc_id,
-             null,
-             null,
-             null,
-             null,
-             new Date(),
-             usuarioName,
-             ip,
-             novedadId
-             ])
-         } else {
-             await queryRunner.query(`UPDATE DocumentoRelaciones SET AudFechaMod = @0, AudUsuarioMod = @1, AudIpMod = @2, NovedadCodigo = @4 WHERE DocumentoId = @3 `, [
-             new Date(),
-             usuarioName,
-             ip,
-             doc_id,
-             novedadId
-             ])
-         }
+                doc_id,
+                null,
+                null,
+                null,
+                null,
+                new Date(),
+                usuarioName,
+                ip,
+                novedadId
+            ])
+        } else {
+            await queryRunner.query(`UPDATE DocumentoRelaciones SET AudFechaMod = @0, AudUsuarioMod = @1, AudIpMod = @2, NovedadCodigo = @4 WHERE DocumentoId = @3 `, [
+                new Date(),
+                usuarioName,
+                ip,
+                doc_id,
+                novedadId
+            ])
+        }
     }
 
-    async addNovedadTable( queryRunner: any,Fecha: any, NovedadTipoCod: any,Descripcion: any,Accion: any,ClienteId: any,
-        ClienteElementoDependienteId: any,Telefono: any,usuarioId: any,ip: any, novedadId: any, usuarioName: any ) {
+    async addNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, ClienteId: any,
+        ClienteElementoDependienteId: any, Telefono: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any) {
 
         const now = new Date();
         const AudFechaIng = now;
@@ -568,7 +584,7 @@ export class NovedadesController extends BaseController {
         const AudUsuarioMod = usuarioName;
 
         const PersonalId = usuarioId
-        const telefono =  Telefono ? Telefono : null
+        const telefono = Telefono ? Telefono : null
         const fechaString = Fecha;
         const fechaObjeto = new Date(fechaString);
         const hora = fechaObjeto.getHours() + ':' + fechaObjeto.getMinutes();
@@ -615,7 +631,7 @@ export class NovedadesController extends BaseController {
                 @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17
             )
             `,
-            [   
+            [
                 novedadId,
                 ClienteId,
                 ClienteElementoDependienteId,
@@ -642,7 +658,7 @@ export class NovedadesController extends BaseController {
     async deleteNovedad(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = dataSource.createQueryRunner()
-       // console.log("req.params", req.params)
+        // console.log("req.params", req.params)
         //throw new ClientException(`test`)
         try {
             const NovedadId = req.params.id
@@ -663,8 +679,8 @@ export class NovedadesController extends BaseController {
         } finally {
             await queryRunner.release()
         }
-       
+
     }
 
- 
+
 }

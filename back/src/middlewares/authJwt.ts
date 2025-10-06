@@ -82,19 +82,21 @@ export class AuthMiddleware {
     }
   }
 
-  authADGroup = (groups: string[]) => {
+  authADGroup = (group: string[]) => {
     return (req, res, next) => {
-      if (!req?.groups) return next();
-      for (const myGrp of req.groups) {
-        for (const grp of groups) {
+      for (const myGrp of req?.groups) {
+        for (const grp of group) {
           if (myGrp.toLowerCase() === grp.toLowerCase()) {
-            // Si pertenece a alguno, permite el acceso total 
             res.locals.authADGroup = true
+            return next()
           }
         }
       }
-      // Si no pertenece a ninguno, continúa
-      return next();
+
+      if (res.locals?.verifyGrupoActividad) return next()
+      const stopTime = performance.now()
+      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+
     }
   }
 
@@ -458,20 +460,14 @@ export class AuthMiddleware {
 
   // Middleware directo - Solo valida y guarda grupos de actividad en res.locals
   verifyGrupoActividad = async (req: any, res: any, next: any) => {
-    console.log('verifyGrupoActividad', res.locals);
-    if (res.locals?.authADGroup) return next()
+    const PersonalId = res.locals.PersonalId
+    const GrupoActividad = res.locals.GrupoActividad
 
-    const PersonalId = res.locals.PersonalId;
-    const GrupoActividad = res.locals.GrupoActividad;
-
-    if (PersonalId < 1) {
-      return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." });
-    }
+    if (PersonalId < 1) return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
     if (!GrupoActividad || GrupoActividad.length > 0) {
       // Tiene grupos de actividad, guardar en res.locals para uso posterior
-      return next();
+      res.locals.verifyGrupoActividad = true
     }
-    // No tiene grupos de actividad ni permisos de operaciones
-    return res.status(403).json({ msg: "No tiene permisos para acceder. Requiere ser Jerárquico de un grupo de actividad." });
+    return next()
   }
 }

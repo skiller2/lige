@@ -61,7 +61,7 @@ export class NovedadesComponent {
   ngAfterContentInit(): void {
     const user: any = this.settingService.getUser()
     this.startFilters.set([
-      { field: 'GrupoActividadId', condition: 'AND', operator: '=',  value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: true },])
+      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=',  value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: false },])
 
 
   }
