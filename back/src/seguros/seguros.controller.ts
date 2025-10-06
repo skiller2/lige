@@ -628,7 +628,7 @@ UNION
         } else {
           if ([7].includes(row.SituacionRevistaId) && row.month_diff > 3)
             continue
-          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
+          if ([3, 4, 5, 6, 8, 11, 13, 14, 15, 17, 19, 21, 22, 24, 26, 27, 29, 30, 31, 36].includes(row.SituacionRevistaId))
             continue
 
           segAltas++
@@ -659,7 +659,7 @@ UNION
             segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
           }
-          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId)) {
+          if ([3, 4, 5, 6, 8, 11, 13, 14, 15, 17, 19, 21, 22, 24, 26, 27, 29, 30, 31, 36].includes(rowEnSitRev.SituacionRevistaId)) {
             segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'APG', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
           }
@@ -670,7 +670,7 @@ UNION
       for (const row of personalSitRev) {
         if ([7].includes(row.SituacionRevistaId) && row.month_diff > 3)
           continue
-        if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId))
+        if ([3, 4, 5, 6, 8, 11, 13, 14, 15, 17, 19, 21, 22, 24, 26, 27, 29, 30, 31, 36].includes(row.SituacionRevistaId))
           continue
 
         const rowEnSeguro = personalEnSeguroVidCol.find(r => r.PersonalId == row.PersonalId)
@@ -692,7 +692,7 @@ UNION
             segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses', stm_now, usuario, ip)
           }
-          if ([3, 13, 19, 24, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId)) {
+          if ([3, 4, 5, 6, 8, 11, 13, 14, 15, 17, 19, 21, 22, 24, 26, 27, 29, 30, 31, 36].includes(rowEnSitRev.SituacionRevistaId)) {
             segBajas++
             await this.queryUpdSegurosFin(queryRunner, row.PersonalId, PersonalSeguroHasta, 'VC', rowEnSitRev.detalle + ' baja', stm_now, usuario, ip)
           }
