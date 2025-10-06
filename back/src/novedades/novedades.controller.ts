@@ -667,7 +667,6 @@ export class NovedadesController extends BaseController {
             if (!res.locals?.authADGroup) {
                 // consultar si el objetivo que esta asociado a la novedad, el usuario es jerarquico del mismo
                 const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadId).join(',') : '';
-                let whereGrupoActividad = ` AND ga.GrupoActividadId IN (${grupoActividad})`
                 
                 const validacion = await queryRunner.query(
                     `Select nov.NovedadCodigo 
@@ -676,7 +675,7 @@ export class NovedadesController extends BaseController {
                     LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
                     LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
                     LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
-                WHERE nov.NovedadCodigo = @0 ${whereGrupoActividad}`, [NovedadId])
+                WHERE nov.NovedadCodigo = @0 AND ga.GrupoActividadId IN (${grupoActividad})`, [NovedadId])
                 if (validacion.length === 0) {
                     throw new ClientException(`No tiene permisos para eliminar esta novedad.`)
                 }
