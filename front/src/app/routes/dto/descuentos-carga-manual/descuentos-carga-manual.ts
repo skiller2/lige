@@ -27,8 +27,8 @@ export class DescuentosCargaManualComponent implements OnInit {
 })
 
 
-  ptipocarga = signal<string |undefined>(undefined)// Puede ser null; 0: PersonalOtroDescuento, 1: ObjetivoDescuento
-  pDescuentoId = signal<number | undefined>(undefined)
+  ptipocarga = signal<string |undefined>('')// Puede ser null; 0: PersonalOtroDescuento, 1: ObjetivoDescuento
+  pDescuentoId = signal<number>(0)
 
   ngOnInit(): void {
    
@@ -36,10 +36,13 @@ export class DescuentosCargaManualComponent implements OnInit {
 
   // Función que se ejecuta cuando el select cambia
   onSelectChange(selectedValue: any): void {
-    console.log('selectedValue',selectedValue)
     this.ptipocarga.set(this.formDescuentosCargaManual.get('tipocarga')?.value ?? undefined);
-    this.pDescuentoId.set(this.formDescuentosCargaManual.get('DescuentoId')?.value ?? undefined);
-    
-  
+    this.formDescuentosCargaManual.patchValue({DescuentoId: 0 });
+    this.pDescuentoId.set(0);
+  }
+
+  onSelectChangeDescuentoId(selectedValue: any): void {
+    console.log('selectedValue',this.formDescuentosCargaManual.get('DescuentoId')?.value)
+    this.pDescuentoId.set(this.formDescuentosCargaManual.get('DescuentoId')?.value ?? 0);
   }
 }

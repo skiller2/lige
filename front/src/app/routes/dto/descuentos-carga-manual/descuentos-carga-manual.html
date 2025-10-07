@@ -19,7 +19,7 @@
           <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
           <nz-form-control [nzMd]="5">
             <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
-              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
               <ng-container *ngFor="let option of $optionsTipo | async">
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               </ng-container>
@@ -31,18 +31,17 @@
           <nz-form-label [nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
           <nz-form-control [nzMd]="5">
             <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
-              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
               <ng-container *ngFor="let option of $optionsTipo | async">
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               </ng-container>
             </nz-select>
           </nz-form-control>
-        </nz-form-item>
-
-  @if(ptipocarga() === 'PersonalOtroDescuento' && pDescuentoId() !== undefined){
+        </nz-form-item> 
+  @if(ptipocarga() === 'PersonalOtroDescuento' && pDescuentoId()> 0){
     <app-descuentos-carga-manual-table-personal></app-descuentos-carga-manual-table-personal>
   }
 
-  @if(ptipocarga() === 'ObjetivoDescuento' && pDescuentoId() !== undefined){
+  @if(ptipocarga() === 'ObjetivoDescuento' && pDescuentoId() > 0){
     <app-descuentos-carga-manual-table-objetivo></app-descuentos-carga-manual-table-objetivo>
   }
