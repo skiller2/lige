@@ -64,7 +64,7 @@ export class CustodiaComponent {
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    // private settingService = inject(SettingsService)
+    private settingsService = inject(SettingsService)
     private injector = inject(Injector)
 
     childAlta = viewChild.required<CustodiaFormComponent>('custodiaFormAlta')
@@ -140,7 +140,7 @@ export class CustodiaComponent {
 
         this.periodo.set(new Date(anio, mes - 1, 1));
 
-
+        this.settingsService.setLayout('collapsed', true)
 
     }
 
