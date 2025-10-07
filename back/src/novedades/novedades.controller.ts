@@ -251,12 +251,6 @@ export class NovedadesController extends BaseController {
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
 
-        const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadId).join(',') : '';
-        let whereGrupoActividad = ''
-        if (!res.locals?.authADGroup && grupoActividad) {
-            whereGrupoActividad = ` AND ga.GrupoActividadId IN (${grupoActividad})`
-        }
-
         try {
             const objetivos = await queryRunner.query(
                 `Select
@@ -298,7 +292,7 @@ export class NovedadesController extends BaseController {
                     LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
                     LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
 
-                WHERE ${filterSql} ${whereGrupoActividad} ${orderBy}`, [anio, mes, fechaActual])
+                WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
             this.jsonRes(
                 {
                     total: objetivos.length,
@@ -667,7 +661,7 @@ export class NovedadesController extends BaseController {
             if (!res.locals?.authADGroup) {
                 // consultar si el objetivo que esta asociado a la novedad, el usuario es jerarquico del mismo
                 const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadId).join(',') : '';
-                
+
                 const validacion = await queryRunner.query(
                     `Select nov.NovedadCodigo 
                     From Novedad nov    
