@@ -451,8 +451,8 @@ const columnsPersonalDescuentosCargaManualObjetivo: any[] = [
     fieldName: 'AplicaA',
   },
   {
-    id: 'ObjetivoNombre', name: 'Objetivo', field: 'ObjetivoNombre',
-    fieldName: 'ObjetivoNombre',
+    id: 'ClienteElementoDependienteDescripcion', name: 'Objetivo', field: 'ClienteElementoDependienteDescripcion',
+    fieldName: 'ClienteElementoDependienteDescripcion',
   },
   {
     id: 'CantidadCuotas', name: 'Cantidad Cuotas', field: 'CantidadCuotas',

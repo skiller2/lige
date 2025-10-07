@@ -36,7 +36,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   private apiService = inject(ApiService);
 
   columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/carga-manual-personal').pipe(map((cols) => {
-    
+    console.log('cols', cols)
+
     let mapped = cols.map((col: Column) => {
       if (col.id === 'ApellidoNombre') {
         col.formatter = Formatters['complexObject'],

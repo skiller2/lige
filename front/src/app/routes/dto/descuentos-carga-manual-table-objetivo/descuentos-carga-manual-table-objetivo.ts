@@ -10,6 +10,7 @@ import { NgForm } from '@angular/forms';
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
+import { AplicaASearchComponent } from '../../../shared/aplicaA-search/aplicaA-search.component';
 
 @Component({
   selector: 'app-descuentos-carga-manual-table-objetivo',
@@ -36,13 +37,17 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   private apiService = inject(ApiService);
 
   columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/carga-manual-objetivo').pipe(map((cols) => {
-    
+    console.log('cols', cols)
     let mapped = cols.map((col: Column) => {
-      if (col.id === 'ObjetivoNombre') {
+    
+      if (col.id === 'ClienteElementoDependienteDescripcion') {
+        col.sortable = true,
+        col.type = FieldType.string,
         col.formatter = Formatters['complexObject'],
         col.params = {
-          complexFieldLabel: 'ObjetivoNombre.fullName',
+          complexFieldLabel: 'ClienteElementoDependienteDescripcion.fullName',
         },
+
         col.editor = {
           model: CustomInputEditor,
           collection: [],
@@ -53,14 +58,24 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
           required: true
         }
       }
-
+      
     if (col.id === 'AplicaA') {
-        col.type = FieldType.string,
-        col.maxWidth = 250,
-        col.editor = {
-          model: Editors['text'],
-          required: true
-        }
+      col.sortable = true,
+      col.type = FieldType.string,
+      col.formatter = Formatters['complexObject'],
+      col.params = {
+        complexFieldLabel: 'AplicaA.fullName',
+      },
+
+      col.editor = {
+        model: CustomInputEditor,
+        collection: [],
+        params: {
+          component: AplicaASearchComponent,
+        },
+        alwaysSaveOnEnterKey: true,
+        required: true
+      }
     }
 
     if (col.id === 'CantidadCuotas') {
@@ -110,7 +125,8 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
         editCommand.execute()
         // Determina si la fila está completa o incompleta
         if (
-          row.ApellidoNombre &&
+          row.AplicaA &&
+          row.ClienteElementoDependienteDescripcion &&
           row.CantidadCuotas &&
           row.ImporteTotal &&
           row.Detalle
@@ -122,7 +138,8 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
 
         // Si todos los campos relevantes están vacíos, elimina la fila; si no, actualiza
         if (
-          !row.ApellidoNombre &&
+          !row.AplicaA &&
+          !row.ClienteElementoDependienteDescripcion &&
           !row.CantidadCuotas &&
           !row.ImporteTotal &&
           !row.Detalle
@@ -137,7 +154,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
         this.angularGridEdit.slickGrid.render();
   
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-        if (lastrow && (lastrow.ApellidoNombre || lastrow.CantidadCuotas || lastrow.ImporteTotal || lastrow.Detalle))  {
+        if (lastrow && ( lastrow.AplicaA || lastrow.ClienteElementoDependienteDescripcion || lastrow.CantidadCuotas || lastrow.ImporteTotal || lastrow.Detalle))  {
           this.addNewItem("bottom")
         }
       }
