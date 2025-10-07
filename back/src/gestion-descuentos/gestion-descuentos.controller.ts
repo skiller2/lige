@@ -761,6 +761,7 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = AplicaEl.getMonth() + 1
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const DocumentoId: number = otroDescuento.DocumentoId
+    const importeTotal = Number((Number(otroDescuento.Importe)).toFixed(2))
     /*
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
@@ -783,7 +784,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo, ImportacionDocumentoId)
       VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12, @6)
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeCuota])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeTotal])
 
     let PersonalOtroDescuentoCuotaId = 0
     let cuotaAnio = anio
@@ -819,6 +820,7 @@ export class GestionDescuentosController extends BaseController {
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = objDescuento.Cuotas
     const importeCuota = Number((Number(objDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    const importeTotal = Number((Number(objDescuento.Importe)).toFixed(2))
     const Detalle: number = objDescuento.Detalle
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
@@ -841,7 +843,7 @@ export class GestionDescuentosController extends BaseController {
 
     
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
-      mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA, DocumentoId])
+      mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA, DocumentoId])
 
     let ObjetivoDescuentoCuotaId = 0
     let cuotaAnio = anio
@@ -1207,7 +1209,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoDia = @11, PersonalOtroDescuentoTiempo = @12
       , PersonalOtroDescuentoCuotasPagas = 1, PersonalOtroDescuentoCuotaUltNro = 1
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeCuota, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
