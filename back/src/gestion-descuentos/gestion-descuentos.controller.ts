@@ -352,8 +352,8 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'ObjetivoDescuentoImporteVariable', name: 'Importe Cuota', field: 'ObjetivoDescuentoImporteVariable',
-    fieldName: 'des.ObjetivoDescuentoImporteVariable',
+    id: 'ObjetivoDescuentoCuotaImporte', name: 'Importe Cuota', field: 'ObjetivoDescuentoCuotaImporte',
+    fieldName: 'cuo.ObjetivoDescuentoCuotaImporte',
     type: 'currency',
     searchType: 'currency',
     sortable: true,
@@ -617,14 +617,14 @@ export class GestionDescuentosController extends BaseController {
       , det.DescuentoDescripcion
       , des.ObjetivoDescuentoDetalle 
    
-      , des.ObjetivoDescuentoImporteVariable
-      , cuo.ObjetivoDescuentoCuotaCuota 
+      , des.ObjetivoDescuentoImporteVariable as importetotal
+      , cuo.ObjetivoDescuentoCuotaCuota
+      , cuo.ObjetivoDescuentoCuotaImporte 
 	    , cuo.ObjetivoDescuentoCuotaAno
 	    , cuo.ObjetivoDescuentoCuotaMes
 	  
 	  
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
-      , (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidadCuotas) AS importetotal
       , des.ObjetivoDescuentoFechaAnulacion
 
       FROM ObjetivoDescuento des  
@@ -783,7 +783,7 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas
       , PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
       , PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo, ImportacionDocumentoId)
-      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, CONCAT(FORMAT(@4,'00'),'/',@3,' Cuota 1'), @8, @9, @10, @11, @12, @6)
+      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @13, @7, 0, 1, 1, null , @8, @9, @10, @11, @12, @6)
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, ip, usuarioId, hoy, hora, importeTotal])
 
     let PersonalOtroDescuentoCuotaId = 0
@@ -1527,7 +1527,7 @@ export class GestionDescuentosController extends BaseController {
     SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
       , ObjetivoDescuentoImporteVariable ImporteCuota
-      , (ObjetivoDescuentoImporteVariable * ObjetivoDescuentoCantidadCuotas) Importe
+      , ObjetivoDescuentoImporteVariable as Importe
       , ObjetivoId
       , ObjetivoDescuentoId id
       , ObjetivoDescuentoDescontar AplicaA
