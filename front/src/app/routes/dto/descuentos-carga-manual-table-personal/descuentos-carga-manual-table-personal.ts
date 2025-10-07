@@ -32,6 +32,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   gridDataInsert = [];
   anio = input<number>(0)
   mes = input<number>(0)
+  pDescuentoId = input<number>(0)
   private angularUtilService = inject(AngularUtilService);
   private apiService = inject(ApiService);
 
@@ -173,7 +174,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       isfull: 0,
       periodo: this.anio() + "/" + this.mes(),
       fecha: new Date(),
-
+      DescuentoId: this.pDescuentoId()
     };
   }
 
@@ -210,13 +211,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   }
 
   confirmNewItem() {
-    console.log('this.gridDataInsert', this.gridDataInsert)
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
-    console.log('altas', altas)
-
-    let periodoM = this.mes();
-    let periodoY = this.anio();
-    const valuePeriodo = periodoM + "/" + periodoY;
+    const valuePeriodo = this.anio() + "/" + this.mes();
     if (altas.length > 0) {
       this.apiService.addDescuentoCargaManualPersonal({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
         this.formChange$.next('')

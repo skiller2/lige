@@ -1,4 +1,4 @@
-import { Component, inject, OnInit,signal } from '@angular/core';
+import { Component, inject, input, OnInit,signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { SearchService } from 'src/app/services/search.service';
@@ -19,7 +19,8 @@ export class DescuentosCargaManualComponent implements OnInit {
 
   $optionsTipo = this.searchService.getDecuentosTipoOptions();
   $optionsTable = this.searchService.getDescuentoTableOptions();
-
+  anio = input<number>(0)
+  mes = input<number>(0)
 
   formDescuentosCargaManual = this.fb.group({
     DescuentoId:0, tableName:'', files: [[]],

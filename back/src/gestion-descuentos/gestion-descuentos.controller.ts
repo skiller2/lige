@@ -1957,7 +1957,60 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    
+    let fechaActual = new Date()
+   // const periodo = req.body[0].split('/');
+   // console.log('periodo', req.body[0])
+    console.log('req',req.body[1].gridDataInsert)
     console.log('estoy en el backend personal.................')
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      for (const row of req.body[1].gridDataInsert) {
+        const PersonalId: number = row.ApellidoNombre.id
+        const AplicaEl: Date = row.AplicaEl ? new Date(row.AplicaEl) : new Date()
+console.log('AplicaEl',AplicaEl)
+        if (AplicaEl)
+           AplicaEl.setHours(0, 0, 0, 0)
+
+        const Cuotas: number = row.CantidadCuotas
+        const Detalle: number = row.Detalle
+        const anio: number = AplicaEl.getFullYear()
+        const mes: number = AplicaEl.getMonth() + 1
+        const importeCuota = Number((Number(row.ImporteTotal) / Number(Cuotas)).toFixed(2))
+        const importeTotal = Number((Number(row.ImporteTotal)).toFixed(2))
+        const DescuentoId: number = row.DescuentoId
+    
+        let otroDescuento = {
+          PersonalId : PersonalId,
+          AplicaEl : AplicaEl,
+          Cuotas : Cuotas,
+          Detalle : Detalle,
+          ImporteTotal : importeTotal,
+          anio : anio,
+          mes : mes,
+          importeCuota : importeCuota,
+          importeTotal : importeTotal
+        }
+        //await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuario, ip)
+      }
+
+      throw new ClientException("Paso oka")
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+
   }
 
   async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {

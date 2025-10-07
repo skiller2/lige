@@ -39,7 +39,7 @@
           </nz-form-control>
         </nz-form-item> 
   @if(ptipocarga() === 'PersonalOtroDescuento' && pDescuentoId()> 0){
-    <app-descuentos-carga-manual-table-personal></app-descuentos-carga-manual-table-personal>
+    <app-descuentos-carga-manual-table-personal [pDescuentoId]="pDescuentoId()" [anio]="anio()" [mes]="mes()"></app-descuentos-carga-manual-table-personal>
   }
 
   @if(ptipocarga() === 'ObjetivoDescuento' && pDescuentoId() > 0){
