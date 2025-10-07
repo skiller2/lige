@@ -952,6 +952,8 @@ export class GestionDescuentosController extends BaseController {
     const mes: number = req.body.month
     // let errors : string[] = []
     try {
+      throw new ClientException(`Proceso desactivado, no es necesario`)
+
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (per[0] && per[0].ind_recibos_generados == 1)
