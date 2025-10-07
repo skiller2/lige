@@ -956,23 +956,53 @@ export class GestionDescuentosController extends BaseController {
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (per[0] && per[0].ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
-      //const listOtroDescuento = await this.otroDescuentoListAddCuotaQuery(queryRunner, anio, mes)
 
-      //PersonalOtrosDescuentos
-      //for (const obj of listOtroDescuento) {
-      //  await this.personalOtroDescuentoAddCuota(
-      //    queryRunner, { ...obj, anio, mes }
-      //  )
-      //}
 
-      //ObjetivoDescuentos
-      //const listObjetivoDescuento = await this.objetivoDescuentoListAddCuotaQuery(queryRunner, anio, mes)
+      const coutaspend = await queryRunner.query(`
+        SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
+        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, 
+        ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS cuotavalor, 
+        -- cuo.PersonalOtroDescuentoCuotaImporte  ImporteReal,  
+        MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
+        des.PersonalOtroDescuentoCuotaUltNro,
+        COUNT (*) generadas 
+        
+        FROM PersonalOtroDescuento des 
+        JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
+        WHERE des.PersonalOtroDescuentoCantidadCuotas > 1 AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+        GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
+        HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas`)
+      for (const descuento of coutaspend) {
+        let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
+        let cuotaAnio = descuento.Anio
+        let cuotaMes = descuento.Mes
 
-      //for (const obj of listObjetivoDescuento) {
-      //  await this.objetivoDescuentoAddCuota(
-      //    queryRunner, { ...obj, anio, mes }
-      //  )
-      //}
+        const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+        cuotaAnio = per.cuotaAnio
+        cuotaMes = per.cuotaMes
+
+        const importeCuota = descuento.PersonalOtroDescuentoImporteVariable / descuento.PersonalOtroDescuentoCantidadCuotas
+        for (let cuota = 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
+          PersonalOtroDescuentoCuotaId++
+          await queryRunner.query(`
+          INSERT INTO PersonalOtroDescuentoCuota (
+        PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+        PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
+        PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
+        PersonalOtroDescuentoCuotaProceso)
+        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
+      `, [PersonalOtroDescuentoCuotaId, descuento.PersonalOtroDescuentoId, descuento.PersonalId,
+            cuotaAnio, cuotaMes, cuota,
+            importeCuota, 0, 0, 'FA'])
+
+          const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+          cuotaAnio = per.cuotaAnio
+          cuotaMes = per.cuotaMes
+        }
+        await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [descuento.PersonalId, descuento.PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId])
+
+      }
+
 
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
