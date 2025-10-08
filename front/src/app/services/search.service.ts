@@ -1938,4 +1938,12 @@ export class SearchService {
     );
   }
 
+  getNovedadesFilters(){
+    return this.http.get<ResponseJSON<any>>(`api/novedades/filters`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }

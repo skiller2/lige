@@ -315,7 +315,6 @@ export class NovedadesController extends BaseController {
                 {
                     total: objetivos.length,
                     list: objetivos,
-                    authADGroup: res.locals?.authADGroup ? false : true
                 },
                 res
             );
@@ -711,6 +710,22 @@ export class NovedadesController extends BaseController {
             await queryRunner.release()
         }
 
+    }
+
+    async getGridFilters(req: any, res: Response, next: NextFunction) {
+        let startFilters:{ index: string; condition: string; operador: string; valor: any; forced: boolean }[] = []    
+        
+        const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(',') : '';
+
+        startFilters.push({
+            index: 'GrupoActividadNumero',
+            condition: 'AND',
+            operador: '=',
+            valor: grupoActividad,
+            forced: res.locals?.authADGroup ? false : true
+        })
+
+        return this.jsonRes(startFilters, res)
     }
 
 

@@ -33,4 +33,8 @@ novedadesRouter.delete('/delete/:id', [authMiddleware.verifyToken, authMiddlewar
   novedadesController.deleteNovedad(req, res, next)
 })
 
+novedadesRouter.get("/filters", [authMiddleware.verifyToken], (req, res, next) => {
+  novedadesController.getGridFilters(req, res, next);
+});
+
 

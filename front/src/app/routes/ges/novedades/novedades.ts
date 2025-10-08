@@ -48,7 +48,7 @@ export class NovedadesComponent {
 
   columns$ = this.apiService.getCols('/api/novedades/cols')
 
-  firstFilter = false
+  // firstFilter = false
 
   async ngOnInit() {
 
@@ -57,27 +57,36 @@ export class NovedadesComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
+    const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
+    this.startFilters.set(filter)
+    // this.listOptions.filtros = filter
+    console.log('startFilters: ', this.startFilters());
+
+    // TODO: instanciar filtro en force true si no tiene permisos totales para el modulo
+
+    // if (!this.firstFilter) {
+    //   this.firstFilter = true
+    //   const user: any = this.settingService.getUser()
+    //   this.startFilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: data.authADGroup },])
+    //   console.log('startFilters', data.authADGroup)  
+    //   this.listOptions.filtros = this.startFilters()
+    // }
+
+  }
+
+  async ngAfterViewInit(){}
+
+  async ngAfterContentInit(){
+    // const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
+    // this.startFilters.set(filter)
+    // this.listOptions.filtros = filter
   }
 
   gridData$ = this.listNovedades$.pipe(
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getListNovedades({ options: this.listOptions })
-        .pipe(map(data => {
-
-          // TODO: instanciar filtro en force true si no tiene permisos totales para el modulo
-
-          // if (!this.firstFilter) {
-          //   this.firstFilter = true
-          //   const user: any = this.settingService.getUser()
-          //   this.startFilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: data.authADGroup },])
-          //   console.log('startFilters', data.authADGroup)  
-          //   this.listOptions.filtros = this.startFilters()
-          // }
-          
-          return data.list
-        })
-        )
+        .pipe(map(data => { return data.list }))
     })
   )
 
