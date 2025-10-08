@@ -2011,7 +2011,17 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const AplicaEl: Date = await this.getAplicaEl(periodo)
+      if (!periodo) throw new ClientException('Falta ingresar el período.');
+      
+      let AplicaEl: Date
+      if (periodo && typeof periodo === 'string' && /^\d{2}\/\d{4}$/.test(periodo)) {
+        const [mes, anio] = periodo.split('/').map(Number);
+        AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
+      } else {
+        throw new ClientException('El formato del período es incorrecto. Debe ser "MM/YYYY".');
+      }
+
+      
 
       for (const row of req.body[1].gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
@@ -2072,7 +2082,7 @@ export class GestionDescuentosController extends BaseController {
           Importe: row.ImporteTotal,
           DescuentoId: DescuentoId
         }
-       await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
+        await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
       }
       await queryRunner.commitTransaction();
 
