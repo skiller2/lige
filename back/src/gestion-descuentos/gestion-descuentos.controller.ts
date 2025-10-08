@@ -1992,33 +1992,30 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async getAplicaEl(periodo: string) {
+    if (!periodo) throw new ClientException('Falta ingresar el período.');
     let AplicaEl: Date;
     // Ahora el formato es "MM/YYYY"
     if (periodo && typeof periodo === 'string' && /^\d{2}\/\d{4}$/.test(periodo)) {
       const [mes, anio] = periodo.split('/').map(Number);
       AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
-    } else {
-      AplicaEl = new Date();
-      AplicaEl.setHours(0, 0, 0, 0);
     }
     return AplicaEl;
   }
 
   async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
-    let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
-
+    console.log('req.body', req.body)
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
+      const AplicaEl: Date = await this.getAplicaEl(periodo)
+
       for (const row of req.body[1].gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
         // AplicaEl se calcula a partir de 'periodo' que viene como 'YYYY/MM'
-        let AplicaEl: Date = await this.getAplicaEl(periodo)
-        const Cuotas: number = row.CantidadCuotas
         const Detalle: number = row.Detalle
         const DescuentoId: number = row.DescuentoId
 
