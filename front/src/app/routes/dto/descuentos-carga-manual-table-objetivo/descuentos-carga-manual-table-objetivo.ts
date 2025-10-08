@@ -33,6 +33,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   gridDataInsert = [];
   anio = input<number>(0)
   mes = input<number>(0)
+  pDescuentoId = input<number>(0)
   private angularUtilService = inject(AngularUtilService);
   private apiService = inject(ApiService);
 
@@ -198,7 +199,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
       isfull: 0,
       periodo: this.anio() + "/" + this.mes(),
       fecha: new Date(),
-
+      DescuentoId: this.pDescuentoId()
     };
   }
 

@@ -43,5 +43,5 @@
   }
 
   @if(ptipocarga() === 'ObjetivoDescuento' && pDescuentoId() > 0){
-    <app-descuentos-carga-manual-table-objetivo></app-descuentos-carga-manual-table-objetivo>
+    <app-descuentos-carga-manual-table-objetivo [pDescuentoId]="pDescuentoId()" [anio]="anio()" [mes]="mes()"></app-descuentos-carga-manual-table-objetivo>
   }

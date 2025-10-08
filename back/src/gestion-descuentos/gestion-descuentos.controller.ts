@@ -1992,11 +1992,6 @@ export class GestionDescuentosController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     
-    let fechaActual = new Date()
-   // const periodo = req.body[0].split('/');
-   // console.log('periodo', req.body[0])
-    console.log('req',req.body[1].gridDataInsert)
-    console.log('estoy en el backend personal.................')
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -2006,7 +2001,6 @@ export class GestionDescuentosController extends BaseController {
       for (const row of req.body[1].gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
         const AplicaEl: Date = row.AplicaEl ? new Date(row.AplicaEl) : new Date()
-console.log('AplicaEl',AplicaEl)
         if (AplicaEl)
            AplicaEl.setHours(0, 0, 0, 0)
 
@@ -2029,6 +2023,7 @@ console.log('AplicaEl',AplicaEl)
           importeCuota : importeCuota,
           importeTotal : importeTotal
         }
+        //console.log('otroDescuento',otroDescuento)
         //await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuario, ip)
       }
 
@@ -2046,9 +2041,60 @@ console.log('AplicaEl',AplicaEl)
   }
 
   async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
-    console.log('estoy en el backend objetivo.................')
-  }
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
 
-  async 
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      for (const row of req.body[1].gridDataInsert) {
+
+        const AplicaA: string = row.AplicaA.id
+        const ObjetivoDescuentoDescuentoId: number = row.DescuentoId
+        const ObjetivoId: number = row.ClienteElementoDependienteDescripcion.id
+
+        const AplicaEl: Date = row.AplicaEl ? new Date(row.AplicaEl) : new Date()
+        if (AplicaEl)
+           AplicaEl.setHours(0, 0, 0, 0)
+
+        const Cuotas: number = row.CantidadCuotas
+        const Detalle: number = row.Detalle
+        const anio: number = AplicaEl.getFullYear()
+        const mes: number = AplicaEl.getMonth() + 1
+        const importeCuota = Number((Number(row.ImporteTotal) / Number(Cuotas)).toFixed(2))
+        const importeTotal = Number((Number(row.ImporteTotal)).toFixed(2))
+        const DescuentoId: number = row.DescuentoId
+    
+        let otroDescuento = {
+          AplicaA : AplicaA,
+          ObjetivoDescuentoDescuentoId : ObjetivoDescuentoDescuentoId,
+          ObjetivoId : ObjetivoId,
+          AplicaEl : AplicaEl,
+          Cuotas : Cuotas,
+          Detalle : Detalle,
+          anio : anio,
+          mes : mes,
+          importeCuota : importeCuota,
+          importeTotal : importeTotal,
+          DescuentoId : DescuentoId
+        }
+        console.log('otroDescuentoObjetivo',otroDescuento)
+         //await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+
+      }
+
+      throw new ClientException("Paso oka")
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+  }
 
 }
