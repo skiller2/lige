@@ -713,10 +713,9 @@ export class NovedadesController extends BaseController {
     }
 
     async getGridFilters(req: any, res: Response, next: NextFunction) {
-        let startFilters:{ field: string; condition: string; operator: string; value: any; forced: boolean }[] = []    
-        
+        let startFilters: { field: string; condition: string; operator: string; value: any; forced: boolean }[] = []
         const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(',') : '';
-
+        if (!grupoActividad) return this.jsonRes([], res)
         startFilters.push({
             field: 'GrupoActividadNumero',
             condition: 'AND',
@@ -724,9 +723,6 @@ export class NovedadesController extends BaseController {
             value: grupoActividad,
             forced: res.locals?.authADGroup ? false : true
         })
-
         return this.jsonRes(startFilters, res)
     }
-
-
 }
