@@ -59,17 +59,6 @@ export class NovedadesComponent {
 
     const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
     this.startFilters.set(filter)
-
-    // TODO: instanciar filtro en force true si no tiene permisos totales para el modulo
-
-    // if (!this.firstFilter) {
-    //   this.firstFilter = true
-    //   const user: any = this.settingService.getUser()
-    //   this.startFilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: data.authADGroup },])
-    //   console.log('startFilters', data.authADGroup)  
-    //   this.listOptions.filtros = this.startFilters()
-    // }
-
   }
 
   gridData$ = this.listNovedades$.pipe(
