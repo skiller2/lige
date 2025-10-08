@@ -713,15 +713,15 @@ export class NovedadesController extends BaseController {
     }
 
     async getGridFilters(req: any, res: Response, next: NextFunction) {
-        let startFilters:{ index: string; condition: string; operador: string; valor: any; forced: boolean }[] = []    
+        let startFilters:{ field: string; condition: string; operator: string; value: any; forced: boolean }[] = []    
         
         const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(',') : '';
 
         startFilters.push({
-            index: 'GrupoActividadNumero',
+            field: 'GrupoActividadNumero',
             condition: 'AND',
-            operador: '=',
-            valor: grupoActividad,
+            operator: '=',
+            value: grupoActividad,
             forced: res.locals?.authADGroup ? false : true
         })
 
