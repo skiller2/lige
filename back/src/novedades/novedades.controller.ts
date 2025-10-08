@@ -245,30 +245,12 @@ export class NovedadesController extends BaseController {
 
     async list(req: any, res: Response, next: NextFunction) {
 
+        const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
-
-        // if (!res.locals?.authADGroup) {
-        //     const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(',') : '';
-
-        //     req.body.options.filtros.push({
-        //         index: 'GrupoActividadNumero',
-        //         condition: 'AND',
-        //         operador: 'IN',
-        //         valor: grupoActividad,
-        //         type: 'string',
-        //         closeable: true
-        //     })
-        // }
-
-        console.log("req.body.options.filtros", req.body.options.filtros)
-
-        const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
-        console.log("filterSql", filterSql)
-
         try {
             const objetivos = await queryRunner.query(
                 `Select
