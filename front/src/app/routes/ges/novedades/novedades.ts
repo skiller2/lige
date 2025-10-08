@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component,  inject, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -48,6 +48,7 @@ export class NovedadesComponent {
 
   columns$ = this.apiService.getCols('/api/novedades/cols')
 
+  firstFilter = false
 
   async ngOnInit() {
 
@@ -58,19 +59,22 @@ export class NovedadesComponent {
 
   }
 
-  ngAfterContentInit(): void {
-    const user: any = this.settingService.getUser()
-    this.startFilters.set([
-      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=',  value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: false },])
-
-
-  }
-
   gridData$ = this.listNovedades$.pipe(
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getListNovedades({ options: this.listOptions })
         .pipe(map(data => {
+
+          // TODO: instanciar filtro en force true si no tiene permisos totales para el modulo
+
+          // if (!this.firstFilter) {
+          //   this.firstFilter = true
+          //   const user: any = this.settingService.getUser()
+          //   this.startFilters.set([{ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: data.authADGroup },])
+          //   console.log('startFilters', data.authADGroup)  
+          //   this.listOptions.filtros = this.startFilters()
+          // }
+          
           return data.list
         })
         )
@@ -111,14 +115,14 @@ export class NovedadesComponent {
     this.listNovedades$.next('')
   }
 
-  async handleAddOrUpdate(event: any){
+  async handleAddOrUpdate(event: any) {
     this.listNovedades$.next('')
     if (event === 'delete') {
       //this.editNovedadNovedadCodigo.set(0)
       this.selectedIndex.set(1)
-      
+
     }
-  
+
   }
 
   goToEdit() {
