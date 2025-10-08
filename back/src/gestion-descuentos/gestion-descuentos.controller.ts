@@ -1991,10 +1991,23 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
+  async getAplicaEl(periodo: string) {
+    let AplicaEl: Date;
+    // Ahora el formato es "MM/YYYY"
+    if (periodo && typeof periodo === 'string' && /^\d{2}\/\d{4}$/.test(periodo)) {
+      const [mes, anio] = periodo.split('/').map(Number);
+      AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
+    } else {
+      AplicaEl = new Date();
+      AplicaEl.setHours(0, 0, 0, 0);
+    }
+    return AplicaEl;
+  }
+
   async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-
+    const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -2003,10 +2016,8 @@ export class GestionDescuentosController extends BaseController {
 
       for (const row of req.body[1].gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
-        const AplicaEl: Date = row.AplicaEl ? new Date(row.AplicaEl) : new Date()
-        if (AplicaEl)
-          AplicaEl.setHours(0, 0, 0, 0)
-
+        // AplicaEl se calcula a partir de 'periodo' que viene como 'YYYY/MM'
+        let AplicaEl: Date = await this.getAplicaEl(periodo)
         const Cuotas: number = row.CantidadCuotas
         const Detalle: number = row.Detalle
         const DescuentoId: number = row.DescuentoId
@@ -2021,7 +2032,6 @@ export class GestionDescuentosController extends BaseController {
         }
         await this.addPersonalOtroDescuento(queryRunner, Descuento, null, ip)
       }
-
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
@@ -2036,6 +2046,7 @@ export class GestionDescuentosController extends BaseController {
   async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
+    const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -2048,9 +2059,7 @@ export class GestionDescuentosController extends BaseController {
         const ObjetivoDescuentoDescuentoId: number = row.DescuentoId
         const ObjetivoId: number = row.ClienteElementoDependienteDescripcion.id
 
-        const AplicaEl: Date = row.AplicaEl ? new Date(row.AplicaEl) : new Date()
-        if (AplicaEl)
-          AplicaEl.setHours(0, 0, 0, 0)
+        let AplicaEl: Date = await this.getAplicaEl(periodo)
 
         const Detalle: number = row.Detalle
 
@@ -2066,7 +2075,7 @@ export class GestionDescuentosController extends BaseController {
           Importe: row.ImporteTotal,
           DescuentoId: DescuentoId
         }
-        await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
+       await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
       }
       await queryRunner.commitTransaction();
 

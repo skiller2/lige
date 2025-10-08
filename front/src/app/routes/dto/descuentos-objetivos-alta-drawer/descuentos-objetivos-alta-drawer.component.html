@@ -139,7 +139,7 @@
               *ngIf="formDesc.enabled && !cancelDesc()">
               {{ 'app.btn.save' | i18n }}
             </button>
-            <button *ngIf="id() && !ObjetivoDescuentoId() && !objetivoId()" nzType="primary" nz-button
+            <button [disabled]="!(id() && !ObjetivoDescuentoId() && !objetivoId())" nzType="primary" nz-button
               (click)="resetForm()">
               {{ 'app.btn.clear.form' | i18n }}
             </button>

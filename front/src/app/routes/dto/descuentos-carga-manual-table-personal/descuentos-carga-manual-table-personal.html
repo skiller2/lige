@@ -1,9 +1,9 @@
 <nz-card #descuentosCargaManualTablePersonalForm class="small-margin">
-  <div style="display: flex; justify-content: flex-end; padding-bottom: 10px;" *ngIf="(gridDataInsert.length >= 1)">
-    <button  nz-popconfirm nzType="primary" class="btn-add"
+  <div style="display: flex; justify-content: flex-end; padding-bottom: 10px;">
+    <button  nz-popconfirm nzType="primary" class="btn-add" [disabled]="!(gridDataInsert.length >= 1)"
         nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
         nz-button>
-        Confirmar nuevo registro personal
+        Confirmar nuevo registro
       </button>
     </div>
     <ng-container>

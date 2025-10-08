@@ -238,11 +238,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   confirmNewItem() {
     console.log('this.gridDataInsert', this.gridDataInsert)
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
-    console.log('altas', altas)
-
-    let periodoM = this.mes();
-    let periodoY = this.anio();
-    const valuePeriodo = periodoM + "/" + periodoY;
+    const valuePeriodo = this.mes() + "/" + this.anio();
     if (altas.length > 0) {
       this.apiService.addDescuentoCargaManualObjetivo({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
         this.formChange$.next('')

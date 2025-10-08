@@ -212,7 +212,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
   confirmNewItem() {
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
-    const valuePeriodo = this.anio() + "/" + this.mes();
+    const valuePeriodo = this.mes() + "/" + this.anio();
     if (altas.length > 0) {
       this.apiService.addDescuentoCargaManualPersonal({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
         this.formChange$.next('')
