@@ -59,8 +59,6 @@ export class NovedadesComponent {
 
     const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
     this.startFilters.set(filter)
-    // this.listOptions.filtros = filter
-    console.log('startFilters: ', this.startFilters());
 
     // TODO: instanciar filtro en force true si no tiene permisos totales para el modulo
 
@@ -72,14 +70,6 @@ export class NovedadesComponent {
     //   this.listOptions.filtros = this.startFilters()
     // }
 
-  }
-
-  async ngAfterViewInit(){}
-
-  async ngAfterContentInit(){
-    // const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
-    // this.startFilters.set(filter)
-    // this.listOptions.filtros = filter
   }
 
   gridData$ = this.listNovedades$.pipe(

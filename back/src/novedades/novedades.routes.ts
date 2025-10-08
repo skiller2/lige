@@ -33,7 +33,7 @@ novedadesRouter.delete('/delete/:id', [authMiddleware.verifyToken, authMiddlewar
   novedadesController.deleteNovedad(req, res, next)
 })
 
-novedadesRouter.get("/filters", [authMiddleware.verifyToken], (req, res, next) => {
+novedadesRouter.get("/filters", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
   novedadesController.getGridFilters(req, res, next);
 });
 
