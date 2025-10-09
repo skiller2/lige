@@ -72,6 +72,6 @@ export class DescuentosComponent {
     
         localStorage.setItem('anio', String(this.selectedPeriod.year));
         localStorage.setItem('mes', String(this.selectedPeriod.month));
-      }
+    }
     
 }

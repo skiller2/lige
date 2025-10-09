@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -35,6 +35,9 @@ export class NovedadesComponent {
     sort: null,
   };
   selectedIndex = signal(0)
+  periodo = signal(new Date())
+  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo()?this.periodo().getMonth() : 0)
 
   childAlta = viewChild.required<NovedadesFormComponent>('novedadesFormAlta')
   childDeta = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
@@ -44,6 +47,7 @@ export class NovedadesComponent {
   private searchService = inject(SearchService)
   private settingService = inject(SettingsService)
   private apiService = inject(ApiService)
+  private injector = inject(Injector)
   startFilters = signal<any[]>([])
 
   columns$ = this.apiService.getCols('/api/novedades/cols')
@@ -59,12 +63,20 @@ export class NovedadesComponent {
 
     const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
     this.startFilters.set(filter)
+
+    this.selectedDate()
+
+    effect(async () => {
+      const anio = this.anio()
+      const mes = this.mes()
+      this.listNovedades$.next('')
+    }, { injector: this.injector });
   }
 
   gridData$ = this.listNovedades$.pipe(
     debounceTime(500),
     switchMap(() => {
-      return this.searchService.getListNovedades({ options: this.listOptions })
+      return this.searchService.getListNovedades(this.listOptions, this.anio(), this.mes())
         .pipe(map(data => { return data.list }))
     })
   )
@@ -138,6 +150,16 @@ export class NovedadesComponent {
     this.listNovedades$.next('')
   }
 
-
-
+  selectedDate (){
+    const now = new Date(); //date
+    const anio =
+      Number(localStorage.getItem('anio')) > 0
+        ? Number(localStorage.getItem('anio'))
+        : now.getFullYear();
+    const mes =
+      Number(localStorage.getItem('mes')) > 0
+        ? Number(localStorage.getItem('mes'))
+        : now.getMonth() + 1;
+    this.periodo.set(new Date(anio, mes - 1, 1))
+  }
 }

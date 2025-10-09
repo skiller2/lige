@@ -244,16 +244,20 @@ export class NovedadesController extends BaseController {
     }
 
     async list(req: any, res: Response, next: NextFunction) {
-
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
-        const fechaActual = new Date()
-        const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth() + 1
+        let year = req.body.anio
+        let month = req.body.mes
+        let condition = `1=1`
+        if (req.body.anio != 0 && req.body.mes) {
+            condition = `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1`
+            year = req.body.anio
+            month = req.body.mes
+        }
         try {
             const objetivos = await queryRunner.query(
-                `Select
+                `SELECT
                     nov.NovedadCodigo id
                     ,nov.NovedadCodigo
                     ,suc.SucursalId
@@ -280,19 +284,19 @@ export class NovedadesController extends BaseController {
                     ,nov.VisualizacionPersonaId
                     ,nov.VisualizacionTelefono 
                     ,1
-                    From Novedad nov
-                    LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
-                    LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-                    LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
-                    LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-                    LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
-                    LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
-                    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
-                    LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
-                    LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
-                    LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
+                FROM Novedad nov
+                LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
+                LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+                LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
+                LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+                LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
+                LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
+                LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
+                LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
+                LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
+                LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
 
-                WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
+                WHERE (${condition}) AND ${filterSql} ${orderBy}`, [year, month])
             this.jsonRes(
                 {
                     total: objetivos.length,

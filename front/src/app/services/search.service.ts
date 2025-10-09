@@ -1,5 +1,5 @@
 import { HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import {
   BehaviorSubject,
@@ -31,11 +31,17 @@ import {
   ResponseJSON,
   ResponseNameFromId,
 } from 'src/app/shared/schemas/ResponseJSON';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SearchService {
+  private injector = inject(Injector)
+  private get notification(): NzNotificationService {
+    return this.injector.get(NzNotificationService);
+  }
+
   getListaAsistenciaPersonalAsignado(ObjetivoId: number, anio: number, mes: number) {
     if (!ObjetivoId)
       return of([])
@@ -1189,9 +1195,13 @@ export class SearchService {
       );
   }
 
-  getListNovedades(filters: any) {
+  getListNovedades(options: any, anio: number, mes: number) {
+    if (!anio && !mes && !options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
     return this.http
-      .post<ResponseJSON<any>>(`api/novedades/list`, filters)
+      .post<ResponseJSON<any>>(`api/novedades/list`, { options, anio, mes })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

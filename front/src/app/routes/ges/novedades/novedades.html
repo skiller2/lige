@@ -1,8 +1,15 @@
 <nz-card class="small-margin">
 
-    <div nz-row>
+    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+
+      <div nz-row>
+        <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
+        </nz-form-control>
+      </div>
  
-      <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
+      <div nz-col style="display: flex;flex-direction: row-reverse;">
         
         <nz-button-group >
           <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo()? false : true" (click)="goToEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
