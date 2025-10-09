@@ -1991,43 +1991,39 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async getAplicaEl(periodo: string) {
-    if (!periodo) throw new ClientException('Falta ingresar el período.');
-    let AplicaEl: Date;
-    // Ahora el formato es "MM/YYYY"
-    if (periodo && typeof periodo === 'string' && /^\d{2}\/\d{4}$/.test(periodo)) {
-      const [mes, anio] = periodo.split('/').map(Number);
-      AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
-    }
-    return AplicaEl;
-  }
-
   async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
-    console.log('req.body', req.body)
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       if (!periodo) throw new ClientException('Falta ingresar el período.');
-      
+
       let AplicaEl: Date
-      if (periodo && typeof periodo === 'string' && /^\d{2}\/\d{4}$/.test(periodo)) {
+      if (periodo && typeof periodo === 'string' && /^(0?[1-9]|1[0-2])\/\d{4}$/.test(periodo)) {
         const [mes, anio] = periodo.split('/').map(Number);
         AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
       } else {
-        throw new ClientException('El formato del período es incorrecto. Debe ser "MM/YYYY".');
+        throw new ClientException('Error en formateo del período.');
       }
 
-      
+      const anio: number = AplicaEl.getFullYear()
+      const mes: number = AplicaEl.getMonth() + 1
+
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}, no se puede hacer modificaciones`)
+
 
       for (const row of req.body[1].gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
-        // AplicaEl se calcula a partir de 'periodo' que viene como 'YYYY/MM'
         const Detalle: number = row.Detalle
         const DescuentoId: number = row.DescuentoId
+
+        const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
+        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
 
         let Descuento = {
           PersonalId: PersonalId,
@@ -2051,7 +2047,6 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
-    let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
@@ -2059,18 +2054,42 @@ export class GestionDescuentosController extends BaseController {
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
+      let AplicaEl: Date
+      if (periodo && typeof periodo === 'string' && /^(0?[1-9]|1[0-2])\/\d{4}$/.test(periodo)) {
+        const [mes, anio] = periodo.split('/').map(Number);
+        AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
+      } else {
+        throw new ClientException('Error en formateo del período.');
+      }
+
+      const anio: number = AplicaEl.getFullYear()
+      const mes: number = AplicaEl.getMonth() + 1
+
+      // todo: validaciones faltantes
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}, no se puede hacer modificaciones`)
+
 
       for (const row of req.body[1].gridDataInsert) {
-
         const AplicaA: string = row.AplicaA.id
         const ObjetivoDescuentoDescuentoId: number = row.DescuentoId
         const ObjetivoId: number = row.ClienteElementoDependienteDescripcion.id
-
-        let AplicaEl: Date = await this.getAplicaEl(periodo)
-
         const Detalle: number = row.Detalle
-
         const DescuentoId: number = row.DescuentoId
+
+        // validaciones
+        switch (AplicaA) {
+          case 'CL':
+            const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`)
+            break;
+          case 'CO':
+            const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            break;
+        }
 
         let Descuento = {
           AplicaA: AplicaA,
