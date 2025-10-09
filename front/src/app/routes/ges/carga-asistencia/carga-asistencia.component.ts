@@ -75,6 +75,8 @@ export class CargaAsistenciaComponent {
     objetivoInfo: any = {}
     diffHoras = signal(0)
 
+    addGridData = signal<boolean>(false);
+
     public get Busqueda() {
         return Busqueda;
     }
@@ -131,9 +133,9 @@ export class CargaAsistenciaComponent {
                 this.contratos = data[1]
 
 
-console.log('ver',data)
+                console.log('ver', data)
 
-                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && (this.contratos.length > 0 || data[3].length>0))
+                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && (this.contratos.length > 0 || data[3].length > 0))
 
                 this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
@@ -143,7 +145,7 @@ console.log('ver',data)
 
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
-                    
+
                 for (const col of this.angularGridEdit.slickGrid.getColumns())
                     if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
 
@@ -156,7 +158,7 @@ console.log('ver',data)
 
                 const values = this.carasistForm.form.getRawValue()
 
-                
+
                 this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - Number(values.TotalHorasReales))
 
 
@@ -327,8 +329,8 @@ console.log('ver',data)
 
                 const totalhs = this.sumdays(row)
 
-                if ((row.apellidoNombre.id > 0 && row.categoria.id != '' && row.forma.id != '' && row.dbid > 0) ||
-                    (totalhs > 0)) {
+                if (((row.apellidoNombre.id > 0 && row.categoria.id != '' && row.forma.id != '' && row.dbid > 0) ||
+                    (totalhs > 0)) && this.addGridData()) {
                     if (!row.dbid)
                         this.rowLocked = true
 
@@ -481,14 +483,14 @@ console.log('ver',data)
             let date = new Date(year, month - 1, index);
             const dow = date.getDay()
             let name = daysOfWeek[dow];
-            const col:Column = {
+            const col: Column = {
                 id: `day${index}`,
                 name: `${name} <BR>${index}`,
                 field: `day${index}`,
                 sortable: true,
                 type: FieldType.float,
                 formatter: Formatters['decimal'],
-                params : { maxDecimal:1,minDecimal:0  },
+                params: { maxDecimal: 1, minDecimal: 0 },
                 maxWidth: 55,
                 headerCssClass: (dow == 6 || dow == 0) ? 'grid-weekend' : '',
                 //                formatter : Formatters.multiple,
@@ -496,7 +498,7 @@ console.log('ver',data)
                 //                    formatters: [Formatters.currency],
                 //                },
                 cssClass: 'text-right',
-                editor: { model: CustomFloatEditor, decimal: 1,params:{} },
+                editor: { model: CustomFloatEditor, decimal: 1, params: {} },
                 excelExportOptions: {
                     width: 5,
                 },
@@ -543,6 +545,9 @@ console.log('ver',data)
     }
 
     async formChange(result: Date | String, busqueda: Busqueda): Promise<void> {
+
+        this.addGridData.set(false);
+
         switch (busqueda) {
             case Busqueda.Periodo:
                 this.selectedPeriod.year = (result as Date).getFullYear();
@@ -584,7 +589,7 @@ console.log('ver',data)
 
         this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
 
-
+        this.addGridData.set(true);
         this.clearAngularGrid()
     }
 
@@ -647,7 +652,7 @@ console.log('ver',data)
 
     }
 
-    async eliminaGrilla() { 
+    async eliminaGrilla() {
         this.isLoadingCheck = true
 
 
@@ -658,8 +663,8 @@ console.log('ver',data)
         try {
             const res = await firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
                 finally(() => { this.isLoadingCheck = false })
-            
-            this.formChange('', Busqueda.Objetivo)            
+
+            this.formChange('', Busqueda.Objetivo)
         } catch (error) {
 
         }
@@ -667,28 +672,31 @@ console.log('ver',data)
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: true })
     }
-    async eliminaPersona() { 
+    async eliminaPersona() {
         this.isLoadingCheck = true
 
+        this.addGridData.set(false);
 
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            const persona=this.getPersonalIdFromGrid()
+            const persona = this.getPersonalIdFromGrid()
 
             const res = await firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, persona.PersonalId)).
                 finally(() => { this.isLoadingCheck = false })
-            
-            this.formChange('', Busqueda.Objetivo)            
-            
+
+            this.formChange('', Busqueda.Objetivo)
+
         } catch (error) {
 
         }
 
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: true })
+
+        this.addGridData.set(true);
     }
 
 
@@ -721,7 +729,7 @@ console.log('ver',data)
     async setValFact(e: any) {
         if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine) {
             try {
-                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value,this.carasistForm.form.get('TotalHoraB')?.value))
+                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value))
                 this.formPrevVals = this.carasistForm.form.value
             } catch (_e) {
                 this.carasistForm.form.get('TotalHoraA')?.setValue(this.formPrevVals.TotalHoraA)
@@ -729,7 +737,7 @@ console.log('ver',data)
             }
             this.carasistForm.form.get('TotalHoraA')?.markAsPristine()
             this.carasistForm.form.get('TotalHoraB')?.markAsPristine()
-    
+
             const values = this.carasistForm.form.getRawValue()
             this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - values.TotalHorasReales)
         }
@@ -761,7 +769,7 @@ console.log('ver',data)
 
     openDrawer(): void {
         const persona = this.getPersonalIdFromGrid()
-        if (persona.PersonalId==0) return
+        if (persona.PersonalId == 0) return
         this.personalApellidoNombre = persona.ApellidoNombre
         this.selectedPersonalId = persona.PersonalId
         this.visibleDrawer = true
@@ -769,11 +777,11 @@ console.log('ver',data)
 
     getPersonalIdFromGrid(): { PersonalId: number, ApellidoNombre: string } {
         if (!this.angularGridEdit?.slickGrid)
-            return { PersonalId: 0, ApellidoNombre:''}
+            return { PersonalId: 0, ApellidoNombre: '' }
         const selrows = this.angularGridEdit?.slickGrid?.getSelectedRows()
-        if (selrows && selrows[0] == undefined) return { PersonalId: 0, ApellidoNombre:''}
+        if (selrows && selrows[0] == undefined) return { PersonalId: 0, ApellidoNombre: '' }
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
-        if (row.apellidoNombre == '') return { PersonalId: 0, ApellidoNombre:''}
+        if (row.apellidoNombre == '') return { PersonalId: 0, ApellidoNombre: '' }
         return { PersonalId: Number(row.apellidoNombre.id), ApellidoNombre: row.apellidoNombre.fullName }
     }
 
