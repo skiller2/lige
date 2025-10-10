@@ -208,7 +208,6 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   }
 
   updateItemMetadata(previousItemMetadata: any) {
-
     return (rowNumber: number) => {
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
       let meta = {
@@ -231,18 +230,53 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
             break;
         }
       }
+      if(item.mensaje){
+        meta.cssClasses = 'element-add-no-complete';
+      }
       return meta;
     };
   }
 
   confirmNewItem() {
-    console.log('this.gridDataInsert', this.gridDataInsert)
+    
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
     const valuePeriodo = this.mes() + "/" + this.anio();
     if (altas.length > 0) {
       this.apiService.addDescuentoCargaManualObjetivo({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
-        this.formChange$.next('')
-        this.cleanTable()
+        const list = _res.data.list;
+
+        //  Primero agregar mensajes
+        list
+          .filter((item: any) => item.isfull == 2 && item.errorMessage)
+          .forEach((item: any) => {
+            const gridItem = this.angularGridEdit.dataView.getItemById(item.id);
+            if (gridItem) {
+              gridItem.mensaje = item.errorMessage;
+              this.angularGridEdit.dataView.updateItem(item.id, gridItem);
+            }
+          });
+        
+        // eliminar los que tienen isfull == 1
+        list
+          .filter((item: any) => item.isfull == 1)
+          .forEach((item: any) => {
+            this.angularGridEdit.gridService.deleteItemById(item.id);
+            const index = this.gridDataInsert.findIndex((f: any) => f.id === item.id);
+            if (index !== -1) {
+              this.gridDataInsert.splice(index, 1);
+            }
+          });
+        
+        // Limpiar si corresponde
+        if (this.gridDataInsert.length > 0 && this.gridDataInsert.every((f: any) => f.isfull == 1)) {
+          this.formChange$.next('');
+          this.cleanTable();
+        }
+        
+        // Refrescar grid
+        this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata);
+        this.angularGridEdit.slickGrid.invalidate();
+        this.angularGridEdit.slickGrid.render();
       });
     }
   }

@@ -187,7 +187,9 @@ const columnsPersonalDescuentos: any[] = [
     type: 'date',
     searchComponent: "inpurForFechaSearch",
     searchType: 'date',
-  },
+  }
+
+  
 ]
 
 const columnsObjetivosDescuentos: any[] = [
@@ -435,6 +437,13 @@ const columnsPersonalDescuentosCargaManualPersonal: any[] = [
     fieldName: 'Detalle',
 
   },
+  {
+    id: 'mensaje', name: 'Mensaje', field: 'mensaje',
+    fieldName: 'mensaje',
+    type: 'string',
+    searchType: 'string',
+    hidden: false
+  },
 
 ]
 
@@ -468,6 +477,13 @@ const columnsPersonalDescuentosCargaManualObjetivo: any[] = [
     id: 'Detalle', name: 'Detalle', field: 'Detalle',
     fieldName: 'Detalle',
 
+  },
+  {
+    id: 'mensaje', name: 'Mensaje', field: 'mensaje',
+    fieldName: 'mensaje',
+    type: 'string',
+    searchType: 'string',
+    hidden: false
   },
 
 ]
@@ -1995,6 +2011,7 @@ export class GestionDescuentosController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
+    let result = req.body[1].gridDataInsert
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2023,8 +2040,10 @@ export class GestionDescuentosController extends BaseController {
         const DescuentoId: number = row.DescuentoId
 
         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
-        if (!Array.isArray(isActivo) || isActivo.length === 0) throw new ClientException(`No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`)
-
+        if (!Array.isArray(isActivo) || isActivo.length === 0){
+          row.errorMessage = `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`
+          row.isfull = 2
+        } 
         let Descuento = {
           PersonalId: PersonalId,
           AplicaEl: AplicaEl,
@@ -2033,10 +2052,12 @@ export class GestionDescuentosController extends BaseController {
           Detalle: Detalle,
           Importe: row.ImporteTotal
         }
-        await this.addPersonalOtroDescuento(queryRunner, Descuento, null, ip)
+        if(row.isfull == 1){
+          await this.addPersonalOtroDescuento(queryRunner, Descuento, null, ip)
+        }
       }
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+      this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -2050,7 +2071,7 @@ export class GestionDescuentosController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
-
+    let result = req.body[1].gridDataInsert
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2071,23 +2092,28 @@ export class GestionDescuentosController extends BaseController {
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}, no se puede hacer modificaciones`)
 
 
-      for (const row of req.body[1].gridDataInsert) {
+      for (const row of result) {
         const AplicaA: string = row.AplicaA.id
         const ObjetivoDescuentoDescuentoId: number = row.DescuentoId
         const ObjetivoId: number = row.ClienteElementoDependienteDescripcion.id
         const Detalle: number = row.Detalle
         const DescuentoId: number = row.DescuentoId
-
+  
         // validaciones
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0) throw new ClientException(`No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0)
+              row.errorMessage = `No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`
+              row.isfull = 2
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
             const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            if (!tieneCoordinadorVigente){
+              row.errorMessage = `No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`
+              row.isfull = 2
+            }
             break;
         }
 
@@ -2101,11 +2127,13 @@ export class GestionDescuentosController extends BaseController {
           Importe: row.ImporteTotal,
           DescuentoId: DescuentoId
         }
-        await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
+        if(row.isfull == 1){
+          await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
+        }
       }
       await queryRunner.commitTransaction();
 
-      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+      this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
