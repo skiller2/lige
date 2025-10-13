@@ -35,9 +35,9 @@ export class NovedadesComponent {
     sort: null,
   };
   selectedIndex = signal(0)
-  periodo = signal(new Date())
+  periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
-  mes = computed(() => this.periodo()?this.periodo().getMonth() : 0)
+  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
 
   childAlta = viewChild.required<NovedadesFormComponent>('novedadesFormAlta')
   childDeta = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
@@ -76,7 +76,7 @@ export class NovedadesComponent {
   gridData$ = this.listNovedades$.pipe(
     debounceTime(500),
     switchMap(() => {
-      return this.searchService.getListNovedades(this.listOptions, this.anio(), this.mes())
+      return this.searchService.getListNovedades(this.listOptions, this.periodo())
         .pipe(map(data => { return data.list }))
     })
   )
@@ -160,6 +160,6 @@ export class NovedadesComponent {
       Number(localStorage.getItem('mes')) > 0
         ? Number(localStorage.getItem('mes'))
         : now.getMonth() + 1;
-    this.periodo.set(new Date(anio, mes - 1, 1))
+    this.periodo.set(new Date(anio, mes, 1))
   }
 }

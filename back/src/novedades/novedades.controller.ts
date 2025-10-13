@@ -247,13 +247,12 @@ export class NovedadesController extends BaseController {
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
-        let year = req.body.anio
-        let month = req.body.mes
+        const periodo = req.body.periodo? new Date(req.body.periodo) : null
+        const year = periodo? periodo.getFullYear() : 0
+        const month = periodo? periodo.getMonth()+1 : 0
         let condition = `1=1`
-        if (req.body.anio != 0 && req.body.mes) {
+        if (periodo) {
             condition = `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1`
-            year = req.body.anio
-            month = req.body.mes
         }
         try {
             const objetivos = await queryRunner.query(
