@@ -109,7 +109,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
     }
     if (col.id === 'mensaje') {
       col.type = FieldType.string;
-      col.editor = undefined;
+      delete col.editor;
     }
         return col
       });
