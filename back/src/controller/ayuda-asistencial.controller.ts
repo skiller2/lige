@@ -214,7 +214,7 @@ export class AyudaAsistencialController extends BaseController {
     const PersonalPrestamoFechaAprobacion = null
     return await queryRunner.query(`
       UPDATE PersonalPrestamo
-      SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoUltimaLiquidacion = @4,
+      SET PersonalPrestamoAprobado = @2, PersonalPrestamoUltimaLiquidacion = @4,
       PersonalPrestamoCantidadCuotas = @5, PersonalPrestamoMontoAutorizado = @6, PersonalPrestamoFechaAprobacion = @7
       WHERE PersonalPrestamoId = @0 AND PersonalId = @1
     `, [personalPrestamoId, personalId, PersonalPrestamoAprobado, PersonalPrestamoAplicaEl,
