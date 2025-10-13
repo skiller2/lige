@@ -189,7 +189,7 @@ const columnsPersonalDescuentos: any[] = [
     searchType: 'date',
   }
 
-  
+
 ]
 
 const columnsObjetivosDescuentos: any[] = [
@@ -2009,9 +2009,19 @@ export class GestionDescuentosController extends BaseController {
 
   async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
     let ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
     let result = req.body[1].gridDataInsert
+
+    // const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+    //   queryRunner,
+    //   `Carga manual PersonalOtroDescuento ${descuentoIdRequest} - ${mesRequest}/${anioRequest}`,
+    //   { anioRequest, mesRequest, descuentoIdRequest, usuario, ip },
+    //   usuario,
+    //   ip
+    // );
+
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2040,10 +2050,10 @@ export class GestionDescuentosController extends BaseController {
         const DescuentoId: number = row.DescuentoId
 
         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
-        if (!Array.isArray(isActivo) || isActivo.length === 0){
+        if (!Array.isArray(isActivo) || isActivo.length === 0) {
           row.errorMessage = `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`
           row.isfull = 2
-        } 
+        }
         let Descuento = {
           PersonalId: PersonalId,
           AplicaEl: AplicaEl,
@@ -2052,19 +2062,36 @@ export class GestionDescuentosController extends BaseController {
           Detalle: Detalle,
           Importe: row.ImporteTotal
         }
-        if(row.isfull == 1){
+        if (row.isfull == 1) {
           await this.addPersonalOtroDescuento(queryRunner, Descuento, null, ip)
         }
       }
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+
+      // await this.procesoAutomaticoLogFin(
+      //   queryRunner,
+      //   ProcesoAutomaticoLogCodigo,
+      //   'COM',
+      //   { res: `Procesado correctamente`, altaDescuentos },
+      //   usuario,
+      //   ip
+      // );
+
     } catch (error) {
+      // await this.procesoAutomaticoLogFin(queryRunner,
+      //   ProcesoAutomaticoLogCodigo,
+      //   'ERR',
+      //   { res: error },
+      //   usuario,
+      //   ip
+      // );
+
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();
     }
-
   }
 
   async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
@@ -2072,6 +2099,14 @@ export class GestionDescuentosController extends BaseController {
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
     let result = req.body[1].gridDataInsert
+
+    // const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+    //   queryRunner,
+    //   `Carga manual ObjetivoDescuento ${descuentoIdRequest} - ${mesRequest}/${anioRequest}`,
+    //   { anioRequest, mesRequest, descuentoIdRequest, usuario, ip },
+    //   usuario,
+    //   ip
+    // );
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2098,19 +2133,19 @@ export class GestionDescuentosController extends BaseController {
         const ObjetivoId: number = row.ClienteElementoDependienteDescripcion.id
         const Detalle: number = row.Detalle
         const DescuentoId: number = row.DescuentoId
-  
+
         // validaciones
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
             if (!tieneContratoVigente || tieneContratoVigente.length === 0)
               row.errorMessage = `No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`
-              row.isfull = 2
+            row.isfull = 2
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
             const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            if (!tieneCoordinadorVigente){
+            if (!tieneCoordinadorVigente) {
               row.errorMessage = `No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`
               row.isfull = 2
             }
@@ -2127,14 +2162,32 @@ export class GestionDescuentosController extends BaseController {
           Importe: row.ImporteTotal,
           DescuentoId: DescuentoId
         }
-        if(row.isfull == 1){
+        if (row.isfull == 1) {
           await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
         }
       }
+
+      // await this.procesoAutomaticoLogFin(
+      //   queryRunner,
+      //   ProcesoAutomaticoLogCodigo,
+      //   'COM',
+      //   { res: `Procesado correctamente`, altaDescuentos },
+      //   usuario,
+      //   ip
+      // );
+
       await queryRunner.commitTransaction();
 
       this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
+      // await this.procesoAutomaticoLogFin(queryRunner,
+      //   ProcesoAutomaticoLogCodigo,
+      //   'ERR',
+      //   { res: error },
+      //   usuario,
+      //   ip
+      // );
+
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
