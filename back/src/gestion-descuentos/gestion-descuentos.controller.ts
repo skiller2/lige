@@ -2013,14 +2013,17 @@ export class GestionDescuentosController extends BaseController {
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
     let result = req.body[1].gridDataInsert
+    const DescuentoId: number = req.body[2]
 
-    // const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-    //   queryRunner,
-    //   `Carga manual PersonalOtroDescuento ${descuentoIdRequest} - ${mesRequest}/${anioRequest}`,
-    //   { anioRequest, mesRequest, descuentoIdRequest, usuario, ip },
-    //   usuario,
-    //   ip
-    // );
+    let dataset = []
+
+      //const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+       //queryRunner,
+       // `Carga manual ObjetivoDescuento ${DescuentoId} - ${periodo}`,
+       //{ periodo, DescuentoId, usuario, ip },
+       //usuario,
+       //ip
+     //);
 
     try {
       await queryRunner.connect();
@@ -2047,7 +2050,6 @@ export class GestionDescuentosController extends BaseController {
       for (const row of req.body[1].gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
         const Detalle: number = row.Detalle
-        const DescuentoId: number = row.DescuentoId
 
         const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mes, anio)
         if (!Array.isArray(isActivo) || isActivo.length === 0) {
@@ -2064,8 +2066,15 @@ export class GestionDescuentosController extends BaseController {
         }
         if (row.isfull == 1) {
           await this.addPersonalOtroDescuento(queryRunner, Descuento, null, ip)
+        } else {
+          dataset.push(row)
         }
       }
+
+      if (dataset.length > 0) {
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: result })
+      }
+
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
 
@@ -2095,18 +2104,24 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async addDescuentoCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
+    const usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
     const queryRunner = dataSource.createQueryRunner();
     let result = req.body[1].gridDataInsert
+    let dataset = []
+    const DescuentoId: number = req.body[2]
+    console.error('req.body', req.body)
+    //throw new ClientException('test')
 
-    // const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-    //   queryRunner,
-    //   `Carga manual ObjetivoDescuento ${descuentoIdRequest} - ${mesRequest}/${anioRequest}`,
-    //   { anioRequest, mesRequest, descuentoIdRequest, usuario, ip },
-    //   usuario,
-    //   ip
-    // );
+     //const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+       //queryRunner,
+       // `Carga manual ObjetivoDescuento ${DescuentoId} - ${periodo}`,
+       //{ periodo, DescuentoId, usuario, ip },
+       //usuario,
+       //ip
+     //);
+
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2132,7 +2147,6 @@ export class GestionDescuentosController extends BaseController {
         const ObjetivoDescuentoDescuentoId: number = row.DescuentoId
         const ObjetivoId: number = row.ClienteElementoDependienteDescripcion.id
         const Detalle: number = row.Detalle
-        const DescuentoId: number = row.DescuentoId
 
         // validaciones
         switch (AplicaA) {
@@ -2164,6 +2178,8 @@ export class GestionDescuentosController extends BaseController {
         }
         if (row.isfull == 1) {
           await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
+        }else{
+          dataset.push(row)
         }
       }
 
@@ -2175,6 +2191,11 @@ export class GestionDescuentosController extends BaseController {
       //   usuario,
       //   ip
       // );
+
+      if (dataset.length > 0) {
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: result })
+      }
+
 
       await queryRunner.commitTransaction();
 

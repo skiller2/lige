@@ -755,8 +755,8 @@ export class ApiService {
   }
 
 
-  addDescuentoCargaManualPersonal(gridDataInsert: any, periodo: any) {
-    const parameter = [periodo, gridDataInsert]
+  addDescuentoCargaManualPersonal(gridDataInsert: any, periodo: any, descuentoId: any) {
+    const parameter = [periodo, gridDataInsert, descuentoId]
     this.notification.success('Respuesta', `Iniciando proceso `);
 
     return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualPersonal', parameter).pipe(
@@ -765,8 +765,8 @@ export class ApiService {
 
   }
 
-  addDescuentoCargaManualObjetivo(gridDataInsert: any, periodo: any) {
-    const parameter = [periodo, gridDataInsert]
+  addDescuentoCargaManualObjetivo(gridDataInsert: any, periodo: any, descuentoId: any) {
+    const parameter = [periodo, gridDataInsert,descuentoId ]
     this.notification.success('Respuesta', `Iniciando proceso `);
 
     return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualObjetivo', parameter).pipe(
