@@ -19,7 +19,6 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         const maxImporte = 100000
 
         const adelanto = await PersonalController.getPersonalAdelanto(personalId, anio, mes)
-
         await state.update({ adelanto: { anio, mes, maxImporte } })
 
         if (adelanto.length == 0) {
@@ -28,13 +27,21 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
             return gotoFlow(flowFormAdelanto)
         } else {
             await flowDynamic([{ body: `Ya posee un adelanto solicitado de $${adelanto[0].PersonalPrestamoMonto.toLocaleString('es-AR')}`, delay }])
-            if (!adelanto[0].PersonalPrestamoFechaAprobacion) {
-                await state.update({ adelanto: { anio, mes, maxImporte, ...adelanto[0] } })
-                await flowDynamic([{ body: `No ha sido confirmado aún. ¿Desea modificarlo? (Si/No)`, delay }])
-            } else {
-                await flowDynamic([{ body: `Ya ha sido confirmado. No se puede solicitar un nuevo adelanto.`, delay }])
-                return gotoFlow(flowMenu)
+            switch (adelanto[0].PersonalPrestamoAprobado) {
+                case 'N':
+                    await flowDynamic([{ body: `Ha sido rechazado. No se puede solicitar un nuevo adelanto.`, delay }])
+                    return gotoFlow(flowMenu)
+                    break;
+                case 'S':
+                    await flowDynamic([{ body: `Ya ha sido confirmado. No se puede solicitar un nuevo adelanto.`, delay }])
+                    return gotoFlow(flowMenu)
+                    break;
+                default:
+                    await state.update({ adelanto: { anio, mes, maxImporte, ...adelanto[0] } })
+                    await flowDynamic([{ body: `No ha sido confirmado aún. ¿Desea modificarlo? (Si/No)`, delay }])
+                    break;
             }
+
         }
     })
     .addAnswer('', { capture: true, delay },
