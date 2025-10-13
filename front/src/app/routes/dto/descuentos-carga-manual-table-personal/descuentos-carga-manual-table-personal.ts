@@ -84,6 +84,10 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
         required: true
       }
     }
+    if (col.id === 'mensaje') {
+      col.type = FieldType.string;
+      col.editor = undefined;
+    }
         return col
       });
       

@@ -107,6 +107,10 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
         required: true
       }
     }
+    if (col.id === 'mensaje') {
+      col.type = FieldType.string;
+      col.editor = undefined;
+    }
         return col
       });
       
@@ -238,7 +242,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   }
 
   confirmNewItem() {
-    
+
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
     const valuePeriodo = this.mes() + "/" + this.anio();
     if (altas.length > 0) {
