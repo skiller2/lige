@@ -364,7 +364,8 @@ export class NovedadesController extends BaseController {
             nov.VisualizacionPersonaId,
             visper.PersonalApellidoNombre AS VisualizacionPersonaNombre, 
             nov.VisualizacionTelefono,
-            1
+            1,
+            nov.AudFechaIng, nov.AudFechaMod, nov.AudUsuarioIng, nov.AudUsuarioMod
         FROM Novedad nov
         LEFT JOIN DocumentoRelaciones doc ON doc.NovedadCodigo = nov.NovedadCodigo
         LEFT JOIN NovedadTipo novtip ON novtip.NovedadTipoCod = nov.NovedadTipoCod
@@ -385,7 +386,8 @@ export class NovedadesController extends BaseController {
         GROUP BY nov.NovedadCodigo,cli.ClienteId,cli.ClienteDenominacion,
             ele.ClienteElementoDependienteId,obj.ObjetivoId, nov.Fecha, nov.Accion,nov.NovedadTipoCod,nov.Descripcion,
             CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)), ele.ClienteElementoDependienteDescripcion,
-            nov.VisualizacionFecha,nov.VisualizacionPersonaId, visper.PersonalApellidoNombre, nov.VisualizacionTelefono;
+            nov.VisualizacionFecha,nov.VisualizacionPersonaId, visper.PersonalApellidoNombre, nov.VisualizacionTelefono,
+            nov.AudFechaIng, nov.AudFechaMod, nov.AudUsuarioIng, nov.AudUsuarioMod
             `,
             [NovedadId])
 

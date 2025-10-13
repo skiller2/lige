@@ -24,7 +24,7 @@ import { LoadingService } from '@delon/abc/loading';
 })
 export class NovedadesFormComponent {
 
-
+  auditHistory = signal<any[]>([])
   NovedadCodigo = model<number>(0)
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
@@ -73,13 +73,18 @@ export class NovedadesFormComponent {
  }
   
   async load() {
-    let infoObjetivo = await firstValueFrom(this.searchService.getNovedad(this.NovedadCodigo()))
-
-    this.formCli.reset(infoObjetivo[0])
+    let res = await firstValueFrom(this.searchService.getNovedad(this.NovedadCodigo()))
+    const infoObjetivo = res[0]
+    this.formCli.reset(infoObjetivo)
     this.formCli.patchValue({
-      ObjetivoId: infoObjetivo[0].ObjetivoId,
-      DocumentoId: infoObjetivo[0].DocumentoId || infoObjetivo[0].id
+      ObjetivoId: infoObjetivo.ObjetivoId,
+      DocumentoId: infoObjetivo.DocumentoId || infoObjetivo.id
     })
+    
+    this.auditHistory.set([
+      {usuario: infoObjetivo.AudUsuarioIng, fecha: this.formatDate(infoObjetivo.AudFechaIng), accion: 'Creación'},
+      {usuario: infoObjetivo.AudUsuarioMod, fecha: this.formatDate(infoObjetivo.AudFechaMod), accion: 'Modificación'}
+    ])
   }
 
 
@@ -118,37 +123,54 @@ export class NovedadesFormComponent {
     }
     this.formChange$.next("save") 
     this.loadingSrv.close()
-}
-
-
-async newRecord() {
-  this.formCli.reset()
-  this.NovedadCodigo.set(0)
-  this.formCli.markAsPristine()
-}
-
-
-async deleteNovedad() {
-  await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
-  this.NovedadCodigo.set(0)
-  this.onAddorUpdate.emit('delete')
-}
-
-
-//esto ajusta la fecha para evitar problema que sume +3 horas cada vez que se guarda
-private adjustDateForTimezone(date: Date | string): string | null {
-  if (!date) return null
-  
-  let dateObj: Date
-  if (typeof date === 'string') {
-    dateObj = new Date(date)
-  } else {
-    dateObj = date
   }
-  
-  const utcDate = new Date(Date.UTC( dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate(),dateObj.getHours(), dateObj.getMinutes(), dateObj.getSeconds()))
-  
-  return utcDate.toISOString()
-}
+
+
+  async newRecord() {
+    this.formCli.reset()
+    this.NovedadCodigo.set(0)
+    this.auditHistory.set([])
+    this.formCli.markAsPristine()
+  }
+
+
+  async deleteNovedad() {
+    await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
+    this.NovedadCodigo.set(0)
+    this.onAddorUpdate.emit('delete')
+  }
+
+
+  //esto ajusta la fecha para evitar problema que sume +3 horas cada vez que se guarda
+  private adjustDateForTimezone(date: Date | string): string | null {
+    if (!date) return null
+    
+    let dateObj: Date
+    if (typeof date === 'string') {
+      dateObj = new Date(date)
+    } else {
+      dateObj = date
+    }
+    
+    const utcDate = new Date(Date.UTC( dateObj.getFullYear(),dateObj.getMonth(),dateObj.getDate(),dateObj.getHours(), dateObj.getMinutes(), dateObj.getSeconds()))
+    
+    return utcDate.toISOString()
+  }
+
+  private formatDate(dateString: string): string {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  }
 
 }

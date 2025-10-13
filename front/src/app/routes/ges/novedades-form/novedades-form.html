@@ -65,6 +65,31 @@
       </nz-form-control>
     </nz-form-item>
 
+    <!-- VisualizacionAuditoria -->
+      @defer (on immediate) {
+      <nz-form-control *ngIf="NovedadCodigo()" [nzXs]="20" [nzSm]="20" [nzMd]="20" [nzLg]="20" style="text-align: right;">
+        <button nz-button nzType="default" nz-popover nzPopoverTitle="Historial de Auditoria" [nzPopoverContent]="contentTemplate"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button>
+        <ng-template #contentTemplate>
+          <nz-table #history [nzData]="auditHistory()" [nzShowPagination]="false">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of history.data">
+                <td>{{ item.usuario }}</td>
+                <td>{{ item.fecha }}</td>
+                <td>{{ item.accion }}</td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </ng-template>
+    </nz-form-control>
+    }
 
     <div class="input-container1" *ngIf="formCli.getRawValue().VisualizacionFecha || formCli.getRawValue().VisualizacionPersonaNombre || formCli.getRawValue().VisualizacionTelefono">
       <div class="input-label">Visualización</div>
