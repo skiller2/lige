@@ -2014,17 +2014,7 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     let result = req.body[1].gridDataInsert
     const DescuentoId: number = req.body[2]
-
     let dataset = []
-
-      //const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-       //queryRunner,
-       // `Carga manual ObjetivoDescuento ${DescuentoId} - ${periodo}`,
-       //{ periodo, DescuentoId, usuario, ip },
-       //usuario,
-       //ip
-     //);
-
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2070,7 +2060,6 @@ export class GestionDescuentosController extends BaseController {
           dataset.push(row)
         }
       }
-
       if (dataset.length > 0) {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: result })
       }
@@ -2078,25 +2067,9 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
 
-      // await this.procesoAutomaticoLogFin(
-      //   queryRunner,
-      //   ProcesoAutomaticoLogCodigo,
-      //   'COM',
-      //   { res: `Procesado correctamente`, altaDescuentos },
-      //   usuario,
-      //   ip
-      // );
-
     } catch (error) {
-      // await this.procesoAutomaticoLogFin(queryRunner,
-      //   ProcesoAutomaticoLogCodigo,
-      //   'ERR',
-      //   { res: error },
-      //   usuario,
-      //   ip
-      // );
-
       await this.rollbackTransaction(queryRunner)
+
       return next(error)
     } finally {
       await queryRunner.release();
@@ -2111,17 +2084,7 @@ export class GestionDescuentosController extends BaseController {
     let result = req.body[1].gridDataInsert
     let dataset = []
     const DescuentoId: number = req.body[2]
-    console.error('req.body', req.body)
-    //throw new ClientException('test')
-
-     //const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-       //queryRunner,
-       // `Carga manual ObjetivoDescuento ${DescuentoId} - ${periodo}`,
-       //{ periodo, DescuentoId, usuario, ip },
-       //usuario,
-       //ip
-     //);
-
+    
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2178,37 +2141,19 @@ export class GestionDescuentosController extends BaseController {
         }
         if (row.isfull == 1) {
           await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
-        }else{
+        } else {
           dataset.push(row)
         }
       }
 
-      // await this.procesoAutomaticoLogFin(
-      //   queryRunner,
-      //   ProcesoAutomaticoLogCodigo,
-      //   'COM',
-      //   { res: `Procesado correctamente`, altaDescuentos },
-      //   usuario,
-      //   ip
-      // );
-
       if (dataset.length > 0) {
-        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: result })
+        throw new ClientException(`Se encontraron errores en la carga Manual de descuentos. Cantidad: ${dataset.length}`, { list: result })
       }
 
 
       await queryRunner.commitTransaction();
-
       this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
-      // await this.procesoAutomaticoLogFin(queryRunner,
-      //   ProcesoAutomaticoLogCodigo,
-      //   'ERR',
-      //   { res: error },
-      //   usuario,
-      //   ip
-      // );
-
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
