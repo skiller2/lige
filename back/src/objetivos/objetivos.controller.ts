@@ -399,6 +399,7 @@ export class ObjetivosController extends BaseController {
             let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
             const infoRubro = await this.getRubroQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+            const infoDocRequerido = await this.getDocRequeridoQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
@@ -412,6 +413,7 @@ export class ObjetivosController extends BaseController {
 
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
             infObjetivo.infoRubro = infoRubro
+            infObjetivo.infoDocRequerido = infoDocRequerido
             infObjetivo.infoActividad = [grupoactividad[0]]
             infObjetivo.habilitacion = habilitacion
             await queryRunner.commitTransaction()
@@ -513,6 +515,12 @@ export class ObjetivosController extends BaseController {
             [ObjetivoId, ClienteId, ClienteElementoDependienteId])
     }
 
+    async getDocRequeridoQuery(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId) {
+        return await queryRunner.query(`
+            SELECT DocumentoTipoCodigo FROM ClienteElementoDependienteDocRequerido 
+            WHERE ClienteId = @1 AND ClienteElementoDependienteId = @2`,
+            [ObjetivoId, ClienteId, ClienteElementoDependienteId])
+    }
 
     async getObjetivoQuery(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
         const fechaActual = new Date()
@@ -828,12 +836,13 @@ export class ObjetivosController extends BaseController {
 
         try {
             // const usuarioId = await this.getUsuarioId(res, queryRunner)
+            const usuario = res.locals.userName
             const usuarioId = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }
             const infoActividad = { ...Obj.infoActividad }
-            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
+            let ObjObjetivoNew = { infoRubro: {}, infoDocRequerido:[], infoCoordinadorCuenta: {}, infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
 
             //throw new ClientException(`test.`)
             //validaciones
@@ -903,6 +912,7 @@ export class ObjetivosController extends BaseController {
 
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
+            ObjObjetivoNew.infoDocRequerido = await this.ObjetivoDocRequerido(queryRunner, Obj.infoDocRequerido, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
 
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
 
@@ -1034,6 +1044,26 @@ export class ObjetivosController extends BaseController {
             }
         }
         return rubros
+    }
+    
+    async ObjetivoDocRequerido(queryRunner: any, docsRequeridos: any, ClienteId: any, ClienteElementoDependienteId: any, usuario:string, ip:string) {
+
+        const DocTipoCodigos = docsRequeridos.map((row: { DocumentoTipoCodigo: any; }) => row.DocumentoTipoCodigo).filter((DocumentoTipoCodigo) => DocumentoTipoCodigo !== null && DocumentoTipoCodigo !== undefined);
+        if (DocTipoCodigos.length > 0)
+            await queryRunner.query(`DELETE FROM ClienteElementoDependienteDocRequerido WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+        else {
+            throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
+        }
+
+        const now:Date = new Date ()
+        for (const obj of docsRequeridos.filter(doc => doc.DocumentoTipoCodigo !== null && doc.DocumentoTipoCodigo !== '' && doc.DocumentoTipoCodigo !== 0)) {
+            
+            await queryRunner.query(`
+                INSERT INTO ClienteElementoDependienteDocRequerido (ClienteId, ClienteElementoDependienteId, DocumentoTipoCodigo, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod )
+                VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5)`, [ClienteId, ClienteElementoDependienteId, obj.DocumentoTipoCodigo, now, usuario, ip])
+
+        }
+        return docsRequeridos
     }
 
     async updateClienteElementoDependienteTable(
@@ -1186,6 +1216,7 @@ export class ObjetivosController extends BaseController {
             await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteContratoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
+            await this.deleteClienteElementoDependienteDocRequeridoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
 
             await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
             await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
@@ -1229,6 +1260,14 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteId])
     }
 
+    async deleteClienteElementoDependienteDocRequeridoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+
+        return await queryRunner.query(`DELETE FROM ClienteElementoDependienteDocRequerido  WHERE 
+             ClienteId = @0
+             AND ClienteElementoDependienteId = @1`,
+            [ClienteId, ClienteElementoDependienteId])
+    }
+
     async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number) {
         return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0`, [ObjetivoId])
     }
@@ -1237,13 +1276,12 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body };
         const infoActividad = { ...Obj.infoActividad }
-        let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad: [] }
+        let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoRubro: {}, infoDocRequerido: [], infoCoordinadorCuenta: {}, infoActividad: [] }
         try {
 
-            const ip = this.getRemoteAddress(req)
-
+            const usuario = res.locals.userName
             const usuarioId = res.locals.PersonalId
-
+            const ip = this.getRemoteAddress(req)
 
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
@@ -1292,6 +1330,7 @@ export class ObjetivosController extends BaseController {
 
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, ClienteElementoDependienteUltNro)
+            ObjObjetivoNew.infoDocRequerido = await this.ObjetivoDocRequerido(queryRunner, Obj.infoDocRequerido, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
 
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 

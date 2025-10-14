@@ -59,6 +59,9 @@ export class ObjetivosFormComponent {
     ClienteElementoDependienteRubroId:0,
     RubroId:0
   }
+  objDocRequerido = {
+    DocumentoTipoCodigo:0
+  }
   objActividad = {
     GrupoActividadObjetivoId:0,
     GrupoActividadId:0,
@@ -103,6 +106,7 @@ export class ObjetivosFormComponent {
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
     infoRubro: this.fb.array([this.fb.group({ ...this.objRubro })]), 
+    infoDocRequerido: this.fb.array([this.fb.group({ ...this.objDocRequerido })]),
     infoActividad: this.fb.array([this.fb.group({ ...this.objActividad })]), 
     estado: 0,
     files:[],
@@ -121,6 +125,7 @@ export class ObjetivosFormComponent {
   $optionsBarrio = this.searchService.getBarrio();
   $optionsDescuento = this.searchService.getDescuento();
   $sucursales = this.searchService.getSucursales();
+  $optionsDocumentoTipo = this.searchService.getDocumentoTipoOptions();
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -157,8 +162,10 @@ export class ObjetivosFormComponent {
       this.formCli.reset()
       this.infoCoordinadorCuenta().clear()
       this.infoRubro().clear()
+      this.infoDocRequerido().clear()
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
       this.infoRubro().push(this.fb.group({ ...this.objRubro }))
+      this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
       this.formCli.markAsPristine()
     }
   }
@@ -171,6 +178,8 @@ export class ObjetivosFormComponent {
         this.formCli.get('GrupoActividadId')?.disable()
         this.formCli.get('RubroId')?.disable()
         this.formCli.get('infoRubro')?.disable()
+        this.formCli.get('DocumentoTipoCodigo')?.disable()
+        this.formCli.get('infoDocRequerido')?.disable()
       }else{
         this.formCli.enable()
       }
@@ -188,6 +197,7 @@ export class ObjetivosFormComponent {
    
     this.infoCoordinadorCuenta().clear()
     this.infoRubro().clear()
+    this.infoDocRequerido().clear()
     this.infoActividad().clear()
     
     infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
@@ -207,6 +217,14 @@ export class ObjetivosFormComponent {
       this.infoRubro().push(this.fb.group({ ...this.objRubro }))
     }
 
+    infoObjetivo?.infoDocRequerido.forEach((obj: any) => {
+      this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
+    });
+    
+    if(infoObjetivo.infoDocRequerido.length == 0){
+      this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
+    }
+
     infoObjetivo?.infoActividad.forEach((obj: any) => {
       this.infoActividad().push(this.fb.group({ ...this.objActividad }))
     });
@@ -218,10 +236,12 @@ export class ObjetivosFormComponent {
     if (this.formCli.disabled){
       this.infoCoordinadorCuenta().disable()
       this.infoRubro().disable()
+      this.infoDocRequerido().disable()
       this.infoActividad().disable()
     }else {
       this.infoCoordinadorCuenta().enable()
       this.infoRubro().enable()
+      this.infoDocRequerido().enable()
       this.infoActividad().disable()
     }
 
@@ -241,6 +261,7 @@ export class ObjetivosFormComponent {
     //this.formCli.get('ClienteId')?.disable();
     this.formCli.get('GrupoActividadId')?.disable()
     this.formCli.get('RubroId')?.disable()
+    this.formCli.get('DocumentoTipoCodigo')?.disable()
     //this.formCli.reset(infoObjetivo)
   }
 
@@ -316,6 +337,10 @@ export class ObjetivosFormComponent {
     return this.formCli.get("infoRubro") as FormArray
   }
 
+  infoDocRequerido(): FormArray {
+    return this.formCli.get("infoDocRequerido") as FormArray
+  }
+
   infoActividad(): FormArray {
     return this.formCli.get("infoActividad") as FormArray
   }
@@ -334,6 +359,13 @@ export class ObjetivosFormComponent {
     
   }
 
+  addDocRequerido(e?: MouseEvent): void {
+
+    e?.preventDefault();
+    this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
+    
+  }
+
   removeCordinadorCuenta(index: number, e: MouseEvent): void {
    
     e.preventDefault();
@@ -348,6 +380,15 @@ export class ObjetivosFormComponent {
     e.preventDefault();
     if (this.infoRubro().length > 1 ) {
       this.infoRubro().removeAt(index)
+    }
+    this.formCli.markAsDirty();
+  }
+  
+  removeDocRequerido(index: number, e: MouseEvent): void {
+   
+    e.preventDefault();
+    if (this.infoDocRequerido().length > 1 ) {
+      this.infoDocRequerido().removeAt(index)
     }
     this.formCli.markAsDirty();
   }
