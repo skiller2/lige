@@ -44,7 +44,7 @@ export class DocumentoController extends BaseController {
       name: "Denominacion",
       field: "DocumentoDenominadorDocumento",
       fieldName: "docg.DocumentoDenominadorDocumento",
-      type: "number",
+      type: "string",
       sortable: true,
       hidden: false,
       maxWidth: 150,

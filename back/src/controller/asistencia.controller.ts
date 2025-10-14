@@ -1258,7 +1258,7 @@ export class AsistenciaController extends BaseController {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
     //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
     const descuentos = await dataSource.query(
-      `      
+      `
       SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.PersonalOtroDescuentoDetalle AS desmovimiento, 
