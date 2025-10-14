@@ -18,7 +18,7 @@
        <button nzType="default"
         nz-button nz-popconfirm nzPopconfirmTitle="¿Limpiar registro?"
          (nzOnConfirm)="deleteItem()" 
-         [disabled]="!( rowdelete() >= 1)"
+         [disabled]="!( rowdelete().length >= 1)"
           nz-tooltip
            nzTooltipTitle="{{ 'app.icon.limpiar' | i18n }}">
          <span nz-icon nzType="delete" nzTheme="outline"></span>

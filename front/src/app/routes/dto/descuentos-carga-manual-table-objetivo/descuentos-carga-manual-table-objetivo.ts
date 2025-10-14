@@ -31,7 +31,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   private excelExportService = new ExcelExportService();
   private readonly detailViewRowCount = 9;
   gridDataInsert = [];
-  rowdelete = signal<number>(0);
+  rowdelete = signal<any[]>([]);
   anio = input<number>(0)
   mes = input<number>(0)
   pDescuentoId = input<number>(0)
@@ -125,6 +125,10 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
       this.gridOptionsEdit.enableRowDetailView = false
       this.gridOptionsEdit.autoEdit = true
       this.gridOptionsEdit.editable = true 
+      this.gridOptionsEdit.enableCheckboxSelector = true
+      this.gridOptionsEdit.rowSelectionOptions = {
+        selectActiveRow: false
+    }
   
       this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
         editCommand.execute()
@@ -250,7 +254,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
      
             this.formChange$.next('');
             this.cleanTable();
-        
+            this.rowdelete.set([]);
         },
         error: (error: any) => {
           const list = error.error.data.list;
@@ -298,16 +302,37 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
 
 
   handleSelectedRowsChanged(e: any): void {
-    const selrow = e.detail.args.rows[0]
-    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row) {
-        this.rowdelete.set(row.id)
+
+    
+    if (e.detail.args.changedSelectedRows.length == 1) {
+      const rowNum = e.detail.args.changedSelectedRows[0]
+      const rowinfo = this.angularGridEdit.dataView.getItemByIdx(rowNum)
+      if (rowinfo) {
+        const prevSelection = this.rowdelete() || []
+        this.rowdelete.set([...prevSelection, rowinfo])
+      }
+    
     }
+    
+    else if (e.detail.args.changedUnselectedRows.length == 1) {
+      const rowNum = e.detail.args.changedUnselectedRows[0]
+      const rowinfo = this.angularGridEdit.dataView.getItemByIdx(rowNum)
+      const prevSelection = this.rowdelete() || []
+      this.rowdelete.set(prevSelection.filter(item => item.id !== rowinfo.id))
+
+    }
+
+
+   // const selrow = e.detail.args.rows[0]
+   // const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    
   }
 
   deleteItem() {
-    this.angularGridEdit.gridService.deleteItemById(this.rowdelete())
-    this.rowdelete.set(0)
+    this.rowdelete().forEach((row: any) => {
+      this.angularGridEdit.gridService.deleteItem(row);
+    });
+    this.rowdelete.set([]);
 }
 
   
