@@ -36,6 +36,10 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
                     await flowDynamic([{ body: `Ya ha sido confirmado. No se puede solicitar un nuevo adelanto.`, delay }])
                     return gotoFlow(flowMenu)
                     break;
+                case 'A':
+                    await flowDynamic([{ body: `Ha sido anulado. No puede solicitar un nuevo adelanto.`, delay }])
+                    return gotoFlow(flowMenu)
+                    break;
                 default:
                     await state.update({ adelanto: { anio, mes, maxImporte, ...adelanto[0] } })
                     await flowDynamic([{ body: `No ha sido confirmado aún. ¿Desea modificarlo? (Si/No)`, delay }])
@@ -89,17 +93,17 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
-            if (isNaN(importe)) return fallBack('El valor ingresado no es válido, reintente')
+            if (isNaN(importe)) return fallBack('El valor ingresado no es válido, reintente.')
 
-            if (importe > maxImporte) return fallBack(`El importe debe ser menor o igual a $${maxImporte.toLocaleString('es-AR')}, reintente.`)
+            if (importe > maxImporte || importe < 0) return fallBack(`El importe debe ser menor o igual a $${maxImporte.toLocaleString('es-AR')}, reintente.`)
 
             try {
                 if (importe == 0) {
                     await personalController.deletePersonalAdelanto(personalId, anio, mes)
-                    await flowDynamic([`Sea a eliminado la solicitud de adelanto`], { delay: delay })
+                    await flowDynamic([`Se ha eliminado la solicitud de adelanto.`], { delay: delay })
                 } else {
                     await personalController.setPersonalAdelanto(personalId, anio, mes, importe)
-                    await flowDynamic([`Solicitud de adelanto agregada`], { delay: delay })
+                    await flowDynamic([`Solicitud de adelanto agregada.`], { delay: delay })
                 }
             } catch (error) {
                 console.log('error', error)
