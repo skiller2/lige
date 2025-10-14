@@ -78,7 +78,9 @@ export class BotServer {
       flowAdelanto, flowFormAdelanto
     ])
     this.adapterProvider = createProvider(Provider, {
+      
       timeRelease: 10800000, // 3 hours in milliseconds
+      version: [2, 3000, 1025190524], //Baileys version
     })
     const adapterDB = new Database()
     this.globalTimeOutMs = 60000 * 5
