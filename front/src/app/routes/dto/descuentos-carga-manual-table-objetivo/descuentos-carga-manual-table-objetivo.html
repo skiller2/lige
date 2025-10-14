@@ -1,10 +1,28 @@
-<nz-card #descuentosCargaManualTablePersonalForm class="small-margin">
+<nz-card #descuentosCargaManualTablePersonalForm class="small-margin" [nzBordered]="false">
   <div style="display: flex; justify-content: flex-end; padding-bottom: 10px;">
-    <button  nz-popconfirm nzType="primary" class="btn-add" [disabled]="!(gridDataInsert.length >= 1)"
-        nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
-        nz-button>
-        Confirmar nuevo registro
-      </button>
+ 
+      <nz-button-group>
+
+        <button nzType="default"
+         nz-button nz-popconfirm nzPopconfirmTitle="¿Procesar {{gridDataInsert.length - 1}} registros?"
+          (nzOnConfirm)="confirmNewItem()" 
+          [disabled]="!(gridDataInsert.length >= 1)"
+           nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.procesar' | i18n }}">
+          <span nz-icon nzType="check" nzTheme="outline"></span>
+        </button>
+
+        <button nzType="default"
+         nz-button nz-popconfirm nzPopconfirmTitle="¿Limpiar registro?"
+          (nzOnConfirm)="deleteItem()" 
+          [disabled]="!( rowdelete() >= 1)"
+           nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.limpiar' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
+  
+  
+        </nz-button-group>
     </div>
     <ng-container>
       @if(columns$ | async; as columnas) {
@@ -14,7 +32,8 @@
             [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptionsEdit" 
             [dataset]="gridDataInsert || []"
-            (onAngularGridCreated)="angularGridReady($event)">
+            (onAngularGridCreated)="angularGridReady($event)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
       }

@@ -25,6 +25,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   tableLoading$ = new BehaviorSubject<boolean>(false);
   angularGridEdit!: AngularGridInstance;
   private gridObjEdit!: SlickGrid;
+  isLoadingCheck = false;
+  rowdelete = signal<number>(0);
   gridOptionsEdit!: GridOption;
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
@@ -101,7 +103,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       this.gridOptionsEdit.enableRowDetailView = false
       this.gridOptionsEdit.autoEdit = true
       this.gridOptionsEdit.editable = true 
-  
+
   
       this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
         editCommand.execute()
@@ -273,6 +275,19 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     this.gridDataInsert = [];
 
   }
+
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    if (row) {
+        this.rowdelete.set(row.id)
+    }
+  }
+
+  deleteItem() {
+    this.angularGridEdit.gridService.deleteItemById(this.rowdelete())
+    this.rowdelete.set(0)
+}
 
   
 }

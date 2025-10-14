@@ -31,6 +31,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
   private excelExportService = new ExcelExportService();
   private readonly detailViewRowCount = 9;
   gridDataInsert = [];
+  rowdelete = signal<number>(0);
   anio = input<number>(0)
   mes = input<number>(0)
   pDescuentoId = input<number>(0)
@@ -124,7 +125,6 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
       this.gridOptionsEdit.enableRowDetailView = false
       this.gridOptionsEdit.autoEdit = true
       this.gridOptionsEdit.editable = true 
-  
   
       this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
         editCommand.execute()
@@ -295,6 +295,20 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
     this.gridDataInsert = [];
 
   }
+
+
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    if (row) {
+        this.rowdelete.set(row.id)
+    }
+  }
+
+  deleteItem() {
+    this.angularGridEdit.gridService.deleteItemById(this.rowdelete())
+    this.rowdelete.set(0)
+}
 
   
 }
