@@ -1898,12 +1898,12 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         throw new ClientException(`No tiene permiso para obtener información de excepciones`)
 
       const result = await queryRunner.query(
-        `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
+        `SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) as id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
                 CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo,
                 obj.ObjetivoId,
-                eledep.ClienteElementoDependienteDescripcion,
+                CONCAT(cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
                 art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
                 IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
                 
@@ -1911,6 +1911,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
                 FROM PersonalArt14 art 
                 JOIN Personal per ON per.PersonalId = art.PersonalId
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+                JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
                 JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
                 LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
