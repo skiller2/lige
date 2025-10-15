@@ -727,16 +727,18 @@ export class CargaAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
     async setValFact(e: any) {
-        if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine) {
+        if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine || !this.carasistForm.form.get('Observaciones')?.pristine ) {
             try {
                 await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value, this.carasistForm.form.get('Observaciones')?.value))
                 this.formPrevVals = this.carasistForm.form.value
             } catch (_e) {
                 this.carasistForm.form.get('TotalHoraA')?.setValue(this.formPrevVals.TotalHoraA)
                 this.carasistForm.form.get('TotalHoraB')?.setValue(this.formPrevVals.TotalHoraA)
+                this.carasistForm.form.get('Observaciones')?.setValue(this.formPrevVals.Observaciones)
             }
             this.carasistForm.form.get('TotalHoraA')?.markAsPristine()
             this.carasistForm.form.get('TotalHoraB')?.markAsPristine()
+            this.carasistForm.form.get('Observaciones')?.markAsPristine()
 
             const values = this.carasistForm.form.getRawValue()
             this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - values.TotalHorasReales)
