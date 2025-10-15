@@ -842,7 +842,7 @@ export class ObjetivosController extends BaseController {
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }
             const infoActividad = { ...Obj.infoActividad }
-            let ObjObjetivoNew = { infoRubro: {}, infoDocRequerido:[], infoCoordinadorCuenta: {}, infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
+            let ObjObjetivoNew = { infoRubro: {}, infoDocRequerido: [], infoCoordinadorCuenta: {}, infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
 
             //throw new ClientException(`test.`)
             //validaciones
@@ -1046,22 +1046,23 @@ export class ObjetivosController extends BaseController {
         return rubros
     }
     
-    async ObjetivoDocRequerido(queryRunner: any, docsRequeridos: any, ClienteId: any, ClienteElementoDependienteId: any, usuario:string, ip:string) {
+    async ObjetivoDocRequerido(queryRunner: any, docsRequeridos: any, ClienteId: any, ClienteElementoDependienteId: any, usuario: string, ip: string) {
+        const DocTipoCodigos = docsRequeridos .map((row: { DocumentoTipoCodigo: any; }) => row.DocumentoTipoCodigo) .filter((DocumentoTipoCodigo) => DocumentoTipoCodigo !== null && DocumentoTipoCodigo !== undefined);
 
-        const DocTipoCodigos = docsRequeridos.map((row: { DocumentoTipoCodigo: any; }) => row.DocumentoTipoCodigo).filter((DocumentoTipoCodigo) => DocumentoTipoCodigo !== null && DocumentoTipoCodigo !== undefined);
-        if (DocTipoCodigos.length > 0)
-            await queryRunner.query(`DELETE FROM ClienteElementoDependienteDocRequerido WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
-        else {
-            throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
-        }
+        // Validar que hay elementos
+        if (DocTipoCodigos.length === 0) throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
 
-        const now:Date = new Date ()
+        // Validar duplicados
+        const duplicados = DocTipoCodigos.filter((codigo, index) => DocTipoCodigos.indexOf(codigo) !== index);
+        if (duplicados.length > 0) throw new ClientException('Se encuentran Documentos requeridos No se pueden tener documentos requeridos duplicados')
+
+        await queryRunner.query(`DELETE FROM ClienteElementoDependienteDocRequerido WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+
+        const now: Date = new Date()
         for (const obj of docsRequeridos.filter(doc => doc.DocumentoTipoCodigo !== null && doc.DocumentoTipoCodigo !== '' && doc.DocumentoTipoCodigo !== 0)) {
-            
             await queryRunner.query(`
-                INSERT INTO ClienteElementoDependienteDocRequerido (ClienteId, ClienteElementoDependienteId, DocumentoTipoCodigo, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod )
-                VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5)`, [ClienteId, ClienteElementoDependienteId, obj.DocumentoTipoCodigo, now, usuario, ip])
-
+            INSERT INTO ClienteElementoDependienteDocRequerido (ClienteId, ClienteElementoDependienteId, DocumentoTipoCodigo, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod )
+            VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5)`, [ClienteId, ClienteElementoDependienteId, obj.DocumentoTipoCodigo, now, usuario, ip])
         }
         return docsRequeridos
     }
@@ -1243,8 +1244,8 @@ export class ObjetivosController extends BaseController {
     }
 
     async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
-        await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 AND nex.ClienteElementoDependienteId = @1`, [ClienteId,ClienteElementoDependienteId])
-        await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId,ClienteElementoDependienteId])
+        await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 AND nex.ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+        await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
     }
 
     async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
