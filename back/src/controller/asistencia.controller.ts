@@ -206,7 +206,8 @@ export class AsistenciaController extends BaseController {
       mes,
       ObjetivoId,
       TotalHoraA,
-      TotalHoraB
+      TotalHoraB,
+      Observaciones
     } = req.body
 
     const queryRunner = dataSource.createQueryRunner();
@@ -237,16 +238,16 @@ export class AsistenciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHoraA=@5, TotalHoraB=@6,
-           AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
+          `UPDATE ObjetivoImporteVenta SET TotalHoraA=@4, TotalHoraB=@5, Observaciones=@6,
+           AudFechaMod=@7, AudUsuarioMod=@8, AudIpMod=@9
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, null, TotalHoraA, TotalHoraB, 0, 0, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
-          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,Observaciones,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0,
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8 ,@9,@10,@11 ,@9,@10,@11)`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0,Observaciones,
             fechaActual, usuario, ip])
       }
 
@@ -672,7 +673,7 @@ export class AsistenciaController extends BaseController {
       cli.ClienteDenominacion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
       objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
-      val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB,
+      val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, val.Observaciones,
       2 as last
       
       FROM Objetivo obj 

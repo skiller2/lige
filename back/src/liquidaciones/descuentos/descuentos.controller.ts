@@ -117,6 +117,9 @@ export class DescuentosController extends BaseController {
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
+        if (1 == 1) { //Actualizo el campo LiquidacionMovimientoCodigo caso #838
+          
+        }
       }
 
       await queryRunner.commitTransaction();

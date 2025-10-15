@@ -152,7 +152,7 @@ export class CargaAsistenciaComponent {
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
                 this.getHorasNormales(this.gridDataInsert)
-                this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB }, { emitEvent: false })
+                this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB, Observaciones: data[2][0]?.Observaciones}, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
                 this.formPrevVals = this.carasistForm.form.value
 
@@ -729,7 +729,7 @@ export class CargaAsistenciaComponent {
     async setValFact(e: any) {
         if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine) {
             try {
-                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value))
+                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value, this.carasistForm.form.get('Observaciones')?.value))
                 this.formPrevVals = this.carasistForm.form.value
             } catch (_e) {
                 this.carasistForm.form.get('TotalHoraA')?.setValue(this.formPrevVals.TotalHoraA)
