@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
-import { Component, inject, ChangeDetectionStrategy,ViewEncapsulation, signal, input, output, model, viewChild } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy,ViewEncapsulation, signal, input, output, model, viewChild, computed } from '@angular/core';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { SearchService } from 'src/app/services/search.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
@@ -12,10 +12,12 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 @Component({
   selector: 'app-novedades-form',
-  imports: [  SHARED_IMPORTS, CommonModule, FileUploadComponent, ObjetivoSearchComponent, NzSelectModule, NzAutocompleteModule, FormsModule ],
+  imports: [  SHARED_IMPORTS, CommonModule, FileUploadComponent, ObjetivoSearchComponent,
+    NzSelectModule, NzAutocompleteModule, FormsModule, PersonalSearchComponent ],
   templateUrl: './novedades-form.html',
   styleUrl: './novedades-form.less',
   providers: [ApiService],
@@ -24,6 +26,9 @@ import { LoadingService } from '@delon/abc/loading';
 })
 export class NovedadesFormComponent {
 
+  periodo = signal<Date>(new Date())
+  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   auditHistory = signal<any[]>([])
   NovedadCodigo = model<number>(0)
   private readonly loadingSrv = inject(LoadingService)
@@ -37,7 +42,7 @@ export class NovedadesFormComponent {
   $selectedObjetivoIdChange = new BehaviorSubject(0)
   $optionsTipoNovedad = this.searchService.getTipoNovedad()
 
- fb = inject(FormBuilder)
+  fb = inject(FormBuilder)
   formCli = this.fb.group({
     id: 0,
     ObjetivoId: 0,
@@ -50,6 +55,8 @@ export class NovedadesFormComponent {
     VisualizacionFecha: null as Date | null,
     VisualizacionPersonaNombre: '',
     VisualizacionTelefono: '',
+    PersonalId: 0,
+    Telefono: '',
   })
 
   objetivoDetalleChange(event: any){
@@ -68,6 +75,8 @@ export class NovedadesFormComponent {
     this.formCli.get('VisualizacionPersonaNombre')?.disable()
     this.formCli.get('VisualizacionTelefono')?.disable()
     this.formCli.get('VisualizacionFecha')?.disable()
+    this.formCli.get('PersonalId')?.disable()
+    this.formCli.get('Telefono')?.disable()
     this.formCli.markAsPristine()        
 
  }

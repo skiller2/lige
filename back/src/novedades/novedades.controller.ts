@@ -363,6 +363,7 @@ export class NovedadesController extends BaseController {
             nov.VisualizacionPersonaId,
             visper.PersonalApellidoNombre AS VisualizacionPersonaNombre, 
             nov.VisualizacionTelefono,
+            nov.PersonalId, nov.Telefono,
             1,
             nov.AudFechaIng, nov.AudFechaMod, nov.AudUsuarioIng, nov.AudUsuarioMod
         FROM Novedad nov
@@ -386,6 +387,7 @@ export class NovedadesController extends BaseController {
             ele.ClienteElementoDependienteId,obj.ObjetivoId, nov.Fecha, nov.Accion,nov.NovedadTipoCod,nov.Descripcion,
             CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)), ele.ClienteElementoDependienteDescripcion,
             nov.VisualizacionFecha,nov.VisualizacionPersonaId, visper.PersonalApellidoNombre, nov.VisualizacionTelefono,
+            nov.PersonalId, nov.Telefono,
             nov.AudFechaIng, nov.AudFechaMod, nov.AudUsuarioIng, nov.AudUsuarioMod
             `,
             [NovedadId])
