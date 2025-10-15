@@ -88,8 +88,8 @@
                 <nz-form-item>
                     <nz-form-label>Observaciones Facturación</nz-form-label>
                     <nz-form-control >
-                        <input nz-input name="Observaciones" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
-                            ngModel (blur)="setValFact($event)" autocomplete="off" />
+                        <textarea nz-input name="Observaciones" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
+                            ngModel (blur)="setValFact($event)" autocomplete="off" [nzAutosize]="{ minRows: 1, maxRows: 4 }"> </textarea>
                     </nz-form-control>
                 </nz-form-item>
             </div>
@@ -115,7 +115,7 @@
                     <nz-form-label>Horas a Facturar 'A'</nz-form-label>
                     <nz-form-control nzSpan="9">
                         <input nz-input name="TotalHoraA" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
-                            appDotToComma mask="separator.1" ngModel (blur)="setValFact($event)" class="text-right" />
+                            appDotToComma mask="separator.1" ngModel (blur)="setValFact($event)" class="text-right" autocomplete="off" />
                     </nz-form-control>
                 </nz-form-item>
             </div>
@@ -124,7 +124,7 @@
                     <nz-form-label>Horas a Facturar 'B'</nz-form-label>
                     <nz-form-control nzSpan="9">
                         <input nz-input name="TotalHoraB" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
-                            appDotToComma mask="separator.1" ngModel (blur)="setValFact($event)" class="text-right" />
+                            appDotToComma mask="separator.1" ngModel (blur)="setValFact($event)" class="text-right" autocomplete="off"/>
                     </nz-form-control>
                 </nz-form-item>
             </div>
