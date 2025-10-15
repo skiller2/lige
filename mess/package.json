@@ -17,8 +17,8 @@
   },
   "keywords": [],
   "dependencies": {
-    "@builderbot/bot": "^1.3.5-alpha.9",
-    "@builderbot/provider-baileys": "^1.3.5-alpha.9",
+    "@builderbot/bot": "^1.3.4",
+    "@builderbot/provider-baileys": "^1.3.5-alpha.4",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.1",
     "express": "^4.19.2",
