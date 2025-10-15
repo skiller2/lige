@@ -64,8 +64,8 @@
                     <button nz-button nzType="default" nz-popconfirm [disabled]="controlAccesoDisabled()"
                         nzPopconfirmTitle="Leo registros desde el reloj de asistencia?"
                         (nzOnConfirm)="leerControlAcceso()"
-                        *ngIf="selectedObjetivoId == 1102 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
-                            nzTheme="outline"></span>{{'app.btn.control.acceso' | i18n }}</button>
+                        *ngIf="selectedObjetivoId == 1102 && gridOptionsEdit.editable" nz-tooltip nzTooltipTitle="{{'app.btn.control.acceso' | i18n }}"><span nz-icon nzType="copy"
+                            nzTheme="outline" ></span></button>
 
                     <button nz-button nzType="primary" nz-popconfirm
                         *ngIf="(periodos && (periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null || periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null))"
@@ -89,7 +89,7 @@
                     <nz-form-label>Observaciones Facturación</nz-form-label>
                     <nz-form-control >
                         <input nz-input name="Observaciones" [disabled]="!(gridOptionsEdit.editable ?? false)" type="text"
-                            ngModel (blur)="setValFact($event)" />
+                            ngModel (blur)="setValFact($event)" autocomplete="off" />
                     </nz-form-control>
                 </nz-form-item>
             </div>

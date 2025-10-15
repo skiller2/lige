@@ -233,6 +233,18 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
+    name: "Observaciones",
+    type: "string",
+    id: "Observaciones",
+    field: "Observaciones",
+    fieldName: "Observaciones",
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    editable: false
+  },
+
+  {
     name: "Estado Carga",
     type: "string",
     id: "EstadoAsistencia",
@@ -351,7 +363,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
           objasissub.sumtotalhorascalc AS AsistenciaHorasN,
           objm.ObjetivoAsistenciaAnoMesHasta,
 
-          ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB,
+          ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB, ven.Observaciones,
           
           (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( sumtotalhorascalc,0)) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
