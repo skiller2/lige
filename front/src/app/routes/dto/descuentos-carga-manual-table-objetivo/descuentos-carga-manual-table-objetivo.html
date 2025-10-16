@@ -13,7 +13,7 @@
         </button>
 
         <button nzType="default"
-         nz-button nz-popconfirm nzPopconfirmTitle="¿Limpiar registro?"
+         nz-button nz-popconfirm nzPopconfirmTitle="¿Eliminar registro?"
           (nzOnConfirm)="deleteItem()" 
           [disabled]="!( rowdelete().length >= 1)"
            nz-tooltip
@@ -21,7 +21,6 @@
           <span nz-icon nzType="delete" nzTheme="outline"></span>
         </button>
   
-   delete: {{rowdelete().length | json}}
         </nz-button-group>
     </div>
     <ng-container>

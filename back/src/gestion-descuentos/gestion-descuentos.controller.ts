@@ -2115,9 +2115,10 @@ export class GestionDescuentosController extends BaseController {
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0)
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0){
               row.errorMessage = `No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`
-            row.isfull = 2
+              row.isfull = 2
+            }
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);

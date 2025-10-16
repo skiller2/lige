@@ -16,7 +16,7 @@
        </button>
 
        <button nzType="default"
-        nz-button nz-popconfirm nzPopconfirmTitle="¿Limpiar registro?"
+        nz-button nz-popconfirm nzPopconfirmTitle="Eliminar registro?"
          (nzOnConfirm)="deleteItem()" 
          [disabled]="!( rowdelete().length >= 1)"
           nz-tooltip
@@ -35,7 +35,8 @@
             [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptionsEdit" 
             [dataset]="gridDataInsert || []"
-            (onAngularGridCreated)="angularGridReady($event)">
+            (onAngularGridCreated)="angularGridReady($event)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
       }
