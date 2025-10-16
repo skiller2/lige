@@ -49,8 +49,14 @@ export class BotServer {
 
         break;
       case "TELEGRAM":
-        this.adapterProvider = createProvider(TelegramProvider, {
 
+        this.adapterProvider = createProvider(TelegramProvider, {
+          apiId: process.env.TELEGRAM_API_ID, // api_id brindado por Telegram
+          apiHash: process.env.TELEGRAM_API_HASH, // api_hash brindado por Telegram
+          // token: process.env.TELEGRAM_BOT_TOKEN, // TOKEN brindado por BotFather
+          phoneNumber: process.env.TELEGRAM_NUMBER, // Número de teléfono brindado por Telegram
+          phoneCode: process.env.TELEGRAM_PHONE_CODE, // Código de verificación enviado por Telegram
+          password: process.env.TELEGRAM_PASSWORD, // Contraseña de dos pasos, si está habilitada
         })
 
         break;
