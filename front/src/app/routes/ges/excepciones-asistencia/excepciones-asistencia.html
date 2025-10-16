@@ -1,0 +1,90 @@
+<nz-card class="small-margin">
+
+    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+
+      <div nz-row>
+        <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
+        </nz-form-control>
+      </div>
+ 
+      <div nz-col style="display: flex;flex-direction: row-reverse;">
+        
+        <nz-button-group >
+          <button nz-button nzType="default" [disabled]="editExcepcionAsistenciaCodigo()? false : true" (click)="goToEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+            <span nz-icon nzType="edit" nzTheme="outline"></span>
+          </button>
+          <button nz-button nzType="default" (click)="goToAdd()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+          </button>
+          <button nz-button nzType="default" [disabled]="editExcepcionAsistenciaCodigo() == 0"
+            nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar?" (nzOnConfirm)="deleteExcepcionAsistenciaInput()" 
+            nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete"
+            nzTheme="outline"></span>
+          </button>
+        </nz-button-group>
+  
+      </div>
+  
+    </div>
+  
+    <div nz-row class="contentStyle">
+      <div nz-col nzSpan="13" class="listStyle">
+        <ul nz-menu nzMode="horizontal" style="display: flex;">
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" (click)="reloadListado()" >{{ 'app.novedades' | i18n }} </a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'detalle']" (click)="goToDetail()" >{{ 'app.detail' | i18n }} </a>
+          </li>
+          @if(!childIsPristine()){
+            <li nz-menu-item nzMatchRouter>
+              <span nz-icon nzType=""></span>
+              <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'alta']">{{ 'app.alta' | i18n }}</a>
+            </li>
+          }
+        </ul>
+      </div>
+    
+    </div>
+    <!--selectedIndex: {{selectedIndex()}}-->
+    <nz-tabset [nzSelectedIndex]="selectedIndex()"  nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
+        
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/excepciones-asistencia/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
+          <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+    
+            <div class="gridListContainer container-fluid" >
+              <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
+                [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+                (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+              </angular-slickgrid>
+            </div>
+          </ng-template>
+        </nz-tab>
+    
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/excepciones-asistencia/editar" >{{ 'app.icon.edit' | i18n }}</a>
+          <!-- <app-excepciones-asistencia-form #novedadesFormEdit [(NovedadCodigo)]="editExcepcionAsistenciaCodigo" (onAddorUpdate)="handleAddOrUpdate($event)"
+            ></app-excepciones-asistencia-form> -->
+        </nz-tab>
+  
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/excepciones-asistencia/detalle" >{{ 'app.detail' | i18n }}</a>
+          <!-- <app-excepciones-asistencia-form #novedadesFormDeta [(NovedadCodigo)]="editExcepcionAsistenciaCodigo"
+           ></app-excepciones-asistencia-form> -->
+        </nz-tab>
+    
+        <nz-tab> 
+          <a nz-tab-link routerLink="/ges/excepciones-asistencia/alta" >{{ 'app.alta' | i18n }}</a>
+          <!-- <app-excepciones-asistencia-form #novedadesFormAlta [(NovedadCodigo)]="editExcepcionAsistenciaCodigo" (onAddorUpdate)="handleAddOrUpdate($event)"
+           ></app-excepciones-asistencia-form> -->
+        </nz-tab>
+  
+    </nz-tabset>
+  
+</nz-card>

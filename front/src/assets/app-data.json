@@ -144,6 +144,11 @@
               "text": "Adelanto",
               "link": "/ges/adelanto",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Excepciones Asistencia #",
+              "link": "/ges/excepciones-asistencia",
+              "icon": "anticon-profile"
             }
           ]
         },

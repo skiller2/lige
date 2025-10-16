@@ -1956,4 +1956,17 @@ export class SearchService {
       );
   }
 
+  getListExcepcionesAsistencia(options: any, periodo: Date) {
+    if (!periodo && !options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<any>>(`api/excepciones-asistencia/list`, { options, periodo })
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }

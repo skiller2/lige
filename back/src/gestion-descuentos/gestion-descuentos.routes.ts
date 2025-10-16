@@ -1,10 +1,6 @@
 import { Request, Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
 import { gestionDescuentosController } from "../controller/controller.module";
-import multer, { FileFilterCallback } from "multer";
-import { existsSync, mkdirSync } from "fs";
-import { tmpName } from "../server";
-import { ClientException } from "../controller/baseController";
 
 export const gestionDescuentosRouter = Router();
 

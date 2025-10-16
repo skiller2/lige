@@ -55,6 +55,7 @@ import { ImporteVentaVigilanciaController } from "../importe-venta-vigilancia/im
 import { FacturacionController } from "../facturacion/facturacion.controller";
 import { NovedadesController } from "../novedades/novedades.controller";
 import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-automaticos.controller";
+import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excepciones-asistencia.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -113,3 +114,4 @@ export const importeVentaVigilanciaController = new ImporteVentaVigilanciaContro
 export const facturacionController = new FacturacionController() 
 export const novedadesController = new NovedadesController()
 export const procesosAutomaticosController = new ProcesosAutomaticosController()
+export const excepcionesAsistenciaController = new ExcepcionesAsistenciaController()

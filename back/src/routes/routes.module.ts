@@ -48,6 +48,7 @@ import { importeVentaVigilanciaRouter } from "../importe-venta-vigilancia/import
 import { facturacionRouter } from "../facturacion/facturacion.routes";
 import { novedadesRouter } from "../novedades/novedades.routes";
 import { procesosAutomaticosRouter } from "../procesos-automaticos/procesos-automaticos.routes";
+import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepciones-asistencia.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -99,4 +100,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/facturacion",facturacionRouter)
   server.setRoute("/api/novedades",novedadesRouter)
   server.setRoute("/api/procesos-automaticos",procesosAutomaticosRouter)
+  server.setRoute("/api/excepciones-asistencia",excepcionesAsistenciaRouter)
 }

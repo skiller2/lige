@@ -172,6 +172,13 @@ export const GesRoutes: Routes = [
     path: 'procesos-automaticos/:tab',
     loadComponent: () => import('./procesos-automaticos/procesos-automaticos').then(c => c.ProcesosAutomaticosComponent),
   },
+  {
+    path: 'excepciones-asistencia', redirectTo: 'excepciones-asistencia/listado'
+  },
+  {
+    path: 'excepciones-asistencia/:tab',
+    loadComponent: () => import('./excepciones-asistencia/excepciones-asistencia').then(c => c.ExcepcionesAsistenciaComponent),
+  },
 
   
 ];

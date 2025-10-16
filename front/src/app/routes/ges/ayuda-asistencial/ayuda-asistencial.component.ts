@@ -3,7 +3,7 @@ import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
