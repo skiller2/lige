@@ -21,8 +21,8 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         const PersonalNroLegajo = infoPersonal[0].PersonalNroLegajo
         const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso) ? new Date(infoPersonal[0].PersonalFechaIngreso) : null
         //TODO Agregar fecha de ingreso y nro de asociado.
-        await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
-        await Utils.waitT(5000)
+        //await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
+        await Utils.waitT(3000)
 
         await flowDynamic(`Su número de socio: ${PersonalNroLegajo}`, { delay: delay * 3 })
         await flowDynamic(`Su fecha de ingreso: ${personalController.dateOutputFormat(PersonalFechaIngreso)}`, { delay })
@@ -40,8 +40,8 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
         const catstring: string[] = categs.map(c => ' - ' + c.fullName)
 
-        await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
-
+        //await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
+//await provider.vendor.sendPresenceUpdate()
 
         if (catstring.length == 1)
             catstring.unshift('Su categoría actual es:')
