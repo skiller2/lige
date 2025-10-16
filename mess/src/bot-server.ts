@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 
+import readline from 'readline';
+
 import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
 //import {MemoryDB as Database } from '@builderbot/bot'
@@ -30,11 +32,25 @@ export const tmpName = (dir: string) => {
   }
 };
 
+
+function ask(question: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise(resolve => rl.question(question, ans => {
+    rl.close();
+    resolve(ans);
+  }));
+}
+
+
 export class BotServer {
   private adapterProvider: BaileysProvider | TelegramProvider
   private botHandle: any
   private statusMsg: string
   public globalTimeOutMs: number
+  private tgConfig:any
 
   constructor(provider: string) {
     switch (provider) {
@@ -49,15 +65,14 @@ export class BotServer {
 
         break;
       case "TELEGRAM":
-
-        this.adapterProvider = createProvider(TelegramProvider, {
+        this.tgConfig = {
           apiId: process.env.TELEGRAM_API_ID, // api_id brindado por Telegram
           apiHash: process.env.TELEGRAM_API_HASH, // api_hash brindado por Telegram
-          // token: process.env.TELEGRAM_BOT_TOKEN, // TOKEN brindado por BotFather
-          phoneNumber: process.env.TELEGRAM_NUMBER, // Número de teléfono brindado por Telegram
-          phoneCode: process.env.TELEGRAM_PHONE_CODE, // Código de verificación enviado por Telegram
-          password: process.env.TELEGRAM_PASSWORD, // Contraseña de dos pasos, si está habilitada
-        })
+          apiNumber: process.env.TELEGRAM_NUMBER, // Número de teléfono brindado por Telegram para enviar el número de verificación
+          //apiPassword: process.env.TELEGRAM_PASSWORD, // Código de verificación enviado por Telegram hay que esperarlo
+          getCode:  async() => { return await ask('📱 Ingresá el código recibido: ')},          
+        }
+        this.adapterProvider = createProvider(TelegramProvider, this.tgConfig )
 
         break;
       default:
@@ -113,6 +128,7 @@ export class BotServer {
     ])
 
 
+//    this.adapterProvider = await createProvider(TelegramProvider, this.tgConfig )
 
 
     const adapterDB = new Database()
