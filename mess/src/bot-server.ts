@@ -9,6 +9,7 @@ import { createBot, createProvider, createFlow, addKeyword, utils } from '@build
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
 import { BaileysProvider } from '@builderbot/provider-baileys'
 import { TelegramProvider } from '@builderbot/provider-telegram'
+import { MetaProvider } from '@builderbot/provider-meta'
 
 import { flowLogin, flowValidateCode, flowSinRegistrar } from "./flow/flowLogin.ts";
 import flowRecibo from "./flow/flowRecibo.ts";
@@ -50,7 +51,7 @@ export class BotServer {
   private botHandle: any
   private statusMsg: string
   public globalTimeOutMs: number
-  private tgConfig:any
+  private tgConfig: any
 
   constructor(provider: string) {
     switch (provider) {
@@ -70,11 +71,20 @@ export class BotServer {
           apiHash: process.env.TELEGRAM_API_HASH, // api_hash brindado por Telegram
           apiNumber: process.env.TELEGRAM_NUMBER, // Número de teléfono brindado por Telegram para enviar el número de verificación
           //apiPassword: process.env.TELEGRAM_PASSWORD, // Código de verificación enviado por Telegram hay que esperarlo
-          getCode:  async() => { return await ask('📱 Ingresá el código recibido: ')},          
+          getCode: async () => { return await ask('📱 Ingresá el código recibido: ') },
         }
-        this.adapterProvider = createProvider(TelegramProvider, this.tgConfig )
+        this.adapterProvider = createProvider(TelegramProvider, this.tgConfig)
 
         break;
+      case 'META':
+        this.adapterProvider = createProvider(MetaProvider, {
+          jwtToken: process.env.JWTOKEN,  // Token de acceso brindado por Meta (es permanente o se actualiza?)
+          numberId: process.env.NUMBER_ID,  // ID de número brindado por Meta
+          verifyToken: process.env.VERIFY_TOKEN,  // Token de verificación creado para webhook
+          version: 'v22.0' // Version de la API Graph de Meta
+        })
+        break
+
       default:
         throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
         break;
@@ -128,7 +138,7 @@ export class BotServer {
     ])
 
 
-//    this.adapterProvider = await createProvider(TelegramProvider, this.tgConfig )
+    //    this.adapterProvider = await createProvider(TelegramProvider, this.tgConfig )
 
 
     const adapterDB = new Database()
