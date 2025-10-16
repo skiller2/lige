@@ -75,7 +75,7 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
         let msg = `Ingrese el importe del adelanto`
         if (myState.adelanto.PersonalPrestamoMonto) msg += ` o 0 para anularlo`
 
-        await flowDynamic([{ body: `${msg} (importe maximo: $${maxImporte.toLocaleString('es-AR')})\n\nM - Volver al menú`, delay }])
+        await flowDynamic([{ body: `${msg} (importe maximo: ${maxImporte})\n\nM - Volver al menú`, delay }])
     })
     .addAnswer('', { capture: true, delay },
         async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
@@ -95,7 +95,7 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
 
             if (isNaN(importe)) return fallBack('El valor ingresado no es válido, reintente.')
 
-            if (importe > maxImporte || importe < 0) return fallBack(`El importe debe ser menor o igual a $${maxImporte.toLocaleString('es-AR')}, reintente.`)
+            if (importe > maxImporte || importe < 0) return fallBack(`El importe debe ser menor o igual a ${maxImporte}, reintente.`)
 
             try {
                 if (importe == 0) {

@@ -5,8 +5,10 @@ import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
 //import {MemoryDB as Database } from '@builderbot/bot'
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
-import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-import { flowLogin, flowValidateCode,flowSinRegistrar } from "./flow/flowLogin.ts";
+import { BaileysProvider } from '@builderbot/provider-baileys'
+import { TelegramProvider } from '@builderbot/provider-telegram'
+
+import { flowLogin, flowValidateCode, flowSinRegistrar } from "./flow/flowLogin.ts";
 import flowRecibo from "./flow/flowRecibo.ts";
 import flowMonotributo from "./flow/flowMonotributo.ts";
 import flowMenu from "./flow/flowMenu.ts";
@@ -18,6 +20,7 @@ import { flowDescargaDocs } from "./flow/flowDescargaDocs.ts";
 import { flowAdelanto, flowFormAdelanto } from "./flow/flowAdelanto.ts";
 import { Utils } from "./controller/util.ts";
 import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio, flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad } from "./flow/flowNovedad.ts";
+import { ClientException } from "./controller/base.controller.ts";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -28,10 +31,35 @@ export const tmpName = (dir: string) => {
 };
 
 export class BotServer {
-  private adapterProvider: Provider
+  private adapterProvider: BaileysProvider | TelegramProvider
   private botHandle: any
   private statusMsg: string
   public globalTimeOutMs: number
+
+  constructor(provider: string) {
+    switch (provider) {
+      case "BAILEY":
+        this.adapterProvider = createProvider(BaileysProvider, {
+          version: [2, 3000, 1025190524],
+          browser: ["Windows", "Chrome", "Chrome 114.0.5735.198"],
+          writeMyself: "both",
+          experimentalStore: true,
+          timeRelease: 86400000
+        })
+
+        break;
+      case "TELEGRAM":
+        this.adapterProvider = createProvider(TelegramProvider, {
+
+        })
+
+        break;
+      default:
+        throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
+        break;
+    }
+  }
+
   public sendMsg(telNro: string, message: string) {
     return this.adapterProvider.sendMessage(telNro, message, {})
   }
@@ -42,7 +70,7 @@ export class BotServer {
       body: utils.encryptData(`_event_custom_${name}_`),
       name,
       from,
-      type:'dispatch'
+      type: 'dispatch'
     });
   }
 
@@ -74,14 +102,13 @@ export class BotServer {
       flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo,
       flowRemoveTel, idleFlow, flowInformacionPersonal, flowInformacionEmpresa, flowDescargaDocs,
       flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio,
-      flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad,flowSinRegistrar,
+      flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad, flowSinRegistrar,
       flowAdelanto, flowFormAdelanto
     ])
-    this.adapterProvider = createProvider(Provider, {
-      
-      timeRelease: 10800000, // 3 hours in milliseconds
-      version: [2, 3000, 1025190524], //Baileys version
-    })
+
+
+
+
     const adapterDB = new Database()
     this.globalTimeOutMs = 60000 * 5
     this.botHandle = await createBot({
@@ -108,7 +135,7 @@ export class BotServer {
 
 
     this.botHandle.httpServer(3008)
-//    console.log('botHandle', this.botHandle)
-//    console.log('adapterProvider', this.adapterProvider)
+    //    console.log('botHandle', this.botHandle)
+    //    console.log('adapterProvider', this.adapterProvider)
   }
 }

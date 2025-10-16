@@ -1,4 +1,3 @@
-
 <form [formGroup]="formCli">
   <br>
   <nz-form-item class="marginElement">
@@ -22,9 +21,10 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Sucursal</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select formControlName="SucursalId" nzPlaceHolder="Sucursal" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-        <ng-container *ngFor="let option of $sucursales | async " >
-          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion" ></nz-option>
+      <nz-select formControlName="SucursalId" nzPlaceHolder="Sucursal" nzAllowClear [nzDropdownMatchSelectWidth]="false"
+        style="width: 100%">
+        <ng-container *ngFor="let option of $sucursales | async ">
+          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
@@ -39,263 +39,275 @@
 
   <div class="input-container1">
     <div class="input-label">Contrato</div>
-  </div>  
-  
+  </div>
+
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Contrato Desde</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-date-picker
-      nzFormat="yyyy-MM-dd"
-      formControlName="ContratoFechaDesde"
-      (ngModelChange)="onChangePeriodo($event);formCli.patchValue({FechaModificada:true})"
-  
-    ></nz-date-picker>
+      <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="ContratoFechaDesde"
+        (ngModelChange)="onChangePeriodo($event);formCli.patchValue({FechaModificada:true})"></nz-date-picker>
     </nz-form-control>
   </nz-form-item>
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Contrato Hasta</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-date-picker
-      nzFormat="yyyy-MM-dd"
-      formControlName="ContratoFechaHasta"
-      (ngModelChange)="onChangePeriodo($event);formCli.patchValue({FechaModificada:true})"
-    ></nz-date-picker>
+      <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="ContratoFechaHasta"
+        (ngModelChange)="onChangePeriodo($event);formCli.patchValue({FechaModificada:true})"></nz-date-picker>
     </nz-form-control>
   </nz-form-item>
 
   <div class="input-container1">
     <div class="input-label">Domicilio</div>
-</div>  
+  </div>
 
-<nz-form-item class="marginElement">
+  <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Dirección Calle</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <input nz-input placeholder="" formControlName="DomicilioDomCalle" type="text" (input)="formCli.patchValue({DireccionModificada:true})" />
+      <input nz-input placeholder="" formControlName="DomicilioDomCalle" type="text"
+        (input)="formCli.patchValue({DireccionModificada:true})" />
     </nz-form-control>
 
-  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Nro</nz-form-label>
-  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-    <input nz-input placeholder="" formControlName="DomicilioDomNro" type="text" (input)="formCli.patchValue({DireccionModificada:true})"/>
-  </nz-form-control>
-</nz-form-item>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Nro</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      <input nz-input placeholder="" formControlName="DomicilioDomNro" type="text"
+        (input)="formCli.patchValue({DireccionModificada:true})" />
+    </nz-form-control>
+  </nz-form-item>
 
-<nz-form-item class="marginElement">
+  <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Complemento</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <input nz-input placeholder="" formControlName="DomicilioDomLugar" type="text" (input)="formCli.patchValue({DireccionModificada:true})"/>
+      <input nz-input placeholder="" formControlName="DomicilioDomLugar" type="text"
+        (input)="formCli.patchValue({DireccionModificada:true})" />
     </nz-form-control>
 
-    
-</nz-form-item>
 
-<nz-form-item class="marginElement">
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cod Postal </nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <input nz-input placeholder="" formControlName="DomicilioCodigoPostal" type="text" (input)="formCli.patchValue({DireccionModificada:true})"/>
+      <input nz-input placeholder="" formControlName="DomicilioCodigoPostal" type="text"
+        (input)="formCli.patchValue({DireccionModificada:true})" />
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select  formControlName="DomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" (nzBlur)="formCli.patchValue({DomicilioLocalidadId:null,DomicilioBarrioId:null,DireccionModificada:true})">
-        <ng-container *ngFor="let option of $optionsProvincia | async " >
-          <nz-option [nzValue]="option.ProvinciaId" [nzLabel]="option.ProvinciaDescripcion" ></nz-option>
+      <nz-select nzShowSearch formControlName="DomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+        (nzBlur)="formCli.patchValue({DomicilioLocalidadId:null,DomicilioBarrioId:null,DireccionModificada:true})">
+        <ng-container *ngFor="let option of $optionsProvincia | async ">
+          <nz-option [nzValue]="option.ProvinciaId" [nzLabel]="option.ProvinciaDescripcion"></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
-</nz-form-item>
+  </nz-form-item>
 
-<nz-form-item class="marginElement">
+  <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select formControlName="DomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" (nzBlur)="formCli.patchValue({DomicilioBarrioId:null,DireccionModificada:true})">
-        <ng-container *ngFor="let option of $optionsLocalidad | async " >
-          <nz-option *ngIf="option.ProvinciaId == formCli.value.DomicilioProvinciaId"  [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option>
+      <nz-select nzShowSearch formControlName="DomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+        (nzBlur)="formCli.patchValue({DomicilioBarrioId:null,DireccionModificada:true})">
+        <ng-container *ngFor="let option of $optionsLocalidad | async ">
+          <nz-option *ngIf="option.ProvinciaId == formCli.value.DomicilioProvinciaId" [nzValue]="option.LocalidadId"
+            [nzLabel]="option.localidadDescripcion"></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Barrio</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select formControlName="DomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" (nzBlur)="formCli.patchValue({DomicilioBarrioId:null,DireccionModificada:true})">
-        <ng-container *ngFor="let option of $optionsBarrio | async " >
-          <nz-option *ngIf="option.ProvinciaId == formCli.value.DomicilioProvinciaId && option.LocalidadId == formCli.value.DomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option>
+      <nz-select nzShowSearch formControlName="DomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+        (nzBlur)="formCli.patchValue({DomicilioBarrioId:null,DireccionModificada:true})">
+        <ng-container *ngFor="let option of $optionsBarrio | async ">
+          <nz-option
+            *ngIf="option.ProvinciaId == formCli.value.DomicilioProvinciaId && option.LocalidadId == formCli.value.DomicilioLocalidadId "
+            [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion"></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
-</nz-form-item>
-
-
-<div class="input-container1">
-  <div class="input-label">Grupo Actividad</div>
-</div>
-<div formArrayName="infoActividad">
-  <nz-form-item class="" *ngFor="let control of infoActividad().controls; let i = index" [formGroupName]="i">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Actividad</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <app-grupo-actividad-search formControlName="GrupoActividadId"/>
-    </nz-form-control>
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Desde</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-date-picker
-      nzFormat="yyyy-MM-dd"
-      formControlName="GrupoActividadObjetivoDesde"
-      ></nz-date-picker>
-    </nz-form-control>
   </nz-form-item>
-</div>
-
-<div class="input-container1">
-  <div class="input-label">Habilitación necesaria</div>
-</div>
-
-<nz-form-item class="marginElement">
-  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" >Habilitaciones</nz-form-label>
-  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-    <div class="custom-checkbox-group">
-      <nz-checkbox-group formControlName="habilitacion" [nzOptions]="optionsLugarHabilitacion()">
-      </nz-checkbox-group>
-    </div>
-  </nz-form-control>
-</nz-form-item>
-
-<div class="input-container1">
-  <div class="input-label">Rubro</div>
-</div>
-<div formArrayName="infoRubro">
-  <nz-form-item class="" *ngFor="let control of infoRubro().controls; let i = index" [formGroupName]="i" [ngClass]="{'even-background2': i % 2 === 0}">
-
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Rubro</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <nz-input-group style="width: 100%" nzSearch [nzAddOnAfter]="controlRol">
-        <app-rubro-search formControlName="RubroId"/>
-        
-      </nz-input-group>
-      <ng-template #controlRol >
-        <button  nz-button *ngIf="infoRubro().controls.length == i+1 && formCli.enabled" nzType="primary" class="add-button" (click)="addRubro($event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <span nz-icon nzType="plus"></span>
-        </button>
-        <button *ngIf="infoRubro().length >= 2 && formCli.enabled" nz-button nzType="default" (click)="removeRubro(i, $event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-          <span nz-icon nzType="delete" nzTheme="outline" ></span>
-        </button>
-        </ng-template>
-     
-    </nz-form-control>
 
 
-  </nz-form-item>
-</div>
+  <div class="input-container1">
+    <div class="input-label">Grupo Actividad</div>
+  </div>
+  <div formArrayName="infoActividad">
+    <nz-form-item class="" *ngFor="let control of infoActividad().controls; let i = index" [formGroupName]="i">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Actividad</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+        <app-grupo-actividad-search formControlName="GrupoActividadId" />
+      </nz-form-control>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Desde</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+        <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="GrupoActividadObjetivoDesde"></nz-date-picker>
+      </nz-form-control>
+    </nz-form-item>
+  </div>
 
-<div class="input-container1">
-  <div class="input-label">'Documentos requeridos a presentar</div>
-</div>
-<div formArrayName="infoDocRequerido">
-  <nz-form-item class="" *ngFor="let control of infoDocRequerido().controls; let i = index" [formGroupName]="i" [ngClass]="{'even-background2': i % 2 === 0}">
+  <div class="input-container1">
+    <div class="input-label">Habilitación necesaria</div>
+  </div>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <nz-input-group style="width: 100%" nzSearch [nzAddOnAfter]="controlDocs">
-
-        <nz-select formControlName="DocumentoTipoCodigo" nzPlaceHolder="Documento Tipo" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-          <ng-container *ngFor="let option of $optionsDocumentoTipo | async " >
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
-          </ng-container>
-        </nz-select>
-        
-      </nz-input-group>
-      <ng-template #controlDocs >
-        <button  nz-button *ngIf="infoDocRequerido().controls.length == i+1 && formCli.enabled" nzType="primary" class="add-button" (click)="addDocRequerido($event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <span nz-icon nzType="plus"></span>
-        </button>
-        <button *ngIf="infoDocRequerido().length >= 2 && formCli.enabled" nz-button nzType="default" (click)="removeDocRequerido(i, $event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-          <span nz-icon nzType="delete" nzTheme="outline" ></span>
-        </button>
-        </ng-template>
-     
-    </nz-form-control>
-
-
-  </nz-form-item>
-</div>
-
-<div class="input-container1">
-  <div class="input-label">Coordinador  de cuenta</div>
-</div>  
-
-<div formArrayName="infoCoordinadorCuenta">
-  <nz-form-item class="marginElement" *ngFor="let control of infoCoordinadorCuenta().controls; let i = index" [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
-
-
-    <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
-      <nz-input-group style="width: 100%" nzSearch>
-        <app-personal-search formControlName="PersonalId" [anio]="periodo().year" [mes]="periodo().month"/>
-      </nz-input-group>
-    </nz-form-control>
-
-    <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Comision </nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
-      <nz-input-group style="width: 100%" nzSearch>
-        <input nz-input placeholder="" formControlName="ObjetivoPersonalJerarquicoComision" type="number" />
-      </nz-input-group>
-    </nz-form-control>
-
-    <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3" >Consumos del Objetivo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6" >
-      <div nz-row>
-        <div nz-col [nzSpan]="12">
-          <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoDescuentos" >
-            <span style="width: 100%;">Se aplica descuento</span>
-          </label>
-        </div>
-        <div nz-col [nzSpan]="12">
-          <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoSeDescuentaTelefono" >
-            <span style="width: 100%;">Descuento de Telefonia</span>
-          </label>
-        </div>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Habilitaciones</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <div class="custom-checkbox-group">
+        <nz-checkbox-group formControlName="habilitacion" [nzOptions]="optionsLugarHabilitacion()">
+        </nz-checkbox-group>
       </div>
     </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="1" >
-      <button  nz-button *ngIf="infoCoordinadorCuenta().controls.length == i+1 && formCli.enabled" nzType="primary" class="add-button" (click)="addCoordinadorCuenta($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
-        <span nz-icon nzType="plus"></span>
+  <div class="input-container1">
+    <div class="input-label">Rubro</div>
+  </div>
+  <div formArrayName="infoRubro">
+    <nz-form-item class="" *ngFor="let control of infoRubro().controls; let i = index" [formGroupName]="i"
+      [ngClass]="{'even-background2': i % 2 === 0}">
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Rubro</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+        <nz-input-group style="width: 100%" nzSearch [nzAddOnAfter]="controlRol">
+          <app-rubro-search formControlName="RubroId" />
+
+        </nz-input-group>
+        <ng-template #controlRol>
+          <button nz-button *ngIf="infoRubro().controls.length == i+1 && formCli.enabled" nzType="primary"
+            class="add-button" (click)="addRubro($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          <button *ngIf="infoRubro().length >= 2 && formCli.enabled" nz-button nzType="default"
+            (click)="removeRubro(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+          </button>
+        </ng-template>
+
+      </nz-form-control>
+
+
+    </nz-form-item>
+  </div>
+
+  <div class="input-container1">
+    <div class="input-label">Documentos requeridos a presentar</div>
+  </div>
+  <div formArrayName="infoDocRequerido">
+    <nz-form-item class="" *ngFor="let control of infoDocRequerido().controls; let i = index" [formGroupName]="i"
+      [ngClass]="{'even-background2': i % 2 === 0}">
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+        <nz-input-group style="width: 100%" nzSearch [nzAddOnAfter]="controlDocs">
+
+          <nz-select nzShowSearch formControlName="DocumentoTipoCodigo" nzPlaceHolder="Documento Tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            <ng-container *ngFor="let option of $optionsDocumentoTipo | async ">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+
+        </nz-input-group>
+        <ng-template #controlDocs>
+          <button nz-button *ngIf="infoDocRequerido().controls.length == i+1 && formCli.enabled" nzType="primary"
+            class="add-button" (click)="addDocRequerido($event)" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          <button *ngIf="infoDocRequerido().length >= 2 && formCli.enabled" nz-button nzType="default"
+            (click)="removeDocRequerido(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+          </button>
+        </ng-template>
+
+      </nz-form-control>
+
+
+    </nz-form-item>
+  </div>
+
+  <div class="input-container1">
+    <div class="input-label">Coordinador de cuenta</div>
+  </div>
+
+  <div formArrayName="infoCoordinadorCuenta">
+    <nz-form-item class="marginElement" *ngFor="let control of infoCoordinadorCuenta().controls; let i = index"
+      [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
+
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-input-group style="width: 100%" nzSearch>
+          <app-personal-search formControlName="PersonalId" [anio]="periodo().year" [mes]="periodo().month" />
+        </nz-input-group>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Comision </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+        <nz-input-group style="width: 100%" nzSearch>
+          <input nz-input placeholder="" formControlName="ObjetivoPersonalJerarquicoComision" type="number" />
+        </nz-input-group>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Consumos del Objetivo</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
+        <div nz-row>
+          <div nz-col [nzSpan]="12">
+            <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoDescuentos">
+              <span style="width: 100%;">Se aplica descuento</span>
+            </label>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoSeDescuentaTelefono">
+              <span style="width: 100%;">Descuento de Telefonia</span>
+            </label>
+          </div>
+        </div>
+      </nz-form-control>
+
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="1">
+        <button nz-button *ngIf="infoCoordinadorCuenta().controls.length == i+1 && formCli.enabled" nzType="primary"
+          class="add-button" (click)="addCoordinadorCuenta($event)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <span nz-icon nzType="plus"></span>
+        </button>
+        <button *ngIf="infoCoordinadorCuenta().length >= 2 && formCli.enabled" nz-button nzType="default"
+          (click)="removeCordinadorCuenta(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
+      </nz-form-control>
+
+    </nz-form-item>
+  </div>
+
+
+  <div class="input-container1">
+    <div class="input-label">Documentos</div>
+  </div>
+
+  <nz-form-item>
+
+    <nz-form-control>
+      <app-file-upload formControlName="files" [idForSearh]="formCli.value.id ?? 0" [textForSearch]="''"
+        columnForSearch="ObjetivoId" [tableForSearch]="'Documento'" [showTipoDocs]="true"></app-file-upload>
+    </nz-form-control>
+
+  </nz-form-item>
+  <nz-form-item *ngIf="formCli.enabled">
+    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+      <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine">
+        {{ 'app.btn.save' | i18n }}
       </button>
-      <button *ngIf="infoCoordinadorCuenta().length >= 2 && formCli.enabled" nz-button nzType="default" (click)="removeCordinadorCuenta(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
-        <span nz-icon nzType="delete" nzTheme="outline" ></span>
+      <button nzType="primary" nz-button nzDanger nz-popconfirm
+        nzPopconfirmTitle="Esta seguro que quiere eliminar este Objetivo?" (nzOnConfirm)="deleteObjetivo()"
+        nzPopconfirmPlacement="top" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)">
+        {{ 'app.btn.delete' | i18n }}
       </button>
     </nz-form-control>
-  
   </nz-form-item>
-</div>
 
-
-<div class="input-container1">
-  <div class="input-label">Documentos</div>
-</div>
-
-<nz-form-item>
-
-  <nz-form-control >
-    <app-file-upload formControlName="files"   [idForSearh]="formCli.value.id ?? 0"
-    [textForSearch]="''" 
-    columnForSearch="ObjetivoId" [tableForSearch]="'Documento'" 
-    [showTipoDocs]="true"></app-file-upload>
-  </nz-form-control>
-  
-</nz-form-item>
-<nz-form-item *ngIf="formCli.enabled">
-  <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-    <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
-      {{ 'app.btn.save' | i18n }}
-    </button>
-    <button nzType="primary" nz-button nzDanger  nz-popconfirm
-    nzPopconfirmTitle="Esta seguro que quiere eliminar este Objetivo?"
-    (nzOnConfirm)="deleteObjetivo()"
-    nzPopconfirmPlacement="top"  [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
-    {{ 'app.btn.delete' | i18n }}
-    </button>
-  </nz-form-control>
-</nz-form-item>
-
-<!-- {{formCli.value | json}} -->
+  <!-- {{formCli.value | json}} -->
 </form>
