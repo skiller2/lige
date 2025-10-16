@@ -11,7 +11,7 @@ dotenv.config()
 // Init App
 export const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
-export const botServer = new BotServer()
+export const botServer = new BotServer(process.env.PROVIDER)
 //const categoriasController = new CategoriasController()
 //const objetivoController = new ObjetivoController()
 
