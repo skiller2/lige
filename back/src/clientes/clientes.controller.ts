@@ -506,9 +506,9 @@ ${orderBy}`, [fechaActual])
         const DomicilioIds = domicilios.map((row: { DomicilioId: any; }) => row.DomicilioId).filter((id) => id !== null && id !== undefined);
 
         if (DomicilioIds.length > 0) {
+            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
             await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0
                WHERE dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
-            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
         }
 
         for (const [idx, domicilio] of domicilios.entries()) {
