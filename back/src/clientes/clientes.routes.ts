@@ -70,4 +70,7 @@ clientesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup
   clientesController.addCliente(req, res, next)
 })
 
+clientesRouter.get('/get_options', [authMiddleware.verifyToken], (req, res, next) => {
+  clientesController.getOptions(req, res)
+});
 
