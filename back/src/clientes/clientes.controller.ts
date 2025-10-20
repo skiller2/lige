@@ -2,11 +2,15 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { QueryRunner,QueryResult } from "typeorm";
+import { QueryRunner, QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 //import { info } from "pdfjs-dist/types/src/shared/util";
 
 
+const getOptions: any[] = [
+    { label: 'No', value: 0 },
+    { label: 'Si', value: 1 },
+]
 
 export class ClientesController extends BaseController {
 
@@ -103,20 +107,47 @@ export class ClientesController extends BaseController {
             hidden: false,
             searchHidden: false
         },
+        {
+            name: "Cantidad Custodias (30 días)",
+            type: "number",
+            id: "CantidadCustodias",
+            field: "CantidadCustodias",
+            fieldName: "custodias.CantidadCustodias",
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+        {
+            name: "Activo",
+            id: "activo",
+            field: "activo",
+            fieldName: "calc.activo",
+            params: { collection: getOptions },
+            type: 'string',
+            searchComponent: "inpurForActivo",
+            sortable: true,
+
+            //            formatter: 'collectionFormatter',
+            //            exportWithFormatter: true,
+            //            params: { collection: this.getOptionsSINO, },
+            //            searchComponent: "inpurForSePaga",
+            hidden: false,
+            searchHidden: false
+        },
     ];
 
     optionsJurImpositiva: any[] = [
         {
-            value:'Arba',
-            label:'Arba'
+            value: 'Arba',
+            label: 'Arba'
         },
         {
-            value:'Agip',
-            label:'Agip'
+            value: 'Agip',
+            label: 'Agip'
         },
         {
-            value:'Formosa',
-            label:'Formosa'
+            value: 'Formosa',
+            label: 'Formosa'
         },
     ];
 
@@ -164,7 +195,9 @@ export class ClientesController extends BaseController {
             TRIM(domcli.DomicilioDomNro)
         ) AS Domicilio,
         cant.CantidadObjetivos,
-        correonoti.ContactoEmailEmail
+        custodias.CantidadCustodias,
+        correonoti.ContactoEmailEmail,
+        calc.activo
     FROM 
         Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
@@ -180,6 +213,12 @@ export class ClientesController extends BaseController {
             WHERE ct.ClienteElementoDependienteId IS NULL AND  mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0)  AND ct.ContactoTipoCod = 'NOTI'
             GROUP BY ct.ClienteId
         ) correonoti ON correonoti.ClienteId = cli.ClienteId
+
+        LEFT JOIN (
+          SELECT cus.cliente_id ClienteId, COUNT(*) CantidadCustodias FROM lige.dbo.objetivocustodia cus
+          WHERE DATEDIFF(day, cus.fecha_inicio, @0)< 30
+          GROUP BY cus.cliente_id
+        ) custodias ON custodias.ClienteId = cli.ClienteId
 
 
         LEFT JOIN (
@@ -216,6 +255,8 @@ export class ClientesController extends BaseController {
     WHERE 
       eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        
+CROSS APPLY
+    (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,1,0)) AS activo) AS calc
 
     WHERE 
         ${filterSql}
@@ -553,7 +594,7 @@ ${orderBy}`, [fechaActual])
                     domicilio.DomicilioBarrioId
                 ])
                 const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
-                domicilios[idx].DomicilioId = resDomicilio[0][''] 
+                domicilios[idx].DomicilioId = resDomicilio[0]['']
 
                 await queryRunner.query(`INSERT INTO NexoDomicilio (
                     DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ClienteId
@@ -659,7 +700,7 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async updateClienteTable(queryRunner: any, ClienteId: number, ClienteNombreFantasia: string, ClienteDenominacion: string, ClienteFechaAlta: Date, ClienteAdministradorId: any, ClienteTerminoPago:any,) {
+    async updateClienteTable(queryRunner: any, ClienteId: number, ClienteNombreFantasia: string, ClienteDenominacion: string, ClienteFechaAlta: Date, ClienteAdministradorId: any, ClienteTerminoPago: any,) {
 
         await queryRunner.query(`UPDATE Cliente
          SET ClienteNombreFantasia = @1, ClienteApellidoNombre = @2, ClienteDenominacion = @2, ClienteFechaAlta= @3, ClienteAdministradorUltNro = @4, ClienteTerminoPago=@5
@@ -692,7 +733,7 @@ ${orderBy}`, [fechaActual])
             await queryRunner.connect();
             await queryRunner.startTransaction();
             throw new ClientException(`Función en desarrollo.`)
-            const  contactosIds = await queryRunner.query(`SELECT ContactoId, ClienteId FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
+            const contactosIds = await queryRunner.query(`SELECT ContactoId, ClienteId FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
 
             for (const contacto of contactosIds) {
                 await queryRunner.query(`DELETE FROM ContactoEmail WHERE ClienteId = @0 `, [contacto.ContactoId])
@@ -778,7 +819,7 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner: any, ClienteNombreFantasia: any, ClienteDenominacion: any, ClienteFechaAlta: any, ClienteAdministradorUltNro: any, ClienteTerminoPago:any,
+    async insertCliente(queryRunner: any, ClienteNombreFantasia: any, ClienteDenominacion: any, ClienteFechaAlta: any, ClienteAdministradorUltNro: any, ClienteTerminoPago: any,
     ) {
 
         await queryRunner.query(`INSERT INTO Cliente (
@@ -992,23 +1033,23 @@ ${orderBy}`, [fechaActual])
         await queryRunner.startTransaction()
 
         for (const contacto of contactos) {
-            console.log('update contacto',contacto)
-            await ClientesController.CreateContactosMigrados(contacto.ClienteId,'Entrega',contacto.ContactoApellido,contacto.ContactoNombre,contacto.ContactoJurImpositiva,contacto.correo,queryRunner)
+            console.log('update contacto', contacto)
+            await ClientesController.CreateContactosMigrados(contacto.ClienteId, 'Entrega', contacto.ContactoApellido, contacto.ContactoNombre, contacto.ContactoJurImpositiva, contacto.correo, queryRunner)
         }
-        
+
         await queryRunner.rollbackTransaction()
-//        await queryRunner.commitTransaction()
+        //        await queryRunner.commitTransaction()
 
 
     }
 
 
-    static async CreateContactosMigrados(ClienteId:number,area:string,ContactoApellido:string,ContactoNombre:string,ContactoJurImpositiva:string,correo:string,queryRunner:QueryRunner) {
-        let ContactoTelefonoUltNro=0, ContactoEmailUltNro=0
-        const ContactoApellidoNombre = `${ContactoApellido} ${ContactoNombre}`  
+    static async CreateContactosMigrados(ClienteId: number, area: string, ContactoApellido: string, ContactoNombre: string, ContactoJurImpositiva: string, correo: string, queryRunner: QueryRunner) {
+        let ContactoTelefonoUltNro = 0, ContactoEmailUltNro = 0
+        const ContactoApellidoNombre = `${ContactoApellido} ${ContactoNombre}`
         await queryRunner.query(`INSERT INTO Contacto (ClienteId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoJurImpositiva )
             VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
-            ClienteId, area, ContactoApellido, ContactoNombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre,ContactoJurImpositiva])
+            ClienteId, area, ContactoApellido, ContactoNombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre, ContactoJurImpositiva])
         const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
         const ContactoId = resContacto[0][''];
 
@@ -1019,6 +1060,11 @@ ${orderBy}`, [fechaActual])
         await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
             [ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
 
-        
+
     }
+
+    async getOptions(req, res) {
+        this.jsonRes(getOptions, res);
+    }
+
 }

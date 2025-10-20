@@ -95,6 +95,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsSepaga = this.searchService.getSePaga();
   $optionsInactivo = this.searchService.getInactivo();
   $optionsInactivoBoolean = this.searchService.getInactivoBoolean();
+  $optionsActivoBoolean = this.searchService.getBooleanSiNo();
   $optionsGrupoActividad = this.searchService.getTipo();
   $optionsComprobanteTipo = this.searchService.getComprobanteTipoSearch();
   $optionsCurso = this.searchService.getCursoSearch();
