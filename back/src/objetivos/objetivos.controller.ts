@@ -113,7 +113,7 @@ const listaColumnas: any[] = [
         type: "date",
         id: "ContratoFechaDesde",
         field: "ContratoFechaDesde",
-        fieldName: "eledepcon.ClienteElementoDependienteContratoFechaDesde",
+        fieldName: "ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,'9999-12-31')",
         searchComponent: "inpurForFechaSearch",
         sortable: true,
         hidden: false,

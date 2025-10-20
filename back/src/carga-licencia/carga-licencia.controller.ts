@@ -210,7 +210,6 @@ const columnasGrilla: any[] = [
     hidden: false,
     searchHidden: false,
     sortable: true,
-    excludeFromExport: true
     },
   {
     name: "PersonalLicenciaDiagnosticoMedicoFechaDiagnostico",
@@ -285,7 +284,6 @@ const columnasGrillaHistory: any[] = [
     fieldName: "lic.PersonalLicenciaSePaga",
     formatter: 'collectionFormatter',
     type: 'string',
-    excludeFromExport: true,
     searchComponent: "inpurForSePaga",
     hidden: false,
     searchHidden: false,
