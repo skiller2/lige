@@ -3,7 +3,12 @@ import { dbServer } from '../index.ts';
 
 class SqlServerAdapter extends MemoryDB {
   public listHistory: any[] = []
+  private provider:string
 
+  constructor(provider: string) {
+    super();
+    this.provider = provider
+  }
 
   /**
    * Initializes the Firebase connection and checks for the existence of the specified table.
@@ -23,7 +28,7 @@ class SqlServerAdapter extends MemoryDB {
     if (lastRow)
       return lastRow
     else {
-      const res = await dbServer.dataSource.query(`SELECT TOP 1 l.Stm, l.Ref, l.Keyword, l.Answer, l.RefSerialize, l.FromMsg, l.Options FROM BotLog l WHERE l.FromMsg = @0 AND l.Keyword IS NOT NULL ORDER BY Stm DESC`, [from])
+      const res = await dbServer.dataSource.query(`SELECT TOP 1 l.Stm, l.Ref, l.Keyword, l.Answer, l.RefSerialize, l.FromMsg, l.Options FROM BotLog l WHERE l.FromMsg = @0 AND l.Proveedor = @1 AND  l.Keyword IS NOT NULL ORDER BY Stm DESC`, [from,this.provider])
       const row = res[0] ? { stm: res[0].Stm, ref: res[0].Ref, keyword: res[0].Keyword, answer: res[0].Answer, refSerialize: res[0].RefSerialize, from: res[0].FromMsg, options: JSON.parse(res[0].Options) } : {}
       return row
     }
@@ -39,12 +44,13 @@ class SqlServerAdapter extends MemoryDB {
       this.listHistory[ctx.from] = ctx;
     }
     const options_json = ctx.options ? JSON.stringify(ctx.options) : null;
+    const telefono = ctx.telefono || ctx.from
     let intentos = 3;
     do {
       try {
-        await dbServer.dataSource.query(`INSERT INTO BotLog (Stm, Ref, Keyword, Answer, RefSerialize, FromMsg, Options)
-         VALUES (@0,@1,@2,@3,@4,@5,@6)`,
-          [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json]
+        await dbServer.dataSource.query(`INSERT INTO BotLog (Stm, Ref, Keyword, Answer, RefSerialize, FromMsg, Options,Proveedor, Telefono)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)`,
+          [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json, this.provider,telefono]
         );
         return;
       } catch (err: any) {

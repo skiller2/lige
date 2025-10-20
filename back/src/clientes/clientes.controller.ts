@@ -84,6 +84,16 @@ export class ClientesController extends BaseController {
             searchHidden: true
         },
         {
+            name: "Correo Electrónico",
+            type: "string",
+            id: "ContactoEmailEmail",
+            field: "ContactoEmailEmail",
+            fieldName: "correo.ContactoEmailEmail",
+            sortable: true,
+            searchHidden: true
+        },
+
+        {
             name: "Cantidad de objetivos activos",
             type: "number",
             id: "CantidadObjetivos",
@@ -153,13 +163,24 @@ export class ClientesController extends BaseController {
             TRIM(domcli.DomicilioDomCalle), 
             TRIM(domcli.DomicilioDomNro)
         ) AS Domicilio,
-        cant.CantidadObjetivos
+        cant.CantidadObjetivos,
+        correo.ContactoEmailEmail
     FROM 
         Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
             AND fac.ClienteFacturacionDesde <= @0 
             AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
         LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
+
+        LEFT JOIN (
+		  	SELECT ct.ClienteId, STRING_AGG(mail.ContactoEmailEmail, ', ') ContactoEmailEmail
+		  	FROM Contacto ct 
+         JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND mail.ContactoEmailInactivo IS NULL
+         WHERE mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0)
+         GROUP BY ct.ClienteId
+		  ) correo ON correo.ClienteId = cli.ClienteId
+		  
+
         LEFT JOIN (
             SELECT 
                 domcli.ClienteId, 

@@ -47,7 +47,8 @@ function ask(question: string): Promise<string> {
 
 
 export class BotServer {
-  private adapterProvider: BaileysProvider | TelegramProvider
+  private adapterProvider: BaileysProvider | TelegramProvider | MetaProvider
+  private providerId: string
   private botHandle: any
   private statusMsg: string
   public globalTimeOutMs: number
@@ -90,8 +91,8 @@ export class BotServer {
         throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
         break;
     }
-    this.botPort = process.env.BOT_PORT?Number(process.env.BOT_PORT):3008 
-
+    this.botPort = Number(process.env.BOT_PORT) || 3008
+    this.providerId = provider + "_" + String(process.env.PROVIDER_ID) || ""
   }
 
   public sendMsg(telNro: string, message: string) {
@@ -144,7 +145,7 @@ export class BotServer {
     //    this.adapterProvider = await createProvider(TelegramProvider, this.tgConfig )
 
 
-    const adapterDB = new Database()
+    const adapterDB = new Database(this.providerId)
     this.globalTimeOutMs = 60000 * 5
     this.botHandle = await createBot({
       flow: adapterFlow,
