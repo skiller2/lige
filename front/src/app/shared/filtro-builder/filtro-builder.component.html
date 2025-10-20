@@ -95,7 +95,7 @@
         (ngModelChange)="selectedValueSePaga($event)"
         [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsSepaga | async">
-          <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
         <!-- <nz-option nzLabel="Si" nzValue="S"></nz-option>
         <nz-option nzLabel="No" nzValue="N"></nz-option>

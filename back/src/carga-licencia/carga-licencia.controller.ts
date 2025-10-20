@@ -205,8 +205,6 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaSePaga",
     fieldName: "lic.PersonalLicenciaSePaga",
     formatter: 'collectionFormatter',
-    exportWithFormatter: true,
-    params: { collection: getOptions, },
     type: 'string',
     searchComponent: "inpurForSePaga",
     hidden: false,
