@@ -175,11 +175,11 @@ export class ClientesController extends BaseController {
         LEFT JOIN (
 		  	SELECT ct.ClienteId, STRING_AGG(mail.ContactoEmailEmail, ', ') ContactoEmailEmail
 		  	FROM Contacto ct 
-         JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND mail.ContactoEmailInactivo IS NULL
-         WHERE mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0)
-         GROUP BY ct.ClienteId
+            JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND mail.ContactoEmailInactivo IS NULL
+            WHERE ct.ClienteElementoDependienteId IS NULL AND  mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0) -- AND ct.ContactoTipoCod = 'NOTI'
+            GROUP BY ct.ClienteId
 		  ) correo ON correo.ClienteId = cli.ClienteId
-		  
+
 
         LEFT JOIN (
             SELECT 
