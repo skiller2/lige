@@ -98,10 +98,10 @@ export class ClientesController extends BaseController {
             type: "number",
             id: "CantidadObjetivos",
             field: "CantidadObjetivos",
-            fieldName: "CantidadObjetivos",
+            fieldName: "cant.CantidadObjetivos",
             sortable: true,
             hidden: false,
-            searchHidden: true
+            searchHidden: false
         },
     ];
 
@@ -194,7 +194,7 @@ export class ClientesController extends BaseController {
             AND domcli.DomicilioId = (
                 SELECT MAX(DomicilioId) 
                 FROM NexoDomicilio 
-                WHERE ClienteId = domcli.ClienteId 
+                WHERE ClienteId = domcli.ClienteId AND ClienteElementoDependienteId IS NULL
                 AND NexoDomicilioActual = 1
             )        ) AS domcli ON domcli.ClienteId = cli.ClienteId
 			LEFT JOIN (SELECT DISTINCT 
@@ -278,7 +278,7 @@ ${orderBy}`, [fechaActual])
                 ,TRIM(dom.DomicilioDomLugar) AS DomicilioDomLugar
             FROM Domicilio AS dom
             JOIN NexoDomicilio nex ON nex.DomicilioId =dom.DomicilioId
-            WHERE nex.ClienteId = @0
+            WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
                 AND nex.NexoDomicilioActual = 1
             ORDER BY dom.DomicilioId DESC `, [clienteId])
     }
@@ -527,7 +527,7 @@ ${orderBy}`, [fechaActual])
         const DomicilioIds = domicilios.map((row: { DomicilioId: any; }) => row.DomicilioId).filter((id) => id !== null && id !== undefined);
 
         if (DomicilioIds.length > 0) {
-            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
+            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')}) AND ClienteElementoDependienteId IS NULL`, [ClienteId])
             await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0
                WHERE dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
         }
