@@ -95,7 +95,10 @@ export class ObjetivosComponent {
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
 
-      
+      const dateToday = new Date();
+      this.startFilters = [
+        {field:'ContratoFechaDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
+        {field:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
   }
 
     async angularGridReady(angularGrid: any) {
