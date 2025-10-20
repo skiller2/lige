@@ -403,6 +403,7 @@ export class ObjetivosController extends BaseController {
             const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+            const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0].GrupoActividadId)
             const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
 
             if (!facturacion) {
@@ -415,6 +416,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.infoRubro = infoRubro
             infObjetivo.infoDocRequerido = infoDocRequerido
             infObjetivo.infoActividad = [grupoactividad[0]]
+            infObjetivo.infoActividadJerarquico = grupoactividadjerarquico
             infObjetivo.habilitacion = habilitacion
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
@@ -459,6 +461,19 @@ export class ObjetivosController extends BaseController {
         FROM GrupoActividadObjetivo 
         WHERE GrupoActividadObjetivoObjetivoId = @0 ORDER BY ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') DESC, GrupoActividadObjetivodesde DESC, GrupoActividadObjetivoTiempo DESC;`
             , [ObjetivoId])
+
+
+    }
+    async getGrupoActividadJerarquico(queryRunner: any, GrupoActividadId: any) {
+
+        return await queryRunner.query(`
+        SELECT TOP 1 GrupoActividadJerarquicoId, GrupoActividadId, GrupoActividadId AS GrupoActividadOriginal,
+        GrupoActividadJerarquicoDesde, GrupoActividadJerarquicoDesde AS GrupoActividadJerarquicoDesdeOriginal,
+        GrupoActividadJerarquicoHasta, GrupoActividadJerarquicoPersonalId
+        FROM GrupoActividadJerarquico 
+        WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo='J'
+        ORDER BY ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') DESC, GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoTiempo DESC`
+            , [GrupoActividadId])
 
 
     }
