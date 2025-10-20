@@ -370,11 +370,11 @@ export class RecibosController extends BaseController {
   
     cuit.PersonalCUITCUILCUIT,
     TRIM(CONCAT(
-      TRIM(dom.PersonalDomicilioDomCalle), ' ',
-      TRIM(dom.PersonalDomicilioDomNro), ' ',
-      TRIM(dom.PersonalDomicilioDomPiso), ' ',
-      TRIM(dom.PersonalDomicilioDomDpto), ' (',
-      TRIM(dom.PersonalDomicilioCodigoPostal), ') ',
+      TRIM(dom.DomicilioDomCalle), ' ',
+      TRIM(dom.DomicilioDomNro), ' ',
+      TRIM(dom.DomicilioDomPiso), ' ',
+      TRIM(dom.DomicilioDomDpto), ' (',
+      TRIM(dom.DomicilioCodigoPostal), ') ',
       TRIM(loc.LocalidadDescripcion), ' ',
       IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
     )) AS DomicilioCompleto,
@@ -385,9 +385,10 @@ export class RecibosController extends BaseController {
     
     FROM Personal per
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-    LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
-    LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.PersonalDomicilioLocalidadId AND loc.PaisId = dom.PersonalDomicilioPaisId AND loc.ProvinciaId = dom.PersonalDomicilioProvinciaId
-    LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.PersonalDomicilioProvinciaId AND pro.PaisId = dom.PersonalDomicilioPaisId
+    LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1 AND nex.NexoDomicilioId = (SELECT MAX(nexmax.NexoDomicilioId) FROM NexoDomicilio nexmax WHERE nexmax.PersonalId=per.PersonalId AND nex.NexoDomicilioActual = 1)
+    LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId 
+    LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
+    LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
     LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
 
     LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
@@ -400,6 +401,7 @@ export class RecibosController extends BaseController {
   
       SELECT DISTINCT liq.persona_id
       FROM lige.dbo.liqmamovimientos liq
+
       WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0`
 
     if (personalId != 0 && personalId != undefined)

@@ -52,6 +52,7 @@ export class BotServer {
   private statusMsg: string
   public globalTimeOutMs: number
   private tgConfig: any
+  private botPort: number
 
   constructor(provider: string) {
     switch (provider) {
@@ -89,6 +90,8 @@ export class BotServer {
         throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
         break;
     }
+    this.botPort = process.env.BOT_PORT?Number(process.env.BOT_PORT):3008 
+
   }
 
   public sendMsg(telNro: string, message: string) {
@@ -166,7 +169,7 @@ export class BotServer {
     })
 
 
-    this.botHandle.httpServer(3008)
+    this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
     //    console.log('adapterProvider', this.adapterProvider)
   }

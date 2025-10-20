@@ -534,10 +534,10 @@ ${orderBy}`, [fechaActual])
                 domicilios[idx].DomicilioId = resDomicilio[0][''] 
 
                 await queryRunner.query(`INSERT INTO NexoDomicilio (
-                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal
+                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ClienteId
                     ) 
-                    VALUES ( @0,@1,@2,@3,@4,@5)`, [
-                    domicilios[idx].DomicilioId, 1, 1, 1, 1, 1
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6)`, [
+                    domicilios[idx].DomicilioId, 1, 1, 1, 1, 1, ClienteId
                 ])
 
 

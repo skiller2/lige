@@ -288,11 +288,11 @@ export class PersonalController extends BaseController {
         `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId,
         TRIM(CONCAT(
-          TRIM(dom.PersonalDomicilioDomCalle), ' ',
-          TRIM(dom.PersonalDomicilioDomNro), ' ',
-          TRIM(dom.PersonalDomicilioDomPiso), ' ',
-          TRIM(dom.PersonalDomicilioDomDpto), ' (',
-          TRIM(dom.PersonalDomicilioCodigoPostal), ') ',
+          TRIM(dom.DomicilioDomCalle), ' ',
+          TRIM(dom.DomicilioDomNro), ' ',
+          TRIM(dom.DomicilioDomPiso), ' ',
+          TRIM(dom.DomicilioDomDpto), ' (',
+          TRIM(dom.DomicilioCodigoPostal), ') ',
           TRIM(loc.LocalidadDescripcion), ' ',
           IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
         )) AS DomicilioCompleto,
@@ -305,9 +305,11 @@ export class PersonalController extends BaseController {
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
-        LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
-        LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.PersonalDomicilioLocalidadId AND loc.PaisId = dom.PersonalDomicilioPaisId AND loc.ProvinciaId = dom.PersonalDomicilioProvinciaId
-        LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.PersonalDomicilioProvinciaId AND pro.PaisId = dom.PersonalDomicilioPaisId
+        LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
+		   LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
+        
+        LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
+        LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
         
@@ -751,7 +753,7 @@ cuit.PersonalCUITCUILCUIT,
       const DNI = parseInt(CUIT.toString().slice(2, -1))
       await this.addPersonalDocumentoQuery(queryRunner, PersonalId, DNI)
 
-      await this.updatePersonalDomicilio(queryRunner, PersonalId, domicilio)
+      await this.updatePerDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
@@ -1185,7 +1187,7 @@ cuit.PersonalCUITCUILCUIT,
     ])
   }
 
-  private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
+  private async updatePerDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
 
     if (infoDomicilio.Calle || infoDomicilio.Nro || infoDomicilio.Piso || infoDomicilio.Dpto ||
       infoDomicilio.CodigoPostal || infoDomicilio.PaisId || infoDomicilio.ProvinciaId || infoDomicilio.LocalidadId) {
@@ -1207,12 +1209,13 @@ cuit.PersonalCUITCUILCUIT,
 
       let cambio: boolean = false
       const domicilioRes = await queryRunner.query(`
-          SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
-          TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
-          PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
-          FROM PersonalDomicilio
-          WHERE PersonalId = @0 AND PersonalDomicilioId = @1
-          `, [PersonalId, infoDomicilio.PersonalDomicilioId])
+        SELECT TRIM(dom.DomicilioDomCalle) Calle, TRIM(dom.DomicilioDomNro) Nro, TRIM(dom.DomicilioDomPiso) Piso,
+        TRIM(dom.DomicilioDomDpto) Dpto, TRIM(dom.DomicilioCodigoPostal) CodigoPostal, dom.DomicilioPaisId PaisId, dom.DomicilioProvinciaId ProvinciaId,
+        dom.DomicilioLocalidadId LocalidadId, dom.DomicilioBarrioId BarrioId
+        FROM Domicilio AS dom
+        JOIN NexoDomicilio AS nex ON nex.DomicilioId = dom.DomicilioId
+        WHERE nex.PersonalId = @0 AND dom.DomicilioId = @1
+          `, [PersonalId, infoDomicilio.DomicilioId])
 
       const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
 
@@ -1228,44 +1231,27 @@ cuit.PersonalCUITCUILCUIT,
 
       if (cambio) {
         await queryRunner.query(`
-          UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
+          UPDATE NexoDomicilio SET NexoDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
 
-        const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [PersonalId])
-        const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro) ? ultnro[0]?.PersonalDomicilioUltNro + 1 : 1
-
-        await queryRunner.query(`
-            INSERT INTO PersonalDomicilio (
-            PersonalId,
-            PersonalDomicilioId,
-            PersonalDomicilioDomCalle,
-            PersonalDomicilioDomNro,
-            PersonalDomicilioDomPiso,
-            PersonalDomicilioDomDpto,
-            PersonalDomicilioCodigoPostal,
-            PersonalDomicilioActual,
-            PersonalDomicilioPaisId,
-            PersonalDomicilioProvinciaId,
-            PersonalDomicilioLocalidadId,
-            PersonalDomicilioBarrioId
-            )
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
-          PersonalId,
-          PersonalDomicilioId,
-          infoDomicilio.Calle,
-          infoDomicilio.Nro,
-          infoDomicilio.Piso,
-          infoDomicilio.Dpto,
-          infoDomicilio.CodigoPostal,
-          1,
-          infoDomicilio.PaisId,
-          infoDomicilio.ProvinciaId,
-          infoDomicilio.LocalidadId,
-          infoDomicilio.BarrioId,
+        await queryRunner.query(`INSERT INTO Domicilio (
+            DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal,
+            DomicilioDomPiso, DomicilioDomDpto,
+            DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
+            VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
+            infoDomicilio.Calle, infoDomicilio.Nro, infoDomicilio.Piso, infoDomicilio.Dpto,
+            infoDomicilio.CodigoPostal, 1, infoDomicilio.ProvinciaId, infoDomicilio.LocalidadId,
+            infoDomicilio.BarrioId
         ])
-        await queryRunner.query(`
-            UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
-            `, [PersonalId, PersonalDomicilioId])
+        const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
+        
+        const DomicilioId = resDomicilio[0][''] 
 
+        await queryRunner.query(`INSERT INTO NexoDomicilio (
+            DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId
+            ) 
+            VALUES ( @0,@1,@2,@3,@4,@5,@6)`, [
+            DomicilioId, 1, 1, 1, 1, 1, PersonalId
+        ])
       }
 
     }
@@ -1526,7 +1512,7 @@ cuit.PersonalCUITCUILCUIT,
         const DNI = parseInt(CUIT.toString().slice(2, -1))
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
-      await this.updatePersonalDomicilio(queryRunner, PersonalId, domicilio)
+      await this.updatePerDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
@@ -1582,14 +1568,15 @@ cuit.PersonalCUITCUILCUIT,
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
-      LEFT JOIN PersonalDomicilio dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual IN (1)
+      LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
+      LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
       LEFT JOIN PersonalEmail email ON email.PersonalId = per.PersonalId AND email.PersonalEmailInactivo IN (0)
       LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = (SELECT MAX (sitmax.PersonalSituacionRevistaId) FROM PersonalSituacionRevista sitmax WHERE sitmax.PersonalId = per.PersonalId AND sitmax.PersonalSituacionRevistaDesde <= @1 AND ISNULL(sitmax.PersonalSituacionRevistaHasta,'9999-12-31') >= @1)
       LEFT JOIN PersonalDocumento doc ON doc.PersonalId = per.PersonalId AND doc.PersonalDocumentoId = (SELECT MAX (docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0
       `, [personalId, new Date()]
     )
-    let persona: any = data[0]
+    const persona: any = data[0]
     persona.actas = {
       alta: { fecha: data[0].PersonalFechaActa, numero: data[0].PersonalNroActa },
       baja: { fecha: data[0].PersonalBajaFechaActa, numero: data[0].PersonalBajaNroActa },
@@ -1609,16 +1596,18 @@ cuit.PersonalCUITCUILCUIT,
   // }
 
   private async getFormDomicilioByPersonalIdQuery(queryRunner: any, personalId: any) {
-    const PersonalDomicilio = await queryRunner.query(`
-        SELECT 
-          TRIM(dom.PersonalDomicilioDomCalle) Calle, TRIM(dom.PersonalDomicilioDomNro) Nro, TRIM(dom.PersonalDomicilioDomPiso) Piso,
-          TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioCodigoPostal) CodigoPostal, dom.PersonalDomicilioPaisId PaisId,
-          dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId
-        FROM PersonalDomicilio dom
-        WHERE dom.PersonalId IN (@0) AND dom.PersonalDomicilioActual IN (1)
+    const PerDomicilio = await queryRunner.query(`
+      SELECT dom.DomicilioId,
+          TRIM(dom.DomicilioDomCalle) Calle, TRIM(dom.DomicilioDomNro) Nro, TRIM(dom.DomicilioDomPiso) Piso,
+          TRIM(dom.DomicilioDomDpto) Dpto, TRIM(dom.DomicilioCodigoPostal) CodigoPostal, dom.DomicilioPaisId PaisId,
+          dom.DomicilioProvinciaId ProvinciaId, dom.DomicilioLocalidadId LocalidadId, dom.DomicilioBarrioId BarrioId, dom.DomicilioId
+      FROM Domicilio dom
+      JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
+      WHERE nex.PersonalId IN (@0) AND nex.NexoDomicilioActual = 1
+      ORDER BY dom.DomicilioId DESC
       `, [personalId]
     )
-    return PersonalDomicilio[0]
+    return PerDomicilio[0]
   }
 
   private async getFormTelefonosByPersonalIdQuery(queryRunner: any, personalId: any) {
@@ -1789,21 +1778,22 @@ cuit.PersonalCUITCUILCUIT,
     const PersonalId: number = Number(req.params.id)
     try {
       let domicilios = await queryRunner.query(`
-        SELECT dom.PersonalDomicilioId, dom.PersonalId , dom.PersonalDomicilioDomCalle Calle, dom.PersonalDomicilioDomNro Numero, dom.PersonalDomicilioDomPiso Piso,
-        dom.PersonalDomicilioDomDpto Departamento, dom.PersonalDomicilioEntreEsquina EsquinaA, dom.PersonalDomicilioEntreEsquinaY EsquinaB, dom.PersonalDomicilioDomBloque Bloque,
-        dom.PersonalDomicilioDomEdificio Edificio, dom.PersonalDomicilioDomCuerpo Cuerpo, dom.PersonalDomicilioCodigoPostal CodigoPostal,
-        IIF(ISNULL(dom.PersonalDomicilioActual, 0) = 0, '', 'Actual') Estado,
+      SELECT dom.DomicilioId, nex.PersonalId , dom.DomicilioDomCalle Calle, dom.DomicilioDomNro Numero, dom.DomicilioDomPiso Piso,
+        dom.DomicilioDomDpto Departamento,
+		  dom.DomicilioCodigoPostal CodigoPostal,
+        IIF(ISNULL(nex.NexoDomicilioActual, 0) = 0, '', 'Actual') Estado,
         pais.PaisId , pais.PaisDescripcion Pais,
         pro.ProvinciaId , pro.ProvinciaDescripcion Provincia,
         loc.LocalidadId , loc.LocalidadDescripcion Localidad,
         bar.BarrioId , bar.BarrioDescripcion Barrio
-        FROM PersonalDomicilio dom
-        LEFT JOIN Pais pais ON pais.PaisId = dom.PersonalDomicilioPaisId
-        LEFT JOIN Provincia pro ON pro.ProvinciaId = dom.PersonalDomicilioProvinciaId AND pro.PaisId = dom.PersonalDomicilioPaisId
-        LEFT JOIN Localidad loc ON loc.LocalidadId = dom.PersonalDomicilioLocalidadId AND loc.ProvinciaId = dom.PersonalDomicilioProvinciaId AND loc.PaisId = dom.PersonalDomicilioPaisId
-        LEFT JOIN Barrio bar ON bar.BarrioId = dom.PersonalDomicilioBarrioId AND bar.LocalidadId = dom.PersonalDomicilioLocalidadId AND bar.ProvinciaId = dom.PersonalDomicilioProvinciaId AND bar.PaisId = dom.PersonalDomicilioPaisId
-        WHERE dom.PersonalId = @0
-        ORDER BY dom.PersonalDomicilioActual DESC
+        FROM Domicilio dom
+        JOIN NexoDomicilio AS nex ON nex.DomicilioId = dom.DomicilioId
+        LEFT JOIN Pais pais ON pais.PaisId = dom.DomicilioPaisId
+        LEFT JOIN Provincia pro ON pro.ProvinciaId = dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
+        LEFT JOIN Localidad loc ON loc.LocalidadId = dom.DomicilioLocalidadId AND loc.ProvinciaId = dom.DomicilioProvinciaId AND loc.PaisId = dom.DomicilioPaisId
+        LEFT JOIN Barrio bar ON bar.BarrioId = dom.DomicilioBarrioId AND bar.LocalidadId = dom.DomicilioLocalidadId AND bar.ProvinciaId = dom.DomicilioProvinciaId AND bar.PaisId = dom.DomicilioPaisId
+        WHERE nex.PersonalId = @0
+        ORDER BY dom.DomicilioId DESC
         `, [PersonalId]
       )
 
