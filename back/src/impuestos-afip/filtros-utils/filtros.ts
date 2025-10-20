@@ -3,6 +3,12 @@ import { CustomSort, Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex } from "../comprobantes-utils/lista";
 import { Request } from "express";
 
+const getOptionsSINO: any[] = [
+    { label: 'No', value: '0' },
+    { label: 'Si', value: '1' },
+]
+
+
 const getFiltrosFromOptions = (options: Options) => {
   const filtrosToReturn = [];
   options.filtros.forEach((filtro) => {
@@ -177,5 +183,6 @@ export {
   isCondition,
   isFiltro,
   isOptions,
-  orderToSQL
+  orderToSQL,
+  getOptionsSINO
 };

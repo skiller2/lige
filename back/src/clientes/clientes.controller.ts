@@ -1,16 +1,12 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryRunner, QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 //import { info } from "pdfjs-dist/types/src/shared/util";
 
 
-const getOptions: any[] = [
-    { label: 'No', value: 0 },
-    { label: 'Si', value: 1 },
-]
 
 export class ClientesController extends BaseController {
 
@@ -122,15 +118,15 @@ export class ClientesController extends BaseController {
             id: "activo",
             field: "activo",
             fieldName: "calc.activo",
-            params: { collection: getOptions },
             type: 'string',
             searchComponent: "inpurForActivo",
+
             sortable: true,
 
-            //            formatter: 'collectionFormatter',
-            //            exportWithFormatter: true,
-            //            params: { collection: this.getOptionsSINO, },
-            //            searchComponent: "inpurForSePaga",
+            formatter: 'collectionFormatter',
+            params: { collection: getOptionsSINO },
+
+            exportWithFormatter: true,
             hidden: false,
             searchHidden: false
         },
@@ -256,7 +252,7 @@ export class ClientesController extends BaseController {
       eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        
 CROSS APPLY
-    (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,1,0)) AS activo) AS calc
+    (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,'1','0')) AS activo) AS calc
 
     WHERE 
         ${filterSql}
@@ -1064,7 +1060,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getOptions(req, res) {
-        this.jsonRes(getOptions, res);
+        this.jsonRes(getOptionsSINO, res);
     }
 
 }
