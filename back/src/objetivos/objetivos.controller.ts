@@ -1405,10 +1405,10 @@ export class ObjetivosController extends BaseController {
         const DomicilioId = resDomicilio[0]['']
 
         await queryRunner.query(`INSERT INTO NexoDomicilio (
-                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal
+                    DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ClienteId, ClienteElementoDependienteId
                     ) 
-                    VALUES ( @0,@1,@2,@3,@4,@5)`, [
-            DomicilioId, 1, 0, 1, 0, 0
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
+            DomicilioId, 1, 0, 1, 0, 0, ClienteId, ClienteElementoDependienteId
         ])
     }
 
