@@ -123,8 +123,8 @@
       </nz-select>
 
       <nz-select ngModel nzAllowClear style="width:100%"
-        *ngIf="selections.field.searchComponent=='inputForActivo'" nzPlaceHolder="Activo" nzShowSearch
-        (ngModelChange)="selectedValueSePaga($event)" [nzDropdownMatchSelectWidth]="false"
+        *ngIf="selections.field.searchComponent=='inpurForActivo'" nzPlaceHolder="SI/NO" nzShowSearch 
+        (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsActivoBoolean | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
