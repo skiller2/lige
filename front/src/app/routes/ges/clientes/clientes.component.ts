@@ -52,7 +52,7 @@ export class ClientesComponent {
 
 
   formChange$ = new BehaviorSubject('');
-  startFilters: any[]=[]
+  startFilters= signal<any[]>([])
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -90,6 +90,9 @@ export class ClientesComponent {
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
 
+      this.startFilters.set( [
+        {field:'activo', condition:'AND', operator:'=', value:'1', forced:false},
+      ])
 
    
    
