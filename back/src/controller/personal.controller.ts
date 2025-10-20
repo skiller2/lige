@@ -1234,9 +1234,9 @@ cuit.PersonalCUITCUILCUIT,
           UPDATE NexoDomicilio SET NexoDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
 
         await queryRunner.query(`INSERT INTO Domicilio (
-            DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal,
-            DomicilioDomPiso, DomicilioDomDpto,
-            DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
+            DomicilioDomCalle, DomicilioDomNro, DomicilioDomPiso, DomicilioDomDpto,
+            DomicilioCodigoPostal, DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, 
+            DomicilioBarrioId) 
             VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
             infoDomicilio.Calle, infoDomicilio.Nro, infoDomicilio.Piso, infoDomicilio.Dpto,
             infoDomicilio.CodigoPostal, 1, infoDomicilio.ProvinciaId, infoDomicilio.LocalidadId,
@@ -1597,7 +1597,7 @@ cuit.PersonalCUITCUILCUIT,
 
   private async getFormDomicilioByPersonalIdQuery(queryRunner: any, personalId: any) {
     const PerDomicilio = await queryRunner.query(`
-      SELECT dom.DomicilioId,
+      SELECT 
           TRIM(dom.DomicilioDomCalle) Calle, TRIM(dom.DomicilioDomNro) Nro, TRIM(dom.DomicilioDomPiso) Piso,
           TRIM(dom.DomicilioDomDpto) Dpto, TRIM(dom.DomicilioCodigoPostal) CodigoPostal, dom.DomicilioPaisId PaisId,
           dom.DomicilioProvinciaId ProvinciaId, dom.DomicilioLocalidadId LocalidadId, dom.DomicilioBarrioId BarrioId, dom.DomicilioId
