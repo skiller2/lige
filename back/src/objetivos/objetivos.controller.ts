@@ -87,6 +87,17 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
+        name: "Grupo Actividad",
+        type: "string",
+        id: "GrupoActividadId",
+        field: "GrupoActividadId",
+        fieldName: " gap.GrupoActividadId",
+        searchComponent: "inpurForGrupoActividadSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
         name: "Sucursal",
         type: "string",
         id: "SucursalDescripcion",
