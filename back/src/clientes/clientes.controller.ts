@@ -84,11 +84,11 @@ export class ClientesController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Correo Electrónico",
+            name: "Correo Notificación",
             type: "string",
             id: "ContactoEmailEmail",
             field: "ContactoEmailEmail",
-            fieldName: "correo.ContactoEmailEmail",
+            fieldName: "correonoti.ContactoEmailEmail",
             sortable: true,
             searchHidden: true
         },
@@ -164,7 +164,7 @@ export class ClientesController extends BaseController {
             TRIM(domcli.DomicilioDomNro)
         ) AS Domicilio,
         cant.CantidadObjetivos,
-        correo.ContactoEmailEmail
+        correonoti.ContactoEmailEmail
     FROM 
         Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
@@ -173,12 +173,13 @@ export class ClientesController extends BaseController {
         LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
 
         LEFT JOIN (
-		  	SELECT ct.ClienteId, STRING_AGG(mail.ContactoEmailEmail, ', ') ContactoEmailEmail
+
+            SELECT ct.ClienteId, STRING_AGG(mail.ContactoEmailEmail, ', ') ContactoEmailEmail
 		  	FROM Contacto ct 
-            JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND mail.ContactoEmailInactivo IS NULL
-            WHERE ct.ClienteElementoDependienteId IS NULL AND  mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0) -- AND ct.ContactoTipoCod = 'NOTI'
+            JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo =0)
+            WHERE ct.ClienteElementoDependienteId IS NULL AND  mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0)  AND ct.ContactoTipoCod = 'NOTI'
             GROUP BY ct.ClienteId
-		  ) correo ON correo.ClienteId = cli.ClienteId
+        ) correonoti ON correonoti.ClienteId = cli.ClienteId
 
 
         LEFT JOIN (
