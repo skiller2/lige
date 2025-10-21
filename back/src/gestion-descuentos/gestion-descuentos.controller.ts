@@ -1753,12 +1753,14 @@ export class GestionDescuentosController extends BaseController {
       }
 
 
-      const [day, monthStr, yearStr] = row[columnsXLS['Período desde']].split(" ")[0].split("/");
+      const [day, monthStr, yearStr] = String(row[columnsXLS['Período desde']]).split(" ")[0].split("/");
       const parsedMonth = parseInt(monthStr, 10);
       const parsedYear = parseInt(yearStr, 10);
 
+      const tipoConcepto = row[columnsXLS['Tipo concepto']]
 
-      if (parsedMonth != mesRequest || parsedYear != anioRequest) {
+
+      if ((parsedMonth != mesRequest || parsedYear != anioRequest) && tipoConcepto == "10100") {
         dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `Periodo ${row[columnsXLS['Período desde']]} no corresponde con el seleccionado ${mesRequest}/${anioRequest}` })
         continue
       }
