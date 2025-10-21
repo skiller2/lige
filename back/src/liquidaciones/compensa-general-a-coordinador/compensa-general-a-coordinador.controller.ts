@@ -82,7 +82,7 @@ export class CompensaGeneralACordinadorController extends BaseController {
       console.log('movimientos',movimientos)
 
 
-      this.jsonRes({ list: [] }, res, [`Se procesaron ${cantRegistros} registros `]);
+      this.jsonRes({ list: movimientos }, res, `Se procesaron ${cantRegistros} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
