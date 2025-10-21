@@ -4,7 +4,7 @@
   <form [formGroup]="formAltaDesc">
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="4">Tipo de Carga</nz-form-label>
+      <nz-form-label [nzXs]="2">Tipo de Carga</nz-form-label>
       <nz-form-control [nzMd]="5">
         <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
@@ -13,12 +13,9 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-    </nz-form-item>
-      
 
-    <nz-form-item *ngIf="tableName() === 'PersonalOtroDescuento'">
-      <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
-      <nz-form-control [nzMd]="5">
+      <nz-form-label *ngIf="tableName() === 'PersonalOtroDescuento'" [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
+      <nz-form-control *ngIf="tableName() === 'PersonalOtroDescuento'" [nzMd]="5">
         <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           <ng-container *ngFor="let option of $optionsTipo | async">
@@ -26,11 +23,10 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-    </nz-form-item>
 
-    <nz-form-item *ngIf="tableName() === 'ObjetivoDescuento'">
-      <nz-form-label [nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
-      <nz-form-control [nzMd]="5">
+
+      <nz-form-label *ngIf="tableName() === 'ObjetivoDescuento'"[nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
+      <nz-form-control *ngIf="tableName() === 'ObjetivoDescuento'" [nzMd]="5">
         <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           <ng-container *ngFor="let option of $optionsTipo | async">
@@ -38,34 +34,15 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-    </nz-form-item>
 
-   <!--<nz-form-item>
-      <nz-form-label class="inputText" [nzXs]="4">Archivo Descuento</nz-form-label>
-      <nz-form-control>
-        <nz-upload nzAccept="application/xls" nzAction="/api/gestion-descuentos/upload" [nzData]="{
-            anio: anio(),
-            mes: mes(),
-            tableName: tableName(),
-            descuentoId: DescuentoId(),
-        }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
-          <button nz-button>
-            <span nz-icon nzType="upload"></span>
-            {{ 'app.btn.XLS' | i18n }}
-          </button>
-        </nz-upload>
-        </nz-form-control>
-    </nz-form-item> -->
-
-
-    <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
-      <nz-form-label [nzXs]="4" class="inputText">Archivo Descuentos</nz-form-label>   
+      <nz-form-label [nzXs]="3" class="inputText">Archivo Descuentos</nz-form-label>   
         <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
         [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
+     
     </nz-form-item>
 
     <nz-form-item>
-      <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
+      <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
       <nz-form-control>
         <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
           <!-- <ng-container > -->
