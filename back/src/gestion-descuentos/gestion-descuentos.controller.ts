@@ -1635,7 +1635,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async importaXLSOtroDescuento(columnsXLS:any, sheet1:any, file:any, fechaActual: Date, den_documento:string, anioRequest:number, mesRequest:number, dataset:any, descuentoIdRequest:number, queryRunner:any, usuario:string, usuarioId:number, ip:string) {
+  async importaXLSOtroDescuento(columnsXLS: any, sheet1: any, file: any, fechaActual: Date, den_documento: string, anioRequest: number, mesRequest: number, dataset: any, descuentoIdRequest: number, queryRunner: any, usuario: string, usuarioId: number, ip: string) {
     let columnsnNotFound = []
     let idError = 0
     let altaDescuentos = 0
@@ -1709,9 +1709,9 @@ export class GestionDescuentosController extends BaseController {
         continue
       }
     }
-    return {altaDescuentos}
+    return { altaDescuentos }
   }
-  async importaXLSOtroDescuentoPrepaga(columnsXLS:any, sheet1:any, file:any, fechaActual: Date, den_documento:string, anioRequest:number, mesRequest:number, dataset:any, descuentoIdRequest:number, queryRunner:any, usuario:string, usuarioId:number, ip:string) {
+  async importaXLSOtroDescuentoPrepaga(columnsXLS: any, sheet1: any, file: any, fechaActual: Date, den_documento: string, anioRequest: number, mesRequest: number, dataset: any, descuentoIdRequest: number, queryRunner: any, usuario: string, usuarioId: number, ip: string) {
     let columnsnNotFound = []
     let idError = 0
     let altaDescuentos = 0
@@ -1752,8 +1752,23 @@ export class GestionDescuentosController extends BaseController {
         continue
       }
 
+      const periodo = row[columnsXLS['Período desde']]
+      let monthStr = ''
+      let yearStr = ''
 
-      const [day, monthStr, yearStr] = String(row[columnsXLS['Período desde']]).split(" ")[0].split("/");
+      if (periodo instanceof Date) {
+        monthStr = String(periodo.getMonth() + 1)
+        yearStr = String(periodo.getFullYear())
+      } else if (typeof periodo === 'number') {
+        // Excel stores dates as serial numbers, so convert it
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const date = new Date(excelEpoch.getTime() + periodo * 86400000);
+        monthStr = String(date.getMonth() + 1)
+        yearStr = String(date.getFullYear())
+      } else {
+        [, monthStr, yearStr] = String(row[columnsXLS['Período desde']]).split(" ")[0].split("/");
+      }
+
       const parsedMonth = parseInt(monthStr, 10);
       const parsedYear = parseInt(yearStr, 10);
 
@@ -1766,11 +1781,13 @@ export class GestionDescuentosController extends BaseController {
       }
 
       let PersonalCUIT = await queryRunner.query(`
-              SELECT fam.PersonalId, fam.PersonalFamiliaCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre FROM PersonalFamilia fam 
-              JOIN Personal per ON per.PersonalId=fam.PersonalId
-              WHERE PersonalFamiliaCUIT = @0
+            SELECT ben.PersonalId, fam.PersonalFamiliaCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre 
+            FROM PersonalFamilia fam 
+            JOIN PersonalPrepagaBeneficiario ben ON ben.PersonalFamiliaId = fam.PersonalFamiliaId AND (ben.PersonalPrepagaBeneficiarioInactivo IS NULL OR ben.PersonalPrepagaBeneficiarioInactivo =0)
+            JOIN Personal per ON per.PersonalId=ben.PersonalId
+            WHERE PersonalFamiliaCUIT = @0
             `, [CUIT])
-      
+
       if (!PersonalCUIT.length) {
         PersonalCUIT = await queryRunner.query(`
               SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
@@ -1795,8 +1812,8 @@ export class GestionDescuentosController extends BaseController {
 
       //console.log('row', row)
       //throw new ClientException('stop')
-      const Importe  = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']]=="10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
-      
+      const Importe = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']] == "10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+
       const Detalle = `Plan: ${row[columnsXLS['Plan tarifa']]}, Socio: ${row[columnsXLS['Socio']]}, CUIT: ${row[columnsXLS['Cuil']]} ${row[columnsXLS['Comprobante']]}`
 
       const otroDescuento: any = {
@@ -1815,7 +1832,7 @@ export class GestionDescuentosController extends BaseController {
         continue
       }
     }
-    return {altaDescuentos}
+    return { altaDescuentos }
   }
 
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
@@ -1834,7 +1851,7 @@ export class GestionDescuentosController extends BaseController {
     let dataset: any = []
     let idError: number = 0
     let altaDescuentos = 0
-    let result:any
+    let result: any
     let docFilePath: string | null = null
 
     const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
@@ -1889,7 +1906,7 @@ export class GestionDescuentosController extends BaseController {
           den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
           switch (descuentoIdRequest) {
             case 49:
-              result =await this.importaXLSOtroDescuentoPrepaga(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, queryRunner, usuario, usuarioId, ip)
+              result = await this.importaXLSOtroDescuentoPrepaga(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, queryRunner, usuario, usuarioId, ip)
               break;
 
             default:
