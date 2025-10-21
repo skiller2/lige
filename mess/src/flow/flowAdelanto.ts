@@ -85,7 +85,10 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const myState: any = state.getMyState()
-            const importe: number = parseInt(ctx.body)
+
+
+            const cleanedImporte = String(ctx.body).replace(/\./g, '').replace(',', '.');
+            const importe: number = parseFloat(cleanedImporte)
             const maxImporte: number = myState.adelanto.maxImporte
             const anio: number = myState.adelanto.anio
             const mes: number = myState.adelanto.mes
