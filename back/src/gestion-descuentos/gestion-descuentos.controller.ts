@@ -1723,6 +1723,7 @@ export class GestionDescuentosController extends BaseController {
     if (isNaN(columnsXLS['Plan tarifa'])) columnsnNotFound.push('- TipoPlan tarifa')
     if (isNaN(columnsXLS['Socio'])) columnsnNotFound.push('- Socio')
     if (isNaN(columnsXLS['Comprobante'])) columnsnNotFound.push('- Comprobante')
+    if (isNaN(columnsXLS['Período desde'])) columnsnNotFound.push('- Período desde')
 
     if (columnsnNotFound.length) {
       columnsnNotFound.unshift('Faltan las siguientes columnas:')
@@ -1748,6 +1749,17 @@ export class GestionDescuentosController extends BaseController {
       if (CUIT.length != 11) {
         // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
         dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: 'CUIT con formato incorrecto' })
+        continue
+      }
+
+
+      const [day, monthStr, yearStr] = row[columnsXLS['Período desde']].split(" ")[0].split("/");
+      const parsedMonth = parseInt(monthStr, 10);
+      const parsedYear = parseInt(yearStr, 10);
+
+
+      if (parsedMonth != mesRequest || parsedYear != anioRequest) {
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `Periodo ${row[columnsXLS['Período desde']]} no corresponde con el seleccionado ${mesRequest}/${anioRequest}` })
         continue
       }
 
