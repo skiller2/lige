@@ -164,8 +164,13 @@ export class FileUploadComponent implements ControlValueAccessor {
           this.files.set(this.files().map(item => {
             if (item.id === file.id) {
               return { 
-                ...item, 
+                ...item,
+                path: null,
+                nombre: Response.data[0].originalname,
+                mimetype: Response.data[0].mimetype,
                 tempfilename: Response.data[0].tempfilename,
+                url: Response.data[0].url,
+                
               };
             }
             return item;
@@ -185,7 +190,8 @@ export class FileUploadComponent implements ControlValueAccessor {
           Response.data[0].cliente_id = 0
           Response.data[0].fec_doc_ven = null
           Response.data[0].nombre_archivo = ""
-
+          console.log('Response.data[0]', Response.data[0])
+          console.log('this.files()', this.files())
           this.files.set([...this.files(), Response.data[0]])
 
         }
@@ -209,7 +215,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
       if(file.id){
         this.files.set(this.files().map(item => {
-
+          console.log("item", item)
           if (item.id === file.id) 
             return { ...item, update: true };
           

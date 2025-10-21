@@ -111,7 +111,7 @@ Date: any;
     return ''
   }
 
-  archivo():[]  { 
+  archivo(): any []  { 
     const value:any = this.formTipoDocumento.get("archivo")?.value 
     if (value && value.length)
       return value
