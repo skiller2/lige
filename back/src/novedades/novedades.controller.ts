@@ -6,6 +6,8 @@ import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
 import { ObjectId } from "typeorm/browser";
 import { Console } from "node:console";
+import { ObjetivoController } from "src/controller/objetivo.controller";
+import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 
 const listaColumnas: any[] = [
     {
@@ -482,10 +484,10 @@ export class NovedadesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body }
         let NovedadIdNew = {}
+        const ip = this.getRemoteAddress(req)
 
         try {
 
-            const ip = this.getRemoteAddress(req)
             // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
             const PersonalId = res.locals.PersonalId ? res.locals.PersonalId : null
             await queryRunner.startTransaction()
@@ -518,6 +520,8 @@ export class NovedadesController extends BaseController {
                 novedadId: novedadId,
             }
 
+            await this.sendMsgResponsable(Obj,queryRunner,usuarioName,ip)
+            
             await queryRunner.commitTransaction()
             return this.jsonRes(NovedadIdNew, res, 'Carga de nuevo registro exitoso');
         } catch (error) {
@@ -717,4 +721,41 @@ export class NovedadesController extends BaseController {
         })
         return this.jsonRes(startFilters, res)
     }
+
+  async sendMsgResponsable(novedad: any, queryRunner: any, usuario:string, ip:string) {
+    const Fecha = new Date(novedad.Fecha)
+    const ClienteId = novedad.ClienteId
+    const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
+    const DesObjetivo = novedad.DesObjetivo
+    const anio = Fecha.getFullYear()
+    const mes = Fecha.getMonth() + 1
+    const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
+    const supervisor = responsables.find(r => r.ord == 3)
+    
+    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}` 
+
+    if (supervisor.GrupoActividadId) {
+      const PersonalId = supervisor.GrupoActividadId
+      const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
+      let telefono = (result[0]) ? result[0].Telefono : ''
+
+
+      if (telefono) {
+        //TODO: Debería encolarse
+        //ChatBotController.enqueBotMsg(PersonalId, msg, 'HIGH', 'bot', '127.0.0.1')
+
+          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD`, usuario, ip)
+          //if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+          
+          
+          
+        //await botServer.sendMsg(telefono, msg)
+        
+        //await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
+
+
+      }
+    }
+  }
+
 }
