@@ -15,6 +15,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { I18nPipe, SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 
 
 @Component({
@@ -59,7 +60,14 @@ export class ClientesComponent {
     private apiService = inject(ApiService)
     private settingService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/clientes/cols')
+    columns$ = this.apiService.getCols('/api/clientes/cols').pipe(
+      map((cols) => {
+        if (cols[8]) {
+          cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
+        }
+        return cols
+      })
+    )
 
 
 //  child = viewChild.required(ClientesFormComponent)
@@ -118,6 +126,16 @@ export class ClientesComponent {
     if (row?.id)
       this.editClienteId.set(row.id)
 
+  }
+
+  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    let ClienteId = dataContext.ClienteId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/objetivos/listado', params:{ ClienteId: ClienteId } , detail: cellNode.innerText})
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+  
+    cellNode.replaceChildren(componentOutput.domElement)
+    
   }
 
   getGridData(): void {

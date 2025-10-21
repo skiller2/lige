@@ -116,6 +116,11 @@
                 [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarReciboUnico')">
                 <span nz-icon nzType="plus" nzTheme="outline"></span> Generar recibo de {{PersonalNameForReceip}}
               </li>
+              <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero movimiento de compensación entre General y Coordinador" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('CompensaGeneCoor')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Compensa General Coordinador
+              </li>
+
             </ul>
           </li>
 

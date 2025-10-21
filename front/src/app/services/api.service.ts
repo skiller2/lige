@@ -830,6 +830,16 @@ export class ApiService {
 
   }
 
+  setCompensaGeneralCoordinador(anio: number, mes: number) {
+    const parameter = { anio, mes }
+    this.notification.success('Respuesta', `Inicio Compensación`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/compensaGeneralCoordinador', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
   setingresoPorCustodia(anio: number, mes: number) {
     const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Ingreso por Custodia`);

@@ -173,4 +173,16 @@ export class ObjetivosComponent {
        
   }
 
+  ngAfterViewInit(): void {
+    
+    const ClienteId = Number(this.route.snapshot.paramMap.get('ClienteId'))
+
+    setTimeout(() => {
+      if (ClienteId > 0) {
+        this.startFilters = [ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}]
+      }
+    }, 1000)
+  }
+
+
 }
