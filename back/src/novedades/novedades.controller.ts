@@ -519,7 +519,7 @@ export class NovedadesController extends BaseController {
             NovedadIdNew = {
                 novedadId: novedadId,
             }
-
+            //TODO: Agregar detalle del objetivo en Obj.DesObjetivo
             await this.sendMsgResponsable(Obj,queryRunner,usuarioName,ip)
             
             await queryRunner.commitTransaction()
