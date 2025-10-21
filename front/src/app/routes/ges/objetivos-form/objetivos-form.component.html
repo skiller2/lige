@@ -1,3 +1,9 @@
+<ng-template #suffixReloadTpl>
+  <button nz-button (click)="visibleDrawer.set(true)">
+    <span nz-icon nzType="user" nzTheme="outline"  nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span>
+  </button>
+</ng-template>
+
 <form [formGroup]="formCli">
   <br>
   <nz-form-item class="marginElement">
@@ -139,8 +145,16 @@
     <nz-form-item class="" *ngFor="let control of infoActividad().controls; let i = index" [formGroupName]="i">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Actividad</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-        <app-grupo-actividad-search formControlName="GrupoActividadId" />
+        <div style="display: flex; align-items: center;">
+          <app-grupo-actividad-search formControlName="GrupoActividadId" style="flex: 1 1 auto;" />
+          <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="flex: 0 0 auto;">
+            <ng-container></ng-container>
+          </nz-input-group>
+        </div>
       </nz-form-control>
+      <app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="formCli.value.SucursalId ?? 0" [PersonalId]="formCli.value.GrupoActividadJerarquicoPersonalId ?? 0"
+      [visible]="visibleDrawer()" (onClose)="closeDrawer()"></app-detalle-persona>
+
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Desde</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="GrupoActividadObjetivoDesde"></nz-date-picker>
