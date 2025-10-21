@@ -387,6 +387,9 @@ export class LiquidacionesComponent {
 
         firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
+      case "CompensaGeneCoor":
+        firstValueFrom(this.apiService.setCompensaGeneralCoordinador(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
+        break;
 
       case "Custodia":
 

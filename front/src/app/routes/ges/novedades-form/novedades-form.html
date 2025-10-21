@@ -91,11 +91,11 @@
     </nz-form-control>
     }
 
-    <div class="input-container1" *ngIf="formCli.getRawValue().PersonalId || formCli.getRawValue().Telefono">
+    <div class="input-container1" >
       <div class="input-label">Registrado por</div>
     </div>
 
-    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().PersonalId">
+    <nz-form-item class="marginElement" >
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
         <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
