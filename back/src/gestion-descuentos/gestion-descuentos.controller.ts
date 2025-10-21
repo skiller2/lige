@@ -1751,22 +1751,31 @@ export class GestionDescuentosController extends BaseController {
         continue
       }
 
-      const PersonalCUITCUIL = await queryRunner.query(`
-              SELECT personal.PersonalId
-              FROM Personal personal
-              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = personal.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = personal.PersonalId)
-              WHERE cuit.PersonalCUITCUILCUIT IN (@0)
+      let PersonalCUIT = await queryRunner.query(`
+              SELECT fam.PersonalId, fam.PersonalFamiliaCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre FROM PersonalFamilia fam 
+              JOIN Personal per ON per.PersonalId=fam.PersonalId
+              WHERE PersonalFamiliaCUIT = @0
             `, [CUIT])
-      if (!PersonalCUITCUIL.length) {
+      
+      if (!PersonalCUIT.length) {
+        PersonalCUIT = await queryRunner.query(`
+              SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+              FROM Personal per
+              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+              WHERE cuit.PersonalCUITCUILCUIT =@0
+            `, [CUIT])
+      }
+
+      if (!PersonalCUIT.length) {
         // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
         dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: 'CUIT no encontrado' })
         continue
       }
 
-      const PersonalId = PersonalCUITCUIL[0].PersonalId
+      const PersonalId = PersonalCUIT[0].PersonalId
       const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
       if (!Array.isArray(isActivo) || isActivo.length === 0) {
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período` })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `No se puede aplicar el descuento. ${PersonalCUIT[0]['ApellidoNombre']} No se encuentra 'Activo' en el período` })
         continue
       }
 
@@ -1774,7 +1783,7 @@ export class GestionDescuentosController extends BaseController {
       //throw new ClientException('stop')
       const Importe  = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']]=="10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
       
-      const Detalle = `Plan: ${row[columnsXLS['Plan tarifa']]}, Socio: ${row[columnsXLS['Socio']]} ${row[columnsXLS['Comprobante']]}`
+      const Detalle = `Plan: ${row[columnsXLS['Plan tarifa']]}, Socio: ${row[columnsXLS['Socio']]}, CUIT: ${row[columnsXLS['Cuil']]} ${row[columnsXLS['Comprobante']]}`
 
       const otroDescuento: any = {
         DescuentoId: descuentoIdRequest,
