@@ -1776,7 +1776,7 @@ export class GestionDescuentosController extends BaseController {
 
 
       if ((parsedMonth != mesRequest || parsedYear != anioRequest) && tipoConcepto == "10100") {
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `Periodo ${row[columnsXLS['Período desde']]} no corresponde con el seleccionado ${mesRequest}/${anioRequest}` })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `'Período desde' ${row[columnsXLS['Período desde']]} ${parsedMonth}/${parsedYear} no corresponde con el seleccionado ${mesRequest}/${anioRequest}` })
         continue
       }
 
