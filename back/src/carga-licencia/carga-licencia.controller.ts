@@ -1200,7 +1200,7 @@ export class CargaLicenciaController extends BaseController {
           errormsg.push(msgRecPend)
 
           const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
-          //if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+          if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
         }
         throw new ClientException(errormsg)
       }
