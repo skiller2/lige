@@ -45,6 +45,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
       if (col.id === 'ClienteElementoDependienteDescripcion') {
         col.sortable = true,
         col.type = FieldType.string,
+        col.maxWidth = 250,
         col.formatter = Formatters['complexObject'],
         col.params = {
           complexFieldLabel: 'ClienteElementoDependienteDescripcion.fullName',
@@ -64,6 +65,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
     if (col.id === 'AplicaA') {
       col.sortable = true,
       col.type = FieldType.string,
+      col.maxWidth = 100,
       col.formatter = Formatters['complexObject'],
       col.params = {
         complexFieldLabel: 'AplicaA.fullName',
@@ -82,7 +84,7 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
 
     if (col.id === 'CantidadCuotas') {
       col.type = FieldType.float,
-      col.maxWidth = 250,
+      col.maxWidth = 200,
       col.editor = {
         model: Editors['text'],
         required: true
@@ -90,6 +92,8 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
     }
     if (col.id === 'ImporteTotal') {
       col.formatter = Formatters['multiple'],
+      col.maxWidth = 200,
+
       col.params = {
         formatters: [Formatters['currency']],
         // groupFormatterPrefix: '<b>Total</b>: ' 
@@ -111,6 +115,8 @@ export class DescuentosCargaManualTableObjetivoComponent implements OnInit {
     if (col.id === 'mensaje') {
       col.type = FieldType.string;
       delete col.editor;
+      col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
+
     }
         return col
       });
