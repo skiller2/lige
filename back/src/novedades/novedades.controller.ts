@@ -722,22 +722,22 @@ export class NovedadesController extends BaseController {
         return this.jsonRes(startFilters, res)
     }
 
-  async sendMsgResponsable(novedad: any, queryRunner: any, usuario:string, ip:string) {
+  async sendMsgResponsable(novedad: any, queryRunner: QueryRunner, usuario:string, ip:string) {
     const Fecha = new Date(novedad.Fecha)
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
-    const DesObjetivo = novedad.DesObjetivo
+    const ObjetivoId = novedad.ObjetivoId
     const anio = Fecha.getFullYear()
     const mes = Fecha.getMonth() + 1
-    const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
+    const responsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner)
     const supervisor = responsables.find(r => r.ord == 3)
     
-    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}` 
+    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad?.DesObjetivo ?? ''}` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
       const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
-      let telefono = (result[0]) ? result[0].Telefono : ''
+      const telefono = (result[0]) ? result[0].Telefono : ''
 
 
       if (telefono) {
