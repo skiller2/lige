@@ -487,8 +487,7 @@ export class NovedadesController extends BaseController {
 
             const ip = this.getRemoteAddress(req)
             // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
-            const usuarioId = res.locals.PersonalId ? res.locals.PersonalId : null
-
+            const PersonalId = res.locals.PersonalId ? res.locals.PersonalId : null
             await queryRunner.startTransaction()
             await this.FormValidations(Obj)
 
@@ -499,15 +498,19 @@ export class NovedadesController extends BaseController {
             Obj.ClienteId = objetivo[0].ClienteId
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
+            if (!Obj.PersonalId)
+                Obj.PersonalId = PersonalId
+        
+
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
-                Obj.Telefono, usuarioId, ip, novedadId, usuarioName)
+                Obj.Telefono, ip, Obj.PersonalId, novedadId, usuarioName)
 
 
             let doc_id = 0
             let array_id = []
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
-                    await this.fileNovedadUpload(queryRunner, Obj, usuarioId, ip, novedadId, usuarioName, file, array_id, doc_id)
+                    await this.fileNovedadUpload(queryRunner, Obj, PersonalId, ip, novedadId, usuarioName, file, array_id, doc_id)
                 }
             }
 
@@ -574,7 +577,7 @@ export class NovedadesController extends BaseController {
     }
 
     async addNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, ClienteId: any,
-        ClienteElementoDependienteId: any, Telefono: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any) {
+        ClienteElementoDependienteId: any, Telefono: any, ip: any, PersonalId:any, novedadId: any, usuarioName: any) {
 
         const now = new Date();
         const AudFechaIng = now;
@@ -584,7 +587,6 @@ export class NovedadesController extends BaseController {
         const AudUsuarioIng = usuarioName;
         const AudUsuarioMod = usuarioName;
 
-        const PersonalId = usuarioId
         const telefono = Telefono ? Telefono : null
         const fechaString = Fecha;
         const fechaObjeto = new Date(fechaString);
