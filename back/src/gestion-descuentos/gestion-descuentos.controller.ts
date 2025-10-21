@@ -1635,6 +1635,166 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
+  async importaXLSOtroDescuento(columnsXLS:any, sheet1:any, file:any, fechaActual: Date, den_documento:string, anioRequest:number, mesRequest:number, dataset:any, descuentoIdRequest:number, queryRunner:any, usuario:string, usuarioId:number, ip:string) {
+    let columnsnNotFound = []
+    let idError = 0
+    let altaDescuentos = 0
+
+    if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
+    // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
+    if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
+    if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
+
+    if (columnsnNotFound.length) {
+      columnsnNotFound.unshift('Faltan las siguientes columnas:')
+      throw new ClientException(columnsnNotFound)
+    }
+
+    const docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+    const docFilePath = docDescuentoPersonal?.newFilePath
+    for (const row of sheet1.data) {
+      //Finaliza cuando la fila esta vacia
+      const isEmpty = (val) =>
+        val === null || val === undefined || (typeof val === "string" && val.trim() === "")
+
+      if (
+        !row[columnsXLS['CUIT']]
+        && !row[columnsXLS['Cantidad Cuotas']]
+        && !row[columnsXLS['Importe Total']]
+        && !row[columnsXLS['Detalle']]
+      ) continue;
+
+      //Verifica que exista el CUIT
+      const cuit = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
+      if (cuit.length != 11) {
+        // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT con formato incorrecto' })
+        continue
+      }
+
+      const PersonalCUITCUIL = await queryRunner.query(`
+              SELECT personal.PersonalId
+              FROM Personal personal
+              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = personal.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = personal.PersonalId)
+              WHERE cuit.PersonalCUITCUILCUIT IN (@0)
+            `, [cuit])
+      if (!PersonalCUITCUIL.length) {
+        // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
+        continue
+      }
+
+      const PersonalId = PersonalCUITCUIL[0].PersonalId
+      const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
+      if (!Array.isArray(isActivo) || isActivo.length === 0) {
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período` })
+        continue
+      }
+
+      let CantidadCuotas: number = (!row[columnsXLS['Cantidad Cuotas']] || isNaN(row[columnsXLS['Cantidad Cuotas']]) || row[columnsXLS['Cantidad Cuotas']] == 0) ? 1 : Number(row[columnsXLS['Cantidad Cuotas']])
+
+      const otroDescuento: any = {
+        DescuentoId: descuentoIdRequest,
+        PersonalId: PersonalId,
+        AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
+        Cuotas: CantidadCuotas,
+        Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+        Detalle: row[columnsXLS['Detalle']],
+        DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
+      }
+      const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
+      altaDescuentos++
+      if (result instanceof ClientException) {
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: result.messageArr })
+        continue
+      }
+    }
+    return {altaDescuentos}
+  }
+  async importaXLSOtroDescuentoPrepaga(columnsXLS:any, sheet1:any, file:any, fechaActual: Date, den_documento:string, anioRequest:number, mesRequest:number, dataset:any, descuentoIdRequest:number, queryRunner:any, usuario:string, usuarioId:number, ip:string) {
+    let columnsnNotFound = []
+    let idError = 0
+    let altaDescuentos = 0
+
+    if (isNaN(columnsXLS['Cuil'])) columnsnNotFound.push('- Cuil')
+    if (isNaN(columnsXLS['Importe gravado'])) columnsnNotFound.push('- Importe gravado')
+    if (isNaN(columnsXLS['Importe exento'])) columnsnNotFound.push('- Importe exento')
+    if (isNaN(columnsXLS['Tipo concepto'])) columnsnNotFound.push('- Tipo concepto')
+    if (isNaN(columnsXLS['Plan tarifa'])) columnsnNotFound.push('- TipoPlan tarifa')
+    if (isNaN(columnsXLS['Socio'])) columnsnNotFound.push('- Socio')
+    if (isNaN(columnsXLS['Comprobante'])) columnsnNotFound.push('- Comprobante')
+
+    if (columnsnNotFound.length) {
+      columnsnNotFound.unshift('Faltan las siguientes columnas:')
+      throw new ClientException(columnsnNotFound)
+    }
+
+    const docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+    const docFilePath = docDescuentoPersonal?.newFilePath
+    for (const row of sheet1.data) {
+      //Finaliza cuando la fila esta vacia
+      const isEmpty = (val) =>
+        val === null || val === undefined || (typeof val === "string" && val.trim() === "")
+
+      if (
+        !row[columnsXLS['Cuil']]
+        && !row[columnsXLS['Tipo concepto']]
+        && !row[columnsXLS['Importe exento']]
+        && !row[columnsXLS['Plan tarifa']]
+      ) continue;
+
+      //Verifica que exista el CUIT
+      const CUIT = String(row[columnsXLS['Cuil']]).replace(/\D/g, "")
+      if (CUIT.length != 11) {
+        // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: 'CUIT con formato incorrecto' })
+        continue
+      }
+
+      const PersonalCUITCUIL = await queryRunner.query(`
+              SELECT personal.PersonalId
+              FROM Personal personal
+              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = personal.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = personal.PersonalId)
+              WHERE cuit.PersonalCUITCUILCUIT IN (@0)
+            `, [CUIT])
+      if (!PersonalCUITCUIL.length) {
+        // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: 'CUIT no encontrado' })
+        continue
+      }
+
+      const PersonalId = PersonalCUITCUIL[0].PersonalId
+      const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
+      if (!Array.isArray(isActivo) || isActivo.length === 0) {
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período` })
+        continue
+      }
+
+      //console.log('row', row)
+      //throw new ClientException('stop')
+      const Importe  = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']]=="10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+      
+      const Detalle = `Plan: ${row[columnsXLS['Plan tarifa']]}, Socio: ${row[columnsXLS['Socio']]} ${row[columnsXLS['Comprobante']]}`
+
+      const otroDescuento: any = {
+        DescuentoId: descuentoIdRequest,
+        PersonalId: PersonalId,
+        AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
+        Cuotas: 1,
+        Importe: Importe,
+        Detalle: Detalle,
+        DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
+      }
+      const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
+      altaDescuentos++
+      if (result instanceof ClientException) {
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: result.messageArr })
+        continue
+      }
+    }
+    return {altaDescuentos}
+  }
+
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
@@ -1651,6 +1811,7 @@ export class GestionDescuentosController extends BaseController {
     let dataset: any = []
     let idError: number = 0
     let altaDescuentos = 0
+    let result:any
     let docFilePath: string | null = null
 
     const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
@@ -1702,79 +1863,18 @@ export class GestionDescuentosController extends BaseController {
 
       switch (tableNameRequest) {
         case 'PersonalOtroDescuento':
-
-          //Validar que esten las columnas nesesarias
-          if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
-          // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
-          if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
-          if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
-
-          if (columnsnNotFound.length) {
-            columnsnNotFound.unshift('Faltan las siguientes columnas:')
-            throw new ClientException(columnsnNotFound)
-          }
-
           den_documento = `Personal-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
-          const docDescuentoPersonal = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
-          console.log('docDescuentoPersonal', docDescuentoPersonal)
-          docFilePath = docDescuentoPersonal?.newFilePath
-          for (const row of sheet1.data) {
-            //Finaliza cuando la fila esta vacia
-            const isEmpty = (val) =>
-              val === null || val === undefined || (typeof val === "string" && val.trim() === "")
+          switch (descuentoIdRequest) {
+            case 49:
+              result =await this.importaXLSOtroDescuentoPrepaga(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, queryRunner, usuario, usuarioId, ip)
+              break;
 
-            if (
-              !row[columnsXLS['CUIT']]
-              && !row[columnsXLS['Cantidad Cuotas']]
-              && !row[columnsXLS['Importe Total']]
-              && !row[columnsXLS['Detalle']]
-            ) continue;
+            default:
+              result = await this.importaXLSOtroDescuento(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, queryRunner, usuario, usuarioId, ip)
 
-            //Verifica que exista el CUIT
-            const cuit = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
-            if (cuit.length != 11) {
-              // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
-              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT con formato incorrecto' })
-              continue
-            }
-
-            const PersonalCUITCUIL = await queryRunner.query(`
-              SELECT personal.PersonalId
-              FROM Personal personal
-              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = personal.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = personal.PersonalId)
-              WHERE cuit.PersonalCUITCUILCUIT IN (@0)
-            `, [cuit])
-            if (!PersonalCUITCUIL.length) {
-              // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
-              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
-              continue
-            }
-
-            const PersonalId = PersonalCUITCUIL[0].PersonalId
-            const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
-            if (!Array.isArray(isActivo) || isActivo.length === 0) {
-              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período` })
-              continue
-            }
-
-            let CantidadCuotas: number = (!row[columnsXLS['Cantidad Cuotas']] || isNaN(row[columnsXLS['Cantidad Cuotas']]) || row[columnsXLS['Cantidad Cuotas']] == 0) ? 1 : Number(row[columnsXLS['Cantidad Cuotas']])
-
-            const otroDescuento: any = {
-              DescuentoId: descuentoIdRequest,
-              PersonalId: PersonalId,
-              AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
-              Cuotas: CantidadCuotas,
-              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
-              Detalle: row[columnsXLS['Detalle']],
-              DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
-            }
-            const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuarioId, ip)
-            altaDescuentos++
-            if (result instanceof ClientException) {
-              dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: result.messageArr })
-              continue
-            }
+              break;
           }
+          altaDescuentos = result.altaDescuentos
           break;
         case 'ObjetivoDescuento':
           //Validar que esten las columnas nesesarias
@@ -1794,7 +1894,7 @@ export class GestionDescuentosController extends BaseController {
 
           den_documento = `Objetivo-${DescuentoDescripcion}-${mesRequest}-${anioRequest}`
           const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
-          docFilePath = docDescuentoPersonal?.newFilePath
+          docFilePath = docDescuentoObjetivo?.newFilePath
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
             if (
@@ -2084,7 +2184,7 @@ export class GestionDescuentosController extends BaseController {
     let result = req.body[1].gridDataInsert
     let dataset = []
     const DescuentoId: number = req.body[2]
-    
+
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2115,7 +2215,7 @@ export class GestionDescuentosController extends BaseController {
         switch (AplicaA) {
           case 'CL':
             const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
-            if (!tieneContratoVigente || tieneContratoVigente.length === 0){
+            if (!tieneContratoVigente || tieneContratoVigente.length === 0) {
               row.errorMessage = `No se puede aplicar el descuento al Cliente. No tiene contrato vigente en el período ${mes}/${anio}.`
               row.isfull = 2
             }
