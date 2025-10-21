@@ -573,8 +573,7 @@ ${orderBy}`, [fechaActual])
 
         if (DomicilioIds.length > 0) {
             await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')}) AND ClienteElementoDependienteId IS NULL`, [ClienteId])
-            await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0
-               WHERE dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
+            await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 WHERE nex.ClienteElementoDependienteId IS NULL and dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
         }
 
         for (const [idx, domicilio] of domicilios.entries()) {

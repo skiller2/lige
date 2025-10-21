@@ -37,7 +37,7 @@
           "icon": "anticon-profile"
         },
         {
-          "text": "Descuentos #",
+          "text": "Descuentos",
           "link": "/dto/descuentos",
           "icon": "anticon-profile"
         },
@@ -201,7 +201,7 @@
           "icon": "anticon-profile"
         },
         {
-          "text": "Importe Venta Vigilancia #",
+          "text": "Importe Venta Vigilancia",
           "link": "/ges/importe-venta-vigilancia",
           "icon": "anticon-profile"
         },
