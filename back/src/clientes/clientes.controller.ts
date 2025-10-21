@@ -40,7 +40,9 @@ export class ClientesController extends BaseController {
             fieldName: "fac.ClienteFacturacionCUIT",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            minWidth: 100,
+            maxWidth: 100
         },
         {
             name: "Razón Social",
@@ -94,14 +96,15 @@ export class ClientesController extends BaseController {
         },
 
         {
-            name: "Cantidad de objetivos activos",
+            name: "Cantidad Objetivos activos",
             type: "number",
             id: "CantidadObjetivos",
             field: "CantidadObjetivos",
             fieldName: "cant.CantidadObjetivos",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            maxWidth: 130
         },
         {
             name: "Cantidad Custodias (30 días)",
@@ -111,7 +114,8 @@ export class ClientesController extends BaseController {
             fieldName: "custodias.CantidadCustodias",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            maxWidth: 140
         },
         {
             name: "Activo",
@@ -128,7 +132,10 @@ export class ClientesController extends BaseController {
 
             exportWithFormatter: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            minWidth: 50,
+            maxWidth: 50,
+            cssClass:'text-center'
         },
     ];
 
