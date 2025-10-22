@@ -11,17 +11,18 @@
  
       <div nz-col style="display: flex;flex-direction: row-reverse;">
         
-        <nz-button-group >
-          <button nz-button nzType="default" [disabled]="editExcepcionAsistenciaCodigo()? false : true" (click)="goToEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-            <span nz-icon nzType="edit" nzTheme="outline"></span>
+        <nz-button-group>
+          <button nz-button nzType="default" [disabled]="!rows().length || loadingRec() || loadingPen()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}"
+            nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows().length}} registros?" (nzOnConfirm)="aprobarReg()">
+            <nz-icon nzType="check" nzTheme="outline" />
           </button>
-          <button nz-button nzType="default" (click)="goToAdd()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>
+          <button nz-button nzType="default" [disabled]="!rows().length || loadingApr() || loadingPen()" [nzLoading]="loadingRec()" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}"
+            nz-popconfirm nzPopconfirmTitle="¿Rechazar {{rows().length}} registros?" (nzOnConfirm)="rechazarReg()">
+            <nz-icon nzType="close" nzTheme="outline" />
           </button>
-          <button nz-button nzType="default" [disabled]="editExcepcionAsistenciaCodigo() == 0"
-            nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar?" (nzOnConfirm)="deleteExcepcionAsistenciaInput()" 
-            nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete"
-            nzTheme="outline"></span>
+          <button nz-button nzType="default" [disabled]="!rows().length || loadingApr() || loadingRec()" [nzLoading]="loadingPen()" nz-tooltip nzTooltipTitle="{{ 'app.icon.pause' | i18n }}"
+            nz-popconfirm nzPopconfirmTitle="¿Poner en Pendiente {{rows().length}} registros?" (nzOnConfirm)="pendienteReg()">
+            <nz-icon nzType="pause" nzTheme="outline" />
           </button>
         </nz-button-group>
   
@@ -34,24 +35,14 @@
         <ul nz-menu nzMode="horizontal" style="display: flex;">
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" (click)="reloadListado()" >{{ 'app.novedades' | i18n }} </a>
+            <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" (click)="reloadList()" >{{ 'ges.asistenciaexcepciones' | i18n }} </a>
           </li>
-          <li nz-menu-item nzMatchRouter>
-            <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'detalle']" (click)="goToDetail()" >{{ 'app.detail' | i18n }} </a>
-          </li>
-          @if(!childIsPristine()){
-            <li nz-menu-item nzMatchRouter>
-              <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'alta']">{{ 'app.alta' | i18n }}</a>
-            </li>
-          }
         </ul>
       </div>
     
     </div>
-    <!--selectedIndex: {{selectedIndex()}}-->
-    <nz-tabset [nzSelectedIndex]="selectedIndex()"  nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
+    
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
         
         <nz-tab>
           <a nz-tab-link routerLink="/ges/excepciones-asistencia/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
@@ -65,24 +56,6 @@
               </angular-slickgrid>
             </div>
           </ng-template>
-        </nz-tab>
-    
-        <nz-tab>
-          <a nz-tab-link routerLink="/ges/excepciones-asistencia/editar" >{{ 'app.icon.edit' | i18n }}</a>
-          <!-- <app-excepciones-asistencia-form #novedadesFormEdit [(NovedadCodigo)]="editExcepcionAsistenciaCodigo" (onAddorUpdate)="handleAddOrUpdate($event)"
-            ></app-excepciones-asistencia-form> -->
-        </nz-tab>
-  
-        <nz-tab>
-          <a nz-tab-link routerLink="/ges/excepciones-asistencia/detalle" >{{ 'app.detail' | i18n }}</a>
-          <!-- <app-excepciones-asistencia-form #novedadesFormDeta [(NovedadCodigo)]="editExcepcionAsistenciaCodigo"
-           ></app-excepciones-asistencia-form> -->
-        </nz-tab>
-    
-        <nz-tab> 
-          <a nz-tab-link routerLink="/ges/excepciones-asistencia/alta" >{{ 'app.alta' | i18n }}</a>
-          <!-- <app-excepciones-asistencia-form #novedadesFormAlta [(NovedadCodigo)]="editExcepcionAsistenciaCodigo" (onAddorUpdate)="handleAddOrUpdate($event)"
-           ></app-excepciones-asistencia-form> -->
         </nz-tab>
   
     </nz-tabset>

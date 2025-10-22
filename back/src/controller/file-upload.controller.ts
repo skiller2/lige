@@ -331,6 +331,45 @@ export class FileUploadController extends BaseController {
 
   }
 
+  async getArchivoAnterior(req: Request,
+    res: Response,
+    next: NextFunction) {
+
+    const id = req.params.id
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+
+      const ArchivoAnterior = await queryRunner.query(`
+        SELECT 
+            doc.DocumentoId AS id, 
+            doc.DocumentoTipoCodigo AS doctipo_id,
+            doc.PersonalId AS persona_id,
+            doc.DocumentoDenominadorDocumento AS den_documento,
+            doc.ObjetivoId AS objetivo_id,
+            doc.DocumentoClienteId AS cliente_id,
+            doc.DocumentoFechaDocumentoVencimiento AS fec_doc_ven,
+            doc.DocumentoPath AS path, 
+            'documento' AS tableForSearch,
+            doc.DocumentoNombreArchivo AS nombre
+        FROM Documento doc
+        JOIN DocumentoTipo tipo ON doc.DocumentoTipoCodigo = tipo.DocumentoTipoCodigo
+        WHERE 
+            doc.DocumentoId = @0
+      `, [id])
+
+      await queryRunner.commitTransaction()
+      
+      return this.jsonRes(ArchivoAnterior, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {      
+      await queryRunner.release()
+    }
+  }
+
   static async handleDOCUpload(
     personal_id_raw: any,
     objetivo_id_raw: any,

@@ -23,7 +23,7 @@ interface DocTipo {
 
 @Component({
   selector: 'app-file-upload',
-  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule,ImageLoaderComponent],
+  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule, ImageLoaderComponent],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.less',
   providers: [
@@ -42,14 +42,14 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   constructor() {
     pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
-/*
-    effect(async() => {
-      const id = this.idForSearh();
-      const text = this.textForSearch();
-      this.formChangeArchivos$.next('');
-      this.initializeDocumentTypes();
-    });
-*/  
+    /*
+        effect(async() => {
+          const id = this.idForSearh();
+          const text = this.textForSearch();
+          this.formChangeArchivos$.next('');
+          this.initializeDocumentTypes();
+        });
+    */
 
   }
 
@@ -64,8 +64,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
 
   ArchivoIdForDelete = 0
-  
-  idForSearh = input(0) 
+
+  idForSearh = input(0)
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")
@@ -91,7 +91,7 @@ export class FileUploadComponent implements ControlValueAccessor {
     console.log("this.idForSearh()", this.idForSearh())
     this.LoadArchivosAnteriores(this.idForSearh())
   }
- 
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       if (changes['textForSearch']) {
@@ -99,7 +99,7 @@ export class FileUploadComponent implements ControlValueAccessor {
         this.docTiposValidos.set(this.textForSearch().split(','))
       }
 
-      if (this.docTiposValidos().length==1)
+      if (this.docTiposValidos().length == 1)
         this.tipoSelected.set(this.docTiposValidos()[0])
 
       this.LoadArchivosAnteriores(this.idForSearh())
@@ -107,22 +107,29 @@ export class FileUploadComponent implements ControlValueAccessor {
     }
   }
 
-   async ngOnInit() {
-    this.textForSearchSelected.set( await firstValueFrom(this.apiService.getSelectTipoinFile()))
+  async ngOnInit() {
+    this.textForSearchSelected.set(await firstValueFrom(this.apiService.getSelectTipoinFile()))
   }
 
   async LoadArchivosAnteriores(idForSearh: any) {
-
-    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "") 
+    
+    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "")
       this.tipoSelected.set(this.docTiposValidos()[0])
 
     if (idForSearh && this.tipoSelected() != "" && this.tableForSearch() != "") {
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
-    
+
       this.prevFiles.emit(result)
       this.files.set(result)
 
+    } else if (idForSearh && !this.tableForSearch() && !this.tipoSelected()) {
+      const result = await firstValueFrom(this.apiService.getArchivoAnterior(idForSearh))
+      console.log("result", result)
+      console.log("result.length", result.length)
+      this.cantFilesAnteriores.set(result.length)
+      this.prevFiles.emit(result)
+      this.files.set(result)
     } else {
       this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)
@@ -134,13 +141,13 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
     this.modalViewerVisiable.set(false)
-    this.src.set(await fetch(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
+    this.src.set(await fetch(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, { headers: { token: this.tokenService.get()?.token ?? '' } }).then(res => res.blob()))
     this.FileName.set(filename)
     this.modalViewerVisiable.set(true)
   }
 
 
-  async uploadChange(event: any, file:any) {
+  async uploadChange(event: any, file: any) {
     switch (event.type) {
       case 'start':
 
@@ -160,30 +167,30 @@ export class FileUploadComponent implements ControlValueAccessor {
 
         const Response = event.file.response
 
-        if(file){
+        if (file) {
           this.files.set(this.files().map(item => {
             if (item.id === file.id) {
-              return { 
+              return {
                 ...item,
                 path: null,
                 nombre: Response.data[0].originalname,
                 mimetype: Response.data[0].mimetype,
                 tempfilename: Response.data[0].tempfilename,
                 url: Response.data[0].url,
-                
+
               };
             }
             return item;
           }));
 
-        }else{
+        } else {
 
-//          const src = await fetch(`api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob())
-//          this.blobUrl = URL.createObjectURL(src)
+          //          const src = await fetch(`api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob())
+          //          this.blobUrl = URL.createObjectURL(src)
           Response.data[0].tableForSearch = this.tableForSearch()
           Response.data[0].doctipo_id = this.tipoSelected()
-//          Response.data[0].fileUrl = this.blobUrl
-//          Response.data[0].fileUrl = `api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`
+          //          Response.data[0].fileUrl = this.blobUrl
+          //          Response.data[0].fileUrl = `api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`
           Response.data[0].persona_id = 0
           Response.data[0].den_documento = ""
           Response.data[0].objetivo_id = 0
@@ -209,36 +216,36 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   }
 
-  async confirmUpdateArchivo(file:any) {
+  async confirmUpdateArchivo(file: any) {
 
     try {
 
-      if(file.id){
+      if (file.id) {
         this.files.set(this.files().map(item => {
           console.log("item", item)
-          if (item.id === file.id) 
+          if (item.id === file.id)
             return { ...item, update: true };
-          
+
           return item;
         }));
-      }else{
+      } else {
         // si file no tiene id, es un archivo temporal y se borra del array
         this.files.set(this.files().filter((item) => item.fieldname !== file.fieldname))
         this.notification.warning('Respuesta', `Archivo borrado con exito `)
       }
-    this.propagateChange(this.files())
+      this.propagateChange(this.files())
 
-  } catch (error) {
+    } catch (error) {
+
+    }
 
   }
-  
-}
 
-async DeleteFileByExporterror(file:any) {
-  
-  this.files.set([])
-  
-}
+  async DeleteFileByExporterror(file: any) {
+
+    this.files.set([])
+
+  }
 
   ngOnDestroy() {
     /*
