@@ -59,7 +59,7 @@ export class CustodiaComponent {
         filtros: [],
         sort: null,
     };
-    startFilters: any[] = []
+    startFilters = signal<any[]>([])
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -117,6 +117,8 @@ export class CustodiaComponent {
             selectActiveRow: true
         }
 
+
+
         effect(async () => {
             // console.log('PERIODO',this.periodo());
             const periodo = this.periodo() //para que triggee
@@ -126,7 +128,6 @@ export class CustodiaComponent {
             }
             this.listCustodia('')
         }, { injector: this.injector });
-
 
         const now = new Date()
         const anio =
@@ -288,5 +289,17 @@ export class CustodiaComponent {
         }
     
     }
+
+    ngAfterViewInit(): void {
+    
+        const ClienteId = Number(this.route.snapshot.paramMap.get('ClienteId'))
+    
+        setTimeout(() => {
+          if (ClienteId > 0) {
+            this.startFilters.set([ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:true}])
+          }
+        }, 1000)
+      }
+    
 
 }

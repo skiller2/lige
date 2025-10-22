@@ -45,6 +45,18 @@ const columnsObjCustodia: any[] = [
         searchType: "number",
         // maxWidth: 170,
         minWidth: 100,
+        searchHidden: true
+    },
+    {
+        name: "Cliente",
+        type: "string",
+        id: "ClienteId",
+        field: "ClienteId",
+        fieldName: "cli.ClienteId",
+        searchComponent: "inpurForClientSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
     },
     {
         id: 'requirente', name: 'Solicitado por', field: 'requirente',

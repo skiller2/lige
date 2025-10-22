@@ -65,6 +65,9 @@ export class ClientesComponent {
         if (cols[8]) {
           cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
         }
+        if (cols[9]) {
+          cols[9].asyncPostRender = this.renderCustodiasComponent.bind(this)
+        }
         return cols
       })
     )
@@ -132,6 +135,16 @@ export class ClientesComponent {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     let ClienteId = dataContext.ClienteId
     Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/objetivos/listado', params:{ ClienteId: ClienteId } , detail: cellNode.innerText})
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+  
+    cellNode.replaceChildren(componentOutput.domElement)
+    
+  }
+
+  renderCustodiasComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    let ClienteId = dataContext.ClienteId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/cust/objetivos', params:{ ClienteId: ClienteId } , detail: cellNode.innerText})
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
   
     cellNode.replaceChildren(componentOutput.domElement)
