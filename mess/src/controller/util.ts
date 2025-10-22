@@ -40,14 +40,14 @@ export class Utils {
     })
   }
 
-  static isOKResponse(inText:string) { 
-    return (inText.charAt(0).toUpperCase() == 'S')?true:false
+  static isOKResponse(inText: string) {
+    return (inText.charAt(0).toUpperCase() == 'S') ? true : false
   }
 
 
   static removeBotFileSessions() {
 
-    const directoryPath = path.join(process.cwd(),'./bot_sessions')
+    const directoryPath = path.join(process.cwd(), './bot_sessions')
 
     console.log('currentDirectory', directoryPath)
 
@@ -64,15 +64,50 @@ export class Utils {
       });
       const rutaArchivo = path.join(directoryPath, 'baileys_store.json');
       unlinkSync(rutaArchivo);
-  
-    } catch (error) { 
+
+    } catch (error) {
       const errMsg = `Error al eliminar archivos de sesión: ${error}`
       console.log(errMsg)
-//      throw new Error(errMsg)
+      //      throw new Error(errMsg)
+    }
+  }
+
+  static getFileData(ctx: any) {
+    let mimetype, filename, mediaId
+
+    const provider = process.env.PROVIDER
+
+    switch (provider) {
+      case 'META':
+        if (ctx.fileData) {
+          ({ filename, mime_type: mimetype, id: mediaId } = ctx.fileData)
+        } 
+        break
+
+      case 'BAILEY':
+        if (ctx.message) {
+          if (ctx.message.documentMessage) {
+            mimetype = ctx.message.documentMessage.mimetype
+          } else if (ctx.message.imageMessage) {
+            mimetype = ctx.message.imageMessage.mimetype
+          } else if (ctx.message.videoMessage) {
+            mimetype = ctx.message.videoMessage.mimetype
+          }
+          filename = ctx.body || 'archivo'
+        }
+        break
+
+      default:
+        throw new Error(`Proveedor no reconocido, verifique en el .env parámetro PROVIDER`)
     }
 
-
-
+    return { mimetype, filename, mediaId }
   }
+
+  static isValidFileType(mimetype: string): boolean {
+    const allowedTypes = ['jpeg', 'jpg', 'pdf', 'mp4', 'png', 'xlsx', 'xls', 'doc', 'docx'];
+    return allowedTypes.some(type => mimetype.includes(type))
+  }
+
 
 }
