@@ -32,40 +32,43 @@ scheduleJob('0 7 * * *', async function (fireDate) {
 
 
 //})
-if (!process.env.PERSONALID_TEST) {
+
+const ENABLE_QUEUE_MSGS = ['true', '1', 'yes'].includes((process.env.ENABLE_QUEUE_MSGS || '').toLowerCase());
+
+if (ENABLE_QUEUE_MSGS) {
+  console.log('Envío mensajes en cola habilitada')
   scheduleJob('*/1 * * * *', async function (fireDate) {
     const status = botServer.status().bot_online
     if (status != 'ONLINE') return
-    console.log('reviso cola')
+
     const ahora = new Date();
     const horas = ahora.getHours();
-    if (horas >= 8 && horas <= 22) {
-      const listmsg = await ChatBotController.getColaMsg()
 
-      for (const msg of listmsg) {
-        try {
+    const listmsg = await ChatBotController.getColaMsg()
+    console.log(`Reviso cola, ${listmsg.length} pendientes`)
+    
+    for (const msg of listmsg) {
+      try {
+        if (msg.ClaseMensaje == 'NOVEDAD' || (horas >= 8 && horas <= 22)) {
           const saludo = BotServer.getSaludo();
           const texto = String(msg.TextoMensaje || '').trim()
 
-          if (texto !== '') {
-            await botServer.sendMsg(msg.Telefono, saludo);
-            await delay(1000);
-            await botServer.sendMsg(msg.Telefono, texto);
+          if (texto == '')
+            throw new Error(`Mensaje vacío, no se envió TextoMensaje`)
 
-          } else {
-            console.log(`Mensaje vacío para ${msg.Telefono}, no se envió TextoMensaje`
-            );
-          }
-
+          await botServer.sendMsg(msg.Telefono, saludo);
+          //await delay(1000);
+          await botServer.sendMsg(msg.Telefono, texto);
           await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId);
 
-          await delay(2000);
-        } catch (err) {
-          console.error(`Error procesando mensaje ${msg.telefono}:`, err);
         }
-      }
 
+        //        await delay(1000);
+      } catch (err) {
+        console.error(`Error procesando mensaje ${msg.telefono}:`, err);
+      }
     }
+
   });
 }
 

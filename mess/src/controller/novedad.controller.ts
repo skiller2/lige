@@ -4,6 +4,7 @@ import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
 import { PersonalController } from "./personal.controller.ts";
+import { ChatBotController } from "./chatbot.controller.ts";
 
 const personalController = new PersonalController()
 
@@ -28,21 +29,8 @@ export class NovedadController extends BaseController {
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
       const result = await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
-      let telefono = (result[0]) ? result[0].Telefono : ''
-
-      if (process.env.PERSONALID_TEST)
-        telefono = novedad.telefonoOrigen
-
-      if (telefono) {
-        //TODO: Debería encolarse 
-        //ChatBotController.enqueBotMsg(PersonalId, msg, 'HIGH', 'bot', '127.0.0.1')
-
-        await botServer.sendMsg(telefono, msg)
-        
-        //await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
-
-
-      }
+      if (result.length>0)
+        ChatBotController.enqueBotMsg(PersonalId, msg, 'NOVEDAD', 'bot', '127.0.0.1')
     }
   }
 

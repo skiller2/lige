@@ -249,9 +249,9 @@ export class NovedadesController extends BaseController {
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
-        const periodo = req.body.periodo? new Date(req.body.periodo) : null
-        const year = periodo? periodo.getFullYear() : 0
-        const month = periodo? periodo.getMonth()+1 : 0
+        const periodo = req.body.periodo ? new Date(req.body.periodo) : null
+        const year = periodo ? periodo.getFullYear() : 0
+        const month = periodo ? periodo.getMonth() + 1 : 0
         let condition = `1=1`
         if (periodo) {
             condition = `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1`
@@ -502,7 +502,7 @@ export class NovedadesController extends BaseController {
 
             if (!Obj.PersonalId)
                 Obj.PersonalId = PersonalId
-        
+
 
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
                 Obj.Telefono, ip, Obj.PersonalId, novedadId, usuarioName)
@@ -520,8 +520,8 @@ export class NovedadesController extends BaseController {
                 novedadId: novedadId,
             }
             //TODO: Agregar detalle del objetivo en Obj.DesObjetivo
-            await this.sendMsgResponsable(Obj,queryRunner,usuarioName,ip)
-            
+            await this.sendMsgResponsable(Obj, queryRunner, usuarioName, ip)
+
             await queryRunner.commitTransaction()
             return this.jsonRes(NovedadIdNew, res, 'Carga de nuevo registro exitoso');
         } catch (error) {
@@ -581,7 +581,7 @@ export class NovedadesController extends BaseController {
     }
 
     async addNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, ClienteId: any,
-        ClienteElementoDependienteId: any, Telefono: any, ip: any, PersonalId:any, novedadId: any, usuarioName: any) {
+        ClienteElementoDependienteId: any, Telefono: any, ip: any, PersonalId: any, novedadId: any, usuarioName: any) {
 
         const now = new Date();
         const AudFechaIng = now;
@@ -722,40 +722,28 @@ export class NovedadesController extends BaseController {
         return this.jsonRes(startFilters, res)
     }
 
-  async sendMsgResponsable(novedad: any, queryRunner: QueryRunner, usuario:string, ip:string) {
-    const Fecha = new Date(novedad.Fecha)
-    const ClienteId = novedad.ClienteId
-    const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
-    const ObjetivoId = novedad.ObjetivoId
-    const anio = Fecha.getFullYear()
-    const mes = Fecha.getMonth() + 1
-    const responsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner)
-    const supervisor = responsables.find(r => r.ord == 3)
-    
-    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad?.DesObjetivo ?? ''}` 
+    async sendMsgResponsable(novedad: any, queryRunner: QueryRunner, usuario: string, ip: string) {
+        const Fecha = new Date(novedad.Fecha)
+        const ClienteId = novedad.ClienteId
+        const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
+        const ObjetivoId = novedad.ObjetivoId
+        const anio = Fecha.getFullYear()
+        const mes = Fecha.getMonth() + 1
+        const responsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner)
+        const supervisor = responsables.find(r => r.ord == 3)
 
-    if (supervisor.GrupoActividadId) {
-      const PersonalId = supervisor.GrupoActividadId
-      const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
-      const telefono = (result[0]) ? result[0].Telefono : ''
+        const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad?.DesObjetivo ?? ''}`
 
-
-      if (telefono) {
-        //TODO: Debería encolarse
-        //ChatBotController.enqueBotMsg(PersonalId, msg, 'HIGH', 'bot', '127.0.0.1')
-
-          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD`, usuario, ip)
-          //if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
-          
-          
-          
-        //await botServer.sendMsg(telefono, msg)
-        
-        //await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
+        if (supervisor.GrupoActividadId) {
+            const PersonalId = supervisor.GrupoActividadId
+            const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
+            const telefono = (result[0]) ? result[0].Telefono : ''
 
 
-      }
+            if (telefono) {
+                const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD`, usuario, ip)
+            }
+        }
     }
-  }
 
 }
