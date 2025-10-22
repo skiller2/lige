@@ -151,7 +151,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
     })
     .addAnswer(['Ingrese el número del tipo de situación'], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-                        if (ctx?.type == 'dispatch')
+            if (ctx?.type == 'dispatch')
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -181,7 +181,7 @@ export const flowNovedadTipo = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
     .addAnswer(['Describa la acción tomada', 'M - Volver al menú',], { capture: true, delay },
-        async (ctx, { state, gotoFlow, fallBack}) => {
+        async (ctx, { state, gotoFlow, fallBack }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
 
@@ -200,7 +200,7 @@ export const flowNovedadAccion = addKeyword(EVENTS.ACTION)
 
 export const flowNovedadDescrip = addKeyword(EVENTS.ACTION)
     .addAnswer(['Describa la situación', 'M - Volver al menú',], { capture: true, delay },
-        async (ctx, { state, gotoFlow, fallBack}) => {
+        async (ctx, { state, gotoFlow, fallBack }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
 
@@ -221,7 +221,7 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
     })
     .addAnswer([
-        'Ingrese la hora de cuando se produjo el hecho (hh:mm)',
+        'Ingrese la hora en la cual se produjo el hecho, en formato 24hs (hh:mm)',
         'H - Ingresar Hora actual',
         'M - Volver al menú',
     ], { capture: true, delay },
@@ -278,7 +278,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
         'M - Volver al menú',
     ], { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-                        if (ctx?.type == 'dispatch')
+            if (ctx?.type == 'dispatch')
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -324,7 +324,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
 export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
     .addAnswer('Desea notificar al responsable? (Si/No)', { capture: true, delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
-                        if (ctx?.type == 'dispatch')
+            if (ctx?.type == 'dispatch')
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -387,50 +387,65 @@ export const flowNovedadRouter = addKeyword(EVENTS.ACTION)
             return gotoFlow(flowNovedad)
     })
 
+
 export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
-    .addAnswer(["📎 Envíame un documento, foto o video", 'M - Volver al menú de novedad',], { capture: true }, async (ctx, { gotoFlow, state, fallBack, provider, flowDynamic, endFlow }) => {
-                    if (ctx?.type == 'dispatch')
-                return fallBack()
+    .addAnswer(["📎 Envíame un documento, foto o video", 'M - Volver al menú de novedad'], { capture: true },
+        async (ctx, { gotoFlow, state, fallBack, provider, flowDynamic }) => {
 
-        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-        if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowNovedad)
+            if (ctx?.type == 'dispatch') return fallBack()
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowNovedad)
 
-        const personalId = state.get('personalId')
-        const novedad = await novedadController.getBackupNovedad(personalId)
+            const personalId = state.get('personalId')
+            const novedad = await novedadController.getBackupNovedad(personalId)
 
-        const localPath = await provider.saveFile(ctx, { path: `${dirtmp}` })
-        let array = localPath.split('\\')
+            try {
+                // Descargar archivo
+                const localPath = await provider.saveFile(ctx, { path: dirtmp })
+                const tempfilename = localPath.split('\\').pop()
 
-        const tempfilename = array[array.length - 1]
-        let mimetype = null
-        if (ctx.message.documentMessage) {
-            mimetype = ctx.message.documentMessage.mimetype
-        } else if (ctx.message.imageMessage) {
-            mimetype = ctx.message.imageMessage.mimetype
-        } else if (ctx.message.videoMessage) {
-            mimetype = ctx.message.videoMessage.mimetype
-        }
+                // Obtener metadata usando la función helper
+                const { mimetype, filename, mediaId } = Utils.getFileData(ctx)
 
-        if (['jpeg', 'pdf', 'mp4'].some(type => mimetype.includes(type))) {
-            const doc = { mimetype: mimetype, doctipo_id: 'NOV', tableForSearch: 'Documento', tempfilename }
-            if (!novedad.files)
-                novedad.files = []
-            novedad.files.push(doc)
+                if (!mimetype) {
+                    await flowDynamic(["No se pudo identificar el tipo de archivo."])
+                    return gotoFlow(flowNovedad)
+                }
 
-            await novedadController.saveNovedad(personalId, novedad)
-            await state.update({ reintento: 0 })
-            await flowDynamic([`Archivo recibido.`], { delay: delay })
-            return gotoFlow(flowNovedad)
-        } else {
-            const reintento = state.get('reintento') ?? 0
-            if (reintento > 3) {
-                await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                return stop(ctx, gotoFlow, state)
+                // Validar tipo usando la función helper
+                if (!Utils.isValidFileType(mimetype)) {
+                    const reintento = state.get('reintento') ?? 0
+                    if (reintento > 3) {
+                        await flowDynamic(`Demasiados reintentos, el archivo no es válido (Tipo: ${mimetype}).`, { delay: delay })
+                        return gotoFlow(flowNovedad)
+                    }
+                    await state.update({ reintento: reintento + 1 })
+                    return fallBack('Error validando el formato del archivo, reintente')
+                }
+
+                // Crear documento usando la función helper
+                const doc = {
+                    mimetype: mimetype,
+                    doctipo_id: 'NOV',
+                    tableForSearch: 'Documento',
+                    tempfilename,
+                    filename
+                }
+
+                if (!novedad.files) novedad.files = []
+                novedad.files.push(doc)
+
+                await novedadController.saveNovedad(personalId, novedad)
+                await state.update({ reintento: 0 })
+                await flowDynamic(["✅ Archivo recibido correctamente."])
+
+            } catch (error) {
+                console.log(error)
+                await flowDynamic(["❌ Error al procesar el archivo."])
             }
-            await state.update({ reintento: reintento + 1 })
-            fallBack('El formato del archivo es desconocido, reintente')
-        }
-    });
+
+            return gotoFlow(flowNovedad)
+        })
 
 function esHoraValida(hora: string): boolean {
     const partes = hora.split(':')
@@ -491,13 +506,13 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
     })
     .addAnswer('', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-                        if (ctx?.type == 'dispatch')
+            if (ctx?.type == 'dispatch')
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
-                
+
             const novedades = state.get('novedades')
             const personalId = state.get('personalId')
             const index = ctx.body
@@ -522,21 +537,21 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
                     `- Teléfono: ${novedad.Telefono ?? 's/d'}\n\n` +
                     `- Documentos adjuntos: ${novedad.CantDocRelacionados}\n`
                     , { delay: delay })
-                
+
                 await novedadController.setNovedadVisualizacion(novedad.NovedadCodigo, ctx.from, personalId)
-                
+
             } catch (error) {
                 console.log('Error --->', error)
                 await flowDynamic([`Ocurrio un error al mostrar la novedad. Informe al administrador del sistema. Redirigiendo al menú ...`], { delay: delay })
                 return gotoFlow(flowMenu)
             }
-            
+
 
         }
     )
     .addAnswer(['C - Consultar Documentos relacionados\nL - Volver al listado de novedades\nM - Volver al menú'], { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-                        if (ctx?.type == 'dispatch')
+            if (ctx?.type == 'dispatch')
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
@@ -567,8 +582,8 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
 
                     const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoNombreArchivo}`;
 
-                    await flowDynamic([{ body: `Novedad ${NovedadCodigo}, documento ${index+1}/${docsNov.length}`, media: urlDoc, delay }])
-                    await chatBotController.addToDocLog(documento.DocumentoId, ctx.from,PersonalId)
+                    await flowDynamic([{ body: `Novedad ${NovedadCodigo}, documento ${index + 1}/${docsNov.length}`, media: urlDoc, delay }])
+                    await chatBotController.addToDocLog(documento.DocumentoId, ctx.from, PersonalId)
                 }
                 return gotoFlow(flowNovedadPendiente)
             } catch (error) {
@@ -578,7 +593,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
             }
         }
     )
-   
+
 
 export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
@@ -615,20 +630,20 @@ export const flowProactivoNovedad = addKeyword(utils.setEvent("CONSULTA_NOVEDADE
 
         const telefono = ctx.from
 
-        const { activo, stateData, PersonalSituacionRevistaSituacionId,firstName,codigo } = await personalController.getPersonaState(telefono)
+        const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
         await state.update(stateData)
 
         if (!activo)
-            return stopSilence(ctx, gotoFlow, state,endFlow)
+            return stopSilence(ctx, gotoFlow, state, endFlow)
     })
     .addAnswer('¿Desea ver las novedades? (Si/No)', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             if (ctx?.type == 'dispatch')
                 return fallBack()
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            
+
             if (Utils.isOKResponse(ctx.body)) return gotoFlow(flowNovedadPendiente)
-            
+
             return stop(ctx, gotoFlow, state)
         }
     )
