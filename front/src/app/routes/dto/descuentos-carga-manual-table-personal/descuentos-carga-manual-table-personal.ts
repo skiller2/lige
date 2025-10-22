@@ -44,6 +44,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     let mapped = cols.map((col: Column) => {
       if (col.id === 'ApellidoNombre') {
         col.formatter = Formatters['complexObject'],
+        col.maxWidth = 300,
         col.params = {
           complexFieldLabel: 'ApellidoNombre.fullName',
         },
@@ -60,7 +61,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
     if (col.id === 'CantidadCuotas') {
       col.type = FieldType.float,
-      col.maxWidth = 250,
+      col.maxWidth = 120,
       col.editor = {
         model: Editors['text'],
         required: true
@@ -68,9 +69,9 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     }
     if (col.id === 'ImporteTotal') {
       col.formatter = Formatters['multiple'],
+      col.maxWidth = 120,
       col.params = {
         formatters: [Formatters['currency']],
-        // groupFormatterPrefix: '<b>Total</b>: ' 
       },
       col.cssClass = 'text-right',
       col.editor = {
@@ -80,7 +81,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     }
     if (col.id === 'Detalle') {
       col.type = FieldType.string,
-      col.maxWidth = 250,
+      col.maxWidth = 300,
+      col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
       col.editor = {
         model: Editors['text'],
         required: true
@@ -89,6 +91,8 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     if (col.id === 'mensaje') {
       col.type = FieldType.string;
       delete col.editor;
+      col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
+    
     }
         return col
       });

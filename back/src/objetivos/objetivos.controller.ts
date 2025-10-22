@@ -944,7 +944,8 @@ export class ObjetivosController extends BaseController {
 
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
-                    await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, 'obj', null, null, file, usuarioId, ip, queryRunner)
+                    let denDocumento = Obj.ClienteId + '/' + Obj.ClienteElementoDependienteId
+                    await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, denDocumento, null, null, file, usuarioId, ip, queryRunner)
                 }
             }
 
@@ -1374,7 +1375,8 @@ export class ObjetivosController extends BaseController {
 
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
-                    await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, 'obj', null, null, file, usuarioId, ip, queryRunner)
+                    let denDocumento = Obj.ClienteId + '/' + ClienteElementoDependienteUltNro
+                    await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, denDocumento, null, null, file, usuarioId, ip, queryRunner)
                 }
             }
 

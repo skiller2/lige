@@ -10,7 +10,8 @@ import {
   descuentosController,
   movimientoAcreditacionEnCuentaController,
   liquidacionesController,
-  liquidacionesBancoController
+  liquidacionesBancoController,
+  compensaGeneralACordinadorController
 } from "../controller/controller.module";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
@@ -233,6 +234,9 @@ liquidacionesRouter.post("/periodo",  async (req, res, next) => {
   await liquidacionesController.getPeriodoStatus(req, res, next);
 });
 
+liquidacionesRouter.post('/compensaGeneralCoordinador', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
+  await compensaGeneralACordinadorController.procesaCambios(req, res, next)
+})
 
 
 

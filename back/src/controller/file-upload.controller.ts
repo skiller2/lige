@@ -331,6 +331,45 @@ export class FileUploadController extends BaseController {
 
   }
 
+  async getArchivoAnterior(req: Request,
+    res: Response,
+    next: NextFunction) {
+
+    const id = req.params.id
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+
+      const ArchivoAnterior = await queryRunner.query(`
+        SELECT 
+            doc.DocumentoId AS id, 
+            doc.DocumentoTipoCodigo AS doctipo_id,
+            doc.PersonalId AS persona_id,
+            doc.DocumentoDenominadorDocumento AS den_documento,
+            doc.ObjetivoId AS objetivo_id,
+            doc.DocumentoClienteId AS cliente_id,
+            doc.DocumentoFechaDocumentoVencimiento AS fec_doc_ven,
+            doc.DocumentoPath AS path, 
+            'documento' AS tableForSearch,
+            doc.DocumentoNombreArchivo AS nombre
+        FROM Documento doc
+        JOIN DocumentoTipo tipo ON doc.DocumentoTipoCodigo = tipo.DocumentoTipoCodigo
+        WHERE 
+            doc.DocumentoId = @0
+      `, [id])
+
+      await queryRunner.commitTransaction()
+      
+      return this.jsonRes(ArchivoAnterior, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {      
+      await queryRunner.release()
+    }
+  }
+
   static async handleDOCUpload(
     personal_id_raw: any,
     objetivo_id_raw: any,
@@ -405,12 +444,11 @@ export class FileUploadController extends BaseController {
         if (!doc_id) {
           // INSERT DOCUMENTO
           doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
-
           let type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
 
-          if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet' ) type = 'xlsx'
+          if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') type = 'xlsx'
 
           if (type == 'vnd.ms-excel') type = 'xls'
 
@@ -479,7 +517,6 @@ export class FileUploadController extends BaseController {
           console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
-
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
 
             const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
@@ -491,26 +528,58 @@ export class FileUploadController extends BaseController {
             }
 
             // Copia el nuevo archivo
-            copyFileSync(tempFilePath, filePath);
+
+            console.log("file.mimetype", file.mimetype)
+            let type = file.mimetype.split('/')[1]
+
+            if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
+            if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') type = 'xlsx'
+            if (type == 'vnd.ms-excel') type = 'xls'
+
+            const newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
+
+            copyFileSync(tempFilePath, newFilePath);
+
+            
+            
+            console.log("newFilePath", newFilePath)
+
+            const NewNamefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
+
+
+            await queryRunner.query(`
+            UPDATE Documento
+            SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
+            DocumentoPath = @3, DocumentoNombreArchivo = @4, DocumentoDetalleDocumento = @14,
+            DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
+            DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
+            DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13
+            WHERE DocumentoId = @0
+        `, [doc_id, periodo_id, fecha, newFilePath, NewNamefile, doctipo_id, personal_id, objetivo_id,
+              den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
+
+
+
+          } else {
+            console.log("no hay archivo para actualizar")
+            await queryRunner.query(`
+            UPDATE Documento
+            SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
+            DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
+            DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
+            DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13
+            WHERE DocumentoId = @0
+        `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
+              den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
+
 
           }
 
           // Actualiza el registro
-          await queryRunner.query(`
-          UPDATE Documento
-          SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16,
-          DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
-          DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
-          DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13 
-          WHERE DocumentoId = @0
-        `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
-            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
-
 
           ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'DocumentoId', doctipo_id, doc_id)
 
         }
-        //throw new ClientException(`Error al actualizar el documento test`)
         return { doc_id, newFilePath, ArchivosAnteriores }
 
       case "DocumentoImagenEstudio":

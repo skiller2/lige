@@ -18,6 +18,7 @@ import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.co
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 
 @Component({
     selector: 'app-objetivos-form',
@@ -35,7 +36,9 @@ import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkb
         NzSelectModule,
         FileUploadComponent,
         GrupoActividadSearchComponent,
-        NzCheckboxModule
+        NzCheckboxModule,
+        DetallePersonaComponent,
+        NzInputGroupComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -43,7 +46,7 @@ import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkb
 
 export class ObjetivosFormComponent {
   public router = inject(Router);
-
+  visibleDrawer = signal(false)
   periodo = signal({ year: 0, month: 0 })
 //  visibleDrawer: boolean = false
 
@@ -117,6 +120,7 @@ export class ObjetivosFormComponent {
     ContratoFechaHastaOLD:"",
     GrupoActividadId:0,
     habilitacion: [],
+    GrupoActividadJerarquicoPersonalId:0,
   })
 
  
@@ -253,7 +257,8 @@ export class ObjetivosFormComponent {
       ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
       codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
       GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-      clienteOld:this.ClienteId()
+      clienteOld:this.ClienteId(),
+      GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
     });
 
 
@@ -398,6 +403,10 @@ export class ObjetivosFormComponent {
     await firstValueFrom(this.apiService.deleteObjetivos(form))
     this.onAddorUpdate.emit()
     
+  }
+
+  closeDrawer(): void {
+    this.visibleDrawer.set( false)
   }
 
 

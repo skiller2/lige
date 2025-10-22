@@ -6,6 +6,8 @@ import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
 import { ObjectId } from "typeorm/browser";
 import { Console } from "node:console";
+import { ObjetivoController } from "src/controller/objetivo.controller";
+import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 
 const listaColumnas: any[] = [
     {
@@ -482,13 +484,12 @@ export class NovedadesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body }
         let NovedadIdNew = {}
+        const ip = this.getRemoteAddress(req)
 
         try {
 
-            const ip = this.getRemoteAddress(req)
             // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
-            const usuarioId = res.locals.PersonalId ? res.locals.PersonalId : null
-
+            const PersonalId = res.locals.PersonalId ? res.locals.PersonalId : null
             await queryRunner.startTransaction()
             await this.FormValidations(Obj)
 
@@ -499,22 +500,28 @@ export class NovedadesController extends BaseController {
             Obj.ClienteId = objetivo[0].ClienteId
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
+            if (!Obj.PersonalId)
+                Obj.PersonalId = PersonalId
+        
+
             await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
-                Obj.Telefono, usuarioId, ip, novedadId, usuarioName)
+                Obj.Telefono, ip, Obj.PersonalId, novedadId, usuarioName)
 
 
             let doc_id = 0
             let array_id = []
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
-                    await this.fileNovedadUpload(queryRunner, Obj, usuarioId, ip, novedadId, usuarioName, file, array_id, doc_id)
+                    await this.fileNovedadUpload(queryRunner, Obj, PersonalId, ip, novedadId, usuarioName, file, array_id, doc_id)
                 }
             }
 
             NovedadIdNew = {
                 novedadId: novedadId,
             }
-
+            //TODO: Agregar detalle del objetivo en Obj.DesObjetivo
+            await this.sendMsgResponsable(Obj,queryRunner,usuarioName,ip)
+            
             await queryRunner.commitTransaction()
             return this.jsonRes(NovedadIdNew, res, 'Carga de nuevo registro exitoso');
         } catch (error) {
@@ -574,7 +581,7 @@ export class NovedadesController extends BaseController {
     }
 
     async addNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, ClienteId: any,
-        ClienteElementoDependienteId: any, Telefono: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any) {
+        ClienteElementoDependienteId: any, Telefono: any, ip: any, PersonalId:any, novedadId: any, usuarioName: any) {
 
         const now = new Date();
         const AudFechaIng = now;
@@ -584,7 +591,6 @@ export class NovedadesController extends BaseController {
         const AudUsuarioIng = usuarioName;
         const AudUsuarioMod = usuarioName;
 
-        const PersonalId = usuarioId
         const telefono = Telefono ? Telefono : null
         const fechaString = Fecha;
         const fechaObjeto = new Date(fechaString);
@@ -715,4 +721,41 @@ export class NovedadesController extends BaseController {
         })
         return this.jsonRes(startFilters, res)
     }
+
+  async sendMsgResponsable(novedad: any, queryRunner: QueryRunner, usuario:string, ip:string) {
+    const Fecha = new Date(novedad.Fecha)
+    const ClienteId = novedad.ClienteId
+    const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
+    const ObjetivoId = novedad.ObjetivoId
+    const anio = Fecha.getFullYear()
+    const mes = Fecha.getMonth() + 1
+    const responsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner)
+    const supervisor = responsables.find(r => r.ord == 3)
+    
+    const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad?.DesObjetivo ?? ''}` 
+
+    if (supervisor.GrupoActividadId) {
+      const PersonalId = supervisor.GrupoActividadId
+      const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
+      const telefono = (result[0]) ? result[0].Telefono : ''
+
+
+      if (telefono) {
+        //TODO: Debería encolarse
+        //ChatBotController.enqueBotMsg(PersonalId, msg, 'HIGH', 'bot', '127.0.0.1')
+
+          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD`, usuario, ip)
+          //if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+          
+          
+          
+        //await botServer.sendMsg(telefono, msg)
+        
+        //await botServer.runFlow(telefono, 'CONSULTA_NOVEDADES')
+
+
+      }
+    }
+  }
+
 }
