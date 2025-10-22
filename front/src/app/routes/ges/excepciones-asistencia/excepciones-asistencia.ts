@@ -118,7 +118,7 @@ export class ExcepcionesAsistenciaComponent {
       // console.log('ERROR:',rows)
       this.rowsError.set(rows)
     }
-    // this.changeBackgroundColor()
+    this.changeBackgroundColor()
     this.loadingApr.set(false)
   }
 
@@ -135,7 +135,7 @@ export class ExcepcionesAsistenciaComponent {
       // console.log('ERROR:',rows)
       this.rowsError.set(rows)
     }
-    // this.changeBackgroundColor()
+    this.changeBackgroundColor()
     this.loadingRec.set(false)
   }
 
@@ -151,7 +151,7 @@ export class ExcepcionesAsistenciaComponent {
       // console.log('ERROR:',rows)
       this.rowsError.set(rows)
     }
-    // this.changeBackgroundColor()
+    this.changeBackgroundColor()
     this.loadingPen.set(false)
   }
 

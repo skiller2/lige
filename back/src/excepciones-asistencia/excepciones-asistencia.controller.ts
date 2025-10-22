@@ -204,8 +204,6 @@ export class ExcepcionesAsistenciaController extends BaseController {
           AND ((art.PersonalArt14AutorizadoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1))) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (art.PersonalArt14Hasta >= DATEFROMPARTS(@1,@2,1)) )) )
           AND art.PersonalArt14Anulacion is null AND ${filterSql} ${orderBy}
       `, [ ,year,month])
-      console.log();
-      
       this.jsonRes(
           {
               total: list.length,
