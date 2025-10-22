@@ -71,7 +71,7 @@
             <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
             <nz-form-control>
               <app-file-upload formControlName="archivo" [cantMaxFiles]="1" [idForSearh]="doc_id()"
-                [textForSearch]="doctipo_id()" [tableForSearch]="'Documento'" [columnForSearch]="'DocumentoId'"
+                [textForSearch]="doctipo_id()" [tableForSearch]="'Documento'" [columnForSearch]="'DocumentoId'" [searchById]="true"
                 [previewFile]="false" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
             </nz-form-control>
           </nz-form-item>
