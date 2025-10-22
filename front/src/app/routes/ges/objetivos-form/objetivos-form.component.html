@@ -152,7 +152,7 @@
           </nz-input-group>
         </div>
       </nz-form-control>
-      <app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="formCli.value.SucursalId ?? 0" [PersonalId]="formCli.value.GrupoActividadJerarquicoPersonalId ?? 0"
+      <app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="0" [PersonalId]="formCli.value.GrupoActividadJerarquicoPersonalId ?? 0"
       [visible]="visibleDrawer()" (onClose)="closeDrawer()"></app-detalle-persona>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Desde</nz-form-label>
