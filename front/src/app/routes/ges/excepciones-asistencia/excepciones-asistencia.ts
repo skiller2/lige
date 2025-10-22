@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -25,7 +25,6 @@ export class ExcepcionesAsistenciaComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editExcepcionAsistenciaCodigo = signal(0)
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listExcepcionesAsistencia$ = new BehaviorSubject('')
@@ -33,14 +32,14 @@ export class ExcepcionesAsistenciaComponent {
     filtros: [],
     sort: null,
   };
-  selectedIndex = signal(0)
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
-
-//   childAlta = viewChild.required<ExcepcionesAsistenciaFormComponent>('excepAsistFormAlta')
-//   childDeta = viewChild.required<ExcepcionesAsistenciaFormComponent>('excepAsistFormDeta')
-//   childEdit = viewChild.required<ExcepcionesAsistenciaFormComponent>('excepAsistFormEdit')
+  loadingApr = signal(false)
+  loadingRec = signal(false)
+  loadingPen = signal(false)
+  rowsError = signal<number[]>([])
+  rows = signal<number[]>([])
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -60,6 +59,7 @@ export class ExcepcionesAsistenciaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+    this.gridOptions.enableCheckboxSelector = true
 
     this.selectedDate()
 
@@ -93,22 +93,11 @@ export class ExcepcionesAsistenciaComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-    console.log("handleSelectedRowsChanged", e)
-    const selrow = e.detail.args.rows[0]
-    const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    if (row?.id) {
-      this.editExcepcionAsistenciaCodigo.set(row.id)
-      // Asegurar que el componente de edición se inicialice si ya está visible
-      if (this.selectedIndex() === 2) {
-        // this.childEdit().viewRecord(false)
-      }
-    }
-
+    this.rows.set(e.detail.args.rows)
   }
 
-  reloadListado() {
+  reloadList() {
     this.listExcepcionesAsistencia$.next('')
-    this.selectedIndex.set(1)
   }
 
   listOptionsChange(options: any) {
@@ -116,39 +105,54 @@ export class ExcepcionesAsistenciaComponent {
     this.listExcepcionesAsistencia$.next('')
   }
 
-  async handleAddOrUpdate(event: any) {
-    this.listExcepcionesAsistencia$.next('')
-    if (event === 'delete') {
-      //this.editExcepcionAsistenciaCodigo.set(0)
-      this.selectedIndex.set(1)
-
+  async aprobarReg() {
+    this.loadingApr.set(true)
+    this.rowsError.set([])
+    const ids = this.angularGrid.dataView.getAllSelectedIds()
+    // console.log(ids,this.rows());
+    try {
+      const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaAprobar({ ids: ids, rows: this.rows() }))
+      this.listExcepcionesAsistencia$.next('')
+    } catch (error: any) {
+      let rows: any[] = error.error.data
+      // console.log('ERROR:',rows)
+      this.rowsError.set(rows)
     }
-
+    // this.changeBackgroundColor()
+    this.loadingApr.set(false)
   }
 
-  goToEdit() {
-    if (this.editExcepcionAsistenciaCodigo() > 0) {
-      this.selectedIndex.set(2)
-    //   this.childEdit().viewRecord(false)
+  async rechazarReg() {
+    this.loadingRec.set(true)
+    this.rowsError.set([])
+    const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+    // console.log(ids,this.rows());
+    try {
+      await firstValueFrom(this.apiService.excepcionesAsistenciaRechazar({ ids: ids, rows: this.rows() }))
+      this.listExcepcionesAsistencia$.next('')
+    } catch (error: any) {
+      let rows: any[] = error.error.data
+      // console.log('ERROR:',rows)
+      this.rowsError.set(rows)
     }
+    // this.changeBackgroundColor()
+    this.loadingRec.set(false)
   }
 
-  goToDetail() {
-    if (this.editExcepcionAsistenciaCodigo() > 0) {
-      this.selectedIndex.set(3)
-    //   this.childDeta().viewRecord(true)
+  async pendienteReg() {
+    this.loadingPen.set(true)
+    const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+    // console.log(ids,this.rows());
+    try {
+      const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaPendiente({ ids: ids, rows: this.rows() }))
+      this.listExcepcionesAsistencia$.next('')
+    } catch (error: any) {
+      let rows: any[] = error.error.data
+      // console.log('ERROR:',rows)
+      this.rowsError.set(rows)
     }
-  }
-
-  goToAdd() {
-    this.selectedIndex.set(4)
-    // this.childAlta().newRecord()
-  }
-
-  async deleteExcepcionAsistenciaInput() {
-
-    // await firstValueFrom(this.apiService.deleteExcepcionAsistencia(this.editExcepcionAsistenciaCodigo()))
-    this.listExcepcionesAsistencia$.next('')
+    // this.changeBackgroundColor()
+    this.loadingPen.set(false)
   }
 
   selectedDate (){
@@ -162,5 +166,43 @@ export class ExcepcionesAsistenciaComponent {
         ? Number(localStorage.getItem('mes'))
         : now.getMonth() + 1;
     this.periodo.set(new Date(anio, mes, 1))
+  }
+
+  changeBackgroundColor() {
+    this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata);
+
+    const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
+    const rowsError = this.rowsError()
+    const newSelectedRows = selectedRows.filter(num => !rowsError.includes(num))
+    this.angularGrid.slickGrid.setSelectedRows(newSelectedRows);
+
+    this.angularGrid.slickGrid.invalidate();
+    this.angularGrid.slickGrid.render();
+  }
+
+  updateItemMetadata(previousItemMetadata: any) {
+    const newCssClass = 'element-add-no-complete';
+
+    return (rowNumber: number) => {
+      const item = this.angularGrid.dataView.getItem(rowNumber);
+
+      let meta = {
+        cssClasses: ''
+      };
+      if (typeof previousItemMetadata === 'object') {
+          meta = previousItemMetadata(rowNumber);
+      }
+
+      if (meta && item) {
+        const row = this.rowsError();
+        if (row.find((num) => num == rowNumber)) {
+            meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
+        } else {
+            meta.cssClasses = ''
+        }
+      }
+
+      return meta;
+    };
   }
 }

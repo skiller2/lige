@@ -109,7 +109,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             }
           } else if (type == 'date') {
             filterString.push(`(${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') `)
-          } else if (type == 'string' && (valorBusqueda === 'null' || valorBusqueda == null))
+          } else if ((type == 'string' || type == 'text') && (valorBusqueda === 'null' || valorBusqueda == null))
             filterString.push(`${fieldName} IS NULL`)
           else {
             const vals =String(valorBusqueda).split(';').map(value => value.trim());

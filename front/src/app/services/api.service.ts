@@ -1375,7 +1375,6 @@ export class ApiService {
     )
   }
 
-
   ayudaAsistencialRechazar(parameter: any,) {
     return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/rechazar`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1740,6 +1739,24 @@ export class ApiService {
       map(res => res.data),
       catchError(() => of([]))
     );
+  }
+
+  excepcionesAsistenciaAprobar(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/excepciones-asistencia/aprobar`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  excepcionesAsistenciaRechazar(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/excepciones-asistencia/rechazar`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  excepcionesAsistenciaPendiente(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/excepciones-asistencia/pendiente`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
   }
 
 }
