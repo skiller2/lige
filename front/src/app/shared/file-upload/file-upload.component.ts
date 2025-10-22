@@ -113,27 +113,24 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivosAnteriores(idForSearh: any) {
-    console.log("searchById", this.searchById())
+ 
     if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "")
       this.tipoSelected.set(this.docTiposValidos()[0])
 
     if (idForSearh && this.tipoSelected() != "" && this.tableForSearch() != "" && !this.searchById()) {
-      console.log("entre 1")
+ 
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
-
       this.prevFiles.emit(result)
       this.files.set(result)
 
     } else if (idForSearh && this.searchById()) {
-      console.log("entre 2")
 
       const result = await firstValueFrom(this.apiService.getArchivoAnterior(idForSearh))
-      console.log("result", result)
-      console.log("result.length", result.length)
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
+      
     } else {
       this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)

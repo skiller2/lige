@@ -341,7 +341,7 @@ export class FileUploadController extends BaseController {
       await queryRunner.startTransaction()
 
 
-      const ArchivoAnterior = await queryRunner.query(`
+      let ArchivosAnteriores = await queryRunner.query(`
         SELECT 
             doc.DocumentoId AS id, 
             doc.DocumentoTipoCodigo AS doctipo_id,
@@ -359,9 +359,11 @@ export class FileUploadController extends BaseController {
             doc.DocumentoId = @0
       `, [id])
 
+      ArchivosAnteriores = await FileUploadController.mapArchivosAnteriores(ArchivosAnteriores, id)
+
       await queryRunner.commitTransaction()
       
-      return this.jsonRes(ArchivoAnterior, res);
+      return this.jsonRes(ArchivosAnteriores, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
