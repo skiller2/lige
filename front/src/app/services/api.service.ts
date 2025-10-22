@@ -89,6 +89,16 @@ export class ApiService {
     );
   }
 
+  getArchivoAnterior(id: number) {
+    return this.http.get(`/api/file-upload/archivo_anterior/${id}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getSelectTipoinFile() {
     return this.http.get(`/api/file-upload/select_tipo_in_file`).pipe(
       map((res: any) => res.data),
@@ -766,7 +776,7 @@ export class ApiService {
   }
 
   addDescuentoCargaManualObjetivo(gridDataInsert: any, periodo: any, descuentoId: any) {
-    const parameter = [periodo, gridDataInsert,descuentoId ]
+    const parameter = [periodo, gridDataInsert, descuentoId]
     this.notification.success('Respuesta', `Iniciando proceso `);
 
     return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualObjetivo', parameter).pipe(
@@ -1055,8 +1065,8 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
-  setHorasFacturacion(anio: number, mes: number, ObjetivoId: number, TotalHoraA: number, TotalHoraB: number,Observaciones:string) {
-    return this.http.post<ResponseJSON<any>>('api/asistencia/horasFacturacion', { anio, mes, ObjetivoId, TotalHoraA, TotalHoraB,Observaciones }).pipe(map(res => res.data))
+  setHorasFacturacion(anio: number, mes: number, ObjetivoId: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/horasFacturacion', { anio, mes, ObjetivoId, TotalHoraA, TotalHoraB, Observaciones }).pipe(map(res => res.data))
   }
 
 

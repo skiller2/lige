@@ -92,6 +92,10 @@ FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:columnForSearch/:tab
   fileUploadController.getArchivosAnteriores(req, res, next)
 });
 
+FileUploadRouter.get('/archivo_anterior/:id', (req, res, next) => {
+  fileUploadController.getArchivoAnterior(req, res, next)
+});
+
 FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
 
   uploadPdf(req, res, (err) => {
