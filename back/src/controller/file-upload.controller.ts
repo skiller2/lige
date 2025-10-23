@@ -521,9 +521,10 @@ export class FileUploadController extends BaseController {
           if (file?.tempfilename != '' && file?.tempfilename != null) {
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
 
-            const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
+            const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].DocumentoPath}`;
             const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
-
+            
+            
             // Borra el archivo si existe
             if (existsSync(filePath)) {
               await unlink(filePath);
@@ -531,7 +532,6 @@ export class FileUploadController extends BaseController {
 
             // Copia el nuevo archivo
 
-            console.log("file.mimetype", file.mimetype)
             let type = file.mimetype.split('/')[1]
 
             if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)

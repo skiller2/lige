@@ -73,15 +73,15 @@ export class DetallePersonaComponent {
     this.onClose.emit(this.visibleDrawer)
   }
 
-  calculateDateDifference(date: Date): string {
-    if (!date) {
+  calculateDateDifference(beginDate: Date, endDate:Date): string {
+    if (!beginDate) {
       return '0'
     }
-    const endDate = new Date()
-    const startDate = new Date(date)
-    let years = endDate.getFullYear() - startDate.getFullYear();
-    let months = endDate.getMonth() - startDate.getMonth();
-    let days = endDate.getDate() - startDate.getDate();
+    const finishDate = new Date(endDate)
+    const startDate = new Date(beginDate)
+    let years = finishDate.getFullYear() - startDate.getFullYear();
+    let months = finishDate.getMonth() - startDate.getMonth();
+    let days = finishDate.getDate() - startDate.getDate();
   
     if (days < 0) {
       months -= 1;

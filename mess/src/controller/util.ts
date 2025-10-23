@@ -81,7 +81,7 @@ export class Utils {
       case 'META':
         if (ctx.fileData) {
           ({ filename, mime_type: mimetype, id: mediaId } = ctx.fileData)
-        } 
+        }
         break
 
       case 'BAILEY':
@@ -109,5 +109,10 @@ export class Utils {
     return allowedTypes.some(type => mimetype.includes(type))
   }
 
-
+  static async typing(ctx: any, provider: any) {
+    if (provider && provider?.vendor && provider.vendor?.sendPresenceUpdate) {
+      const id = ctx.key.remoteJid
+      await provider.vendor.sendPresenceUpdate('composing', id)
+    }
+  }
 }
