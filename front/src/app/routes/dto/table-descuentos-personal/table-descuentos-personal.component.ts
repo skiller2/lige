@@ -41,6 +41,7 @@ export class TableDescuentosPersonalComponent {
     startFilters: any[] = []
     columnDefinitions: Column[] = []
     descuentoId = signal<number>(0)
+    periodo = input<any>(null)
     personalId = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)

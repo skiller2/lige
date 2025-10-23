@@ -29,6 +29,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     isAnulacion = input<boolean>(false);
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
+    periodo = input<any>(null)
 
     constructor(
         private searchService: SearchService,
@@ -76,6 +77,8 @@ export class DescuentosPersonalAltaDrawerComponent {
                         }
                     }
                 }, 0);
+            } else if (this.periodo()) {
+                this.formDesc.patchValue({ AplicaEl: this.periodo()})
             } else {
                 this.formDesc.reset()
                 this.formDesc.enable()
@@ -90,7 +93,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     fb = inject(FormBuilder)
     formDesc = this.fb.group({
         id: 0,
-        DescuentoId: 0, PersonalId: 0, AplicaEl: new Date(),
+        DescuentoId: 0, PersonalId: 0, AplicaEl: this.periodo() ? this.periodo() : new Date(),
         Cuotas: null, Importe: null, Detalle: '',
         DetalleAnulacion: '', importeCuota: '',
         FechaAnulacion: null,
@@ -141,7 +144,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     anio(): number {
         const value = this.formDesc.get("AplicaEl")?.value
         if (value) {
-            const date = new Date(value)
+            const date = new Date(value as Date)
             return date.getFullYear()
         }
         return 0
@@ -150,7 +153,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     mes(): number {
         const value = this.formDesc.get("AplicaEl")?.value
         if (value) {
-            const date = new Date(value)
+            const date = new Date(value as Date)
             return date.getMonth() + 1
         }
         return 0
@@ -183,8 +186,14 @@ export class DescuentosPersonalAltaDrawerComponent {
         return null
     }
 
-    async ngOnInit() { }
-
+    async ngOnInit() { 
+          
+        setTimeout(() => {
+         this.formDesc.patchValue({ AplicaEl: this.periodo() });
+        }, 1000);
+     
+    }
+    
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();

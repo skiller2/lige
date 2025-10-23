@@ -42,7 +42,7 @@
 </nz-card>
 
 @defer( when visibleAltaDesc()){
-  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()" [isAnulacion]="isAnulacion()"></app-descuentos-personal-alta-drawer>
+  <app-descuentos-personal-alta-drawer [(visibleDesc)]="visibleAltaDesc" [periodo]="periodo()" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()" [isAnulacion]="isAnulacion()"></app-descuentos-personal-alta-drawer>
 }
 
 @defer( when visibleEditDesc()){
