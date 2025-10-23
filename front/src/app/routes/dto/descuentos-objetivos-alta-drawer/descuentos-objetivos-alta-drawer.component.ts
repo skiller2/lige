@@ -81,7 +81,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     formDesc = this.fb.group({
         id:0,
         AplicaA:'', DescuentoId:0, ObjetivoId:0, AplicaEl:new Date(),
-        Cuotas:null, Importe:null, Detalle:'',
+        Cuotas:1, Importe:null, Detalle:'',
         DetalleAnulacion:'', importeCuota:'',
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
