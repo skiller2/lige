@@ -14,7 +14,7 @@
         </li>
         <li><span class="app-bold-text">CUIT:</span> {{personalDetalle.PersonalCUITCUILCUIT}}</li>
         <li><span class="app-bold-text">Domicilio:</span> {{personalDetalle.DomicilioCompleto}}</li>
-        <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}}</li>
+        <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}} <span *ngIf="personalDetalle.PersonalFechaBaja!=null">, baja: {{personalDetalle.PersonalFechaBaja|date}}</span></li>
         <li><span class="app-bold-text">Antigüedad:</span> {{ calculateDateDifference(personalDetalle.PersonalFechaIngreso, personalDetalle.PersonalFechaBaja) }}</li>
         <li><span class="app-bold-text">Edad:</span> {{personalDetalle.PersonalFechaNacimiento|AGE}},
           {{personalDetalle.PersonalFechaNacimiento|date}}.</li>
