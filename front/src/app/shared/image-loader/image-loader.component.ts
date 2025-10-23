@@ -1,5 +1,5 @@
 // secure-image.component.ts
-import { Component, inject, input, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, input, OnInit, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { SHARED_IMPORTS } from '../shared-imports';
@@ -13,27 +13,33 @@ import { NzImageModule } from 'ng-zorro-antd/image';
  <img nz-image [nzSrc]="imageSrc()" nzFallback="fallback()"/>
 }
  `,
- imports: [SHARED_IMPORTS, CommonModule, NzImageModule]
-  
+  imports: [SHARED_IMPORTS, CommonModule, NzImageModule]
+
 })
 export class ImageLoaderComponent implements OnInit {
-  src= input('');
+  src = input('');
   imageSrc = signal('')
   fallback = input('')
 
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    effect(() => {
+      if (this.src()) {
+        this.ngOnInit();
+      }
+    })
+  }
 
   ngOnInit(): void {
     const headers = new HttpHeaders({
-      token:this.tokenService.get()?.token ?? ''
+      token: this.tokenService.get()?.token ?? ''
     });
 
     this.http.get(this.src(), { headers, responseType: 'blob' }).subscribe(blob => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        this.imageSrc.set( reader.result as string)
+        this.imageSrc.set(reader.result as string)
       };
       reader.readAsDataURL(blob);
     });
