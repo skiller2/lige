@@ -193,10 +193,10 @@ export class PersonalController extends BaseController {
     return await dbServer.dataSource.query(
       `SELECT reg.PersonalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, reg.Codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
-      sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso
+      sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso, ing.PersonalFechaBaja 
       FROM BotRegTelefonoPersonal reg
       LEFT JOIN Personal per ON per.PersonalId = reg.PersonalId
-      LEFT JOIN PersonalFechaIngreso ing ON ing.PersonalId = per.PersonalId
+      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.PersonalId AND cuit.PersonalCUITCUILId =( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = reg.PersonalId)
       LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@2 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=CAST(@2 AS DATE) 
       LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId

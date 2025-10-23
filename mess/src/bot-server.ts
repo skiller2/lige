@@ -23,7 +23,8 @@ import { flowDescargaDocs } from "./flow/flowDescargaDocs.ts";
 import { flowAdelanto, flowFormAdelanto } from "./flow/flowAdelanto.ts";
 import { Utils } from "./controller/util.ts";
 import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio, flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad } from "./flow/flowNovedad.ts";
-import { ClientException } from "./controller/base.controller.ts";
+import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
+
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -54,8 +55,15 @@ export class BotServer {
   public globalTimeOutMs: number
   private tgConfig: any
   private botPort: number
+  private ASSISTANT_ID:string
+
+
+  public userQueues = new Map();
+  public userLocks = new Map(); // New lock mechanism
+
 
   constructor(provider: string) {
+    this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
     switch (provider) {
       case "BAILEY":
         this.adapterProvider = createProvider(BaileysProvider, {
@@ -80,7 +88,7 @@ export class BotServer {
         break;
       case 'META':
         this.adapterProvider = createProvider(MetaProvider, {
-          downloadMedia: true, 
+          downloadMedia: true,
           jwtToken: process.env.META_JWTOKEN,  // Token de acceso brindado por Meta (es permanente o se actualiza?)
           numberId: process.env.META_NUMBER_ID,  // ID de número brindado por Meta
           verifyToken: process.env.META_VERIFY_TOKEN,  // Token de verificación creado para webhook
@@ -109,6 +117,41 @@ export class BotServer {
       type: 'dispatch'
     });
   }
+
+  processUserMessage = async (ctx, { flowDynamic, state, provider }) => {
+    await Utils.typing(ctx, provider);
+    const response = await toAsk(this.ASSISTANT_ID, ctx.body, state);
+
+    // Split the response into chunks and send them sequentially
+    const chunks = response.split(/\n\n+/);
+    for (const chunk of chunks) {
+      const cleanedChunk = chunk.trim().replace(/【.*?】[ ] /g, "");
+      await flowDynamic([{ body: cleanedChunk }]);
+    }
+  }
+
+  handleQueue = async (userId) => {
+    const queue = this.userQueues.get(userId);
+    
+    if (this.userLocks.get(userId)) {
+        return; // If locked, skip processing
+    }
+
+    while (queue.length > 0) {
+        this.userLocks.set(userId, true); // Lock the queue
+        const { ctx, flowDynamic, state, provider } = queue.shift();
+        try {
+            await this.processUserMessage(ctx, { flowDynamic, state, provider });
+        } catch (error) {
+            console.error(`Error processing message for user ${userId}:`, error);
+        } finally {
+            this.userLocks.set(userId, false); // Release the lock
+        }
+    }
+
+    this.userLocks.delete(userId); // Remove the lock once all messages are processed
+    this.userQueues.delete(userId); // Remove the queue once all messages are processed
+};
 
   public status() {
 

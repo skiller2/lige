@@ -17,6 +17,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "@builderbot-plugins/openai-assistants": "^0.0.2",
     "@builderbot/bot": "^1.3.5-alpha.9",
     "@builderbot/provider-baileys": "^1.3.5-alpha.9",
     "@builderbot/provider-meta": "^1.3.5-alpha.9",

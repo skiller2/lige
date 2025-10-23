@@ -15,7 +15,7 @@
         <li><span class="app-bold-text">CUIT:</span> {{personalDetalle.PersonalCUITCUILCUIT}}</li>
         <li><span class="app-bold-text">Domicilio:</span> {{personalDetalle.DomicilioCompleto}}</li>
         <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}}</li>
-        <li><span class="app-bold-text">Antigüedad:</span> {{ calculateDateDifference(personalDetalle.PersonalFechaIngreso) }}</li>
+        <li><span class="app-bold-text">Antigüedad:</span> {{ calculateDateDifference(personalDetalle.PersonalFechaIngreso, personalDetalle.PersonalFechaBaja) }}</li>
         <li><span class="app-bold-text">Edad:</span> {{personalDetalle.PersonalFechaNacimiento|AGE}},
           {{personalDetalle.PersonalFechaNacimiento|date}}.</li>
         <li><span class="app-bold-text">Asociado:</span> {{personalDetalle.PersonalNroLegajo }}.</li>

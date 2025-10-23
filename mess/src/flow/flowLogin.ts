@@ -80,6 +80,25 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
             }
         })
 
+export const flowLogin1 = addKeyword(EVENTS.WELCOME)
+    .addAction(async (ctx, { flowDynamic, state, provider }) => {
+        const userId = ctx.from; // Use the user's ID to create a unique queue for each user
+
+        if (!botServer.userQueues.has(userId)) {
+            botServer.userQueues.set(userId, []);
+        }
+
+        const queue = botServer.userQueues.get(userId);
+        queue.push({ ctx, flowDynamic, state, provider });
+
+        // If this is the only message in the queue, process it immediately
+        if (!botServer.userLocks.get(userId) && queue.length === 1) {
+            await botServer.handleQueue(userId);
+        }
+    });
+
+
+
 export const flowLogin = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         //FIX por si entra 2 veces, ignora la segunda

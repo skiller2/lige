@@ -286,7 +286,7 @@ export class PersonalController extends BaseController {
     dataSource
       .query(
         `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId,
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -300,7 +300,7 @@ export class PersonalController extends BaseController {
         act.GrupoActividadDetalle,
         suc.SucursalDescripcion
         FROM Personal per
-        LEFT JOIN PersonalFechaIngreso ing ON ing.PersonalId=per.PersonalId
+        LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
@@ -450,7 +450,7 @@ export class PersonalController extends BaseController {
 
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
-SELECT 
+SELECT
 CONCAT(per.PersonalId,'-',sitrev.PersonalSituacionRevistaSituacionId) id,
 per.PersonalId,
 cuit.PersonalCUITCUILCUIT,
@@ -458,7 +458,7 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
-        ing.PersonalFechaIngreso,
+        ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
         tels.Telefonos
 
         FROM Personal per
@@ -469,7 +469,7 @@ cuit.PersonalCUITCUILCUIT,
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
 			 ) sitrev ON sitrev.PersonalId = per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        LEFT JOIN PersonalFechaIngreso ing ON ing.PersonalId=per.PersonalId
+        LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 
