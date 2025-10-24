@@ -44,7 +44,7 @@ export class AyudaAsistencialComponent {
     detailViewRowCount = 1
     startFilters: any[] = []
     listOptions: listOptionsT = { filtros: [], sort: null, };
-
+    periodo = signal(new Date())
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
 
@@ -198,6 +198,7 @@ export class AyudaAsistencialComponent {
     }
 
     dateChange(result: Date): void {
+        this.periodo.set(result)
         this.selectedPeriod.year = result.getFullYear();
         this.selectedPeriod.month = result.getMonth() + 1;
         this.rows = []
@@ -258,7 +259,6 @@ export class AyudaAsistencialComponent {
 
     openDrawer(): void {
         this.visibleDrawer = true
-        this.tituloDrawer = "Alta"
     }
 
     changeBackgroundColor() {

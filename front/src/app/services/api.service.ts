@@ -1419,9 +1419,22 @@ export class ApiService {
     )
   }
 
+  //addAyudaAsistencial(parameter: any) {
+  //  return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/addpres`, parameter).pipe(map(res => res.data));
+  //}
+
   addAyudaAsistencial(parameter: any) {
-    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/addpres`, parameter).pipe(map(res => res.data));
+    return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/addpres`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
+
+  updateAyudaAsistencial(parameter: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/updpres`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
 
   getAyudaAsitencialByPersonalId(personalId: any) {
     if (personalId == 0) return of([])

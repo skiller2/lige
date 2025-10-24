@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm, FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -28,7 +28,8 @@ export interface Option {
 })
 
 export class AyudaAsistencialDrawerComponent {
-    tituloDrawer = input.required<string>()
+    tituloDrawer = signal<string>('Alta de Ayuda Asistencial')
+    periodo = input.required<Date>()
     visible = model<boolean>(false)
     refresh = model<number>(0)
     currDate = signal(new Date())
@@ -37,16 +38,25 @@ export class AyudaAsistencialDrawerComponent {
     isSaving = signal(false)
 
     private apiService = inject(ApiService)
-    constructor(private searchService: SearchService) { }
+    constructor(private searchService: SearchService) { 
+        effect(() => {
+            if(this.periodo()) {
+                this.formAyudaAsi.patchValue({ aplicaEl: this.periodo() })
+            }
+            if (!this.visible()) {
+                this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:1, motivo:'1', personalPrestamoId:0 })
+            }
+        })
+    }
 
     fb = inject(FormBuilder)
-    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0, motivo:'' })
+    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:1, motivo:'1', personalPrestamoId:0 })
 
-    conditional = computed(async () => {
+    /*conditional = computed(async () => {
         if (!this.visible()) {
-            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0, motivo:'' })
+            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:1, motivo:'1' })
         }
-    });
+    });*/
 
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
@@ -69,14 +79,29 @@ export class AyudaAsistencialDrawerComponent {
     async ngOnInit(): Promise<void> {
         this.options = await firstValueFrom(this.searchService.getTipoPrestamo())
         this.currDate.set(new Date())
+        setTimeout(() => {
+            this.formAyudaAsi.patchValue({ aplicaEl: this.periodo() })
+        }, 1000);
     }
 
     async save(){
         this.isSaving.set(true)
         try {
-            let values = this.formAyudaAsi.value
+            let values = this.formAyudaAsi.getRawValue()
+            if(values.personalPrestamoId == 0) {
             const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
-            this.formChange('')
+            console.log('res: ', res.data);
+                if(res.data?.personalPrestamoId > 0) {
+                    this.formAyudaAsi.patchValue({ personalPrestamoId: res.data?.personalPrestamoId })
+                    this.tituloDrawer.set('Actualizar Ayuda Asistencial')
+                    this.formAyudaAsi.get('personalId')?.disable()
+
+                }
+            } else {
+                const res = await firstValueFrom(this.apiService.updateAyudaAsistencial(values))
+                console.log('res: ', res);
+            }
+            //this.formChange('')
             let ref = this.refresh()
             this.refresh.set(++ref)
         } catch (error) {
@@ -97,6 +122,14 @@ export class AyudaAsistencialDrawerComponent {
                 
             } 
         }
+    }
+
+    resetForm() {
+        this.formAyudaAsi.reset( {personalId: 0, formaId: null, aplicaEl:this.periodo(), cantCuotas:1, importe:1, motivo:'1', personalPrestamoId:0} )
+        this.tituloDrawer.set('Alta de Ayuda Asistencial')
+        this.formAyudaAsi.get('personalId')?.enable()
+        this.formAyudaAsi.markAsDirty()
+        this.formAyudaAsi.markAsPristine()
     }
 
 }

@@ -707,7 +707,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const motivo:string = req.body.motivo
     const ip = req.socket.remoteAddress
     const usuarioId = await this.getUsuarioId(res,queryRunner)
-
+    let prestamoId: number = 0
     let campos_vacios: any[] = []
     try {
       await queryRunner.startTransaction()
@@ -760,7 +760,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       today.setHours(0, 0, 0, 0)
 
       if (importe > 0) {
-        const prestamoId = Number((await queryRunner.query(`
+         prestamoId = Number((await queryRunner.query(`
           SELECT per.PersonalPrestamoUltNro as max 
           FROM Personal per WHERE per.PersonalId = @0`,
           [personalId]
@@ -808,9 +808,10 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         );
 
       }
+     
 //      throw new ClientException(`todo bien.`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa');
+      return this.jsonRes({personalPrestamoId: prestamoId}, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -818,6 +819,76 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.release()
     }
   }
+
+  async updatePersonalPrestamo(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId = req.body.personalId
+    const formaId = req.body.formaId
+    const personalPrestamoId = req.body.personalPrestamoId
+    const anio = new Date(req.body.aplicaEl).getFullYear()
+    const mes = new Date(req.body.aplicaEl).getMonth()+1
+    const importe = req.body.importe
+    const cantCuotas = req.body.cantCuotas
+    const motivo:string = req.body.motivo
+    const ip = req.socket.remoteAddress
+    const usuarioId = await this.getUsuarioId(res,queryRunner)
+    let prestamoId: number = 0
+    let campos_vacios: any[] = []
+
+    //throw new ClientException(`todo bien.`)
+    try {
+      await queryRunner.startTransaction()
+
+      if (!personalId) campos_vacios.push("- Persona-.");
+      if (!formaId) campos_vacios.push("- Tipo.");
+      if (!req.body.aplicaEl) campos_vacios.push("- Aplica El.");
+      if (!cantCuotas) campos_vacios.push("- Cant. de Cuotas.");
+      if (!importe) campos_vacios.push("- Importe.");
+      if (!motivo.trim().length) campos_vacios.push("- Motivo.");
+
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
+      }
+
+      const forma = optionsSelect.find((obj: any) =>  obj.value == formaId )
+      
+      if (!forma)
+        throw new ClientException(`No se encontró el Tipo seleccionado ${formaId}`)
+
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+  
+      if (checkrecibos[0]?.ind_recibos_generados ==1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar ${forma.label} para el período`)
+  
+
+      const aplicaEl = `${String(mes).padStart(2, '0')}/${String(anio).padStart(4, '0')}`
+      
+      const presPend = await queryRunner.query(`
+        SELECT pre.PersonalPrestamoId 
+        FROM PersonalPrestamo pre 
+        WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoAprobado = 'S' AND pre.PersonalPrestamoLiquidoFinanzas = 0 AND pre.FormaPrestamoId =@1`,
+        [personalId,formaId]
+      )
+      if (presPend.length>0)
+        throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo ${forma.label}.`)
+
+        const result = await queryRunner.query(
+          `UPDATE PersonalPrestamo SET PersonalPrestamoMonto = @2, PersonalPrestamoCantidadCuotas = @3, PersonalPrestamoAplicaEl = @4,
+          PersonalPrestamoMotivo = @5 WHERE PersonalPrestamoId = @0 AND PersonalId = @1`,
+          [personalPrestamoId, personalId, importe, cantCuotas, aplicaEl, motivo]
+        );
+//      throw new ClientException(`todo bien.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Modificación Exitosa');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }finally{
+      await queryRunner.release()
+    }
+  }
+
 
   async getPersonalPrestamoByPersonalId(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();

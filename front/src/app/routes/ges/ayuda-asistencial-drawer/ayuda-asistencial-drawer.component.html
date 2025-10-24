@@ -3,7 +3,7 @@
 >
 
   <ng-container *nzDrawerContent>
-    @if (conditional()|async) {}
+    <!-- @if (conditional()|async) {} -->
     <form [formGroup]="formAyudaAsi">
 
       <nz-form-item>
@@ -50,6 +50,9 @@
 
       <nz-form-item class="btnCenter">
         <button nz-button nzType="primary" [disabled]="!formAyudaAsi.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+        <button  nzType="primary" nz-button (click)="resetForm()">
+          {{ 'app.btn.clear.form' | i18n }}
+        </button>
       </nz-form-item>
 
       <nz-form-item class="app-table">
