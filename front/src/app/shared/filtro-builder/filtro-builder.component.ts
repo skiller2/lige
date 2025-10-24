@@ -511,6 +511,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = person[0].fullName
     }
 
+    if (fieldObj.searchComponent == 'inpurForClientSearch') {
+      const cliente = await firstValueFrom(this.searchService.getClientFromName('ClienteId', value))
+      label = cliente[0].ClienteDenominacion
+    }
+
     if (fieldObj.searchComponent == 'inpurForSituacionRevistaSearch') {
       let valueSplit = value.split(";")
       let result = ''
@@ -524,6 +529,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (fieldObj.searchComponent == 'inpurForGrupoActividadSearch') {
       const res = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', value))
       label = res[0].GrupoActividadDetalle
+    }
+
+    if (fieldObj.searchComponent == 'inpurForActivo') {
+      label = value == 1 ? 'SI' : 'NO'
     }
 
 
