@@ -7,9 +7,30 @@
     <form [formGroup]="formAyudaAsi">
 
       <nz-form-item>
+        <nz-form-label [nzSpan]="5">Aplica El</nz-form-label>
+          <nz-form-control [nzSpan]="17">
+            <nz-date-picker nzMode="month" formControlName="aplicaEl"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+
+      <nz-form-item>
         <nz-form-label [nzSpan]="5">Personal</nz-form-label>
           <nz-form-control [nzSpan]="17">
             <app-personal-search  formControlName="personalId" [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1" (ngModelChange)="this.formChange($event)"></app-personal-search>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Situación Revista</nz-form-label>
+        <nz-form-control>
+          <ng-container *ngFor="let sitrevista of $sitrevista | async">
+            <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
+              {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
+              <span *ngIf="sitrevista.PersonalSituacionRevistaHasta">hasta {{ sitrevista.PersonalSituacionRevistaHasta
+                | date}}</span>
+            </p>
+          </ng-container>
         </nz-form-control>
       </nz-form-item>
 
@@ -23,13 +44,7 @@
         </nz-form-control>
       </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Aplica El</nz-form-label>
-          <nz-form-control [nzSpan]="17">
-            <nz-date-picker nzMode="month" formControlName="aplicaEl"></nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-
+     
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Cant. de Cuotas</nz-form-label>
           <nz-form-control [nzSpan]="5">

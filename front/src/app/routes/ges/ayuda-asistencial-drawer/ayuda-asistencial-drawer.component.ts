@@ -72,6 +72,18 @@ export class AyudaAsistencialDrawerComponent {
         )
     );
 
+    $sitrevista = this.formAyudaAsi.get('personalId')!.valueChanges.pipe(
+        debounceTime(500),
+        switchMap(() =>
+            this.apiService
+                .getPersonaSitRevista(
+                    Number(this.formAyudaAsi.get('personalId')?.value),
+                    this.periodo().getFullYear(),
+                    this.periodo().getMonth()+1
+                )
+        )
+    )
+
     formChange(event: any) {
         this.formChange$.next(event);
     }
