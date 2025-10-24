@@ -147,6 +147,18 @@ const columns: any[] = [
     searchHidden: false,
     hidden: false,
   },
+  {
+    id: "PersonalFechaBaja",
+    name: "Fecha Baja",
+    field: "PersonalFechaBaja",
+    type: "date",
+    fieldName: "ing.PersonalFechaBaja",
+    searchType: "date",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
 ]
 
 

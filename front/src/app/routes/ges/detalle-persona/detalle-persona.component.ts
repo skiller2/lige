@@ -75,17 +75,21 @@ export class DetallePersonaComponent {
 
   calculateDateDifference(beginDate: Date, endDate:Date): string {
     if (!beginDate) {
-      return '0'
+      return 'No disponible'
     }
+    if (endDate == null) endDate = new Date()
+    
     const finishDate = new Date(endDate)
     const startDate = new Date(beginDate)
+
+
     let years = finishDate.getFullYear() - startDate.getFullYear();
     let months = finishDate.getMonth() - startDate.getMonth();
     let days = finishDate.getDate() - startDate.getDate();
   
     if (days < 0) {
       months -= 1;
-      days += new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate();
+      days += new Date(finishDate.getFullYear(), finishDate.getMonth(), 0).getDate();
     }
   
     if (months < 0) {

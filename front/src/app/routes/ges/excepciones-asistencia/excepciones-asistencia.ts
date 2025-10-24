@@ -10,11 +10,14 @@ import { SearchService } from 'src/app/services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
+// icons
+import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import { PauseOutline } from '@ant-design/icons-angular/icons';
 
 @Component({
   selector: 'app-excepciones-asistencia',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent],
-  providers: [AngularUtilService],
+  providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([PauseOutline])],
   templateUrl: './excepciones-asistencia.html',
   styleUrl: './excepciones-asistencia.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
