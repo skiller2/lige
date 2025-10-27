@@ -87,8 +87,8 @@ const columnsExcepcionesAsistencia: any[] = [
   },
   {
     id: 'FechaDeAutorizacion', name: 'Fecha de Autorizacion', field: 'FechaDeAutorizacion',
-    fieldName: '',
-    type: 'dateTime',
+    fieldName: 'art.FechaDeAutorizacion',
+    type: 'date',
     sortable: true,
     hidden: false,
     searchHidden: true
@@ -177,12 +177,14 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const month = periodo? periodo.getMonth()+1 : 0
     try {
       const list = await queryRunner.query(`
-        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+        
+SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
           , art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId
           , art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora
           , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
           , art.PersonalArt14Dia, art.PersonalArt14Tiempo, art.PersonalArt14DetalleMotivo 
-          , CONVERT(datetime, CONVERT(varchar(10), art.PersonalArt14Dia, 120) + ' ' + art.PersonalArt14Tiempo) AS FechaDeAutorizacion
+          --, CONVERT(datetime, CONVERT(varchar(10), art.PersonalArt14Dia, 120) + ' ' + art.PersonalArt14Tiempo) AS FechaDeAutorizacion
+		      , IIF(art.PersonalArt14Autorizado ='S',art.AudFechaMod, null) AS FechaDeAutorizacion
           , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde
           , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
           , CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo
@@ -199,7 +201,9 @@ export class ExcepcionesAsistenciaController extends BaseController {
         LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         WHERE 1=1
-            AND ((art.PersonalArt14AutorizadoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1))) OR (art.PersonalArt14Desde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (art.PersonalArt14Hasta >= DATEFROMPARTS(@1,@2,1)) ))
+        -- art.PersonalId = @0 
+        -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL)
+          AND ((art.PersonalArt14AutorizadoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1))) OR (art.PersonalArt14Desde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (art.PersonalArt14Hasta >= DATEFROMPARTS(@1,@2,1)) ))
           and ${filterSql} ${orderBy}
       `, [ ,year,month])
       this.jsonRes(
