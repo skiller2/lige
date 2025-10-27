@@ -153,15 +153,24 @@ const listaColumnasPoliza: any[] = [
     hidden: true,
     searchHidden: true
   },
-  {
-    id: "TipoSeguroNombre",
-    name: "Tipo de Seguro",
-    field: "TipoSeguroNombre",
-    fieldName: "seg.TipoSeguroNombre",
-    searchComponent: "inputForTipoSeguroSearch",
+   {
+    name: "Tipo seguro",
     type: "string",
+    id: "TipoSeguroNombre",
+    field: "TipoSeguroNombre",
+    fieldName: "tipseg.TipoSeguroNombre",
     sortable: true,
-    hidden: false,
+    searchHidden: true
+  },
+  {
+    name: "Tipo seguro ",
+    type: "string",
+    id: "TipoSeguroCodigo",
+    field: "TipoSeguroCodigo",
+    fieldName: "tipseg.TipoSeguroCodigo",
+    searchComponent: "inpurForTipoSeguroSearch",
+    sortable: false,
+    hidden: true,
     searchHidden: false
   },
   {
@@ -822,8 +831,8 @@ UNION
       let result = await dataSource.query(`
       SELECT 
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
-        ts.TipoSeguroNombre,
-        ps.TipoSeguroCodigo,
+        seg.TipoSeguroNombre,
+        seg.TipoSeguroCodigo,
         ps.PolizaSeguroNroPoliza,
         ps.PolizaSeguroNroEndoso,
         ps.PolizaSeguroFechaEndoso,
@@ -832,7 +841,7 @@ UNION
         ps.CompaniaSeguroId,
         ps.PolizaSeguroMes
       FROM PolizaSeguro ps
-      LEFT JOIN TipoSeguro ts ON ts.TipoSeguroCodigo = ps.TipoSeguroCodigo
+      LEFT JOIN TipoSeguro seg ON seg.TipoSeguroCodigo = ps.TipoSeguroCodigo
       LEFT JOIN CompaniaSeguro cs ON cs.CompaniaSeguroId = ps.CompaniaSeguroId
       WHERE (1=1)
        AND ${filterSql}
