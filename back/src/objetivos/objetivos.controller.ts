@@ -622,7 +622,7 @@ export class ObjetivosController extends BaseController {
 
     }
 
-    async validateDateAndCreateContrato(queryRunner: any, ContratoFechaDesde: Date, ContratoFechaDesdeOLD: Date, ContratoFechaHasta: Date, ContratoFechaHastaOLD: Date, FechaModificada: boolean, ClienteId: number, ClienteElementoDependienteId: number, ObjetivoId: number, ContratoId: number, ip: string, usuarioId: number) {
+    async validateDateAndCreateContrato(queryRunner: any, ContratoFechaDesde: Date, ContratoFechaDesdeOLD: Date, ContratoFechaHasta: Date, ContratoFechaHastaOLD: Date, FechaModificada: boolean, ClienteId: number, ClienteElementoDependienteId: number, ObjetivoId: number, ContratoId: number, ip: string, usuarioId: number, usuario:string) {
 
         let createNewContrato = false
         ContratoFechaDesde = ContratoFechaDesde ? new Date(ContratoFechaDesde) : null
@@ -774,7 +774,10 @@ export class ObjetivosController extends BaseController {
                             DesdeMax,
                             ip, usuarioId, new Date(nowSinHs), this.getTimeString(now)
                         ])
-                    await queryRunner.query(`UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro =@0 WHERE GrupoActividadId = @1`, [GrupoActividadObjetivoIdNew, gao[0].GrupoActividadId])
+                    await queryRunner.query(`
+                        UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro = @0 
+                        , GrupoActividadAudFechaMod = @2, GrupoActividadAudUsuarioMod = @3, GrupoActividadAudIpMod = @4
+                        WHERE GrupoActividadId = @1`, [GrupoActividadObjetivoIdNew, gao[0].GrupoActividadId, now, usuario, ip])
                 }
             }
         }
@@ -782,7 +785,7 @@ export class ObjetivosController extends BaseController {
         return true
     }
 
-    async grupoActividad(queryRunner: any, infoActividad: any, GrupoActividadObjetivoObjetivoId: number, GrupoActividadObjetivoPuesto: any, usuarioId: number) {
+    async grupoActividad(queryRunner: any, infoActividad: any, GrupoActividadObjetivoObjetivoId: number, ip: any, usuarioId: number, usuario:string) {
 
         const now = new Date();
         const hora = this.getTimeString(now)
@@ -838,12 +841,16 @@ export class ObjetivosController extends BaseController {
                     infoActividad[0].GrupoActividadId,
                     GrupoActividadObjetivoObjetivoId,
                     GrupoActividadObjetivoDesde,
-                    GrupoActividadObjetivoPuesto,
+                    ip,
                     usuarioId,
                     now,
                     hora])
 
-            await queryRunner.query(`UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro =@0 WHERE GrupoActividadId = @1`, [GrupoActividadObjetivoIdNew, infoActividad[0].GrupoActividadId])
+            await queryRunner.query(`
+                UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro = @0 
+                , GrupoActividadAudFechaMod = @2, GrupoActividadAudUsuarioMod = @3, GrupoActividadAudIpMod = @4
+                WHERE GrupoActividadId = @1
+            `, [GrupoActividadObjetivoIdNew, infoActividad[0].GrupoActividadId, now, usuarioId, ip])
         } else if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal) {
             await queryRunner.query(`
             UPDATE GrupoActividadObjetivo SET
@@ -891,11 +898,11 @@ export class ObjetivosController extends BaseController {
             }
 
             if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde) {
-                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId)
+                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
             }
 
 
-            await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId)
+            await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
             //update
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
@@ -1351,7 +1358,7 @@ export class ObjetivosController extends BaseController {
             let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
             const ObjetivoId = infoMaxObjetivo[0]['']
 
-            await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId)
+            await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
 
             ObjObjetivoNew.ObjetivoNewId = ObjetivoId
 
@@ -1363,7 +1370,7 @@ export class ObjetivosController extends BaseController {
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
             if (infoActividad[0].GrupoActividadId) {
-                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId)
+                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
             }
 
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, ClienteElementoDependienteUltNro)

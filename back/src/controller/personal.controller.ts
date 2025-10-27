@@ -2306,7 +2306,7 @@ cuit.PersonalCUITCUILCUIT,
 
   private async setGrupoActividadPersonalQuerys(
     queryRunner: any, PersonalId: number, GrupoActividadId: number, Desde: Date,
-    usuarioId: number, ip: string
+    usuario:string, usuarioId: number, ip: string
   ) {
     Desde.setHours(0, 0, 0, 0)
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
@@ -2356,8 +2356,8 @@ cuit.PersonalCUITCUILCUIT,
       )
       const GrupoActividadPersonalId = GrupoActividad[0].GrupoActividadPersonalUltNro + 1
       await queryRunner.query(`
-        UPDATE GrupoActividad SET GrupoActividadPersonalUltNro = @1
-        WHERE GrupoActividadId IN (@0)`, [GrupoActividadId, GrupoActividadPersonalId]
+        UPDATE GrupoActividad SET GrupoActividadPersonalUltNro = @1, GrupoActividadAudFechaMod = @2, GrupoActividadAudUsuarioMod = @3, GrupoActividadAudIpMod = @4
+        WHERE GrupoActividadId IN (@0)`, [GrupoActividadId, GrupoActividadPersonalId, now, usuario,ip]
       )
 
       //Crea un Grupo Actividad Personal nuevo
@@ -2395,8 +2395,9 @@ cuit.PersonalCUITCUILCUIT,
       }
 
       const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const usuario = res.locals.userName
 
-      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), usuarioId, ip)
+      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), usuario, usuarioId, ip)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
