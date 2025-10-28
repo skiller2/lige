@@ -11,7 +11,9 @@
       <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
         <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       </a>
-  
+          <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user" nzTheme="outline"
+            nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
+
       <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
         <button nz-button nzType="default" [disabled]=" GrupoActividadJerarquicoId().length == 0" (click)="deleteItemResponsable()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
       </a> -->
@@ -30,3 +32,5 @@
   </div>
 
 </nz-card>
+<app-detalle-persona [anio]="currPeriodo().anio" [mes]="currPeriodo().mes" [SucursalId]="0"
+    [PersonalId]="GrupoActividadJerarquicoPersonalId()" [visible]="visibleDrawerPersona()" (onClose)="closeDrawer()"></app-detalle-persona>
