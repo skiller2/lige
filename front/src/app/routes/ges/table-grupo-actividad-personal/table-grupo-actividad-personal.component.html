@@ -35,5 +35,6 @@
   </div>
 </nz-card>
 
+
 <app-detalle-persona [anio]="currPeriodo().anio" [mes]="currPeriodo().mes" [SucursalId]="0"
-    [PersonalId]="GrupoActividadPersonalId()" [visible]="visibleDrawerPersona()" (onClose)="closeDrawer()"></app-detalle-persona>
+    [PersonalId]="PersonalId()" [visible]="visibleDrawerPersona()" (onClose)="closeDrawer()"></app-detalle-persona>

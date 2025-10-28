@@ -39,7 +39,7 @@ export class TableGrupoActividadPersonalComponent {
   itemAddActive = false
   listGrupoActividadPersonal$ = new BehaviorSubject('')
   visibleDrawerPersona = signal(false)
-  GrupoActividadPersonalId = signal(0)
+  PersonalId = signal(0)
   GrupoActividadId = signal("")
   listOptions: listOptionsT = {
     filtros: [],
@@ -247,8 +247,7 @@ export class TableGrupoActividadPersonalComponent {
     const row = this.angularGridEditPersonal.slickGrid.getDataItem(selrow)
 
     this.GrupoActividadId.set(row?.GrupoActividadId)
-    this.GrupoActividadPersonalId.set(row?.GrupoActividadPersonalId)
-
+    this.PersonalId.set(row?.PersonalId)
 
   }
 
@@ -298,7 +297,7 @@ export class TableGrupoActividadPersonalComponent {
   }
 
   openDrawer() {
-    if (this.GrupoActividadPersonalId() == 0) return
+    if (this.PersonalId() == 0) return
     //this.personalApellidoNombre = persona.ApellidoNombre
     this.visibleDrawerPersona.set(true)
 
