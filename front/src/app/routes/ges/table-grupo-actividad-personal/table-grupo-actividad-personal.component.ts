@@ -13,17 +13,19 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { Component, signal, inject } from '@angular/core'
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 
 @Component({
-    selector: 'app-table-grupo-actividad-personal',
-    providers: [AngularUtilService],
-    imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        FiltroBuilderComponent
-    ],
-    templateUrl: './table-grupo-actividad-personal.component.html',
-    styleUrl: './table-grupo-actividad-personal.component.less'
+  selector: 'app-table-grupo-actividad-personal',
+  providers: [AngularUtilService],
+  imports: [
+    ...SHARED_IMPORTS,
+    CommonModule,
+    FiltroBuilderComponent,
+    DetallePersonaComponent
+  ],
+  templateUrl: './table-grupo-actividad-personal.component.html',
+  styleUrl: './table-grupo-actividad-personal.component.less'
 })
 export class TableGrupoActividadPersonalComponent {
 
@@ -36,7 +38,8 @@ export class TableGrupoActividadPersonalComponent {
   columnDefinitions: Column[] = []
   itemAddActive = false
   listGrupoActividadPersonal$ = new BehaviorSubject('')
-
+  visibleDrawerPersona = signal(false)
+  GrupoActividadPersonalId = signal(0)
   GrupoActividadId = signal("")
   listOptions: listOptionsT = {
     filtros: [],
@@ -44,7 +47,7 @@ export class TableGrupoActividadPersonalComponent {
   };
   startFilters: any[] = []
 
-
+  currPeriodo = signal({anio:0,mes:0})
   complexityLevelList = [true, false];
   angularGridEditPersonal!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
@@ -58,7 +61,7 @@ export class TableGrupoActividadPersonalComponent {
   }
 
   columnsPersonal$ = this.apiService.getCols('/api/grupo-actividad/colspersonal').pipe(
-    switchMap(async (cols) => {return { cols }}),
+    switchMap(async (cols) => { return { cols } }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
         switch (col.id) {
@@ -78,21 +81,21 @@ export class TableGrupoActividadPersonalComponent {
               }
             break
 
-            case 'ApellidoNombrePersona':
-                      col.formatter = Formatters['complexObject'],
-                        col.exportWithFormatter = true,
-                        col.editor = {
-                          model: CustomInputEditor,
-                          collection: [],
-                          params: {
-                            component: EditorPersonaComponent,
-                          },
-                          alwaysSaveOnEnterKey: true,
-                        },
-                        col.params = {
-                          complexFieldLabel: 'ApellidoNombrePersona.fullName',
-                        }
-                break
+          case 'ApellidoNombrePersona':
+            col.formatter = Formatters['complexObject'],
+              col.exportWithFormatter = true,
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: EditorPersonaComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+              },
+              col.params = {
+                complexFieldLabel: 'ApellidoNombrePersona.fullName',
+              }
+            break
 
           default:
             break;
@@ -115,11 +118,11 @@ export class TableGrupoActividadPersonalComponent {
 
     const dateToday = new Date();
     this.startFilters = [
-     {field:'GrupoActividadPersonalDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-     {field:'GrupoActividadPersonalHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
+      { field: 'GrupoActividadPersonalDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
+      { field: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
+      this.currPeriodo.set({anio:dateToday.getFullYear(), mes:dateToday.getMonth()+1})
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-
 
       this.angularGridEditPersonal.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEditPersonal.dataView.getItemMetadata)
       this.angularGridEditPersonal.slickGrid.invalidate();
@@ -147,7 +150,7 @@ export class TableGrupoActividadPersonalComponent {
         this.angularGridEditPersonal.gridService.updateItemById(row.id, row)
 
 
-        if(response.data.PreviousDate){
+        if (response.data.PreviousDate) {
           this.listGrupoActividadPersonal$.next('')
         }
 
@@ -164,7 +167,7 @@ export class TableGrupoActividadPersonalComponent {
           this.angularGridEditPersonal.gridService.updateItemById(row.id, item)
         } else {
           // marcar el row en rojo
- 
+
           this.angularGridEditPersonal.slickGrid.setSelectedRows([]);
           this.angularGridEditPersonal.slickGrid.render();
         }
@@ -192,8 +195,8 @@ export class TableGrupoActividadPersonalComponent {
     });
     const newId = highestId + incrementIdByHowMany;
     const currentDate = new Date()
-    const firstDay =  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-  
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+
     return {
       id: newId,
       GrupoActividadId: 0,
@@ -226,7 +229,7 @@ export class TableGrupoActividadPersonalComponent {
 
   }
 
-  
+
   gridDataPersonal$ = this.listGrupoActividadPersonal$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -243,11 +246,9 @@ export class TableGrupoActividadPersonalComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEditPersonal.slickGrid.getDataItem(selrow)
 
-    if (row?.GrupoActividadId) {
+    this.GrupoActividadId.set(row?.GrupoActividadId)
+    this.GrupoActividadPersonalId.set(row?.GrupoActividadPersonalId)
 
-      this.GrupoActividadId.set(row.GrupoActividadId)
-
-    }
 
   }
 
@@ -286,14 +287,25 @@ export class TableGrupoActividadPersonalComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-    if (item.GrupoActividadPersonalHasta && new Date(item.GrupoActividadPersonalHasta) < new Date()) 
+    if (item.GrupoActividadPersonalHasta && new Date(item.GrupoActividadPersonalHasta) < new Date())
       return false;
-    
+
     if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
       return true
 
     e.stopImmediatePropagation();
     return false;
+  }
+
+  openDrawer() {
+    if (this.GrupoActividadPersonalId() == 0) return
+    //this.personalApellidoNombre = persona.ApellidoNombre
+    this.visibleDrawerPersona.set(true)
+
+  }
+
+  closeDrawer(): void {
+    this.visibleDrawerPersona.set(false);
   }
 
 }
