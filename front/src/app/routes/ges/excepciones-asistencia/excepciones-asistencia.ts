@@ -46,7 +46,7 @@ export class ExcepcionesAsistenciaComponent {
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
-  private settingService = inject(SettingsService)
+  private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
   startFilters = signal<any[]>([])
@@ -71,6 +71,8 @@ export class ExcepcionesAsistenciaComponent {
       const mes = this.mes()
       this.listExcepcionesAsistencia$.next('')
     }, { injector: this.injector });
+
+    this.settingsService.setLayout('collapsed', true)
   }
 
   gridData$ = this.listExcepcionesAsistencia$.pipe(
