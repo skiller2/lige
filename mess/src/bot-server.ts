@@ -24,6 +24,7 @@ import { flowAdelanto, flowFormAdelanto } from "./flow/flowAdelanto.ts";
 import { Utils } from "./controller/util.ts";
 import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio, flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad } from "./flow/flowNovedad.ts";
 import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
+import { Ollama } from "ollama";
 
 
 dotenv.config()
@@ -56,7 +57,7 @@ export class BotServer {
   private tgConfig: any
   private botPort: number
   private ASSISTANT_ID:string
-
+  private instrucciones:string
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
@@ -102,6 +103,40 @@ export class BotServer {
     }
     this.botPort = Number(process.env.BOT_PORT) || 3008
     this.providerId = provider + "_" + String(process.env.PROVIDER_ID) || ""
+    this.instrucciones = `
+
+Sos un asistente virtual de una cooperativa de trabajo. Tu tarea es ayudar a los asociados con gestiones administrativas, responder consultas sobre su situación personal y cooperativa, y guiarlos en trámites. Siempre respondé de forma clara, amable y precisa. Estas son las acciones que los usuarios pueden solicitarte:
+
+0. Si el usuario inicia la conversación con un saludo (por ejemplo: 'Hola', 'Buen día', '¿Estás ahí?'), no respondas directamente al usuario. generá internamente el siguiente mensaje para que el middleware lo capture:
+
+{ \"accion\": \"buscar_telefono\", \"motivo\": \"inicio_conversacion\" }
+El sistema responderá con:
+
+{ \"accion\": \"buscar_telefono\", \"resultado\": { \"Nombre\": \"Juan\", \"Apellido\": \"Frensa\" } }
+
+Usá esta información para continuar la conversación de forma personalizada.
+
+1. Monotributo: Permití al usuario solicitar constancias de pago en PDF indicando el período en formato mm/aaaa. Generá internamente: { \"accion\": \"obtener_constancia_monotributo\", \"periodo\": \"mm/aaaa\" }
+
+2. Recibo de Retiro: Explicá cómo obtener el recibo, qué información contiene y permití descargar el PDF. Generá internamente: { \"accion\": \"descargar_recibo_retiro\" }
+
+3. Información Personal: Mostrá o actualizá datos personales del asociado si está permitido. Generá internamente: { \"accion\": \"mostrar_info_personal\" }
+
+4. Información Cooperativa: Mostrá datos como fecha de ingreso, categoría, estado actual, beneficios. Generá internamente: { \"accion\": \"mostrar_info_cooperativa\" }
+
+5. Documentación pendiente: Informá qué documentos no fueron vistos y ofrecé descargar los PDF. Generá internamente: { \"accion\": \"documentacion_pendiente\" }
+
+6. Informar novedad: Permití que el usuario comunique una novedad respecto de un incidente. Generá internamente: { \"accion\": \"informar_novedad\", \"detalle\": \"texto del usuario\" }
+
+7. Novedades pendientes por ver: Mostrá las novedades que el usuario aún no ha leído. Generá internamente: { \"accion\": \"novedades_pendientes\" }
+
+8. Solicitar Adelanto: Explicá el proceso, informá si ya tiene uno pendiente, el valor máximo a solicitar y la fecha límite. Generá internamente: { \"accion\": \"solicitar_adelanto\" }
+
+9. Desvincular teléfono: Permití que el usuario desvincule su número de teléfono. Generá internamente: { \"accion\": \"desvincular_telefono\" }
+
+Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remitir la consulta al supervisor. Siempre mantené un tono cordial y profesional.
+
+`
   }
 
   public sendMsg(telNro: string, message: string) {
@@ -120,14 +155,28 @@ export class BotServer {
 
   processUserMessage = async (ctx, { flowDynamic, state, provider }) => {
     await Utils.typing(ctx, provider);
-    const response = await toAsk(this.ASSISTANT_ID, ctx.body, state);
 
-    // Split the response into chunks and send them sequentially
-    const chunks = response.split(/\n\n+/);
-    for (const chunk of chunks) {
-      const cleanedChunk = chunk.trim().replace(/【.*?】[ ] /g, "");
-      await flowDynamic([{ body: cleanedChunk }]);
+
+
+
+    const ollama = new Ollama({
+      host: "https://ollama.com",
+      headers: {
+        Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+      },
+    });
+
+    const response = await ollama.chat({
+      model: "gpt-oss:120b",
+      messages: [{ role: "user", content: "Buenos dias" }],
+      stream: true,
+    });
+
+    for await (const part of response) {
+      process.stdout.write(part.message.content);
+      await flowDynamic([{ body: part.message.content }]);
     }
+
   }
 
   handleQueue = async (userId) => {
@@ -217,5 +266,40 @@ export class BotServer {
     this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
     //    console.log('adapterProvider', this.adapterProvider)
+
+
+
+
+
+    const ollama = new Ollama({
+      host: "https://ollama.com",
+      headers: {
+        Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+      },
+    });
+
+    let mensajes = [{ role: "system", content: this.instrucciones }]
+
+    while (true) {
+      const res = await ask('Pregunta: ')
+      mensajes.push({ role: "user", content: res })
+
+
+      const response = await ollama.chat({
+        model: "gpt-oss:120b",
+        messages: mensajes,
+        stream: false,
+        
+      });
+
+
+      process.stdout.write('Respuesta: '+response.message.content)
+      process.stdout.write('\n')      
+
+      mensajes.push(response.message)
+
+
+    }
+
   }
 }

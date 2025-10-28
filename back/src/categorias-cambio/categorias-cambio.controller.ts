@@ -121,7 +121,7 @@ export class CategoriasController extends BaseController {
         CONCAT(per.PersonalId,'-',cat.TipoAsociadoId) as id,
         1
         FROM Personal per
-        JOIN PersonalFechaIngreso ing ON ing.PersonalId = per.PersonalId
+        JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
         JOIN PersonalCategoria rel ON rel.PersonalCategoriaPersonalId = per.PersonalId AND rel.PersonalCategoriaDesde <= @1 AND ISNULL(rel.PersonalCategoriaHasta,'9999-12-31') >= @1
         JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = rel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = rel.PersonalCategoriaCategoriaPersonalId
         JOIN CategoriaPersonalPasaA pas ON pas.TipoAsociadoId = cat.TipoAsociadoId AND pas.CategoriaPersonalId = cat.CategoriaPersonalId AND (pas.CategoriaPersonalPasaAAnos>0 OR pas.CategoriaPersonalPasaAMeses >0) AND @1 >=  pas.CategoriaPersonalPasaADesde AND  @1 <= ISNULL(pas.CategoriaPersonalPasaAHasta,'9999-12-31')

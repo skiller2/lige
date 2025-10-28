@@ -159,6 +159,18 @@ const columns: any[] = [
     searchHidden: false,
     hidden: false,
   },
+  {
+    id: "GrupoActividadDetalle",
+    name: "Grupo Actividad",
+    field: "GrupoActividadDetalle",
+    type: "string",
+    fieldName: "act.GrupoActividadDetalle",
+    searchType: "string",
+    searchComponent: "inpurForGrupoActividad",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
 ]
 
 
@@ -470,6 +482,7 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
+        act.GrupoActividadNumero, act.GrupoActividadDetalle,
         ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
         tels.Telefonos
 
@@ -487,6 +500,9 @@ cuit.PersonalCUITCUILCUIT,
 
         LEFT JOIN ( SELECT t.PersonalId, STRING_AGG(TRIM(t.PersonalTelefonoNro),', ') Telefonos FROM PersonalTelefono t WHERE t.PersonalTelefonoInactivo =0 OR t.PersonalTelefonoInactivo IS null GROUP BY t.PersonalId
             ) tels ON tels.PersonalId= per.PersonalId
+
+        LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde <= GETDATE() AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') >= GETDATE() 
+        LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
 
         WHERE (1=1)
         AND (${filterSql})

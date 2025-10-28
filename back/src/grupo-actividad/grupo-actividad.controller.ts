@@ -729,7 +729,6 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-        const usuarioId = await this.getUsuarioId(res, queryRunner)
         const usuario = res.locals.userName
 
         const fechaActual = new Date()
@@ -874,7 +873,7 @@ export class GrupoActividadController extends BaseController {
                     ) 
                     VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @6, @7, @8)`,
                     [GrupoActividadJerarquicoUltNro, params.GrupoActividadDetalle.id, params.GrupoActividadJerarquicoComo, params.ApellidoNombrePersona.id,
-                        GrupoActividadJerarquicoDesde, GrupoActividadJerarquicoHastaNew, ip, usuarioId, day
+                        GrupoActividadJerarquicoDesde, GrupoActividadJerarquicoHastaNew, ip, usuario, day
                     ]);
 
                 await queryRunner.query(`UPDATE GrupoActividad

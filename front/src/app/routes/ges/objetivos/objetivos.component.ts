@@ -58,7 +58,7 @@ export class ObjetivosComponent {
   };
   
   formChange$ = new BehaviorSubject('');
-  startFilters: any[]=[]
+  startFilters = signal<any[]>([]);
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -96,10 +96,10 @@ export class ObjetivosComponent {
       this.gridOptions.createFooterRow = true
 
       const dateToday = new Date();
-      this.startFilters = [
+      this.startFilters.set([
         {field:'ContratoFechaDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-        {field:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
-  }
+        {field:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]);
+   } 
 
     async angularGridReady(angularGrid: any) {
       this.angularGrid = angularGrid.detail
@@ -179,7 +179,7 @@ export class ObjetivosComponent {
 
     setTimeout(() => {
       if (ClienteId > 0) {
-        this.startFilters = [ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}]
+        this.startFilters.set([ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}]);
       }
     }, 1000)
   }

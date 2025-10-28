@@ -135,7 +135,7 @@ personalRouter.get("/download/:table/:id", authMiddleware.verifyToken, (req, res
 
 personalRouter.get(
   `${base}/responsables/:personalId/:anio/:mes`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`, 'Responsables', 'Liquidaciones', 'Liquidaciones Consultas'])],
+  [authMiddleware.verifyToken],
   (req, res, next) => {
     personalController.getPersonalResponsables(req, res, next);
   }
@@ -167,7 +167,7 @@ personalRouter.get(
 
 personalRouter.get(
   `${base}/sitrevista/:personalId/:anio/:mes`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`, `Responsables`, 'Liquidaciones', 'Liquidaciones Consultas'])],
+  [authMiddleware.verifyToken],
   (req, res, next) => {
     personalController.getPersonalSitRevista(req, res, next);
   }
@@ -185,7 +185,7 @@ personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req,
   personalController.getNameFromId(req.params.personalId, res, next);
 });
 
-personalRouter.get(`${base}/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`, 'Responsables', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+personalRouter.get(`${base}/:id`, [authMiddleware.verifyToken], (req, res, next) => {
   personalController.getById(req.params.id, res, next);
 });
 

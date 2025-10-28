@@ -483,7 +483,7 @@ export class ObjetivosController extends BaseController {
         GrupoActividadJerarquicoHasta, GrupoActividadJerarquicoPersonalId
         FROM GrupoActividadJerarquico 
         WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo='J'
-        ORDER BY ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') DESC, GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoTiempo DESC`
+        ORDER BY ISNULL(GrupoActividadJerarquicoHasta,'9999-12-31') DESC, GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoAudFechaIng DESC`
             , [GrupoActividadId])
 
 

@@ -44,13 +44,13 @@ export class AyudaAsistencialDrawerComponent {
                 this.formAyudaAsi.patchValue({ aplicaEl: this.periodo() })
             }
             if (!this.visible()) {
-                this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:1, motivo:'1', personalPrestamoId:0 })
+                this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:0, motivo:'', personalPrestamoId:0 })
             }
         })
     }
 
     fb = inject(FormBuilder)
-    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:1, motivo:'1', personalPrestamoId:0 })
+    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:0, motivo:'', personalPrestamoId:0 })
 
     /*conditional = computed(async () => {
         if (!this.visible()) {
