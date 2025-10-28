@@ -270,7 +270,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
 
 
-
+/*
     const ollama = new Ollama({
       host: "https://ollama.com",
       headers: {
@@ -300,6 +300,6 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
 
     }
-
+*/
   }
 }
