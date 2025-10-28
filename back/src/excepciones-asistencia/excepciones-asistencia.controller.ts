@@ -104,12 +104,14 @@ const columnsExcepcionesAsistencia: any[] = [
   {
     id: 'PersonalArt14FormaArt14', name: 'Forma Art 14', field: 'PersonalArt14FormaArt14',
     fieldName: 'art.PersonalArt14FormaArt14',
+    type: 'string',
     formatter: 'collectionFormatter',
     params: { collection: AsistenciaController.getMetodologias().map((obj:any)=>{ return { label: obj.descripcion, value: obj.id } }), },
-    type: 'text',
+    searchComponent: 'inpurForMetodologiasSearch',
+    searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: 'Desde', name: 'Desde', field: 'Desde',
