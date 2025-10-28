@@ -316,7 +316,7 @@ export class NovedadesController extends BaseController {
 
         const queryRunner = dataSource.createQueryRunner();
         try {
-            const provincias = await queryRunner.query(`SELECT NovedadTipoCod, Descripcion FROM NovedadTipo`)
+            const provincias = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
             return this.jsonRes(provincias, res);
         } catch (error) {
             return next(error)

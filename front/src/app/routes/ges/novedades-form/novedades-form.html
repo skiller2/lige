@@ -43,7 +43,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-select formControlName="TipoNovedadId" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
             <ng-container *ngFor="let option of $optionsTipoNovedad | async">
-                <nz-option [nzValue]="option.NovedadTipoCod" [nzLabel]="option.Descripcion"></nz-option>
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               </ng-container>
         </nz-select>
       </nz-form-control>

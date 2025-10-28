@@ -15,7 +15,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Filtro, Options,Selections } from '../schemas/filtro';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { SearchService } from '../../services/search.service';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { FechaSearchComponent } from '../fecha-search/fecha-search.component';
 import { TipoMovimientoSearchComponent } from '../tipo-movimiento-search/tipo-movimiento-search.component';
@@ -87,6 +87,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsTipoDescuento = this.searchService.getDecuentosTipoOptions();
   $optionsProcAutoEstado = this.searchService.getProcAutoEstadosOptions();
   $optionsSucursales = this.searchService.getSucursales();
+  $optionsMetodologias = this.searchService.getMetodologia();
+
   private _options: Options = {
     filtros: [],
     sort: null,
@@ -431,28 +433,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
-  async selectedValueTipoNovedad(val: any) { 
-
-    if (val) {
-      this.selections.value = val 
-      const res = await firstValueFrom( this.searchService.getTipoNovedad() )
-      console.log(res)
-      this.selections.label = res[0].Descripcion
-    }
-  }
-
-
-
-
-  async selectedValueTipoDescuento(val: any) {
-
-    if (val) {
-      this.selections.value = val 
-      const res = await firstValueFrom(this.searchService.getDecuentosTipoOptions())
-      this.selections.label = res[0].label
-    }
-  }
-
   async selectedValueCentroCapacitacion(val: any) {
 
     if (val) {
@@ -468,6 +448,20 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.value = val
       const res = await firstValueFrom(this.searchService.getModalidadCursoSearchId(val))
       this.selections.label = res[0].ModalidadCursoModalidad
+    }
+  }
+
+  async selectedValueMetodologias(val: any) {
+    if (val) {
+      this.selections.value = val.id
+      this.selections.label = val.descripcion
+    }
+  }
+
+  selectedValueOptions(val: any) {
+    if (val) {
+      this.selections.value = val.value;
+      this.selections.label =  val.label;
     }
   }
 
