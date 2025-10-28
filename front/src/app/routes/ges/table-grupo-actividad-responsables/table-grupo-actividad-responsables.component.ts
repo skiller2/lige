@@ -15,18 +15,21 @@ import { SelectSearchComponent } from "../../../shared/select-search/select-sear
 import { Component, model, signal, inject } from '@angular/core';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 
 
 @Component({
-    selector: 'app-table-grupo-actividad-responsables',
-    providers: [AngularUtilService],
-    imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        FiltroBuilderComponent
-    ],
-    templateUrl: './table-grupo-actividad-responsables.component.html',
-    styleUrl: './table-grupo-actividad-responsables.component.less'
+  selector: 'app-table-grupo-actividad-responsables',
+  providers: [AngularUtilService],
+  imports: [
+    ...SHARED_IMPORTS,
+    CommonModule,
+    FiltroBuilderComponent,
+    DetallePersonaComponent
+
+  ],
+  templateUrl: './table-grupo-actividad-responsables.component.html',
+  styleUrl: './table-grupo-actividad-responsables.component.less'
 })
 export class TableGrupoActividadResponsablesComponent {
 
@@ -39,8 +42,11 @@ export class TableGrupoActividadResponsablesComponent {
   columnDefinitions: Column[] = []
   itemAddActive = false
   listGrupoActividadResponsables$ = new BehaviorSubject('')
-  GrupoActividadJerarquicoId = signal("")
+  GrupoActividadJerarquicoId = signal(0)
+  GrupoActividadJerarquicoPersonalId = signal(0)
   GrupoActividadId = signal("")
+  currPeriodo = signal({ anio: 0, mes: 0 })
+
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -52,6 +58,8 @@ export class TableGrupoActividadResponsablesComponent {
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
+
+  visibleDrawerPersona = signal(false)
 
   listOptionsChange(options: any) {
     this.listOptions = options
@@ -128,18 +136,19 @@ export class TableGrupoActividadResponsablesComponent {
 
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.editable = true
-    this.gridOptionsEdit.autoEdit = true    
+    this.gridOptionsEdit.autoEdit = true
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
 
-    let dateToday = new Date();
-    
+    const dateToday = new Date();
+    this.currPeriodo.set({ anio: dateToday.getFullYear(), mes: dateToday.getMonth() + 1 })
+
     this.startFilters = [
-     {field:'GrupoActividadJerarquicoDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-     {field:'GrupoActividadJerarquicoHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
+      { field: 'GrupoActividadJerarquicoDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
+      { field: 'GrupoActividadJerarquicoHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-//      if column.id 
+      //      if column.id 
 
       this.angularGridEditActividad.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEditActividad.dataView.getItemMetadata)
       this.angularGridEditActividad.slickGrid.invalidate();
@@ -162,7 +171,7 @@ export class TableGrupoActividadResponsablesComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEditActividad.dataView.getItemById(row.id)
-      
+
 
 
 
@@ -178,7 +187,7 @@ export class TableGrupoActividadResponsablesComponent {
         row.GrupoActividadJerarquicoComoOld = row.GrupoActividadJerarquicoComo
         this.angularGridEditActividad.gridService.updateItemById(row.id, row)
 
-        if(response.data.PreviousDate){
+        if (response.data.PreviousDate) {
           this.listGrupoActividadResponsables$.next('')
         }
 
@@ -195,10 +204,10 @@ export class TableGrupoActividadResponsablesComponent {
           }
           this.angularGridEditActividad.gridService.updateItemById(row.id, item)
         } else {
-         // marcar el row en rojo
+          // marcar el row en rojo
 
-         this.angularGridEditActividad.slickGrid.setSelectedRows([]);
-         this.angularGridEditActividad.slickGrid.render();
+          this.angularGridEditActividad.slickGrid.setSelectedRows([]);
+          this.angularGridEditActividad.slickGrid.render();
         }
         this.rowLocked = false
       }
@@ -229,17 +238,17 @@ export class TableGrupoActividadResponsablesComponent {
     });
     const newId = highestId + incrementIdByHowMany;
     const currentDate = new Date()
-    const firstDay =  new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
 
     return {
       id: newId,
       GrupoActividadId: 0,
       GrupoActividadDetalle: "",
-      GrupoActividadDetalleOld :"",
+      GrupoActividadDetalleOld: "",
       GrupoActividadJerarquicoComo: "",
       GrupoActividadJerarquicoComoOld: "",
       ApellidoNombrePersona: "",
-      ApellidoNombrePersonaOld:"",
+      ApellidoNombrePersonaOld: "",
       GrupoActividadSucursalId: "",
       GrupoActividadJerarquicoDesde: firstDay,
       GrupoActividadJerarquicoHasta: null
@@ -252,10 +261,10 @@ export class TableGrupoActividadResponsablesComponent {
     this.angularGridEditActividad = angularGrid.detail
 
 
-if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
+    if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
 
-  this.angularGridEditActividad.slickGrid.getEditorLock().commitCurrentEdit();
-}
+      this.angularGridEditActividad.slickGrid.getEditorLock().commitCurrentEdit();
+    }
     this.angularGridEditActividad.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEditActividad)
       columnTotal('CantidadGrupoActividadResponsables', this.angularGridEditActividad)
@@ -295,6 +304,7 @@ if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
     if (row?.GrupoActividadJerarquicoId) {
 
       this.GrupoActividadJerarquicoId.set(row.GrupoActividadJerarquicoId)
+      this.GrupoActividadJerarquicoPersonalId.set(row.GrupoActividadJerarquicoPersonalId)
       this.GrupoActividadId.set(row.GrupoActividadId)
 
     }
@@ -337,7 +347,7 @@ if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
     if (item.GrupoActividadId == 0)
       return true
 
-    if (item.GrupoActividadJerarquicoHasta && new Date(item.GrupoActividadJerarquicoHasta) < new Date()) 
+    if (item.GrupoActividadJerarquicoHasta && new Date(item.GrupoActividadJerarquicoHasta) < new Date())
       return false
 
     if (column.id == 'GrupoActividadJerarquicoDesde' || column.id == 'GrupoActividadJerarquicoHasta')
@@ -346,6 +356,17 @@ if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
     e.stopImmediatePropagation();
     return false;
   }
-  
+
+  openDrawer() {
+    if (!this.GrupoActividadJerarquicoId() ) return
+    this.visibleDrawerPersona.set(true)
+
+  }
+
+  closeDrawer(): void {
+    this.visibleDrawerPersona.set(false);
+  }
+
+
 }
 
