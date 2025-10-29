@@ -93,6 +93,80 @@
               [list]="objResp"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
+          <nz-form-control [nzMd]="18" [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
+            @if (objetivoDetalle?.contratos?.length==0 && this.objetivoIdSelected>0) {
+            <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
+            }
+            <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
+              <li>
+                <span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}}
+                <span *ngIf="contrato.ContratoFechaHasta">-</span>
+                {{ contrato.ContratoFechaHasta | date}}
+              </li>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+
+        @let telefonos = $telefonos | async;
+        <nz-form-item *ngIf="telefonos.length > 0">
+          <nz-form-label [nzXs]="5" [nzSpan]="5">Telefonos</nz-form-label>
+            <nz-form-control [nzMd]="18" [nzSpan]="9"> 
+              @if (!telefonos.length) { <li>Sin datos</li>}
+              @for (tel of telefonos; track tel.PersonalTelefonoNro) {
+              <li title="">
+                {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
+            </nz-form-control>
+        </nz-form-item>
+
+      @let contactoOperativo = $contactoOperativo | async;
+      <nz-form-item *ngIf="contactoOperativo.length > 0">
+        <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
+          <nz-form-control [nzMd]="18" [nzSpan]="9">
+          @for (contacto of contactoOperativo; track contacto.Telefono) {
+            @if (contacto.ApellidoNombre) {
+            <span> Apellido y Nombre: {{contacto.ApellidoNombre}}</span>
+            <br>
+            }
+            @if (contacto.area) {
+            <span> Area: {{contacto.area}}</span>
+            <br>
+            }
+            @if (contacto.correo) {
+            <span> Correo: {{contacto.correo}}</span>
+            <br>
+            }
+            @if (contacto.telefono) {
+            <span> Telefono: {{contacto.telefono}}</span>
+            <br>
+            }
+          }
+          </nz-form-control>
+      </nz-form-item>
+
+      @let domicilio = $domicilio | async;
+      <nz-form-item *ngIf="domicilio.length == 1 && domicilio[0].DomicilioId">
+        <nz-form-label [nzXs]="5" [nzSpan]="5">Domicilio</nz-form-label>
+          <nz-form-control [nzMd]="18" [nzSpan]="9">
+            @for (dom of domicilio; track dom.DomicilioId) {
+              <span> {{dom.domCompleto}}</span>
+            }
+          </nz-form-control>
+      </nz-form-item>
+
+      @let coberturaServicio = $coberturaServicio | async;
+      <nz-form-item *ngIf="coberturaServicio.length == 1 && coberturaServicio[0].CoberturaServicio">
+        <nz-form-label [nzXs]="5" [nzSpan]="5">Cobertura Servicio</nz-form-label>
+           <nz-form-control [nzMd]="18" [nzSpan]="9">
+            @for (cobertura of coberturaServicio; track cobertura.CoberturaServicio) {
+              <span> {{cobertura.CoberturaServicio}}</span>
+            }
+          </nz-form-control>
+      </nz-form-item>
+
+
         <ng-container *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
 
           <nz-form-item>

@@ -58,3 +58,27 @@ objetivoRouter.get(
     objetivoController.ObjetivoInfoFromId(req.params.objetivoId, res, next);
   }
 );
+
+objetivoRouter.get(
+  "/contactooperativo/:objetivoId",
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    objetivoController.getContactoOperativo(req.params.objetivoId, res, next);
+  }
+);
+
+objetivoRouter.get(
+  "/domicilio/:objetivoId",
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    objetivoController.getDomicilio(req.params.objetivoId, res, next);
+  }
+);
+
+objetivoRouter.get(
+  "/coberturaservicio/:objetivoId",
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    objetivoController.getCoberturaServicio(req.params.objetivoId, res, next);
+  }
+);

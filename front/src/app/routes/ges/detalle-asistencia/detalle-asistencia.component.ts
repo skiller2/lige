@@ -1,6 +1,6 @@
 import { Component, Input, ViewChild, inject, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
-import { BehaviorSubject, Subject, debounceTime, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -14,6 +14,7 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { DescuentosComponent } from '../descuentos/descuentos.component';
 import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
+import { LoadingService } from '@delon/abc/loading';
 
 enum Busqueda { Sucursal, Objetivo, Personal }
 
@@ -40,6 +41,7 @@ export class DetalleAsistenciaComponent {
   public get Busqueda() {
     return Busqueda;
   }
+  private readonly loadingSrv = inject(LoadingService);
 
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
@@ -119,6 +121,77 @@ export class DetalleAsistenciaComponent {
         );
     })
   );
+  $objetivoDetalleLoading = new BehaviorSubject<boolean | null>(null);
+
+  $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId => {
+        return this.getObjetivoDetalle(Number(objetivoId), this.selectedPeriod().year, this.selectedPeriod().month)
+            .pipe(
+                //                  switchMap((data:any) => { return data}),
+                doOnSubscribe(() => this.$objetivoDetalleLoading.next(true)),
+                tap({
+                    complete: () => { this.$objetivoDetalleLoading.next(false) },
+                })
+            );
+    })
+);
+
+    $telefonosLoading = new BehaviorSubject<boolean | null>(null);
+    $telefonos = this.$selectedObjetivoIdChange.pipe(
+      debounceTime(50),
+      switchMap(objetivoId => {
+          return this.searchService.getTelefonosPersona(Number(objetivoId))
+              .pipe(
+                  doOnSubscribe(() => this.$telefonosLoading.next(true)),
+                  tap({
+                      complete: () => { this.$telefonosLoading.next(false) },
+                  })
+              );
+      })
+    );
+
+    $contactoOperativoLoading = new BehaviorSubject<boolean | null>(null);
+    $contactoOperativo = this.$selectedObjetivoIdChange.pipe(
+      debounceTime(50),
+      switchMap(objetivoId => {
+          return this.searchService.getContactoOperativo(Number(objetivoId))
+              .pipe(
+                  doOnSubscribe(() => this.$contactoOperativoLoading.next(true)),
+                  tap({
+                      complete: () => { this.$contactoOperativoLoading.next(false) },
+                  })
+              );
+      })
+    );
+
+    $domicilioLoading = new BehaviorSubject<boolean | null>(null);
+    $domicilio = this.$selectedObjetivoIdChange.pipe(
+      debounceTime(50),
+      switchMap(objetivoId => {
+          return this.searchService.getDomicilio(Number(objetivoId))
+              .pipe(
+                  doOnSubscribe(() => this.$domicilioLoading.next(true)),
+                  tap({
+                      complete: () => { this.$domicilioLoading.next(false) },
+                  })
+              );
+      })
+    );
+
+    $coberturaServicioLoading = new BehaviorSubject<boolean | null>(null);
+    $coberturaServicio = this.$selectedObjetivoIdChange.pipe(
+      debounceTime(50),
+      switchMap(objetivoId => {
+          return this.searchService.getCoberturaServicio(Number(objetivoId))
+              .pipe(
+                  doOnSubscribe(() => this.$coberturaServicioLoading.next(true)),
+                  tap({
+                      complete: () => { this.$coberturaServicioLoading.next(false) },
+                  })
+              );
+      })
+    );
 
   $listaAsistencia = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
@@ -358,11 +431,26 @@ export class DetalleAsistenciaComponent {
     )
   );
 
+
+
   $isSucursalDataLoading = new BehaviorSubject(false);
   $isObjetivoDataLoading = new BehaviorSubject(false);
   $isPersonalDataLoading = new BehaviorSubject(false);
 
 
+    getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      return forkJoin([
+          this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
+          this.searchService.getObjetivoContratos(objetivoId, anio, mes),
+          this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
+      ]).pipe(
+          map((data: any[]) => {
+              this.loadingSrv.close()
+              return { responsable: data[0], contratos: data[1], periodo: data[2] };
+          })
+      );
+  }
 
   ngAfterContentInit(): void {
     const now = new Date(); //date

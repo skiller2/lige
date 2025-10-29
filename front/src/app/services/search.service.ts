@@ -1044,6 +1044,40 @@ export class SearchService {
     );
   }
 
+  getContactoOperativo(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/contactooperativo/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getDomicilio(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/domicilio/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getCoberturaServicio(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/coberturaservicio/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+
   getCuentasBancoPersona(id: number): Observable<any> {
     if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/banco/${id}`).pipe(

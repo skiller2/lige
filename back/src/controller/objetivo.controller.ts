@@ -25,6 +25,82 @@ export class ObjetivoController extends BaseController {
     }
   }
 
+  async getContactoOperativo(objetivoId: string, res, next: NextFunction) {
+    try {
+      const result: ObjetivoInfo[] = await dataSource.query(
+        `SELECT
+            concat( TRIM(cc.ContactoApellido), ', ', TRIM(cc.ContactoNombre)) AS ApellidoNombre,
+            TRIM(cc.ContactoArea) AS area,
+            TRIM(cce.ContactoEmailEmail) AS correo ,
+            CONCAT(ISNULL(TRIM(tiptel.TipoTelefonoDescripcion), ''), ' - ',TRIM(cct.ContactoTelefonoNro)) AS telefono,
+            cc.ContactoTipoCod
+
+            FROM  Objetivo obj
+
+            LEFT JOIN Contacto cc on cc.ClienteId=obj.ClienteId
+            LEFT JOIN ContactoEmail cce ON cc.ContactoId = cce.ContactoId
+            LEFT JOIN ContactoTelefono cct ON cc.ContactoId = cct.ContactoId
+            LEFT JOIN TipoTelefono tiptel on tiptel.TipoTelefonoId=cct.TipoTelefonoId
+
+            WHERE  obj.ObjetivoId=@0 and cc.ContactoTipoCod = 'OPE'`,
+                    [objetivoId]
+      );
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getDomicilio(objetivoId: string, res, next: NextFunction) {
+    try {
+      const result: ObjetivoInfo[] = await dataSource.query(
+        `SELECT dom.DomicilioId 
+
+                ,TRIM(dom.DomicilioDomCalle) Calle,
+                dom.DomicilioDomNro, 
+                dom.DomicilioCodigoPostal,
+                TRIM(pais.PaisDescripcion) pais, 
+                TRIM(prov.ProvinciaDescripcion) provincia,
+                TRIM(loc.LocalidadDescripcion) localidad ,
+                TRIM(bar.BarrioDescripcion) barrio,
+
+                CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ',
+                TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto
+
+                FROM Objetivo obj
+
+                LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+                LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = clidep.ClienteElementoDependienteId AND nexdom.ClienteId = clidep.ClienteId AND nexdom.NexoDomicilioActual = 1
+                LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+
+                LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
+                LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
+                LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
+                LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
+
+                WHERE obj.ObjetivoId=@0`,   [objetivoId]
+      );
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getCoberturaServicio(objetivoId: string, res, next: NextFunction) {
+    try {
+      const result: ObjetivoInfo[] = await dataSource.query(
+        `Select ele.CoberturaServicio
+          from ClienteElementoDependiente ele
+          LEFT JOIN Objetivo Obj on Obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and Obj.ClienteId=ele.ClienteId
+          where Obj.ObjetivoId=@0`,   [objetivoId]
+      );
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   static async getObjetivoContratos(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
     const buscaObjetivo = (objetivoId != 0) ? ' AND obj.ObjetivoId=@0' : ''
     return queryRunner
