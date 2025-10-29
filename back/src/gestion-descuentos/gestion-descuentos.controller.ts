@@ -77,7 +77,7 @@ const columnsPersonalDescuentos: any[] = [
     searchComponent: "inputForTipoDescuentoSearch",
     searchType: 'number',
     sortable: true,
-    hidden: false,
+    hidden: true,
     searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
