@@ -123,8 +123,8 @@ export class CustodiaComponent {
             // console.log('PERIODO',this.periodo());
             const periodo = this.periodo() //para que triggee
             if(periodo){
-                localStorage.setItem('anio',String(this.periodo().getFullYear()))
-                localStorage.setItem('mes',String(this.periodo().getMonth()+1))
+                localStorage.setItem('anio',String(this.anio()))
+                localStorage.setItem('mes',String(this.mes()))
             }
             this.listCustodia('')
         }, { injector: this.injector });

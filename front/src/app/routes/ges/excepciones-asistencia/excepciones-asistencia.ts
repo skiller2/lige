@@ -69,7 +69,7 @@ export class ExcepcionesAsistenciaComponent {
     effect(async () => {
       const anio = this.anio()
       const mes = this.mes()
-      localStorage.setItem('mes', String(mes-1));
+      localStorage.setItem('mes', String(mes));
       localStorage.setItem('anio', String(anio));
       this.listExcepcionesAsistencia$.next('')
     }, { injector: this.injector });
@@ -172,7 +172,7 @@ export class ExcepcionesAsistenciaComponent {
       Number(localStorage.getItem('mes')) > 0
         ? Number(localStorage.getItem('mes'))
         : now.getMonth() + 1;
-    this.periodo.set(new Date(anio, mes, 1))
+    this.periodo.set(new Date(anio, mes - 1, 1))
   }
 
   changeBackgroundColor() {

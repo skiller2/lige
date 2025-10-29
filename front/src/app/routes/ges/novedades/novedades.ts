@@ -160,6 +160,6 @@ export class NovedadesComponent {
       Number(localStorage.getItem('mes')) > 0
         ? Number(localStorage.getItem('mes'))
         : now.getMonth() + 1;
-    this.periodo.set(new Date(anio, mes, 1))
+    this.periodo.set(new Date(anio, mes - 1, 1))
   }
 }
