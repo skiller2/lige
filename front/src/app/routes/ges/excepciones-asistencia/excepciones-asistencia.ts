@@ -69,6 +69,8 @@ export class ExcepcionesAsistenciaComponent {
     effect(async () => {
       const anio = this.anio()
       const mes = this.mes()
+      localStorage.setItem('mes', String(mes-1));
+      localStorage.setItem('anio', String(anio));
       this.listExcepcionesAsistencia$.next('')
     }, { injector: this.injector });
 
