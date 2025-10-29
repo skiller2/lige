@@ -94,20 +94,19 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement">
+        @let objetivoDetalle = $objetivoDetalle | async;
+        <nz-form-item class="marginElement" *ngIf="objetivoDetalle?.contratos?.length > 0">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
-          <nz-form-control [nzMd]="18" [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
-            @if (objetivoDetalle?.contratos?.length==0 && this.objetivoIdSelected>0) {
+          @if (objetivoDetalle?.contratos?.length==0 && this.objetivoIdSelected>0) {
             <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
-            }
-            <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
-              <li>
-                <span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}}
-                <span *ngIf="contrato.ContratoFechaHasta">-</span>
-                {{ contrato.ContratoFechaHasta | date}}
-              </li>
-            </ng-container>
-          </nz-form-control>
+          }
+          @for (contrato of objetivoDetalle.contratos; track contrato.ContratoId) {
+            <li>
+              <span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}}
+              <span *ngIf="contrato.ContratoFechaHasta">-</span>
+              {{ contrato.ContratoFechaHasta | date}}
+            </li>
+          }
         </nz-form-item>
 
         @let telefonos = $telefonos | async;
