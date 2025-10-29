@@ -86,13 +86,6 @@
 
           </nz-form-control>
         </nz-form-item>
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-          <nz-form-control>
-            <app-view-responsable *ngIf="$objetivoResponsables | async as objResp"
-              [list]="objResp"></app-view-responsable>
-          </nz-form-control>
-        </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
@@ -110,22 +103,31 @@
           </nz-form-control>
         </nz-form-item>
 
-        @let telefonos = $telefonos | async;
-        <nz-form-item *ngIf="telefonos.length > 0">
-          <nz-form-label [nzXs]="5" [nzSpan]="5">Telefonos</nz-form-label>
-            <nz-form-control [nzMd]="18" [nzSpan]="9"> 
-              @if (!telefonos.length) { <li>Sin datos</li>}
-              @for (tel of telefonos; track tel.PersonalTelefonoNro) {
-              <li title="">
-                {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
-            </nz-form-control>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+          <nz-form-control>
+            <app-view-responsable *ngIf="$objetivoResponsables | async as objResp"
+              [list]="objResp"></app-view-responsable>
+          </nz-form-control>
         </nz-form-item>
 
-      @let contactoOperativo = $contactoOperativo | async;
-      <nz-form-item *ngIf="contactoOperativo.length > 0">
-        <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
+        @let telefonos = $telefonos | async;
+        <nz-form-item>
+          <nz-form-label [nzXs]="5" [nzSpan]="5">Telefonos Responsable</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9">
-          @for (contacto of contactoOperativo; track contacto.Telefono) {
+            @if (!telefonos.length) { <li>Sin datos</li>}
+            @for (tel of telefonos; track tel.PersonalTelefonoNro) {
+            <li title="">
+              {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
+          </nz-form-control>
+        </nz-form-item>
+
+        @let contactoOperativo = $contactoOperativo | async;
+        <nz-form-item>
+          <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
+          <nz-form-control [nzMd]="18" [nzSpan]="9">
+            @if (!contactoOperativo.length) { <span>Sin datos</span>}
+            @for (contacto of contactoOperativo; track contacto.Telefono) {
             @if (contacto.ApellidoNombre) {
             <span> Apellido y Nombre: {{contacto.ApellidoNombre}}</span>
             <br>
@@ -142,29 +144,30 @@
             <span> Telefono: {{contacto.telefono}}</span>
             <br>
             }
-          }
+            }
           </nz-form-control>
-      </nz-form-item>
+        </nz-form-item>
 
-      @let domicilio = $domicilio | async;
-      <nz-form-item *ngIf="domicilio.length == 1 && domicilio[0].DomicilioId">
-        <nz-form-label [nzXs]="5" [nzSpan]="5">Domicilio</nz-form-label>
+        @let domicilio = $domicilio | async;
+        <nz-form-item>
+          <nz-form-label [nzXs]="5" [nzSpan]="5">Domicilio</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9">
+            @if (!domicilio.length) { <span>Sin datos</span>}
             @for (dom of domicilio; track dom.DomicilioId) {
-              <span> {{dom.domCompleto}}</span>
+            <span> {{dom.domCompleto}}</span>
             }
           </nz-form-control>
-      </nz-form-item>
+        </nz-form-item>
 
-      @let coberturaServicio = $coberturaServicio | async;
-      <nz-form-item *ngIf="coberturaServicio.length == 1 && coberturaServicio[0].CoberturaServicio">
-        <nz-form-label [nzXs]="5" [nzSpan]="5">Cobertura Servicio</nz-form-label>
-           <nz-form-control [nzMd]="18" [nzSpan]="9">
+        @let coberturaServicio = $coberturaServicio | async;
+        <nz-form-item *ngIf="coberturaServicio.length == 1 && coberturaServicio[0].CoberturaServicio">
+          <nz-form-label [nzXs]="5" [nzSpan]="5">Cobertura Servicio</nz-form-label>
+          <nz-form-control [nzMd]="18" [nzSpan]="9">
             @for (cobertura of coberturaServicio; track cobertura.CoberturaServicio) {
-              <span> {{cobertura.CoberturaServicio}}</span>
+            <span> {{cobertura.CoberturaServicio}}</span>
             }
           </nz-form-control>
-      </nz-form-item>
+        </nz-form-item>
 
 
         <ng-container *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
@@ -209,7 +212,8 @@
                     <td>{{ data.PersonalArt14Autorizado }}</td>
                     <td>
                       <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                      <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
+                      <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency
+                        }}</span>
                       <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                       <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                       <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
@@ -325,7 +329,9 @@
                 <tr *ngFor="let data of descObj.data" class="">
                   <td>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
-                  <td>{{ data.ObjetivoDescuentoDescontar=='CO'?'Coordinador':data.ObjetivoDescuentoDescontar=='CL'?'Cliente':'Ninguno' }}</td>
+                  <td>{{
+                    data.ObjetivoDescuentoDescontar=='CO'?'Coordinador':data.ObjetivoDescuentoDescontar=='CL'?'Cliente':'Ninguno'
+                    }}</td>
                   <td>
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | I18NCurrency }}</div>
@@ -442,12 +448,12 @@
                     nz-icon nzType="download"></span>Monotributo
                   {{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}</a></nz-list-item>
             </nz-list>
-           
+
             <nz-list nzBordered nzSize="small">
               <nz-list-item *ngIf="selectedPersonalId > 0 && selectedReciboDocumentoId() > 0">
                 <a app-down-file
-                  httpUrl="/api/file-upload/downloadFile/{{selectedReciboDocumentoId()}}/Documento/original"><span nz-icon
-                    nzType="download"></span>Recibo Nro {{selectedReciboNro()}}</a></nz-list-item>
+                  httpUrl="/api/file-upload/downloadFile/{{selectedReciboDocumentoId()}}/Documento/original"><span
+                    nz-icon nzType="download"></span>Recibo Nro {{selectedReciboNro()}}</a></nz-list-item>
             </nz-list>
           </nz-form-control>
         </nz-form-item>
@@ -512,7 +518,8 @@
                   <td>{{ data.PersonalArt14Autorizado }}</td>
                   <td>
                     <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency
+                      }}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
@@ -716,7 +723,8 @@
               <tfoot nzSummary>
                 <tr>
                   <td></td>
-                  <td class="text-right">{{ listaIngresosExtraPerTotalG + listaIngresosExtraPerTotalC | I18NCurrency }}</td>
+                  <td class="text-right">{{ listaIngresosExtraPerTotalG + listaIngresosExtraPerTotalC | I18NCurrency }}
+                  </td>
                 </tr>
               </tfoot>
 
