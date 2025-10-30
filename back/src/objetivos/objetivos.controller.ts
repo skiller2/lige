@@ -1265,7 +1265,7 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-            if (!ClienteElementoDependienteId || !ClienteId)
+            if (!ClienteElementoDependienteId || !ClienteId || !ObjetivoId)
                 throw new ClientException("Debe seleccionar un Objetivo")
 
 
