@@ -317,7 +317,7 @@
       </button>
       <button nzType="primary" nz-button nzDanger nz-popconfirm
         nzPopconfirmTitle="Esta seguro que quiere eliminar este Objetivo?" (nzOnConfirm)="deleteObjetivo()"
-        nzPopconfirmPlacement="top" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)">
+        nzPopconfirmPlacement="top" [nzLoading]="isLoading()" [disabled]="!ObjetivoId()">
         {{ 'app.btn.delete' | i18n }}
       </button>
     </nz-form-control>
