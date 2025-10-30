@@ -439,7 +439,7 @@ export class ObjetivosController extends BaseController {
             const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
-            const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0].GrupoActividadId)
+            const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
             const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
 
             if (!facturacion) {
@@ -451,7 +451,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
             infObjetivo.infoRubro = infoRubro
             infObjetivo.infoDocRequerido = infoDocRequerido
-            infObjetivo.infoActividad = [grupoactividad[0]]
+            infObjetivo.infoActividad = [grupoactividad?.[0]]
             infObjetivo.infoActividadJerarquico = grupoactividadjerarquico
             infObjetivo.habilitacion = habilitacion
             await queryRunner.commitTransaction()
