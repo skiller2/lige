@@ -93,7 +93,9 @@ export class ExcepcionesAsistenciaComponent {
     this.angularGrid = angularGrid.detail
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
-    //   columnTotal('CantidadExcepcionAsistenciaes', this.angularGrid)
+      columnTotal('PersonalArt14SumaFija', this.angularGrid)
+      columnTotal('PersonalArt14Horas', this.angularGrid)
+      columnTotal('PersonalArt14AdicionalHora', this.angularGrid)
     })
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])

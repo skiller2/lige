@@ -69,6 +69,8 @@ export class NovedadesComponent {
     effect(async () => {
       const anio = this.anio()
       const mes = this.mes()
+      localStorage.setItem('anio',String(anio))
+      localStorage.setItem('mes',String(mes))
       this.listNovedades$.next('')
     }, { injector: this.injector });
   }
