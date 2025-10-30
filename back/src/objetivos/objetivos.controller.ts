@@ -1272,16 +1272,67 @@ export class ObjetivosController extends BaseController {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
+            const horasAsistencia = await queryRunner.query(`SELECT SUM(
+                    ((ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
+                    ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
+                    ) / CAST(60 AS FLOAT))
+                    ) AS totalHorasGlobal
+
+                    FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+                    WHERE objp.ObjetivoId = @0
+                    `, [Number(ObjetivoId)])
+
+            if (horasAsistencia[0].totalHorasGlobal > 0) throw new ClientException(`No se puede eliminar el objetivo porque tiene horas de asistencia cargadas. Horas Cargadas Totales: ${horasAsistencia[0].totalHorasGlobal}`)
+
+            const documentosAsociados = await queryRunner.query(`SELECT COUNT(*) AS totalDocumentos FROM Documento WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
+            if (documentosAsociados[0].totalDocumentos > 0) throw new ClientException(`No se puede eliminar el objetivo porque tiene documentos asociados. Cantidad de Documentos Asociados: ${documentosAsociados[0].totalDocumentos}`)
+
             await this.deletePersonalJerarquicoQuery(queryRunner, Number(ObjetivoId))
+            await this.deleteGrupoActividadQuery(queryRunner, Number(ObjetivoId))
+
             await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteContratoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteDocRequeridoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
+            await this.deleteHabilitacionNecesariaObjetivoQuery(queryRunner, Number(ObjetivoId))
 
             await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
             await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
 
             await queryRunner.commitTransaction();
+
+            return this.jsonRes({}, res, 'Eliminación Exitosa');
 
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
@@ -1303,8 +1354,8 @@ export class ObjetivosController extends BaseController {
     }
 
     async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
-        await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 AND nex.ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
         await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+        await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 AND nex.ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
     }
 
     async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
@@ -1330,6 +1381,14 @@ export class ObjetivosController extends BaseController {
 
     async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number) {
         return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0`, [ObjetivoId])
+    }
+
+    async deleteGrupoActividadQuery(queryRunner: any, ObjetivoId: number) {
+        return await queryRunner.query(`DELETE FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0`, [ObjetivoId])
+    }
+
+    async deleteHabilitacionNecesariaObjetivoQuery(queryRunner: any, ObjetivoId: number) {
+        return await queryRunner.query(`DELETE FROM ObjetivoHabilitacionNecesaria WHERE ObjetivoId = @0`, [ObjetivoId])
     }
 
     async addObjetivo(req: any, res: Response, next: NextFunction) {
