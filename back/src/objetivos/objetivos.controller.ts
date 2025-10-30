@@ -113,9 +113,9 @@ const listaColumnas: any[] = [
     {
         name: "Dirección",
         type: "string",
-        id: "domCompleto",
+        id: "objdom.domCompleto",
         field: "domCompleto",
-        fieldName: "domCompleto",
+        fieldName: "objdom.domCompleto",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -331,75 +331,79 @@ export class ObjetivosController extends BaseController {
         try {
             const objetivos = await queryRunner.query(
                 `SELECT 
-                        -- DISTINCT
-                        ROW_NUMBER() OVER (ORDER BY obj.ObjetivoId) AS id,
-                        obj.ObjetivoId,
-                        obj.ClienteId,
-                        obj.ClienteElementoDependienteId,
-                        CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
-                        cli.ClienteDenominacion,
-                        ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) Descripcion,                
-                        gap.GrupoActividadId,
-                        ga.GrupoActividadDetalle,
-                            adm.AdministradorApellidoNombre,
-                        adm.AdministradorId,
-                        suc.SucursalDescripcion,
+                    -- DISTINCT
+                    ROW_NUMBER() OVER (ORDER BY obj.ObjetivoId) AS id,
+                    obj.ObjetivoId,
+                    obj.ClienteId,
+                    obj.ClienteElementoDependienteId,
+                    CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
+                    cli.ClienteDenominacion,
+                    ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) Descripcion,                
+                    gap.GrupoActividadId,
+                    ga.GrupoActividadDetalle,
+                        adm.AdministradorApellidoNombre,
+                    adm.AdministradorId,
+                    suc.SucursalDescripcion,
+                                
+                    eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde,
+                    eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta,
+                    objdom.domCompleto,
+                    1
+                    FROM Objetivo obj 
+                    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+                    LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                                        
+                    LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
+                        --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                        --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                    GROUP BY ec.ClienteId, ec.ClienteElementoDependienteId
+                                            
+                        ) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                                        
+                                        
+                    --LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId  AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId  AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
                                     
-                        eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde,
-                        eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta,
-                        CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ', TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto,
-                        1
-                        FROM Objetivo obj 
-                        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-                        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-                                            
-                        LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
-                            --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                            --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                        GROUP BY ec.ClienteId, ec.ClienteElementoDependienteId
+                        LEFT JOIN (
+                            SELECT 
+                                ec.ClienteId, 
+                                ec.ClienteElementoDependienteId, 
+                                ec.ClienteElementoDependienteContratoId, 
+                                ec.ClienteElementoDependienteContratoFechaDesde, 
+                                ec.ClienteElementoDependienteContratoFechaHasta,
+                                ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
+                                                    ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
+                            FROM ClienteElementoDependienteContrato ec
+                            WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde
+                        ) eledepcon ON eledepcon.ClienteId = obj.ClienteId 
+                            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                            AND eledepcon.RowNum = 1       
+                                    
+                    --           LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
+                    --		WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= GrupoActividadObjetivoDesde AND DATEFROMPARTS(@0,@1,1) <= ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') 
+                    --		GROUP BY GrupoActividadObjetivoObjetivoId
+                        --) gap2 ON gap2.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
+                        
+                    LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gap.GrupoActividadObjetivoDesde<=@2 AND ISNULL(gap.GrupoActividadObjetivoHasta, '9999-12-31')>=@2
+                    LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
                                                 
-                            ) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-                                            
-                                            
-                        --LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId  AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId  AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
-                                        
-                            LEFT JOIN (
-                                SELECT 
-                                    ec.ClienteId, 
-                                    ec.ClienteElementoDependienteId, 
-                                    ec.ClienteElementoDependienteContratoId, 
-                                    ec.ClienteElementoDependienteContratoFechaDesde, 
-                                    ec.ClienteElementoDependienteContratoFechaHasta,
-                                    ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
-                                                        ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
-                                FROM ClienteElementoDependienteContrato ec
-                                WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde
-                            ) eledepcon ON eledepcon.ClienteId = obj.ClienteId 
-                                AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-                                AND eledepcon.RowNum = 1       
-                                        
-                        --           LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
-                        --		WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= GrupoActividadObjetivoDesde AND DATEFROMPARTS(@0,@1,1) <= ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') 
-                        --		GROUP BY GrupoActividadObjetivoObjetivoId
-                            --) gap2 ON gap2.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
+                    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+
+                    Left join (Select  obj.ObjetivoId, CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ', TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto
+                                from Objetivo obj
+                                LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND nexdom.ClienteId = obj.ClienteId AND nexdom.NexoDomicilioActual = 1
+                                LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+                                LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
+                                LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
+                                LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
+                                LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
+                                ) AS objdom on objdom.ObjetivoId=obj.ObjetivoId
                             
-                        LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gap.GrupoActividadObjetivoDesde<=@2 AND ISNULL(gap.GrupoActividadObjetivoHasta, '9999-12-31')>=@2
-                        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
-                                                    
-                        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+                    LEFT JOIN ( SELECT   ca.ClienteId,ca.ClienteAdministradorAdministradorId AS AdministradorId,adm.AdministradorApellidoNombre, 
+                                ROW_NUMBER() OVER (PARTITION BY ca.ClienteId ORDER BY ca.ClienteAdministradorAdministradorId DESC) AS RowNum
+                                FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
+                                adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
 
-                        LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND nexdom.ClienteId = obj.ClienteId AND nexdom.NexoDomicilioActual = 1
-                        LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
-
-                        LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
-                        LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
-                        LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
-                        LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
-                                        
-                        LEFT JOIN ( SELECT   ca.ClienteId,ca.ClienteAdministradorAdministradorId AS AdministradorId,adm.AdministradorApellidoNombre, 
-                                    ROW_NUMBER() OVER (PARTITION BY ca.ClienteId ORDER BY ca.ClienteAdministradorAdministradorId DESC) AS RowNum
-                                    FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
-                                    adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
+                    
                 
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
