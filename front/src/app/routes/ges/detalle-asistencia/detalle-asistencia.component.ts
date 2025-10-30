@@ -439,14 +439,12 @@ export class DetalleAsistenciaComponent {
 
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
-      this.loadingSrv.open({ type: 'spin', text: '' })
       return forkJoin([
           this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
           this.searchService.getObjetivoContratos(objetivoId, anio, mes),
           this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
       ]).pipe(
           map((data: any[]) => {
-              this.loadingSrv.close()
               return { responsable: data[0], contratos: data[1], periodo: data[2] };
           })
       );
