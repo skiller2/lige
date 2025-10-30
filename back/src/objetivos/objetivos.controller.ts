@@ -113,7 +113,7 @@ const listaColumnas: any[] = [
     {
         name: "Dirección",
         type: "string",
-        id: "objdom.domCompleto",
+        id: "domCompleto",
         field: "domCompleto",
         fieldName: "objdom.domCompleto",
         sortable: true,
