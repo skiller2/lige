@@ -45,7 +45,7 @@ import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 
 
 export class ObjetivosFormComponent {
-  public router = inject(Router);
+  
   visibleDrawer = signal(false)
   periodo = signal({ year: 0, month: 0 })
 //  visibleDrawer: boolean = false
@@ -86,6 +86,7 @@ export class ObjetivosFormComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private injector = inject(Injector)
+  private router = inject(Router);
 
 
   fb = inject(FormBuilder)
@@ -400,9 +401,12 @@ export class ObjetivosFormComponent {
 
   async deleteObjetivo() {
     const form = this.formCli.value
-    await firstValueFrom(this.apiService.deleteObjetivos(form))
-    this.onAddorUpdate.emit()
-    
+    try {
+      await firstValueFrom(this.apiService.deleteObjetivos(form));
+      this.onAddorUpdate.emit();
+      this.router.navigate(['/ges', 'objetivos', 'listado']);
+    } catch (error) {
+    }
   }
 
   closeDrawer(): void {

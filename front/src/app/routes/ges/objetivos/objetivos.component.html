@@ -68,35 +68,39 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/objetivos/editar" >{{ 'app.icon.edit' | i18n }}</a>
          <app-objetivos-form #objetivoFormEdit  
-         (onAddorUpdate)="handleAddOrUpdate()" 
-         [ObjetivoId]="editObjetivoId()" 
-         [ClienteElementoDependienteId]="editClienteElementoDependienteId()" 
-          [ClienteId]="editClienteId()"></app-objetivos-form>
+          (onAddorUpdate)="handleAddOrUpdate()" 
+          [ObjetivoId]="editObjetivoId()" 
+          [ClienteElementoDependienteId]="editClienteElementoDependienteId()" 
+          [ClienteId]="editClienteId()">
+        </app-objetivos-form>
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/objetivos/detalle" >{{ 'app.detail' | i18n }}</a>
-         <app-objetivos-form #objetivoFormDeta 
-         [ObjetivoId]="editObjetivoId()" 
-         [ClienteElementoDependienteId]="editClienteElementoDependienteId()"  
-         [ClienteId]="editClienteId()"></app-objetivos-form>
+        <app-objetivos-form #objetivoFormDeta 
+          [ObjetivoId]="editObjetivoId()" 
+          [ClienteElementoDependienteId]="editClienteElementoDependienteId()"  
+          [ClienteId]="editClienteId()">
+        </app-objetivos-form>
       </nz-tab>
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/objetivos/alta" >{{ 'app.alta' | i18n }}</a>
         <app-objetivos-form #objetivoFormAlta  
-        (onAddorUpdate)="handleAddOrUpdate()" 
-        (pristineChange)="onPristineChange($event)"></app-objetivos-form>
+          (onAddorUpdate)="handleAddOrUpdate()" 
+          (pristineChange)="onPristineChange($event)">
+        </app-objetivos-form>
       </nz-tab>
 
     </nz-tabset>
 
 
     <app-objetivo-historial-drawer 
-     [(visibleHistorial)]="visibleHistorial"
-     [ClienteId]="editClienteId()" 
-     [ObjetivoId]="editObjetivoId()" 
-     [ObjetivoNombre]="ObjetivoNombre()"
-     [ClienteElementoDependienteId]="editClienteElementoDependienteId()"></app-objetivo-historial-drawer>
+      [(visibleHistorial)]="visibleHistorial"
+      [ClienteId]="editClienteId()" 
+      [ObjetivoId]="editObjetivoId()" 
+      [ObjetivoNombre]="ObjetivoNombre()"
+      [ClienteElementoDependienteId]="editClienteElementoDependienteId()">
+    </app-objetivo-historial-drawer>
 
   </nz-card>

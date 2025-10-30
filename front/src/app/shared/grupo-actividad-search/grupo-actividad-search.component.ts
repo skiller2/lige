@@ -88,7 +88,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   ngAfterViewInit() {
     setTimeout(() => {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.psc.focus()  //Al hacer click en el componente hace foco
+      // this.psc.focus()  //Al hacer click en el componente hace foco
       this.psc.setDisabledState(this.isDisabled)
 
     }, 1);
@@ -104,7 +104,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
-    this.psc?.focus()
+    // this.psc?.focus()
     val = (val === null || val === undefined) ? '' : val
 
     if (val !== this._selectedId) {

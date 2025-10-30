@@ -88,7 +88,7 @@ export class RubroSearchComponent implements ControlValueAccessor {
   ngAfterViewInit() {
     setTimeout(() => {
       this.isc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.isc?.focus()  //Al hacer click en el componente hace foco
+      // this.isc?.focus()  //Al hacer click en el componente hace foco
       this.isc.setDisabledState(this.isDisabled)
 
     }, 1);

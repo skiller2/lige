@@ -63,7 +63,7 @@ export class ObjetivosComponent {
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    private settingService = inject(SettingsService)
+    private settingsService = inject(SettingsService)
 
     columns$ = this.apiService.getCols('/api/objetivos/cols')
 
@@ -99,6 +99,8 @@ export class ObjetivosComponent {
       this.startFilters.set([
         {field:'ContratoFechaDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
         {field:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]);
+
+      this.settingsService.setLayout('collapsed', true)
    } 
 
     async angularGridReady(angularGrid: any) {
