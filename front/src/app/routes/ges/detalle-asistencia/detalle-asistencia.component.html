@@ -110,10 +110,10 @@
         </nz-form-item>
 
         @let telefonos = $telefonos | async;
-        <nz-form-item *ngIf="telefonos.length > 0">
+        <nz-form-item *ngIf="telefonos?.length > 0">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Telefonos</nz-form-label>
             <nz-form-control [nzMd]="18" [nzSpan]="9"> 
-              @if (!telefonos.length) { <li>Sin datos</li>}
+              @if (!telefonos?.length) { <li>Sin datos</li>}
               @for (tel of telefonos; track tel.PersonalTelefonoNro) {
               <li title="">
                 {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
@@ -121,7 +121,7 @@
         </nz-form-item>
 
       @let contactoOperativo = $contactoOperativo | async;
-      <nz-form-item *ngIf="contactoOperativo.length > 0">
+      <nz-form-item *ngIf="contactoOperativo?.length > 0">
         <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9">
           @for (contacto of contactoOperativo; track contacto.Telefono) {
@@ -146,7 +146,7 @@
       </nz-form-item>
 
       @let domicilio = $domicilio | async;
-      <nz-form-item *ngIf="domicilio.length == 1 && domicilio[0].DomicilioId">
+      <nz-form-item *ngIf="domicilio?.length == 1 && domicilio[0].DomicilioId">
         <nz-form-label [nzXs]="5" [nzSpan]="5">Domicilio</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9">
             @for (dom of domicilio; track dom.DomicilioId) {
@@ -156,7 +156,7 @@
       </nz-form-item>
 
       @let coberturaServicio = $coberturaServicio | async;
-      <nz-form-item *ngIf="coberturaServicio.length == 1 && coberturaServicio[0].CoberturaServicio">
+      <nz-form-item *ngIf="coberturaServicio?.length == 1 && coberturaServicio[0].CoberturaServicio">
         <nz-form-label [nzXs]="5" [nzSpan]="5">Cobertura Servicio</nz-form-label>
            <nz-form-control [nzMd]="18" [nzSpan]="9">
             @for (cobertura of coberturaServicio; track cobertura.CoberturaServicio) {
