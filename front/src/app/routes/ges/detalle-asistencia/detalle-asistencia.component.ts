@@ -1,6 +1,6 @@
 import { Component, Input, ViewChild, inject, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
-import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin, of } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -100,7 +100,7 @@ export class DetalleAsistenciaComponent {
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
     switchMap(objetivoId => {
-      if (!objetivoId) return [];
+      if (!objetivoId) return of([]);
       return this.searchService
         .getObjetivoResponsables(
           Number(objetivoId),
