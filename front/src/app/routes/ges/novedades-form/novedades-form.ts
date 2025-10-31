@@ -144,7 +144,7 @@ export class NovedadesFormComponent {
 
 
   async deleteNovedad() {
-    await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo()))
+    await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo(), this.formCli.getRawValue().ObjetivoId))
     this.NovedadCodigo.set(0)
     this.onAddorUpdate.emit('delete')
   }

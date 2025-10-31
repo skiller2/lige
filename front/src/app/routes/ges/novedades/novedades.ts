@@ -27,6 +27,7 @@ export class NovedadesComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   editNovedadNovedadCodigo = signal(0)
+  editNovedadObjetivoId = signal(0)
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listNovedades$ = new BehaviorSubject('')
@@ -99,6 +100,7 @@ export class NovedadesComponent {
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id) {
       this.editNovedadNovedadCodigo.set(row.id)
+      this.editNovedadObjetivoId.set(row.ObjetivoId)
       // Asegurar que el componente de edición se inicialice si ya está visible
       if (this.selectedIndex() === 2) {
         this.childEdit().viewRecord(false)
@@ -148,7 +150,7 @@ export class NovedadesComponent {
 
   async deleteNovedadInput() {
 
-    await firstValueFrom(this.apiService.deleteNovedad(this.editNovedadNovedadCodigo()))
+    await firstValueFrom(this.apiService.deleteNovedad(this.editNovedadNovedadCodigo(), this.editNovedadObjetivoId()))
     this.listNovedades$.next('')
   }
 

@@ -469,11 +469,12 @@ export class AuthMiddleware {
   hasAuthObjetivo = async (req: any, res: any, next: any) => {
     const PersonalId = res.locals.PersonalId
     const GrupoActividad = res.locals.GrupoActividad
-    const ObjetivoId = req.params.ObjetivoId || req.body.ObjetivoId
+    const ObjetivoId = req.params.ObjetivoId || req.body.ObjetivoId || req.query.ObjetivoId
 
     if (PersonalId < 1) return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
 
     if (!ObjetivoId) return res.status(400).json({ msg: "No se especificó ObjetivoId" })
+
 
     // Extraer los IDs de grupos de actividad del usuario
     if (!GrupoActividad || GrupoActividad.length === 0) return next()
@@ -488,7 +489,7 @@ export class AuthMiddleware {
       const resultado = await queryRunner.query(`
         SELECT COUNT(*) as count 
         FROM Objetivo obj
-        LEFT JOIN GrupoActividadObjetivo gao ON gao.ObjetivoId = obj.ObjetivoId and gao.GrupoActividadObjetivoDesde <= GETDATE() AND
+        LEFT JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId and gao.GrupoActividadObjetivoDesde <= GETDATE() AND
             ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= GETDATE()
         WHERE obj.ObjetivoId = @0 AND gao.GrupoActividadId IN (${grupos.map((_, i) => `@${i + 1}`).join(',')})
       `, [ObjetivoId, ...grupos])

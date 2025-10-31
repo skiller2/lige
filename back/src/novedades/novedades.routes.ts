@@ -29,7 +29,7 @@ novedadesRouter.post('/add', [authMiddleware.verifyToken], (req, res, next) => {
   novedadesController.addNovedad(req, res, next)
 })
 
-novedadesRouter.delete('/delete/:id', [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
+novedadesRouter.delete('/delete/:id', [authMiddleware.verifyToken, authMiddleware.hasAuthObjetivo, authMiddleware.hasGroup(['gOperaciones', 'gOperacionesCon'])], (req, res, next) => {
   novedadesController.deleteNovedad(req, res, next)
 })
 

@@ -1389,8 +1389,9 @@ export class ApiService {
     )
   }
 
-  deleteNovedad(NovedadCodigo: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/novedades/delete/${NovedadCodigo}`).pipe(
+  deleteNovedad(NovedadCodigo: any, ObjetivoId: any) {
+    const parameter = {NovedadCodigo, ObjetivoId}
+    return this.http.delete<ResponseJSON<any>>(`/api/novedades/delete/${NovedadCodigo}`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
