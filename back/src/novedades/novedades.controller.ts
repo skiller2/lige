@@ -332,6 +332,12 @@ export class NovedadesController extends BaseController {
         try {
             await queryRunner.startTransaction()
             const NovedadId = req.params.NovedadId
+            if (!res.locals.verifyGrupoActividad && !res.locals.authADGroup) {
+                const novedad = await queryRunner.query(`SELECT PersonalId FROM Novedad WHERE NovedadCodigo = @0`, [NovedadId])
+                if (novedad.length === 0 || novedad[0].PersonalId !== res.locals.PersonalId) {
+                    throw new ClientException(`No tiene permisos para ver la novedad.`)
+                }
+            }
             let infObjetivo = await this.getNovedadQuery(queryRunner, NovedadId)
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
@@ -396,6 +402,8 @@ export class NovedadesController extends BaseController {
 
 
     }
+
+    
 
     async updateNovedad(req: any, res: Response, next: NextFunction) {
 
@@ -711,15 +719,29 @@ export class NovedadesController extends BaseController {
         let startFilters: { field: string; condition: string; operator: string; value: any; forced: boolean }[] = []
         const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') : '';
         console.log("grupoActividad", grupoActividad)
-        if (!grupoActividad) return this.jsonRes([], res)
+        console.log("res.locals.PersonalId", res.locals.PersonalId)
+        if (grupoActividad) {
+            startFilters.push({
+                field: 'GrupoActividadNumero',
+                condition: 'AND',
+                operator: '=',
+                value: grupoActividad,
+                forced: res.locals?.authADGroup ? false : true
+            })
+            return this.jsonRes(startFilters, res)
+        }
+
         startFilters.push({
-            field: 'GrupoActividadNumero',
+            field: 'PersonalId',
             condition: 'AND',
             operator: '=',
-            value: grupoActividad,
+            value: res.locals.PersonalId,
             forced: res.locals?.authADGroup ? false : true
         })
         return this.jsonRes(startFilters, res)
+
+
+        // return this.jsonRes([], res)
     }
 
     async sendMsgResponsable(novedad: any, queryRunner: QueryRunner, usuario: string, ip: string) {

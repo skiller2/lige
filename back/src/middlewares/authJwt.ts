@@ -76,6 +76,10 @@ export class AuthMiddleware {
         }
       }
 
+      // se agregan las excepciones si cuenta con los sigueintes permisos
+      if (res.locals?.verifyGrupoActividad) return next()
+      if (res.locals?.hasAuthObjetivo) return next()
+
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
 
@@ -88,18 +92,12 @@ export class AuthMiddleware {
         for (const grp of group) {
           if (myGrp.toLowerCase() === grp.toLowerCase()) {
             res.locals.authADGroup = true
-            return next()
           }
         }
       }
-
-      if (res.locals?.verifyGrupoActividad) return next()
-      if (res.locals?.hasAuthObjetivo) return next()
-
-      const stopTime = performance.now()
-      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
-
+      return next()
     }
+
   }
 
   filterSucursal = (req: any, res: any, next: any) => {
@@ -192,16 +190,12 @@ export class AuthMiddleware {
             return next()
           }
         }
-
-
       }
-
       // console.log('res.locals', res.locals);
       return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
-
     }
-
   }
+
 
   hasAuthByDocId = () => {
     return async (req, res, next) => {
@@ -465,8 +459,7 @@ export class AuthMiddleware {
     const PersonalId = res.locals.PersonalId
     const GrupoActividad = res.locals.GrupoActividad
 
-    if (PersonalId < 1) return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
-    if (!GrupoActividad || GrupoActividad.length > 0) {
+    if ((!GrupoActividad || GrupoActividad.length > 0) && PersonalId > 0) {
       // Tiene grupos de actividad, guardar en res.locals para uso posterior
       res.locals.verifyGrupoActividad = true
     }
@@ -483,10 +476,10 @@ export class AuthMiddleware {
     if (!ObjetivoId) return res.status(400).json({ msg: "No se especificó ObjetivoId" })
 
     // Extraer los IDs de grupos de actividad del usuario
-    if (!GrupoActividad || GrupoActividad.length === 0) return next() 
+    if (!GrupoActividad || GrupoActividad.length === 0) return next()
     const grupos = GrupoActividad.map((grupo: any) => grupo.GrupoActividadId)
 
-    if (grupos.length === 0) return next() 
+    if (grupos.length === 0) return next()
 
     const queryRunner = dataSource.createQueryRunner()
 
