@@ -56,7 +56,6 @@ export class DescuentosPersonalAltaDrawerComponent {
                     this.formDesc.get('FechaAnulacion')?.disable()
                     this.formDesc.get('ImportacionDocumentoId')?.disable()
 
-
                     if (this.disabled()) {
                         this.formDesc.get('PersonalId')?.disable()
                     } else {
@@ -76,6 +75,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                             this.formDesc.get('PersonalId')?.disable()
                         }
                     }
+                    this.formDesc.get('importeCuota')?.disable()
                 }, 0);
             } else if (this.periodo()) {
                 this.formDesc.patchValue({ AplicaEl: this.periodo()})
