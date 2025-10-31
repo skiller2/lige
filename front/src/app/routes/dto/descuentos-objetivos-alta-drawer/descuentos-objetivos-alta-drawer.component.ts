@@ -32,7 +32,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     disabled = input<boolean>(false);
     cancelDesc = input<boolean>(false);
     isAnulacion = input<boolean>(false);
-    onAddorUpdate = output() 
+    onAddorUpdate = output()
 
     private readonly loadingSrv = inject(LoadingService);
 
@@ -41,12 +41,12 @@ export class DescuentosObjetivosAltaDrawerComponent {
         private apiService: ApiService,
         // private settingService: SettingsService,
     ) {
-        effect(async() => { 
+        effect(async () => {
             const visible = this.visibleDesc()
             if (visible) {
                 if (this.ObjetivoDescuentoId() && this.objetivoId()) {
                     const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
-                    infoDesc.oldObjetivoId= infoDesc.ObjetivoId
+                    infoDesc.oldObjetivoId = infoDesc.ObjetivoId
                     this.formDesc.reset(infoDesc)
                     this.importeCuotaChange()
                     this.formDesc.markAsUntouched()
@@ -56,12 +56,12 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 if (this.disabled()) {
                     this.formDesc.disable();
                     if (this.isAnulacion()) {
-                        this.formDesc.get('DetalleAnulacion')?.enable(); 
+                        this.formDesc.get('DetalleAnulacion')?.enable();
                     }
                 } else {
                     this.formDesc.enable()
                 }
-                
+
                 this.formDesc.get('FechaAnulacion')?.disable()
                 this.formDesc.get('ImportacionDocumentoId')?.disable()
             }
@@ -69,6 +69,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 this.formDesc.reset()
                 this.formDesc.enable()
             }
+            this.formDesc.get('importeCuota')?.disable()
         })
     }
     private destroy$ = new Subject();
@@ -79,14 +80,14 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     fb = inject(FormBuilder)
     formDesc = this.fb.group({
-        id:0,
-        AplicaA:'', DescuentoId:0, ObjetivoId:0, AplicaEl:new Date(),
-        Cuotas:1, Importe:null, Detalle:'',
-        DetalleAnulacion:'', importeCuota:'',
+        id: 0,
+        AplicaA: '', DescuentoId: 0, ObjetivoId: 0, AplicaEl: new Date(),
+        Cuotas: 1, Importe: null, Detalle: '',
+        DetalleAnulacion: '', importeCuota: '',
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
-        oldObjetivoId:0
-        
+        oldObjetivoId: 0
+
     })
 
     $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
@@ -105,65 +106,65 @@ export class DescuentosObjetivosAltaDrawerComponent {
         })
     );
 
-    id():number {
+    id(): number {
         const value = this.formDesc.get("id")?.value
         if (value) return value
         return 0
     }
 
-    ObjetivoId():number {
+    ObjetivoId(): number {
         const value = this.formDesc.get("ObjetivoId")?.value
         if (value) return value
         return 0
     }
 
-    anio():number {
+    anio(): number {
         const value = this.formDesc.get("AplicaEl")?.value
         if (value) return new Date(value).getFullYear()
         return 0
     }
 
-    mes():number {
+    mes(): number {
         const value = this.formDesc.get("AplicaEl")?.value
-        if(value) return new Date(value).getMonth()+1
+        if (value) return new Date(value).getMonth() + 1
         return 0
     }
 
-    Importe():number {
+    Importe(): number {
         const value = this.formDesc.get("Importe")?.value
         if (value) return value
         return 0
     }
 
-    Cuotas():number {
+    Cuotas(): number {
         const value = this.formDesc.get("Cuotas")?.value
         if (value) return value
         return 0
     }
 
-    DetalleAnulacion():string {
+    DetalleAnulacion(): string {
         const value = this.formDesc.get("DetalleAnulacion")?.value
         if (value?.length) return value
         return ''
     }
 
-    FechaAnulacion():Date | null {
+    FechaAnulacion(): Date | null {
         const value = this.formDesc.get("FechaAnulacion")?.value
-        if(value){
+        if (value) {
             const date = new Date(value)
             return date
         }
         return null
     }
 
-    async ngOnInit(){}
+    async ngOnInit() { }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
     }
 
-    async onDescuentosChange(event:any){
+    async onDescuentosChange(event: any) {
         this.selectedPersonalIdChange$.next('');
         this.selectedObjetivoIdChange$.next(this.ObjetivoId());
     }
@@ -174,7 +175,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         try {
             if (values.id) {
                 await firstValueFrom(this.apiService.updateDescuento(values))
-            }else{
+            } else {
                 const res = await firstValueFrom(this.apiService.addDescuento(values))
                 if (res.data.id)
                     this.formDesc.patchValue({ id: res.data.id, oldObjetivoId: values.ObjetivoId })
@@ -207,18 +208,18 @@ export class DescuentosObjetivosAltaDrawerComponent {
         );
     }
 
-    objetivoDetalleChange(event: any){
+    objetivoDetalleChange(event: any) {
         this.selectedObjetivoIdChange$.next(event)
     }
 
-    importeCuotaChange(){
-        if (this.Importe() && this.Cuotas()) 
+    importeCuotaChange() {
+        if (this.Importe() && this.Cuotas())
             this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
         else
             this.formDesc.get('importeCuota')?.setValue('')
     }
 
-    async cancel(){
+    async cancel() {
         this.isLoading.set(true)
         let values = this.formDesc.getRawValue()
         try {
@@ -229,7 +230,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
                 this.formDesc.markAsUntouched()
                 this.formDesc.markAsPristine()
             }
-        } catch (e) {}
+        } catch (e) { }
         this.isLoading.set(false)
     }
 
