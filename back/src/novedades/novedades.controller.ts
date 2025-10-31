@@ -692,23 +692,6 @@ export class NovedadesController extends BaseController {
             const NovedadId = req.params.id
             await queryRunner.startTransaction()
 
-            if (!res.locals?.authADGroup) {
-                // consultar si el objetivo que esta asociado a la novedad, el usuario es jerarquico del mismo
-                const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadId).join(',') : '';
-
-                const validacion = await queryRunner.query(
-                    `Select nov.NovedadCodigo 
-                    From Novedad nov    
-                    LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-                    LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-                    LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
-                    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
-                WHERE nov.NovedadCodigo = @0 AND ga.GrupoActividadId IN (${grupoActividad})`, [NovedadId])
-                if (validacion.length === 0) {
-                    throw new ClientException(`No tiene permisos para eliminar esta novedad.`)
-                }
-            }
-
             const DocumentoId = await queryRunner.query(`SELECT DocumentoId FROM DocumentoRelaciones WHERE NovedadCodigo = @0`, [NovedadId])
             if (DocumentoId.length > 0) {
                 for (const doc of DocumentoId) {
