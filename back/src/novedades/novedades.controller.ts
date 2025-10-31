@@ -234,6 +234,16 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: false
     },
+    {
+        name: "Usuario Ing.",
+        type: "string",
+        id: "AudUsuarioIng",
+        field: "AudUsuarioIng",
+        fieldName: "nov.AudUsuarioIng",
+        sortable: false,
+        hidden: true,
+        searchHidden: false
+    },
 
 ];
 
@@ -284,6 +294,7 @@ export class NovedadesController extends BaseController {
                     ,nov.Descripcion
                     ,nov.VisualizacionPersonaId
                     ,nov.VisualizacionTelefono 
+                    ,nov.AudUsuarioIng
                     ,1
                 FROM Novedad nov
                 LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
@@ -329,12 +340,14 @@ export class NovedadesController extends BaseController {
 
     async infNovedad(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
+        const usuarioName = res.locals.userName
+        const NovedadId = req.params.NovedadId
+
         try {
             await queryRunner.startTransaction()
-            const NovedadId = req.params.NovedadId
             if (!res.locals.verifyGrupoActividad && !res.locals.authADGroup) {
-                const novedad = await queryRunner.query(`SELECT PersonalId FROM Novedad WHERE NovedadCodigo = @0`, [NovedadId])
-                if (novedad.length === 0 || novedad[0].PersonalId !== res.locals.PersonalId) {
+                const novedad = await queryRunner.query(`SELECT AudUsuarioIng FROM Novedad WHERE NovedadCodigo = @0`, [NovedadId])
+                if (novedad.length === 0 || novedad[0].AudUsuarioIng !== usuarioName) {
                     throw new ClientException(`No tiene permisos para ver la novedad.`)
                 }
             }
@@ -403,7 +416,7 @@ export class NovedadesController extends BaseController {
 
     }
 
-    
+
 
     async updateNovedad(req: any, res: Response, next: NextFunction) {
 
@@ -718,8 +731,6 @@ export class NovedadesController extends BaseController {
     async getGridFilters(req: any, res: Response, next: NextFunction) {
         let startFilters: { field: string; condition: string; operator: string; value: any; forced: boolean }[] = []
         const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') : '';
-        console.log("grupoActividad", grupoActividad)
-        console.log("res.locals.PersonalId", res.locals.PersonalId)
         if (grupoActividad) {
             startFilters.push({
                 field: 'GrupoActividadNumero',
@@ -732,10 +743,10 @@ export class NovedadesController extends BaseController {
         }
 
         startFilters.push({
-            field: 'PersonalId',
+            field: 'AudUsuarioIng',
             condition: 'AND',
             operator: '=',
-            value: res.locals.PersonalId,
+            value: res.locals.userName,
             forced: res.locals?.authADGroup ? false : true
         })
         return this.jsonRes(startFilters, res)
