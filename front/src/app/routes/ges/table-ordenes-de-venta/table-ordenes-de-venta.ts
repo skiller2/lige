@@ -59,6 +59,8 @@ export class TableOrdenesDeVentaComponent {
       if (col.id === 'TotalHoraA' || col.id === 'TotalHoraB') 
         col.editor = { model: CustomFloatEditor, decimal: 1, params: {}, alwaysSaveOnEnterKey: true }
 
+      if (col.id === 'Observaciones') 
+        col.editor = { model: Editors['text'], alwaysSaveOnEnterKey: true }
       return col
     });
     
@@ -116,7 +118,7 @@ export class TableOrdenesDeVentaComponent {
     this.angularGridEdit
     this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
-        if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA' && column.id !== 'TotalHoraA' && column.id !== 'TotalHoraB') return
+        if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA' && column.id !== 'TotalHoraA' && column.id !== 'TotalHoraB' && column.id !== 'Observaciones') return
 
       //this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
@@ -141,7 +143,8 @@ export class TableOrdenesDeVentaComponent {
           row.ImporteHoraA,
           row.ImporteHoraB,
           row.TotalHoraA,
-          row.TotalHoraB
+          row.TotalHoraB,
+          row.Observaciones
         ))
         //row.TotalAFacturar = (row.TotalHoras * row.ImporteHora) + row.ImporteFijo
 

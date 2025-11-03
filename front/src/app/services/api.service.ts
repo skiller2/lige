@@ -1551,8 +1551,8 @@ export class ApiService {
       );
   }
 
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number) {
-    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB }).pipe(map(res => res.data))
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string) {
+    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB, Observaciones }).pipe(map(res => res.data))
   }
 
   importXLSImporteVenta(files: any, anio: number, mes: number) {
