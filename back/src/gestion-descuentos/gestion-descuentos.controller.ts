@@ -1817,7 +1817,16 @@ export class GestionDescuentosController extends BaseController {
       const PersonalId = PersonalCUIT[0].PersonalId
       const isActivo = await PersonalController.getSitRevistaActiva(queryRunner, PersonalId, mesRequest, anioRequest)
       if (!Array.isArray(isActivo) || isActivo.length === 0) {
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `No se puede aplicar el descuento. ${PersonalCUIT[0]['ApellidoNombre']} No se encuentra 'Activo' en el período` })
+        let PersonalSitRevista = await PersonalController.getPersonalSitRevista(queryRunner, PersonalId, mesRequest, anioRequest)
+        let msg = '';
+        if (Array.isArray(PersonalSitRevista) && PersonalSitRevista.length > 0) {
+          const situaciones = PersonalSitRevista.map(sit => sit.situacionFull)
+          msg = situaciones.length > 0 ? situaciones.join(', ') : 'Sin datos';
+        } else if (PersonalSitRevista && typeof PersonalSitRevista === 'object') {
+          msg = PersonalSitRevista.situacionFull?.trim() || JSON.stringify(PersonalSitRevista);
+        }
+
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `No se puede aplicar el descuento. ${PersonalCUIT[0]['ApellidoNombre']} No se encuentra 'Activo' en el período. Situación Revista: ${msg}` })
         continue
       }
 
