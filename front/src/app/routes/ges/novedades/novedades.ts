@@ -46,7 +46,7 @@ export class NovedadesComponent {
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
-  private settingService = inject(SettingsService)
+  private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
   startFilters = signal<any[]>([])
@@ -74,6 +74,8 @@ export class NovedadesComponent {
       localStorage.setItem('mes',String(mes))
       this.listNovedades$.next('')
     }, { injector: this.injector });
+
+    this.settingsService.setLayout('collapsed', true)
   }
 
   gridData$ = this.listNovedades$.pipe(
