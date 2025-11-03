@@ -621,7 +621,6 @@ export class GrupoActividadController extends BaseController {
     async changecellgrupo(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = dataSource.createQueryRunner();
-        const usuarioId = await this.getUsuarioId(res, queryRunner)
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -928,7 +927,6 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-        // const usuarioId = await this.getUsuarioId(res, queryRunner)
         const usuario = res.locals.userName
         const fechaActual = new Date()
         let message = ""
@@ -945,9 +943,6 @@ export class GrupoActividadController extends BaseController {
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
-            fechaActual.setHours(0, 0, 0, 0)
-
 
             let dataResultado = {}
 
@@ -1076,10 +1071,8 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-        const usuarioId = await this.getUsuarioId(res, queryRunner)
         const usuario = res.locals.userName
         const fechaActual = new Date()
-        const time = this.getTimeString(fechaActual)
         let message = ""
         const params = req.body
 
@@ -1091,8 +1084,6 @@ export class GrupoActividadController extends BaseController {
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
-            fechaActual.setHours(0, 0, 0, 0)
 
             let dataResultado = {}
             //let GrupoActividadPersonalHasta
@@ -1121,8 +1112,7 @@ export class GrupoActividadController extends BaseController {
                 await queryRunner.query(`
                     UPDATE GrupoActividadPersonal
                     SET GrupoActividadPersonalDesde = @2,GrupoActividadPersonalHasta = @3,
-                        GrupoActividadPersonalPuesto = @4,GrupoActividadPersonalUsuarioId = @5,
-                        GrupoActividadPersonalDia = @6,GrupoActividadPersonalTiempo = @7
+                    GrupoActividadPersonalAudFechaMod = @6, GrupoActividadPersonalAudUsuarioMod = @5, GrupoActividadPersonalAudIpMod = @4                        
                     WHERE GrupoActividadId = @0 AND GrupoActividadPersonalId = @1
                 `, [
                     params.GrupoActividadId,
@@ -1130,9 +1120,8 @@ export class GrupoActividadController extends BaseController {
                     GrupoActividadPersonalDesde,
                     GrupoActividadPersonalHasta,
                     ip,
-                    usuarioId,
-                    fechaActual,
-                    time
+                    usuario,
+                    fechaActual
                 ])
 
 
@@ -1168,9 +1157,10 @@ export class GrupoActividadController extends BaseController {
                         GrupoActividadPersonalHastaAnt = new Date(GrupoActividadPersonalDesde)
                         GrupoActividadPersonalHastaAnt.setDate(GrupoActividadPersonalHastaAnt.getDate() - 1)
                         await queryRunner.query(
-                            `UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2
+                            `UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2, 
+                                GrupoActividadPersonalAudFechaMod = @3, GrupoActividadPersonalAudUsuarioMod = @4, GrupoActividadPersonalAudIpMod = @5
                              WHERE GrupoActividadPersonalId = @0 AND GrupoActividadPersonalPersonalId = @1`,
-                            [resultQuery[0].GrupoActividadPersonalId, resultQuery[0].GrupoActividadPersonalPersonalId, GrupoActividadPersonalHastaAnt]
+                            [resultQuery[0].GrupoActividadPersonalId, resultQuery[0].GrupoActividadPersonalPersonalId, GrupoActividadPersonalHastaAnt, fechaActual, usuario, ip]
                         )
                         //TODO:  BOT Notificar Informar el cambio de 
                         //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado a su coordinador`, `RECIBO${bot[0].doc_id}`, usuario, ip)
@@ -1186,19 +1176,22 @@ export class GrupoActividadController extends BaseController {
                         GrupoActividadPersonalPersonalId,
                         GrupoActividadPersonalDesde,
                         GrupoActividadPersonalHasta,
-                        GrupoActividadPersonalPuesto,
-                        GrupoActividadPersonalUsuarioId,
-                        GrupoActividadPersonalDia,
-                        GrupoActividadPersonalTiempo) VALUES ( @0,@1,@2, @3,@4, @5,@6,@7,@8);
+
+                        GrupoActividadPersonalAudIpIng,
+                        GrupoActividadPersonalAudUsuarioIng,
+                        GrupoActividadPersonalAudFechaIng,
+                        GrupoActividadPersonalAudIpMod,
+                        GrupoActividadPersonalAudUsuarioMod,
+                        GrupoActividadPersonalAudFechaMod                      
+                        ) VALUES ( @0,@1,@2, @3,@4, @5,@6,@7,@5,@6,@7);
                 `, [GrupoActividadPersonalId,
                     params.GrupoActividadDetalle.id,
                     params.ApellidoNombrePersona.id,
                     GrupoActividadPersonalDesde,
                     GrupoActividadPersonalHasta,
                     ip,
-                    usuarioId,
-                    fechaActual,
-                    time])
+                    usuario,
+                    fechaActual])
 
 
                 await queryRunner.query(`UPDATE GrupoActividad
