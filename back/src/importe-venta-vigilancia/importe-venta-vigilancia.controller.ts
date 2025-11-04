@@ -469,331 +469,341 @@ export class ImporteVentaVigilanciaController extends BaseController {
     }
   }
 
+
+
+
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
 
-    const anioRequest = Number(req.body.anio)
-    const mesRequest = Number(req.body.mes)
-    const file = req.body.files
-    const queryRunner = dataSource.createQueryRunner()
+      const anioRequest = Number(req.body.anio)
+      const mesRequest = Number(req.body.mes)
+      const file = req.body.files
+      const queryRunner = dataSource.createQueryRunner()
 
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    let fechaActual = new Date()
+      let usuario = res.locals.userName
+      let ip = this.getRemoteAddress(req)
+      let fechaActual = new Date()
 
-    let dataset = []
-    let datasetid = 0
-    try {
+      let dataset = []
+      let datasetid = 0
+      try {
 
-      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
-      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
+        if (!anioRequest) throw new ClientException("Faltó indicar el anio");
+        if (!mesRequest) throw new ClientException("Faltó indicar el mes");
 
-      const checkrecibos = await queryRunner.query(
-        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anioRequest, mesRequest]
-      );
+        const checkrecibos = await queryRunner.query(
+          `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anioRequest, mesRequest]
+        );
 
-      if (checkrecibos[0]?.ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+        if (checkrecibos[0]?.ind_recibos_generados == 1)
+          throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
 
-      await queryRunner.connect();
-      await queryRunner.startTransaction()
+        await queryRunner.connect();
+        await queryRunner.startTransaction()
 
-      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
-      const sheet1 = workSheetsFromBuffer[0]
+        const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
+        const sheet1 = workSheetsFromBuffer[0]
 
-      // nombre de las columnas
-      const columnas = sheet1.data[0];
-      const reqCols = ['cuit cliente', 'cod obj', 'importe hora a', 'importe hora b']
-
-
-      const missingCols = reqCols.filter(name => !columnas.some(name2 => name2.toLowerCase() === name.toLowerCase()));
-      if (missingCols.length > 0)
-        throw new ClientException(`Faltan columnas ${missingCols.toString()}`)
+        // nombre de las columnas
+        const columnas = sheet1.data[0];
+        const reqCols = ['cuit cliente', 'cod obj', 'importe hora a', 'importe hora b']
 
 
-      const indexCuitCliente = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[0]))
-      const indexCodigoObjetivo = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[1]))
-      const indexImporteHoraA = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[2]))
-      const indexImporteHoraB = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[3]))
+        const missingCols = reqCols.filter(name => !columnas.some(name2 => name2.toLowerCase() === name.toLowerCase()));
+        if (missingCols.length > 0)
+          throw new ClientException(`Faltan columnas ${missingCols.toString()}`)
 
-      if (indexCuitCliente === -1 || indexCodigoObjetivo === -1 || indexImporteHoraA === -1 || indexImporteHoraB === -1) {
-        throw new ClientException("Faltan columnas en el archivo.")
-      }
 
-      sheet1.data.splice(0, 1)
+        const indexCuitCliente = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[0]))
+        const indexCodigoObjetivo = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[1]))
+        const indexImporteHoraA = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[2]))
+        const indexImporteHoraB = columnas.findIndex(col => col?.toString().toLowerCase().includes(reqCols[3]))
 
-      for (const row of sheet1.data) {
-
-        const clienteCUIT = row[indexCuitCliente]
-        const clienteId = row[indexCodigoObjetivo]?.split("/")[0]
-        const ClienteElementoDependienteId = row[indexCodigoObjetivo]?.split("/")[1]
-        const importeHoraA = (Math.round(Number(row[indexImporteHoraA]) * 100) / 100)
-        const importeHoraB = (Math.round(Number(row[indexImporteHoraB]) * 100) / 100)
-
-        if (!clienteCUIT && !importeHoraA && !importeHoraB && !clienteId && !ClienteElementoDependienteId)
-          continue
-
-        //validar que el clientecuit exista y que el id sea el mismo del excel 
-        if (Number.isNaN(importeHoraA) && row[indexImporteHoraA]) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: row[indexImporteHoraA], ImporteHoraB: row[indexImporteHoraB],
-            Detalle: `El campo importe Hora A no es numérico`
-          })
+        if (indexCuitCliente === -1 || indexCodigoObjetivo === -1 || indexImporteHoraA === -1 || indexImporteHoraB === -1) {
+          throw new ClientException("Faltan columnas en el archivo.")
         }
 
-        if (Number.isNaN(importeHoraB) && row[indexImporteHoraB]) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: row[indexImporteHoraA], ImporteHoraB: row[indexImporteHoraB],
-            Detalle: `El campo importe Hora B no es numérico`
-          })
-        }
+        sheet1.data.splice(0, 1)
 
-        if (!clienteCUIT) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `Falta Cuit`
-          })
-          continue
-        }
+        for (const row of sheet1.data) {
 
-        if (!clienteId || !ClienteElementoDependienteId) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `Falta código del objetivo`
-          })
-          continue
-        }
+          const clienteCUIT = row[indexCuitCliente]
+          const clienteId = row[indexCodigoObjetivo]?.split("/")[0]
+          const ClienteElementoDependienteId = row[indexCodigoObjetivo]?.split("/")[1]
 
-        const cliente = await queryRunner.query(`
+          let importeHoraATmp = (!row[indexImporteHoraA])?0:row[indexImporteHoraA]
+          let importeHoraBTmp = (!row[indexImporteHoraB])?0:row[indexImporteHoraB]
+
+          if (typeof importeHoraATmp !== 'number') {
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: row[indexImporteHoraA], ImporteHoraB: row[indexImporteHoraB],
+              Detalle: `El campo importe Hora A no es numérico`
+            })
+            importeHoraATmp = 0
+          } 
+
+          if (typeof importeHoraBTmp !== 'number') { 
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: row[indexImporteHoraA], ImporteHoraB: row[indexImporteHoraB],
+              Detalle: `El campo importe Hora B no es numérico`
+            })
+            importeHoraBTmp = 0
+          }
+
+          const importeHoraA = (Math.round(importeHoraATmp * 100) / 100)
+          const importeHoraB = (Math.round(importeHoraBTmp * 100) / 100)
+
+          if (!clienteCUIT && !importeHoraA && !importeHoraB && !clienteId && !ClienteElementoDependienteId)
+            continue
+
+          //validar que el clientecuit exista y que el id sea el mismo del excel 
+
+          if (!clienteCUIT) {
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+              Detalle: `Falta Cuit`
+            })
+            continue
+          }
+
+          if (!clienteId || !ClienteElementoDependienteId) {
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+              Detalle: `Falta código del objetivo`
+            })
+            continue
+          }
+
+          const cliente = await queryRunner.query(`
           SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
            LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
            AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
           WHERE clif.ClienteFacturacionCUIT = @1 `, [fechaActual, clienteCUIT])
 
-        if (cliente.length == 0) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `El CUIT no existe en la base de datos`
-          })
-          continue
-        }
-        if (cliente[0].ClienteId != clienteId) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `El CUIT no coincide con el código del objetivo`
-          })
-          continue
-        }
-        // Buscar si existe algún registro con el código objetivo correcto
-        const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == ClienteElementoDependienteId);
-        if (!clienteObjetivo) {
-          dataset.push({
-            id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
-            Detalle: `El codigo objetivo no coincide con ningún objetivo del cliente`
-          });
-          continue;
-        }
+          if (cliente.length == 0) {
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+              Detalle: `El CUIT no existe en la base de datos`
+            })
+            continue
+          }
+          if (cliente[0].ClienteId != clienteId) {
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+              Detalle: `El CUIT no coincide con el código del objetivo`
+            })
+            continue
+          }
+          // Buscar si existe algún registro con el código objetivo correcto
+          const clienteObjetivo = cliente.find(c => c.ClienteElementoDependienteId == ClienteElementoDependienteId);
+          if (!clienteObjetivo) {
+            dataset.push({
+              id: datasetid++, ClienteCUIT: clienteCUIT, ObjetivoCodigo: `${clienteId}/${ClienteElementoDependienteId}`, ImporteHoraA: importeHoraA, ImporteHoraB: importeHoraB,
+              Detalle: `El codigo objetivo no coincide con ningún objetivo del cliente`
+            });
+            continue;
+          }
 
-        if (!importeHoraA && !importeHoraB)
-          continue
+          if (!importeHoraA && !importeHoraB)
+            continue
 
-        // Verificar si ya algun movimiento en facturacion.
+          // Verificar si ya algun movimiento en facturacion.
 
-        const existeObjetivoImporteVenta = await queryRunner.query(`
+          const existeObjetivoImporteVenta = await queryRunner.query(`
           SELECT ClienteId, ClienteElementoDependienteId FROM ObjetivoImporteVenta 
           WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND Mes = @2 AND Anio = @3
         `, [clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
 
-        if (existeObjetivoImporteVenta.length == 0) {
+          if (existeObjetivoImporteVenta.length == 0) {
 
-          await queryRunner.query(
-            `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+            await queryRunner.query(
+              `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
-            [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, 0, 0, importeHoraA, importeHoraB,
-              fechaActual, usuario, ip])
-        } else {
-          await queryRunner.query(`UPDATE ObjetivoImporteVenta
+              [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, 0, 0, importeHoraA, importeHoraB,
+                fechaActual, usuario, ip])
+          } else {
+            await queryRunner.query(`UPDATE ObjetivoImporteVenta
           SET ImporteHoraA = @0, ImporteHoraB = @1
           WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
           `, [importeHoraA ?? 0, importeHoraB ?? 0, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
+          }
         }
+
+        if (dataset.length > 0)
+          throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+        //throw new ClientException(`Debug`, { list: dataset })
+
+        await FileUploadController.handleDOCUpload(
+          null,
+          null,
+          null,
+          null, // es null si va a la tabla documento
+          new Date(),
+          null,
+          `Precios ${mesRequest}-${anioRequest}`, //den_documento 
+          anioRequest,
+          mesRequest,
+          file[0],
+          usuario,
+          ip,
+          queryRunner)
+
+
+        //throw new ClientException("stop")
+        await queryRunner.commitTransaction();
+
+        this.jsonRes([], res, "XLS Recibido y procesado!");
+      } catch (error) {
+        await this.rollbackTransaction(queryRunner)
+        return next(error)
+      } finally {
+        await queryRunner.release()
       }
-
-      if (dataset.length > 0)
-        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
-      //throw new ClientException(`Debug`, { list: dataset })
-
-      await FileUploadController.handleDOCUpload(
-        null,
-        null,
-        null,
-        null, // es null si va a la tabla documento
-        new Date(),
-        null,
-        `Precios ${mesRequest}-${anioRequest}`, //den_documento 
-        anioRequest,
-        mesRequest,
-        file[0],
-        usuario,
-        ip,
-        queryRunner)
-
-
-      //throw new ClientException("stop")
-      await queryRunner.commitTransaction();
-
-      this.jsonRes([], res, "XLS Recibido y procesado!");
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      await queryRunner.release()
     }
-  }
 
   async getImportacionesOrdenesDeVentaAnteriores(req: Request, res: Response, next: NextFunction) {
-    try {
+      try {
 
-      const anio = req.params.anio
-      const mes = req.params.mes
-      const usuario = res.locals.DocumentoTipoCodigo
+        const anio = req.params.anio
+        const mes = req.params.mes
+        const usuario = res.locals.DocumentoTipoCodigo
 
 
-      if (!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
+        if (!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
 
-      const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = dataSource.createQueryRunner();
 
-      const importacionesAnteriores = await queryRunner.query(
+        const importacionesAnteriores = await queryRunner.query(
 
-        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
+          `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
         FROM documento 
         WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'IMPVENV'`,
-        [Number(anio), Number(mes)])
+          [Number(anio), Number(mes)])
 
-      this.jsonRes(
-        {
-          total: importacionesAnteriores.length,
-          list: importacionesAnteriores,
-        },
+        this.jsonRes(
+          {
+            total: importacionesAnteriores.length,
+            list: importacionesAnteriores,
+          },
 
-        res
-      );
+          res
+        );
 
-    } catch (error) {
-      return next(error)
+      } catch (error) {
+        return next(error)
+      }
+
     }
-
-  }
 
   async downloadComprobanteExportacion(
-    impoexpoId: string,
-    res: Response,
-    req: Request,
-    next: NextFunction
-  ) {
+      impoexpoId: string,
+      res: Response,
+      req: Request,
+      next: NextFunction
+    ) {
 
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const data = await queryRunner.query(`SELECT DocumentoPath,DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
-        [impoexpoId]
-      )
-      if (!data[0])
-        throw new ClientException(`Archivo de importe de venta no generado`)
+      const queryRunner = dataSource.createQueryRunner();
+      try {
+        const data = await queryRunner.query(`SELECT DocumentoPath,DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
+          [impoexpoId]
+        )
+        if (!data[0])
+          throw new ClientException(`Archivo de importe de venta no generado`)
 
-      res.download(this.directory + '/' + data[0].DocumentoPath, data[0].DocumentoNombreArchivo, async (error) => {
-        if (error) {
-          console.error('Error al descargar el archivo:', error);
-          return next(error)
-        }
-      });
-    } catch (error) {
-      return next(error)
+        res.download(this.directory + '/' + data[0].DocumentoPath, data[0].DocumentoNombreArchivo, async (error) => {
+          if (error) {
+            console.error('Error al descargar el archivo:', error);
+            return next(error)
+          }
+        });
+      } catch (error) {
+        return next(error)
+      }
     }
-  }
 
   async setValorFacturacion(req: any, res: Response, next: NextFunction) {
-    const {
-      anio,
-      mes,
-      ObjetivoId,
-      TotalHoraA,
-      TotalHoraB,
-      ImporteHoraA,
-      ImporteHoraB,
-      Observaciones
-    } = req.body
-    //    console.log('todo', req.body)
-    //        throw new ClientException(`Debug`)
+      const {
+        anio,
+        mes,
+        ObjetivoId,
+        TotalHoraA,
+        TotalHoraB,
+        ImporteHoraA,
+        ImporteHoraB,
+        Observaciones
+      } = req.body
+      //    console.log('todo', req.body)
+      //        throw new ClientException(`Debug`)
 
-    const queryRunner = dataSource.createQueryRunner();
-    const usuario = res.locals.userName
-    const ip = this.getRemoteAddress(req)
-    const fechaActual = new Date()
-
-
-    try {
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para cargar valores de facturación`)
-
-      if (!anio)
-        throw new ClientException(`Debe ingresar el año`)
-      if (!mes)
-        throw new ClientException(`Debe ingresar el mes`)
+      const queryRunner = dataSource.createQueryRunner();
+      const usuario = res.locals.userName
+      const ip = this.getRemoteAddress(req)
+      const fechaActual = new Date()
 
 
+      try {
+        if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+          throw new ClientException(`No tiene permisos para cargar valores de facturación`)
 
-      await queryRunner.startTransaction()
+        if (!anio)
+          throw new ClientException(`Debe ingresar el año`)
+        if (!mes)
+          throw new ClientException(`Debe ingresar el mes`)
 
-      const objetivo = await queryRunner.query(
-        `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, val.Observaciones, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+
+
+        await queryRunner.startTransaction()
+
+        const objetivo = await queryRunner.query(
+          `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, val.Observaciones, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
        LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
        WHERE obj.ObjetivoId = @0
        `, [ObjetivoId, anio, mes])
 
-      if (objetivo.length == 0)
-        throw new ClientException(`No se encontró el objetivo`)
+        if (objetivo.length == 0)
+          throw new ClientException(`No se encontró el objetivo`)
 
-      const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
-      const ClienteId = objetivo[0].ClienteId
-      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
+        const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+        const ClienteId = objetivo[0].ClienteId
+        const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
-      if (objetivo[0].ClienteIdImporteVenta) {
-        await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8, Observaciones=@4,
+        if (objetivo[0].ClienteIdImporteVenta) {
+          await queryRunner.query(
+            `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8, Observaciones=@4,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, Observaciones, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
-      } else {
-        await queryRunner.query(
-          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
+            [ClienteId, anio, mes, ClienteElementoDependienteId, Observaciones, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
+        } else {
+          await queryRunner.query(
+            `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod, Observaciones)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10, @11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
-            fechaActual, usuario, ip, Observaciones])
-      }
+            [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
+              fechaActual, usuario, ip, Observaciones])
+        }
 
 
-      const rec = await queryRunner.query(
-        `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB, ven.Observaciones,
+        const rec = await queryRunner.query(
+          `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB, ven.Observaciones,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
           1
           FROM ObjetivoImporteVenta ven
           WHERE ven.ClienteId=@0 AND ven.Anio=@1 AND ven.Mes=@2 AND ven.ClienteElementoDependienteId=@3`,
-        [ClienteId, anio, mes, ClienteElementoDependienteId])
+          [ClienteId, anio, mes, ClienteElementoDependienteId])
 
-      rec[0].TotalHorasReal = Number(asistencia.TotalHorasReal)
-      rec[0].DiferenciaHoras = Number(rec[0].TotalHoraA) + Number(rec[0].TotalHoraB) - Number(rec[0].TotalHorasReal)
-      await queryRunner.commitTransaction();
-      this.jsonRes(rec, res, `Valores Actualizados`);
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      // you need to release query runner which is manually created:
-      await queryRunner.release();
+        rec[0].TotalHorasReal = Number(asistencia.TotalHorasReal)
+        rec[0].DiferenciaHoras = Number(rec[0].TotalHoraA) + Number(rec[0].TotalHoraB) - Number(rec[0].TotalHorasReal)
+        await queryRunner.commitTransaction();
+        this.jsonRes(rec, res, `Valores Actualizados`);
+      } catch (error) {
+        await this.rollbackTransaction(queryRunner)
+        return next(error)
+      } finally {
+        // you need to release query runner which is manually created:
+        await queryRunner.release();
+      }
+
     }
 
   }
-
-}
