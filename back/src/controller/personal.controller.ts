@@ -1266,19 +1266,19 @@ cuit.PersonalCUITCUILCUIT,
             DomicilioCodigoPostal, DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, 
             DomicilioBarrioId) 
             VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
-            infoDomicilio.Calle, infoDomicilio.Nro, infoDomicilio.Piso, infoDomicilio.Dpto,
-            infoDomicilio.CodigoPostal, 1, infoDomicilio.ProvinciaId, infoDomicilio.LocalidadId,
-            infoDomicilio.BarrioId
+          infoDomicilio.Calle, infoDomicilio.Nro, infoDomicilio.Piso, infoDomicilio.Dpto,
+          infoDomicilio.CodigoPostal, 1, infoDomicilio.ProvinciaId, infoDomicilio.LocalidadId,
+          infoDomicilio.BarrioId
         ])
         const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
-        
-        const DomicilioId = resDomicilio[0][''] 
+
+        const DomicilioId = resDomicilio[0]['']
 
         await queryRunner.query(`INSERT INTO NexoDomicilio (
             DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId
             ) 
             VALUES ( @0,@1,@2,@3,@4,@5,@6)`, [
-            DomicilioId, 1, 1, 1, 1, 1, PersonalId
+          DomicilioId, 1, 1, 1, 1, 1, PersonalId
         ])
       }
 
@@ -2322,7 +2322,7 @@ cuit.PersonalCUITCUILCUIT,
 
   private async setGrupoActividadPersonalQuerys(
     queryRunner: any, PersonalId: number, GrupoActividadId: number, Desde: Date,
-    usuario:string, usuarioId: number, ip: string
+    usuario: string, usuarioId: number, ip: string
   ) {
     Desde.setHours(0, 0, 0, 0)
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
@@ -2373,7 +2373,7 @@ cuit.PersonalCUITCUILCUIT,
       const GrupoActividadPersonalId = GrupoActividad[0].GrupoActividadPersonalUltNro + 1
       await queryRunner.query(`
         UPDATE GrupoActividad SET GrupoActividadPersonalUltNro = @1, GrupoActividadAudFechaMod = @2, GrupoActividadAudUsuarioMod = @3, GrupoActividadAudIpMod = @4
-        WHERE GrupoActividadId IN (@0)`, [GrupoActividadId, GrupoActividadPersonalId, now, usuario,ip]
+        WHERE GrupoActividadId IN (@0)`, [GrupoActividadId, GrupoActividadPersonalId, now, usuario, ip]
       )
 
       //Crea un Grupo Actividad Personal nuevo
@@ -3052,6 +3052,20 @@ cuit.PersonalCUITCUILCUIT,
       SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
         JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaSituacionId in (2,10,12) and sitrev.PersonalSituacionRevistaDesde<=EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE per.PersonalId=@0
+
+      `, [PersonalId, anio, mes])
+  }
+
+  static async getPersonalSitRevista(queryRunner: any, PersonalId: number, mes: number, anio: number) {
+    return await queryRunner.query(`
+      SELECT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion,
+      CONCAT(TRIM(sit.SituacionRevistaDescripcion), 
+              ' ( Desde: ',CONVERT(VARCHAR(19), sitrev.PersonalSituacionRevistaDesde, 103), 
+              ' - Hasta:', ISNULL(CONVERT(VARCHAR(19), sitrev.PersonalSituacionRevistaHasta, 103), 'Actualidad') ,')') as situacionFull
+        FROM Personal per
+        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId and sitrev.PersonalSituacionRevistaDesde<=EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31')>=DATEFROMPARTS(@1,@2,1)
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
         WHERE per.PersonalId=@0
 

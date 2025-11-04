@@ -71,7 +71,6 @@ export class CompensaGeneralACordinadorController extends BaseController {
 
         if (totalImporteCoordinador > 0) {
           movimientos.push({PersonalId, totalImporteGeneral, totalImporteCoordinador,ApellidoNombre})
-
           cantRegistros++
         }
 

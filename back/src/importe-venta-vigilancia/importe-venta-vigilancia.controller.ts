@@ -65,7 +65,8 @@ const columnasGrilla: any[] = [
     searchComponent: "inpurForSucursalSearch",
     hidden: true,
     searchHidden: false,
-    sortable: true
+    sortable: true,
+    editable: false
   },
   {
     name: "Sucursal",
@@ -75,7 +76,8 @@ const columnasGrilla: any[] = [
     fieldName: "suc.SucursalDescripcion",
     searchHidden: true,
     hidden: false,
-    sortable: true
+    sortable: true,
+    editable: false
   },
   {
     name: "Cod Obj",
@@ -241,7 +243,7 @@ const columnasGrilla: any[] = [
     searchType: "string",
     sortable: true,
     hidden: false,
-    editable: false
+    editable: true
   },
 
   {
@@ -717,7 +719,8 @@ export class ImporteVentaVigilanciaController extends BaseController {
       TotalHoraA,
       TotalHoraB,
       ImporteHoraA,
-      ImporteHoraB
+      ImporteHoraB,
+      Observaciones
     } = req.body
     //    console.log('todo', req.body)
     //        throw new ClientException(`Debug`)
@@ -742,7 +745,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
       await queryRunner.startTransaction()
 
       const objetivo = await queryRunner.query(
-        `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+        `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, val.Observaciones, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
        LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
        WHERE obj.ObjetivoId = @0
@@ -757,22 +760,22 @@ export class ImporteVentaVigilanciaController extends BaseController {
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8,
+          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8, Observaciones=@4,
            AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, null, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, Observaciones, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
           `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
-         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
+         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod, Observaciones)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10, @11)`,
           [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
-            fechaActual, usuario, ip])
+            fechaActual, usuario, ip, Observaciones])
       }
 
 
       const rec = await queryRunner.query(
-        `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB,
+        `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB, ven.Observaciones,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
           1
           FROM ObjetivoImporteVenta ven
@@ -780,7 +783,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
         [ClienteId, anio, mes, ClienteElementoDependienteId])
 
       rec[0].TotalHorasReal = Number(asistencia.TotalHorasReal)
-      rec[0].DiferenciaHoras = Number(rec[0].TotalHoraA) +  Number(rec[0].TotalHoraB) - Number(rec[0].TotalHorasReal) 
+      rec[0].DiferenciaHoras = Number(rec[0].TotalHoraA) + Number(rec[0].TotalHoraB) - Number(rec[0].TotalHorasReal)
       await queryRunner.commitTransaction();
       this.jsonRes(rec, res, `Valores Actualizados`);
     } catch (error) {

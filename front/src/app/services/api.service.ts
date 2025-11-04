@@ -391,16 +391,20 @@ export class ApiService {
             col.params = { maxDecimal: 2, minDecimal: 2 }
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
+            col.exportWithFormatter=false
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['decimal'],
               col.params = { maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.type = FieldType.float
             col.cssClass = 'text-right'
+            col.exportWithFormatter=false
+
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
             col.params = { maxDecimal: 4, minDecimal: 0 }
             col.cssClass = 'text-right'
+            col.exportWithFormatter=false
           } else if (col.type == 'object')
             col.type = FieldType.object
 
@@ -1551,8 +1555,8 @@ export class ApiService {
       );
   }
 
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number) {
-    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB }).pipe(map(res => res.data))
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string) {
+    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB, Observaciones }).pipe(map(res => res.data))
   }
 
   importXLSImporteVenta(files: any, anio: number, mes: number) {
