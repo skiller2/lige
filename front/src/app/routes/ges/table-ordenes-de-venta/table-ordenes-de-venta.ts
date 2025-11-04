@@ -197,6 +197,15 @@ export class TableOrdenesDeVentaComponent {
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
+
+      columnTotal('AsistenciaHorasN', this.angularGridEdit)
+      columnTotal('TotalHoraA', this.angularGridEdit)
+      columnTotal('TotalHoraB', this.angularGridEdit)
+      columnTotal('DiferenciaHoras', this.angularGridEdit)
+
+      columnTotal('TotalAFacturar', this.angularGridEdit)
+
+
     })
 
   }
