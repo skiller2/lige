@@ -505,11 +505,28 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             time
           ]
         );
+        const PersonalOtroDescuentoCuotaId = 1;
+        await queryRunner.query(`
+            INSERT INTO PersonalOtroDescuentoCuota (
+          PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+          PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
+          PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
+          PersonalOtroDescuentoCuotaProceso)
+          VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
+        `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoUltNro, personalID,
+          anioRequest, mesRequest, 1,
+          importeMonto, 0, 0, 'FA'])
+        
+        await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [personalID, PersonalOtroDescuentoUltNro, PersonalOtroDescuentoCuotaId])
       }
+
       await queryRunner.query(
         `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
         [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro, personalID]
       );
+
+
+
       updateFile = true
 
     } else {  //Hay uno cargado
