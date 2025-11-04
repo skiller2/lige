@@ -841,7 +841,7 @@ export class GestionDescuentosController extends BaseController {
     return PersonalOtroDescuentoId
   }
 
-  private async addObjetivoDescuento(queryRunner: any, objDescuento: any, usuarioId: number, ip: string) {
+  private async addObjetivoDescuento(queryRunner: any, objDescuento: any, usuario: string, ip: string) {
     const AplicaA: string = objDescuento.AplicaA
     const ObjetivoDescuentoDescuentoId: number = objDescuento.DescuentoId
     const ObjetivoId: number = objDescuento.ObjetivoId
@@ -859,7 +859,7 @@ export class GestionDescuentosController extends BaseController {
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
     const hoy = new Date()
-    const hora = this.getTimeString(hoy)
+    // const hora = this.getTimeString(hoy)
 
     await queryRunner.query(`
       INSERT INTO ObjetivoDescuento (
@@ -867,13 +867,14 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoMesesAplica, ObjetivoDescuentoMes, ObjetivoDescuentoCantidad, ObjetivoDescuentoCantidadCuotas
       , ObjetivoDescuentoImporteVariable, ObjetivoDescuentoFechaAplica, ObjetivoDescuentoCuotasPagas
       , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
-      , ObjetivoDescuentoPuesto, ObjetivoDescuentoUsuarioId, ObjetivoDescuentoDia, ObjetivoDescuentoTiempo
+      , ObjetivoDescuentoAudFechaIng, ObjetivoDescuentoAudUsuarioIng, ObjetivoDescuentoAudIpIng
+      , ObjetivoDescuentoAudFechaMod, ObjetivoDescuentoAudUsuarioMod, ObjetivoDescuentoAudIpMod
       , ObjetivoDescuentoDescontar, ImportacionDocumentoId)
-      VALUES (@0,@1,@2,@3, @4,@4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @12, @13, @14)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @9, @10, @11, @12, @13)
 
     
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
-      mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA, DocumentoId])
+      mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA, DocumentoId])
 
     let ObjetivoDescuentoCuotaId = 0
     let cuotaAnio = anio
@@ -896,7 +897,7 @@ export class GestionDescuentosController extends BaseController {
     }
 
     await queryRunner.query(`UPDATE Objetivo SET ObjetivoDescuentoUltNro = @1 WHERE ObjetivoId IN (@0)`, [ObjetivoId, ObjetivoDescuentoId])
-    await queryRunner.query(`UPDATE ObjetivoDescuento SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId=@1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
+    await queryRunner.query(`UPDATE ObjetivoDescuento SET ObjetivoDescuentoCuotaUltNro = @2 WHERE ObjetivoId =@0 AND ObjetivoDescuentoId = @1`, [ObjetivoId, ObjetivoDescuentoId, ObjetivoDescuentoCuotaId])
     return ObjetivoDescuentoId
   }
 
@@ -912,6 +913,7 @@ export class GestionDescuentosController extends BaseController {
 
     try {
       await queryRunner.startTransaction()
+      const usuario = res.locals.userName
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
@@ -951,7 +953,7 @@ export class GestionDescuentosController extends BaseController {
             break;
         }
 
-        const result = await this.addObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+        const result = await this.addObjetivoDescuento(queryRunner, req.body, usuario, ip)
         if (result instanceof ClientException) throw result
         else id = result
       } else {
@@ -1185,6 +1187,7 @@ export class GestionDescuentosController extends BaseController {
     // let errors : string[] = []
     try {
       await queryRunner.startTransaction()
+      const usuario = res.locals.userName
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
@@ -1194,7 +1197,7 @@ export class GestionDescuentosController extends BaseController {
       } else if (ObjetivoId && !PersonalId) { //ObjetivoDescuentos
         this.valFormularioDescuento(req.body, 'O')
 
-        await this.updateObjetivoDescuento(queryRunner, req.body, usuarioId, ip)
+        await this.updateObjetivoDescuento(queryRunner, req.body, usuario, ip)
       } else {
         throw new ClientException(`Todos los campos del formulario deben completarse.`)
       }
@@ -1301,7 +1304,7 @@ export class GestionDescuentosController extends BaseController {
     await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId])
   }
 
-  private async updateObjetivoDescuento(queryRunner: any, otroDescuento: any, usuarioId: number, ip: string) {
+  private async updateObjetivoDescuento(queryRunner:any, otroDescuento:any, usuario:string, ip:string) {
     const ObjetivoDescuentoId: number = otroDescuento.id
     const AplicaA: string = otroDescuento.AplicaA
     const DescuentoId: number = otroDescuento.DescuentoId
@@ -1349,20 +1352,17 @@ export class GestionDescuentosController extends BaseController {
         break;
     }
     const hoy: Date = new Date()
-    const hora = this.getTimeString(hoy)
-    hoy.setHours(0, 0, 0, 0)
     await queryRunner.query(`
       UPDATE ObjetivoDescuento SET
       ObjetivoDescuentoDescuentoId = @2, ObjetivoDescuentoAnoAplica = @3
       , ObjetivoDescuentoMesesAplica = @4, ObjetivoDescuentoMes = @4
       , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = @6
       , ObjetivoDescuentoFechaAplica = @7, ObjetivoDescuentoDetalle = @8
-      , ObjetivoDescuentoPuesto = @9, ObjetivoDescuentoUsuarioId = @10
-      , ObjetivoDescuentoDia = @11, ObjetivoDescuentoTiempo = @12
+      , ObjetivoDescuentoAudFechaMod = @9, ObjetivoDescuentoAudUsuarioMod = @10, ObjetivoDescuentoAudIpMod = @11
       , ObjetivoDescuentoCuotasPagas = 1, ObjetivoDescuentoCuotaUltNro = 1
-      , ObjetivoDescuentoDescontar = @13
+      , ObjetivoDescuentoDescontar = @12
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuarioId, hoy, hora, AplicaA])
+    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA])
 
     await queryRunner.query(`
       DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
@@ -1480,8 +1480,9 @@ export class GestionDescuentosController extends BaseController {
     let campos_vacios: string[] = []
     try {
       await queryRunner.startTransaction()
+      const usuario = res.locals.userName
       // const usuarioId = await this.getUsuarioId(res, queryRunner)
-      // const ip = this.getRemoteAddress(req)
+      const ip = this.getRemoteAddress(req)
       if (!DetalleAnulacion) campos_vacios.push("- Motivo de anulación");
 
       if (campos_vacios.length) {
@@ -1490,7 +1491,7 @@ export class GestionDescuentosController extends BaseController {
       }
 
       if (ObjetivoId) { //ObjetivoDescuentos
-        await this.cancellationObjetivoDescuentoQuery(queryRunner, id, ObjetivoId, DetalleAnulacion)
+        await this.cancellationObjetivoDescuentoQuery(queryRunner, id, ObjetivoId, DetalleAnulacion, usuario, ip)
       } else {
         throw new ClientException(`Error de busqueda.`)
       }
@@ -1506,7 +1507,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async cancellationObjetivoDescuentoQuery(queryRunner: any, id: number, ObjetivoId: number, DetalleAnulacion: string) {
+  private async cancellationObjetivoDescuentoQuery(queryRunner: any, id: number, ObjetivoId: number, DetalleAnulacion: string, usuario:string, ip:string) {
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
       , ObjetivoDescuentoCuotaUltNro CuotaUltNro, ObjetivoDescuentoFechaAnulacion FechaAnulacion
@@ -1541,13 +1542,15 @@ export class GestionDescuentosController extends BaseController {
     } else {
       throw new ClientException(`No se encontraron cuotas para el descuento.`)
     }
-    const now = new Date()
-    now.setHours(0, 0, 0, 0)
+    const hoy = new Date()
+    const FechaAnulacion = new Date()
+    FechaAnulacion.setHours(0, 0, 0, 0)
 
     await queryRunner.query(`
-      UPDATE ObjetivoDescuento SET ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4, ObjetivoDescuentoLiquidoFinanzas=@2 
-      WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1
-      `, [id, ObjetivoId, 0, now, DetalleAnulacion])
+      UPDATE ObjetivoDescuento SET ObjetivoDescuentoLiquidoFinanzas = @2, ObjetivoDescuentoFechaAnulacion = @3, ObjetivoDescuentoDetalleAnulacion = @4
+      , ObjetivoDescuentoAudFechaMod = @5, ObjetivoDescuentoAudUsuarioMod = @6, ObjetivoDescuentoAudIpMod = @7
+      WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
+      `, [id, ObjetivoId, 0, FechaAnulacion, DetalleAnulacion, hoy, usuario, ip])
   }
 
   async getDescuentoPersona(req: any, res: Response, next: NextFunction) {
