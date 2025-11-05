@@ -56,13 +56,6 @@ gestionDescuentosRouter.post("/objetivo", [authMiddleware.verifyToken,authMiddle
     gestionDescuentosController.getDescuentoObjetivo(req, res, next);
 });
 
-gestionDescuentosRouter.get("/objetivo-descuento/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-    gestionDescuentosController.getDescuentoForObjetivo(req, res, next);
-});
-
-gestionDescuentosRouter.get("/personal-descuento/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-    gestionDescuentosController.getDescuentoForPersonal(req, res, next);
-});
 
 gestionDescuentosRouter.get("/tables", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
     gestionDescuentosController.getTableOptions(req, res, next);

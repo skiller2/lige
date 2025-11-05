@@ -322,7 +322,7 @@ const columnsObjetivosDescuentos: any[] = [
   {
     id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
     fieldName: 'det.DescuentoId',
-    searchComponent: 'inpurForDescuentoForObjetivoSearch',
+    searchComponent: "inputForTipoDescuentoSearch",
     type: 'string',
     searchType: 'number',
     sortable: true,
@@ -1620,34 +1620,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async getDescuentoForObjetivo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const options = await queryRunner.query(`
-        SELECT DescuentoId value, DescuentoDescripcion label
-        FROM Descuento
-        WHERE DescuentoUsadoEnObjetivo = 1
-      `)
-      this.jsonRes(options, res);
-    } catch (error) {
-      return next(error)
-    }
-  }
-
-  async getDescuentoForPersonal(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const options = await queryRunner.query(`
-        SELECT DescuentoId value, DescuentoDescripcion label
-        FROM Descuento
-        WHERE DescuentoUsadoEnPersonal = 1
-      `)
-      this.jsonRes(options, res);
-    } catch (error) {
-      return next(error)
-    }
-  }
-
+  
   async getTableOptions(req: any, res: Response, next: NextFunction) {
     try {
       this.jsonRes(tableOptions, res);
