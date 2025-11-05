@@ -870,7 +870,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoAudFechaIng, ObjetivoDescuentoAudUsuarioIng, ObjetivoDescuentoAudIpIng
       , ObjetivoDescuentoAudFechaMod, ObjetivoDescuentoAudUsuarioMod, ObjetivoDescuentoAudIpMod
       , ObjetivoDescuentoDescontar, ImportacionDocumentoId)
-      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, 0, 0, 0, @8, @9, @10, @11, @9, @10, @11, @12, @13)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, @5, 0, 0, @8, @9, @10, @11, @9, @10, @11, @12, @13)
 
     
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
@@ -1366,7 +1366,7 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoCantidadCuotas= @5, ObjetivoDescuentoImporteVariable = @6
       , ObjetivoDescuentoFechaAplica = @7, ObjetivoDescuentoDetalle = @8
       , ObjetivoDescuentoAudFechaMod = @9, ObjetivoDescuentoAudUsuarioMod = @10, ObjetivoDescuentoAudIpMod = @11
-      , ObjetivoDescuentoCuotasPagas = 1, ObjetivoDescuentoCuotaUltNro = 1
+      , ObjetivoDescuentoCuotasPagas = @5, ObjetivoDescuentoCuotaUltNro = 1
       , ObjetivoDescuentoDescontar = @12
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
     `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA])

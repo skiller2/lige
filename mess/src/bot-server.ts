@@ -56,8 +56,9 @@ export class BotServer {
   public globalTimeOutMs: number
   private tgConfig: any
   private botPort: number
-  private ASSISTANT_ID:string
-  private instrucciones:string
+  private ASSISTANT_ID: string
+  private instrucciones: string
+  private ollama
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
@@ -82,6 +83,7 @@ export class BotServer {
           apiHash: process.env.TELEGRAM_API_HASH, // api_hash brindado por Telegram
           apiNumber: process.env.TELEGRAM_NUMBER, // Número de teléfono brindado por Telegram para enviar el número de verificación
           //apiPassword: process.env.TELEGRAM_PASSWORD, // Código de verificación enviado por Telegram hay que esperarlo
+          
           getCode: async () => { return await ask('📱 Ingresá el código recibido: ') },
         }
         this.adapterProvider = createProvider(TelegramProvider, this.tgConfig)
@@ -137,6 +139,13 @@ Usá esta información para continuar la conversación de forma personalizada.
 Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remitir la consulta al supervisor. Siempre mantené un tono cordial y profesional.
 
 `
+    this.ollama = new Ollama({
+      host: "https://ollama.com",
+      headers: {
+        Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+      },
+    });
+
   }
 
   public sendMsg(telNro: string, message: string) {
@@ -157,16 +166,10 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     await Utils.typing(ctx, provider);
 
 
+    //let mensajes = [{ role: "system", content: this.instrucciones }]
 
 
-    const ollama = new Ollama({
-      host: "https://ollama.com",
-      headers: {
-        Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
-      },
-    });
-
-    const response = await ollama.chat({
+    const response = await this.ollama.chat({
       model: "gpt-oss:120b",
       messages: [{ role: "user", content: "Buenos dias" }],
       stream: true,
@@ -181,26 +184,26 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
   handleQueue = async (userId) => {
     const queue = this.userQueues.get(userId);
-    
+
     if (this.userLocks.get(userId)) {
-        return; // If locked, skip processing
+      return; // If locked, skip processing
     }
 
     while (queue.length > 0) {
-        this.userLocks.set(userId, true); // Lock the queue
-        const { ctx, flowDynamic, state, provider } = queue.shift();
-        try {
-            await this.processUserMessage(ctx, { flowDynamic, state, provider });
-        } catch (error) {
-            console.error(`Error processing message for user ${userId}:`, error);
-        } finally {
-            this.userLocks.set(userId, false); // Release the lock
-        }
+      this.userLocks.set(userId, true); // Lock the queue
+      const { ctx, flowDynamic, state, provider } = queue.shift();
+      try {
+        await this.processUserMessage(ctx, { flowDynamic, state, provider });
+      } catch (error) {
+        console.error(`Error processing message for user ${userId}:`, error);
+      } finally {
+        this.userLocks.set(userId, false); // Release the lock
+      }
     }
 
     this.userLocks.delete(userId); // Remove the lock once all messages are processed
     this.userQueues.delete(userId); // Remove the queue once all messages are processed
-};
+  };
 
   public status() {
 
@@ -269,37 +272,31 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
 
 
-/*
-
-    const ollama = new Ollama({
-      host: "https://ollama.com",
-      headers: {
-        Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
-      },
-    });
-
-    let mensajes = [{ role: "system", content: this.instrucciones }]
-
-    while (true) {
-      const res = await ask('Pregunta: ')
-      mensajes.push({ role: "user", content: res })
-
-
-      const response = await ollama.chat({
-        model: "gpt-oss:120b",
-        messages: mensajes,
-        stream: false,
-        
-      });
-
-
-      process.stdout.write('Respuesta: '+response.message.content)
-      process.stdout.write('\n')      
-
-      mensajes.push(response.message)
-
-
-    }
-*/
+    /*
+    
+     
+        let mensajes = [{ role: "system", content: this.instrucciones }]
+    
+        while (true) {
+          const res = await ask('Pregunta: ')
+          mensajes.push({ role: "user", content: res })
+    
+    
+          const response = await this.ollama.chat({
+            model: "gpt-oss:120b",
+            messages: mensajes,
+            stream: false,
+            
+          });
+    
+    
+          process.stdout.write('Respuesta: '+response.message.content)
+          process.stdout.write('\n')      
+    
+          mensajes.push(response.message)
+    
+    
+        }
+    */
   }
 }
