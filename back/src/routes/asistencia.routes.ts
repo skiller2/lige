@@ -40,7 +40,7 @@ asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res, next)
 asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonalId/:metodo/:metodologiaId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.deleteExcepcion(req, res, next) })
 
 asistenciaRouter.post('/agregarasistencia', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistencia(req, res, next)})
-asistenciaRouter.post('/periodo/inicio', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistenciaPeriodoResJson(req, res, next)})
+asistenciaRouter.post('/periodo/inicio', [authMiddleware.verifyToken, authMiddleware.hasAuthObjetivo ,authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {asistenciaController.addAsistenciaPeriodoResJson(req, res, next)})
 asistenciaRouter.post('/horasFacturacion', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.setHorasFacturacion(req, res, next)})
 asistenciaRouter.post('/periodo/fin', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.endAsistenciaPeriodo(req, res, next)})
 asistenciaRouter.get('/periodo/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getAsistenciaPeriodo(req, res, next)})

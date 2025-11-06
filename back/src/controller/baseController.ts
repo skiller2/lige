@@ -86,7 +86,7 @@ export class BaseController {
     let inGroup = false
     if (req?.groups) {
       for (const rowgroup of req?.groups) {
-        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+        if (rowgroup.toLowerCase() === group.toLowerCase())
           inGroup = true
       }
     }
@@ -97,7 +97,7 @@ export class BaseController {
     let inGroup = false
     if (req?.groups) {
       for (const rowgroup of req?.groups) {
-        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+        if (rowgroup.toLowerCase() === group.toLowerCase())
           inGroup = true
       }
     }
