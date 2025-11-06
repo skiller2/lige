@@ -275,7 +275,7 @@ export class AsistenciaController extends BaseController {
     try {
 
       await queryRunner.startTransaction()
-      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req)
+      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
@@ -317,7 +317,7 @@ export class AsistenciaController extends BaseController {
 
   }
 
-  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner, req: any) {
+  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner, req: any, res: Response) {
     let cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     if (cabecera.length == 0)
       throw new ClientException('Objetivo no localizado')
@@ -370,8 +370,7 @@ export class AsistenciaController extends BaseController {
     }
 
     if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
-      if (req && !await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
-        throw new ClientException(`No tiene permisos para habilitar carga`)
+      if (req && !await this.hasGroup(req, 'Liquidaciones')) throw new ClientException(`No tiene permisos para rehabilitar la carga de asistencia. Para volver a habilitarla, debe ser miembro del grupo 'Liquidaciones'`)
       const result = await queryRunner.query(
         `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
@@ -814,7 +813,7 @@ export class AsistenciaController extends BaseController {
       if (val instanceof ClientException) {
         if (val.code == 100102) {
           try {
-            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req)
+            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
           } catch (e) {
             throw new e
           }
@@ -3084,7 +3083,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
           const ObjetivoId = objetivo[0]?.ObjetivoId
           if (!ObjetivoId)
             throw new ClientException(`Objetivo no localizado ${ClienteId}/${ClienteElementoDependienteId}`,)
-          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, null)
+          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, null, null)
 
           if (!cabecera.ObjetivoAsistenciaAnoMesId || !cabecera.ObjetivoAsistenciaAnoId)
             throw new ClientException(`Error habilitando período ${mes}/${anio} para la carga del objetivo ${ObjetivoId}`, cabecera)
