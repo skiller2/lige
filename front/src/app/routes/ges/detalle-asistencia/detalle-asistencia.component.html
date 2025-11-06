@@ -115,11 +115,12 @@
      @if (objetivoResponsables) {
         <nz-form-item>
 
-          <nz-form-label [nzSpan]="5">Telefono</nz-form-label>
+          <nz-form-label [nzSpan]="5">Telefono Responsables</nz-form-label>
           <nz-form-control>
             <span *ngFor="let responsable of objetivoResponsables">
-              @if (responsable.tipo != 'Administrador') {
-               {{ responsable.tipo }} -  {{ responsable.detalle }} -  {{ responsable.Telefonos }}
+              @if (responsable.tipo == 'Coordinador' || responsable.tipo == 'Supervisor') {
+               {{ responsable.tipo }}:  {{ responsable.detalle }} -  {{ responsable.Telefonos }}
+                <br>
              }
             </span>
           </nz-form-control>
