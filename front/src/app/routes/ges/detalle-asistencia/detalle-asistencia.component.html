@@ -411,7 +411,9 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td class="text-right"></td>
+                  <td class="text-right">
+                    {{ sumarImportes(descPerObj.data) | I18NCurrency }}
+                  </td>
                 </tr>
               </tfoot>
             </nz-table>
