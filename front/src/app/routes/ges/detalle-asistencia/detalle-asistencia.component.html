@@ -126,20 +126,7 @@
 
         </nz-form-item>
         }
-        <!-- todo crear funcion para traer telefonos de personas -->
-        <!-- todo crear funcion para traer efectos asignados al objetivo-->
-
-        <!-- @let telefonos = $telefonos | async;
-        <nz-form-item *ngIf="telefonos?.length > 0">
-          <nz-form-label [nzXs]="5" [nzSpan]="5">Telefonos</nz-form-label>
-            <nz-form-control [nzMd]="18" [nzSpan]="9"> 
-              @if (!telefonos?.length) { <li>Sin datos</li>}
-              @for (tel of telefonos; track tel.PersonalTelefonoNro) {
-              <li title="">
-                {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
-            </nz-form-control>
-        </nz-form-item> -->
-
+        
         @let contactoOperativo = $contactoOperativo | async;
         <nz-form-item *ngIf="contactoOperativo?.length > 0">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
