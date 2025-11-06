@@ -103,30 +103,29 @@
         </nz-form-item>
 
         @let objetivoResponsables = $objetivoResponsables | async;
-       
+
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
-            <app-view-responsable *ngIf="objetivoResponsables"
-              [list]="objetivoResponsables"></app-view-responsable>
+            <app-view-responsable *ngIf="objetivoResponsables" [list]="objetivoResponsables"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
 
-     @if (objetivoResponsables) {
+        @if (objetivoResponsables) {
         <nz-form-item>
 
           <nz-form-label [nzSpan]="5">Telefono Responsables</nz-form-label>
           <nz-form-control>
             <span *ngFor="let responsable of objetivoResponsables">
               @if (responsable.tipo == 'Coordinador' || responsable.tipo == 'Supervisor') {
-               {{ responsable.tipo }}:  {{ responsable.detalle }} -  {{ responsable.Telefonos }}
-                <br>
-             }
+              {{ responsable.tipo }}: {{ responsable.detalle }} - {{ responsable.Telefonos }}
+              <br>
+              }
             </span>
           </nz-form-control>
-      
+
         </nz-form-item>
-      }
+        }
         <!-- todo crear funcion para traer telefonos de personas -->
         <!-- todo crear funcion para traer efectos asignados al objetivo-->
 
@@ -188,6 +187,7 @@
           </nz-form-control>
         </nz-form-item>
 
+        <nz-divider nzText="Asistencia"></nz-divider> <br />
 
         <ng-container *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
 
@@ -204,7 +204,7 @@
           </nz-form-item>
 
           <nz-form-item>
-            <nz-form-label [nzSpan]="5">Excepción</nz-form-label>
+            <nz-form-label [nzSpan]="5">Excepciones</nz-form-label>
             <nz-form-control>
               <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
                 [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
@@ -255,7 +255,7 @@
           </nz-form-item>
 
           <nz-form-item>
-            <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
+            <nz-form-label [nzSpan]="5">Horas Registradas</nz-form-label>
             <nz-form-control>
               <nz-table #asist [nzData]="listaAsistenciaObj.asistencia" nzSize="small" [nzPageSize]="100000000"
                 [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
@@ -329,9 +329,11 @@
           </nz-form-item>
         </ng-container>
 
+        <nz-divider nzText="Descuentos"></nz-divider> <br />
+  
         @if ($listaDescuentosObj | async; as listaDescuentosObj ) { @if (listaDescuentosObj.descuentos?.length) {
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Descuentos Objetivo</nz-form-label>
+          <nz-form-label [nzSpan]="5">Al Objetivo</nz-form-label>
           <nz-form-control>
             <nz-table #descObj [nzData]="listaDescuentosObj.descuentos" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
@@ -375,7 +377,7 @@
 
 
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Descuentos Personal Objetivo</nz-form-label>
+          <nz-form-label [nzSpan]="5">Al Personal del Objetivo</nz-form-label>
           <nz-form-control>
             <nz-table #descPerObj [nzData]="$listaDescuentosPerxObj | async" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
