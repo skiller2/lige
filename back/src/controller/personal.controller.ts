@@ -2328,9 +2328,7 @@ cuit.PersonalCUITCUILCUIT,
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
     let now: Date = new Date()
-    const time = this.getTimeString(now)
-    now.setHours(0, 0, 0, 0)
-
+    
     //Obtengo el ultimo Grupo Actividad Personal
     let ultGrupoActividadPersonal = await queryRunner.query(`
       SELECT TOP 1 grup.GrupoActividadPersonalId, grup.GrupoActividadId, grup.GrupoActividadPersonalPersonalId,
@@ -2350,16 +2348,18 @@ cuit.PersonalCUITCUILCUIT,
 
     if (ultGrupoActividadPersonal.length > 0 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() == Desde.getTime()) {
       await queryRunner.query(`
-        UPDATE GrupoActividadPersonal SET GrupoActividadPersonalDesde = @2, GrupoActividadId = @3
+        UPDATE GrupoActividadPersonal SET GrupoActividadPersonalDesde = @2, GrupoActividadId = @3, 
+        GrupoActividadPersonalAudFechaMod = @4, GrupoActividadPersonalAudUsuarioMod = @5, GrupoActividadPersonalAudIpMod = @6
         WHERE GrupoActividadPersonalPersonalId IN (@0) AND GrupoActividadPersonalId IN (@1)
-        `, [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, Desde, GrupoActividadId]
+        `, [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, Desde, GrupoActividadId, now, usuario, ip]
       )
     } else {
       if (ultGrupoActividadPersonal.length) {
         await queryRunner.query(`
-          UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2
+          UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2 ,
+          GrupoActividadPersonalAudFechaMod = @3, GrupoActividadPersonalAudUsuarioMod = @4, GrupoActividadPersonalAudIpMod = @5
           WHERE GrupoActividadPersonalPersonalId IN (@0) AND GrupoActividadPersonalId IN (@1)`,
-          [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, yesterday]
+          [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, yesterday, now, usuario, ip]
         )
       }
 
@@ -2380,9 +2380,8 @@ cuit.PersonalCUITCUILCUIT,
       await queryRunner.query(`
         INSERT INTO GrupoActividadPersonal ( 
         GrupoActividadPersonalId, GrupoActividadId, GrupoActividadPersonalPersonalId, GrupoActividadPersonalDesde,
-        GrupoActividadPersonalPuesto, GrupoActividadPersonalUsuarioId, GrupoActividadPersonalDia, GrupoActividadPersonalTiempo
-        ) VALUES(@0, @1, @2, @3, @4, @5, @6, @7)
-        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, ip, usuarioId, now, time]
+        GrupoActividadPersonalAudFechaIng, GrupoActividadPersonalAudUsuarioIng, GrupoActividadPersonalAudIpIng, GrupoActividadPersonalAudFechaMod, GrupoActividadPersonalAudUsuarioMod, GrupoActividadPersonalAudIpMod
+        ) VALUES(@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)`, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, now, usuario, ip]
       )
 
     }
