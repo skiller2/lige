@@ -55,7 +55,6 @@ const listaColumnas: any[] = [
         hidden: true,
         searchHidden: false
     },
-
     {
         name: "Razón Social",
         type: "string",
@@ -118,6 +117,56 @@ const listaColumnas: any[] = [
         fieldName: "objdom.domCompleto",
         sortable: true,
         hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Dir. Calle",
+        type: "string",
+        id: "domCalleNro",
+        field: "domCalleNro",
+        fieldName: "objdom.domCalleNro",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dir. Código Postal",
+        type: "string",
+        id: "DomicilioCodigoPostal",
+        field: "domCalDomicilioCodigoPostalleNro",
+        fieldName: "objdom.DomicilioCodigoPostal",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dir. Provincia",
+        type: "number",
+        id: "DomicilioProvinciaId",
+        field: "DomicilioProvinciaId",
+        fieldName: "objdom.DomicilioProvinciaId",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dir. Localidad",
+        type: "number",
+        id: "DomicilioLocalidadId",
+        field: "DomicilioLocalidadId",
+        fieldName: "objdom.DomicilioLocalidadId",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dir. Barrio",
+        type: "number",
+        id: "DomicilioBarrioId",
+        field: "DomicilioBarrioId",
+        fieldName: "objdom.DomicilioBarrioId",
+        sortable: true,
+        hidden: true,
         searchHidden: false
     },
     {
@@ -153,6 +202,7 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: false
     }
+
 ];
 
 
@@ -348,6 +398,8 @@ export class ObjetivosController extends BaseController {
                     eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde,
                     eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta,
                     objdom.domCompleto,
+					objdom.domCalleNro,
+					 objdom.DomicilioCodigoPostal, objdom.DomicilioPaisId,objdom.DomicilioProvinciaId,objdom.DomicilioLocalidadId,objdom.DomicilioBarrioId,
                     1
                     FROM Objetivo obj 
                     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -388,7 +440,9 @@ export class ObjetivosController extends BaseController {
                                                 
                     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
 
-                    Left join (Select  obj.ObjetivoId, CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ', TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto
+                    Left join (Select  (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro,
+								obj.ObjetivoId, CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ', TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto
+								, dom.DomicilioCodigoPostal, dom.DomicilioPaisId,dom.DomicilioProvinciaId,dom.DomicilioLocalidadId,dom.DomicilioBarrioId
                                 from Objetivo obj
                                 LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND nexdom.ClienteId = obj.ClienteId AND nexdom.NexoDomicilioActual = 1
                                 LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
@@ -402,8 +456,6 @@ export class ObjetivosController extends BaseController {
                                 ROW_NUMBER() OVER (PARTITION BY ca.ClienteId ORDER BY ca.ClienteAdministradorAdministradorId DESC) AS RowNum
                                 FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
                                 adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
-
-                    
                 
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
