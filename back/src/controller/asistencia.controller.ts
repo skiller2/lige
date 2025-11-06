@@ -217,7 +217,7 @@ export class AsistenciaController extends BaseController {
 
 
     try {
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para cargar valores de facturación`)
 
       await queryRunner.startTransaction()
@@ -273,7 +273,7 @@ export class AsistenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para habilitar carga`)
 
 
@@ -421,7 +421,7 @@ export class AsistenciaController extends BaseController {
       if (cabecera.length == 0)
         throw new ClientException('Objetivo no localizado')
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para finalizar la carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
 
 
@@ -776,7 +776,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar la excepción`)
 
       if (metodologiaId == "F")
@@ -1104,7 +1104,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para eliminar la excepción`)
 
       const val = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
@@ -1219,7 +1219,7 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
         throw new ClientException(`No tiene permisos para listar asistencia del objetivo`)
 
       await queryRunner.connect();
@@ -1548,7 +1548,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
 
@@ -1568,7 +1568,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthObjetivo(anio, mes, res, ObjetivoId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthObjetivo(anio, mes, res, ObjetivoId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentosObjetivo(queryRunner, anio, mes, ObjetivoId)
@@ -1587,7 +1587,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
 
       const queryRunner = dataSource.createQueryRunner();
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
@@ -1835,7 +1835,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
       const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId], [], false, false)
@@ -1895,7 +1895,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de excepciones`)
 
       const result = await queryRunner.query(
@@ -2115,7 +2115,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
       const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId])
@@ -2138,7 +2138,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
       const result = await CustodiaController.listPersonalCustodiaQuery({ filtros: [{ index: "ApellidoNombre", valor: [personalId], operador: "=", condition: "AND" }] }, queryRunner, anio, mes, 0)
@@ -2160,7 +2160,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
       let personalId: number[] = []
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
         throw new ClientException(`No tiene permisos para listar descuentos de personal del objetivo`)
 
       const personas = await dataSource.query(
@@ -2225,7 +2225,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       var desde = new Date(anio, mes - 1, 1);
 
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para realizar consulta de asistencia por objetivo`)
 
       const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${objetivoId}`], queryRunner)
@@ -2499,7 +2499,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner) && !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner) && !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
 
@@ -2862,7 +2862,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
         !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
@@ -2989,7 +2989,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       let anio = req.params.anio;
       let mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
         !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
