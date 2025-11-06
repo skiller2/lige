@@ -146,22 +146,10 @@
           <nz-form-control [nzMd]="18" [nzSpan]="9">
             @if (!contactoOperativo.length) { <span>Sin datos</span>}
             @for (contacto of contactoOperativo; track contacto.Telefono) {
-            @if (contacto.ApellidoNombre) {
-            <span> Apellido y Nombre: {{contacto.ApellidoNombre}}</span>
-            <br>
-            }
-            @if (contacto.area) {
-            <span> Area: {{contacto.area}}</span>
-            <br>
-            }
-            @if (contacto.correo) {
-            <span> Correo: {{contacto.correo}}</span>
-            <br>
-            }
-            @if (contacto.telefono) {
-            <span> Telefono: {{contacto.telefono}}</span>
-            <br>
-            }
+            @if (contacto.ApellidoNombre) {<span> Apellido, Nombre: {{contacto.ApellidoNombre}} |</span>}
+            @if (contacto.area) {<span> Area: {{contacto.area}} |</span>}
+            @if (contacto.correo) {<span> Correo: {{contacto.correo}} |</span>}
+            @if (contacto.telefono) {<span> Telefono: {{contacto.telefono}} |</span>}
             }
           </nz-form-control>
         </nz-form-item>
