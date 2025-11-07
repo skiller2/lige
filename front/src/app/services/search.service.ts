@@ -2004,4 +2004,30 @@ export class SearchService {
       );
   }
 
+  getEfectoByPersonalId(personalId: number) {
+    if (!personalId ) {
+      return of([]);
+    }
+    return this.http.get<ResponseJSON<any>>(`api/efecto/personal/${personalId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getEfectoByObjetivoId(objetivoId: number) {
+    if (!objetivoId ) {
+      return of([]);
+    }
+    return this.http.get<ResponseJSON<any>>(`api/efecto/objetivo/${objetivoId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

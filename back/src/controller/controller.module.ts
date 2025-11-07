@@ -57,6 +57,7 @@ import { NovedadesController } from "../novedades/novedades.controller";
 import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-automaticos.controller";
 import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excepciones-asistencia.controller";
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller";
+import { EfectoController } from "../efecto/efecto.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -117,3 +118,4 @@ export const novedadesController = new NovedadesController()
 export const procesosAutomaticosController = new ProcesosAutomaticosController()
 export const excepcionesAsistenciaController = new ExcepcionesAsistenciaController()
 export const compensaGeneralACordinadorController = new CompensaGeneralACordinadorController()
+export const efectoController = new EfectoController()
