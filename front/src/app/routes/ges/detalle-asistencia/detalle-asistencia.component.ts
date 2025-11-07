@@ -204,6 +204,13 @@ export class DetalleAsistenciaComponent {
     )
   )
 
+  $listaEfectoObj = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(500), switchMap(objetivoId =>
+      this.searchService.getEfectoByObjetivoId(Number(objetivoId))
+      .pipe(tap(data => { return data }))
+    )
+  )
+
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
     switchMap(objetivoId =>
@@ -371,6 +378,13 @@ export class DetalleAsistenciaComponent {
 
 
         )))
+  
+  $listaEfectoPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500), switchMap(PersonalId =>
+      this.searchService.getEfectoByPersonalId(Number(PersonalId))
+      .pipe(tap(data => { return data }))
+    )
+  )
 
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),

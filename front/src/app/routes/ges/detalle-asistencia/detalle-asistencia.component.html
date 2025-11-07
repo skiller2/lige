@@ -179,6 +179,35 @@
           </nz-form-item>
 
           <nz-form-item>
+            <nz-form-label [nzSpan]="5">Efectos</nz-form-label>
+            <nz-form-control>
+              <nz-table #efectObj [nzData]="$listaEfectoObj | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+                <thead>
+                  <tr>
+                    <th>Stock</th>
+                    <th>Stock Reservado</th>
+                    <th>Descripcion</th>
+                    <th>AtrDescripcion</th>
+                    <th>Individual Descripcion</th>
+                    <th>Individual AtrDescripcion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let data of efectObj.data" class="">
+                    <td>{{ data.StockStock }}</td>
+                    <td>{{ data.StockReservado }}</td>
+                    <td>{{ data.EfectoDescripcion }}</td>
+                    <td>{{ data.EfectoAtrDescripcion }}</td>
+                    <td>{{ data.EfectoEfectoIndividualDescripcion }}</td>
+                    <td>{{ data.EfectoIndividualAtrDescripcion }}</td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item>
             <nz-form-label [nzSpan]="5">Excepciones</nz-form-label>
             <nz-form-control>
               <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
@@ -483,6 +512,35 @@
                 <span *ngIf="categoria.PersonalCategoriaHasta">hasta {{ categoria.PersonalCategoriaHasta | date}}</span>
               </p>
             </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Efectos</nz-form-label>
+          <nz-form-control>
+            <nz-table #efectPer [nzData]="$listaEfectoPer | async" nzSize="small" [nzPageSize]="100000000"
+            [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+              <thead>
+                <tr>
+                  <th>Stock</th>
+                  <th>Stock Reservado</th>
+                  <th>Descripcion</th>
+                  <th>AtrDescripcion</th>
+                  <th>Individual Descripcion</th>
+                  <th>Individual AtrDescripcion</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of efectPer.data" class="">
+                  <td>{{ data.StockStock }}</td>
+                  <td>{{ data.StockReservado }}</td>
+                  <td>{{ data.EfectoDescripcion }}</td>
+                  <td>{{ data.EfectoAtrDescripcion }}</td>
+                  <td>{{ data.EfectoEfectoIndividualDescripcion }}</td>
+                  <td>{{ data.EfectoIndividualAtrDescripcion }}</td>
+                </tr>
+              </tbody>
+            </nz-table>
           </nz-form-control>
         </nz-form-item>
 
