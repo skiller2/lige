@@ -173,8 +173,7 @@
                   <th>Atributo</th>
                   <th>Efe. Individual Descripción</th>
                   <th>Efe. Individual Atributo</th>
-                  <th nzWidth="80px">Stock</th>
-                  <th nzWidth="100px">Stock Reservado</th>
+                  <th nzWidth="100px">Stock</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,8 +182,7 @@
                   <td>{{ data.EfectoAtrDescripcion }}</td>
                   <td>{{ data.EfectoEfectoIndividualDescripcion }}</td>
                   <td>{{ data.EfectoIndividualAtrDescripcion }}</td>
-                  <td nzWidth="80px">{{ data.StockStock }}</td>
-                  <td nzWidth="100px">{{ data.StockReservado }}</td>
+                  <td nzWidth="100px">{{ data.StockStock }}</td>
                 </tr>
               </tbody>
             </nz-table>
@@ -522,22 +520,20 @@
               [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
-                  <th>Stock</th>
-                  <th>Stock Reservado</th>
-                  <th>Descripcion</th>
-                  <th>AtrDescripcion</th>
-                  <th>Individual Descripcion</th>
-                  <th>Individual AtrDescripcion</th>
+                  <th>Descripción</th>
+                  <th>Atributos</th>
+                  <th>Efe. Individual Descripción</th>
+                  <th>Efe. Individual Atributos</th>
+                  <th nzWidth="100px">Stock</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let data of efectPer.data" class="">
-                  <td>{{ data.StockStock }}</td>
-                  <td>{{ data.StockReservado }}</td>
                   <td>{{ data.EfectoDescripcion }}</td>
                   <td>{{ data.EfectoAtrDescripcion }}</td>
                   <td>{{ data.EfectoEfectoIndividualDescripcion }}</td>
                   <td>{{ data.EfectoIndividualAtrDescripcion }}</td>
+                  <td  nzWidth="100px" >{{ data.StockStock }}</td>
                 </tr>
               </tbody>
             </nz-table>
