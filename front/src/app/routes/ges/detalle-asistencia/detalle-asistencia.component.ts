@@ -207,10 +207,7 @@ export class DetalleAsistenciaComponent {
   $listaEfectoObj = this.$selectedObjetivoIdChange.pipe(
     debounceTime(500), switchMap(objetivoId =>
       this.searchService.getEfectoByObjetivoId(Number(objetivoId))
-      .pipe(tap(data => { 
-        console.log('data: ', data);
-      
-        return data }))
+      .pipe(tap(data => { return data }))
     )
   )
 
