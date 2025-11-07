@@ -57,18 +57,16 @@ export class ObjetivoController extends BaseController {
         `SELECT dom.DomicilioId 
 
                 ,TRIM(dom.DomicilioDomCalle) Calle,
-                dom.DomicilioDomNro, 
-                dom.DomicilioCodigoPostal,
+                TRIM(dom.DomicilioDomNro) DomicilioDomNro,
+                TRIM(dom.DomicilioCodigoPostal) DomicilioCodigoPostal,
                 TRIM(pais.PaisDescripcion) pais, 
                 TRIM(prov.ProvinciaDescripcion) provincia,
                 TRIM(loc.LocalidadDescripcion) localidad ,
                 TRIM(bar.BarrioDescripcion) barrio,
-
-                CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ',
-                TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto
+                CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),CONCAT('C', NULLIF(TRIM(dom.DomicilioCodigoPostal), '')),
+                NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto
 
                 FROM Objetivo obj
-
                 LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
                 LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
                 LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = clidep.ClienteElementoDependienteId AND nexdom.ClienteId = clidep.ClienteId AND nexdom.NexoDomicilioActual = 1
