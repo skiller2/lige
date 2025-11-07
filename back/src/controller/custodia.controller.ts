@@ -1255,7 +1255,6 @@ export class CustodiaController extends BaseController {
                 }
         */
         if (this.valByEstado(custodiaForm.estado)) {
-            console.log('valByEstado', custodiaForm)
             if ((!custodiaForm.facturacion && custodiaForm.estado!= 5) || !custodiaForm.fechaFinal || !custodiaForm.destino) {
                 errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
             }
