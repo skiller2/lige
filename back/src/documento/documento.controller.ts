@@ -129,17 +129,6 @@ export class DocumentoController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
-    {
-      id: "DocumentoDetalle",
-      name: "Detalle Documento",
-      field: "DocumentoDetalle",
-      fieldName: "docg.DocumentoDetalle",
-      type: "string",
-      searchType: "string",
-      sortable: true,
-      hidden: true,
-      searchHidden: false,
-    },
   ];
 
   listaPersonalDescarga: any[] = [
@@ -595,14 +584,19 @@ export class DocumentoController extends BaseController {
 
     const documentoTipoInvalidos = ['POLSEG', 'NOV', 'EST', 'IMPVENV', 'LIC', 'MONOT', 'TEL', 'DES']
     if (documentoTipoInvalidos.includes(doctipo_id)) return new ClientException(`No se puede ingresar/modificar el registro. Se debera hacer desde el modulo correspondiente. Tipo seleccionado: ${doctipo_id}.`)
-    
+
+    const docTipoPersonalRequerido = ['CLU', 'REC', 'LIC', 'DOCIDEDOR', 'DOCIDEFRE', 'EST', 'FOR152', 'FOR184', 'FOTO', 'HABPERCABA', 'HABPERPRO', 'MONOT', 'PERANT', 'PERREI', 'PERSAN', 'PREELE','PREHIS', 'PRELAB', 'PREPSI', 'PRERAD', 'PRESUB']
+    const docTipoClienteRequerido = ['CLI', 'CONINS']
+    const docTipoObjetivoRequerido = ['OBJ', 'DECOBJFOR', 'HABOBJCABA', 'HABOBJPBA' , 'HABOBJPRE']
+
     let campos_vacios: any[] = []
 
     if (!doctipo_id) campos_vacios.push(`- Tipo de documento`)
     if (!den_documento) campos_vacios.push(`- Denominación de documento`)
-    if ((doctipo_id == 'LIC' || doctipo_id == 'REC') && !Number.isInteger(persona_id)) campos_vacios.push(`- Persona`)
-    if (doctipo_id == 'CLI' && !Number.isInteger(cliente_id)) campos_vacios.push(`- Cliente`)
-    if (doctipo_id == 'OBJ' && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
+
+    if (docTipoPersonalRequerido.includes(doctipo_id) && !Number.isInteger(persona_id)) campos_vacios.push(`- Persona`)
+    if (docTipoClienteRequerido.includes(doctipo_id) && !Number.isInteger(cliente_id)) campos_vacios.push(`- Cliente`)
+    if (docTipoObjetivoRequerido.includes(doctipo_id) && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
     if (!fecha) campos_vacios.push(`- Desde`)
     // if (!fec_doc_ven) campos_vacios.push(`- Hasta`)
 
