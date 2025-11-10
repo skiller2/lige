@@ -88,11 +88,11 @@ const columnsAyudaAsistencial: any[] = [
     searchHidden: false
   },
   {
-    id: "PersonalPrestamoDia",
+    id: "PersonalPrestamoAudFechaIng",
     name: "Fecha Solicitud",
-    field: "PersonalPrestamoDia",
+    field: "PersonalPrestamoAudFechaIng",
     type: "date",
-    fieldName: "pres.PersonalPrestamoDia",
+    fieldName: "pres.PersonalPrestamoAudFechaIng",
     searchComponent: "inpurForFechaSearch",
     searchType: "date",
     sortable: true,
@@ -212,15 +212,17 @@ export class AyudaAsistencialController extends BaseController {
     const PersonalPrestamoCantidadCuotas = 0
     const PersonalPrestamoMontoAutorizado = 0
     const PersonalPrestamoFechaAprobacion = null
+    const now = new Date()
+
     return await queryRunner.query(`
       UPDATE PersonalPrestamo
       SET PersonalPrestamoAprobado = @2, PersonalPrestamoUltimaLiquidacion = @4,
       PersonalPrestamoCantidadCuotas = @5, PersonalPrestamoMontoAutorizado = @6, PersonalPrestamoFechaAprobacion = @7,
-      PersonalPrestamoAudFechaMod = @7, PersonalPrestamoAudUsuarioMod = @8, PersonalPrestamoAudIpMod = @9
+      PersonalPrestamoAudFechaMod = @8, PersonalPrestamoAudUsuarioMod = @9, PersonalPrestamoAudIpMod = @10
       WHERE PersonalPrestamoId = @0 AND PersonalId = @1
     `, [personalPrestamoId, personalId, PersonalPrestamoAprobado, PersonalPrestamoAplicaEl,
       PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoMontoAutorizado,
-      PersonalPrestamoFechaAprobacion, usuario, ip]
+      PersonalPrestamoFechaAprobacion, now, usuario, ip]
     )
   }
 
@@ -299,7 +301,9 @@ export class AyudaAsistencialController extends BaseController {
     return await queryRunner.query(`
       SELECT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
-      pres.PersonalPrestamoDia, pres.PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+      pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
+      pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
+      pres.PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
       pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
@@ -313,7 +317,9 @@ export class AyudaAsistencialController extends BaseController {
     return await queryRunner.query(`
 SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
-      pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+      pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
+      pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
+      IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
       pres.PersonalPrestamoUltimaLiquidacion, pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
       form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
       pres.PersonalPrestamoAprobado,
@@ -339,7 +345,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1) OR pres.PersonalPrestamoDia >= DATEFROMPARTS(@0,@1,1)
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1) OR pres.PersonalPrestamoAudFechaIng >= DATEFROMPARTS(@0,@1,1)
       )
       AND (${filterSql})
       ${orderBy}
@@ -916,23 +922,14 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       const mes = periodo.getMonth() + 1
       const anio = periodo.getFullYear()
 
-      // let list = await queryRunner.query(
-      //   `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
-      //   pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
-      //   FROM PersonalPrestamo pre
-      //   LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
-      //   WHERE pre.PersonalId = @0
-      //   ORDER BY pre.PersonalPrestamoDia DESC`,
-      //   [personalId]
-      // );
       let list = await queryRunner.query(
-        `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
+        `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoAudFechaIng, pre.PersonalPrestamoFechaAprobacion,
         CONCAT(@2,'/',@1) PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
         FROM PersonalPrestamo pre
         LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
         LEFT JOIN PersonalPrestamoCuota ppc ON ppc.PersonalPrestamoId = pre.PersonalPrestamoId AND ppc.PersonalId = pre.PersonalId
         WHERE pre.PersonalId = @0 AND ppc.PersonalPrestamoCuotaAno = @1 AND ppc.PersonalPrestamoCuotaMes = @2
-        ORDER BY pre.PersonalPrestamoDia DESC`,
+        ORDER BY pre.PersonalPrestamoAudFechaIng DESC`,
         [personalId, anio, mes]
       );
       list = list.map((obj: any) => {

@@ -51,7 +51,7 @@ export class PersonalController extends BaseController {
         null, //PersonalPrestamoCuotaUltNro
         0, //PersonalPrestamoMontoAutorizado
 
-        ip, usuario, now //Aud data
+        now, usuario, ip //Aud data
       ]
     );
 

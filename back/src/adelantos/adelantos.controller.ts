@@ -75,9 +75,9 @@ export class AdelantosController extends BaseController {
     {
       name: "Fecha Solicitud",
       type: "date",
-      id: "PersonalPrestamoDia",
-      field: "PersonalPrestamoDia",
-      fieldName: "pre.PersonalPrestamoDia",
+      id: "PersonalPrestamoAudFechaIng",
+      field: "PersonalPrestamoAudFechaIng",
+      fieldName: "pre.PersonalPrestamoAudFechaIng",
       searchComponent: "inpurForFechaSearch",
       sortable: true,
       searchHidden: false,
@@ -314,7 +314,7 @@ export class AdelantosController extends BaseController {
             null, //PersonalPrestamoCuotaUltNro
             0, //PersonalPrestamoMontoAutorizado
 
-            ip, usuario, now // Aud data
+            now, usuario , ip// Aud data
 
           ]
         );
@@ -333,7 +333,7 @@ export class AdelantosController extends BaseController {
       this.jsonRes({
         personalId, //PersonalId
         PersonalPrestamoMonto: monto, //PersonalPrestamoMonto
-        PersonalPrestamoDia: now, //PersonalPrestamoDia
+        PersonalPrestamoAudFechaIng: now, //PersonalPrestamoAudFechaIng
         FormaPrestamoId: FormaPrestamoId,
         FormaPrestamoDescripcion: FormaPrestamoDescripcion
       }, res, "Ayuda Asistencial añadido.");
@@ -400,7 +400,8 @@ export class AdelantosController extends BaseController {
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
         pre.PersonalPrestamoId, pre.PersonalPrestamoMonto, pre.PersonalPrestamoAprobado, pre.PersonalPrestamoFechaAprobacion, pre.PersonalPrestamoCantidadCuotas, pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoLiquidoFinanzas, pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoCuotaUltNro,
-        pre.PersonalPrestamoDia, pre.PersonalPrestamoTiempo,
+        pre.PersonalPrestamoAudFechaIng, pre.PersonalPrestamoAudUsuarioIng, pre.PersonalPrestamoAudIpIng,
+        pre.PersonalPrestamoAudFechaMod, pre.PersonalPrestamoAudUsuarioMod, pre.PersonalPrestamoAudIpMod,
         pre.FormaPrestamoId, fp.FormaPrestamoDescripcion,
         sit.SituacionRevistaDescripcion
       
@@ -411,8 +412,6 @@ export class AdelantosController extends BaseController {
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
      
         LEFT JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId
-               -- AND DATEPART(YEAR,pre.PersonalPrestamoDia) = @1 AND DATEPART(MONTH,pre.PersonalPrestamoDia) = @2
-               -- pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
                AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) 
         LEFT JOIN FormaPrestamo fp ON fp.FormaPrestamoId = pre.FormaPrestamoId
 
