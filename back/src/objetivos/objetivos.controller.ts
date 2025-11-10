@@ -1025,12 +1025,12 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             ObjObjetivoNew.infoDocRequerido = await this.ObjetivoDocRequerido(queryRunner, Obj.infoDocRequerido, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
 
-            await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
+            await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuario, ip)
 
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
                     let denDocumento = Obj.ClienteId + '/' + Obj.ClienteElementoDependienteId
-                    await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, denDocumento, null, null, file, usuarioId, ip, queryRunner)
+                    await FileUploadController.handleDOCUpload(null, ObjetivoId, null, null, new Date(), null, denDocumento, null, null, file, usuario, ip, queryRunner)
                 }
             }
 
@@ -1515,7 +1515,7 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
             ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
 
-            await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
+            await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuario, ip)
 
             if (Obj.files?.length > 0) {
                 for (const file of Obj.files) {
@@ -1772,7 +1772,7 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones: any[], usuario: number, ip: string) {
+    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones: any[], usuario: string, ip: string) {
         //Compruebo si hubo cambios
         let cambios: boolean = false
         if (!habilitaciones || !habilitaciones.length) {
