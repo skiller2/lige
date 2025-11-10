@@ -6,12 +6,10 @@ import { botServer, dbServer } from "../index.ts";
 export class PersonalController extends BaseController {
   async setPersonalAdelanto(personalId: any, anio: any, mes: any, monto: number) {
     const now = new Date()
-    const hora = this.getTimeString(now)
-    let today = now
-    today.setHours(0, 0, 0, 0)
     const ip = this.getRemoteAddress(null)
-    const usuarioId = null
     const FormaPrestamoId = 7 //Adelanto
+    const usuario = 'BOT'
+
 
     await dbServer.dataSource.query(
       `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
@@ -31,14 +29,12 @@ export class PersonalController extends BaseController {
       PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
       PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
       PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
-      -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
-      PersonalPrestamoDia, PersonalPrestamoTiempo)
+      PersonalPrestamoAudFechaIng, PersonalPrestamoAudUsuarioIng, PersonalPrestamoAudIpIng, PersonalPrestamoAudFechaMod, PersonalPrestamoAudUsuarioMod, PersonalPrestamoAudIpMod)
       VALUES(
       @0, @1, @2, @3,
       @4, @5, @6, @7,
       @8, @9, @10, @11,
-      -- @12, @13, @14,
-      @15, @16)`,
+      @12, @13, @14, @12, @13, @14)`,
       [
         prestamoId, //PersonalPrestamoId
         personalId, //PersonalId
@@ -53,15 +49,9 @@ export class PersonalController extends BaseController {
         null, //PersonalPrestamoLiquidoFinanzas
         "", //PersonalPrestamoUltimaLiquidacion
         null, //PersonalPrestamoCuotaUltNro
-        0, //PersonalPrestamoMonto
+        0, //PersonalPrestamoMontoAutorizado
 
-        null, //PersonalPrestamoJerarquicoId
-        ip, //PersonalPrestamoPuesto
-        usuarioId, //PersonalPrestamoUsuarioId
-
-        today, //PersonalPrestamoDia
-        hora, //PersonalPrestamoTiempo  
-
+        ip, usuario, now //Aud data
       ]
     );
 
@@ -77,7 +67,7 @@ export class PersonalController extends BaseController {
   async deletePersonalAdelanto(personalId: any, anio: any, mes: any) {
     const FormaPrestamoId = 7 //Adelanto
 
-    const adelanto:any = await dbServer.dataSource.query(`
+    const adelanto: any = await dbServer.dataSource.query(`
       SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
       WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
       AND ade.PersonalId = @0

@@ -706,7 +706,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const cantCuotas = req.body.cantCuotas
     const motivo:string = req.body.motivo
     const ip = req.socket.remoteAddress
-    const usuarioId = await this.getUsuarioId(res,queryRunner)
+    const usuario = res.locals.userName
     let prestamoId: number = 0
     let campos_vacios: any[] = []
     try {
@@ -755,10 +755,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         [personalId, formaId]
       );
       const now = new Date()
-      const hora = this.getTimeString(now)
-      let today = now
-      today.setHours(0, 0, 0, 0)
-
+      
       if (importe > 0) {
          prestamoId = Number((await queryRunner.query(`
           SELECT per.PersonalPrestamoUltNro as max 
@@ -769,12 +766,12 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         const result = await queryRunner.query(
           `INSERT INTO PersonalPrestamo (PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
           PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
-          PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
-          -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
-          PersonalPrestamoDia, PersonalPrestamoTiempo, PersonalPrestamoMotivo)
-          VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11,
-          -- @12, @13, @14,
-          @15, @16, @17)`,
+          PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, PersonalPrestamoMotivo,
+          PersonalPrestamoAudFechaIng, PersonalPrestamoAudUsuarioIng, PersonalPrestamoAudIpIng, PersonalPrestamoAudFechaMod, PersonalPrestamoAudUsuarioMod, PersonalPrestamoAudIpMod)
+          VALUES(@0, @1, @2, @3, 
+          @4, @5, @6, @7, 
+          @8, @9, @10, @11, @12, 
+          @13, @14, @15, @13, @14, @15)`,
           [
             prestamoId, //PersonalPrestamoId
             personalId, //PersonalId
@@ -790,14 +787,9 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
             "", //PersonalPrestamoUltimaLiquidacion
             null, //PersonalPrestamoCuotaUltNro
             0, //PersonalPrestamoMontoAutorizado
-
-            null, //PersonalPrestamoJerarquicoId
-            ip, //PersonalPrestamoPuesto
-            usuarioId, //PersonalPrestamoUsuarioId
-
-            today, //PersonalPrestamoDia
-            hora, //PersonalPrestamoTiempo 
             motivo, //PersonalPrestamoMotivo
+
+            now, usuario, ip, //Aud data
 
           ]
         );

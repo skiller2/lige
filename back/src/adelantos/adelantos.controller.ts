@@ -41,17 +41,17 @@ export class AdelantosController extends BaseController {
       hidden: true,
     },
     {
-    id: "SituacionRevistaId",
-    name: "Situacion Revista",
-    field: "SituacionRevistaId",
-    type: "number",
-    fieldName: "sit.SituacionRevistaId",
-    searchComponent: "inpurForSituacionRevistaSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: true,
-  },
+      id: "SituacionRevistaId",
+      name: "Situacion Revista",
+      field: "SituacionRevistaId",
+      type: "number",
+      fieldName: "sit.SituacionRevistaId",
+      searchComponent: "inpurForSituacionRevistaSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true,
+    },
     {
       name: "Situación Revista",
       type: "string",
@@ -166,7 +166,7 @@ export class AdelantosController extends BaseController {
         AND DATEFROMPARTS(@1,@2,28) > ga.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
         [res.locals.PersonalId, Ano, Mes])
 
-      let GrupoActividadIdList =[]
+      let GrupoActividadIdList = []
       grupos.forEach((row: any) => {
         GrupoActividadIdList.push(row.GrupoActividadId)
       })
@@ -214,7 +214,7 @@ export class AdelantosController extends BaseController {
     }
   }
 
-  async setAdelanto(anio: number, mes: number, personalId: number, monto: number, req:any, res: Response, next: NextFunction) {
+  async setAdelanto(anio: number, mes: number, personalId: number, monto: number, req: any, res: Response, next: NextFunction) {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
@@ -227,19 +227,19 @@ export class AdelantosController extends BaseController {
       if (!monto) throw new ClientException("Falta cargar el monto.");
 
       const checkrecibos = await queryRunner.query(
-        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [,anio, mes]
+        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anio, mes]
       );
-  
-      if (checkrecibos[0]?.ind_recibos_generados ==1)
+
+      if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar adelantos para el período`)
-  
+
 
       const aplicaEl = `${String(mes).padStart(2, '0')}/${String(anio).padStart(4, '0')}`
-      
+
       const presPend = await queryRunner.query(`SELECT pre.PersonalPrestamoId FROM PersonalPrestamo pre WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoAprobado = 'S' AND pre.PersonalPrestamoLiquidoFinanzas = 0 AND pre.FormaPrestamoId =@1`,
-        [personalId,FormaPrestamoId]
+        [personalId, FormaPrestamoId]
       )
-      if (presPend.length>0)
+      if (presPend.length > 0)
         throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo adelanto`)
 
       const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
@@ -274,9 +274,6 @@ export class AdelantosController extends BaseController {
         `, [personalId, FormaPrestamoId]
       );
       const now = new Date()
-      const hora = this.getTimeString(now)
-      let today = now
-      today.setHours(0, 0, 0, 0)
 
       if (monto > 0) {
 
@@ -289,22 +286,18 @@ export class AdelantosController extends BaseController {
             )
           )[0].max) + 1;
 
-        const usuarioId = await this.getUsuarioId(res,queryRunner)
 
         const result = await queryRunner.query(
           `INSERT INTO PersonalPrestamo(
                     PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
                     PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
-                    PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
-                    -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
-                    PersonalPrestamoDia, PersonalPrestamoTiempo)
+                    PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado,
+                    PersonalPrestamoAudFechaIng, PersonalPrestamoAudUsuarioIng, PersonalPrestamoAudIpIng, PersonalPrestamoAudFechaMod, PersonalPrestamoAudUsuarioMod, PersonalPrestamoAudIpMod)
                     VALUES(
                     @0, @1, @2, @3,
                     @4, @5, @6, @7,
-                    @8, @9, @10, @11,
-                    -- @12, @13, @14,
-                    @15, @16)
-                `,
+                    @8, @9, @10, @11, 
+                    @12, @13, @14, @12, @13, @14)`,
           [
             prestamoId, //PersonalPrestamoId
             personalId, //PersonalId
@@ -319,14 +312,9 @@ export class AdelantosController extends BaseController {
             null, //PersonalPrestamoLiquidoFinanzas
             "", //PersonalPrestamoUltimaLiquidacion
             null, //PersonalPrestamoCuotaUltNro
-            0, //PersonalPrestamoMonto
+            0, //PersonalPrestamoMontoAutorizado
 
-            null, //PersonalPrestamoJerarquicoId
-            ip, //PersonalPrestamoPuesto
-            usuarioId, //PersonalPrestamoUsuarioId
-
-            today, //PersonalPrestamoDia
-            hora, //PersonalPrestamoTiempo  
+            ip, usuario, now // Aud data
 
           ]
         );
@@ -345,7 +333,7 @@ export class AdelantosController extends BaseController {
       this.jsonRes({
         personalId, //PersonalId
         PersonalPrestamoMonto: monto, //PersonalPrestamoMonto
-        PersonalPrestamoDia: today, //PersonalPrestamoDia
+        PersonalPrestamoDia: now, //PersonalPrestamoDia
         FormaPrestamoId: FormaPrestamoId,
         FormaPrestamoDescripcion: FormaPrestamoDescripcion
       }, res, "Ayuda Asistencial añadido.");
@@ -365,39 +353,39 @@ export class AdelantosController extends BaseController {
     const anio = Number(req.body.anio);
     const mes = Number(req.body.mes);
     const mesPrev = (mes - 1 == 0) ? 12 : mes - 1
-    const anioPrev = (mes - 1 == 0) ? anio-1 : anio
-    
+    const anioPrev = (mes - 1 == 0) ? anio - 1 : anio
+
     const queryRunner = dataSource.createQueryRunner();
 
     const options: Options = isOptions(req.body.options)
       ? req.body.options
       : { filtros: [], sort: null };
 
-    
-  /*
-    const group='administrativo'
-    let inGroupAdminis = false
-    if ((<any>req)?.groups) {
-      for (const rowgroup of (<any>req)?.groups) {
-        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
-        inGroupAdminis = true
-      }
-    }
-  
-  
-    if (!inGroupAdminis) {
 
-      req.body.options.filtros.filter((f: any) => f.index != 'ApellidoNombreJ')
-      req.body.options.filtros.push(
-        {
-          "index": "ApellidoNombreJ",
-          "condition": "AND",
-          "operador": "=",
-          "valor": res.locals.PersonalId
-        })
-    }
-*/
-    if (req.body.options.filtros.length == 0) { 
+    /*
+      const group='administrativo'
+      let inGroupAdminis = false
+      if ((<any>req)?.groups) {
+        for (const rowgroup of (<any>req)?.groups) {
+          if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+          inGroupAdminis = true
+        }
+      }
+    
+    
+      if (!inGroupAdminis) {
+  
+        req.body.options.filtros.filter((f: any) => f.index != 'ApellidoNombreJ')
+        req.body.options.filtros.push(
+          {
+            "index": "ApellidoNombreJ",
+            "condition": "AND",
+            "operador": "=",
+            "valor": res.locals.PersonalId
+          })
+      }
+  */
+    if (req.body.options.filtros.length == 0) {
       this.jsonRes({ list: [] }, res);
       return
     }
@@ -407,7 +395,7 @@ export class AdelantosController extends BaseController {
 
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-        const adelantos = await queryRunner.query(
+      const adelantos = await queryRunner.query(
         `SELECT DISTINCT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId,'-',g.GrupoActividadId) id,
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
@@ -451,11 +439,11 @@ LEFT JOIN
       for (const row of resBot) {
         const key = adelantos.findIndex(i => i.PersonalId == row.PersonalId)
         if (key >= 0) {
-          adelantos[key].det_status_bot= (row.registro=='OK') ? row.descarga :row.registro
+          adelantos[key].det_status_bot = (row.registro == 'OK') ? row.descarga : row.registro
         }
       }
 
-      
+
       this.jsonRes({ list: adelantos }, res);
     } catch (error) {
       return next(error)
