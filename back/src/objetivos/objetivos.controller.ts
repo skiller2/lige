@@ -1772,7 +1772,7 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones: any[], usuarioId: number, ip: string) {
+    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones: any[], usuario: number, ip: string) {
         //Compruebo si hubo cambios
         let cambios: boolean = false
         if (!habilitaciones || !habilitaciones.length) {
@@ -1794,10 +1794,8 @@ export class ObjetivosController extends BaseController {
 
         //Actualizo
         const now = new Date()
-        const time = this.getTimeString(now)
 
         let ObjetivoHabilitacionNecesariaLugarHabilitacionId: number = 0
-        now.setHours(0, 0, 0, 0)
         await queryRunner.query(`
           DELETE FROM ObjetivoHabilitacionNecesaria
           WHERE ObjetivoId IN (@0)
@@ -1806,11 +1804,12 @@ export class ObjetivosController extends BaseController {
             ObjetivoHabilitacionNecesariaLugarHabilitacionId++
             await queryRunner.query(`
               INSERT INTO ObjetivoHabilitacionNecesaria (
-              ObjetivoHabilitacionNecesariaId, ObjetivoId, ObjetivoHabilitacionNecesariaPuesto, ObjetivoHabilitacionNecesariaUsuarioId,
-              ObjetivoHabilitacionNecesariaDia, ObjetivoHabilitacionNecesariaTiempo, ObjetivoHabilitacionNecesariaLugarHabilitacionId
+              ObjetivoHabilitacionNecesariaId, ObjetivoId, ObjetivoHabilitacionNecesariaLugarHabilitacionId,
+              ObjetivoHabilitacionNecesariaAudFechaIng,ObjetivoHabilitacionNecesariaAudUsuarioIng, ObjetivoHabilitacionNecesariaAudIpIng,
+              ObjetivoHabilitacionNecesariaAudFechaMod,ObjetivoHabilitacionNecesariaAudUsuarioMod, ObjetivoHabilitacionNecesariaAudIpMod
               )
-              VALUES(@0,@1,@2,@3,@4,@5,@6)
-              `, [ObjetivoHabilitacionNecesariaLugarHabilitacionId, ObjetivoId, ip, usuarioId, now, time, habilitacionId])
+              VALUES(@0,@1,@2, @3,@4,@5, @3,@4,@5)
+              `, [ObjetivoHabilitacionNecesariaLugarHabilitacionId, ObjetivoId, habilitacionId, now, usuario, ip])
         }
         await queryRunner.query(`
           UPDATE Objetivo SET
