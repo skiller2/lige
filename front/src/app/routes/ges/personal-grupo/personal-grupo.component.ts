@@ -12,6 +12,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { Injector } from '@angular/core';
 import { runInInjectionContext } from '@angular/core';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
     selector: 'app-personal-grupo',
@@ -25,7 +26,6 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 export class PersonalGrupoComponent {
   angularGridPersonal!: AngularGridInstance;
   gridObjPersonal!: SlickGrid;
-  tableLoading$ = new BehaviorSubject(false);
   gridOptionsPersonal!: GridOption
   $selectedResponsablePersonalIdChange = new BehaviorSubject(0);
   $isResponsableDataLoading = new BehaviorSubject(false);
@@ -35,6 +35,7 @@ export class PersonalGrupoComponent {
   private apiService = inject(ApiService)
   private excelExportService = inject(ExcelExportService)
   private angularUtilService = inject(AngularUtilService)
+  private readonly loadingSrv = inject(LoadingService);
 
   periodo = input({year:0,month:0});
   responsable = model(0)
@@ -111,6 +112,7 @@ export class PersonalGrupoComponent {
   gridDataPersonal$ = this.$selectedResponsablePersonalIdChange.pipe(
     debounceTime(50),
     switchMap((PersonalId) => {
+      this.loadingSrv.open({ type: 'spin', text: '' })
       return this.apiService
         .getPersonasResponsable(
           { options: this.listOptionsPersonal, PersonalId: Number(PersonalId), anio: this.periodo().year, mes: this.periodo().month }
@@ -126,8 +128,8 @@ export class PersonalGrupoComponent {
             return data.persxresp
 
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => {}),
+          tap({ complete: () => { this.loadingSrv.close() } })
         )
     })
   )
