@@ -8,7 +8,7 @@ export class PersonalController extends BaseController {
     const now = new Date()
     const ip = this.getRemoteAddress(null)
     const FormaPrestamoId = 7 //Adelanto
-    const usuario = 'BOT'
+    const usuario = 'bot'
 
 
     await dbServer.dataSource.query(
