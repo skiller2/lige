@@ -230,46 +230,43 @@ export class PersonalController extends BaseController {
 
     try {
       const responsables = await dataSource.query(
-        `
-        SELECT 1 AS ord, gap.GrupoActividadPersonalPersonalId as id, 'Grupo' tipo,
-        ga.GrupoActividadId AS id, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadPersonalDesde AS desde , gap.GrupoActividadPersonalHasta hasta,
-          1
-          
-          FROM GrupoActividadPersonal gap
+        `SELECT 1 AS ord, gap.GrupoActividadPersonalPersonalId as id, 'Grupo' tipo,
+        ga.GrupoActividadId AS id, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadPersonalDesde AS desde , gap.GrupoActividadPersonalHasta hasta, '' as Telefonos,
+        1  
+        FROM GrupoActividadPersonal gap
         JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
         WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
-    AND gap.GrupoActividadPersonalPersonalId = @0
-    UNION
-    SELECT 3, gap.GrupoActividadPersonalPersonalId, 'Supervisor' tipo,
-        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
-          1
-          
-          FROM GrupoActividadPersonal gap
+        AND gap.GrupoActividadPersonalPersonalId = @0
+      UNION
+        SELECT 3, gap.GrupoActividadPersonalPersonalId, 'Supervisor' tipo,
+        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta, 
+        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
+        1    
+        FROM GrupoActividadPersonal gap
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
         LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'J'
         JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        LEFT JOIN PersonalTelefono tel on tel.PersonalId=per.PersonalId and (tel.PersonalTelefonoInactivo is null or tel.PersonalTelefonoInactivo = 0)
+        LEFT JOIN TipoTelefono tiptel on tiptel.TipoTelefonoId=tel.TipoTelefonoId
         WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
-    AND gap.GrupoActividadPersonalPersonalId = @0
-    
-    
-    UNION
-    SELECT 4, gap.GrupoActividadPersonalPersonalId, 'Administrador' tipo,
+        AND gap.GrupoActividadPersonalPersonalId = @0
+        GROUP BY gap.GrupoActividadPersonalPersonalId,per.PersonalId, per.PersonalApellido, per.PersonalNombre, gaj.GrupoActividadJerarquicoDesde, gaj.GrupoActividadJerarquicoHasta
+      UNION
+        SELECT 4, gap.GrupoActividadPersonalPersonalId, 'Administrador' tipo,
         per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
-          1
-          
-          FROM GrupoActividadPersonal gap
+        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
+        1   
+        FROM GrupoActividadPersonal gap
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
         LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'A'
         JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        LEFT JOIN PersonalTelefono tel on tel.PersonalId=per.PersonalId and (tel.PersonalTelefonoInactivo is null or tel.PersonalTelefonoInactivo = 0)
+        LEFT JOIN TipoTelefono tiptel on tiptel.TipoTelefonoId=tel.TipoTelefonoId
         WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
-    AND gap.GrupoActividadPersonalPersonalId = @0
-    ORDER BY ord
-    
-    
-        `,
+        AND gap.GrupoActividadPersonalPersonalId = @0
+        GROUP BY gap.GrupoActividadPersonalPersonalId,per.PersonalId, per.PersonalApellido, per.PersonalNombre, gaj.GrupoActividadJerarquicoDesde, gaj.GrupoActividadJerarquicoHasta
 
-        [personalId, anio, mes]
-      );
+      ORDER BY ord`,[personalId, anio, mes]);
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
