@@ -48,7 +48,7 @@ export class ExcepcionAsistenciaComponent {
   private destroy$ = new Subject();
 
   selectedSucursalId = signal(0);
-  selectedObjetivoId = '';
+  selectedObjetivoId = 0;
   //selectedPersonalId = '';
   selectedMetodologiaId:any;
   selectedCategoriaId = '';
@@ -68,6 +68,7 @@ export class ExcepcionAsistenciaComponent {
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
 
+  
   $personaResponsables = this.$selectedPersonalIdChange.pipe(
     debounceTime(50),
     switchMap(event =>
