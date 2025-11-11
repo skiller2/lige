@@ -17,5 +17,9 @@ export class ViewResponsableComponent {
   onChangeSize($event: any) {
     this.changeSize.emit($event)
   }
+
+  hasGroup(): boolean {
+    return this.list.some((item:any) => item.tipo === 'Grupo');
+  }
 }
 

@@ -8,6 +8,11 @@
       ">hasta</span> {{det.hasta | date}}</li>
     }
   }
+  <!-- Mostrar alerta si no hay elementos de tipo 'Grupo' -->
+  @if (!hasGroup()) {
+    <nz-alert nzShowIcon nzType="error" nzMessage="Sin Supervisor" class="app-small"></nz-alert>
+  }
+
 </ul>
 </ng-template>
 <nz-collapse-panel [nzHeader]="colheader" (nzActiveChange)="onChangeSize($event)">
