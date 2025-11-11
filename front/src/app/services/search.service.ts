@@ -1538,7 +1538,7 @@ export class SearchService {
   }
 
   getPaises(): Observable<any> {
-    return this.http.post<ResponseJSON<any>>(`api/residencia/paises`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/domicilio/paises`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1551,7 +1551,7 @@ export class SearchService {
     if (!paisId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/residencia/provincias`, { paisId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/domicilio/provincias`, { paisId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1564,7 +1564,7 @@ export class SearchService {
     if (!paisId || !provinciaId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/residencia/localidades`, { paisId, provinciaId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/domicilio/localidades`, { paisId, provinciaId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1577,7 +1577,7 @@ export class SearchService {
     if (!paisId || !provinciaId || !localidadId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/residencia/barrios`, { paisId, provinciaId, localidadId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/domicilio/barrios`, { paisId, provinciaId, localidadId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

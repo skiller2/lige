@@ -127,7 +127,7 @@ const listaColumnas: any[] = [
         fieldName: "objdom.domCalleNro",
         sortable: true,
         hidden: true,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Dir. Código Postal",
@@ -137,34 +137,40 @@ const listaColumnas: any[] = [
         fieldName: "objdom.DomicilioCodigoPostal",
         sortable: true,
         hidden: true,
-        searchHidden: false
+        searchHidden: true
     },
     {
-        name: "Dir. Provincia",
+        name: "Provincia",
         type: "number",
         id: "DomicilioProvinciaId",
         field: "DomicilioProvinciaId",
         fieldName: "objdom.DomicilioProvinciaId",
+        searchComponent: "inpurForProvinciasSearch",
+        searchType: "number",
         sortable: true,
         hidden: true,
         searchHidden: false
     },
     {
-        name: "Dir. Localidad",
+        name: "Localidad",
         type: "number",
         id: "DomicilioLocalidadId",
         field: "DomicilioLocalidadId",
         fieldName: "objdom.DomicilioLocalidadId",
+        searchComponent: "inpurForLocalidadesSearch",
+        searchType: "number",
         sortable: true,
         hidden: true,
         searchHidden: false
     },
     {
-        name: "Dir. Barrio",
+        name: "Barrio",
         type: "number",
         id: "DomicilioBarrioId",
         field: "DomicilioBarrioId",
         fieldName: "objdom.DomicilioBarrioId",
+        searchComponent: "inpurForBarrioSearch",
+        searchType: "number",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -399,7 +405,7 @@ export class ObjetivosController extends BaseController {
                     eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta,
                     objdom.domCompleto,
 					objdom.domCalleNro,
-					 objdom.DomicilioCodigoPostal, objdom.DomicilioPaisId,objdom.DomicilioProvinciaId,objdom.DomicilioLocalidadId,objdom.DomicilioBarrioId,
+					 objdom.DomicilioCodigoPostal, objdom.DomicilioPaisId, objdom.DomicilioProvinciaId,objdom.DomicilioLocalidadId,objdom.DomicilioBarrioId,
                     1
                     FROM Objetivo obj 
                     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId

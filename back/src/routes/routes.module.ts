@@ -31,7 +31,7 @@ import { administradorRouter } from "./administrador.routes";
 import { rubroRouter } from "./rubro.routes";
 import { accesoBotRouter } from "../acceso-bot/acceso.routes";
 import { situacionrevistaRouter } from "../routes/situacionrevista.routes";
-import { residenciaRouter } from "../routes/residencia.routes";
+import { domicilioRouter } from "../domicilio/domicilio.routes";
 import { estudioRouter } from "../routes/estudio.routes";
 import { preciosProductosRouter } from "../precios-productos/precios-productos.routes";
 import { descripcionProductoControllerRouter } from "./descripcion-producto.routes";
@@ -84,7 +84,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/rubro",rubroRouter)
   server.setRoute("/api/acceso-bot",accesoBotRouter)
   server.setRoute("/api/situacion-revista",situacionrevistaRouter)
-  server.setRoute("/api/residencia",residenciaRouter)
+  server.setRoute("/api/domicilio", domicilioRouter)
   server.setRoute("/api/estudio",estudioRouter)
   server.setRoute("/api/precios-productos",preciosProductosRouter)
   server.setRoute("/api/descripcion-productos",descripcionProductoControllerRouter)
