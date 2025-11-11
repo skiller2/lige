@@ -21,10 +21,10 @@ enum Busqueda {
 }
 
 @Component({
-    selector: 'app-ges-asistenciaexcepcion',
-    templateUrl: './asistenciaexcepcion.component.html',
-    styleUrls: ['./asistenciaexcepcion.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent]
+  selector: 'app-ges-asistenciaexcepcion',
+  templateUrl: './asistenciaexcepcion.component.html',
+  styleUrls: ['./asistenciaexcepcion.component.less'],
+  imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent]
 })
 export class ExcepcionAsistenciaComponent {
   @ViewChild('asistenciaexcepcion', { static: true })
@@ -33,7 +33,7 @@ export class ExcepcionAsistenciaComponent {
   public get Busqueda() {
     return Busqueda;
   }
-  
+
   public router = inject(Router)
 
 
@@ -43,14 +43,14 @@ export class ExcepcionAsistenciaComponent {
     private settingService: SettingsService,
     private _route: ActivatedRoute,
     private apiService: ApiService
-  ) {}
+  ) { }
 
   private destroy$ = new Subject();
 
   selectedSucursalId = signal(0);
   selectedObjetivoId = 0;
-  //selectedPersonalId = '';
-  selectedMetodologiaId:any;
+  selectedPersonalId = 0;
+  selectedMetodologiaId: any;
   selectedCategoriaId = '';
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
@@ -68,7 +68,7 @@ export class ExcepcionAsistenciaComponent {
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
 
-  
+
   $personaResponsables = this.$selectedPersonalIdChange.pipe(
     debounceTime(50),
     switchMap(event =>
@@ -151,7 +151,7 @@ export class ExcepcionAsistenciaComponent {
       if (routeParams.get('ObjetivoId') != null) {
         this.asistenciaexcepcion.form.get('ObjetivoId')?.setValue(Number(routeParams.get('ObjetivoId')));
       }
-      
+
       if (localStorage.getItem('SucursalId')) {
         this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(localStorage.getItem('SucursalId')));
       }
@@ -188,6 +188,7 @@ export class ExcepcionAsistenciaComponent {
         }
         return;
       case Busqueda.Personal:
+        this.selectedPersonalId = Number(event);
         this.$selectedPersonalIdChange.next(event);
         this.$isPersonalDataLoading.next(true);
         return;
@@ -219,8 +220,8 @@ export class ExcepcionAsistenciaComponent {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (data:any) => console.log('data', data),
-        error: (err:any) => {
+        next: (data: any) => console.log('data', data),
+        error: (err: any) => {
           console.log('error', err);
         },
         complete: () => {
@@ -231,7 +232,7 @@ export class ExcepcionAsistenciaComponent {
           emitModelToViewChange?: boolean;
           emitViewToModelChange ?: boolean;
           */
-          this.asistenciaexcepcion.controls['PersonalId'].setValue('0',{ emitEvent: true });
+          this.asistenciaexcepcion.controls['PersonalId'].setValue('0', { emitEvent: true });
           this.asistenciaexcepcion.controls['metodologia'].setValue('');
 
           this.notification.success('Grabación', 'Existosa');
@@ -239,7 +240,7 @@ export class ExcepcionAsistenciaComponent {
       });
   }
 
-  
+
   endexception() {
     this.searchService
       .deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
@@ -249,15 +250,15 @@ export class ExcepcionAsistenciaComponent {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (data:any) => console.log('data', data),
-        error: (err:any) => {
+        next: (data: any) => console.log('data', data),
+        error: (err: any) => {
           console.log('error', err);
         },
         complete: () => {
 
           this.asistenciaexcepcion.controls['PersonalId'].setValue('0');
           this.asistenciaexcepcion.controls['metodologia'].setValue('');
-          
+
           this.notification.success('Finalización', 'Existosa');
         },
       });
@@ -268,8 +269,8 @@ export class ExcepcionAsistenciaComponent {
     this.destroy$.complete();
   }
 
-  gotoCargaAsistencia(): void { 
-    this.router.navigate(['/ges/carga_asistencia',{ObjetivoId:this.selectedObjetivoId}])
+  gotoCargaAsistencia(): void {
+    this.router.navigate(['/ges/carga_asistencia', { ObjetivoId: this.selectedObjetivoId }])
   }
 
   infoObjetivo(val: any) {

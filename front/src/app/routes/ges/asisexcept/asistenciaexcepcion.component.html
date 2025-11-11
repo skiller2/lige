@@ -104,7 +104,7 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
         @let personaResponsables = $personaResponsables | async;
-        <app-view-responsable *ngIf="personaResponsables?.length>0" [list]="personaResponsables"></app-view-responsable>
+        <app-view-responsable *ngIf="this.selectedPersonalId > 0" [list]="personaResponsables"></app-view-responsable>
       </nz-form-control>
     </nz-form-item>
 
