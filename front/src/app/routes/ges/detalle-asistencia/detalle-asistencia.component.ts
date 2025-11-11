@@ -565,11 +565,4 @@ export class DetalleAsistenciaComponent {
     this.destroy$.complete();
   }
 
-  sumarImportes(data: any): number {
-    if (!data || !Array.isArray(data)) {
-      return 0;
-    }
-    return data.reduce((acc, curr) => acc + (Number(curr.importe) || 0), 0);
-  }
-
 }

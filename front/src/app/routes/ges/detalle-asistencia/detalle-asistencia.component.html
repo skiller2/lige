@@ -199,12 +199,12 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Totales</nz-form-label>
             <nz-form-control *ngIf="listaAsistenciaObj.totalImporte >0 || listaAsistenciaObj.totalHoras >0 ">
-              <li><span>{{ listaAsistenciaObj.totalImporte | I18NCurrency }} </span> <span>, total horas: {{
-                  listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
+              <li><span>{{ listaAsistenciaObj.totalImporte - listaDescuentosObjTotal - listaDescuentosPerxObj.data.totalImporte | I18NCurrency}}
+                ( {{ listaAsistenciaObj.totalImporte | I18NCurrency }} - {{ listaDescuentosObjTotal | I18NCurrency }} - {{ listaDescuentosPerxObj.data.totalImporte | I18NCurrency }} )</span></li>
+              <li><span>total horas: {{ listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
                   listaAsistenciaObj.totalHoras | I18NCurrency }}</span></li>
-              <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas
-                  capacitación:{{listaAsistenciaObj.totalHorasC}}, no
-                  facturable:{{listaAsistenciaObj.totalHorasR}}</span></li>
+              <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas capacitación:{{listaAsistenciaObj.totalHorasC}}, no
+                facturable:{{listaAsistenciaObj.totalHorasR}}</span></li>
             </nz-form-control>
           </nz-form-item>
 
@@ -380,11 +380,11 @@
         }
 
 
-
+      @let listaDescuentosPerxObj = $listaDescuentosPerxObj | async;
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Al Personal del Objetivo</nz-form-label>
           <nz-form-control>
-            <nz-table #descPerObj [nzData]="$listaDescuentosPerxObj | async" nzSize="small" [nzPageSize]="100000000"
+            <nz-table #descPerObj [nzData]="listaDescuentosPerxObj.data.result" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
@@ -420,7 +420,7 @@
                   <td></td>
                   <td></td>
                   <td class="text-right">
-                    {{ sumarImportes(descPerObj.data) | I18NCurrency }}
+                    {{ listaDescuentosPerxObj.data.totalImporte | I18NCurrency }}
                   </td>
                 </tr>
               </tfoot>
