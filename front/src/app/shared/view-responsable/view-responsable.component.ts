@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
 @Component({
     selector: 'app-view-responsable',
-    imports: [...SHARED_IMPORTS, CommonModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzTypographyModule],
     templateUrl: './view-responsable.component.html',
     styleUrl: './view-responsable.component.less',
     encapsulation: ViewEncapsulation.None

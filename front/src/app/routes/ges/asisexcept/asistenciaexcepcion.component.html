@@ -39,15 +39,15 @@
       <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
       <nz-form-control>
         <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-          (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel (valueExtendedChange)="infoObjetivo($event)" />
+          (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel
+          (valueExtendedChange)="infoObjetivo($event)" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-      <nz-form-control [nzSpan]="21">
-        <app-view-responsable *ngIf="$objetivoResponsables| async as objetivoDetalle"
-          [list]="objetivoDetalle"></app-view-responsable>
+      <nz-form-control *ngIf="$objetivoResponsables| async as objetivoDetalle" [nzSpan]="21">
+        <app-view-responsable *ngIf="this.selectedObjetivoId>0" [list]="objetivoDetalle"></app-view-responsable>
       </nz-form-control>
     </nz-form-item>
 
@@ -96,15 +96,15 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Persona</nz-form-label>
       <nz-form-control>
-        <app-personal-search name="PersonalId" ngModel [anio]="anio.valueAsNumber" [mes]="mes.valueAsNumber" [sucursalId]="selectedSucursalId()"
-          (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"  />
+        <app-personal-search name="PersonalId" ngModel [anio]="anio.valueAsNumber" [mes]="mes.valueAsNumber"
+          [sucursalId]="selectedSucursalId()" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" />
       </nz-form-control>
     </nz-form-item>
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
-        <app-view-responsable *ngIf="$personaResponsables| async as personaDetalle"
-          [list]="personaDetalle"></app-view-responsable>
+        @let personaResponsables = $personaResponsables | async;
+        <app-view-responsable *ngIf="this.selectedPersonalId > 0" [list]="personaResponsables"></app-view-responsable>
       </nz-form-control>
     </nz-form-item>
 

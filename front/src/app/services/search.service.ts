@@ -945,9 +945,7 @@ export class SearchService {
     return this.http
       .get(`api/asistencia/descuentosperxobj/${anio}/${mes}/${objetivoId}`)
       .pipe(
-        map((res: ResponseJSON<any>) =>
-          res && res.data ? res.data : []
-        ),
+        map((res: ResponseJSON<any>) => res ),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);

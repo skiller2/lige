@@ -100,10 +100,7 @@
                 <nz-form-item>
                     <nz-form-label>Responsable</nz-form-label>
                     <nz-form-control *ngIf="$objetivoDetalle| async as objetivoDetalle">
-                        @if (objetivoDetalle.responsable.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon
-                            nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
-                        <app-view-responsable [list]="objetivoDetalle.responsable"
-                            (changeSize)="collapseChange($event)"></app-view-responsable>
+                       <app-view-responsable *ngIf="this.selectedObjetivoId>0" [list]="objetivoDetalle.responsable"(changeSize)="collapseChange($event)"></app-view-responsable>
                     </nz-form-control>
                 </nz-form-item>
 
