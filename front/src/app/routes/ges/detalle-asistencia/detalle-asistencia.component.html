@@ -488,7 +488,7 @@
           <nz-form-control>
 
             @let personaResponsables = $personaResponsables | async;
-            @if (!personaResponsables || personaResponsables.length === 0) { <nz-alert nzShowIcon nzType="error"
+            @if (personaResponsables.length === 0 && selectedPersonalId > 0) { <nz-alert nzShowIcon nzType="error"
               nzMessage="Sin Responsable" class="app-small"></nz-alert>
             } @else { <app-view-responsable [list]="personaResponsables"></app-view-responsable>}
 
