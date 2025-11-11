@@ -368,7 +368,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Al Personal del Objetivo</nz-form-label>
           <nz-form-control>
-            <nz-table #descPerObj [nzData]="listaDescuentosPerxObj.data.result" nzSize="small" [nzPageSize]="100000000"
+            <nz-table #descPerObj [nzData]="listaDescuentosPerxObj?.data?.result" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
@@ -404,7 +404,7 @@
                   <td></td>
                   <td></td>
                   <td class="text-right">
-                    {{ listaDescuentosPerxObj.data.totalImporte | I18NCurrency }}
+                    {{ listaDescuentosPerxObj?.data?.totalImporte | I18NCurrency }}
                   </td>
                 </tr>
               </tfoot>
