@@ -2199,8 +2199,17 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       if (personalId.length > 0) {
 
-        const result = await AsistenciaController.getDescuentos(anio, mes, personalId)
-        this.jsonRes(result, res);
+        let result = await AsistenciaController.getDescuentos(anio, mes, personalId);
+        const totalImporte = result && Array.isArray(result)
+          ? result.reduce((sum, row) => sum + (Number(row.importe) || 0), 0)
+          : 0;
+        const response = {
+          result: Array.isArray(result) ? result : [],
+          totalImporte: totalImporte
+        };
+      
+        this.jsonRes(response, res);
+
       } else
         this.jsonRes([], res)
 
