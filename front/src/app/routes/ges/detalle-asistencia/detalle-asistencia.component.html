@@ -92,7 +92,7 @@
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
           @if (objetivoDetalle?.contratos?.length==0 && this.objetivoIdSelected>0) {
           <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
-          }
+          } @else {
           @for (contrato of objetivoDetalle.contratos; track contrato.ContratoId) {
           <li>
             <span *ngIf="!contrato.ContratoFechaHasta">Desde</span> {{contrato.ContratoFechaDesde | date}}
@@ -100,6 +100,8 @@
             {{ contrato.ContratoFechaHasta | date}}
           </li>
           }
+          }
+
         </nz-form-item>
 
         @let objetivoResponsables = $objetivoResponsables | async;
@@ -488,9 +490,11 @@
           <nz-form-control>
 
             @let personaResponsables = $personaResponsables | async;
-            @if (personaResponsables.length === 0 && selectedPersonalId > 0) { <nz-alert nzShowIcon nzType="error"
-              nzMessage="Sin Responsable" class="app-small"></nz-alert>
-            } @else { <app-view-responsable [list]="personaResponsables"></app-view-responsable>}
+            @if (!personaResponsables || personaResponsables?.length === 0 && selectedPersonalId > 0) {
+            <nz-alert nzShowIcon nzType="error" nzMessage="Sin Responsable" class="app-small"></nz-alert>
+            } @else {
+            <app-view-responsable [list]="personaResponsables"></app-view-responsable>
+            }
 
           </nz-form-control>
         </nz-form-item>
