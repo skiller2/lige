@@ -113,23 +113,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        @if (objetivoResponsables) {
-        <nz-form-item>
-
-          <nz-form-label [nzSpan]="5">Telefono Responsables</nz-form-label>
-          <nz-form-control>
-            <span *ngFor="let responsable of objetivoResponsables">
-              @if (responsable.tipo == 'Coordinador' || responsable.tipo == 'Supervisor') {
-              {{ responsable.tipo }}: {{ responsable.detalle }} - {{ responsable.Telefonos }}
-              <br>
-              }
-            </span>
-          </nz-form-control>
-
-        </nz-form-item>
-        }
-
-        @let contactoOperativo = $contactoOperativo | async;
+       @let contactoOperativo = $contactoOperativo | async;
         <nz-form-item *ngIf="contactoOperativo?.length > 0">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9">
