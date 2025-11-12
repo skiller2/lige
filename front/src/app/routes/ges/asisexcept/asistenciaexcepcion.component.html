@@ -13,20 +13,13 @@
   <form nz-form #asistenciaexcepcion="ngForm">
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
-      <nz-form-control>
-        <nz-input-group>
-          <div nz-row [nzGutter]="8">
-            <div nz-col nzSpan="10">
-              <input type="number" nz-input name="anio" ngModel #anio
-                (ngModelChange)="selectedValueChange($event, Busqueda.Anio)" />
-            </div>
-            <div nz-col nzSpan="4">
-              <input type="number" nz-input name="mes" ngModel #mes
-                (ngModelChange)="selectedValueChange($event, Busqueda.Mes)" />
-            </div>
-          </div>
-        </nz-input-group>
-      </nz-form-control>
+
+          <nz-form-control>
+
+              <nz-date-picker nzMode="month" name="periodo" ngModel
+                  (ngModelChange)="selectedValueChange($event,Busqueda.Periodo)" nzFormat="MM/yyyy" />
+          </nz-form-control>
+
       <nz-form-control [nzSpan]="19" style="text-align: right;">
         <nz-button-group *ngIf="this.selectedObjetivoId">
           <button nz-button nzType="default" (click)="gotoCargaAsistencia()"><span nz-icon nzType="right"
@@ -96,7 +89,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Persona</nz-form-label>
       <nz-form-control>
-        <app-personal-search name="PersonalId" ngModel [anio]="anio.valueAsNumber" [mes]="mes.valueAsNumber"
+        <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"
           [sucursalId]="selectedSucursalId()" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" />
       </nz-form-control>
     </nz-form-item>
