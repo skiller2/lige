@@ -127,7 +127,7 @@ const listaColumnas: any[] = [
         fieldName: "objdom.domCalleNro",
         sortable: true,
         hidden: true,
-        searchHidden: true
+        searchHidden: false
     },
     {
         name: "Dir. Código Postal",
@@ -137,10 +137,10 @@ const listaColumnas: any[] = [
         fieldName: "objdom.DomicilioCodigoPostal",
         sortable: true,
         hidden: true,
-        searchHidden: true
+        searchHidden: false
     },
     {
-        name: "Provincia",
+        name: "Dir. Provincia",
         type: "number",
         id: "DomicilioProvinciaId",
         field: "DomicilioProvinciaId",
@@ -152,7 +152,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Localidad",
+        name: "Dir.Localidad",
         type: "number",
         id: "DomicilioLocalidadId",
         field: "DomicilioLocalidadId",
@@ -164,7 +164,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Barrio",
+        name: "Dir. Barrio",
         type: "number",
         id: "DomicilioBarrioId",
         field: "DomicilioBarrioId",
