@@ -12,6 +12,7 @@ import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pe
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 import { FileUploadController } from "./file-upload.controller";
 import { fileUploadController } from "./controller.module";
+import { get } from "http";
 
 interface DigestAuthOptions {
   username: string;
@@ -708,8 +709,7 @@ export class AsistenciaController extends BaseController {
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       let {
         SucursalId,
-        anio,
-        mes,
+        periodo,
         ObjetivoId,
         PersonalId,
         metodo,
@@ -719,7 +719,12 @@ export class AsistenciaController extends BaseController {
         Horas,
         metodologiaId,
       } = req.body;
+      console.log('aaaa', req.body);
+      const AplicaEl: Date = periodo ? new Date(periodo) : null
       const persona_cuit = req.persona_cuit;
+      const anio = AplicaEl.getFullYear();
+      const mes = AplicaEl.getMonth() + 1;
+      console.log(AplicaEl,'anio', anio, 'mes', mes);
       const fechaDesde = new Date(anio, mes - 1, 1);
       let fechaHasta = new Date(anio, mes, 1);
       fechaHasta.setDate(fechaHasta.getDate() - 1);
