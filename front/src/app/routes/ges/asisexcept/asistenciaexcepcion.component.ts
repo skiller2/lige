@@ -16,8 +16,7 @@ enum Busqueda {
   Sucursal,
   Objetivo,
   Personal,
-  Anio,
-  Mes,
+  Periodo
 }
 
 @Component({
@@ -52,7 +51,9 @@ export class ExcepcionAsistenciaComponent {
   selectedPersonalId = 0;
   selectedMetodologiaId: any;
   selectedCategoriaId = '';
-
+  selectedPeriod = signal<Date>(new Date());
+  anio = signal(0);
+  mes = signal(0);
   $isSucursalOptionsLoading = new BehaviorSubject(false);
   $isObjetivoOptionsLoading = new BehaviorSubject(false);
   $isPersonalOptionsLoading = new BehaviorSubject(false);
@@ -75,8 +76,8 @@ export class ExcepcionAsistenciaComponent {
       this.apiService
         .getPersonaResponsables(
           Number(event),
-          this.asistenciaexcepcion.form.get('anio')?.value,
-          this.asistenciaexcepcion.form.get('mes')?.value,
+          Number(this.anio()),
+          Number(this.mes()),
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -93,8 +94,8 @@ export class ExcepcionAsistenciaComponent {
       else
         return this.searchService.getObjetivoResponsables(
           Number(objetivoId),
-          this.asistenciaexcepcion.controls['anio'].value,
-          this.asistenciaexcepcion.controls['mes'].value
+          Number(this.anio()),
+          Number(this.mes())
         );
     })
     //    tap(() => this.$isObjetivoOptionsLoading.next(false))
@@ -105,8 +106,8 @@ export class ExcepcionAsistenciaComponent {
     switchMap(objetivoId =>
       this.searchService.getExcepxObjetivo(
         Number(objetivoId),
-        this.asistenciaexcepcion.controls['anio'].value,
-        this.asistenciaexcepcion.controls['mes'].value
+        Number(this.anio()),
+        Number(this.mes())
       )
     ),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
@@ -138,14 +139,21 @@ export class ExcepcionAsistenciaComponent {
   $isPersonalDataLoading = new BehaviorSubject(false);
 
   ngAfterViewInit(): void {
-    const now = new Date(); //date
+
+  const now = new Date(); //date
     setTimeout(() => {
-      const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
-      const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
+      const anio =
+      Number(localStorage.getItem('anio')) > 0
+          ? Number(localStorage.getItem('anio'))
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? Number(localStorage.getItem('mes'))
+          : now.getMonth() + 1;
 
-      this.asistenciaexcepcion.form.get('anio')?.setValue(Number(anio));
-      this.asistenciaexcepcion.form.get('mes')?.setValue(Number(mes));
-
+      this.anio.set(anio);
+      this.mes.set(mes);
+      this.asistenciaexcepcion.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
       const routeParams = this._route.snapshot.paramMap;
 
       if (routeParams.get('ObjetivoId') != null) {
@@ -165,16 +173,14 @@ export class ExcepcionAsistenciaComponent {
     //    this.asistenciaexcepcion.controls['mes'].setValue(3);
 
     switch (busqueda) {
-      case Busqueda.Anio:
-        localStorage.setItem('anio', this.asistenciaexcepcion.controls['anio'].value);
-        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
 
-        break;
-      case Busqueda.Mes:
-        localStorage.setItem('mes', this.asistenciaexcepcion.controls['mes'].value);
+      case Busqueda.Periodo:
+        this.anio.set(event.getFullYear());
+        this.mes.set(event.getMonth() + 1);
+        localStorage.setItem('anio', String(this.anio()));
+        localStorage.setItem('mes', String(this.mes()));
         this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
         break;
-
       case Busqueda.Objetivo:
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
