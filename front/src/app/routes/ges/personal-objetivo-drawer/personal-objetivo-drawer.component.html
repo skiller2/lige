@@ -1,6 +1,18 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleObjetivo()" [nzPlacement]="placement" [nzWidth]="640"
   [nzTitle]="'Listado de Objetivos: '  + PersonalNombre()" (nzOnClose)="visibleObjetivo.set(false)">
   <ng-container *nzDrawerContent>
+    <form nz-form #personalObjetivoDrawerForm="ngForm">
+
+    <nz-form-item>
+      <nz-form-label>Periodo</nz-form-label>
+      <nz-form-control>
+
+          <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo"
+              (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+
     <nz-form-control *ngIf="$listaAsistenciaPer | async as listaAsistenciaPer ">
         <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="small" [nzPageSize]="100000000"
           [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
@@ -54,5 +66,7 @@
           </tbody>
         </nz-table>
     </nz-form-control>
+  </nz-form-item>
+</form>
   </ng-container>
 </nz-drawer>

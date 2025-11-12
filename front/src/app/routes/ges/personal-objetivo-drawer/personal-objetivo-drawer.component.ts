@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -9,6 +9,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { NgForm } from '@angular/forms';
 
 @Component({
     selector: 'app-personal-objetivo-drawer',
@@ -22,8 +23,11 @@ export class PersonalObjetivoDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
     visibleObjetivo = model<boolean>(false)
-    periodo = signal({ year: 0, month: 0 });
     placement: NzDrawerPlacement = 'left';
+    @ViewChild('personalObjetivoDrawerForm') personalObjetivoDrawerForm?: NgForm;
+    anio = signal(0);
+    mes = signal(0);
+    periodo: Date | null = null;
 
     constructor(
         private searchService: SearchService,
@@ -46,20 +50,42 @@ export class PersonalObjetivoDrawerComponent {
             }, 0);
             return this.searchService.getAsistenciaPersona(
                 Number(this.PersonalId()),
-                this.periodo().year,
-                this.periodo().month
+                this.anio(),
+                this.mes()
             )
         })
     );
 
-    async ngOnInit(){
-        const date:Date = new Date()
-        this.periodo.set({ year: date.getFullYear(), month: date.getMonth()+1 })
-        this.selectedPersonalIdChange$.next('');
+    ngOnInit(){
+            const now = new Date(); //date
+            const anio =
+                Number(localStorage.getItem('anio')) > 0
+                    ? Number(localStorage.getItem('anio'))
+                    : now.getFullYear();
+            const mes =
+                Number(localStorage.getItem('mes')) > 0
+                    ? Number(localStorage.getItem('mes'))
+                    : now.getMonth() + 1;
+
+            this.anio.set(anio);
+            this.mes.set(mes);
+            this.periodo = new Date(anio, mes - 1, 1);
+            console.log('anio...', this.anio());
+            console.log('mes....', this.mes());
     }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
+    }
+
+    selectedValueChange(event: any): void {
+       
+            this.anio.set(event.getFullYear());
+            this.mes.set(event.getMonth() + 1);
+            this.periodo = event;
+            localStorage.setItem('anio', String(this.anio()));
+            localStorage.setItem('mes', String(this.mes()));
+            this.selectedPersonalIdChange$.next(this.PersonalId().toString());
     }
 }
