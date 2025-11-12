@@ -10,7 +10,8 @@
                 </li>
                 <li nz-menu-item nzMatchRouter>
                     <span nz-icon nzType=""></span>
-                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'responsables']">{{ 'app.responsables' | i18n }} </a>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'responsables']">{{ 'app.responsables' | i18n }}
+                    </a>
                 </li>
                 <li nz-menu-item nzMatchRouter>
                     <span nz-icon nzType=""></span>
@@ -19,6 +20,19 @@
                 <li nz-menu-item nzMatchRouter>
                     <span nz-icon nzType=""></span>
                     <a [routerLink]="['/', 'ges', 'grupo-actividad', 'personal']">{{ 'app.personal' | i18n }}</a>
+                </li>
+                <li nz-submenu nzTitle="Informes">
+                    <ul style="width: auto !important">
+                        <li nz-menu-item>
+                            <span app-reporte="Objetivos con GrupoActividad vigente y sin contrato"></span>
+                        </li>
+                        <!-- <li nz-menu-item>
+                            <span app-reporte="Reporte Seguro Diario FP"></span>
+                        </li>
+                        <li nz-menu-item>
+                            <span app-reporte="Reporte Seguro Vida Colectiva"></span>
+                        </li> -->
+                    </ul>
                 </li>
             </ul>
         </div>

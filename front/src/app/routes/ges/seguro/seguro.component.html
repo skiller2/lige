@@ -7,6 +7,14 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'seguro', 'listado']" (click)="this.isActiveProcess.set(true)">{{ 'app.segurosList' | i18n }}</a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'seguro', 'poliza']" (click)="this.isActiveProcess.set(false)">{{ 'app.segurosPoliza' | i18n }}</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'seguro', 'personal']" (click)="this.isActiveProcess.set(false)">{{ 'app.segurosPersonal' | i18n }}</a>
+        </li>
         <li nz-submenu nzTitle="Informes">
           <ul style="width: auto !important">
             <li nz-menu-item>
@@ -26,14 +34,6 @@
             </li>-->
 
           </ul>
-        </li>
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'seguro', 'poliza']" (click)="this.isActiveProcess.set(false)">{{ 'app.segurosPoliza' | i18n }}</a>
-        </li>
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'seguro', 'personal']" (click)="this.isActiveProcess.set(false)">{{ 'app.segurosPersonal' | i18n }}</a>
         </li>
       </ul>
     </div>
