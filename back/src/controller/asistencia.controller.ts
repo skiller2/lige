@@ -719,7 +719,6 @@ export class AsistenciaController extends BaseController {
         Horas,
         metodologiaId,
       } = req.body;
-      console.log('aaaa', req.body);
       const AplicaEl: Date = periodo ? new Date(periodo) : null
       const persona_cuit = req.persona_cuit;
       const anio = AplicaEl.getFullYear();
