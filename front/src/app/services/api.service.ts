@@ -1797,6 +1797,36 @@ export class ApiService {
     )
   }
 
+  getProvinciasOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/domicilio/provincias/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getLocalidadesOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/domicilio/localidades/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getBarriosOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/domicilio/barrios/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

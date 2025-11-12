@@ -38,7 +38,6 @@ import { AdministradorController } from "../controller/administrador.controller"
 import { RubroController } from "../controller/rubro.controller"
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller"
 import { SituacionRevistaController } from "../controller/situacionrevista.controller"
-import { ResidenciaController } from "../controller/residencia.controller"
 import { EstudioController } from "../controller/estudio.controller"
 import { PreciosProductosController } from "../precios-productos/precios-productos.controller"
 import { DescripcionProductoController } from "./descripcion-producto.controller"
@@ -58,6 +57,7 @@ import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-
 import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excepciones-asistencia.controller";
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller";
 import { EfectoController } from "../efecto/efecto.controller";
+import { DomicilioController } from "src/domicilio/domicilio.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -99,7 +99,7 @@ export const administradorController = new AdministradorController();
 export const rubroController = new RubroController();
 export const accesoBotController = new AccesoBotController();
 export const situacionRevistaController = new SituacionRevistaController();
-export const residenciaController = new ResidenciaController();
+export const domicilioController = new DomicilioController();
 export const estudioController = new EstudioController();
 export const preciosProductosController = new PreciosProductosController();
 export const descripcionProductoController = new DescripcionProductoController();

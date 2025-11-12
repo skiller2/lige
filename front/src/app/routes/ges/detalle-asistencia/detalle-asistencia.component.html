@@ -8,8 +8,8 @@
       </nz-form-control>
       <nz-form-control [nzSpan]="14" style="text-align: right;">
         <nz-button-group>
-          <button *ngIf="objetivoIdSelected" nz-button nzType="default"
-            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]">Asistencia diaria</button>
+          <button *ngIf="selectedObjetivoId" nz-button nzType="default"
+            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId }]">Asistencia diaria</button>
         </nz-button-group>
       </nz-form-control>
     </nz-form-item>
@@ -31,7 +31,7 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:objetivoIdSelected }]">Objetivo</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:selectedObjetivoId }]">Objetivo</a>
     </li>
 
     <li nz-menu-item nzMatchRouter>
@@ -90,7 +90,7 @@
         @let objetivoDetalle = $objetivoDetalle | async;
         <nz-form-item class="marginElement" *ngIf="objetivoDetalle">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
-          @if (objetivoDetalle?.contratos?.length==0 && this.objetivoIdSelected>0) {
+          @if (objetivoDetalle?.contratos?.length==0 && this.selectedObjetivoId>0) {
           <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
           } @else {
           @for (contrato of objetivoDetalle.contratos; track contrato.ContratoId) {
@@ -105,15 +105,15 @@
         </nz-form-item>
 
         @let objetivoResponsables = $objetivoResponsables | async;
-
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsables</nz-form-label>
           <nz-form-control>
-            <app-view-responsable *ngIf="objetivoResponsables" [list]="objetivoResponsables"></app-view-responsable>
+            <app-view-responsable *ngIf="this.selectedObjetivoId>0"
+              [list]="objetivoResponsables"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
 
-       @let contactoOperativo = $contactoOperativo | async;
+        @let contactoOperativo = $contactoOperativo | async;
         <nz-form-item *ngIf="contactoOperativo?.length > 0">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contacto Operativo</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9">
@@ -368,7 +368,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Al Personal del Objetivo</nz-form-label>
           <nz-form-control>
-            <nz-table #descPerObj [nzData]="listaDescuentosPerxObj.data.result" nzSize="small" [nzPageSize]="100000000"
+            <nz-table #descPerObj [nzData]="listaDescuentosPerxObj?.data?.result" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
@@ -404,7 +404,7 @@
                   <td></td>
                   <td></td>
                   <td class="text-right">
-                    {{ listaDescuentosPerxObj.data.totalImporte | I18NCurrency }}
+                    {{ listaDescuentosPerxObj?.data?.totalImporte | I18NCurrency }}
                   </td>
                 </tr>
               </tfoot>
@@ -474,11 +474,8 @@
           <nz-form-control>
 
             @let personaResponsables = $personaResponsables | async;
-            @if (!personaResponsables || personaResponsables?.length === 0 && selectedPersonalId > 0) {
-            <nz-alert nzShowIcon nzType="error" nzMessage="Sin Responsable" class="app-small"></nz-alert>
-            } @else {
-            <app-view-responsable [list]="personaResponsables"></app-view-responsable>
-            }
+            <app-view-responsable *ngIf="selectedPersonalId>0" [list]="personaResponsables"></app-view-responsable>
+
 
           </nz-form-control>
         </nz-form-item>

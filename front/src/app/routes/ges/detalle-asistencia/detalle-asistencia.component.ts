@@ -76,7 +76,6 @@ export class DetalleAsistenciaComponent {
   listaCustodiasPerTotal = 0
   listaCustodiasPerTotalHoras = 0
   listaDescuentosObjTotal = 0
-  objetivoIdSelected = 0;
 
   personalIdlist = signal([])
 
@@ -109,12 +108,12 @@ export class DetalleAsistenciaComponent {
         )
         .pipe(
           doOnSubscribe(() => {
-            this.objetivoIdSelected = parseInt(objetivoId)
+            this.selectedObjetivoId = parseInt(objetivoId)
             this.objetivoResponsablesLoading$.next(true)
           }),
           tap({
             complete: () => {
-              this.objetivoIdSelected = parseInt(objetivoId)
+              this.selectedObjetivoId = parseInt(objetivoId)
               this.objetivoResponsablesLoading$.next(false)
             },
           })

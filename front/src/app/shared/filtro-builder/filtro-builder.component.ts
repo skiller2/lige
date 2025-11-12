@@ -87,6 +87,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsProcAutoEstado = this.searchService.getProcAutoEstadosOptions();
   $optionsSucursales = this.searchService.getSucursales();
   $optionsMetodologias = this.searchService.getMetodologia();
+  $optionsProvincias = this.apiService.getProvinciasOptions();
+  $optionsLocalidades = this.apiService.getLocalidadesOptions();
+  $optionsBarrios = this.apiService.getBarriosOptions();
 
   private _options: Options = {
     filtros: [],

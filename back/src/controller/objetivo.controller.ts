@@ -146,7 +146,7 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
 
         SELECT 2, obj.ObjetivoId, 'Coordinador' tipo,
             per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, opj.ObjetivoPersonalJerarquicoDesde, opj.ObjetivoPersonalJerarquicoHasta,
-          STRING_AGG(CONCAT(trim(tiptel.TipoTelefonoDescripcion), ': ',TRIM(tel.PersonalTelefonoNro)), ' | ') AS Telefonos,
+          STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
           1
                   
         FROM Objetivo obj 
@@ -168,7 +168,7 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
 
         SELECT 3, obj.ObjetivoId, 'Supervisor' tipo,
         per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta, 
-        STRING_AGG(CONCAT(trim(tiptel.TipoTelefonoDescripcion), ': ',TRIM(tel.PersonalTelefonoNro)), ' | ') AS Telefonos,
+        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
         1
                   
         FROM Objetivo obj 
@@ -186,7 +186,7 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
 
         SELECT 4, obj.ObjetivoId, 'Administrador' tipo,
         per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta, 
-        STRING_AGG(CONCAT(trim(tiptel.TipoTelefonoDescripcion), ': ',TRIM(tel.PersonalTelefonoNro)), ' | ') AS Telefonos,
+        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
 
         1          
         FROM Objetivo obj 
