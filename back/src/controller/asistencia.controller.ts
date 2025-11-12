@@ -12,6 +12,7 @@ import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pe
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 import { FileUploadController } from "./file-upload.controller";
 import { fileUploadController } from "./controller.module";
+import { get } from "http";
 
 interface DigestAuthOptions {
   username: string;
@@ -247,7 +248,7 @@ export class AsistenciaController extends BaseController {
           `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,Observaciones,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8 ,@9,@10,@11 ,@9,@10,@11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0,Observaciones,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0, Observaciones,
             fechaActual, usuario, ip])
       }
 
@@ -703,13 +704,13 @@ export class AsistenciaController extends BaseController {
   async setExcepcion(req: any, res: Response, next: NextFunction) {
     let ConceptoId: number | null = null
     const queryRunner = dataSource.createQueryRunner();
-
     try {
-      const usuarioId = await this.getUsuarioId(res, queryRunner)
+      const usuario = res.locals.userName
+      const now = new Date()
+      const ip = this.getRemoteAddress(req)
       let {
         SucursalId,
-        anio,
-        mes,
+        periodo,
         ObjetivoId,
         PersonalId,
         metodo,
@@ -719,7 +720,10 @@ export class AsistenciaController extends BaseController {
         Horas,
         metodologiaId,
       } = req.body;
+      const AplicaEl: Date = periodo ? new Date(periodo) : null
       const persona_cuit = req.persona_cuit;
+      const anio = AplicaEl.getFullYear();
+      const mes = AplicaEl.getMonth() + 1;
       const fechaDesde = new Date(anio, mes - 1, 1);
       let fechaHasta = new Date(anio, mes, 1);
       fechaHasta.setDate(fechaHasta.getDate() - 1);
@@ -883,9 +887,9 @@ export class AsistenciaController extends BaseController {
 
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
-                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
+                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                             WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-                [row["PersonalArt14Id"], PersonalId, hasta]
+                [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
               );
             }
             break;
@@ -895,9 +899,9 @@ export class AsistenciaController extends BaseController {
 
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
-                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
+                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-                [row["PersonalArt14Id"], PersonalId, hasta]
+                [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
               );
             }
             break;
@@ -912,9 +916,9 @@ export class AsistenciaController extends BaseController {
         }
         if (PersonalArt14FormaArt14 == metodo) {
           await queryRunner.query(
-            `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
+            `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-            [row["PersonalArt14Id"], PersonalId, hasta]
+            [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
           );
         }
       }
@@ -1023,35 +1027,39 @@ export class AsistenciaController extends BaseController {
 
 
       result = await queryRunner.query(
-        `INSERT INTO PersonalArt14(PersonalArt14Id, PersonalArt14FormaArt14, PersonalArt14SumaFija, PersonalArt14AdicionalHora, PersonalArt14Horas, PersonalArt14Porcentaje, PersonalArt14Desde, 
-                    PersonalArt14Hasta, PersonalArt14Autorizado, PersonalArt14AutorizadoDesde, PersonalArt14AutorizadoHasta, PersonalArt14Anulacion, PersonalArt14Puesto, PersonalArt14Dia, PersonalArt14Tiempo, PersonalId, 
-                    PersonalArt14TipoAsociadoId, PersonalArt14CategoriaId, PersonalArt14ConceptoId, PersonalArt14ObjetivoId, PersonalArt14QuienAutorizoId, PersonalArt14UsuarioId) 
-                    VALUES(@0, @1, 
-                    @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21)
-                `,
+        `INSERT INTO PersonalArt14(PersonalArt14Id, PersonalArt14FormaArt14, PersonalArt14SumaFija, PersonalArt14AdicionalHora, PersonalArt14Horas, PersonalArt14Porcentaje, PersonalArt14Desde, PersonalArt14Hasta,
+        PersonalArt14Autorizado, PersonalArt14AutorizadoDesde, PersonalArt14AutorizadoHasta, PersonalArt14Anulacion, 
+        PersonalArt14AudFechaIng, PersonalArt14AudUsuarioIng, PersonalArt14AudIpIng, PersonalArt14AudFechaMod, PersonalArt14AudUsuarioMod, PersonalArt14AudIpMod,
+        PersonalId, PersonalArt14TipoAsociadoId, PersonalArt14CategoriaId, PersonalArt14ConceptoId, PersonalArt14ObjetivoId, PersonalArt14QuienAutorizoId) 
+        VALUES(@0, @1, @2, @3, @4, @5, @6, @7,
+        @8, @9, @10, @11, 
+        @12, @13, @14, @12, @13, @14,
+        @15, @16, @17, @18, @19, @20)`,
         [
-          PersonalArt14UltNro,
-          metodo,
-          SumaFija,
-          AdicionalHora,
-          Horas,
-          null,
-          fechaDesde,
-          fechaHasta,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          PersonalId,
-          Equivalencia.TipoAsociadoId,
-          Equivalencia.CategoriaPersonalId,
-          ConceptoId,
-          ObjetivoId,
-          null,
-          usuarioId,
+          PersonalArt14UltNro, // PersonalArt14Id
+          metodo, // PersonalArt14FormaArt14
+          SumaFija, // PersonalArt14SumaFija
+          AdicionalHora, // PersonalArt14AdicionalHora
+          Horas, // PersonalArt14Horas
+          null, // PersonalArt14Porcentaje
+          fechaDesde,  // PersonalArt14Desde
+          fechaHasta,   // PersonalArt14Hasta
+
+          null, // PersonalArt14Autorizado
+          null, // PersonalArt14AutorizadoDesde
+          null, // PersonalArt14AutorizadoHasta
+          null, // PersonalArt14Anulacion
+
+          now, // PersonalArt14FechaIng
+          usuario, // PersonalArt14AudUsuarioIng
+          ip, // PersonalArt14AudIpIng
+
+          PersonalId, // PersonalId
+          Equivalencia.TipoAsociadoId, // PersonalArt14TipoAsociadoId
+          Equivalencia.CategoriaPersonalId, // PersonalArt14CategoriaId
+          ConceptoId, // PersonalArt14ConceptoId
+          ObjetivoId, // PersonalArt14ObjetivoId
+          null, // PersonalArt14QuienAutorizoId
         ]
       );
 
@@ -1082,6 +1090,9 @@ export class AsistenciaController extends BaseController {
     const metodo: string = req.params.metodo;
     const persona_cuit = req.persona_cuit;
     let ConceptoId: number | null = null
+    const usuario = res.locals.userName
+    const now = new Date()
+    const ip = this.getRemoteAddress(req)
 
     if (metodologiaId == "F")
       ConceptoId = 3
@@ -1145,22 +1156,17 @@ export class AsistenciaController extends BaseController {
       for (const row of resultAutoriz) {
         recupdate++;
         await queryRunner.query(
-          `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-          [row["PersonalArt14Id"], PersonalId, hasta]
+          `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
+          [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
         );
       }
 
       for (const row of resultNoAutoriz) {
         recdelete++;
-        await queryRunner.query(
-          `DELETE FROM PersonalArt14 
-                                  WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-          [row["PersonalArt14Id"], PersonalId]
-        );
+        await queryRunner.query(`DELETE FROM PersonalArt14 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,[row["PersonalArt14Id"], PersonalId]);
       }
 
-      if (recdelete + recupdate == 0)
-        throw new ClientException("No se localizaron registros para finalizar para la persona y metodología indicados");
+      if (recdelete + recupdate == 0) throw new ClientException("No se localizaron registros para finalizar para la persona y metodología indicados");
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res);
@@ -1583,7 +1589,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
 
       const queryRunner = dataSource.createQueryRunner();
-      if (!await this.hasGroup(req, 'liquidaciones')  && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
@@ -1859,7 +1865,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') &&  !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
       const result = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, [personalId])
@@ -2134,7 +2140,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!await this.hasGroup(req, 'liquidaciones') &&  !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
       const result = await CustodiaController.listPersonalCustodiaQuery({ filtros: [{ index: "ApellidoNombre", valor: [personalId], operador: "=", condition: "AND" }] }, queryRunner, anio, mes, 0)
@@ -2207,7 +2213,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
           result: Array.isArray(result) ? result : [],
           totalImporte: totalImporte
         };
-      
+
         this.jsonRes(response, res);
 
       } else
@@ -2550,7 +2556,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
         personal = valPersonalRegistrado
 
-        if (Number(personal?.total) == 0 || personal?.total==null) {
+        if (Number(personal?.total) == 0 || personal?.total == null) {
           const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
 
           const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [req.body.personalId])

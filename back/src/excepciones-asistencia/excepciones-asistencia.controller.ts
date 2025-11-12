@@ -185,7 +185,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
           , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
           , art.PersonalArt14Dia, art.PersonalArt14Tiempo, art.PersonalArt14DetalleMotivo 
           --, CONVERT(datetime, CONVERT(varchar(10), art.PersonalArt14Dia, 120) + ' ' + art.PersonalArt14Tiempo) AS FechaDeAutorizacion
-		      , IIF(art.PersonalArt14Autorizado ='S',art.AudFechaMod, null) AS FechaDeAutorizacion
+		      , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AudFechaMod, null) AS FechaDeAutorizacion
           , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde
           , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
           , CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo
@@ -259,7 +259,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now:Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14AutorizadoDesde = PersonalArt14Desde, PersonalArt14AutorizadoHasta = PersonalArt14Hasta, AudFechaMod = @2, AudIpMod = @3, AudUsuarioMod = @4, PersonalArt14Autorizado = 'S'
+      SET PersonalArt14AutorizadoDesde = PersonalArt14Desde, PersonalArt14AutorizadoHasta = PersonalArt14Hasta, PersonalArt14Autorizado = 'S', PersonalArt14Anulacion = null,
+      PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4      
       WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
@@ -338,7 +339,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now:Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14Anulacion = @2, PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, AudFechaMod = @2, AudIpMod = @3, AudUsuarioMod = @4, PersonalArt14Autorizado = 'N'
+      SET PersonalArt14Anulacion = @2, PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4, PersonalArt14Autorizado = 'N'
       WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
@@ -418,8 +419,9 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now:Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, AudFechaMod = @2, AudIpMod = @3, AudUsuarioMod = @4, PersonalArt14Autorizado = null
-      WHERE PersonalArt14Id = @0 AND PersonalId = @1
+      SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14Autorizado = null, PersonalArt14Anulacion = null,
+      PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4
+      WHERE PersonalArt14Id = @0 AND PersonalId = @1fi
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
     }

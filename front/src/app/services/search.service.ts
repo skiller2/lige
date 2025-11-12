@@ -991,9 +991,12 @@ export class SearchService {
   }
 
   deleteAsistenciaExcepcion(params: any) {
+    const periodo = params.periodo ? new Date(params.periodo) : null; 
+    const anio = periodo ? periodo.getFullYear() : 0;
+    const mes = periodo ? periodo.getMonth() + 1 : 0;
     return this.http
       .delete<ResponseJSON<any>>(
-        `api/asistencia/excepcion/${params.anio}/${params.mes}/${params.ObjetivoId}/${params.PersonalId}/${params.metodo}/${params.metodologiaId}`
+        `api/asistencia/excepcion/${anio}/${mes}/${params.ObjetivoId}/${params.PersonalId}/${params.metodo}/${params.metodologiaId}`
       )
       .pipe(map(res => res.data));
   }
