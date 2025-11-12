@@ -78,7 +78,6 @@ export class PersonalDocumentosDrawerComponent {
         switchMap(() =>{
             setTimeout(async () => {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
-                this.formDocumento.patchValue({DocumentoDenominadorDocumento: personal.PersonalCUITCUILCUIT})
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
             return this.searchService.getDocumentosByPersonal(Number(this.PersonalId()))
