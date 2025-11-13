@@ -29,12 +29,7 @@ documentoRouter.get("/cols-no-download", [
   documentoController.getGridNoDownloadCols(req, res);
 });
 
-documentoRouter.get("/tipos/options", [
-  authMiddleware.verifyToken, 
-  authMiddleware.hasGroup(['gLegales', 'gLegalesCon', 'Liquidaciones', 'Liquidaciones Consultas','gSistemas', 'gPersonal', 'gPersonalCon' , 'gComercial', 'gComercialCon', 'gOperaciones', 'gOperacionesCon', 'gLogistica', 'gLogisticaCon', 'gDireTec', 'gDireTecCon', 'gAsistClientes', 'gAsistClientesCon', 'gConsejo', 'gConsejoCon'])
-], (req, res, next) => {
-  documentoController.getTipos(req, res, next);
-});
+documentoRouter.get("/tipos/options", [authMiddleware.verifyToken], (req, res, next) => {documentoController.getTipos(req, res, next);});
 
 documentoRouter.post('/list', [
   authMiddleware.verifyToken, 

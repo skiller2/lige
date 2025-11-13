@@ -152,7 +152,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Dir.Localidad",
+        name: "Dir. Localidad",
         type: "number",
         id: "DomicilioLocalidadId",
         field: "DomicilioLocalidadId",
@@ -446,8 +446,11 @@ export class ObjetivosController extends BaseController {
                                                 
                     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
 
-                    Left join (Select  (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro,
-								obj.ObjetivoId, CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro), ' |  CP:', TRIM(dom.DomicilioCodigoPostal), ' | ' , TRIM(bar.BarrioDescripcion), ' - ', TRIM(loc.LocalidadDescripcion), ' - ',TRIM(prov.ProvinciaDescripcion), ', ' ,TRIM(pais.PaisDescripcion)) AS domCompleto
+                    Left join (Select  (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro, obj.ObjetivoId, 
+								
+								CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),NULLIF(CONCAT('C', TRIM(dom.DomicilioCodigoPostal)), 'C'),
+								NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto
+
 								, dom.DomicilioCodigoPostal, dom.DomicilioPaisId,dom.DomicilioProvinciaId,dom.DomicilioLocalidadId,dom.DomicilioBarrioId
                                 from Objetivo obj
                                 LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND nexdom.ClienteId = obj.ClienteId AND nexdom.NexoDomicilioActual = 1

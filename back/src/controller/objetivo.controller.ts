@@ -63,7 +63,7 @@ export class ObjetivoController extends BaseController {
                 TRIM(prov.ProvinciaDescripcion) provincia,
                 TRIM(loc.LocalidadDescripcion) localidad ,
                 TRIM(bar.BarrioDescripcion) barrio,
-                CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),CONCAT('C', NULLIF(TRIM(dom.DomicilioCodigoPostal), '')),
+                CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),NULLIF(CONCAT('C', TRIM(dom.DomicilioCodigoPostal)), 'C'),
                 NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto
 
                 FROM Objetivo obj
