@@ -1787,7 +1787,7 @@ export class GestionDescuentosController extends BaseController {
       let PersonalCUIT = await queryRunner.query(`
             SELECT ben.PersonalId, fam.PersonalFamiliaCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre 
             FROM PersonalFamilia fam 
-            JOIN PersonalPrepagaBeneficiario ben ON ben.PersonalFamiliaId = fam.PersonalFamiliaId AND (ben.PersonalPrepagaBeneficiarioInactivo IS NULL OR ben.PersonalPrepagaBeneficiarioInactivo =0)
+            JOIN PersonalPrepagaBeneficiario ben ON ben.PersonalFamiliaId = fam.PersonalFamiliaId and fam.PersonalId=ben.PersonalId AND (ben.PersonalPrepagaBeneficiarioInactivo IS NULL OR ben.PersonalPrepagaBeneficiarioInactivo =0)
             JOIN Personal per ON per.PersonalId=ben.PersonalId
             WHERE PersonalFamiliaCUIT = @0
             `, [CUIT])
