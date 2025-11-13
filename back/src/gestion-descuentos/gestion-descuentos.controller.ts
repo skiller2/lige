@@ -2102,9 +2102,9 @@ export class GestionDescuentosController extends BaseController {
     await queryRunner.startTransaction()
     try {
       const importacionesDescuentosAnteriores = await queryRunner.query(
-        `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
-        FROM documento 
-        WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'DES'`,
+        `SELECT doc.DocumentoId,DocumentoTipoCodigo, doc.DocumentoAnio,doc.DocumentoMes, doc.DocumentoDenominadorDocumento, FORMAT(DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng
+        FROM documento doc
+        WHERE doc.DocumentoAnio = @0 AND doc.DocumentoMes = @1 AND doc.DocumentoTipoCodigo = 'DES'`,
         [Number(anio), Number(mes)])
 
       this.jsonRes(

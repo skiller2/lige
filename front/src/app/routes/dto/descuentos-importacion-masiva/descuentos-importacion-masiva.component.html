@@ -51,7 +51,7 @@
                 <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
                 <span nz-icon nzType="download" ></span></a>
               </ng-container>
-            <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
+            <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}} | Fecha: {{movimiento.DocumentoAudFechaIng}}</span>
           </div>
         </ng-container>
       </nz-form-control>
