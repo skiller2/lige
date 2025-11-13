@@ -152,7 +152,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Dir.Localidad",
+        name: "Dir. Localidad",
         type: "number",
         id: "DomicilioLocalidadId",
         field: "DomicilioLocalidadId",
