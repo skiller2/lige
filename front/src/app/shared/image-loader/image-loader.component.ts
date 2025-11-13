@@ -10,7 +10,7 @@ import { NzImageModule } from 'ng-zorro-antd/image';
   selector: 'app-image-loader',
   template: `
   @if (imageSrc()) {
- <img nz-image [nzSrc]="imageSrc()" nzFallback="fallback()"/>
+ <img nz-image [nzSrc]="imageSrc()" nzFallback="fallback()" width="100px" height="75px" style="padding-left: 10px; padding-right: 10px;"/>
 }
  `,
   imports: [SHARED_IMPORTS, CommonModule, NzImageModule]
