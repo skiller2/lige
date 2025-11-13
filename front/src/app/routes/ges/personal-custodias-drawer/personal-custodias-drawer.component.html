@@ -1,6 +1,18 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleCustodias()" [nzPlacement]="placement" [nzWidth]="640"
   [nzTitle]="'Listado de Custodias: '  + PersonalNombre()" (nzOnClose)="visibleCustodias.set(false)">
   <ng-container *nzDrawerContent>
+    <form nz-form #personalCustodiasDrawerForm="ngForm">
+
+      <nz-form-item>
+        <nz-form-label>Periodo</nz-form-label>
+        <nz-form-control>
+  
+            <nz-date-picker nzMode="month" name="periodo" [ngModel]="periodo()"
+                (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+  
     <nz-form-control *ngIf="$listaCustodiaPer | async as listaCustodiaPer ">
         <nz-table #custPer [nzData]="listaCustodiaPer" nzSize="small" [nzPageSize]="100000000"
           [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
@@ -26,5 +38,7 @@
           </tbody>
         </nz-table>
     </nz-form-control>
+    </nz-form-item>
+    </form>
   </ng-container>
 </nz-drawer>

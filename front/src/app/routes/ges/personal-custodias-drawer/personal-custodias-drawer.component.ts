@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -8,6 +8,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { NgForm } from '@angular/forms';
 
 @Component({
     selector: 'app-personal-custodias-drawer',
@@ -20,10 +21,13 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 export class PersonalCustodiasDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
+    anio = signal(0);
+    mes = signal(0);
     visibleCustodias = model<boolean>(false)
     periodo = signal<Date>(new Date);
     placement: NzDrawerPlacement = 'left';
     startFilters: { index: string; condition: string; operador: string; valor: string[]; closeable: boolean }[] = []
+    @ViewChild('personalCustodiasDrawerForm') personalCustodiasDrawerForm?: NgForm;
 
     constructor(
         private searchService: SearchService,
@@ -44,7 +48,7 @@ export class PersonalCustodiasDrawerComponent {
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
             this.startFilters = [{index:'ApellidoNombre', condition:'AND', operador:'=', valor: [`${this.PersonalId()}`] , closeable:true}]
-            return this.searchService.getListaPersonalCustodia({filtros: this.startFilters, sort:null} , new Date())
+            return this.searchService.getListaPersonalCustodia({filtros: this.startFilters, sort:null} , this.periodo())
             .pipe(map(data => {
                 data.map((obj:any) =>{
                     let inicio = new Date(obj.fecha_inicio)
@@ -58,13 +62,34 @@ export class PersonalCustodiasDrawerComponent {
     );
 
     async ngOnInit(){
-        const date:Date = new Date()
-        this.periodo.set(date)
-        this.selectedPersonalIdChange$.next('');
+        const now = new Date(); //date
+        const anio =
+            Number(localStorage.getItem('anio')) > 0
+                ? Number(localStorage.getItem('anio'))
+                : now.getFullYear();
+        const mes =
+            Number(localStorage.getItem('mes')) > 0
+                ? Number(localStorage.getItem('mes'))
+                : now.getMonth() + 1;
+
+        this.anio.set(anio);
+        this.mes.set(mes);
+        this.periodo.set(new Date(anio, mes - 1, 1)); 
     }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
     }
+
+    selectedValueChange(event: any): void {
+       
+        this.anio.set(event.getFullYear());
+        this.mes.set(event.getMonth() + 1);
+        this.periodo.set(event);
+        localStorage.setItem('anio', String(this.anio()));
+        localStorage.setItem('mes', String(this.mes()));
+        this.selectedPersonalIdChange$.next(this.PersonalId().toString());
+
+}
 }

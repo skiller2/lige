@@ -69,9 +69,7 @@ export class PersonalObjetivoDrawerComponent {
 
             this.anio.set(anio);
             this.mes.set(mes);
-            this.periodo = new Date(anio, mes - 1, 1);
-            console.log('anio...', this.anio());
-            console.log('mes....', this.mes());
+            this.periodo = new Date(anio, mes - 1, 1); 
     }
 
     ngOnDestroy(): void {
