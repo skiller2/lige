@@ -46,12 +46,12 @@
       <nz-form-control>
         <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
           <!-- <ng-container > -->
-          <div  class="containerAnterioresDescuentos" nz-tooltip nzTooltipTitle={{1}}>
+          <div  class="containerAnterioresDescuentos" nz-tooltip nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
              <ng-container>
                 <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
                 <span nz-icon nzType="download" ></span></a>
               </ng-container>
-            <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}} | Fecha: {{movimiento.DocumentoAudFechaIng}}</span>
+            <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
           </div>
         </ng-container>
       </nz-form-control>
