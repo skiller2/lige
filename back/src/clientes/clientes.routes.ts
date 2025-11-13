@@ -17,44 +17,31 @@ clientesRouter.get('/infoCliente/:id', [authMiddleware.verifyToken, authMiddlewa
   clientesController.infoCliente(req, res, next)
 })
 
-
-// clientesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Adminitrativo'])], (req, res) => {
-//   clientesController.getGridCols(req, res);
-// });
-
-// clientesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Adminitrativo'])], (req, res, next) => {
-//   clientesController.listClientes(req, res, next)
-// })
-
-// clientesRouter.get('/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Adminitrativo'])], (req, res, next) => { 
-// clientesController.infoCliente(req, res, next) 
-// })
-
 clientesRouter.get('/getCondicion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
   clientesController.getCondicionQuery(req, res, next)
 })
 
-clientesRouter.get('/getProvincia', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getProvincia', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getProvinciasQuery(req, res, next)
 })
 
-clientesRouter.get('/getTipoTelefono', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getTipoTelefono', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getTipoTelefono(req, res, next)
 })
 
-clientesRouter.get('/getLocalidad', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getLocalidad', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getLocalidadQuery(req, res, next)
 })
 
-clientesRouter.get('/getBarrio', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getBarrio', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getBarrioQuery(req, res, next)
 })
 
-clientesRouter.get('/getTipoContacto', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getTipoContacto', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getTipoContacto(req, res, next)
 })
 
-clientesRouter.get('/getJurImpositiva', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getJurImpositiva', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getJurImpositiva(req, res, next)
 })
 
