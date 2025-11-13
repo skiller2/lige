@@ -17,7 +17,7 @@ clientesRouter.get('/infoCliente/:id', [authMiddleware.verifyToken, authMiddlewa
   clientesController.infoCliente(req, res, next)
 })
 
-clientesRouter.get('/getCondicion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+clientesRouter.get('/getCondicion', [authMiddleware.verifyToken], (req, res, next) => {
   clientesController.getCondicionQuery(req, res, next)
 })
 
