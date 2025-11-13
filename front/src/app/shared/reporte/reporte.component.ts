@@ -1,4 +1,4 @@
-import { Component, inject, input, signal, model, ViewChild, viewChild, computed } from '@angular/core'
+import { Component, inject, input, signal, model, ViewChild, viewChild, computed, ElementRef } from '@angular/core'
 import { SHARED_IMPORTS } from '@shared'
 import { NzButtonModule } from 'ng-zorro-antd/button'
 import { NzModalModule } from 'ng-zorro-antd/modal'
@@ -8,7 +8,6 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { CommonModule } from '@angular/common'
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker'
 import { NzMenuModule } from 'ng-zorro-antd/menu'
-
 
 interface Parameter {
   Name: string;
@@ -40,6 +39,8 @@ export class ReporteComponent {
   public apiService = inject(ApiService)
   isLoading = signal(false)
 
+  btnDescargar = viewChild<ElementRef<HTMLButtonElement>>('btnDescargar');
+
   getFiltros() {
     return this.filtrosReporte().map((f:any) => { return { [f.Name]: f.Value } })
   }
@@ -57,6 +58,14 @@ export class ReporteComponent {
       });
 
       this.filtrosReporte.set(res)
+
+      if (res.length == 0) {
+        this.isLoading.set(false);
+        // Simular click del botón de descarga
+        setTimeout(() => this.btnDescargar()?.nativeElement.click(), 500);
+        return;
+      }
+
       this.isfilterLoad.set(true)
 
     } catch (error){
