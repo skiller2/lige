@@ -971,15 +971,15 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.ClienteId = Obj.ClienteId
 
             //validacion de barrio
-            if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
+            // if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
 
-                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                    [Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId])
+            //     let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+            //         [Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId])
 
-                if (queryBarrio && queryBarrio.length > 0)
-                    throw new ClientException(`Debe completar el campo barrio.`)
+            //     if (queryBarrio && queryBarrio.length > 0)
+            //         throw new ClientException(`Debe completar el campo barrio.`)
 
-            }
+            // }
 
             if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde) {
                 await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
@@ -1171,8 +1171,8 @@ export class ObjetivosController extends BaseController {
         const DocTipoCodigos = docsRequeridos.map((row: { DocumentoTipoCodigo: any; }) => row.DocumentoTipoCodigo).filter((DocumentoTipoCodigo) => DocumentoTipoCodigo !== null && DocumentoTipoCodigo !== undefined);
 
         // Validar que hay elementos
-        if (DocTipoCodigos.length === 0) throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
-
+        if (DocTipoCodigos.length === 0 || (DocTipoCodigos.length === 1 && DocTipoCodigos.includes(0))) throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
+        
         // Validar duplicados
         const duplicados = DocTipoCodigos.filter((codigo, index) => DocTipoCodigos.indexOf(codigo) !== index);
         if (duplicados.length > 0) throw new ClientException('Se encuentran Documentos requeridos No se pueden tener documentos requeridos duplicados')
@@ -1470,16 +1470,16 @@ export class ObjetivosController extends BaseController {
 
             await this.FormValidations(Obj)
 
-            //validacion de barrio
-            if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
+            // //validacion de barrio
+            // if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
 
-                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                    [Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId])
+            //     let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+            //         [Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId])
 
-                if (queryBarrio && queryBarrio.length > 0)
-                    throw new ClientException(`Debe completar el campo barrio.`)
+            //     if (queryBarrio && queryBarrio.length > 0)
+            //         throw new ClientException(`Debe completar el campo barrio.`)
 
-            }
+            // }
 
             //throw new ClientException(`test`)
 

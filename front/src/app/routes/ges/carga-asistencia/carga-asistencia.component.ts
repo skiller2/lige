@@ -952,7 +952,7 @@ export class CargaAsistenciaComponent {
         }
         this.gridOptionsEdit.excelExportOptions = this.excelExportOption;
 
-        //this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+        this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
     }
 
     saltarLetra(entrada: string, salto: number) {
