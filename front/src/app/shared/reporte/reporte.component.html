@@ -77,7 +77,7 @@
 </div>
   <div *nzModalFooter style="text-align: right;">
 
-    <button #btnDescargar [disabled]="isLoading()" app-down-file [httpMethod]="'POST'"
+    <button [disabled]="isLoading()" app-down-file [httpMethod]="'POST'"
       [httpBody]="{'Reporte':reportTitle(),'Formato':'EXCEL', 'Filtros': getFiltros()}"
       httpUrl="api/reportes/descarga" notificationMsg="Generando Informe Seguro" nz-button nzType="primary">
       <span nz-icon nzType="download"></span> Generar Reporte

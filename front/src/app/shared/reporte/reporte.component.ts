@@ -1,6 +1,6 @@
-import { Component, inject, input, signal, model, ViewChild, viewChild, computed, ElementRef } from '@angular/core'
+import { Component, inject, input, signal, model, ViewChild, viewChild, computed, ElementRef, effect } from '@angular/core'
 import { SHARED_IMPORTS } from '@shared'
-import { NzButtonModule } from 'ng-zorro-antd/button'
+import { NzButtonComponent, NzButtonModule } from 'ng-zorro-antd/button'
 import { NzModalModule } from 'ng-zorro-antd/modal'
 import { firstValueFrom, map } from 'rxjs'
 import { SearchService } from 'src/app/services/search.service'
@@ -39,10 +39,21 @@ export class ReporteComponent {
   public apiService = inject(ApiService)
   isLoading = signal(false)
 
-  btnDescargar = viewChild<ElementRef<HTMLButtonElement>>('btnDescargar');
+  btnDescargar = viewChild(NzButtonComponent, { read: ElementRef });
 
   getFiltros() {
     return this.filtrosReporte().map((f:any) => { return { [f.Name]: f.Value } })
+  }
+
+  constructor() {
+    effect(() => {
+      const btn = this.btnDescargar();
+      
+      if (btn && this.filtrosReporte().length == 0) {
+        btn.nativeElement.click();
+        this.isVisible.set(false)
+      }
+    });
   }
 
   async searchReportParameters(title: string) {
@@ -58,14 +69,6 @@ export class ReporteComponent {
       });
 
       this.filtrosReporte.set(res)
-
-      if (res.length == 0) {
-        this.isLoading.set(false);
-        // Simular click del botón de descarga
-        setTimeout(() => this.btnDescargar()?.nativeElement.click(), 500);
-        return;
-      }
-
       this.isfilterLoad.set(true)
 
     } catch (error){
