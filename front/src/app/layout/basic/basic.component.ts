@@ -28,7 +28,12 @@ import { HeaderTitleComponent } from './widgets/title.component';
     <header-title class="alain-default__title"></header-title>
 
     <layout-default [options]="options" [content]="contentTpl" [customError]="null" >
-      <layout-default-header-item direction="left" hidden="mobile">
+      <layout-default-header-item direction="left" hidden="mobile"> 
+        <a layout-default-header-item-trigger routerLink="">
+          <i nz-icon nzType="search" nzTheme="outline"></i>
+        </a>
+      </layout-default-header-item>
+      <layout-default-header-item direction="right" hidden="mobile"> 
         <a layout-default-header-item-trigger routerLink="/passport/lock">
           <i nz-icon nzType="lock"></i>
         </a>
