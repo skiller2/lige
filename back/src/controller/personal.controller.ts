@@ -238,7 +238,7 @@ export class PersonalController extends BaseController {
         WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
         AND gap.GrupoActividadPersonalPersonalId = @0
       UNION
-        SELECT 3, gap.GrupoActividadPersonalPersonalId, 'Supervisor' tipo,
+        SELECT 3, gap.GrupoActividadPersonalPersonalId, 'Coo. Zona' tipo,
         per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta, 
         STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
         1    
