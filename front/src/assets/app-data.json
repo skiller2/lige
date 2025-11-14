@@ -173,7 +173,7 @@
           "icon": "anticon-profile",
           "children": [
             {
-              "text": "Consulta #",
+              "text": "Efectos #",
               "link": "/ges/",
               "icon": "anticon-profile"
             },
