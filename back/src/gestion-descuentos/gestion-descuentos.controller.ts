@@ -270,7 +270,7 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 100,
   },
   {
-    id: 'personal', name: 'Coordinador', field: 'personal.fullName',
+    id: 'personal', name: 'Coo. Cuenta', field: 'personal.fullName',
     fieldName: "per.PersonalId",
     type: 'string',
     formatter: 'complexObject',
@@ -509,7 +509,7 @@ const tableOptions: any[] = [
 
 const aplicaAOptions: any[] = [
   { label: 'Cliente', value: 'CL' },
-  { label: 'Coordinador', value: 'CO' },
+  { label: 'Coo. Cuenta', value: 'CO' },
   { label: 'Lince', value: 'NO' }
 ]
 
@@ -630,7 +630,7 @@ export class GestionDescuentosController extends BaseController {
       , des.ObjetivoDescuentoMesesAplica AS mes
       , des.ObjetivoDescuentoDescontar
       , CASE 
-        WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coordinador'
+        WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coo. Cuenta'
         WHEN des.ObjetivoDescuentoDescontar = 'CL' THEN 'Cliente'
         WHEN des.ObjetivoDescuentoDescontar = 'NO' THEN 'Lince'
       END AS  DescontarDetalle
@@ -943,8 +943,8 @@ export class GestionDescuentosController extends BaseController {
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
+            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador de Cuenta. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
             break;
         }
 
@@ -1351,8 +1351,8 @@ export class GestionDescuentosController extends BaseController {
         break;
       case 'CO':
         const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-        const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
-        if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+        const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
+        if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador de Cuenta. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
         break;
     }
     const hoy: Date = new Date()
@@ -1991,7 +1991,7 @@ export class GestionDescuentosController extends BaseController {
             //Verifico que exita el Aplica A
             const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
             if (!AplicaA) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Lince'.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coo. Cuenta' o 'Lince'.` })
               continue
             }
             switch (AplicaA) {
@@ -2004,16 +2004,16 @@ export class GestionDescuentosController extends BaseController {
                 break;
               case 'CO':
                 const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anioRequest, mesRequest, queryRunner);
-                const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+                const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
 
                 if (!tieneCoordinadorVigente) {
-                  dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene coordinador vigente para el período indicado.` })
+                  dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene Coordinador de Cuenta vigente para el período indicado.` })
                   continue
                 }
               case 'NO':
                 break;
               // default:
-              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coordinador' o 'Lince'.` })
+              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coo. Cuenta' o 'Lince'.` })
               //   continue
             }
 
@@ -2271,9 +2271,9 @@ export class GestionDescuentosController extends BaseController {
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coordinador');
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
             if (!tieneCoordinadorVigente) {
-              row.errorMessage = `No se puede aplicar el descuento al Coordinador. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`
+              row.errorMessage = `No se puede aplicar el descuento al Coordinador de Cuenta. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`
               row.isfull = 2
             }
             break;
