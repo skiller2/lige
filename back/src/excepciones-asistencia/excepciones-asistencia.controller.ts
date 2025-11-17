@@ -183,8 +183,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
           , art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId
           , art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora
           , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
-          , art.PersonalArt14Dia, art.PersonalArt14Tiempo, art.PersonalArt14DetalleMotivo 
-          --, CONVERT(datetime, CONVERT(varchar(10), art.PersonalArt14Dia, 120) + ' ' + art.PersonalArt14Tiempo) AS FechaDeAutorizacion
+          , art.PersonalArt14AudFechaIng,art.PersonalArt14AudUsuarioIng,art.PersonalArt14AudIpIng,art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod,art.PersonalArt14AudIpMod
 		      , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AudFechaMod, null) AS FechaDeAutorizacion
           , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde
           , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
