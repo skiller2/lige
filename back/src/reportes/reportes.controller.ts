@@ -97,7 +97,9 @@ export class ReportesController extends BaseController {
             //filtrosOk[param.Name] = filtro[1]
         //}
 
-        const report = await fetch(this.ssrsURLAccess + rep.Path + "&" + new URLSearchParams(filtrosOk) + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
+        const params = new URLSearchParams(filtrosOk);
+        const report = await fetch(this.ssrsURLAccess + rep.Path + (params.toString()? "&" + params: "") + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
+        
         if (report.status != 200)
           throw new ClientException(`Error accediendo al sistema de reportes status ${report.status}`)
   
