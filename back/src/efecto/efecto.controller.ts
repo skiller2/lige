@@ -12,6 +12,163 @@ import { promisify } from 'util';
 
 const listaColumnasPersonal: any[] = [
   {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  // {
+  //   id: "StockId",
+  //   name: "Stock ID",
+  //   field: "StockId",
+  //   fieldName: "stk.StockId",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false
+  // },
+  {
+    id: "PersonalId",
+    name: "Personal",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
+    type: "number",
+    searchComponent: "inputForPersonalSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    fieldName: "ApellidoNombre",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "PersonalCUITCUILCUIT",
+    name: "CUIT",
+    field: "PersonalCUITCUILCUIT",
+    fieldName: "PersonalCUITCUILCUIT",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "SituacionRevistaDescripcion",
+    name: "SituacionRevista",
+    field: "SituacionRevistaDescripcion",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "PersonalSituacionRevistaDesde",
+    name: "Desde",
+    field: "PersonalSituacionRevistaDesde",
+    fieldName: "persitrev.PersonalSituacionRevistaDesde",
+    type: "date",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "PersonalSituacionRevistaHasta",
+    name: "Hasta",
+    field: "PersonalSituacionRevistaHasta",
+    fieldName: "persitrev.PersonalSituacionRevistaHasta",
+    type: "date",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  // {
+  //   id: "EfectoId",
+  //   name: "Efecto ID",
+  //   field: "EfectoId",
+  //   fieldName: "stk.EfectoId",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false
+  // },
+  // {
+  //   id: "EfectoEfectoIndividualId",
+  //   name: "Efecto Individual ID",
+  //   field: "EfectoEfectoIndividualId",
+  //   fieldName: "stk.EfectoEfectoIndividualId",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false
+  // },
+  
+  {
+    id: "EfectoDescripcion",
+    name: "Efecto",
+    field: "EfectoDescripcion",
+    fieldName: "efe.EfectoDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoAtrDescripcion",
+    name: "Atr. Efecto",
+    field: "EfectoAtrDescripcion",
+    fieldName: "efe.EfectoAtrDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoEfectoIndividualDescripcion",
+    name: "Efe. Individual",
+    field: "EfectoEfectoIndividualDescripcion",
+    fieldName: "efeind.EfectoEfectoIndividualDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoIndividualAtrDescripcion",
+    name: "Efe. Atr. Individual",
+    field: "EfectoIndividualAtrDescripcion",
+    fieldName: "efeind.EfectoIndividualAtrDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "StockStock",
+    name: "Stock",
+    field: "StockStock",
+    fieldName: "stk.StockStock",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 50
+  }
+
+]
+
+const listaColumnasObjetivos: any[] = [
+  {
     id: "ContieneEfectoIndividual",
     name: "Contiene Efecto Individual",
     field: "ContieneEfectoIndividual",
@@ -23,7 +180,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "StockId",
-    name: "Stock ID",
+    name: "StockId",
     field: "StockId",
     fieldName: "stk.StockId",
     type: "number",
@@ -32,10 +189,20 @@ const listaColumnasPersonal: any[] = [
     searchHidden: false
   },
   {
-    id: "PersonalId",
-    name: "Personal ID",
-    field: "PersonalId",
-    fieldName: "per.PersonalId",
+    id: "ClienteId",
+    name: "Cliente",
+    field: "ClienteId",
+    fieldName: "obj.ClienteId",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "ClienteElementoDependienteId",
+    name: "Elemento Dependiente",
+    field: "ClienteElementoDependienteId",
+    fieldName: "obj.ClienteElementoDependienteId",
     type: "number",
     sortable: true,
     hidden: false,
@@ -43,7 +210,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "EfectoId",
-    name: "Efecto ID",
+    name: "EfectoId",
     field: "EfectoId",
     fieldName: "stk.EfectoId",
     type: "number",
@@ -53,7 +220,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "EfectoEfectoIndividualId",
-    name: "Efecto Individual ID",
+    name: "Efecto Individual Id",
     field: "EfectoEfectoIndividualId",
     fieldName: "stk.EfectoEfectoIndividualId",
     type: "number",
@@ -121,131 +288,7 @@ const listaColumnasPersonal: any[] = [
     hidden: false,
     searchHidden: false
   }
-  
-]
 
- const listaColumnasObjetivos: any[] = [
-  {
-      id: "ContieneEfectoIndividual",
-      name: "Contiene Efecto Individual",
-      field: "ContieneEfectoIndividual",
-      fieldName: "efe.ContieneEfectoIndividual",
-      type: "boolean",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "StockId",
-      name: "StockId",
-      field: "StockId",
-      fieldName: "stk.StockId",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "ClienteId",
-      name: "Cliente",
-      field: "ClienteId",
-      fieldName: "obj.ClienteId",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "ClienteElementoDependienteId",
-      name: "Elemento Dependiente",
-      field: "ClienteElementoDependienteId",
-      fieldName: "obj.ClienteElementoDependienteId",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "EfectoId",
-      name: "EfectoId",
-      field: "EfectoId",
-      fieldName: "stk.EfectoId",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "EfectoEfectoIndividualId",
-      name: "Efecto Individual Id",
-      field: "EfectoEfectoIndividualId",
-      fieldName: "stk.EfectoEfectoIndividualId",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "StockStock",
-      name: "Stock",
-      field: "StockStock",
-      fieldName: "stk.StockStock",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "StockReservado",
-      name: "Stock Reservado",
-      field: "StockReservado",
-      fieldName: "stk.StockReservado",
-      type: "number",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "EfectoDescripcion",
-      name: "Efecto",
-      field: "EfectoDescripcion",
-      fieldName: "efe.EfectoDescripcion",
-      type: "string",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "EfectoAtrDescripcion",
-      name: "Atr. Efecto",
-      field: "EfectoAtrDescripcion",
-      fieldName: "efe.EfectoAtrDescripcion",
-      type: "string",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "EfectoEfectoIndividualDescripcion",
-      name: "Descripción Individual",
-      field: "EfectoEfectoIndividualDescripcion",
-      fieldName: "efeind.EfectoEfectoIndividualDescripcion",
-      type: "string",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      id: "EfectoIndividualAtrDescripcion",
-      name: "Atr. Individual",
-      field: "EfectoIndividualAtrDescripcion",
-      fieldName: "efeind.EfectoIndividualAtrDescripcion",
-      type: "string",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    }
-  
 ]
 
 export class EfectoController extends BaseController {
@@ -259,7 +302,7 @@ export class EfectoController extends BaseController {
     this.jsonRes(listaColumnasObjetivos, res);
   }
 
-  private efectobyPersonalIdQuery(queryRunner:any, personalId:number) {
+  private efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
     return queryRunner.query(`
       SELECT efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
@@ -273,15 +316,21 @@ export class EfectoController extends BaseController {
     `, [personalId])
   }
 
-  private getEfectoQuery( queryRunner:any) {
+  private getEfectoQuery(queryRunner: any) {
     return queryRunner.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
+    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
+		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
+		, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       1
-      FROM Stock stk
-      JOIN Personal per ON per.PersonalId = stk.PersonalId
-      JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId `)
+    FROM Stock stk
+    JOIN Personal per ON per.PersonalId = stk.PersonalId
+    JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
+    LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=GETDATE() 
+    left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))`)
   }
 
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
@@ -306,18 +355,18 @@ export class EfectoController extends BaseController {
     }
   }
 
-  private efectobyObjetivoIdQuery(queryRunner:any, objetivoId:number) {
-    return queryRunner.query(`
-      SELECT efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
-      1
-      FROM Stock stk
-      JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
-      JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
-
-      WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND obj.ObjetivoId = @0
-    `,[objetivoId])
+  private efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
+    return queryRunner.query(`     
+    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+          efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
+          1
+    FROM Stock stk
+    JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+    JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
+    LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
+    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
+    `, [objetivoId])
   }
 
   async getEfectoByObjetivoId(req: any, res: Response, next: NextFunction) {
@@ -333,7 +382,7 @@ export class EfectoController extends BaseController {
 
 
 
-  private getEfectoObjetivosQuery(queryRunner:any) {
+  private getEfectoObjetivosQuery(queryRunner: any) {
     return queryRunner.query(`
       SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
