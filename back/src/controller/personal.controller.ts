@@ -9,6 +9,7 @@ import { Options } from "../schemas/filtro";
 import { isObject, promisify } from 'util';
 import * as fs from 'fs';
 import { FileUploadController } from "../controller/file-upload.controller"
+import { max } from "moment";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -55,6 +56,18 @@ const columns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+  },
+  {
+    id: "PersonalEdad",
+    name: "Edad",
+    field: "PersonalEdad",
+    type: "number",
+    fieldName: "peredad.PersonalEdad",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    maxWidth: 80,
   },
   {
     id: "PersonalNroLegajo",
@@ -481,7 +494,8 @@ cuit.PersonalCUITCUILCUIT,
         sitrev.PersonalSituacionRevistaDesde,
         act.GrupoActividadNumero, act.GrupoActividadDetalle,
         ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
-        tels.Telefonos
+        tels.Telefonos,
+        peredad.PersonalEdad
 
         FROM Personal per
         LEFT JOIN (
@@ -500,6 +514,15 @@ cuit.PersonalCUITCUILCUIT,
 
         LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde <= GETDATE() AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') >= GETDATE() 
         LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
+        LEFT JOIN (SELECT per.PersonalId,DATEDIFF(YEAR, per.PersonalFechaNacimiento, GETDATE()) -
+          CASE
+              WHEN (MONTH(GETDATE()) < MONTH(per.PersonalFechaNacimiento))
+                  OR (MONTH(GETDATE()) = MONTH(per.PersonalFechaNacimiento)
+                      AND DAY(GETDATE()) < DAY(per.PersonalFechaNacimiento))
+              THEN 1
+              ELSE 0
+          END AS PersonalEdad
+          FROM Personal per ) as peredad on  peredad.PersonalId=per.PersonalId
 
         WHERE (1=1)
         AND (${filterSql})
