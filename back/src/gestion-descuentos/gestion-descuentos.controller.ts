@@ -2204,7 +2204,7 @@ export class GestionDescuentosController extends BaseController {
           Importe: row.ImporteTotal
         }
         if (row.isfull == 1) {
-          await this.addPersonalOtroDescuento(queryRunner, Descuento, null, ip)
+          await this.addPersonalOtroDescuento(queryRunner, Descuento, usuario, ip)
         } else {
           dataset.push(row)
         }
