@@ -52,7 +52,18 @@ export const maskConfigFactory = (): NgxMaskOptions => ({
 const ngZorroConfig: NzConfig = {
 };
 
-const routerFeatures: RouterFeatures[] = [withComponentInputBinding(), withViewTransitions(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })];
+const routerFeatures: RouterFeatures[] = [
+  withComponentInputBinding(), 
+  withViewTransitions({
+    onViewTransitionCreated: ({ transition, to, from }) => {
+      // Solo permitir transiciones cuando el documento esté visible
+      if (document.hidden) {
+        transition.skipTransition();
+      }
+    }
+  }), 
+  withInMemoryScrolling({ scrollPositionRestoration: 'top' })
+];
 if (environment.useHash) routerFeatures.push(withHashLocation());
 
 const providers: Array<Provider | EnvironmentProviders> = [

@@ -2005,6 +2005,26 @@ export class SearchService {
       );
   }
 
+  getEfectoPersonal() {
+    return this.http.get<ResponseJSON<any>>(`api/efecto/getEfectoPersonal`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getEfectoObjetivos() {
+    return this.http.get<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getEfectoByPersonalId(personalId: number) {
     if (!personalId ) {
       return of([]);

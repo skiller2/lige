@@ -10,7 +10,254 @@ import { FileUploadController } from "src/controller/file-upload.controller";
 import * as fs from 'fs';
 import { promisify } from 'util';
 
+const listaColumnasPersonal: any[] = [
+  {
+    id: "ContieneEfectoIndividual",
+    name: "Contiene Efecto Individual",
+    field: "ContieneEfectoIndividual",
+    fieldName: "efe.ContieneEfectoIndividual",
+    type: "boolean",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "StockId",
+    name: "Stock ID",
+    field: "StockId",
+    fieldName: "stk.StockId",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "PersonalId",
+    name: "Personal ID",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoId",
+    name: "Efecto ID",
+    field: "EfectoId",
+    fieldName: "stk.EfectoId",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoEfectoIndividualId",
+    name: "Efecto Individual ID",
+    field: "EfectoEfectoIndividualId",
+    fieldName: "stk.EfectoEfectoIndividualId",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "StockStock",
+    name: "Stock",
+    field: "StockStock",
+    fieldName: "stk.StockStock",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "StockReservado",
+    name: "Stock Reservado",
+    field: "StockReservado",
+    fieldName: "stk.StockReservado",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoDescripcion",
+    name: "Efecto",
+    field: "EfectoDescripcion",
+    fieldName: "efe.EfectoDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoAtrDescripcion",
+    name: "Atr. Efecto",
+    field: "EfectoAtrDescripcion",
+    fieldName: "efe.EfectoAtrDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoEfectoIndividualDescripcion",
+    name: "Descripción Individual",
+    field: "EfectoEfectoIndividualDescripcion",
+    fieldName: "efeind.EfectoEfectoIndividualDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "EfectoIndividualAtrDescripcion",
+    name: "Atr. Individual",
+    field: "EfectoIndividualAtrDescripcion",
+    fieldName: "efeind.EfectoIndividualAtrDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  }
+  
+]
+
+ const listaColumnasObjetivos: any[] = [
+  {
+      id: "ContieneEfectoIndividual",
+      name: "Contiene Efecto Individual",
+      field: "ContieneEfectoIndividual",
+      fieldName: "efe.ContieneEfectoIndividual",
+      type: "boolean",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "StockId",
+      name: "StockId",
+      field: "StockId",
+      fieldName: "stk.StockId",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "ClienteId",
+      name: "Cliente",
+      field: "ClienteId",
+      fieldName: "obj.ClienteId",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "ClienteElementoDependienteId",
+      name: "Elemento Dependiente",
+      field: "ClienteElementoDependienteId",
+      fieldName: "obj.ClienteElementoDependienteId",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "EfectoId",
+      name: "EfectoId",
+      field: "EfectoId",
+      fieldName: "stk.EfectoId",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "EfectoEfectoIndividualId",
+      name: "Efecto Individual Id",
+      field: "EfectoEfectoIndividualId",
+      fieldName: "stk.EfectoEfectoIndividualId",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "StockStock",
+      name: "Stock",
+      field: "StockStock",
+      fieldName: "stk.StockStock",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "StockReservado",
+      name: "Stock Reservado",
+      field: "StockReservado",
+      fieldName: "stk.StockReservado",
+      type: "number",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "EfectoDescripcion",
+      name: "Efecto",
+      field: "EfectoDescripcion",
+      fieldName: "efe.EfectoDescripcion",
+      type: "string",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "EfectoAtrDescripcion",
+      name: "Atr. Efecto",
+      field: "EfectoAtrDescripcion",
+      fieldName: "efe.EfectoAtrDescripcion",
+      type: "string",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "EfectoEfectoIndividualDescripcion",
+      name: "Descripción Individual",
+      field: "EfectoEfectoIndividualDescripcion",
+      fieldName: "efeind.EfectoEfectoIndividualDescripcion",
+      type: "string",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      id: "EfectoIndividualAtrDescripcion",
+      name: "Atr. Individual",
+      field: "EfectoIndividualAtrDescripcion",
+      fieldName: "efeind.EfectoIndividualAtrDescripcion",
+      type: "string",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    }
+  
+]
+
 export class EfectoController extends BaseController {
+
+
+  async getGridColsPersonal(req, res) {
+    this.jsonRes(listaColumnasPersonal, res);
+  }
+
+  async getGridColsObjetivos(req, res) {
+    this.jsonRes(listaColumnasObjetivos, res);
+  }
 
   private efectobyPersonalIdQuery(queryRunner:any, personalId:number) {
     return queryRunner.query(`
@@ -24,6 +271,28 @@ export class EfectoController extends BaseController {
 
       WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND per.PersonalId = @0
     `, [personalId])
+  }
+
+  private getEfectoQuery( queryRunner:any) {
+    return queryRunner.query(`
+      SELECT  ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
+      1
+      FROM Stock stk
+      JOIN Personal per ON per.PersonalId = stk.PersonalId
+      JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId `)
+  }
+
+  async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
+    const personalId = req.params.id
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const list = await this.getEfectoQuery(queryRunner);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error)
+    }
   }
 
   async getEfectoByPersonalId(req: any, res: Response, next: NextFunction) {
@@ -56,6 +325,33 @@ export class EfectoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const list = await this.efectobyObjetivoIdQuery(queryRunner, objetivoId);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+
+  private getEfectoObjetivosQuery(queryRunner:any) {
+    return queryRunner.query(`
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
+      1
+      FROM Stock stk
+      JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+      JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId`)
+  }
+
+
+
+
+  async getEfectoObjetivos(req: any, res: Response, next: NextFunction) {
+    const objetivoId = req.params.id
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const list = await this.getEfectoObjetivosQuery(queryRunner);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
