@@ -825,7 +825,7 @@ cuit.PersonalCUITCUILCUIT,
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
 
       //Habilitacion necesaria
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
 
 
 
@@ -1560,7 +1560,7 @@ cuit.PersonalCUITCUILCUIT,
         throw setPersonalSeguroBeneficiario
 
       //Habilitacion Necesaria
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
 
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
@@ -2588,7 +2588,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuarioId: number, ip: string) {
+  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuario: number, ip: string) {
     //Compruebo si hubo cambios
     let cambios: boolean = false
     const habilitacionesOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
@@ -2618,11 +2618,11 @@ cuit.PersonalCUITCUILCUIT,
       PersonalHabilitacionNecesariaId++
       await queryRunner.query(`
           INSERT INTO PersonalHabilitacionNecesaria (
-          PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId,
-          PersonalHabilitacionNecesariaDesde, PersonalHabilitacionNecesariaPuesto, PersonalHabilitacionNecesariaUsuarioId,
-          PersonalHabilitacionNecesariaDia, PersonalHabilitacionNecesariaTiempo)
-          VALUES(@0,@1,@2,@3,@4,@5,@6,@7)
-          `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuarioId, now, time])
+          PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId, PersonalHabilitacionNecesariaDesde, 
+          PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudIpIng, PersonalHabilitacionNecesariaAudUsuarioIng,
+          PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudIpMod, PersonalHabilitacionNecesariaAudUsuarioMod)
+          VALUES(@0,@1,@2,@3, @3, @4, @5,@3, @4, @5)
+          `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuario])
     }
     await queryRunner.query(`
       UPDATE Personal SET
