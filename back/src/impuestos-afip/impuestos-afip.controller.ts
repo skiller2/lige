@@ -442,8 +442,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         FROM PersonalComprobantePagoAFIP pag 
         LEFT JOIN lige.dbo.liqmaperiodo per ON per.anio = @1 AND per.mes = @2
         LEFT JOIN Documento doc ON doc.PersonalId = pag.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = per.anio AND doc.DocumentoMes = per.mes
-        WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2
-`,
+        WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2`,
       [
         personalID,
         anioRequest,
@@ -503,7 +502,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             actual,
             usuario,
             ip
-            
+
           ]
         );
         const PersonalOtroDescuentoCuotaId = 1;
@@ -515,7 +514,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
           VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9, @10,@11,@12, @10,@11,@12)
         `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoUltNro, personalID, anioRequest, mesRequest, 1, importeMonto, 0, 0, 'FA', actual, usuario, ip]);
-        
+
         await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [personalID, PersonalOtroDescuentoUltNro, PersonalOtroDescuentoCuotaId])
       }
 
@@ -543,6 +542,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             WHERE PersonalId = @1 AND PersonalOtroDescuentoDescuentoId=@3 AND PersonalOtroDescuentoAnoAplica=@4 AND PersonalOtroDescuentoMesesAplica=@5`,
             [PersonalComprobantePagoAFIPId, personalID, importeMonto, Number(process.env.OTRO_DESCUENTO_ID), anioRequest, mesRequest, actual, usuario, ip]
           );
+          await queryRunner.query(`UPDATE cuota SET cuota.PersonalOtroDescuentoCuotaImporte=@2, cuota.AudFechaMod=@5, cuota.AudUsuarioMod=@6, cuota.AudIpMod=@7
+          FROM PersonalOtroDescuentoCuota cuota
+          JOIN PersonalOtroDescuento otrodes ON cuota.PersonalOtroDescuentoId = otrodes.PersonalOtroDescuentoId and cuota.PersonalId=otrodes.PersonalId
+          WHERE otrodes.PersonalOtroDescuentoDescuentoId=@0 AND otrodes.PersonalId= @1 AND otrodes.PersonalOtroDescuentoAnoAplica =@3 AND otrodes.PersonalOtroDescuentoMesesAplica=@4`, 
+          [Number(process.env.OTRO_DESCUENTO_ID), personalID, importeMonto, anioRequest, mesRequest, actual, usuario, ip])
         }
         updateFile = true
       }
@@ -571,7 +575,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       */
 
       if (pagenum == null) {
-        
+
         await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest, mesRequest - 1, 21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest, mesRequest, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
