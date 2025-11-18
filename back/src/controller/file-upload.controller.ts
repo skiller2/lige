@@ -520,10 +520,13 @@ export class FileUploadController extends BaseController {
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
+            console.log("path", path)
 
             const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].DocumentoPath}`;
             const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
             
+            console.log("tempFilePath", tempFilePath)
+            console.log("filePath", filePath)
             
             // Borra el archivo si existe
             if (existsSync(filePath)) {
@@ -533,6 +536,7 @@ export class FileUploadController extends BaseController {
             // Copia el nuevo archivo
 
             let type = file.mimetype.split('/')[1]
+            console.log("type", type)
 
             if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
             if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') type = 'xlsx'
@@ -540,7 +544,10 @@ export class FileUploadController extends BaseController {
 
             const newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
 
+            console.log("newFilePath", newFilePath)
+            console.log("entro a copiar")
             copyFileSync(tempFilePath, newFilePath);
+            console.log("salgo de copiar")
 
             
             
@@ -556,8 +563,7 @@ export class FileUploadController extends BaseController {
             DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
             DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
             DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13
-            WHERE DocumentoId = @0
-        `, [doc_id, periodo_id, fecha, newFilePath, NewNamefile, doctipo_id, personal_id, objetivo_id,
+            WHERE DocumentoId = @0`, [doc_id, periodo_id, fecha, newFilePath, NewNamefile, doctipo_id, personal_id, objetivo_id,
               den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
 
 
@@ -570,8 +576,7 @@ export class FileUploadController extends BaseController {
             DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
             DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
             DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13
-            WHERE DocumentoId = @0
-        `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
+            WHERE DocumentoId = @0`, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
               den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
 
 
