@@ -575,7 +575,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       */
 
       if (pagenum == null) {
-
+        
         await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest, mesRequest - 1, 21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest, mesRequest, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
@@ -614,7 +614,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
     const queryRunner = dataSource.createQueryRunner();
-
+   
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
