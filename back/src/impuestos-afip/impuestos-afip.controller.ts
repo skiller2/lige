@@ -409,14 +409,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     pagenum,
     forzado: boolean,
     ip: string,
-    usuarioId: number,
     usuario: string
   ) {
     let updateFile = false
 
     const actual = new Date()
-    const time = this.getTimeString(actual)
-    actual.setHours(0, 0, 0, 0)
 
     const [personalIDQuery] = await queryRunner.query(
       `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre, excep.PersonalExencionCUIT 
@@ -481,8 +478,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (PersonalExencionCUIT != 1) {
         PersonalOtroDescuentoUltNro++
         await queryRunner.query(
-          `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
-      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18)`,
+          `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
+          , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
+          , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
+          , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
+          , PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudFechaMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudIpMod)
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17,@15, @16, @17)`,
           [
             PersonalOtroDescuentoUltNro,
             personalID,
@@ -499,10 +500,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             null,
             "",
             `${mesRequest}/${anioRequest}`, //detalle
-            ip,
-            usuarioId,
             actual,
-            time
+            usuario,
+            ip
+            
           ]
         );
         const PersonalOtroDescuentoCuotaId = 1;
@@ -510,12 +511,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             INSERT INTO PersonalOtroDescuentoCuota (
           PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
           PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
-          PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
-          PersonalOtroDescuentoCuotaProceso)
-          VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
-        `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoUltNro, personalID,
-          anioRequest, mesRequest, 1,
-          importeMonto, 0, 0, 'FA'])
+          PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado, PersonalOtroDescuentoCuotaProceso, 
+          AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+          VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9, @10,@11,@12, @10,@11,@12)
+        `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoUltNro, personalID, anioRequest, mesRequest, 1, importeMonto, 0, 0, 'FA', actual, usuario, ip]);
         
         await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [personalID, PersonalOtroDescuentoUltNro, PersonalOtroDescuentoCuotaId])
       }
@@ -540,8 +539,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         if (PersonalExencionCUIT != 1) {
           await queryRunner.query(
-            `UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoImporteVariable=@2 WHERE PersonalId = @1 AND PersonalOtroDescuentoDescuentoId=@3 AND PersonalOtroDescuentoAnoAplica=@4 AND PersonalOtroDescuentoMesesAplica=@5`,
-            [PersonalComprobantePagoAFIPId, personalID, importeMonto, Number(process.env.OTRO_DESCUENTO_ID), anioRequest, mesRequest]
+            `UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoImporteVariable=@2, PersonalOtroDescuentoAudFechaMod=@6, PersonalOtroDescuentoAudUsuarioMod=@7, PersonalOtroDescuentoAudIpMod=@8 
+            WHERE PersonalId = @1 AND PersonalOtroDescuentoDescuentoId=@3 AND PersonalOtroDescuentoAnoAplica=@4 AND PersonalOtroDescuentoMesesAplica=@5`,
+            [PersonalComprobantePagoAFIPId, personalID, importeMonto, Number(process.env.OTRO_DESCUENTO_ID), anioRequest, mesRequest, actual, usuario, ip]
           );
         }
         updateFile = true
@@ -633,7 +633,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         //Call to writefile
         await queryRunner.startTransaction()
-        const usuarioId = await this.getUsuarioId(res, queryRunner)
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
 
@@ -647,7 +646,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           null,
           forzado,
           ip,
-          usuarioId,
           usuario
         );
         await queryRunner.commitTransaction()
@@ -727,7 +725,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
           try {
             await queryRunner.startTransaction()
-            const usuarioId = await this.getUsuarioId(res, queryRunner)
             const ip = this.getRemoteAddress(req)
             const usuario = res.locals.userName
 
@@ -741,7 +738,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               file,
               pagenum,
               forzado,
-              ip, usuarioId, usuario
+              ip, usuario
             );
 
             await queryRunner.commitTransaction()
