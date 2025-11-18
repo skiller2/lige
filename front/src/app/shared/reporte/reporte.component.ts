@@ -50,8 +50,9 @@ export class ReporteComponent {
       const btn = this.btnDescargar();
       
       if (btn && this.filtrosReporte().length == 0) {
-        btn.nativeElement.click();
-        this.isVisible.set(false)
+        setTimeout(() => {
+          btn.nativeElement.click();
+        }, 50);
       }
     });
   }
@@ -61,7 +62,7 @@ export class ReporteComponent {
     try {
       const res:any = await firstValueFrom(this.searchService.getInfoFilterReport(title).pipe(map((res: any) => res.value)))
 
-//TODO: Tomar valores por omision dentro del forEach
+      //TODO: Tomar valores por omision dentro del forEach
       res.forEach((obj: any): void => {
         if (obj.DefaultValues.length > 0) {
           obj.Value = obj.DefaultValues[0]

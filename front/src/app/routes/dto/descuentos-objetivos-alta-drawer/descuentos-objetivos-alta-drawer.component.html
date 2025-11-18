@@ -49,10 +49,7 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control [nzMd]="18" [nzSpan]="9" *ngIf="$objetivoDetalle| async as objetivoDetalle">
-            @if (objetivoDetalle.responsable.length==0 && ObjetivoId()>0) {
-            <nz-alert nzShowIcon nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert>
-            }
-            <app-view-responsable [list]="objetivoDetalle.responsable"></app-view-responsable>
+            <app-view-responsable *ngIf="ObjetivoId()>0" [list]="objetivoDetalle.responsable"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
 
