@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -83,6 +83,8 @@ interface SearchResult {
     }
   `,
   styles: [`
+
+ 
     .search-overlay {
       position: fixed;
       top: 0;
@@ -222,10 +224,11 @@ interface SearchResult {
     NzButtonModule
   ]
 })
-export class HeaderSearchModuleComponent implements OnInit {
+export class HeaderSearchModuleComponent implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly document = inject(DOCUMENT);
 
   searchQuery = '';
   allMenuItems: MenuItem[] = [];
@@ -296,10 +299,12 @@ export class HeaderSearchModuleComponent implements OnInit {
 
   openSearch(): void {
     this.isModalVisible = true;
+    // Prevenir scroll del body
+    this.document.body.style.overflow = 'hidden';
     this.cdr.detectChanges();
     // Enfocar el input después de que el modal se renderice
     setTimeout(() => {
-      const input = document.querySelector('.search-input-large') as HTMLInputElement;
+      const input = this.document.querySelector('.search-input-large') as HTMLInputElement;
       if (input) {
         input.focus();
       }
@@ -310,7 +315,14 @@ export class HeaderSearchModuleComponent implements OnInit {
     this.isModalVisible = false;
     this.searchQuery = '';
     this.filteredResults = [];
+    // Restaurar scroll del body
+    this.document.body.style.overflow = '';
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    // Asegurar que el scroll se restaure si el componente se destruye con el modal abierto
+    this.document.body.style.overflow = '';
   }
 
   navigateToModule(link: string): void {
