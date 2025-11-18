@@ -30,7 +30,7 @@ interface SearchResult {
 @Component({
   selector: 'header-search-module',
   template: `
-    <a layout-default-header-item-trigger style="cursor: pointer;" (click)="openSearch()">
+    <a layout-default-header-item-trigger style="cursor: pointer; display: flex; align-items: center; justify-content: center;" (click)="openSearch()">
       <i nz-icon nzType="search" nzTheme="outline" style="color: white;"></i>
     </a>
     
@@ -71,7 +71,7 @@ interface SearchResult {
                 </div>
               } @else {
                 <div class="no-results">
-                  <i nz-icon nzType="file-search" style="font-size: 48px; color: #d9d9d9;"></i>
+                  <i nz-icon nzType="file-search" style="font-size: 48px, color: #d9d9d9;"></i>
                   <p>No se encontraron módulos</p>
                 </div>
               
