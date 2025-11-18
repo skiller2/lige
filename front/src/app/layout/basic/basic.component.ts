@@ -20,6 +20,7 @@ import { HeaderSearchComponent } from './widgets/search.component';
 import { HeaderTaskComponent } from './widgets/task.component';
 import { HeaderUserComponent } from './widgets/user.component';
 import { HeaderTitleComponent } from './widgets/title.component';
+import { HeaderSearchModuleComponent } from './widgets/search-module.component';
 
 
 @Component({
@@ -29,9 +30,7 @@ import { HeaderTitleComponent } from './widgets/title.component';
 
     <layout-default [options]="options" [content]="contentTpl" [customError]="null" >
       <layout-default-header-item direction="left" hidden="mobile"> 
-        <a layout-default-header-item-trigger routerLink="">
-          <i nz-icon nzType="search" nzTheme="outline"></i>
-        </a>
+        <header-search-module></header-search-module>
       </layout-default-header-item>
       <layout-default-header-item direction="right" hidden="mobile"> 
         <a layout-default-header-item-trigger routerLink="/passport/lock">
@@ -124,7 +123,8 @@ import { HeaderTitleComponent } from './widgets/title.component';
         HeaderClearStorageComponent,
         HeaderFullScreenComponent,
         HeaderUserComponent,
-        HeaderTitleComponent
+        HeaderTitleComponent,
+        HeaderSearchModuleComponent
     ]
 })
 export class LayoutBasicComponent {
