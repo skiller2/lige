@@ -524,9 +524,6 @@ export class FileUploadController extends BaseController {
 
             const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].DocumentoPath}`;
             const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
-
-            console.log("tempFilePath", tempFilePath)
-            console.log("filePath", filePath)
             let type = file.mimetype.split('/')[1]
 
             try {
@@ -536,26 +533,17 @@ export class FileUploadController extends BaseController {
               }
 
               // Copia el nuevo archivo
-              console.log("type", type)
-
               if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
               if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') type = 'xlsx'
               if (type == 'vnd.ms-excel') type = 'xls'
 
               const newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
 
-              console.log("newFilePath", newFilePath)
-              console.log("entro a copiar")
-
               copyFileSync(tempFilePath, newFilePath);
             } catch (error) {
               throw new ClientException(`Error al copiar el archivo desde ${tempFilePath} hacia ${newFilePath}. ${error.message}`);
             }
             console.log("salgo de copiar")
-
-
-
-            console.log("newFilePath", newFilePath)
 
             const NewNamefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
 
