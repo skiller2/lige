@@ -134,7 +134,6 @@ interface SearchResult {
     
     .search-header {
       padding: 24px;
-      //border-bottom: 1px solid #f0f0f0;
       display: flex;
       align-items: center;
       gap: 12px;
