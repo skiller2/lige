@@ -219,6 +219,7 @@ export class AdelantosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     const FormaPrestamoId = 7 //Adelanto
+    const ultimoDiaSolicitud = 20; //DIA DEL MES HASTA EL CUAL SE PUEDE SOLICITAR ADELANTO
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -233,6 +234,11 @@ export class AdelantosController extends BaseController {
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar adelantos para el período`)
 
+      // VALIDAR QUE LA SOLICITUD SEA ANTES DEL DIA 20 DEL MES ACTUAL
+      const today = new Date();
+      if (anio === today.getFullYear() && mes === (today.getMonth() + 1) && today.getDate() > ultimoDiaSolicitud) {
+        throw new ClientException(`El plazo para solicitar adelanto ha finalizado. Dicha solicitud se puede hacer hasta el dia ${ultimoDiaSolicitud}, inclusive, del período ${mes}/${anio}.`);
+      }
 
       const aplicaEl = `${String(mes).padStart(2, '0')}/${String(anio).padStart(4, '0')}`
 
