@@ -411,6 +411,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     ip: string,
     usuario: string
   ) {
+    const recibosGenerados = await queryRunner.query(
+      `SELECT periodo_id, anio, mes, ind_recibos_generados
+      FROM lige.dbo.liqmaperiodo WHERE anio = @0 AND mes = @1 AND ind_recibos_generados = 1`,
+      [anioRequest, mesRequest]
+    );
+
     let updateFile = false
 
     const actual = new Date()
@@ -473,8 +479,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       );
 
 
+      // verificar que el periodo no tenga los recibos generados
 
-      if (PersonalExencionCUIT != 1) {
+      if (PersonalExencionCUIT != 1 && recibosGenerados.length == 0) {
+
         PersonalOtroDescuentoUltNro++
         await queryRunner.query(
           `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
@@ -482,7 +490,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
           , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
           , PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudFechaMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudIpMod)
-      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17,@15, @16, @17)`,
+           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17,@15, @16, @17)`,
           [
             PersonalOtroDescuentoUltNro,
             personalID,
@@ -516,13 +524,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoUltNro, personalID, anioRequest, mesRequest, 1, importeMonto, 0, 0, 'FA', actual, usuario, ip]);
 
         await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [personalID, PersonalOtroDescuentoUltNro, PersonalOtroDescuentoCuotaId])
+
+        await queryRunner.query(
+          `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
+          [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro, personalID]
+        );
       }
-
-      await queryRunner.query(
-        `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
-        [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro, personalID]
-      );
-
 
 
       updateFile = true
@@ -536,7 +543,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           [PersonalComprobantePagoAFIPId, personalID, importeMonto]
         );
 
-        if (PersonalExencionCUIT != 1) {
+        if (PersonalExencionCUIT != 1 && recibosGenerados.length == 0) {
+
           await queryRunner.query(
             `UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoImporteVariable=@2, PersonalOtroDescuentoAudFechaMod=@6, PersonalOtroDescuentoAudUsuarioMod=@7, PersonalOtroDescuentoAudIpMod=@8 
             WHERE PersonalId = @1 AND PersonalOtroDescuentoDescuentoId=@3 AND PersonalOtroDescuentoAnoAplica=@4 AND PersonalOtroDescuentoMesesAplica=@5`,
@@ -545,8 +553,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           await queryRunner.query(`UPDATE cuota SET cuota.PersonalOtroDescuentoCuotaImporte=@2, cuota.AudFechaMod=@5, cuota.AudUsuarioMod=@6, cuota.AudIpMod=@7
           FROM PersonalOtroDescuentoCuota cuota
           JOIN PersonalOtroDescuento otrodes ON cuota.PersonalOtroDescuentoId = otrodes.PersonalOtroDescuentoId and cuota.PersonalId=otrodes.PersonalId
-          WHERE otrodes.PersonalOtroDescuentoDescuentoId=@0 AND otrodes.PersonalId= @1 AND otrodes.PersonalOtroDescuentoAnoAplica =@3 AND otrodes.PersonalOtroDescuentoMesesAplica=@4`, 
-          [Number(process.env.OTRO_DESCUENTO_ID), personalID, importeMonto, anioRequest, mesRequest, actual, usuario, ip])
+          WHERE otrodes.PersonalOtroDescuentoDescuentoId=@0 AND otrodes.PersonalId= @1 AND otrodes.PersonalOtroDescuentoAnoAplica =@3 AND otrodes.PersonalOtroDescuentoMesesAplica=@4`,
+            [Number(process.env.OTRO_DESCUENTO_ID), personalID, importeMonto, anioRequest, mesRequest, actual, usuario, ip])
         }
         updateFile = true
       }
@@ -575,7 +583,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       */
 
       if (pagenum == null) {
-        
+
         await FileUploadController.handleDOCUpload(personalID, null, null, DocumentoId, new Date(anioRequest, mesRequest - 1, 21), null, `${CUIT}-${anioRequest}-${mesRequest}`, anioRequest, mesRequest, fileObj, usuario, ip, queryRunner)
       } else {
         const currentFileBuffer = readFileSync(file.path);
@@ -614,7 +622,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
     const queryRunner = dataSource.createQueryRunner();
-   
+
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
@@ -1113,7 +1121,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
       const fullPath = join(FileUploadController.pathDocuments, comprobante.DocumentoPath)
-      const nombre_archivo = comprobante.nombre_archivo
+      const nombre_archivo = comprobante.DocumentoNombreArchivo
 
       //const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
 

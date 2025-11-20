@@ -247,7 +247,7 @@ const columnasGrilla: any[] = [
   },
 
   {
-    name: "Estado Carga",
+    name: "Asistencia",
     type: "string",
     id: "EstadoAsistencia",
     field: "EstadoAsistencia",

@@ -112,7 +112,7 @@ const listaColumnasPersonal: any[] = [
   //   hidden: false,
   //   searchHidden: false
   // },
-  
+
   {
     id: "EfectoDescripcion",
     name: "Efecto",
@@ -355,20 +355,7 @@ export class EfectoController extends BaseController {
     }
   }
 
-  private efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
-    return queryRunner.query(`     
-    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-          efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
-          1
-    FROM Stock stk
-    JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
-    JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
-    LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
-    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
-    `, [objetivoId])
-  }
-
+  // usada para detalle asistencia, apartado de efectos por objetivo
   async getEfectoByObjetivoId(req: any, res: Response, next: NextFunction) {
     const objetivoId = req.params.id
     const queryRunner = dataSource.createQueryRunner();
@@ -380,24 +367,23 @@ export class EfectoController extends BaseController {
     }
   }
 
-
-
-  private getEfectoObjetivosQuery(queryRunner: any) {
+  private efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
     return queryRunner.query(`
-      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      SELECT efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       1
       FROM Stock stk
       JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
       JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId`)
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
+
+      WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND obj.ObjetivoId = @0
+    `, [objetivoId])
   }
 
 
-
-
+  // usada para la grilla de efectos por objetivos
   async getEfectoObjetivos(req: any, res: Response, next: NextFunction) {
-    const objetivoId = req.params.id
     const queryRunner = dataSource.createQueryRunner();
     try {
       const list = await this.getEfectoObjetivosQuery(queryRunner);
@@ -406,5 +392,20 @@ export class EfectoController extends BaseController {
       return next(error)
     }
   }
+
+  private getEfectoObjetivosQuery(queryRunner: any) {
+    return queryRunner.query(`
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+          efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
+          1
+    FROM Stock stk
+    JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+    JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
+    LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
+    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
+      `)
+  }
+
 
 }
