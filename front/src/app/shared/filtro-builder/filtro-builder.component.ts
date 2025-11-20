@@ -28,6 +28,7 @@ import { DescripcionProductoSearchComponent } from "../../shared/descripcion-pro
 import { AdministradorSearchComponent } from "../../shared/administrador-search/administrador-search.component"
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
 import { ApiService } from '../../services/api.service';
+import { NumberAdvancedSearchComponent } from '../number-advanced-search/number-advanced-search';
 
 type listOptionsT = {
   filtros: any[],
@@ -47,7 +48,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, NumberAdvancedSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],
@@ -184,6 +185,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         case 'date':
           
           break;
+        case 'numberAdvanced':
+          break;
         case 'number':
         case 'float':
         case 'boolean':
@@ -203,7 +206,14 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (this.verifySelections()) {
       let value:any
 
-      if ((this.selections.field.type == 'date' || this.selections.field.type == 'dateTime') && this.selections.value instanceof Date != true) {
+      if (this.selections.field.searchType == 'numberAdvanced') {
+        if (this.selections.value && typeof this.selections.value === 'object' && this.selections.value.operator !== undefined && this.selections.value.value !== undefined) {
+          this.selections.operator = this.selections.value.operator
+          this.selections.value = this.selections.value.value
+        }
+      }
+
+      if ((this.selections.field.type == 'date' || this.selections.field.type == 'dateTime') && this.selections.field.searchComponent != 'inpurForNumberAdvancedSearch' && this.selections.value instanceof Date != true) {
         const value = new Date(this.selections.value.value)
         const operator = this.selections.value.operator
         this.selections.value = value
@@ -227,8 +237,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         else
           this.selections.label = (this.selections.value instanceof Date)? String(this.datePipe.transform(this.selections.value)) :String(this.selections.value)
       }
-
-
+      
       this.appendFiltro(
         this.selections as any,
         value,

@@ -20,7 +20,6 @@
         [nzLabel]="condition"
         [nzValue]="condition"></nz-option>
     </nz-select> -->
-
     <nz-select [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field"
       (ngModelChange)="onOptionChange()" #fieldSelector>
       <ng-container *ngFor="let field of fieldsToSelect()">
@@ -75,6 +74,10 @@
 
       <app-fecha-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForFechaSearch'"
+        (keydown.enter)="handleInputConfirm()" />
+
+        <app-number-advanced-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForNumberAdvancedSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
       <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"

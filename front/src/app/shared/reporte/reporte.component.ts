@@ -42,7 +42,10 @@ export class ReporteComponent {
   btnDescargar = viewChild(NzButtonComponent, { read: ElementRef });
 
   getFiltros() {
-    return this.filtrosReporte().map((f:any) => { return { [f.Name]: f.Value } })
+    return this.filtrosReporte().reduce((acc: any, f: any) => {
+      acc[f.Name] = f.Value;
+      return acc;
+    }, {});
   }
 
   constructor() {
