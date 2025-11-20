@@ -258,4 +258,22 @@ export class ImpuestoAfipComponent {
     });
   }
 
+  public forzadoUploadData(cuit: string | null | undefined, montoText: string | null | undefined) {
+    return {
+      anio: this.anio,
+      mes: this.mes,
+      cuit,
+      monto: this.parseMontoForzado(montoText),
+    };
+  }
+
+  private parseMontoForzado(value: string | null | undefined) {
+    if (!value) {
+      return null;
+    }
+
+    const normalized = value.replace(/\./g, '').replace(',', '.');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
 }

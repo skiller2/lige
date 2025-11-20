@@ -69,15 +69,10 @@
           <nz-form-label [nzSpan]="5">Forzado</nz-form-label>
           <nz-form-control>
             <ng-container>
-              <input #montoForzado type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel type="text" appDotToComma mask="separator.2"  />
+              <input #montoForzado  [placeholder]="'Monto'" nz-input name="monto" ngModel type="text" appDotToComma mask="separator.2"  />
               <input #cuitForzado type="number" [placeholder]="'CUIT'" nz-input name="cuitForzado" ngModel />
 
-              <nz-upload nzAccept="application/pdf" [nzAction]="url_forzado" [nzData]="{
-                    anio: anio,
-                    mes: mes,
-                    cuit: cuitForzado.value,
-                    monto: montoForzado.valueAsNumber
-                  }" nzName="pdf">
+              <nz-upload nzAccept="application/pdf" [nzAction]="url_forzado" [nzData]="forzadoUploadData(cuitForzado.value, montoForzado.value)" nzName="pdf">
                 <button nz-button>
                   <span nz-icon nzType="upload"></span>
                   Subir Comprobante (Forzado)

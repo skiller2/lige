@@ -618,6 +618,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
 
   async handlePDFUpload(req: Request, res: Response, next: NextFunction, forzado: boolean) {
+    //console.log("pase por el handlePDFUpload", req.body)
     const file = req.file;
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;

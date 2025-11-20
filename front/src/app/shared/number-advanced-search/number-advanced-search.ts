@@ -92,10 +92,8 @@ export class NumberAdvancedSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(value: number | null | undefined) {
-    // Normalizar el valor: convertir undefined/null a null
     let val: number | null = null
     if (value !== null && value !== undefined) {
-      // Si es string, intentar convertirlo a número
       const numValue = typeof value === 'string' ? parseFloat(value) : value
       if (!isNaN(numValue) && isFinite(numValue)) {
         val = numValue
