@@ -69,7 +69,7 @@
           <nz-form-label [nzSpan]="5">Forzado</nz-form-label>
           <nz-form-control>
             <ng-container>
-              <input #montoForzado type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel />
+              <input #montoForzado type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel type="text" appDotToComma mask="separator.2"  />
               <input #cuitForzado type="number" [placeholder]="'CUIT'" nz-input name="cuitForzado" ngModel />
 
               <nz-upload nzAccept="application/pdf" [nzAction]="url_forzado" [nzData]="{
