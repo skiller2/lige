@@ -384,7 +384,6 @@ export class EfectoController extends BaseController {
 
   // usada para la grilla de efectos por objetivos
   async getEfectoObjetivos(req: any, res: Response, next: NextFunction) {
-    const objetivoId = req.params.id
     const queryRunner = dataSource.createQueryRunner();
     try {
       const list = await this.getEfectoObjetivosQuery(queryRunner);
