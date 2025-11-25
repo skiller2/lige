@@ -76,6 +76,10 @@
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForFechaSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
+        <app-periodo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForPeriodoSearch'"
+        (keydown.enter)="handleInputConfirm()" />
+
         <app-number-advanced-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForNumberAdvancedSearch'"
         (keydown.enter)="handleInputConfirm()" />

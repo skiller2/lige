@@ -117,6 +117,7 @@ const columnsAyudaAsistencial: any[] = [
     type: "string",
     field: "PersonalPrestamoAplicaEl",
     fieldName: "pres.PersonalPrestamoAplicaEl",
+    searchComponent: "inpurForPeriodoSearch",
     searchType: "string",
     sortable: true,
     searchHidden: false

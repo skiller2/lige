@@ -29,6 +29,7 @@ import { AdministradorSearchComponent } from "../../shared/administrador-search/
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
 import { ApiService } from '../../services/api.service';
 import { NumberAdvancedSearchComponent } from '../number-advanced-search/number-advanced-search';
+import { PeriodoSearchComponent } from '../periodo-search/periodo-search';
 
 type listOptionsT = {
   filtros: any[],
@@ -48,7 +49,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, NumberAdvancedSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],
