@@ -119,7 +119,7 @@ const columnasGrilla: any[] = [
     id: "GrupoActividadId",
     field: "GrupoActividadId",
     fieldName: "ga.GrupoActividadId",
-    searchComponent: 'inpurForGrupoActividadSearch',
+    searchComponent: 'inputForGrupoActividadSearch',
     searchType: "number",
     sortable: false,
     hidden: true,

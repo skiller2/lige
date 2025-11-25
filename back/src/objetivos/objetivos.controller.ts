@@ -93,7 +93,7 @@ const listaColumnas: any[] = [
         id: "GrupoActividadId",
         field: "GrupoActividadId",
         fieldName: " gap.GrupoActividadId",
-        searchComponent: "inpurForGrupoActividadSearch",
+        searchComponent: "inputForGrupoActividadSearch",
         sortable: true,
         hidden: true,
         searchHidden: false

@@ -130,7 +130,7 @@ export class AdelantosController extends BaseController {
       id: "GrupoActividadId",
       field: "GrupoActividadId",
       fieldName: "g.GrupoActividadId",
-      searchComponent: 'inpurForGrupoActividadSearch',
+      searchComponent: 'inputForGrupoActividadSearch',
       sortable: false,
       hidden: true,
       searchHidden: false
