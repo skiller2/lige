@@ -331,7 +331,7 @@
         (ngModelChange)="selectedValueMetodologias($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsMetodologias | async">
-          <nz-option [nzValue]="option" [nzLabel]="option.descripcion"></nz-option>
+          <nz-option [nzValue]="option" [nzLabel]="option.etiqueta"></nz-option>
         </ng-container>
       </nz-select>
 

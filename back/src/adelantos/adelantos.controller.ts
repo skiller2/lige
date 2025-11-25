@@ -189,13 +189,20 @@ export class AdelantosController extends BaseController {
     }
   }
 
-  async delAdelanto(personalId: number, monto: number, ip, res: Response, next: NextFunction) {
+  async delAdelanto(personalId: number, anio: number, mes: number, monto: number, ip, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+    const now = new Date();
+    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       if (!personalId) throw new ClientException("Falta cargar la persona");
+
+      // VALIDAR QUE LA SOLICITUD SEA ANTES DEL DIA 20 DEL MES ACTUAL
+      if (anio === now.getFullYear() && mes === (now.getMonth() + 1) && now > fechaLimite) {
+        throw new ClientException(`El plazo para modificar adelantos ha finalizado. Dicha acción se puede hacer hasta las ${fechaLimite.getHours()} hs del día ${fechaLimite.getDate()}, dentro de dicho período.`);
+      }
 
       await queryRunner.query(
         `DELETE From PersonalPrestamo 
@@ -219,7 +226,8 @@ export class AdelantosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     const FormaPrestamoId = 7 //Adelanto
-    const ultimoDiaSolicitud = 20; //DIA DEL MES HASTA EL CUAL SE PUEDE SOLICITAR ADELANTO
+    const now = new Date();
+    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -233,11 +241,10 @@ export class AdelantosController extends BaseController {
 
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar adelantos para el período`)
-
+    
       // VALIDAR QUE LA SOLICITUD SEA ANTES DEL DIA 20 DEL MES ACTUAL
-      const today = new Date();
-      if (anio === today.getFullYear() && mes === (today.getMonth() + 1) && today.getDate() > ultimoDiaSolicitud) {
-        throw new ClientException(`El plazo para solicitar adelanto ha finalizado. Dicha solicitud se puede hacer hasta el dia ${ultimoDiaSolicitud}, inclusive, del período ${mes}/${anio}.`);
+      if (anio === now.getFullYear() && mes === (now.getMonth() + 1) && now > fechaLimite) {
+        throw new ClientException(`El plazo para solicitar adelanto en el período ${mes}/${anio}, ha finalizado. Dicha solicitud se puede hacer hasta las ${fechaLimite.getHours()} hs del día ${fechaLimite.getDate()}, dentro de dicho período.`);
       }
 
       const aplicaEl = `${String(mes).padStart(2, '0')}/${String(anio).padStart(4, '0')}`
@@ -279,7 +286,6 @@ export class AdelantosController extends BaseController {
         AND PersonalId = @0
         `, [personalId, FormaPrestamoId]
       );
-      const now = new Date()
 
       if (monto > 0) {
 

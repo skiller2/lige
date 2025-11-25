@@ -74,7 +74,7 @@ const columns: any[] = [
     id: "PersonalNroLegajo",
     name: "Nro Asociado",
     field: "PersonalNroLegajo",
-    type: "string",
+    type: "number",
     fieldName: "per.PersonalNroLegajo",
     searchType: "number",
     sortable: true,
@@ -82,26 +82,15 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "SucursalId",
-    name: "SucursalId",
-    field: "SucursalId",
-    type: "string",
-    fieldName: "suc.SucursalId",
-    searchType: "number",
-    sortable: true,
-    searchHidden: true,
-    hidden: true,
-  },
-  {
-    id: "SucursalDescripcion",
     name: "Sucursal",
-    field: "SucursalDescripcion",
     type: "string",
-    fieldName: "suc.SucursalDescripcion",
-    searchType: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inpurForSucursalSearch",
     sortable: true,
-    searchHidden: false,
     hidden: false,
+    searchHidden: false
   },
   {
     id: "SituacionRevistaId",
@@ -174,17 +163,25 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "GrupoActividadDetalle",
     name: "Grupo Actividad",
-    field: "GrupoActividadDetalle",
     type: "string",
-    fieldName: "act.GrupoActividadDetalle",
-    searchType: "string",
-    searchComponent: "inpurForGrupoActividad",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "GrupoActividadDetalle",
     sortable: true,
-    searchHidden: false,
-    hidden: false,
+    searchHidden: true
   },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "act.GrupoActividadId",
+    searchComponent: 'inpurForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  }
 ]
 
 
@@ -280,7 +277,7 @@ export class PersonalController extends BaseController {
         AND gap.GrupoActividadPersonalPersonalId = @0
         GROUP BY gap.GrupoActividadPersonalPersonalId,per.PersonalId, per.PersonalApellido, per.PersonalNombre, gaj.GrupoActividadJerarquicoDesde, gaj.GrupoActividadJerarquicoHasta
 
-      ORDER BY ord`,[personalId, anio, mes]);
+      ORDER BY ord`, [personalId, anio, mes]);
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
@@ -493,7 +490,10 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
-        act.GrupoActividadNumero, act.GrupoActividadDetalle,
+        act.GrupoActividadNumero, act.GrupoActividadId,
+        CONCAT(TRIM(act.GrupoActividadDetalle), ' (Desde: ', FORMAT(grupo.GrupoActividadPersonalDesde, 'dd/MM/yyyy')
+        , ' - Hasta: ', IIF(grupo.GrupoActividadPersonalHasta IS NULL, 'Actualidad', FORMAT(grupo.GrupoActividadPersonalHasta, 'dd/MM/yyyy')), ')'
+      ) as GrupoActividadDetalle,
         ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
         tels.Telefonos,
         peredad.PersonalEdad
@@ -2349,7 +2349,7 @@ cuit.PersonalCUITCUILCUIT,
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
     let now: Date = new Date()
-    
+
     //Obtengo el ultimo Grupo Actividad Personal
     let ultGrupoActividadPersonal = await queryRunner.query(`
       SELECT TOP 1 grup.GrupoActividadPersonalId, grup.GrupoActividadId, grup.GrupoActividadPersonalPersonalId,
