@@ -127,7 +127,7 @@ export class AdelantoComponent {
       try {
         if (item.PersonalPrestamoMonto == 0) {
           const res = await firstValueFrom(this.apiService
-            .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
+            .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month }))
           item = { ...item, PersonalPrestamoAudFechaIng: null, PersonalPrestamoMonto: null, FormaPrestamoDescripcion: null }
 
         } else if (item.PersonalPrestamoMonto > 0) {

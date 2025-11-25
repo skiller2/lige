@@ -11,7 +11,7 @@ adelantosRouter.post('', [authMiddleware.verifyToken, authMiddleware.hasGroup(['
     adelantosController.setAdelanto(Number(req.body.anio),Number(req.body.mes), Number(req.body.PersonalId), req.body.monto, req, res, next)
 })
 adelantosRouter.delete('/:PersonalId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','gConsejo','Responsables','Administrativo'])], (req, res, next) => {
-    adelantosController.delAdelanto(Number(req.params.PersonalId), 0, req.socket.remoteAddress, res, next)
+    adelantosController.delAdelanto(Number(req.params.PersonalId), Number(req.query.anio), Number(req.query.mes), 0, req.socket.remoteAddress, res, next)
 })
 
 adelantosRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
