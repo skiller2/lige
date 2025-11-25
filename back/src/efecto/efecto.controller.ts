@@ -32,15 +32,15 @@ const listaColumnasPersonal: any[] = [
   //   searchHidden: false
   // },
   {
+    name: "Apellido Nombre ",
+    type: "number",
     id: "PersonalId",
-    name: "Personal",
     field: "PersonalId",
     fieldName: "per.PersonalId",
-    type: "number",
-    searchComponent: "inputForPersonalSearch",
+    searchComponent: "inpurForPersonalSearch",
     sortable: true,
+    searchHidden: false,
     hidden: true,
-    searchHidden: false
   },
   {
     id: "ApellidoNombre",
@@ -63,6 +63,18 @@ const listaColumnasPersonal: any[] = [
     searchHidden: true
   },
   {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.SituacionRevistaId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
     id: "SituacionRevistaDescripcion",
     name: "SituacionRevista",
     field: "SituacionRevistaDescripcion",
@@ -78,9 +90,10 @@ const listaColumnasPersonal: any[] = [
     field: "PersonalSituacionRevistaDesde",
     fieldName: "persitrev.PersonalSituacionRevistaDesde",
     type: "date",
+    searchComponent: "inpurForFechaSearch",
     sortable: true,
-    hidden: false,
-    searchHidden: true
+    searchHidden: false,
+    hidden: true,
   },
   {
     id: "PersonalSituacionRevistaHasta",
@@ -88,9 +101,10 @@ const listaColumnasPersonal: any[] = [
     field: "PersonalSituacionRevistaHasta",
     fieldName: "persitrev.PersonalSituacionRevistaHasta",
     type: "date",
+    searchComponent: "inpurForFechaSearch",
     sortable: true,
-    hidden: false,
-    searchHidden: true
+    searchHidden: false,
+    hidden: true,
   },
   // {
   //   id: "EfectoId",
@@ -121,7 +135,7 @@ const listaColumnasPersonal: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoAtrDescripcion",
@@ -131,7 +145,7 @@ const listaColumnasPersonal: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoEfectoIndividualDescripcion",
@@ -141,7 +155,7 @@ const listaColumnasPersonal: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoIndividualAtrDescripcion",
@@ -151,7 +165,7 @@ const listaColumnasPersonal: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "StockStock",
@@ -161,7 +175,7 @@ const listaColumnasPersonal: any[] = [
     type: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
     maxWidth: 50
   }
 
@@ -316,10 +330,11 @@ export class EfectoController extends BaseController {
     `, [personalId])
   }
 
-  private getEfectoQuery(queryRunner: any) {
+  private getEfectoQuery(queryRunner: any, listOptions: any) {
+    const filterSql = filtrosToSql(listOptions.filtros, listaColumnasPersonal)
     return queryRunner.query(`
-    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
-		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
+    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
+		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
 		, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
 		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       1
@@ -330,14 +345,15 @@ export class EfectoController extends BaseController {
     LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=GETDATE() 
     left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))`)
+    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND ${filterSql} `)
   }
 
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.id
+    const listOptions = req.body.listOptions
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const list = await this.getEfectoQuery(queryRunner);
+      const list = await this.getEfectoQuery(queryRunner, listOptions);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
@@ -384,16 +400,18 @@ export class EfectoController extends BaseController {
 
   // usada para la grilla de efectos por objetivos
   async getEfectoObjetivos(req: any, res: Response, next: NextFunction) {
+    const listOptions = req.body.listOptions
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const list = await this.getEfectoObjetivosQuery(queryRunner);
+      const list = await this.getEfectoObjetivosQuery(queryRunner, listOptions);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
     }
   }
 
-  private getEfectoObjetivosQuery(queryRunner: any) {
+  private getEfectoObjetivosQuery(queryRunner: any, listOptions: any) {
+    const filterSql = filtrosToSql(listOptions.filtros, listaColumnasObjetivos)
     return queryRunner.query(`
       SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
@@ -404,7 +422,7 @@ export class EfectoController extends BaseController {
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
     LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
-      `)
+      AND ${filterSql} `)
   }
 
 

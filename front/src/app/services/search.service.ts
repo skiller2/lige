@@ -2005,8 +2005,8 @@ export class SearchService {
       );
   }
 
-  getEfectoPersonal() {
-    return this.http.get<ResponseJSON<any>>(`api/efecto/getEfectoPersonal`).pipe(
+  getEfectoPersonal(listOptions: any) {
+    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoPersonal`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -2015,8 +2015,8 @@ export class SearchService {
     );
   }
 
-  getEfectoObjetivos() {
-    return this.http.get<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`).pipe(
+  getEfectoObjetivos(listOptions: any) {
+    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

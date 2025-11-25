@@ -1,6 +1,6 @@
 import { Component, Inject, model, Output, EventEmitter, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
+import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
@@ -32,7 +32,8 @@ interface PersonalEstudio {
   imports: [
     SHARED_IMPORTS,
     CommonModule,
-    NzAffixModule
+    NzAffixModule,
+    FiltroBuilderComponent,
   ],
   providers: [AngularUtilService],
   templateUrl: './table-personal-efecto.component.html',
@@ -52,7 +53,10 @@ export class TablePersonalEfectoComponent {
   private dataAngularGrid: any[] = [];
   private excelExportService = new ExcelExportService();
   private PersonalId: number = 8676;
-
+  listOptions: listOptionsT = {
+    filtros: [],
+    sort: null,
+};
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
@@ -61,7 +65,7 @@ export class TablePersonalEfectoComponent {
 
  gridData$ = this.formChange$.pipe(
     debounceTime(250),
-    switchMap(() => this.searchService.getEfectoPersonal().pipe(
+    switchMap(() => this.searchService.getEfectoPersonal(this.listOptions).pipe(
       map(data => {
         this.dataAngularGrid = data;
         return data;
@@ -90,6 +94,7 @@ export class TablePersonalEfectoComponent {
   }
 
   listOptionsChange(options: any): void {
+    this.listOptions = options;
     this.formChange$.next('');
   }
 

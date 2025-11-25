@@ -3,11 +3,11 @@
   <div nz-row style="display: flex; justify-content: center; align-items: center;">
     
         <ul nz-menu nzMode="horizontal" style="display: flex;">   
-        <li nz-menu-item nzSelected>
+        <li nz-menu-item  nzMatchRouter>
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'efecto', 'personal']">Personal</a>
         </li>
-        <li nz-menu-item>
+        <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'efecto', 'objetivos']">Objetivos</a>
         </li>
@@ -27,7 +27,9 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/efecto/objetivos">Objetivos</a>
       <ng-template nz-tab>
-        <app-table-objetivos-efecto></app-table-objetivos-efecto>
+        @defer (on idle) {
+          <app-table-objetivos-efecto></app-table-objetivos-efecto>
+        }
       </ng-template>
     </nz-tab>
   </nz-tabset>
