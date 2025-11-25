@@ -177,7 +177,7 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    id: 'CategoriaPersonalDescripcion', name: 'Categoria', field: 'CategoriaPersonalDescripcion',
+    id: 'CategoriaPersonalDescripcion', name: 'Categoria Art. 14', field: 'CategoriaPersonalDescripcion',
     fieldName: 'cat.CategoriaPersonalDescripcion',
     type: 'string',
     sortable: true,
