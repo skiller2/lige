@@ -532,7 +532,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = result
     }
 
-    if (fieldObj.searchComponent == 'inpurForGrupoActividadSearch') {
+    if (fieldObj.searchComponent == 'inputForGrupoActividadSearch') {
       const res = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', value))
       label = res[0].GrupoActividadDetalle
     }

@@ -23,26 +23,15 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true,
   },
   {
-    id: "SucursalId",
-    name: "SucursalId",
-    field: "SucursalId",
-    type: "string",
-    fieldName: "suc.SucursalId",
-    searchType: "number",
-    sortable: true,
-    searchHidden: true,
-    hidden: true,
-  },
-  {
-    id: "SucursalDescripcion",
     name: "Sucursal",
-    field: "SucursalDescripcion",
     type: "string",
-    fieldName: "suc.SucursalDescripcion",
-    searchType: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inpurForSucursalSearch",
     sortable: true,
-    searchHidden: false,
     hidden: false,
+    searchHidden: false
   },
   {
     id: 'PersonalId', name: 'Personal', field: 'PersonalId',
@@ -140,7 +129,7 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14FormaArt14',
     type: 'string',
     formatter: 'collectionFormatter',
-    params: { collection: AsistenciaController.getMetodologias().map((obj:any)=>{ return { label: `${obj.etiqueta} (${obj.descripcion})`, value: obj.id } }), },
+    params: { collection: AsistenciaController.getMetodologias().map((obj: any) => { return { label: `${obj.etiqueta} (${obj.descripcion})`, value: obj.id } }), },
     searchComponent: 'inpurForMetodologiasSearch',
     searchType: 'string',
     sortable: true,
@@ -188,7 +177,7 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    id: 'CategoriaPersonalDescripcion', name: 'Categoria', field: 'CategoriaPersonalDescripcion',
+    id: 'CategoriaPersonalDescripcion', name: 'Categoria Art. 14', field: 'CategoriaPersonalDescripcion',
     fieldName: 'cat.CategoriaPersonalDescripcion',
     type: 'string',
     sortable: true,
@@ -208,9 +197,9 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const filterSql = filtrosToSql(options.filtros, columnsExcepcionesAsistencia);
     const orderBy = orderToSQL(options.sort)
     const queryRunner = dataSource.createQueryRunner();
-    const periodo = req.body.periodo? new Date(req.body.periodo) : null
-    const year = periodo? periodo.getFullYear() : 0
-    const month = periodo? periodo.getMonth()+1 : 0
+    const periodo = req.body.periodo ? new Date(req.body.periodo) : null
+    const year = periodo ? periodo.getFullYear() : 0
+    const month = periodo ? periodo.getMonth() + 1 : 0
     try {
       const list = await queryRunner.query(`
         SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
@@ -266,22 +255,22 @@ export class ExcepcionesAsistenciaController extends BaseController {
             -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL)
               AND ((art.PersonalArt14AutorizadoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1))) OR (art.PersonalArt14Desde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (art.PersonalArt14Hasta >= DATEFROMPARTS(@1,@2,1)) ))
           and ${filterSql} ${orderBy}
-      `, [ ,year,month])
+      `, [, year, month])
       this.jsonRes(
-          {
-              total: list.length,
-              list,
-          },
-          res
+        {
+          total: list.length,
+          list,
+        },
+        res
       );
 
     } catch (error) {
-        return next(error)
+      return next(error)
     }
 
   }
 
-  async getPeriodoQuery(queryRunner:any, anio:number, mes:number){
+  async getPeriodoQuery(queryRunner: any, anio: number, mes: number) {
     return await queryRunner.query(`
       SELECT periodo_id, anio, mes, ind_recibos_generados
       FROM lige.dbo.liqmaperiodo
@@ -289,7 +278,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       `, [anio, mes])
   }
 
-  async getPersonalArt14ByIdsQuery(queryRunner:any, personalArt14Id:number, personalId:number){
+  async getPersonalArt14ByIdsQuery(queryRunner: any, personalArt14Id: number, personalId: number) {
     return await queryRunner.query(`
       SELECT PersonalArt14Autorizado, PersonalArt14Desde, PersonalArt14Hasta
       FROM PersonalArt14
@@ -297,26 +286,26 @@ export class ExcepcionesAsistenciaController extends BaseController {
       `, [personalArt14Id, personalId])
   }
 
-  async personalArt14Aprobar(queryRunner: any, personalArt14Id: number, personalId: number, usuario:string, ip:string) {
-    
+  async personalArt14Aprobar(queryRunner: any, personalArt14Id: number, personalId: number, usuario: string, ip: string) {
+
     let PersonalPrestamo = await this.getPersonalArt14ByIdsQuery(queryRunner, personalArt14Id, personalId)
     if (!PersonalPrestamo.length)
       return new ClientException('No se encuentra el registro.')
     const PersonalArt14Desde = new Date(PersonalPrestamo[0].PersonalArt14Desde)
     const PersonalArt14Hasta = new Date(PersonalPrestamo[0].PersonalArt14Hasta)
-    const anio:number = PersonalArt14Desde.getFullYear()
-    const mes:number = PersonalArt14Desde.getMonth()+1
+    const anio: number = PersonalArt14Desde.getFullYear()
+    const mes: number = PersonalArt14Desde.getMonth() + 1
 
     let res = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (res[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
-    
+
     res = await queryRunner.query(`
       SELECT PersonalArt14Autorizado FROM PersonalArt14 WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
     `, [personalArt14Id, personalId])
 
     if (res[0]?.PersonalArt14Autorizado != 'S') {
-      const now:Date = new Date()
+      const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
       SET PersonalArt14AutorizadoDesde = PersonalArt14Desde, PersonalArt14AutorizadoHasta = PersonalArt14Hasta, PersonalArt14Autorizado = 'S', PersonalArt14Anulacion = null,
@@ -325,18 +314,18 @@ export class ExcepcionesAsistenciaController extends BaseController {
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
     }
-    
+
     return 0
   }
 
   async personalArt14AprovarLista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const ids:string[] = req.body.ids
-    const numRows:number[] = req.body.rows
-    let errors:string[] = []
-    let numRowsError:number[] = []
-    let cantAprobados:number = 0
-    
+    const ids: string[] = req.body.ids
+    const numRows: number[] = req.body.rows
+    let errors: string[] = []
+    let numRowsError: number[] = []
+    let cantAprobados: number = 0
+
     try {
       await queryRunner.startTransaction()
       const usuario = res.locals.userName
@@ -344,8 +333,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
       for (const [index, id] of ids.entries()) {
         const arrayIds = id.split('-')
-        let personalArt14Id:number = Number.parseInt(arrayIds[0])
-        let personalId:number = Number.parseInt(arrayIds[1])
+        let personalArt14Id: number = Number.parseInt(arrayIds[0])
+        let personalId: number = Number.parseInt(arrayIds[1])
         let res = await this.personalArt14Aprobar(queryRunner, personalArt14Id, personalId, usuario, ip)
         if (res instanceof ClientException) {
           let name = await queryRunner.query(`
@@ -355,8 +344,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
             [personalId]
           )
           numRowsError.push(numRows[index])
-          errors.push(`[FILA ${numRows[index]+1}]${name[0].ApellidoNombre}: `+res.messageArr[0])
-        }else{
+          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: ` + res.messageArr[0])
+        } else {
           cantAprobados = cantAprobados + res
         }
       }
@@ -365,10 +354,10 @@ export class ExcepcionesAsistenciaController extends BaseController {
         throw new ClientException(errors.join(`\n`), numRowsError)
       }
 
-      let msj:string = ''
+      let msj: string = ''
       if (cantAprobados == ids.length) msj = 'Carga Exitosa'
-      else msj = `Carga Exitosa. ${cantAprobados} registros se modificaron. ${ids.length-cantAprobados} ya estaban en estado Aprobado`
-      
+      else msj = `Carga Exitosa. ${cantAprobados} registros se modificaron. ${ids.length - cantAprobados} ya estaban en estado Aprobado`
+
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, msj);
     } catch (error) {
@@ -379,24 +368,24 @@ export class ExcepcionesAsistenciaController extends BaseController {
     }
   }
 
-  async personalArt14Rechazar(queryRunner: any, personalArt14Id: number, personalId: number, usuario:string, ip:string) {
+  async personalArt14Rechazar(queryRunner: any, personalArt14Id: number, personalId: number, usuario: string, ip: string) {
     let PersonalPrestamo = await this.getPersonalArt14ByIdsQuery(queryRunner, personalArt14Id, personalId)
     if (!PersonalPrestamo.length)
       return new ClientException('No se encuentra el registro.')
     const PersonalArt14Desde = new Date(PersonalPrestamo[0].PersonalArt14Desde)
-    const anio:number = PersonalArt14Desde.getFullYear()
-    const mes:number = PersonalArt14Desde.getMonth()+1
+    const anio: number = PersonalArt14Desde.getFullYear()
+    const mes: number = PersonalArt14Desde.getMonth() + 1
 
     let res = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (res[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
-    
+
     res = await queryRunner.query(`
       SELECT PersonalArt14Autorizado FROM PersonalArt14 WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
     `, [personalArt14Id, personalId])
 
     if (res[0]?.PersonalArt14Autorizado != 'N') {
-      const now:Date = new Date()
+      const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
       SET PersonalArt14Anulacion = @2, PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4, PersonalArt14Autorizado = 'N'
@@ -404,17 +393,17 @@ export class ExcepcionesAsistenciaController extends BaseController {
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
     }
-    
+
     return 0
   }
 
   async personalArt14RechazarLista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const ids:string[] = req.body.ids
-    const numRows:number[] = req.body.rows
-    let errors:string[] = []
-    let numRowsError:number[] = []
-    let cantRechazado:number = 0
+    const ids: string[] = req.body.ids
+    const numRows: number[] = req.body.rows
+    let errors: string[] = []
+    let numRowsError: number[] = []
+    let cantRechazado: number = 0
 
     try {
       await queryRunner.startTransaction()
@@ -423,8 +412,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
       for (const [index, id] of ids.entries()) {
         const arrayIds = id.split('-')
-        let personalArt14Id:number = Number.parseInt(arrayIds[0])
-        let personalId:number = Number.parseInt(arrayIds[1])
+        let personalArt14Id: number = Number.parseInt(arrayIds[0])
+        let personalId: number = Number.parseInt(arrayIds[1])
         let res = await this.personalArt14Rechazar(queryRunner, personalArt14Id, personalId, usuario, ip)
         if (res instanceof ClientException) {
           let name = await queryRunner.query(`
@@ -434,8 +423,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
             [personalId]
           )
           numRowsError.push(numRows[index])
-          errors.push(`[FILA ${numRows[index]+1}]${name[0].ApellidoNombre}: `+res.messageArr[0])
-        }else{
+          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: ` + res.messageArr[0])
+        } else {
           cantRechazado = cantRechazado + res
         }
       }
@@ -444,10 +433,10 @@ export class ExcepcionesAsistenciaController extends BaseController {
         throw new ClientException(errors.join(`\n`), numRowsError)
       }
 
-      let msj:string = ''
+      let msj: string = ''
       if (cantRechazado == ids.length) msj = 'Carga Exitosa'
-      else msj = `Carga Exitosa. ${cantRechazado} registros se modificaron. ${ids.length-cantRechazado} ya estaban en estado Rechazado`
-      
+      else msj = `Carga Exitosa. ${cantRechazado} registros se modificaron. ${ids.length - cantRechazado} ya estaban en estado Rechazado`
+
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, msj);
     } catch (error) {
@@ -458,25 +447,25 @@ export class ExcepcionesAsistenciaController extends BaseController {
     }
   }
 
-  async personalArt14Pendiente(queryRunner: any, personalArt14Id: number, personalId: number, usuario:string, ip:string) {
+  async personalArt14Pendiente(queryRunner: any, personalArt14Id: number, personalId: number, usuario: string, ip: string) {
     let PersonalPrestamo = await this.getPersonalArt14ByIdsQuery(queryRunner, personalArt14Id, personalId)
     if (!PersonalPrestamo.length)
       return new ClientException('No se encuentra el registro.')
-    
+
     const PersonalArt14Desde = new Date(PersonalPrestamo[0].PersonalArt14Desde)
-    const anio:number = PersonalArt14Desde.getFullYear()
-    const mes:number = PersonalArt14Desde.getMonth()+1
+    const anio: number = PersonalArt14Desde.getFullYear()
+    const mes: number = PersonalArt14Desde.getMonth() + 1
 
     let res = await this.getPeriodoQuery(queryRunner, anio, mes)
     if (res[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
-    
+
     res = await queryRunner.query(`
       SELECT PersonalArt14Autorizado FROM PersonalArt14 WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
     `, [personalArt14Id, personalId])
 
     if (res[0]?.PersonalArt14Autorizado != null) {
-      const now:Date = new Date()
+      const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
       SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14Autorizado = null, PersonalArt14Anulacion = null,
@@ -485,17 +474,17 @@ export class ExcepcionesAsistenciaController extends BaseController {
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
     }
-    
+
     return 0
   }
 
   async personalArt14PendienteLista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const ids:string[] = req.body.ids
-    const numRows:number[] = req.body.rows
-    let errors:string[] = []
-    let numRowsError:number[] = []
-    let cantPendiente:number = 0
+    const ids: string[] = req.body.ids
+    const numRows: number[] = req.body.rows
+    let errors: string[] = []
+    let numRowsError: number[] = []
+    let cantPendiente: number = 0
 
     try {
       await queryRunner.startTransaction()
@@ -504,8 +493,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
       for (const [index, id] of ids.entries()) {
         const arrayIds = id.split('-')
-        let personalArt14Id:number = Number.parseInt(arrayIds[0])
-        let personalId:number = Number.parseInt(arrayIds[1])
+        let personalArt14Id: number = Number.parseInt(arrayIds[0])
+        let personalId: number = Number.parseInt(arrayIds[1])
         let res = await this.personalArt14Pendiente(queryRunner, personalArt14Id, personalId, usuario, ip)
         if (res instanceof ClientException) {
           let name = await queryRunner.query(`
@@ -515,8 +504,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
             [personalId]
           )
           numRowsError.push(numRows[index])
-          errors.push(`[FILA ${numRows[index]+1}]${name[0].ApellidoNombre}: `+res.messageArr[0])
-        }else{
+          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: ` + res.messageArr[0])
+        } else {
           cantPendiente = cantPendiente + res
         }
       }
@@ -525,10 +514,10 @@ export class ExcepcionesAsistenciaController extends BaseController {
         throw new ClientException(errors.join(`\n`), numRowsError)
       }
 
-      let msj:string = ''
+      let msj: string = ''
       if (cantPendiente == ids.length) msj = 'Carga Exitosa'
-      else msj = `Carga Exitosa. ${cantPendiente} registros se modificaron. ${ids.length-cantPendiente} ya estaban en estado Pendiente`
-      
+      else msj = `Carga Exitosa. ${cantPendiente} registros se modificaron. ${ids.length - cantPendiente} ya estaban en estado Pendiente`
+
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, msj);
     } catch (error) {
