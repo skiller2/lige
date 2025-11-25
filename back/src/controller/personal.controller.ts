@@ -74,7 +74,7 @@ const columns: any[] = [
     id: "PersonalNroLegajo",
     name: "Nro Asociado",
     field: "PersonalNroLegajo",
-    type: "string",
+    type: "number",
     fieldName: "per.PersonalNroLegajo",
     searchType: "number",
     sortable: true,
@@ -163,17 +163,25 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "GrupoActividadDetalle",
     name: "Grupo Actividad",
-    field: "GrupoActividadDetalle",
     type: "string",
-    fieldName: "act.GrupoActividadDetalle",
-    searchType: "string",
-    searchComponent: "inpurForGrupoActividad",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "GrupoActividadDetalle",
     sortable: true,
-    searchHidden: false,
-    hidden: false,
+    searchHidden: true
   },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "act.GrupoActividadId",
+    searchComponent: 'inpurForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  }
 ]
 
 
@@ -482,7 +490,10 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
-        act.GrupoActividadNumero, act.GrupoActividadDetalle,
+        act.GrupoActividadNumero, act.GrupoActividadId,
+        CONCAT(TRIM(act.GrupoActividadDetalle), ' (Desde: ', FORMAT(grupo.GrupoActividadPersonalDesde, 'dd/MM/yyyy')
+        , ' - Hasta: ', IIF(grupo.GrupoActividadPersonalHasta IS NULL, 'Actualidad', FORMAT(grupo.GrupoActividadPersonalHasta, 'dd/MM/yyyy')), ')'
+      ) as GrupoActividadDetalle,
         ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
         tels.Telefonos,
         peredad.PersonalEdad
