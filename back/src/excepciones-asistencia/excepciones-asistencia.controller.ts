@@ -23,6 +23,28 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true,
   },
   {
+    id: "SucursalId",
+    name: "SucursalId",
+    field: "SucursalId",
+    type: "string",
+    fieldName: "suc.SucursalId",
+    searchType: "number",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
+    id: "SucursalDescripcion",
+    name: "Sucursal",
+    field: "SucursalDescripcion",
+    type: "string",
+    fieldName: "suc.SucursalDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
     id: 'PersonalId', name: 'Personal', field: 'PersonalId',
     type: 'number',
     fieldName: 'per.PersonalId',
@@ -49,14 +71,6 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true,
   },
   {
-    id: 'ObjetivoCodigo', name: 'Objetivo Código', field: 'ObjetivoCodigo',
-    fieldName: 'ObjetivoCodigo',
-    type: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
     id: 'ObjetivoId', name: 'Objetivo', field: 'ObjetivoId',
     fieldName: ' obj.ObjetivoId',
     type: 'number',
@@ -67,12 +81,32 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: false
   },
   {
-    id: 'ObjetivoDescripcion', name: 'Descripcion Objetivo', field: 'ObjetivoDescripcion',
+    id: 'ObjetivoDescripcion', name: 'Objetivo', field: 'ObjetivoDescripcion',
     fieldName: 'ObjetivoDescripcion',
     type: 'string',
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    name: "Grupo Actividad Obj.",
+    type: "string",
+    id: "GrupoActividadObjetivo",
+    field: "GrupoActividadObjetivo",
+    fieldName: "GrupoActividadObjetivo",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Grupo Actividad Obj.",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inpurForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
   },
   {
     id: 'PersonalArt14Autorizado', name: 'Estado', field: 'PersonalArt14Autorizado',
@@ -106,7 +140,7 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14FormaArt14',
     type: 'string',
     formatter: 'collectionFormatter',
-    params: { collection: AsistenciaController.getMetodologias().map((obj:any)=>{ return { label: obj.descripcion, value: obj.id } }), },
+    params: { collection: AsistenciaController.getMetodologias().map((obj:any)=>{ return { label: `${obj.etiqueta} (${obj.descripcion})`, value: obj.id } }), },
     searchComponent: 'inpurForMetodologiasSearch',
     searchType: 'string',
     sortable: true,
@@ -179,31 +213,58 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const month = periodo? periodo.getMonth()+1 : 0
     try {
       const list = await queryRunner.query(`
-      SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-          , art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId
-          , art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora
-          , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
-          , art.PersonalArt14AudFechaIng,art.PersonalArt14AudUsuarioIng,art.PersonalArt14AudIpIng,art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod,art.PersonalArt14AudIpMod
-		      , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AudFechaMod, null) AS FechaDeAutorizacion
-          , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde
-          , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
-          , CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo
-          , obj.ObjetivoId
-          , CONCAT(cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
-          , art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion
-          , IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion
-        FROM PersonalArt14 art
-        JOIN Personal per ON per.PersonalId = art.PersonalId
-        JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
-        JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-        JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-        LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId  
-        LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        WHERE 1=1
-        -- art.PersonalId = @0 
-        -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL)
-          AND ((art.PersonalArt14AutorizadoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1))) OR (art.PersonalArt14Desde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (art.PersonalArt14Hasta >= DATEFROMPARTS(@1,@2,1)) ))
+        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+              , art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId
+              , art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora
+              , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
+              , art.PersonalArt14AudFechaIng,art.PersonalArt14AudUsuarioIng,art.PersonalArt14AudIpIng,art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod,art.PersonalArt14AudIpMod
+              , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AudFechaMod, null) AS FechaDeAutorizacion
+              , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde
+              , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
+              , CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo
+              , obj.ObjetivoId
+              , CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
+              , art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion
+              , IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
+
+          suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+          ga.GrupoActividadId,
+        CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', FORMAT(gaobj.GrupoActividadObjetivoDesde, 'dd/MM/yyyy')
+          , ' - Hasta: ', IIF(gaobj.GrupoActividadObjetivoHasta IS NULL, 'Actualidad', FORMAT(gaobj.GrupoActividadObjetivoHasta, 'dd/MM/yyyy')), ')'
+        ) as GrupoActividadObjetivo,
+
+
+          1
+            FROM PersonalArt14 art
+            JOIN Personal per ON per.PersonalId = art.PersonalId
+            JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+            JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+            JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+            LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId  
+            LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
+            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+            LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+
+        OUTER APPLY (
+              SELECT TOP 1 gaobj.GrupoActividadObjetivoId,gaobj.GrupoActividadObjetivoObjetivoId,gaobj.GrupoActividadId, gaobj.GrupoActividadObjetivoDesde,gaobj.GrupoActividadObjetivoHasta
+              FROM GrupoActividadObjetivo gaobj
+              WHERE 
+                gaobj.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+                AND gaobj.GrupoActividadObjetivoDesde <= DATEFROMPARTS(@1,@2,1)
+                AND ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+              ORDER BY 
+                gaobj.GrupoActividadId DESC,
+                gaobj.GrupoActividadObjetivoId DESC
+            ) gaobj
+
+            LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
+
+            WHERE 1=1
+            -- art.PersonalId = @0 
+            -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL)
+              AND ((art.PersonalArt14AutorizadoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1))) OR (art.PersonalArt14Desde <= EOMONTH(DATEFROMPARTS(@1,@2,1))  AND (art.PersonalArt14Hasta >= DATEFROMPARTS(@1,@2,1)) ))
           and ${filterSql} ${orderBy}
       `, [ ,year,month])
       this.jsonRes(
