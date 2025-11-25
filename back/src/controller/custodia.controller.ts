@@ -999,7 +999,7 @@ export class CustodiaController extends BaseController {
             const orderBy = orderToSQL(options.sort)
 
             let result: any
-            if (await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')|| await this.hasGroup(req, 'Administrativo')) {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo)
             } else {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo, responsableId)
@@ -1092,7 +1092,7 @@ export class CustodiaController extends BaseController {
             delete infoCustodia.id
             delete infoCustodia.responsable
 
-            if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId) {
+            if (!(await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) && responsableId != infoCustodia.responsableId) {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
             }
 
@@ -1371,7 +1371,7 @@ export class CustodiaController extends BaseController {
                 const estado: number = form.estado
                 const numFactura: number = form.numFactura
 
-                const authEditAdmin: boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
+                const authEditAdmin: boolean = await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Administrativo')
                 const adminEdit: boolean = await this.hasGroup(req, 'administrativo')
 
                 if (estado == 4 && !adminEdit)
@@ -1541,7 +1541,7 @@ export class CustodiaController extends BaseController {
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
             let result: any
-            if (await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, 0)
             } else {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)
