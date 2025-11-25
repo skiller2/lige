@@ -37,4 +37,14 @@ novedadesRouter.get("/filters", [authMiddleware.verifyToken, authMiddleware.veri
   novedadesController.getGridFilters(req, res, next);
 });
 
+novedadesRouter.post("/config", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+  (req, res, next) => {
+    novedadesController.setNovedadConfig(req, res, next);
+  }
+);
 
+novedadesRouter.get("/config/:prev?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+  (req, res, next) => {
+    novedadesController.getNovedadConfig(req, res, next);
+  }
+);

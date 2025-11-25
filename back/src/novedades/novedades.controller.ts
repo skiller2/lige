@@ -8,6 +8,10 @@ import { ObjectId } from "typeorm/browser";
 import { Console } from "node:console";
 import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
+import * as fs from 'fs';
+import { mkdirSync, existsSync } from "fs";
+import path from 'path';
+import { promises as fsPromises } from 'fs';
 
 const listaColumnas: any[] = [
     {
@@ -247,6 +251,23 @@ const listaColumnas: any[] = [
 
 export class NovedadesController extends BaseController {
 
+    directoryNovedad = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/novedades'
+    PathNovedadTemplate = {
+        header: `${this.directoryNovedad}/config/novedad/novedad-header.html`,
+        body: `${this.directoryNovedad}/config/novedad/novedad-body.html`,
+        footer: `${this.directoryNovedad}/config/novedad/novedad-footer.html`,
+        headerDef: './assets/novedad/novedad-header.def.html',
+        bodyDef: './assets/novedad/novedad-body.def.html',
+        footerDef: './assets/novedad/novedad-footer.def.html'
+    }
+    
+    
+    constructor() {
+        super();
+        if (!existsSync(this.directoryNovedad)) {
+            mkdirSync(this.directoryNovedad, { recursive: true });
+        }
+    }
 
     async getGridCols(req, res) {
         this.jsonRes(listaColumnas, res);
@@ -757,6 +778,78 @@ export class NovedadesController extends BaseController {
                 const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD`, usuario, ip)
             }
         }
+    }
+
+    async setNovedadConfig(req: Request, res: Response, next: NextFunction) {
+        const header = req.body.header
+        const body = req.body.body
+        const footer = req.body.footer
+    
+        try {
+    
+          if (body == "")
+            throw new ClientException(`El cuerpo no puede estar vacio`)
+    
+          if (header == "")
+            throw new ClientException(`La cabecera no puede estar vacia`)
+    
+          try {
+            fs.renameSync(this.PathNovedadTemplate.header, this.PathNovedadTemplate.header + '.old')
+            fs.renameSync(this.PathNovedadTemplate.body, this.PathNovedadTemplate.body + '.old')
+            fs.renameSync(this.PathNovedadTemplate.footer, this.PathNovedadTemplate.footer + '.old')
+          } catch (_e) { }
+    
+          fs.mkdirSync(path.dirname(this.PathNovedadTemplate.header), { recursive: true })
+          fs.writeFileSync(this.PathNovedadTemplate.header, header)
+          fs.writeFileSync(this.PathNovedadTemplate.body, body)
+          fs.writeFileSync(this.PathNovedadTemplate.footer, footer)
+    
+          this.jsonRes([], res, `Se guardo el nuevo formato de novedad`);
+    
+        } catch (error) {
+          console.log('capturo', error)
+          return next(error)
+        }
+    }
+
+    async getNovedadConfig(req: Request, res: Response, next: NextFunction) {
+        const prev: boolean = (req.params.prev === 'true')
+        try {
+            const htmlContent = await this.getNovedadHtmlContentGeneral(new Date(), 0, 0, '', '', '', true, prev)
+            this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
+
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    async getNovedadHtmlContentGeneral(fechaNovedad: Date, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+    
+        const imgPath = `./assets/logo-lince-full.svg`
+        const imgBuffer = await fsPromises.readFile(imgPath);
+        const imgBase64 = imgBuffer.toString('base64');
+    
+        const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
+        const imgBase64Firma = imgBufferFirma.toString('base64');
+    
+        const imgPathinaes = `./assets/icons/inaes.png`
+        const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+        const imgBase64inaes = imgBufferinaes.toString('base64');
+    
+        header = (header) ? header : (fs.existsSync(this.PathNovedadTemplate.header) ? fs.readFileSync(this.PathNovedadTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.headerDef, 'utf-8'))
+        body = (body) ? body : (fs.existsSync(this.PathNovedadTemplate.body) ? fs.readFileSync(this.PathNovedadTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.bodyDef, 'utf-8'))
+        footer = (footer) ? footer : (fs.existsSync(this.PathNovedadTemplate.footer) ? fs.readFileSync(this.PathNovedadTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.footerDef, 'utf-8'))
+    
+        if (!raw) {
+          header = header.replace(/\${imgBase64}/g, imgBase64);
+          footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+          body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
+    
+          header = header.replace(/\${anio}/g, anio.toString());
+          header = header.replace(/\${mes}/g, mes.toString());
+          header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaNovedad));
+        }
+        return { header, body, footer }
     }
 
 }

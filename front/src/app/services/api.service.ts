@@ -1110,6 +1110,21 @@ export class ApiService {
     )
 
   }
+  
+  setNovedad(parameter: any) {
+    console.log('parameters', parameter)
+    return this.http.post<ResponseJSON<any>>('/api/novedades/config', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  getValuesNovedad(prev: boolean) {
+    let parameter = ""
+    return this.http.get<ResponseJSON<any>>(`/api/novedades/config/${prev}`, parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+    )
+  }
 
   getFacturas(ComprobanteNro: any, FacturacionCodigo: string[]) {
 

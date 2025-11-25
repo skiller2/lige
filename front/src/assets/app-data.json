@@ -242,6 +242,11 @@
               "text": "Recibo",
               "link": "/config/recibo",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Novedad #",
+              "link": "/config/novedad",
+              "icon": "anticon-profile"
             }
           ]
         }

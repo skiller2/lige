@@ -9,5 +9,9 @@ export const ConfigRoutes: Routes = [
     path: 'recibo',
     loadComponent: () => import('./recibo/recibo.component').then(c => c.ReciboComponent),
   },
+  {
+    path: 'novedad',
+    loadComponent: () => import('./novedad/novedad').then(c => c.NovedadComponent),
+  },
  
 ];
