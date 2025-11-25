@@ -183,10 +183,21 @@ const listaColumnasPersonal: any[] = [
 
 const listaColumnasObjetivos: any[] = [
   {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
     id: "ContieneEfectoIndividual",
     name: "Contiene Efecto Individual",
     field: "ContieneEfectoIndividual",
     fieldName: "efe.ContieneEfectoIndividual",
+    searchComponent: "inpurForActivo",
     type: "boolean",
     sortable: true,
     hidden: false,
@@ -200,17 +211,29 @@ const listaColumnasObjetivos: any[] = [
     type: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
-    id: "ClienteId",
     name: "Cliente",
+    type: "string",
+    id: "ClienteId",
     field: "ClienteId",
     fieldName: "obj.ClienteId",
-    type: "number",
+    searchComponent: "inpurForClientSearch",
     sortable: true,
     hidden: false,
     searchHidden: false
+  },
+  {
+    name: "Razon social",
+    type: "string",
+    id: "ClienteDenominacion",
+    field: "ClienteDenominacion",
+    fieldName: "cli.ClienteDenominacion",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    editable: false
   },
   {
     id: "ClienteElementoDependienteId",
@@ -219,8 +242,8 @@ const listaColumnasObjetivos: any[] = [
     fieldName: "obj.ClienteElementoDependienteId",
     type: "number",
     sortable: true,
-    hidden: false,
-    searchHidden: false
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "EfectoId",
@@ -229,8 +252,8 @@ const listaColumnasObjetivos: any[] = [
     fieldName: "stk.EfectoId",
     type: "number",
     sortable: true,
-    hidden: false,
-    searchHidden: false
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "EfectoEfectoIndividualId",
@@ -239,8 +262,8 @@ const listaColumnasObjetivos: any[] = [
     fieldName: "stk.EfectoEfectoIndividualId",
     type: "number",
     sortable: true,
-    hidden: false,
-    searchHidden: false
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "StockStock",
@@ -260,7 +283,7 @@ const listaColumnasObjetivos: any[] = [
     type: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoDescripcion",
@@ -270,7 +293,7 @@ const listaColumnasObjetivos: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoAtrDescripcion",
@@ -280,7 +303,7 @@ const listaColumnasObjetivos: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoEfectoIndividualDescripcion",
@@ -290,7 +313,7 @@ const listaColumnasObjetivos: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "EfectoIndividualAtrDescripcion",
@@ -300,7 +323,7 @@ const listaColumnasObjetivos: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   }
 
 ]
@@ -385,7 +408,10 @@ export class EfectoController extends BaseController {
 
   private efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
     return queryRunner.query(`
-      SELECT efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      SELECT efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId,
+       obj.ClienteElementoDependienteId, 
+       
+       stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       1
       FROM Stock stk
@@ -413,12 +439,18 @@ export class EfectoController extends BaseController {
   private getEfectoObjetivosQuery(queryRunner: any, listOptions: any) {
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasObjetivos)
     return queryRunner.query(`
-      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId, obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
+             CASE WHEN efe.ContieneEfectoIndividual = 1 THEN 'Si' ELSE 'No' END as ContieneEfectoIndividual,
+             stk.StockId,
+      obj.ClienteId,
+      cli.ClienteDenominacion,
+       obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
           1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
     JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
     LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
