@@ -1092,7 +1092,7 @@ export class CustodiaController extends BaseController {
             delete infoCustodia.id
             delete infoCustodia.responsable
 
-            if (!(await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) && responsableId != infoCustodia.responsableId) {
+            if (!(await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Administrativo')) && responsableId != infoCustodia.responsableId) {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
             }
 
@@ -1541,7 +1541,7 @@ export class CustodiaController extends BaseController {
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
             let result: any
-            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas') || await this.hasGroup(req, 'Administrativo')) {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, 0)
             } else {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)
