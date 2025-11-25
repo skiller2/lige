@@ -82,26 +82,15 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "SucursalId",
-    name: "SucursalId",
-    field: "SucursalId",
-    type: "string",
-    fieldName: "suc.SucursalId",
-    searchType: "number",
-    sortable: true,
-    searchHidden: true,
-    hidden: true,
-  },
-  {
-    id: "SucursalDescripcion",
     name: "Sucursal",
-    field: "SucursalDescripcion",
     type: "string",
-    fieldName: "suc.SucursalDescripcion",
-    searchType: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inpurForSucursalSearch",
     sortable: true,
-    searchHidden: false,
     hidden: false,
+    searchHidden: false
   },
   {
     id: "SituacionRevistaId",
@@ -280,7 +269,7 @@ export class PersonalController extends BaseController {
         AND gap.GrupoActividadPersonalPersonalId = @0
         GROUP BY gap.GrupoActividadPersonalPersonalId,per.PersonalId, per.PersonalApellido, per.PersonalNombre, gaj.GrupoActividadJerarquicoDesde, gaj.GrupoActividadJerarquicoHasta
 
-      ORDER BY ord`,[personalId, anio, mes]);
+      ORDER BY ord`, [personalId, anio, mes]);
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
@@ -2349,7 +2338,7 @@ cuit.PersonalCUITCUILCUIT,
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
     let now: Date = new Date()
-    
+
     //Obtengo el ultimo Grupo Actividad Personal
     let ultGrupoActividadPersonal = await queryRunner.query(`
       SELECT TOP 1 grup.GrupoActividadPersonalId, grup.GrupoActividadId, grup.GrupoActividadPersonalPersonalId,
