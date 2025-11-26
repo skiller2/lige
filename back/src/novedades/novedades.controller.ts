@@ -766,10 +766,10 @@ export class NovedadesController extends BaseController {
         const anio = Fecha.getFullYear()
         const mes = Fecha.getMonth() + 1
         const responsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner)
-        const supervisor = responsables.find(r => r.ord == 3)
+        const supervisor = responsables.find(r => r.ord == 2)
 
         const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad?.DesObjetivo ?? ''}`
-
+        
         if (supervisor.GrupoActividadId) {
             const PersonalId = supervisor.GrupoActividadId
             const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
