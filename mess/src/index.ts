@@ -49,16 +49,19 @@ if (ENABLE_QUEUE_MSGS) {
     
     for (const msg of listmsg) {
       try {
-        if (msg.ClaseMensaje == 'NOVEDAD' || (horas >= 8 && horas <= 22)) {
+        if (msg.ClaseMensaje?.includes('NOVEDAD') || (horas >= 8 && horas <= 22)) {
           const saludo = BotServer.getSaludo();
           const texto = String(msg.TextoMensaje || '').trim()
 
           if (texto == '')
             throw new Error(`Mensaje vacío, no se envió TextoMensaje`)
 
+          console.log(`1: Envío saludo a ${msg.Telefono}: ${texto}`)
           await botServer.sendMsg(msg.Telefono, saludo);
+          console.log(`2: Envío mensaje a ${msg.Telefono}: ${texto}`)
           //await delay(1000);
           await botServer.sendMsg(msg.Telefono, texto);
+          console.log(`3: Mensaje enviado a ${msg.Telefono}`);
           await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId);
 
         }
