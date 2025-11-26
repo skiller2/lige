@@ -95,6 +95,7 @@ export class DomicilioController extends BaseController {
         , CONCAT(TRIM(pro.ProvinciaDescripcion), ', ', TRIM(pais.PaisDescripcion)) address
       FROM Provincia pro
       INNER JOIN Pais pais ON pais.PaisId = pro.PaisId
+      where pais.PaisId = 1
       `,)
 
       this.jsonRes(options, res);
@@ -113,6 +114,7 @@ export class DomicilioController extends BaseController {
         FROM Localidad loc
         INNER JOIN Provincia pro ON pro.ProvinciaId = loc.ProvinciaId AND pro.PaisId = loc.PaisId
         INNER JOIN Pais pais ON pais.PaisId = loc.PaisId
+        where pais.PaisId = 1
         `)
 
       this.jsonRes(options, res);
@@ -132,6 +134,7 @@ export class DomicilioController extends BaseController {
       INNER JOIN Localidad loc ON loc.LocalidadId = bar.LocalidadId AND loc.ProvinciaId = bar.ProvinciaId AND loc.PaisId = bar.PaisId
       INNER JOIN Provincia pro ON pro.ProvinciaId = bar.ProvinciaId AND pro.PaisId = bar.PaisId
       INNER JOIN Pais pais ON pais.PaisId = bar.PaisId
+      where pais.PaisId = 1
       `)
       
       this.jsonRes(options, res);
