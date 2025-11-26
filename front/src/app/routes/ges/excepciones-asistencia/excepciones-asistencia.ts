@@ -63,6 +63,9 @@ export class ExcepcionesAsistenciaComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
     this.gridOptions.enableCheckboxSelector = true
+    this.gridOptions.rowSelectionOptions = {
+      selectActiveRow: false
+  }
 
     this.selectedDate()
 
