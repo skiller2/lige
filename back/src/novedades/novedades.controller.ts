@@ -558,6 +558,8 @@ export class NovedadesController extends BaseController {
             NovedadIdNew = {
                 novedadId: novedadId,
             }
+
+            Obj.novedadId = novedadId
             //TODO: Agregar detalle del objetivo en Obj.DesObjetivo
             await this.sendMsgResponsable(Obj, queryRunner, usuarioName, ip)
 
@@ -775,7 +777,7 @@ export class NovedadesController extends BaseController {
 
 
             if (telefono) {
-                const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD`, usuario, ip)
+                const sendit = await AccesoBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD${novedad.novedadId}`, usuario, ip)
             }
         }
     }

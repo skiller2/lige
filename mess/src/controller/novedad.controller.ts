@@ -30,7 +30,7 @@ export class NovedadController extends BaseController {
       const PersonalId = supervisor.GrupoActividadId
       const result = await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
       if (result.length>0)
-        ChatBotController.enqueBotMsg(PersonalId, msg, 'NOVEDAD', 'bot', '127.0.0.1')
+        ChatBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD${novedad.novedadId}`, 'bot', '127.0.0.1')
     }
   }
 
