@@ -105,11 +105,11 @@ const columns: any[] = [
     hidden: true,
   },
   {
-    id: "sitRevCom",
+    id: "SituacionRevistaDescripcion",
     name: "Situación Revista",
-    field: "sitRevCom",
+    field: "SituacionRevistaDescripcion",
     type: "string",
-    fieldName: "sitrev.sitRevCom",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
     searchType: "string",
     sortable: true,
     searchHidden: true,
@@ -125,7 +125,7 @@ const columns: any[] = [
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
   },
   {
     id: "Telefonos",
