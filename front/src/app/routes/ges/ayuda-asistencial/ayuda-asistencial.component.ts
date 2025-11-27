@@ -15,6 +15,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
+import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -22,7 +23,7 @@ import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayu
     styleUrls: ['./ayuda-asistencial.component.less'],
     providers: [AngularUtilService, ExcelExportService],
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,
-        AyudaAsistencialDrawerComponent
+        AyudaAsistencialDrawerComponent, DetallePersonaComponent
     ]
 })
 export class AyudaAsistencialComponent {
@@ -47,6 +48,10 @@ export class AyudaAsistencialComponent {
     periodo = signal(new Date())
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
+    visibleDetalle = model<boolean>(false)
+    personalId = signal(0)
+    anio = signal(0)
+    mes = signal(0)
 
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
@@ -155,6 +160,8 @@ export class AyudaAsistencialComponent {
             this.selectedPeriod.year = anio
             this.selectedPeriod.month = mes
             this.formAsist().form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
+            this.anio.set(anio)
+            this.mes.set(mes)
         }, 1);
     }
 
@@ -185,11 +192,28 @@ export class AyudaAsistencialComponent {
     }
 
     handleSelectedRowsChanged(e: any): void {
-        this.rows = e.detail.args.rows
-        if (e.detail.args.changedSelectedRows.length == 1) {
-            this.registerId = this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id
-        } else
-            this.registerId = ''
+        this.rows = e.detail.args.rows;
+        const selectedRows = this.angularGrid.dataView.getAllSelectedFilteredIds();
+        
+        if (selectedRows.length === 1) {
+            // si queda solo uno seleccionado, poner ese PersonalId
+            const idx = this.angularGrid.dataView.getRowById(selectedRows[0]);
+            const item = this.angularGrid.dataView.getItemByIdx(idx ?? 0);
+            this.registerId = item?.id ?? '';
+            this.personalId.set(item?.PersonalId ?? 0);
+        } else {
+            // si hay más de uno, dejar el ultimo seleccionado o limpiar si no hay ninguno
+            if (selectedRows.length > 1) {
+                // tomar el seleccionado en la posicion mas reciente del evento changedSelectedRows
+                const lastRowNum = e.detail.args.changedSelectedRows[e.detail.args.changedSelectedRows.length - 1];
+                const item = this.angularGrid.dataView.getItemByIdx(lastRowNum);
+                this.registerId = item?.id ?? '';
+                this.personalId.set(item?.PersonalId ?? 0);
+            } else {
+                this.registerId = '';
+                this.personalId.set(0);
+            }
+        }
     }
 
     listOptionsChange(options: any) {
@@ -298,5 +322,14 @@ export class AyudaAsistencialComponent {
             return meta;
         };
     }
+
+    
+  closeDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set( false)
+  }
+
+  openDrawerforConsultDetalle(): void{
+    this.visibleDetalle.set(true) 
+  }
 
 }
