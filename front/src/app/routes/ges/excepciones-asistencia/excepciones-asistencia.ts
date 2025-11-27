@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
@@ -13,10 +13,11 @@ import { SettingsService } from '@delon/theme';
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { PauseOutline } from '@ant-design/icons-angular/icons';
+import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 
 @Component({
   selector: 'app-excepciones-asistencia',
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DetallePersonaComponent],
   providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([PauseOutline])],
   templateUrl: './excepciones-asistencia.html',
   styleUrl: './excepciones-asistencia.less',
@@ -43,6 +44,8 @@ export class ExcepcionesAsistenciaComponent {
   loadingPen = signal(false)
   rowsError = signal<number[]>([])
   rows = signal<number[]>([])
+  personalId = signal(0)
+  visibleDetalle = model<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -106,6 +109,24 @@ export class ExcepcionesAsistenciaComponent {
 
   handleSelectedRowsChanged(e: any): void {
     this.rows.set(e.detail.args.rows)
+    const selectedRows = this.angularGrid.dataView.getAllSelectedFilteredIds();
+    
+    if (selectedRows.length === 1) {
+      // si queda solo uno seleccionado, poner ese PersonalId
+      const idx = this.angularGrid.dataView.getRowById(selectedRows[0]);
+      const item = this.angularGrid.dataView.getItemByIdx(idx ?? 0);
+      this.personalId.set(item?.PersonalId ?? 0);
+    } else {
+      // si hay más de uno, dejar el ultimo seleccionado o limpiar si no hay ninguno
+      if (selectedRows.length > 1) {
+        // tomar el seleccionado en la posicion mas reciente del evento changedSelectedRows
+        const lastRowNum = e.detail.args.changedSelectedRows[e.detail.args.changedSelectedRows.length - 1];
+        const item = this.angularGrid.dataView.getItemByIdx(lastRowNum);
+        this.personalId.set(item?.PersonalId ?? 0);
+      } else {
+        this.personalId.set(0);
+      }
+    }
   }
 
   reloadList() {
@@ -216,5 +237,13 @@ export class ExcepcionesAsistenciaComponent {
 
       return meta;
     };
+  }
+
+  closeDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set( false)
+  }
+
+  openDrawerforConsultDetalle(): void{
+    this.visibleDetalle.set(true) 
   }
 }

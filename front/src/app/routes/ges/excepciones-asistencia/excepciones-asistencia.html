@@ -24,6 +24,10 @@
             nz-popconfirm nzPopconfirmTitle="¿Poner en Pendiente {{rows().length}} registros?" (nzOnConfirm)="pendienteReg()">
             <nz-icon nzType="pause" nzTheme="outline" />
           </button>
+          <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" 
+          [disabled]="personalId() == 0 || (personalId() != 0 && rows().length !== 1)"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user" nzTheme="outline"></span>
+          </button>
         </nz-button-group>
   
       </div>
@@ -61,3 +65,6 @@
     </nz-tabset>
   
 </nz-card>
+
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
+  (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
