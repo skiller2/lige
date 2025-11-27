@@ -13,6 +13,7 @@ const columnasGrilla: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
+    searchHidden: true,
     maxWidth: 150,
   },
   {
@@ -22,16 +23,16 @@ const columnasGrilla: any[] = [
     field: "SucursalId",
     fieldName: "suc.SucursalId",
     searchComponent: "inpurForSucursalSearch",
-
     hidden: true,
     searchHidden: false
   },
   {
-    name: "Identificación Objetivo",
+    name: "Objetivo",
     type: "number",
     id: "ObjetivoId",
     field: "ObjetivoId",
     fieldName: "obj.ObjetivoId",
+    searchComponent: 'inpurForObjetivoSearch',
     sortable: true,
     hidden: true
   },
@@ -44,24 +45,16 @@ const columnasGrilla: any[] = [
     sortable: true,
   },
   {
-    name: "Descripción Objetivo",
+    name: "Objetivo",
     type: "string",
     id: "ClienteElementoDependienteDescripcion",
     field: "ClienteElementoDependienteDescripcion",
     fieldName: "eledep.ClienteElementoDependienteDescripcion",
     sortable: true,
+    searchHidden: true
   },
   {
-    name: "Código Objetivo",
-    type: "string",
-    id: "codObjetivo",
-    field: "codObjetivo",
-    fieldName: "CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0))",
-    sortable: true,
-    maxWidth: 65,
-  },
-  {
-    name: "Grupo Objetivo",
+    name: "Grupo Actividad",
     type: "string",
     id: "GrupoActividadDetalle",
     field: "GrupoActividadDetalle",
@@ -71,7 +64,7 @@ const columnasGrilla: any[] = [
     hidden: false,
   },
   {
-    name: "Grupo Objetivo",
+    name: "Grupo Actividad",
     type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
@@ -88,7 +81,8 @@ const columnasGrilla: any[] = [
     field: "GrupoActividadNumero",
     fieldName: "ga.GrupoActividadNumero",
     sortable: true,
-    hidden: false,
+    hidden: true,
+    searchHidden: true,
     maxWidth: 65,
   },
 
@@ -101,6 +95,8 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     maxWidth: 80,
+    searchComponent: "inpurForNumberAdvancedSearch"
+
   },
   /*
   {
@@ -154,13 +150,13 @@ export class ObjetivosPendasisController extends BaseController {
       suc.SucursalDescripcion,
       obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
       cli.ClienteDenominacion, eledep.ClienteElementoDependienteDescripcion,
-      CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
+      CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0), ' ', eledep.ClienteElementoDependienteDescripcion) as ObjetivoDescripcion,
       CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as id, 
       
       obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
       
-		ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
-		gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
+      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
 
       
       objasissub.sumtotalhorascalc AS AsistenciaHoras,
@@ -173,11 +169,11 @@ export class ObjetivosPendasisController extends BaseController {
       
       LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
       LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
---      LEFT JOIN ObjetivoAsistenciaAnoMesPersonalDias objd ON objd.ObjetivoId = obj.ObjetivoId AND objd.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objd.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
+      --      LEFT JOIN ObjetivoAsistenciaAnoMesPersonalDias objd ON objd.ObjetivoId = obj.ObjetivoId AND objd.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objd.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
       
  
  
-   LEFT JOIN ( SELECT objd.ObjetivoId, objd.ObjetivoAsistenciaAnoMesId, objd.ObjetivoAsistenciaAnoId,
+     LEFT JOIN ( SELECT objd.ObjetivoId, objd.ObjetivoAsistenciaAnoMesId, objd.ObjetivoAsistenciaAnoId,
       
       SUM(      ((
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
@@ -241,17 +237,17 @@ export class ObjetivosPendasisController extends BaseController {
       
       
       
---      LEFT JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
---      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
+      --      LEFT JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+     --      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
       
       
       LEFT JOIN (SELECT gao.GrupoActividadObjetivoObjetivoId, MAX(ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31')) AS GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo gao WHERE EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gao.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') GROUP BY gao.GrupoActividadObjetivoObjetivoId )
-AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+      AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
       
       LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31')  AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') = gas.GrupoActividadObjetivoHasta
       
 		
-		LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+	  	LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
       
       
       
