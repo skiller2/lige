@@ -167,7 +167,7 @@ const columns: any[] = [
     type: "string",
     id: "GrupoActividadDetalle",
     field: "GrupoActividadDetalle",
-    fieldName: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
     sortable: true,
     searchHidden: true
   },
@@ -176,12 +176,78 @@ const columns: any[] = [
     type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
-    fieldName: "act.GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
     searchComponent: 'inpurForGrupoActividadSearch',
     sortable: false,
     hidden: true,
     searchHidden: false
-  }
+  },
+  {
+        name: "Domicilio",
+        type: "string",
+        id: "domCompleto",
+        field: "domCompleto",
+        fieldName: "perdom.domCompleto",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Dom. Calle",
+        type: "string",
+        id: "domCalleNro",
+        field: "domCalleNro",
+        fieldName: "perdom.domCalleNro",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dom. Código Postal",
+        type: "string",
+        id: "DomicilioCodigoPostal",
+        field: "domCalDomicilioCodigoPostalleNro",
+        fieldName: "perdom.DomicilioCodigoPostal",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dom. Provincia",
+        type: "number",
+        id: "DomicilioProvinciaId",
+        field: "DomicilioProvinciaId",
+        fieldName: "perdom.DomicilioProvinciaId",
+        searchComponent: "inpurForProvinciasSearch",
+        searchType: "number",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dom. Localidad",
+        type: "number",
+        id: "DomicilioLocalidadId",
+        field: "DomicilioLocalidadId",
+        fieldName: "perdom.DomicilioLocalidadId",
+        searchComponent: "inpurForLocalidadesSearch",
+        searchType: "number",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Dom. Barrio",
+        type: "number",
+        id: "DomicilioBarrioId",
+        field: "DomicilioBarrioId",
+        fieldName: "perdom.DomicilioBarrioId",
+        searchComponent: "inpurForBarrioSearch",
+        searchType: "number",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
 ]
 
 
@@ -482,25 +548,39 @@ export class PersonalController extends BaseController {
 
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
-SELECT
-CONCAT(per.PersonalId,'-',sitrev.PersonalSituacionRevistaSituacionId) id,
-per.PersonalId,
-cuit.PersonalCUITCUILCUIT,
-        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-        per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
-        sitrev.SituacionRevistaDescripcion,
-        sitrev.PersonalSituacionRevistaDesde,
-        act.GrupoActividadNumero, act.GrupoActividadId,
-        CONCAT(TRIM(act.GrupoActividadDetalle), ' (Desde: ', FORMAT(grupo.GrupoActividadPersonalDesde, 'dd/MM/yyyy')
-        , ' - Hasta: ', IIF(grupo.GrupoActividadPersonalHasta IS NULL, 'Actualidad', FORMAT(grupo.GrupoActividadPersonalHasta, 'dd/MM/yyyy')), ')'
-      ) as GrupoActividadDetalle,
-        ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
-        tels.Telefonos,
-        peredad.PersonalEdad
+    
+    SELECT
+        CONCAT(per.PersonalId,'-',sitrev.PersonalSituacionRevistaSituacionId) id,
+        per.PersonalId,
+        cuit.PersonalCUITCUILCUIT,
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+        sitrev.PersonalSituacionRevistaSituacionId,
+            sitrev.SituacionRevistaDescripcion,
+            sitrev.PersonalSituacionRevistaDesde,
+        sitrev.sitRevCom,
+            ga.GrupoActividadNumero, ga.GrupoActividadId,
+        ga.GrupoActividadDetalle,
+            ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
+            tels.Telefonos,
+            peredad.PersonalEdad,
+        perdom.domCompleto,
+        perdom.domCalleNro,
+        perdom.DomicilioCodigoPostal, perdom.DomicilioPaisId, perdom.DomicilioProvinciaId,perdom.DomicilioLocalidadId,perdom.DomicilioBarrioId
 
         FROM Personal per
         LEFT JOIN (
-          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
+          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
+		  CASE 
+				WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
+					CONCAT(TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', 
+							FORMAT(p.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+							CASE WHEN p.PersonalSituacionRevistaHasta IS NULL THEN '' 
+								ELSE FORMAT(p.PersonalSituacionRevistaHasta, 'dd/MM/yyyy') 
+							END, ')'
+					)
+				ELSE '' 
+			END AS sitRevCom
           FROM PersonalSituacionRevista p
           JOIN SituacionRevista s
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
@@ -513,8 +593,28 @@ cuit.PersonalCUITCUILCUIT,
         LEFT JOIN ( SELECT t.PersonalId, STRING_AGG(TRIM(t.PersonalTelefonoNro),', ') Telefonos FROM PersonalTelefono t WHERE t.PersonalTelefonoInactivo =0 OR t.PersonalTelefonoInactivo IS null GROUP BY t.PersonalId
             ) tels ON tels.PersonalId= per.PersonalId
 
-        LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde <= GETDATE() AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') >= GETDATE() 
-        LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
+       LEFT JOIN (
+					SELECT 
+						gap.GrupoActividadPersonalPersonalId,
+						ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
+
+						CASE 
+							WHEN ga.GrupoActividadId IS NOT NULL THEN  
+								CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+									   FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+									   CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+											ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+									   END, ')'
+								)
+							ELSE '' 
+						END AS GrupoActividadDetalle
+					FROM GrupoActividadPersonal gap
+					LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+					WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(GETDATE() AS DATE)
+					  AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+				) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+
+
         LEFT JOIN (SELECT per.PersonalId,DATEDIFF(YEAR, per.PersonalFechaNacimiento, GETDATE()) -
           CASE
               WHEN (MONTH(GETDATE()) < MONTH(per.PersonalFechaNacimiento))
@@ -524,6 +624,21 @@ cuit.PersonalCUITCUILCUIT,
               ELSE 0
           END AS PersonalEdad
           FROM Personal per ) as peredad on  peredad.PersonalId=per.PersonalId
+
+		Left join (Select  (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro, per.PersonalId, 
+								
+								CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),NULLIF(CONCAT('C', TRIM(dom.DomicilioCodigoPostal)), 'C'),
+								NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto
+
+								, dom.DomicilioCodigoPostal, dom.DomicilioPaisId,dom.DomicilioProvinciaId,dom.DomicilioLocalidadId,dom.DomicilioBarrioId
+                                from Personal per
+                                LEFT JOIN NexoDomicilio nexdom ON nexdom.PersonalId = per.PersonalId AND nexdom.NexoDomicilioActual = 1
+                                LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+                                LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
+                                LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
+                                LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
+                                LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
+                                ) AS perdom on perdom.PersonalId=per.PersonalId
 
         WHERE (1=1)
         AND (${filterSql})

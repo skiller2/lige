@@ -1,4 +1,4 @@
-import { NextFunction, Response } from "express";
+import { NextFunction, query, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource, getConnection } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
@@ -189,10 +189,10 @@ const columnsAyudaAsistencial: any[] = [
   {
     name: "Grupo Actividad",
     type: "string",
-    id: "GrupoActividadDetalle",
-    field: "GrupoActividadDetalle",
-    fieldName: "ga.GrupoActividadDetalle",
-    sortable: true,
+    id: "gaCom",
+    field: "gaCom",
+    fieldName: "gaper.gaCom",
+    sortable: true, 
     searchHidden: true
   },
   {
@@ -200,7 +200,7 @@ const columnsAyudaAsistencial: any[] = [
     type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
-    fieldName: "ga.GrupoActividadId",
+    fieldName: "gaper.GrupoActividadId",
     searchComponent: 'inputForGrupoActividadSearch',
     sortable: false,
     hidden: true,
@@ -216,7 +216,7 @@ export class AyudaAsistencialController extends BaseController {
   ) {
     const PersonalPrestamoAprobado = 'S'
     const PersonalPrestamoFechaAprobacion = new Date()
-    return await queryRunner.query(`
+    const prestamo = await queryRunner.query(`
       UPDATE PersonalPrestamo
       SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoCantidadCuotas = @4,
       PersonalPrestamoMontoAutorizado = @5, PersonalPrestamoMonto = @5, PersonalPrestamoFechaAprobacion = @6,
@@ -225,6 +225,29 @@ export class AyudaAsistencialController extends BaseController {
     `, [personalPrestamoId, personalId, PersonalPrestamoAprobado, PersonalPrestamoAplicaEl,
       PersonalPrestamoCantidadCuotas, PersonalPrestamoMonto, PersonalPrestamoFechaAprobacion, usuario, ip]
     )
+
+    const periodo = this.valAplicaEl(PersonalPrestamoAplicaEl)
+    console.log('periodo', periodo, 'cuotas', PersonalPrestamoCantidadCuotas)
+
+    let PersonalPrestamoCuotaId = 0
+    let cuotaAnio = periodo.anio
+    let cuotaMes = periodo.mes
+    // divide el monto total para saber el valor de cada cuota
+
+    const valorCuota = Number((Number(PersonalPrestamoMonto) / Number(PersonalPrestamoCantidadCuotas)).toFixed(2))
+    for (let cuota = 1; cuota <= PersonalPrestamoCantidadCuotas; cuota++) {
+      PersonalPrestamoCuotaId++
+      console.log('cuota', cuota, ' - ', cuotaAnio, cuotaMes, 'id:', PersonalPrestamoCuotaId, ' valorCuota:', valorCuota)
+
+      await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, PersonalPrestamoCuotaId, personalPrestamoId, personalId, cuotaAnio, cuotaMes, valorCuota, usuario, ip)
+
+      const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+      cuotaAnio = per.cuotaAnio
+      cuotaMes = per.cuotaMes
+    }
+
+    return prestamo
+
   }
   async personalPrestamoRechazadoQuery(queryRunner: any, personalPrestamoId: number, personalId: number, usuario: string, ip: string) {
     const PersonalPrestamoAprobado = 'N'
@@ -335,7 +358,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async listAyudaAsistencialQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-    return await queryRunner.query(`
+      return await queryRunner.query(`
       SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
           pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
@@ -345,47 +368,58 @@ export class AyudaAsistencialController extends BaseController {
           form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
           pres.PersonalPrestamoAprobado,
           sit.SituacionRevistaDescripcion,
-      ga.GrupoActividadId,
-      CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', FORMAT(gaper.GrupoActividadPersonalDesde, 'dd/MM/yyyy')
-        , ' - Hasta: ', IIF(gaper.GrupoActividadPersonalHasta IS NULL, 'Actualidad', FORMAT(gaper.GrupoActividadPersonalHasta, 'dd/MM/yyyy')), ')'
-      ) as GrupoActividadDetalle,
+        gaper.GrupoActividadId,
+        gaper.gaCom,
       1
-            FROM PersonalPrestamo pres
-            JOIN Personal per ON per.PersonalId = pres.PersonalId 
-            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-            LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
+      FROM PersonalPrestamo pres
+      JOIN Personal per ON per.PersonalId = pres.PersonalId 
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
 
-            LEFT JOIN 
-          (
-          SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-          FROM PersonalSituacionRevista sitrev2 
-          JOIN PersonalPrestamo pres2 ON pres2.PersonalId = sitrev2.PersonalId
-          WHERE sitrev2.PersonalSituacionRevistaDesde<=IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2) AND  ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31') >= IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2)
-          GROUP BY sitrev2.PersonalId
-            ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
-            LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
-            
-            LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+      LEFT JOIN 
+      (
+      SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+      FROM PersonalSituacionRevista sitrev2 
+      JOIN PersonalPrestamo pres2 ON pres2.PersonalId = sitrev2.PersonalId
+      WHERE sitrev2.PersonalSituacionRevistaDesde<=IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2) AND  ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31') >= IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2)
+      GROUP BY sitrev2.PersonalId
+      ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+              
+      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
 
-          OUTER APPLY (
-            SELECT TOP 1 gaux.GrupoActividadPersonalId,gaux.GrupoActividadPersonalPersonalId,gaux.GrupoActividadId, gaux.GrupoActividadPersonalDesde,gaux.GrupoActividadPersonalHasta
-            FROM GrupoActividadPersonal gaux
-            WHERE 
-              gaux.GrupoActividadPersonalPersonalId = per.PersonalId
-              AND gaux.GrupoActividadPersonalDesde <= DATEFROMPARTS(@0,@1,1)
-              AND ISNULL(gaux.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-            ORDER BY 
-              gaux.GrupoActividadId DESC,
-              gaux.GrupoActividadPersonalId DESC
-          ) gaper
 
-          LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaper.GrupoActividadId
 
-            
-             WHERE 
-          (pres.PersonalPrestamoAprobado IS NULL
-          OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) = DATEFROMPARTS(@0,@1,1) 
-          )
+      OUTER APPLY (
+      SELECT TOP 1 ga.GrupoActividadDetalle,gaux.GrupoActividadPersonalId,gaux.GrupoActividadPersonalPersonalId,gaux.GrupoActividadId, gaux.GrupoActividadPersonalDesde,gaux.GrupoActividadPersonalHasta,
+    CASE 
+      WHEN ga.GrupoActividadId IS NOT NULL THEN  
+        CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+            FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+            CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+              ELSE FORMAT(gaux.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+            END, ')'
+        )
+      ELSE '' 
+    END AS gaCom
+      FROM GrupoActividadPersonal gaux
+    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaux.GrupoActividadId
+
+      WHERE 
+          gaux.GrupoActividadPersonalPersonalId = per.PersonalId
+          AND gaux.GrupoActividadPersonalDesde <= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
+          AND ISNULL(gaux.GrupoActividadPersonalHasta,'9999-12-31') >= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
+      ORDER BY 
+          gaux.GrupoActividadId DESC,
+          gaux.GrupoActividadPersonalId DESC
+      ) gaper
+
+
+              
+          WHERE 
+      (pres.PersonalPrestamoAprobado IS NULL
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) = DATEFROMPARTS(@0,@1,1) 
+      )
       AND (${filterSql})
       ${orderBy}
     `, [anio, mes, new Date()])
@@ -393,15 +427,17 @@ export class AyudaAsistencialController extends BaseController {
 
   async personalPrestamoCuotaAddCuotaQuery(
     queryRunner: any, personalPrestamoCuotaId: number, personalPrestamoId: number, personalId: number,
-    anio: number, mes: number, importe: number
+    anio: number, mes: number, importe: number, usuario: string, ip: string
   ) {
+    const now = new Date()
     return await queryRunner.query(`
       INSERT PersonalPrestamoCuota (PersonalPrestamoCuotaId, PersonalPrestamoId, PersonalId,
       PersonalPrestamoCuotaAno, PersonalPrestamoCuotaMes, PersonalPrestamoCuotaCuota,
-      PersonalPrestamoCuotaImporte, PersonalPrestamoCuotaMantiene,PersonalPrestamoCuotaFinaliza,
-      PersonalPrestamoCuotaProceso)
-      VALUES (@0,@1,@2,@3,@4,@0,@5,@6,@6,@7)
-    `, [personalPrestamoCuotaId, personalPrestamoId, personalId, anio, mes, importe, 0, 'FA'])
+      PersonalPrestamoCuotaImporte, PersonalPrestamoCuotaMantiene,PersonalPrestamoCuotaFinaliza,PersonalPrestamoCuotaProceso, 
+     AudUsuarioIng,AudIpIng,AudFechaIng,AudUsuarioMod,AudIpMod,AudFechaMod)
+      VALUES (@0,@1,@2,@3,@4,@0,@5,@6,@6,@7, 
+          @8,@9,@10,@8,@9,@10)
+    `, [personalPrestamoCuotaId, personalPrestamoId, personalId, anio, mes, importe, 0, 'FA', usuario, ip, now])
   }
 
   async updateCuotaPersonalPrestamo(
@@ -689,7 +725,7 @@ export class AyudaAsistencialController extends BaseController {
       return new ClientException(`${apellidoNombre} no tiene disponibilidad de su cuenta.`)
     }
 
-    await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId, anio, mes, importeCuota)
+    await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId, anio, mes, importeCuota, usuario, ip)
     await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota, anio, mes, usuario, ip)
 
     return
@@ -1021,6 +1057,22 @@ export class AyudaAsistencialController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  getNextMonthYear(month: number, year: number): { cuotaMes: number, cuotaAnio: number } {
+    if (month < 1 || month > 12) {
+      throw new Error("El mes debe estar entre 1 y 12");
+    }
+
+    let nextMonth = month + 1;
+    let nextYear = year;
+
+    if (nextMonth > 12) {
+      nextMonth = 1;
+      nextYear += 1;
+    }
+
+    return { cuotaMes: nextMonth, cuotaAnio: nextYear };
   }
 
 }
