@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, model } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption, } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -10,6 +10,8 @@ import { SearchService } from 'src/app/services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { PauseOutline } from '@ant-design/icons-angular/icons';
@@ -54,7 +56,11 @@ export class ExcepcionesAsistenciaComponent {
   private injector = inject(Injector)
   startFilters = signal<any[]>([])
 
-  columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols')
+  columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {
+    cols[6].asyncPostRender = this.renderAngularComponent.bind(this)
+    return cols
+  }));
+  
   tableLoading$ = new BehaviorSubject(false);
 
   // firstFilter = false
@@ -245,5 +251,20 @@ export class ExcepcionesAsistenciaComponent {
 
   openDrawerforConsultDetalle(): void{
     this.visibleDetalle.set(true) 
+  }
+
+  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    switch (colDef.id) {
+      case 'ObjetivoDescripcion':
+        Object.assign(componentOutput.componentRef.instance, { link: '/ges/carga_asistencia', params: { ObjetivoId: dataContext.ObjetivoId }, detail: cellNode.innerText })
+
+        break;
+
+      default:
+        break;
+    }
+
+    cellNode.replaceChildren(componentOutput.domElement)
   }
 }
