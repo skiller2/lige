@@ -23,7 +23,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         '5- *Documentación pendiente*',
         '6- *Informar novedad*',
         `7- *Novedades pendientes por ver*`,
-        // `8- *Solicitar Adelanto*`,
+        `8- *Solicitar Adelanto*`,
         '9- *Desvincular teléfono*',
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
@@ -60,9 +60,9 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                 case 7:
                     return gotoFlow(flowNovedadPendiente)
                     break;
-                // case 8:
-                //     return gotoFlow(flowAdelanto)
-                //     break;
+                case 8:
+                    return gotoFlow(flowAdelanto)
+                    break;
                 case 9:
                     return gotoFlow(flowRemoveTel)
                     break;
