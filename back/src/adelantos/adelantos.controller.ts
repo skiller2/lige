@@ -68,6 +68,7 @@ export class AdelantosController extends BaseController {
       id: "PersonalPrestamoMonto",
       field: "PersonalPrestamoMonto",
       fieldName: "pre.PersonalPrestamoMonto",
+      searchComponent: "inpurForNumberAdvancedSearch",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -102,10 +103,10 @@ export class AdelantosController extends BaseController {
       fieldName: "fp.FormaPrestamoDescripcion",
       sortable: true,
       searchHidden: false,
-      hidden: false,
+      hidden: true,
     },
     {
-      name: "Grupo Código",
+      name: "Grupo Actividad Cod.",
       type: "string",
       id: "GrupoActividadNumero",
       field: "GrupoActividadNumero",
@@ -115,7 +116,7 @@ export class AdelantosController extends BaseController {
       hidden: false,
     },
     {
-      name: "Grupo Detalle",
+      name: "Grupo Actividad",
       type: "string",
       id: "GrupoActividadDetalle",
       field: "GrupoActividadDetalle",
@@ -241,7 +242,7 @@ export class AdelantosController extends BaseController {
 
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar adelantos para el período`)
-    
+
       // VALIDAR QUE LA SOLICITUD SEA ANTES DEL DIA 20 DEL MES ACTUAL
       if (anio === now.getFullYear() && mes === (now.getMonth() + 1) && now > fechaLimite) {
         throw new ClientException(`El plazo para solicitar adelanto en el período ${mes}/${anio}, ha finalizado. Dicha solicitud se puede hacer hasta las ${fechaLimite.getHours()} hs del día ${fechaLimite.getDate()}, dentro de dicho período.`);
@@ -326,7 +327,7 @@ export class AdelantosController extends BaseController {
             null, //PersonalPrestamoCuotaUltNro
             0, //PersonalPrestamoMontoAutorizado
 
-            now, usuario , ip// Aud data
+            now, usuario, ip// Aud data
 
           ]
         );
@@ -439,7 +440,7 @@ LEFT JOIN
    LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
 
 
-        WHERE (1=1)
+        WHERE (1=1) and pre.FormaPrestamoId = 7
        -- AND perrel.PersonalCategoriaPersonalId=@0
        AND (${filterSql}) 
        ${orderBy}`,
