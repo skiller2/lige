@@ -10,16 +10,24 @@ const delay = chatBotController.getDelay()
 
 export const flowAdelanto = addKeyword(EVENTS.ACTION)
     .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
-        await flowDynamic([{ body: `⏱️ Verificando estado y montos`, delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const actual = new Date()
         const anio = actual.getFullYear()
         const mes = actual.getMonth() + 1
         const maxImporte = 100000
+        const fechaLimite = new Date(actual.getFullYear(), actual.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
 
         const adelanto = await PersonalController.getPersonalAdelanto(personalId, anio, mes)
         await state.update({ adelanto: { anio, mes, maxImporte } })
+
+        if (actual > fechaLimite) {
+            await flowDynamic([{ body: `⏳ No es posible solicitar, ni modificar adelantos. Dicha solicitud se puede hacer hasta las ${fechaLimite.getHours()}:${fechaLimite.getMinutes()} hs del día ${fechaLimite.getDate()} del mes actual.`, delay }])
+            if (adelanto.length > 0) await flowDynamic([{ body: `Ya posee un adelanto solicitado de $${adelanto[0].PersonalPrestamoMonto.toLocaleString('es-AR')} para el período ${adelanto[0].PersonalPrestamoAplicaEl}`, delay }])
+            return gotoFlow(flowMenu)
+        }
+
+        await flowDynamic([{ body: `⏱️ Verificando estado y montos`, delay }])
 
         if (adelanto.length == 0) {
             await state.update({ adelanto: { anio, mes, maxImporte } })

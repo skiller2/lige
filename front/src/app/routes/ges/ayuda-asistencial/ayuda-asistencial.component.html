@@ -28,6 +28,9 @@
         </button>
         <button nzType="default" nz-button (click)="openDrawer()" [nzLoading]="false"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus" nzTheme="outline"></span>
+        </button> 
+        <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0 || (personalId() != 0 && rows.length !== 1)"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user" nzTheme="outline"></span>
         </button>
       </nz-form-control>
     </nz-form-item>
@@ -54,3 +57,6 @@
 
 </nz-card>
 <app-ayuda-asistencial-drawer  [periodo]="periodo()" [(visible)]="visibleDrawer" [(refresh)]="refresh"></app-ayuda-asistencial-drawer>
+
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
+  (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

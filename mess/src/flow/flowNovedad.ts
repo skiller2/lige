@@ -334,8 +334,9 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
             try {
                 if (Utils.isOKResponse(ctx.body)) {
                     const novedadId = await novedadController.addNovedad(novedad, telefono, personalId)
+                    novedad.novedadId = novedadId
                     novedad.telefonoOrigen = telefono
-                    novedad.perdonalId = personalId
+                    novedad.personalId = personalId
 
                     if (!novedad.files)
                         novedad.files = []

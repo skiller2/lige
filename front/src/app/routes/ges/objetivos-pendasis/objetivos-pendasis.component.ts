@@ -73,7 +73,7 @@ export class ObjetivosPendAsisComponent {
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
     let mapped = cols.map((col: Column) => {
-      if (col.id == 'ClienteElementoDependienteDescripcion') {
+      if (col.id == 'ObjetivoDescripcion') {
         col.asyncPostRender = this.renderAngularComponent.bind(this)
       }
       return col
@@ -152,7 +152,7 @@ export class ObjetivosPendAsisComponent {
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     switch (colDef.id) {
-      case 'ClienteElementoDependienteDescripcion':
+      case 'ObjetivoDescripcion':
         Object.assign(componentOutput.componentRef.instance, {
           link: '/ges/carga_asistencia', params: { ObjetivoId: dataContext.ObjetivoId }, detail: cellNode.innerText
         })

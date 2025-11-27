@@ -49,7 +49,7 @@ if (ENABLE_QUEUE_MSGS) {
     
     for (const msg of listmsg) {
       try {
-        if (msg.ClaseMensaje == 'NOVEDAD' || (horas >= 8 && horas <= 22)) {
+        if (msg.ClaseMensaje?.includes('NOVEDAD') || (horas >= 8 && horas <= 22)) {
           const saludo = BotServer.getSaludo();
           const texto = String(msg.TextoMensaje || '').trim()
 
@@ -59,7 +59,7 @@ if (ENABLE_QUEUE_MSGS) {
           await botServer.sendMsg(msg.Telefono, saludo);
           //await delay(1000);
           await botServer.sendMsg(msg.Telefono, texto);
-          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId);
+          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId); // todo: con meta, ver caso que no envia mensaje si el contacto no inicio la conversación dentro de las 24hs
 
         }
 
