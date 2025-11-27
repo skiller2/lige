@@ -47,9 +47,9 @@ const columnasGrilla: any[] = [
   {
     name: "Objetivo",
     type: "string",
-    id: "ClienteElementoDependienteDescripcion",
-    field: "ClienteElementoDependienteDescripcion",
-    fieldName: "eledep.ClienteElementoDependienteDescripcion",
+    id: "ObjetivoDescripcion",
+    field: "ObjetivoDescripcion",
+    fieldName: "ObjetivoDescripcion",
     sortable: true,
     searchHidden: true
   },
