@@ -183,71 +183,71 @@ const columns: any[] = [
     searchHidden: false
   },
   {
-        name: "Domicilio",
-        type: "string",
-        id: "domCompleto",
-        field: "domCompleto",
-        fieldName: "perdom.domCompleto",
-        sortable: true,
-        hidden: false,
-        searchHidden: true
-    },
-    {
-        name: "Dom. Calle",
-        type: "string",
-        id: "domCalleNro",
-        field: "domCalleNro",
-        fieldName: "perdom.domCalleNro",
-        sortable: true,
-        hidden: true,
-        searchHidden: false
-    },
-    {
-        name: "Dom. Código Postal",
-        type: "string",
-        id: "DomicilioCodigoPostal",
-        field: "domCalDomicilioCodigoPostalleNro",
-        fieldName: "perdom.DomicilioCodigoPostal",
-        sortable: true,
-        hidden: true,
-        searchHidden: false
-    },
-    {
-        name: "Dom. Provincia",
-        type: "number",
-        id: "DomicilioProvinciaId",
-        field: "DomicilioProvinciaId",
-        fieldName: "perdom.DomicilioProvinciaId",
-        searchComponent: "inpurForProvinciasSearch",
-        searchType: "number",
-        sortable: true,
-        hidden: true,
-        searchHidden: false
-    },
-    {
-        name: "Dom. Localidad",
-        type: "number",
-        id: "DomicilioLocalidadId",
-        field: "DomicilioLocalidadId",
-        fieldName: "perdom.DomicilioLocalidadId",
-        searchComponent: "inpurForLocalidadesSearch",
-        searchType: "number",
-        sortable: true,
-        hidden: true,
-        searchHidden: false
-    },
-    {
-        name: "Dom. Barrio",
-        type: "number",
-        id: "DomicilioBarrioId",
-        field: "DomicilioBarrioId",
-        fieldName: "perdom.DomicilioBarrioId",
-        searchComponent: "inpurForBarrioSearch",
-        searchType: "number",
-        sortable: true,
-        hidden: true,
-        searchHidden: false
-    },
+    name: "Domicilio",
+    type: "string",
+    id: "domCompleto",
+    field: "domCompleto",
+    fieldName: "perdom.domCompleto",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    name: "Dom. Calle",
+    type: "string",
+    id: "domCalleNro",
+    field: "domCalleNro",
+    fieldName: "perdom.domCalleNro",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Dom. Código Postal",
+    type: "string",
+    id: "DomicilioCodigoPostal",
+    field: "domCalDomicilioCodigoPostalleNro",
+    fieldName: "perdom.DomicilioCodigoPostal",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Dom. Provincia",
+    type: "number",
+    id: "DomicilioProvinciaId",
+    field: "DomicilioProvinciaId",
+    fieldName: "perdom.DomicilioProvinciaId",
+    searchComponent: "inpurForProvinciasSearch",
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Dom. Localidad",
+    type: "number",
+    id: "DomicilioLocalidadId",
+    field: "DomicilioLocalidadId",
+    fieldName: "perdom.DomicilioLocalidadId",
+    searchComponent: "inpurForLocalidadesSearch",
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Dom. Barrio",
+    type: "number",
+    id: "DomicilioBarrioId",
+    field: "DomicilioBarrioId",
+    fieldName: "perdom.DomicilioBarrioId",
+    searchComponent: "inpurForBarrioSearch",
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
 ]
 
 
