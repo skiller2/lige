@@ -305,6 +305,43 @@ export class PersonalController extends BaseController {
     }
   }
 
+  static async infoPersonalQuery(PersonalId:any, anio:number, mes:number){
+    return dataSource.query(`
+      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
+        TRIM(CONCAT(
+          TRIM(dom.DomicilioDomCalle), ' ',
+          TRIM(dom.DomicilioDomNro), ' ',
+          TRIM(dom.DomicilioDomPiso), ' ',
+          TRIM(dom.DomicilioDomDpto), ' (',
+          TRIM(dom.DomicilioCodigoPostal), ') ',
+          TRIM(loc.LocalidadDescripcion), ' ',
+          IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
+        )) AS DomicilioCompleto,
+        act.GrupoActividadNumero,
+        act.GrupoActividadDetalle,
+        suc.SucursalDescripcion
+      FROM Personal per
+      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
+      LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
+      LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
+      LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
+      LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
+      
+      LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
+      LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
+      LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+      LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+      
+      LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > grp.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
+      LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
+      LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
+
+      WHERE per.PersonalId = @0`, [PersonalId, anio, mes])
+  }
+
   async getById(PersonalId: string, res: Response, next: NextFunction) {
     const fechaActual = new Date();
     //    const dia = fechaActual.getDate();
@@ -338,7 +375,7 @@ export class PersonalController extends BaseController {
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
         LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
-		   LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
+		    LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
         
         LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
         LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId

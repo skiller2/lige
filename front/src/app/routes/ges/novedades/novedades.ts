@@ -39,6 +39,8 @@ export class NovedadesComponent {
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
+  cantRegistros = signal<number>(0)
+  isLoading = signal<boolean>(false)
 
   childAlta = viewChild.required<NovedadesFormComponent>('novedadesFormAlta')
   childDeta = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
@@ -82,7 +84,10 @@ export class NovedadesComponent {
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getListNovedades(this.listOptions, this.periodo())
-        .pipe(map(data => { return data.list }))
+        .pipe(map(data => { 
+          this.cantRegistros.set(data.total)
+          return data.list 
+        }))
     })
   )
 
@@ -154,6 +159,12 @@ export class NovedadesComponent {
 
     await firstValueFrom(this.apiService.deleteNovedad(this.editNovedadNovedadCodigo(), this.editNovedadObjetivoId()))
     this.listNovedades$.next('')
+  }
+
+  async generarInforme() {
+    this.isLoading.set(true)
+    await firstValueFrom(this.apiService.generaInformesNovedades(this.listOptions, this.periodo()))
+    this.isLoading.set(false)
   }
 
   selectedDate (){

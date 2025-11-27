@@ -48,3 +48,15 @@ novedadesRouter.get("/config/:prev?", [authMiddleware.verifyToken, authMiddlewar
     novedadesController.getNovedadConfig(req, res, next);
   }
 );
+
+novedadesRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+  (req, res, next) => {
+    novedadesController.downloadNovedadPrueba(req, res, next);
+  }
+);
+
+novedadesRouter.post("/informes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+  (req, res, next) => {
+    novedadesController.generaInformesNovedades(req, res, next);
+  }
+);

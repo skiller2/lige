@@ -1843,6 +1843,15 @@ export class ApiService {
     );
   }
 
+  generaInformesNovedades(options: any, periodo: Date) {
+    return this.http
+      .post<ResponseJSON<any>>(`api/novedades/informes`, { options, periodo })
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

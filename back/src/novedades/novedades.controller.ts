@@ -4,14 +4,14 @@ import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
-import { ObjectId } from "typeorm/browser";
-import { Console } from "node:console";
 import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
+import { PersonalController } from "src/controller/personal.controller"
 import * as fs from 'fs';
 import { mkdirSync, existsSync } from "fs";
 import path from 'path';
 import { promises as fsPromises } from 'fs';
+import puppeteer, { Browser, Page } from 'puppeteer';
 
 const listaColumnas: any[] = [
     {
@@ -273,6 +273,51 @@ export class NovedadesController extends BaseController {
         this.jsonRes(listaColumnas, res);
     }
 
+    async listQuery(queryRunner: any, condition:any, filterSql: any, orderBy: any, year:number, month:number) {
+        return await queryRunner.query(
+            `SELECT
+                nov.NovedadCodigo id
+                ,nov.NovedadCodigo
+                ,suc.SucursalId
+                ,suc.SucursalDescripcion
+                ,cli.ClienteId
+                ,cli.ClienteDenominacion
+                ,ele.ClienteElementoDependienteId
+                ,obj.ObjetivoId
+                , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
+                ,ele.ClienteElementoDependienteDescripcion DescripcionObj
+            
+                ,CONCAT(TRIM(jerper.PersonalApellido),', ', TRIM(jerper.PersonalNombre)) as ApellidoNombreJerarquico
+                , ga.GrupoActividadId
+                , ga.GrupoActividadNumero
+                ,per.PersonalId
+                ,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) as ApellidoNombrePersonal
+                ,nov.Telefono
+                ,novtip.Descripcion NovedadTipo
+                ,novtip.NovedadTipoCod
+                ,nov.Fecha
+                ,nov.VisualizacionFecha
+                ,nov.Accion
+                ,nov.Descripcion
+                ,nov.VisualizacionPersonaId
+                ,nov.VisualizacionTelefono 
+                ,nov.AudUsuarioIng
+                ,1
+            FROM Novedad nov
+            LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
+            LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+            LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
+            LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+            LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
+            LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
+            LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
+            LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
+            LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
+            LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
+
+            WHERE (${condition}) AND ${filterSql} ${orderBy}`, [year, month])
+    }
+
     async list(req: any, res: Response, next: NextFunction) {
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
@@ -285,52 +330,11 @@ export class NovedadesController extends BaseController {
             condition = `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1`
         }
         try {
-            const objetivos = await queryRunner.query(
-                `SELECT
-                    nov.NovedadCodigo id
-                    ,nov.NovedadCodigo
-                    ,suc.SucursalId
-                    ,suc.SucursalDescripcion
-                    ,cli.ClienteId
-                    ,cli.ClienteDenominacion
-                    ,ele.ClienteElementoDependienteId
-                    ,obj.ObjetivoId
-                    , CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS CodObj
-                    ,ele.ClienteElementoDependienteDescripcion DescripcionObj
-                
-                    ,CONCAT(TRIM(jerper.PersonalApellido),', ', TRIM(jerper.PersonalNombre)) as ApellidoNombreJerarquico
-                    , ga.GrupoActividadId
-                    , ga.GrupoActividadNumero
-                    ,per.PersonalId
-                    ,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) as ApellidoNombrePersonal
-                    ,nov.Telefono
-                    ,novtip.Descripcion NovedadTipo
-                    ,novtip.NovedadTipoCod
-                    ,nov.Fecha
-                    ,nov.VisualizacionFecha
-                    ,nov.Accion
-                    ,nov.Descripcion
-                    ,nov.VisualizacionPersonaId
-                    ,nov.VisualizacionTelefono 
-                    ,nov.AudUsuarioIng
-                    ,1
-                FROM Novedad nov
-                LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
-                LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-                LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
-                LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
-                LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
-                LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
-                LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
-                LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
-                LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
-                LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
-
-                WHERE (${condition}) AND ${filterSql} ${orderBy}`, [year, month])
+            const novedades = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
             this.jsonRes(
                 {
-                    total: objetivos.length,
-                    list: objetivos,
+                    total: novedades.length,
+                    list: novedades,
                 },
                 res
             );
@@ -815,7 +819,7 @@ export class NovedadesController extends BaseController {
     async getNovedadConfig(req: Request, res: Response, next: NextFunction) {
         const prev: boolean = (req.params.prev === 'true')
         try {
-            const htmlContent = await this.getNovedadHtmlContentGeneral(new Date(), 0, 0, '', '', '', true, prev)
+            const htmlContent = await this.getNovedadHtmlContentGeneral(new Date(), '', '', '', true, prev);
             this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
 
         } catch (error) {
@@ -823,7 +827,7 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async getNovedadHtmlContentGeneral(fechaNovedad: Date, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+    async getNovedadHtmlContentGeneral(fechaNovedad: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
     
         const imgPath = `./assets/logo-lince-full.svg`
         const imgBuffer = await fsPromises.readFile(imgPath);
@@ -843,13 +847,223 @@ export class NovedadesController extends BaseController {
         if (!raw) {
           header = header.replace(/\${imgBase64}/g, imgBase64);
           footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-          body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
+        //   body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
     
-          header = header.replace(/\${anio}/g, anio.toString());
-          header = header.replace(/\${mes}/g, mes.toString());
           header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaNovedad));
         }
         return { header, body, footer }
+    }
+
+    async downloadNovedadPrueba(req: Request, res: Response, next: NextFunction) {
+        const header = req.body.header
+        const body = req.body.body
+        const footer = req.body.footer
+        const NovedadCodigo = Number(req.body.NovedadCodigo)
+        const queryRunner = dataSource.createQueryRunner()
+        const fechaActual = new Date();
+
+        let filesPath = ""
+
+        try {
+            if (!NovedadCodigo)
+                throw new ClientException(`Debe selccionar una Novedad`)
+
+            const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
+                            opacity: 0.6;">PRUEBA</div>`
+
+            const condition = `(nov.NovedadCodigo IN (${NovedadCodigo}))`
+            let NovedadInfo = await this.listQuery(queryRunner, condition, '(1=1)', '', 0, 0)
+            if (NovedadInfo.length == 0)
+                throw new ClientException(`Novedad no encontrada`)
+            NovedadInfo  = NovedadInfo[0]
+
+            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth()+1)
+            infoPersonal = infoPersonal[0]
+
+            const personaNombre = infoPersonal.PersonalApellido+' '+infoPersonal.PersonalNombre;
+            const cuit = infoPersonal.PersonalCUITCUILCUIT;
+            const domicilio = infoPersonal.DomicilioCompleto;
+            const asociado = infoPersonal.PersonalNroLegajo;
+            const grupo = infoPersonal.GrupoActividadDetalle;
+
+            const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, header, body, footer)
+
+            const browser = await puppeteer.launch({ headless: 'new' })
+            const page = await browser.newPage();
+
+            filesPath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/' + NovedadCodigo + ".pdf"
+            // const den_documento = Math.floor(10000 + Math.random() * 90000);
+
+            await this.createPdf(filesPath, personaNombre, cuit, domicilio, asociado, grupo,
+                NovedadInfo, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
+
+            await page.close();
+            await browser.close();
+
+            let nameFile = `NovedadTest-${NovedadCodigo}.pdf`
+            console.log('filesPath', filesPath)
+            await this.dowloadPdfBrowser(res, next, filesPath, nameFile)
+
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    async createPdf(
+        filesPath: string,
+        personaNombre:string,
+        cuit:string,
+        domicilio:string,
+        asociado:string,
+        grupo:string,
+        novedadInfo: any,
+        page: Page,
+        htmlContent: string,
+        headerContent: string,
+        footerContent: string,
+    ) { 
+        domicilio = (domicilio && domicilio != '()') ? domicilio : 'Sin especificar'
+        asociado = (asociado) ? asociado.toString() : 'Pendiente'
+        grupo = (grupo) ? grupo : 'Sin asignar'
+        cuit = (cuit) ? cuit.toString() : 'Sin especificar'
+
+
+        headerContent = headerContent.replace(/\${novedaCodigo}/g, novedadInfo.NovedadCodigo);
+        htmlContent = htmlContent.replace(/\${personaNombre}/g, personaNombre);
+        htmlContent = htmlContent.replace(/\${cuit}/g, cuit);
+        htmlContent = htmlContent.replace(/\${domicilio}/g, domicilio);
+        htmlContent = htmlContent.replace(/\${asociado}/g, asociado);
+        htmlContent = htmlContent.replace(/\${grupo}/g, grupo);
+
+
+        let htmlObjetivo = `<td>${novedadInfo.SucursalDescripcion} - ${novedadInfo.CodObj} ${novedadInfo.ClienteDenominacion} ${novedadInfo.DescripcionObj}</td>`
+        let htmlCoor = `<td>${novedadInfo.ApellidoNombreJerarquico}</td>`
+        let htmlDetalle = `<tr><td>Tipo de novedad - ${novedadInfo.NovedadTipo}</td></tr><tr><td>Fecha - ${this.formatDate(new Date(novedadInfo.Fecha))}</td></tr><tr><td>Descripción - ${novedadInfo.Descripcion}</td></tr><tr><td>Acción - ${novedadInfo.Accion}</td></tr>`
+
+        htmlContent = htmlContent.replace(/\${textaobjetivo}/g, htmlObjetivo);
+        htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
+        htmlContent = htmlContent.replace(/\${textdetalle}/g, htmlDetalle);
+        
+
+        await page.setContent(htmlContent);
+
+        //fs.writeFileSync("./full.html",htmlContent)
+        await page.pdf({
+            path: filesPath,
+            margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
+            printBackground: true,
+            format: 'A4',
+            displayHeaderFooter: true,
+            headerTemplate: headerContent,
+            footerTemplate: footerContent,
+        });
+
+    }
+
+    async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, nameFile: any) {
+        res.download(filesPath, nameFile, async (err) => {
+          if (err) {
+            console.error(`Error al descargar el PDF: ${filesPath}`, err);
+            return next(err);
+          } else {
+            //console.log('PDF descargado con éxito');
+            fs.unlinkSync(filesPath);
+            // console.log('PDF eliminado del servidor');
+          }
+        });
+    }
+
+    formatDate(date: Date): string {
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+
+        const HH = String(date.getHours()).padStart(2, '0');
+        const MM = String(date.getMinutes()).padStart(2, '0');
+
+        return `${dd}/${mm}/${yyyy} ${HH}:${MM}`;
+    }
+
+    async generaInformesNovedades(req: any, res: Response, next: NextFunction) {
+        const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+        const orderBy = orderToSQL(req.body.options.sort)
+        const queryRunner = dataSource.createQueryRunner();
+        const periodo = req.body.periodo ? new Date(req.body.periodo) : null
+        const year = periodo ? periodo.getFullYear() : 0
+        const month = periodo ? periodo.getMonth() + 1 : 0
+        const fechaActual = new Date();
+        //let usuario = res.locals.userName
+        let condition = (periodo)? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
+        
+        try {
+            throw new ClientException(`Test.`)
+            const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
+            
+            let htmlFinal = ''
+            let filesPath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/informe-novedades-'+ fechaActual.getTime() + ".pdf"
+            const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
+            const browser = await puppeteer.launch({ headless: 'new' })
+            const page = await browser.newPage();
+            for (const novedad of list) {
+                let body = htmlContent.body;
+
+                let infoPersonal = await PersonalController.infoPersonalQuery(
+                    novedad.PersonalId,
+                    fechaActual.getFullYear(),
+                    fechaActual.getMonth()+1
+                );
+                infoPersonal = infoPersonal[0];
+
+                const personaNombre = novedad.ApellidoNombrePersonal;
+                const cuit = infoPersonal.PersonalCUITCUILCUIT?.toString() ?? 'Sin especificar';
+                const domicilio = infoPersonal.DomicilioCompleto ?? 'Sin especificar';
+                const asociado = infoPersonal.PersonalNroLegajo?.toString() ?? 'Pendiente';
+                const grupo = infoPersonal.GrupoActividadDetalle ?? 'Sin asignar';
+
+                body = body.replace(/\${personaNombre}/g, personaNombre);
+                body = body.replace(/\${cuit}/g, cuit);
+                body = body.replace(/\${domicilio}/g, domicilio);
+                body = body.replace(/\${asociado}/g, asociado);
+                body = body.replace(/\${grupo}/g, grupo);
+
+                let htmlObjetivo = `<td>${novedad.SucursalDescripcion} - ${novedad.CodObj} ${novedad.ClienteDenominacion} ${novedad.DescripcionObj}</td>`;
+                let htmlCoor = `<td>${novedad.ApellidoNombreJerarquico}</td>`;
+                let htmlDetalle =
+                `<tr><td>Tipo de novedad - ${novedad.NovedadTipo}</td></tr>
+                <tr><td>Fecha - ${this.formatDate(new Date(novedad.Fecha))}</td></tr>
+                <tr><td>Descripción - ${novedad.Descripcion}</td></tr>
+                <tr><td>Acción - ${novedad.Accion}</td></tr>`;
+
+                body = body.replace(/\${textaobjetivo}/g, htmlObjetivo);
+                body = body.replace(/\${textcoor}/g, htmlCoor);
+                body = body.replace(/\${textdetalle}/g, htmlDetalle);
+
+                htmlFinal += body + `<div class="page-break"></div>`;
+            }
+
+            await page.setContent(htmlFinal);
+
+            //fs.writeFileSync("./full.html",htmlContent)
+            await page.pdf({
+                path: filesPath,
+                margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
+                printBackground: true,
+                format: 'A4',
+                displayHeaderFooter: true,
+                headerTemplate: htmlContent.header,
+                footerTemplate: htmlContent.footer,
+            });
+
+            await page.close();
+            await browser.close();
+
+            let nameFile = 'informe-novedades.pdf'
+            await this.dowloadPdfBrowser(res, next, filesPath, nameFile)
+
+        } catch (error) {
+            return next(error)
+        }
+
     }
 
 }
