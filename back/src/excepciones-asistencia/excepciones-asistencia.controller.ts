@@ -92,7 +92,7 @@ const columnsExcepcionesAsistencia: any[] = [
     id: "GrupoActividadId",
     field: "GrupoActividadId",
     fieldName: "ga.GrupoActividadId",
-    searchComponent: 'inpurForGrupoActividadSearch',
+    searchComponent: 'inputForGrupoActividadSearch',
     sortable: false,
     hidden: true,
     searchHidden: false
