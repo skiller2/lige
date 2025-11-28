@@ -12,7 +12,6 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Component, signal, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-table-grupo-actividad-grupos',
@@ -49,8 +48,7 @@ export class TableGrupoActividadGruposComponent {
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
-  public router = inject(Router);
-  public route = inject(ActivatedRoute);
+  
 
   listOptionsChange(options: any) {
     this.listOptions = options
@@ -304,17 +302,7 @@ export class TableGrupoActividadGruposComponent {
     return true;
   }
 
-  ngAfterViewInit(): void {
-    
-    const GrupoActividadId = Number(this.route.snapshot.paramMap.get('GrupoActividadId'))
-
-    setTimeout(() => {
-      if (GrupoActividadId > 0) {
-        this.startFilters.set([ {field:'GrupoActividadId', condition:'AND', operator:'=', value: String(GrupoActividadId), forced:false}]);
-      }
-    }, 1000)
-  }
-
+ 
 
 }
 

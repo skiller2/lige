@@ -13,6 +13,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { Component, model, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-table-grupo-actividad-objetivos',
@@ -27,7 +28,8 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
 })
 export class TableGrupoActividadObjetivosComponent {
 
-
+  public router = inject(Router);
+  public route = inject(ActivatedRoute);
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
@@ -42,7 +44,7 @@ export class TableGrupoActividadObjetivosComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: any[] = []
+  startFilters = signal<any[]>([])
 
 
   complexityLevelList = [true, false];
@@ -115,9 +117,9 @@ export class TableGrupoActividadObjetivosComponent {
     this.gridOptionsEdit.createFooterRow = true
 
     const dateToday = new Date();
-    this.startFilters = [
+    this.startFilters.set([
       { field: 'GrupoActividadObjetivoDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
-      { field: 'GrupoActividadObjetivoHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
+      { field: 'GrupoActividadObjetivoHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }])
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -299,6 +301,18 @@ export class TableGrupoActividadObjetivosComponent {
     e.stopImmediatePropagation();
     return false;
   }
+
+  ngAfterViewInit(): void {
+    
+    const GrupoActividadId = Number(this.route.snapshot.paramMap.get('GrupoActividadId'))
+
+    setTimeout(() => {
+      if (GrupoActividadId > 0) {
+        this.startFilters.set([ {field:'GrupoActividadId', condition:'AND', operator:'=', value: String(GrupoActividadId), forced:false}]);
+      }
+    }, 1000)
+  }
+
 
 }
 

@@ -224,7 +224,7 @@ export class ObjetivosComponent {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     
       let GrupoActividadId = dataContext.GrupoActividadId
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/grupo-actividad/grupos', params:{ GrupoActividadId: GrupoActividadId } , detail: cellNode.innerText})
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/grupo-actividad/objetivos', params:{ GrupoActividadId: GrupoActividadId } , detail: cellNode.innerText})
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
   
     cellNode.replaceChildren(componentOutput.domElement)
