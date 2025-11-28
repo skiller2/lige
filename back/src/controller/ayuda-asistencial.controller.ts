@@ -154,16 +154,7 @@ const columnsAyudaAsistencial: any[] = [
     hidden: false,
     searchHidden: true
   },
-  {
-    id: "PersonalPrestamoUltimaLiquidacion",
-    name: "Ultima Liquidacion",
-    field: "PersonalPrestamoUltimaLiquidacion",
-    type: "string",
-    fieldName: "pres.PersonalPrestamoUltimaLiquidacion",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-  },
+
   {
     id: "PersonalPrestamoAprobado",
     name: "Estado",
