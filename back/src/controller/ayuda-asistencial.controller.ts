@@ -355,7 +355,7 @@ export class AyudaAsistencialController extends BaseController {
           pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
           pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
           IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-          pres.PersonalPrestamoUltimaLiquidacion, pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
+          pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
           form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
           pres.PersonalPrestamoAprobado,
           sit.SituacionRevistaDescripcion,
@@ -463,7 +463,6 @@ export class AyudaAsistencialController extends BaseController {
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
       ISNULL(pp.PersonalPrestamoCuotaUltNro, 0) AS PersonalPrestamoCuotaUltNro,
       ROUND(pp.PersonalPrestamoMontoAutorizado/pp.PersonalPrestamoCantidadCuotas, 2) AS PersonalPrestamoCuotaImporte
-      -- pp.PersonalPrestamoAplicaEl, pp.PersonalPrestamoUltimaLiquidacion,
       FROM PersonalPrestamo pp
       LEFT JOIN Personal per ON per.PersonalId = pp.PersonalId 
       WHERE pp.PersonalPrestamoAprobado = 'S' AND pp.PersonalPrestamoCantidadCuotas > ISNULL(pp.PersonalPrestamoCuotaUltNro, 0)
