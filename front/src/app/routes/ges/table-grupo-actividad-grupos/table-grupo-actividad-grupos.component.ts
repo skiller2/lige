@@ -40,7 +40,7 @@ export class TableGrupoActividadGruposComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: any[]=[]
+  startFilters = signal<any[]>([])
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
@@ -48,6 +48,7 @@ export class TableGrupoActividadGruposComponent {
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
+  
 
   listOptionsChange(options: any) {
     this.listOptions = options
@@ -124,7 +125,7 @@ export class TableGrupoActividadGruposComponent {
 
      let dateToday = new Date();
 
-      this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
+      this.startFilters.set([{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}])
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -301,6 +302,7 @@ export class TableGrupoActividadGruposComponent {
     return true;
   }
 
+ 
 
 }
 

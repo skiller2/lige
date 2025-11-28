@@ -16,6 +16,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
 import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
+import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 
 
 @Component({
@@ -65,7 +66,20 @@ export class ObjetivosComponent {
     private apiService = inject(ApiService)
     private settingsService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/objetivos/cols')
+    columns$ = this.apiService.getCols('/api/objetivos/cols').pipe(
+      map((cols) => {
+        if (cols[4]) {
+          cols[4].asyncPostRender = this.renderClienteDenominacionComponent.bind(this)
+        }
+        if (cols[5]) {
+          cols[5].asyncPostRender = this.renderDescripcionObjetivoComponent.bind(this)
+        }
+        if (cols[6]) {
+          cols[6].asyncPostRender = this.renderGrupoActividadDetalleComponent.bind(this)
+        }
+        return cols
+      })
+    )
 
     childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
     childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
@@ -186,5 +200,34 @@ export class ObjetivosComponent {
     }, 1000)
   }
 
+
+  renderClienteDenominacionComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    let ClienteId = dataContext.ClienteId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/clientes/listado', params:{ ClienteId: ClienteId } , detail: cellNode.innerText})
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+  
+    cellNode.replaceChildren(componentOutput.domElement)
+    
+  }
+
+  renderDescripcionObjetivoComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    let ObjetivoId = dataContext.ObjetivoId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/carga_asistencia', params:{ ObjetivoId: ObjetivoId } , detail: cellNode.innerText})
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+  
+    cellNode.replaceChildren(componentOutput.domElement)
+  }
+
+  renderGrupoActividadDetalleComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    
+      let GrupoActividadId = dataContext.GrupoActividadId
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/grupo-actividad/objetivos', params:{ GrupoActividadId: GrupoActividadId } , detail: cellNode.innerText})
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+  
+    cellNode.replaceChildren(componentOutput.domElement)
+  }
 
 }
