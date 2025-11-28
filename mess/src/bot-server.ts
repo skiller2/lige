@@ -83,7 +83,7 @@ export class BotServer {
           apiHash: process.env.TELEGRAM_API_HASH, // api_hash brindado por Telegram
           apiNumber: process.env.TELEGRAM_NUMBER, // Número de teléfono brindado por Telegram para enviar el número de verificación
           //apiPassword: process.env.TELEGRAM_PASSWORD, // Código de verificación enviado por Telegram hay que esperarlo
-          
+
           getCode: async () => { return await ask('📱 Ingresá el código recibido: ') },
         }
         this.adapterProvider = createProvider(TelegramProvider, this.tgConfig)
@@ -148,8 +148,39 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
   }
 
-  public sendMsg(telNro: string, message: string) {
-    return this.adapterProvider.sendMessage(telNro, message, {})
+  public async sendMsg(telNro: string, message: string) {
+    //Probar si se puede mandar por msg normal o usar template en caso de falla
+    const saludo = BotServer.getSaludo();
+    try {
+      await this.adapterProvider.sendMessage(telNro, saludo + "\n" + message, {})
+      return
+    } catch (error) {
+      console.log("Error sendMessage", error)
+    }
+
+    const templateMessage = {
+      name: 'GENERAL',
+      language: { code: 'es' },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', text: saludo },
+            { type: 'text', text: message },
+          ],
+        },
+      ],
+    };
+
+    try {
+      await this.adapterProvider.sendTemplate({
+        to: telNro,
+        template: templateMessage,
+      });
+      return
+    } catch (error) {
+      console.log("Error sendTemplate", error)
+    }
   }
 
   public runFlow(from: string, name: string) {

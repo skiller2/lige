@@ -161,11 +161,11 @@ export class NovedadesComponent {
     this.listNovedades$.next('')
   }
 
-  async generarInforme() {
-    this.isLoading.set(true)
-    await firstValueFrom(this.apiService.generaInformesNovedades(this.listOptions, this.periodo()))
-    this.isLoading.set(false)
-  }
+  // async generarInforme() {
+  //   this.isLoading.set(true)
+  //   await firstValueFrom(this.apiService.generaInformesNovedades(this.listOptions, this.periodo()))
+  //   this.isLoading.set(false)
+  // }
 
   selectedDate (){
     const now = new Date(); //date

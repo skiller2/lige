@@ -8,10 +8,11 @@ import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 import { PersonalController } from "src/controller/personal.controller"
 import * as fs from 'fs';
-import { mkdirSync, existsSync } from "fs";
+import { mkdirSync, existsSync, writeFileSync } from "fs";
 import path from 'path';
 import { promises as fsPromises } from 'fs';
 import puppeteer, { Browser, Page } from 'puppeteer';
+import { PDFDocument } from 'pdf-lib';
 
 const listaColumnas: any[] = [
     {
@@ -836,7 +837,7 @@ export class NovedadesController extends BaseController {
         const imgBase64 = imgBuffer.toString('base64');
     
         const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
-        const imgBase64Firma = imgBufferFirma.toString('base64');
+        // const imgBase64Firma = imgBufferFirma.toString('base64');
     
         const imgPathinaes = `./assets/icons/inaes.png`
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
@@ -994,20 +995,25 @@ export class NovedadesController extends BaseController {
         const year = periodo ? periodo.getFullYear() : 0
         const month = periodo ? periodo.getMonth() + 1 : 0
         const fechaActual = new Date();
-        //let usuario = res.locals.userName
+        let usuario = res.locals.userName
         let condition = (periodo)? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
         
         try {
-            throw new ClientException(`Test.`)
+            // throw new ClientException(`Test.`)
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
             
-            let htmlFinal = ''
-            let filesPath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/informe-novedades-'+ fechaActual.getTime() + ".pdf"
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
             const browser = await puppeteer.launch({ headless: 'new' })
             const page = await browser.newPage();
+            const filesPath = `tmp/informe-novedad/${usuario}-${fechaActual.getTime()}`
+            if (!existsSync(filesPath)) {
+                mkdirSync(filesPath, { recursive: true });
+            }
             for (const novedad of list) {
+                let filePath = `${filesPath}/${novedad.NovedadCodigo}.pdf`
                 let body = htmlContent.body;
+                let header = htmlContent.header;
+                let footer = htmlContent.footer
 
                 let infoPersonal = await PersonalController.infoPersonalQuery(
                     novedad.PersonalId,
@@ -1017,55 +1023,48 @@ export class NovedadesController extends BaseController {
                 infoPersonal = infoPersonal[0];
 
                 const personaNombre = novedad.ApellidoNombrePersonal;
-                const cuit = infoPersonal.PersonalCUITCUILCUIT?.toString() ?? 'Sin especificar';
-                const domicilio = infoPersonal.DomicilioCompleto ?? 'Sin especificar';
-                const asociado = infoPersonal.PersonalNroLegajo?.toString() ?? 'Pendiente';
-                const grupo = infoPersonal.GrupoActividadDetalle ?? 'Sin asignar';
+                const cuit = infoPersonal.PersonalCUITCUILCUIT;
+                const domicilio = infoPersonal.DomicilioCompleto;
+                const asociado = infoPersonal.PersonalNroLegajo;
+                const grupo = infoPersonal.GrupoActividadDetalle;
 
-                body = body.replace(/\${personaNombre}/g, personaNombre);
-                body = body.replace(/\${cuit}/g, cuit);
-                body = body.replace(/\${domicilio}/g, domicilio);
-                body = body.replace(/\${asociado}/g, asociado);
-                body = body.replace(/\${grupo}/g, grupo);
-
-                let htmlObjetivo = `<td>${novedad.SucursalDescripcion} - ${novedad.CodObj} ${novedad.ClienteDenominacion} ${novedad.DescripcionObj}</td>`;
-                let htmlCoor = `<td>${novedad.ApellidoNombreJerarquico}</td>`;
-                let htmlDetalle =
-                `<tr><td>Tipo de novedad - ${novedad.NovedadTipo}</td></tr>
-                <tr><td>Fecha - ${this.formatDate(new Date(novedad.Fecha))}</td></tr>
-                <tr><td>Descripción - ${novedad.Descripcion}</td></tr>
-                <tr><td>Acción - ${novedad.Accion}</td></tr>`;
-
-                body = body.replace(/\${textaobjetivo}/g, htmlObjetivo);
-                body = body.replace(/\${textcoor}/g, htmlCoor);
-                body = body.replace(/\${textdetalle}/g, htmlDetalle);
-
-                htmlFinal += body + `<div class="page-break"></div>`;
+                await this.createPdf(filePath, personaNombre, cuit, domicilio, asociado, grupo,
+                novedad, page, body, header, footer)
             }
-
-            await page.setContent(htmlFinal);
-
-            //fs.writeFileSync("./full.html",htmlContent)
-            await page.pdf({
-                path: filesPath,
-                margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
-                printBackground: true,
-                format: 'A4',
-                displayHeaderFooter: true,
-                headerTemplate: htmlContent.header,
-                footerTemplate: htmlContent.footer,
-            });
 
             await page.close();
             await browser.close();
 
+            const buffer = await this.joinPDFsOnPath(filesPath)
+            const tmpfilename = new FileUploadController().getRandomTempFileName('.pdf');
             let nameFile = 'informe-novedades.pdf'
-            await this.dowloadPdfBrowser(res, next, filesPath, nameFile)
+            writeFileSync(tmpfilename, buffer);
+            await this.dowloadPdfBrowser(res, next, tmpfilename, nameFile)
 
         } catch (error) {
             return next(error)
         }
 
+    }
+
+    async joinPDFsOnPath(rutaDirectorio) {
+        const archivosPDF = fs.readdirSync(rutaDirectorio).filter(archivo => archivo.toLowerCase().endsWith('.pdf'));
+    
+        const pdfFinal = await PDFDocument.create();
+    
+        for (const archivo of archivosPDF) {
+          const contenidoPDF = fs.readFileSync(path.join(rutaDirectorio, archivo));
+          const pdf = await PDFDocument.load(contenidoPDF);
+          const paginas = pdf.getPages();
+    
+          for (const pagina of paginas) {
+            const nuevaPagina = await pdfFinal.copyPages(pdf, [pdf.getPages().indexOf(pagina)]);
+            pdfFinal.addPage(nuevaPagina[0]);
+          }
+        }
+    
+        const pdfBytes = await pdfFinal.save();
+        return pdfBytes;
     }
 
 }
