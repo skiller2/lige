@@ -35,9 +35,7 @@ export class NovedadComponent {
   }
 
   async save() {
-    console.log('this.ngForm().value: ', this.ngForm().value);
-    
-    //const res = await firstValueFrom(this.apiService.setNovedad(this.ngForm().value))
+    const res = await firstValueFrom(this.apiService.setNovedad(this.ngForm().value))
   }
 
 }

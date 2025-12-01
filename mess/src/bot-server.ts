@@ -159,7 +159,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     }
 
     const templateMessage = {
-      name: 'GENERAL',
+      name: 'NOTIFICACION',
       language: { code: 'es' },
       components: [
         {

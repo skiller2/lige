@@ -82,7 +82,6 @@
                 <th>Monto</th>
                 <th>Fecha de Solicitud</th>
                 <th>Fecha de Aprobación</th>
-                <th>Ult. Liquidacion</th>
                 <th>Estado</th>
               </tr>
             </thead>
@@ -92,7 +91,6 @@
                 <td>{{ data.PersonalPrestamoMonto | I18NCurrency }}</td>
                 <td>{{ data.PersonalPrestamoAudFechaIng | date }}</td>
                 <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
-                <td>{{ data.PersonalPrestamoUltimaLiquidacion }}</td>
                 <td>{{ data.PersonalPrestamoAprobado }}</td>
                 <td>{{ data.Estado }}</td>
               </tr>
