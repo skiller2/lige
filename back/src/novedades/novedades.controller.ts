@@ -1019,6 +1019,30 @@ export class NovedadesController extends BaseController {
             if (!existsSync(filesPath)) {
                 mkdirSync(filesPath, { recursive: true });
             }
+
+            // todo: conseguir el primer dia de fechas que estan dentro de las novedades y el ultimo dia
+            const fechasResult = await queryRunner.query(`
+                SELECT 
+                    MIN(nov.Fecha) as PrimerDia,
+                    MAX(nov.Fecha) as UltimoDia
+                FROM Novedad nov
+                LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId=nov.ClienteId and ele.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+                LEFT JOIN Cliente cli on cli.ClienteId=ele.ClienteId
+                LEFT JOIN Objetivo obj on obj.ClienteId=nov.ClienteId and obj.ClienteElementoDependienteId=nov.ClienteElementoDependienteId
+                LEFT JOIN Personal per on per.PersonalId=nov.PersonalId
+                LEFT JOIN GrupoActividadObjetivo gaobj on gaobj.GrupoActividadObjetivoObjetivoId=obj.ObjetivoId and gaobj.GrupoActividadObjetivoDesde<=nov.Fecha and ISNULL(gaobj.GrupoActividadObjetivoHasta,'9999-12-31')>=nov.Fecha
+                LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaobj.GrupoActividadId
+                LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
+                LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
+                WHERE (${condition}) AND ${filterSql}
+            `, [year, month]);
+
+            const primerDia = fechasResult[0]?.PrimerDia ? new Date(fechasResult[0].PrimerDia) : null;
+            const ultimoDia = fechasResult[0]?.UltimoDia ? new Date(fechasResult[0].UltimoDia) : null;
+            
+            htmlContent.header = htmlContent.header.replace(/\${periodoInicio}/g, primerDia ? this.dateOutputFormat(primerDia) : 'N/A');
+            htmlContent.header = htmlContent.header.replace(/\${periodoFin}/g, ultimoDia ? this.dateOutputFormat(ultimoDia) : 'N/A');
+
             for (const novedad of list) {
                 let filePath = `${filesPath}/${novedad.NovedadCodigo}.pdf`
                 let body = htmlContent.body;
