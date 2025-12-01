@@ -730,6 +730,8 @@ export class AyudaAsistencialController extends BaseController {
     const ip = this.getRemoteAddress(req)
 
     try {
+
+      throw new ClientException('Funcionalidad deshabilitada.')
       await queryRunner.startTransaction()
 
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
