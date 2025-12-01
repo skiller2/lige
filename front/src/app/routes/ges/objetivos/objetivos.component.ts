@@ -68,6 +68,18 @@ export class ObjetivosComponent {
 
     columns$ = this.apiService.getCols('/api/objetivos/cols').pipe(
       map((cols) => {
+        // Configurar la columna Codigo para que se exporte como texto
+        const codigoCol = cols.find((col: Column) => col.id === 'Codigo')
+        if (codigoCol) {
+          codigoCol.type = FieldType.string
+          codigoCol.exportWithFormatter = false
+          // Eliminar cualquier formatter de número que pueda estar aplicado
+          delete codigoCol.formatter
+          // Forzar que se exporte como texto usando un formatter personalizado
+          codigoCol.exportCustomFormatter = (_row: number, _cell: number, value: any) => {
+            return String(value || '')
+          }
+        }
         if (cols[4]) {
           cols[4].asyncPostRender = this.renderClienteDenominacionComponent.bind(this)
         }
