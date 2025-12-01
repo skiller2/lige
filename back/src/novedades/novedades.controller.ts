@@ -5,6 +5,8 @@ import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtro
 import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "src/controller/objetivo.controller";
+import { ObjetivosController } from "src/objetivos/objetivos.controller";
+
 import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 import { PersonalController } from "src/controller/personal.controller"
 import * as fs from 'fs';
@@ -261,8 +263,8 @@ export class NovedadesController extends BaseController {
         bodyDef: './assets/novedad/novedad-body.def.html',
         footerDef: './assets/novedad/novedad-footer.def.html'
     }
-    
-    
+
+
     constructor() {
         super();
         if (!existsSync(this.directoryNovedad)) {
@@ -274,7 +276,7 @@ export class NovedadesController extends BaseController {
         this.jsonRes(listaColumnas, res);
     }
 
-    async listQuery(queryRunner: any, condition:any, filterSql: any, orderBy: any, year:number, month:number) {
+    async listQuery(queryRunner: any, condition: any, filterSql: any, orderBy: any, year: number, month: number) {
         return await queryRunner.query(
             `SELECT
                 nov.NovedadCodigo id
@@ -774,7 +776,7 @@ export class NovedadesController extends BaseController {
         const supervisor = responsables.find(r => r.ord == 2)
 
         const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad?.DesObjetivo ?? ''}`
-        
+
         if (supervisor.GrupoActividadId) {
             const PersonalId = supervisor.GrupoActividadId
             const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
@@ -791,31 +793,31 @@ export class NovedadesController extends BaseController {
         const header = req.body.header
         const body = req.body.body
         const footer = req.body.footer
-    
+
         try {
-    
-          if (body == "")
-            throw new ClientException(`El cuerpo no puede estar vacio`)
-    
-          if (header == "")
-            throw new ClientException(`La cabecera no puede estar vacia`)
-    
-          try {
-            fs.renameSync(this.PathNovedadTemplate.header, this.PathNovedadTemplate.header + '.old')
-            fs.renameSync(this.PathNovedadTemplate.body, this.PathNovedadTemplate.body + '.old')
-            fs.renameSync(this.PathNovedadTemplate.footer, this.PathNovedadTemplate.footer + '.old')
-          } catch (_e) { }
-    
-          fs.mkdirSync(path.dirname(this.PathNovedadTemplate.header), { recursive: true })
-          fs.writeFileSync(this.PathNovedadTemplate.header, header)
-          fs.writeFileSync(this.PathNovedadTemplate.body, body)
-          fs.writeFileSync(this.PathNovedadTemplate.footer, footer)
-    
-          this.jsonRes([], res, `Se guardo el nuevo formato de novedad`);
-    
+
+            if (body == "")
+                throw new ClientException(`El cuerpo no puede estar vacio`)
+
+            if (header == "")
+                throw new ClientException(`La cabecera no puede estar vacia`)
+
+            try {
+                fs.renameSync(this.PathNovedadTemplate.header, this.PathNovedadTemplate.header + '.old')
+                fs.renameSync(this.PathNovedadTemplate.body, this.PathNovedadTemplate.body + '.old')
+                fs.renameSync(this.PathNovedadTemplate.footer, this.PathNovedadTemplate.footer + '.old')
+            } catch (_e) { }
+
+            fs.mkdirSync(path.dirname(this.PathNovedadTemplate.header), { recursive: true })
+            fs.writeFileSync(this.PathNovedadTemplate.header, header)
+            fs.writeFileSync(this.PathNovedadTemplate.body, body)
+            fs.writeFileSync(this.PathNovedadTemplate.footer, footer)
+
+            this.jsonRes([], res, `Se guardo el nuevo formato de novedad`);
+
         } catch (error) {
-          console.log('capturo', error)
-          return next(error)
+            console.log('capturo', error)
+            return next(error)
         }
     }
 
@@ -831,28 +833,28 @@ export class NovedadesController extends BaseController {
     }
 
     async getNovedadHtmlContentGeneral(fechaNovedad: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
-    
+
         const imgPath = `./assets/logo-lince-full.svg`
         const imgBuffer = await fsPromises.readFile(imgPath);
         const imgBase64 = imgBuffer.toString('base64');
-    
+
         // const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
         // const imgBase64Firma = imgBufferFirma.toString('base64');
-    
+
         const imgPathinaes = `./assets/icons/inaes.png`
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
         const imgBase64inaes = imgBufferinaes.toString('base64');
-    
+
         header = (header) ? header : (fs.existsSync(this.PathNovedadTemplate.header) ? fs.readFileSync(this.PathNovedadTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.headerDef, 'utf-8'))
         body = (body) ? body : (fs.existsSync(this.PathNovedadTemplate.body) ? fs.readFileSync(this.PathNovedadTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.bodyDef, 'utf-8'))
         footer = (footer) ? footer : (fs.existsSync(this.PathNovedadTemplate.footer) ? fs.readFileSync(this.PathNovedadTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.footerDef, 'utf-8'))
-    
+
         if (!raw) {
-          header = header.replace(/\${imgBase64}/g, imgBase64);
-          footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-        //   body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
-    
-          header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaNovedad));
+            header = header.replace(/\${imgBase64}/g, imgBase64);
+            footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+            //   body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
+
+            header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaNovedad));
         }
         return { header, body, footer }
     }
@@ -878,12 +880,12 @@ export class NovedadesController extends BaseController {
             let NovedadInfo = await this.listQuery(queryRunner, condition, '(1=1)', '', 0, 0)
             if (NovedadInfo.length == 0)
                 throw new ClientException(`Novedad no encontrada`)
-            NovedadInfo  = NovedadInfo[0]
+            NovedadInfo = NovedadInfo[0]
 
-            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth()+1)
+            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
             infoPersonal = infoPersonal[0]
 
-            const personaNombre = infoPersonal.PersonalApellido+' '+infoPersonal.PersonalNombre;
+            const personaNombre = infoPersonal.PersonalApellido + ' ' + infoPersonal.PersonalNombre;
             const cuit = infoPersonal.PersonalCUITCUILCUIT;
             const domicilio = infoPersonal.DomicilioCompleto;
             const asociado = infoPersonal.PersonalNroLegajo;
@@ -914,18 +916,18 @@ export class NovedadesController extends BaseController {
 
     async createPdf(
         filesPath: string,
-        personaNombre:string,
-        cuit:string,
-        domicilio:string,
-        asociado:string,
-        grupo:string,
+        personaNombre: string,
+        cuit: string,
+        domicilioObj: string,
+        asociado: string,
+        grupo: string,
         novedadInfo: any,
         page: Page,
         htmlContent: string,
         headerContent: string,
         footerContent: string,
-    ) { 
-        domicilio = (domicilio && domicilio != '()') ? domicilio : 'Sin especificar'
+    ) {
+        domicilioObj = (domicilioObj && domicilioObj != '()') ? domicilioObj : 'Sin especificar'
         asociado = (asociado) ? asociado.toString() : 'Pendiente'
         grupo = (grupo) ? grupo : 'Sin asignar'
         cuit = (cuit) ? cuit.toString() : 'Sin especificar'
@@ -934,19 +936,27 @@ export class NovedadesController extends BaseController {
         headerContent = headerContent.replace(/\${novedaCodigo}/g, novedadInfo.NovedadCodigo);
         htmlContent = htmlContent.replace(/\${personaNombre}/g, personaNombre);
         htmlContent = htmlContent.replace(/\${cuit}/g, cuit);
-        htmlContent = htmlContent.replace(/\${domicilio}/g, domicilio);
+
+        htmlContent = htmlContent.replace(/\${domicilioObjetivo}/g, domicilioObj);
         htmlContent = htmlContent.replace(/\${asociado}/g, asociado);
         htmlContent = htmlContent.replace(/\${grupo}/g, grupo);
 
+        // Reemplazo de campos en el cuerpo del HTML - Datos de la novedad
+        htmlContent = htmlContent.replace(/\${fechaActual}/g, this.formatDate(new Date()));
+        htmlContent = htmlContent.replace(/\${novedaCodigo}/g, novedadInfo.NovedadCodigo);
+        htmlContent = htmlContent.replace(/\${fechaNovedad}/g, this.formatDate(new Date(novedadInfo.Fecha)));
+        htmlContent = htmlContent.replace(/\${tipoNovedad}/g, novedadInfo.NovedadTipo);
+        htmlContent = htmlContent.replace(/\${descripcionNovedad}/g, novedadInfo.Descripcion);
+        htmlContent = htmlContent.replace(/\${accionTomada}/g, novedadInfo.Accion);
+        htmlContent = htmlContent.replace(/\${registradoPorNombre}/g, personaNombre);
+        htmlContent = htmlContent.replace(/\${registradoPorNroAsociado}/g, asociado);
 
         let htmlObjetivo = `${novedadInfo.SucursalDescripcion} - ${novedadInfo.CodObj} ${novedadInfo.ClienteDenominacion} ${novedadInfo.DescripcionObj}`
         let htmlCoor = `${novedadInfo.ApellidoNombreJerarquico}`
-        let htmlDetalle = `<tr><td>Tipo de novedad - ${novedadInfo.NovedadTipo}</td></tr><tr><td>Fecha - ${this.formatDate(new Date(novedadInfo.Fecha))}</td></tr><tr><td>Descripción - ${novedadInfo.Descripcion}</td></tr><tr><td>Acción - ${novedadInfo.Accion}</td></tr>`
 
         htmlContent = htmlContent.replace(/\${textobjetivo}/g, htmlObjetivo);
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
-        htmlContent = htmlContent.replace(/\${textdetalle}/g, htmlDetalle);
-        
+
 
         await page.setContent(htmlContent);
 
@@ -965,14 +975,14 @@ export class NovedadesController extends BaseController {
 
     async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, nameFile: any) {
         res.download(filesPath, nameFile, async (err) => {
-          if (err) {
-            console.error(`Error al descargar el PDF: ${filesPath}`, err);
-            return next(err);
-          } else {
-            //console.log('PDF descargado con éxito');
-            fs.unlinkSync(filesPath);
-            // console.log('PDF eliminado del servidor');
-          }
+            if (err) {
+                console.error(`Error al descargar el PDF: ${filesPath}`, err);
+                return next(err);
+            } else {
+                //console.log('PDF descargado con éxito');
+                fs.unlinkSync(filesPath);
+                // console.log('PDF eliminado del servidor');
+            }
         });
     }
 
@@ -996,12 +1006,12 @@ export class NovedadesController extends BaseController {
         const month = periodo ? periodo.getMonth() + 1 : 0
         const fechaActual = new Date();
         let usuario = res.locals.userName
-        let condition = (periodo)? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
-        
+        let condition = (periodo) ? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
+
         try {
             // throw new ClientException(`Test.`)
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
-            
+
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
             const browser = await puppeteer.launch({ headless: 'new' })
             const page = await browser.newPage();
@@ -1018,18 +1028,20 @@ export class NovedadesController extends BaseController {
                 let infoPersonal = await PersonalController.infoPersonalQuery(
                     novedad.PersonalId,
                     fechaActual.getFullYear(),
-                    fechaActual.getMonth()+1
+                    fechaActual.getMonth() + 1
                 );
                 infoPersonal = infoPersonal[0];
 
+                const objetivoDomicilio = await new ObjetivosController().getDomicilio(queryRunner, novedad.ObjetivoId, novedad.ClienteId, novedad.ClienteElementoDependienteId);
+
+
                 const personaNombre = novedad.ApellidoNombrePersonal;
                 const cuit = infoPersonal.PersonalCUITCUILCUIT;
-                const domicilio = infoPersonal.DomicilioCompleto;
                 const asociado = infoPersonal.PersonalNroLegajo;
                 const grupo = infoPersonal.GrupoActividadDetalle;
 
-                await this.createPdf(filePath, personaNombre, cuit, domicilio, asociado, grupo,
-                novedad, page, body, header, footer)
+                await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
+                    novedad, page, body, header, footer)
             }
 
             await page.close();
@@ -1049,20 +1061,20 @@ export class NovedadesController extends BaseController {
 
     async joinPDFsOnPath(rutaDirectorio) {
         const archivosPDF = fs.readdirSync(rutaDirectorio).filter(archivo => archivo.toLowerCase().endsWith('.pdf'));
-    
+
         const pdfFinal = await PDFDocument.create();
-    
+
         for (const archivo of archivosPDF) {
-          const contenidoPDF = fs.readFileSync(path.join(rutaDirectorio, archivo));
-          const pdf = await PDFDocument.load(contenidoPDF);
-          const paginas = pdf.getPages();
-    
-          for (const pagina of paginas) {
-            const nuevaPagina = await pdfFinal.copyPages(pdf, [pdf.getPages().indexOf(pagina)]);
-            pdfFinal.addPage(nuevaPagina[0]);
-          }
+            const contenidoPDF = fs.readFileSync(path.join(rutaDirectorio, archivo));
+            const pdf = await PDFDocument.load(contenidoPDF);
+            const paginas = pdf.getPages();
+
+            for (const pagina of paginas) {
+                const nuevaPagina = await pdfFinal.copyPages(pdf, [pdf.getPages().indexOf(pagina)]);
+                pdfFinal.addPage(nuevaPagina[0]);
+            }
         }
-    
+
         const pdfBytes = await pdfFinal.save();
         return pdfBytes;
     }
