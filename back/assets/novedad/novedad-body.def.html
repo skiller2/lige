@@ -15,37 +15,23 @@
     .tb-detalle {
       width: 100%;
       font-size: 12px;
+      margin: 5px 0px;
     }
-
-    .subtotal td {
-      text-align: right;
-    }
-
-    .firma td {
-      vertical-align: bottom;
-      /* height: 150px; */
-    }
-
-    .firma {
-      text-align: center;
-    }
-
     .subtitle {
       padding: 4px 1px 0px;
       background-color: #AAAAAA;
       font-size: 14px;
     }
 
-    .neto {
+    .section-title {
       color: #FFFFFF;
-      background-color: #303233;
+      background-color: #aaaaaa8c;
     }
-    
+
     body {
       padding: 0 30px;
       position: relative;
     }
-
   </style>
 </head>
 
@@ -58,38 +44,7 @@
       </tr>
       <tr>
         <td>C.U.I.T</td>
-        <td>3064344510</td>
-      </tr>
-      <tr>
-        <td>Matricula I.N.A.E.S</td>
-        <td>128535</td>
-      </tr>
-      <tr>
-        <td>Domicilio</td>
-        <td>Blanco Encalada 3202 (C.A.B.A.)</td>
-      </tr>
-      <tr>
-        <td colspan="2" class="subtitle">DATOS DE PERSONA ASOCIADA</td>
-      </tr>
-      <tr>
-        <td>NOMBRE</td>
-        <td>${personaNombre}</td>
-      </tr>
-      <tr>
-        <td>C.U.I.T</td>
-        <td>${cuit}</td>
-      </tr>
-      <tr>
-        <td>DOMICILIO</td>
-        <td>${domicilio}</td>
-      </tr>
-      <tr>
-        <td>ASOCIADO</td>
-        <td>${asociado}</td>
-      </tr>
-      <tr>
-        <td>GRUPO</td>
-        <td>${grupo}</td>
+        <td>30643445510</td>
       </tr>
     </tbody>
   </table>
@@ -105,7 +60,10 @@
               <td>${textobjetivo}</td>
             </tr>
             <tr>
-              <td>Coo. Zona: ${textcoor}</td>
+              <td><b>Domicilio:</b> ${domicilioObjetivo}</td>
+            </tr>
+            <tr>
+              <td><b>Coo. Zona:</b> ${textcoor}</td>
             </tr>
           </table>
         </td>
@@ -117,7 +75,28 @@
       <tr>
         <td colspan="2">
           <table class="tb-detalle" rules="none">
-            <tbody>${textdetalle}</tbody>
+            <tbody>
+              <tr>
+                <td><b><u>Codigo:</u></b> ${novedaCodigo}</td>
+              </tr>
+              <tr>
+                <td><b><u>Tipo de novedad:</u></b> ${tipoNovedad}</td>
+              </tr>
+              <tr>
+                <td><b><u>Fecha:</u></b> ${fechaNovedad}</td>
+              </tr>
+              <tr>
+                <td><b><u>Descripción:</u></b> ${descripcionNovedad}</td>
+              </tr>
+              <tr>
+                <td><b><u>Acción Tomada:</u></b> ${accionTomada}</td>
+              </tr>
+              <tr>
+                <td><b><u>Registrado por:</u></b> ${registradoPorNombre} (Nro. Asociado: ${registradoPorNroAsociado})
+                </td>
+              </tr>
+
+            </tbody>
           </table>
         </td>
       </tr>
