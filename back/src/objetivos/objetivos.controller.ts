@@ -369,8 +369,7 @@ const columnasGrillaHistoryGrupoActividad: any[] = [
 
 
 export class ObjetivosController extends BaseController {
-
-
+    
     async getGridCols(req, res) {
         this.jsonRes(listaColumnas, res);
     }
@@ -577,28 +576,109 @@ export class ObjetivosController extends BaseController {
 
     async getDomicilio(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
 
-        if (ClienteElementoDependienteId) {
+        if (!ObjetivoId && (ClienteId && ClienteElementoDependienteId)) {
 
             return await queryRunner.query(`SELECT TOP 1 
-                 dom.DomicilioId AS DomicilioId
-                ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
-                ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
-                ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
-                ,dom.DomicilioPaisId AS DomicilioPaisId
-                ,dom.DomicilioProvinciaId AS DomicilioProvinciaId
-                ,dom.DomicilioLocalidadId AS DomicilioLocalidadId
-                ,dom.DomicilioBarrioId AS DomicilioBarrioId
-                ,dom.DomicilioDomLugar AS DomicilioDomLugar
-
-            FROM Domicilio AS dom
-            JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
-            WHERE nexdom.ClienteElementoDependienteId = @1 AND nexdom.ClienteId = @0 AND nexdom.NexoDomicilioActual = 1
-            ORDER BY dom.DomicilioId DESC`,
+                    dom.DomicilioId AS DomicilioId,
+                    TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle,
+                    TRIM(dom.DomicilioDomNro) AS DomicilioDomNro,
+                    TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal,
+                    dom.DomicilioPaisId AS DomicilioPaisId,
+                    dom.DomicilioProvinciaId AS DomicilioProvinciaId,
+                    dom.DomicilioLocalidadId AS DomicilioLocalidadId,
+                    dom.DomicilioBarrioId AS DomicilioBarrioId,
+                    dom.DomicilioDomLugar AS DomicilioDomLugar,
+                    CONCAT_WS(', ',
+                        NULLIF(
+                            TRIM(
+                                CONCAT_WS(' ', 
+                                    NULLIF(TRIM(dom.DomicilioDomCalle), ''),
+                                    NULLIF(TRIM(dom.DomicilioDomNro), '')
+                                )
+                            ),
+                            ''
+                        ),
+                        -- Código postal
+                        NULLIF(CONCAT('CP ', TRIM(dom.DomicilioCodigoPostal)), 'CP '),
+                        -- Barrio
+                        NULLIF(TRIM(bar.BarrioDescripcion), ''),
+                        -- Localidad
+                        NULLIF(TRIM(loc.LocalidadDescripcion), ''),
+                        -- Provincia
+                        NULLIF(TRIM(prov.ProvinciaDescripcion), ''),
+                        -- País
+                        NULLIF(TRIM(pais.PaisDescripcion), '')
+                    ) AS domCompleto
+                FROM Domicilio AS dom
+                JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
+                LEFT JOIN Objetivo obj ON obj.ClienteElementoDependienteId = nexdom.ClienteElementoDependienteId 
+                    AND obj.ClienteId = nexdom.ClienteId
+                LEFT JOIN Pais pais ON pais.PaisId = dom.DomicilioPaisId
+                LEFT JOIN Provincia prov ON prov.PaisId = pais.PaisId 
+                    AND prov.ProvinciaId = dom.DomicilioProvinciaId
+                LEFT JOIN Localidad loc ON loc.PaisId = pais.PaisId 
+                    AND loc.ProvinciaId = prov.ProvinciaId  
+                    AND loc.LocalidadId = dom.DomicilioLocalidadId 
+                LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId 
+                    AND bar.ProvinciaId = dom.DomicilioProvinciaId
+                    AND bar.LocalidadId = dom.DomicilioLocalidadId 
+                    AND bar.BarrioId = dom.DomicilioBarrioId
+                WHERE nexdom.ClienteElementoDependienteId =@1 AND nexdom.ClienteId = @0 AND nexdom.NexoDomicilioActual = 1
+                    AND nexdom.NexoDomicilioActual = 1
+                ORDER BY dom.DomicilioId DESC;`,
                 [ClienteId, ClienteElementoDependienteId])
 
-        } else {
-
         }
+
+        return await queryRunner.query(`SELECT TOP 1 
+                    dom.DomicilioId AS DomicilioId,
+                    TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle,
+                    TRIM(dom.DomicilioDomNro) AS DomicilioDomNro,
+                    TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal,
+                    dom.DomicilioPaisId AS DomicilioPaisId,
+                    dom.DomicilioProvinciaId AS DomicilioProvinciaId,
+                    dom.DomicilioLocalidadId AS DomicilioLocalidadId,
+                    dom.DomicilioBarrioId AS DomicilioBarrioId,
+                    dom.DomicilioDomLugar AS DomicilioDomLugar,
+                    CONCAT_WS(', ',
+                        NULLIF(
+                            TRIM(
+                                CONCAT_WS(' ', 
+                                    NULLIF(TRIM(dom.DomicilioDomCalle), ''),
+                                    NULLIF(TRIM(dom.DomicilioDomNro), '')
+                                )
+                            ),
+                            ''
+                        ),
+                        -- Código postal
+                        NULLIF(CONCAT('CP ', TRIM(dom.DomicilioCodigoPostal)), 'CP '),
+                        -- Barrio
+                        NULLIF(TRIM(bar.BarrioDescripcion), ''),
+                        -- Localidad
+                        NULLIF(TRIM(loc.LocalidadDescripcion), ''),
+                        -- Provincia
+                        NULLIF(TRIM(prov.ProvinciaDescripcion), ''),
+                        -- País
+                        NULLIF(TRIM(pais.PaisDescripcion), '')
+                    ) AS domCompleto
+                FROM Domicilio AS dom
+                JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
+                LEFT JOIN Objetivo obj ON obj.ClienteElementoDependienteId = nexdom.ClienteElementoDependienteId 
+                    AND obj.ClienteId = nexdom.ClienteId
+                LEFT JOIN Pais pais ON pais.PaisId = dom.DomicilioPaisId
+                LEFT JOIN Provincia prov ON prov.PaisId = pais.PaisId 
+                    AND prov.ProvinciaId = dom.DomicilioProvinciaId
+                LEFT JOIN Localidad loc ON loc.PaisId = pais.PaisId 
+                    AND loc.ProvinciaId = prov.ProvinciaId  
+                    AND loc.LocalidadId = dom.DomicilioLocalidadId 
+                LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId 
+                    AND bar.ProvinciaId = dom.DomicilioProvinciaId
+                    AND bar.LocalidadId = dom.DomicilioLocalidadId 
+                    AND bar.BarrioId = dom.DomicilioBarrioId
+                WHERE obj.ObjetivoId = @0 
+                    AND nexdom.NexoDomicilioActual = 1
+                ORDER BY dom.DomicilioId DESC;`, 
+                            [ObjetivoId])
 
     }
 
@@ -1172,7 +1252,7 @@ export class ObjetivosController extends BaseController {
 
         // Validar que hay elementos
         if (DocTipoCodigos.length === 0 || (DocTipoCodigos.length === 1 && DocTipoCodigos.includes(0))) throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
-        
+
         // Validar duplicados
         const duplicados = DocTipoCodigos.filter((codigo, index) => DocTipoCodigos.indexOf(codigo) !== index);
         if (duplicados.length > 0) throw new ClientException('Se encuentran Documentos requeridos No se pueden tener documentos requeridos duplicados')
