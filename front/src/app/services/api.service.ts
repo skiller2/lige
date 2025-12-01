@@ -1631,6 +1631,13 @@ export class ApiService {
     );
   }
 
+  getListAyudaAsistencialCuotas(anio: number, mes: number, filters: any) {
+    return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/cuotas', { filters, anio, mes }).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getListPolizaSeguro(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/seguros/list-poliza', parameter).pipe(

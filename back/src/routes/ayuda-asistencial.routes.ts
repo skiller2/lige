@@ -16,3 +16,6 @@ ayudaAsistencialRouter.post('/addpres', [authMiddleware.verifyToken, authMiddlew
 ayudaAsistencialRouter.post('/updpres', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.updatePersonalPrestamo(req, res, next) } )
 ayudaAsistencialRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => { ayudaAsistencialController.getPersonalPrestamoByPersonalId(req, res, next) } )
 ayudaAsistencialRouter.post('/proxfecha', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => { ayudaAsistencialController.getProxAplicaEl(req, res, next) } )
+
+ayudaAsistencialRouter.get('/cols/cuotas', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { ayudaAsistencialController.getGridColumnsCuotas(req, res, next) } )
+ayudaAsistencialRouter.post('/cuotas', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'] )], (req, res, next) => { ayudaAsistencialController.getListAyudaAsistencialCuotas(req, res, next) } )

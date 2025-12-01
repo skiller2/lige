@@ -199,6 +199,145 @@ const columnsAyudaAsistencial: any[] = [
   },
 ];
 
+
+const columnsAyudaAsistencialCuotas: any[] = [
+  {
+    id: 'id', name: 'Id', field: 'id',
+    fieldName: 'id',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: 'PersonalCUITCUILCUIT', name: 'CUIT', field: 'PersonalCUITCUILCUIT',
+    fieldName: 'cuit.PersonalCUITCUILCUIT',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'personal', name: 'Apellido Nombre', field: 'personal.fullName',
+    fieldName: "per.PersonalId",
+    sortable: true,
+    type: 'string',
+    formatter: 'complexObject',
+    params: {
+      complexFieldLabel: 'personal.fullName',
+    },
+    searchComponent: "inpurForPersonalSearch",
+    searchType: "number",
+  },
+  {
+    id: 'tipocuenta_id', name: 'Tipo Cuenta', field: 'tipocuenta_id',
+    fieldName: 'perdes.tipocuenta_id',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchComponent: 'inputForTipoCuentaSearch',
+  },
+  {
+    id: 'DescuentoId', name: 'Tipo Descuento', field: 'DescuentoId',
+    fieldName: 'tipdes.DescuentoId',
+    type: 'number',
+    searchComponent: "inputForTipoDescuentoSearch",
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
+    fieldName: 'tipdes.DescuentoDescripcion',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'mes', name: 'Mes', field: 'mes',
+    fieldName: 'perdes.mes',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 50,
+    minWidth: 10,
+  },
+  {
+    id: 'anio', name: 'Año', field: 'anio',
+    fieldName: 'perdes.anio',
+    type: 'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 50,
+    minWidth: 10,
+  },
+  {
+    id: 'desmovimiento', name: 'Detalle', field: 'desmovimiento',
+    fieldName: 'perdes.desmovimiento',
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'importe', name: 'Importe Cuota', field: 'importe',
+    fieldName: "perdes.importe",
+    type: 'currency',
+    searchType: "currency",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'cuotanro', name: 'Cuota Nro.', field: 'cuotanro',
+    fieldName: 'perdes.cuotanro',
+    type: 'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'cantcuotas', name: 'Cantidad Cuotas', field: 'cantcuotas',
+    fieldName: 'perdes.cantcuotas',
+    type: 'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'importetotal', name: 'Importe Total', field: 'importetotal',
+    fieldName: 'perdes.importetotal',
+    type: 'currency',
+    searchType: "currency",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'FechaAnulacion', name: 'Fecha Anulación', field: 'FechaAnulacion',
+    fieldName: 'perdes.FechaAnulacion',
+    type: 'date',
+    searchComponent: "inpurForFechaSearch",
+    searchType: 'date',
+  }
+
+
+]
+
 export class AyudaAsistencialController extends BaseController {
 
   async personalPrestamoAprobadoQuery(
@@ -1063,6 +1202,62 @@ export class AyudaAsistencialController extends BaseController {
     }
 
     return { cuotaMes: nextMonth, cuotaAnio: nextYear };
+  }
+
+  async getGridColumnsCuotas(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsAyudaAsistencialCuotas, res)
+  }
+
+  async getListAyudaAsistencialCuotas(req: any, res: Response, next: NextFunction) {
+   
+    const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+    const filterSql = filtrosToSql(options.filtros, columnsAyudaAsistencialCuotas);
+    const orderBy = orderToSQL(options.sort);
+    const anio = req.body.anio
+    const mes = req.body.mes
+    console.log('req.body', req.body)
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      const list = await queryRunner.query(
+        `
+        SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id 
+        , perdes.id perdes_id
+        , cuit.PersonalCUITCUILCUIT
+        , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+        , perdes.tipocuenta_id
+        , tipdes.DescuentoId
+        , tipdes.DescuentoDescripcion
+        , perdes.mes
+        , perdes.anio
+        , perdes.desmovimiento
+        , perdes.desmovimiento2
+        , perdes.importe
+        , perdes.cuotanro
+        , perdes.cantcuotas
+        , perdes.importetotal
+        , perdes.tipoint
+        , perdes.FechaAnulacion
+
+      FROM VistaPersonalDescuento perdes
+      LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
+      LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      WHERE perdes.anio = @0 AND perdes.mes = @1 AND ( (tipdes.DescuentoId IN (51)) )`, [anio, mes]
+      )
+
+      this.jsonRes(
+        {
+          total: list.length,
+          list: list,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+
   }
 
 }

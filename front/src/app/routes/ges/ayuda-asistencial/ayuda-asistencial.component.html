@@ -4,6 +4,10 @@
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'ges', 'ayuda_asistencial','listado']">Listado</a>
     </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']">Cuotas</a>
+    </li>
     <!-- <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
@@ -36,6 +40,7 @@
     </nz-form-item>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/ayuda_asistencial/listado">Listado</a>
         @if (conditional()|async) {}
@@ -51,8 +56,17 @@
           </div>
         </ng-template>
       </nz-tab>
-      
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/ayuda_asistencial/cuotas">Cuotas</a>
+        <ng-template nz-tab>
+          @defer (on idle) {
+            <app-table-ayuda-asistencial-cuotas [periodo]="periodo()"></app-table-ayuda-asistencial-cuotas>
+          }
+        </ng-template>
+        
+      </nz-tab>
     </nz-tabset>
+
   </form>
 
 </nz-card>
