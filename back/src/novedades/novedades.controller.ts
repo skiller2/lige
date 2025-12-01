@@ -951,9 +951,11 @@ export class NovedadesController extends BaseController {
         htmlContent = htmlContent.replace(/\${registradoPorNombre}/g, personaNombre);
         htmlContent = htmlContent.replace(/\${registradoPorNroAsociado}/g, asociado);
 
-        let htmlObjetivo = `${novedadInfo.SucursalDescripcion} - ${novedadInfo.CodObj} ${novedadInfo.ClienteDenominacion} ${novedadInfo.DescripcionObj}`
+        let htmlObjetivo = `${novedadInfo.CodObj} - ${novedadInfo.ClienteDenominacion} ${novedadInfo.DescripcionObj}`
         let htmlCoor = `${novedadInfo.ApellidoNombreJerarquico}`
 
+        htmlContent = htmlContent.replace(/\${sucursalObjetivo}/g, novedadInfo.SucursalDescripcion);
+        
         htmlContent = htmlContent.replace(/\${textobjetivo}/g, htmlObjetivo);
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
 
