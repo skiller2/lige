@@ -887,19 +887,21 @@ export class NovedadesController extends BaseController {
 
             const personaNombre = infoPersonal.PersonalApellido + ' ' + infoPersonal.PersonalNombre;
             const cuit = infoPersonal.PersonalCUITCUILCUIT;
-            const domicilio = infoPersonal.DomicilioCompleto;
+
             const asociado = infoPersonal.PersonalNroLegajo;
             const grupo = infoPersonal.GrupoActividadDetalle;
 
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, header, body, footer)
 
+            const objetivoDomicilio = await new ObjetivosController().getDomicilio(queryRunner, NovedadInfo.ObjetivoId, NovedadInfo.ClienteId, NovedadInfo.ClienteElementoDependienteId);
+    
             const browser = await puppeteer.launch({ headless: 'new' })
             const page = await browser.newPage();
 
             filesPath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/' + NovedadCodigo + ".pdf"
             // const den_documento = Math.floor(10000 + Math.random() * 90000);
 
-            await this.createPdf(filesPath, personaNombre, cuit, domicilio, asociado, grupo,
+            await this.createPdf(filesPath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
                 NovedadInfo, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
 
             await page.close();
@@ -955,7 +957,7 @@ export class NovedadesController extends BaseController {
         let htmlCoor = `${novedadInfo.ApellidoNombreJerarquico}`
 
         htmlContent = htmlContent.replace(/\${sucursalObjetivo}/g, novedadInfo.SucursalDescripcion);
-        
+
         htmlContent = htmlContent.replace(/\${textobjetivo}/g, htmlObjetivo);
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
 
@@ -1022,7 +1024,6 @@ export class NovedadesController extends BaseController {
                 mkdirSync(filesPath, { recursive: true });
             }
 
-            // todo: conseguir el primer dia de fechas que estan dentro de las novedades y el ultimo dia
             const fechasResult = await queryRunner.query(`
                 SELECT 
                     MIN(nov.Fecha) as PrimerDia,
@@ -1041,7 +1042,7 @@ export class NovedadesController extends BaseController {
 
             const primerDia = fechasResult[0]?.PrimerDia ? new Date(fechasResult[0].PrimerDia) : null;
             const ultimoDia = fechasResult[0]?.UltimoDia ? new Date(fechasResult[0].UltimoDia) : null;
-            
+
             htmlContent.header = htmlContent.header.replace(/\${periodoInicio}/g, primerDia ? this.dateOutputFormat(primerDia) : 'N/A');
             htmlContent.header = htmlContent.header.replace(/\${periodoFin}/g, ultimoDia ? this.dateOutputFormat(ultimoDia) : 'N/A');
 
