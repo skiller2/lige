@@ -943,7 +943,7 @@ export class NovedadesController extends BaseController {
         let htmlCoor = `<td>${novedadInfo.ApellidoNombreJerarquico}</td>`
         let htmlDetalle = `<tr><td>Tipo de novedad - ${novedadInfo.NovedadTipo}</td></tr><tr><td>Fecha - ${this.formatDate(new Date(novedadInfo.Fecha))}</td></tr><tr><td>Descripción - ${novedadInfo.Descripcion}</td></tr><tr><td>Acción - ${novedadInfo.Accion}</td></tr>`
 
-        htmlContent = htmlContent.replace(/\${textaobjetivo}/g, htmlObjetivo);
+        htmlContent = htmlContent.replace(/\${textobjetivo}/g, htmlObjetivo);
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
         htmlContent = htmlContent.replace(/\${textdetalle}/g, htmlDetalle);
         
