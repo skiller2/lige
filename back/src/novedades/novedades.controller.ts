@@ -836,7 +836,7 @@ export class NovedadesController extends BaseController {
         const imgBuffer = await fsPromises.readFile(imgPath);
         const imgBase64 = imgBuffer.toString('base64');
     
-        const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
+        // const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
         // const imgBase64Firma = imgBufferFirma.toString('base64');
     
         const imgPathinaes = `./assets/icons/inaes.png`
