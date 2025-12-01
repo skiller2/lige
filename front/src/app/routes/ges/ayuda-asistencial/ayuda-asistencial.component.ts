@@ -16,6 +16,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
+import { TableAyudaAsistencialCuotasComponent } from "../table-ayuda-asistencial-cuotas/table-ayuda-asistencial-cuotas.component";
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -23,7 +24,7 @@ import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.comp
     styleUrls: ['./ayuda-asistencial.component.less'],
     providers: [AngularUtilService, ExcelExportService],
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,
-        AyudaAsistencialDrawerComponent, DetallePersonaComponent
+        AyudaAsistencialDrawerComponent, DetallePersonaComponent, TableAyudaAsistencialCuotasComponent
     ]
 })
 export class AyudaAsistencialComponent {
