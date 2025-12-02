@@ -1222,7 +1222,7 @@ export class AyudaAsistencialController extends BaseController {
   async getListAyudaAsistencialCuotas(req: any, res: Response, next: NextFunction) {
    
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-    const filterSql = filtrosToSql(options.filtros, columnsAyudaAsistencialCuotas);
+    const filterSql = filtrosToSql(req.body.filters.options.filtros, columnsAyudaAsistencialCuotas);
     const orderBy = orderToSQL(options.sort);
     const anio = req.body.anio
     const mes = req.body.mes
@@ -1254,7 +1254,7 @@ export class AyudaAsistencialController extends BaseController {
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      WHERE perdes.anio = @0 AND perdes.mes = @1 AND ( (tipdes.DescuentoId IN (51)) )`, [anio, mes]
+      WHERE perdes.anio = @0 AND perdes.mes = @1 AND ( (tipdes.DescuentoId IN (51)) ) AND ${filterSql} ${orderBy}`, [anio, mes]
       )
 
       this.jsonRes(
