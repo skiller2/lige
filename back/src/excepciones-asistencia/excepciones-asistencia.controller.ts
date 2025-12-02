@@ -184,6 +184,27 @@ const columnsExcepcionesAsistencia: any[] = [
     hidden: false,
     searchHidden: true
   },
+  {
+    id: 'PersonalArt14AudFechaMod', name: 'Fecha Ult. Mod.', field: 'PersonalArt14AudFechaMod',
+    fieldName: 'art.PersonalArt14AudFechaMod',
+    type: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: 'PersonalArt14AudUsuarioMod', name: 'Usuario Ult. Mod.', field: 'PersonalArt14AudUsuarioMod',
+    fieldName: 'art.PersonalArt14AudUsuarioMod',
+    type: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+
+
+  // art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod
+
+
 ]
 
 export class ExcepcionesAsistenciaController extends BaseController {
