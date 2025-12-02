@@ -2073,7 +2073,7 @@ export class GestionDescuentosController extends BaseController {
       await this.procesoAutomaticoLogFin(queryRunner,
         ProcesoAutomaticoLogCodigo,
         'ERR',
-        { res: error },
+        { res: error.message || error, list: JSON.stringify(dataset)  },
         usuario,
         ip
       );

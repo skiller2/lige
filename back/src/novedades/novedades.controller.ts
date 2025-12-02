@@ -894,7 +894,6 @@ export class NovedadesController extends BaseController {
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, header, body, footer)
 
             const objetivoDomicilio = await new ObjetivosController().getDomicilio(queryRunner, NovedadInfo.ObjetivoId, NovedadInfo.ClienteId, NovedadInfo.ClienteElementoDependienteId);
-    
             const browser = await puppeteer.launch({ headless: 'new' })
             const page = await browser.newPage();
 
@@ -1010,10 +1009,18 @@ export class NovedadesController extends BaseController {
         const month = periodo ? periodo.getMonth() + 1 : 0
         const fechaActual = new Date();
         let usuario = res.locals.userName
+        const ip = this.getRemoteAddress(req)
         let condition = (periodo) ? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
 
+        const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            queryRunner,
+            `Proceso Exportación de informe de novedades.`,
+            { condition, filterSql, year, month, usuario, ip },
+            usuario,
+            ip
+        );
+
         try {
-            // throw new ClientException(`Test.`)
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
 
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
@@ -1046,7 +1053,10 @@ export class NovedadesController extends BaseController {
             htmlContent.header = htmlContent.header.replace(/\${periodoInicio}/g, primerDia ? this.dateOutputFormat(primerDia) : 'N/A');
             htmlContent.header = htmlContent.header.replace(/\${periodoFin}/g, ultimoDia ? this.dateOutputFormat(ultimoDia) : 'N/A');
 
+            let novedades = 0
+
             for (const novedad of list) {
+                novedades++
                 let filePath = `${filesPath}/${novedad.NovedadCodigo}.pdf`
                 let body = htmlContent.body;
                 let header = htmlContent.header;
@@ -1078,9 +1088,28 @@ export class NovedadesController extends BaseController {
             const tmpfilename = new FileUploadController().getRandomTempFileName('.pdf');
             let nameFile = 'informe-novedades.pdf'
             writeFileSync(tmpfilename, buffer);
+
+
+            await this.procesoAutomaticoLogFin(
+                queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'COM',
+                { res: `Procesado correctamente`, novedades },
+                usuario,
+                ip
+            );
+
             await this.dowloadPdfBrowser(res, next, tmpfilename, nameFile)
 
         } catch (error) {
+
+            await this.procesoAutomaticoLogFin(queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'ERR',
+                { res: error },
+                usuario,
+                ip
+            );
             return next(error)
         }
 

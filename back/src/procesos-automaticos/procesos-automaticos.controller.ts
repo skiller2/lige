@@ -95,6 +95,7 @@ export class ProcesosAutomaticosController extends BaseController {
           paest.Descripcion, 1
         FROM ProcesoAutomaticoLog palog
         LEFT JOIN ProcesoAutomaticoEstado paest on paest.ProcesoAutomaticoEstadoCod=palog.ProcesoAutomaticoEstadoCod
+        Order by palog.ProcesoAutomaticoLogCodigo DESC
       `,);
 
       this.jsonRes(list, res);
