@@ -64,8 +64,8 @@ export class NovedadesComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
-    const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
-    this.startFilters.set(filter)
+    // const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
+    // this.startFilters.set(filter)
 
     this.selectedDate()
 
@@ -161,12 +161,6 @@ export class NovedadesComponent {
     this.listNovedades$.next('')
   }
 
-  // async generarInforme() {
-  //   this.isLoading.set(true)
-  //   await firstValueFrom(this.apiService.generaInformesNovedades(this.listOptions, this.periodo()))
-  //   this.isLoading.set(false)
-  // }
-
   selectedDate (){
     const now = new Date(); //date
     const anio =
@@ -179,4 +173,5 @@ export class NovedadesComponent {
         : now.getMonth() + 1;
     this.periodo.set(new Date(anio, mes - 1, 1))
   }
+
 }

@@ -1089,15 +1089,10 @@ export class NovedadesController extends BaseController {
             let nameFile = 'informe-novedades.pdf'
             writeFileSync(tmpfilename, buffer);
 
-
-            await this.procesoAutomaticoLogFin(
-                queryRunner,
-                ProcesoAutomaticoLogCodigo,
-                'COM',
-                { res: `Procesado correctamente`, novedades },
-                usuario,
-                ip
-            );
+            if (fs.existsSync(filesPath)) {
+                fs.rmSync(filesPath, { recursive: true, force: true });
+                console.log("Carpeta temporal eliminada");
+            }
 
             await this.dowloadPdfBrowser(res, next, tmpfilename, nameFile)
 

@@ -170,6 +170,7 @@
   "app.btn.upload.dni": "Subir DNI",
   "app.btn.exception": "Excepción",
   "app.btn.exception.finish": "Finaliza Excepción",
+  "app.btn.export": "Exportar",
   "app.btn.starloading": "Iniciar Carga",
   "app.btn.endloading": "Finaliza Carga",
   "app.btn.copi.previous.month": "Copia mes anterior",
