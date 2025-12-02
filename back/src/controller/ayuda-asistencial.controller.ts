@@ -124,11 +124,12 @@ const columnsAyudaAsistencial: any[] = [
   },
   {
     id: "PersonalPrestamoCantidadCuotas",
-    name: "Cant Cuotas",
+    name: "Cant. Cuotas",
     type: "number",
     field: "PersonalPrestamoCantidadCuotas",
     fieldName: "pres.PersonalPrestamoCantidadCuotas",
     searchType: "number",
+    searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
     searchHidden: false,
     hidden: false,
@@ -139,6 +140,7 @@ const columnsAyudaAsistencial: any[] = [
     field: "PersonalPrestamoMonto",
     type: "currency",
     fieldName: "pres.PersonalPrestamoMonto",
+    searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
     searchHidden: false,
     hidden: false,
@@ -183,7 +185,7 @@ const columnsAyudaAsistencial: any[] = [
     id: "gaCom",
     field: "gaCom",
     fieldName: "gaper.gaCom",
-    sortable: true, 
+    sortable: true,
     searchHidden: true
   },
   {
@@ -497,7 +499,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async listAyudaAsistencialQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-      return await queryRunner.query(`
+    return await queryRunner.query(`
       SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
           pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
@@ -1220,7 +1222,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async getListAyudaAsistencialCuotas(req: any, res: Response, next: NextFunction) {
-   
+
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
     const filterSql = filtrosToSql(req.body.filters.options.filtros, columnsAyudaAsistencialCuotas);
     const orderBy = orderToSQL(options.sort);
