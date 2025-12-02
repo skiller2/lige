@@ -220,16 +220,16 @@ const columnsAyudaAsistencialCuotas: any[] = [
     searchHidden: true,
   },
   {
-    id: 'personal', name: 'Apellido Nombre', field: 'personal.fullName',
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    type: "string",
     fieldName: "per.PersonalId",
-    sortable: true,
-    type: 'string',
-    formatter: 'complexObject',
-    params: {
-      complexFieldLabel: 'personal.fullName',
-    },
     searchComponent: "inpurForPersonalSearch",
     searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
   },
   {
     id: 'tipocuenta_id', name: 'Tipo Cuenta', field: 'tipocuenta_id',
@@ -241,49 +241,58 @@ const columnsAyudaAsistencialCuotas: any[] = [
     searchHidden: false,
     searchComponent: 'inputForTipoCuentaSearch',
   },
+  // {
+  //   id: 'DescuentoId', name: 'Tipo Descuento', field: 'DescuentoId',
+  //   fieldName: 'tipdes.DescuentoId',
+  //   type: 'number',
+  //   searchComponent: "inputForTipoDescuentoSearch",
+  //   searchType: 'number',
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: false,
+  // },
+  // {
+  //   id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
+  //   fieldName: 'tipdes.DescuentoDescripcion',
+  //   type: 'string',
+  //   searchType: 'string',
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: true,
+  // },
+  // {
+  //   id: 'mes', name: 'Mes', field: 'mes',
+  //   fieldName: 'perdes.mes',
+  //   type: 'number',
+  //   searchType: 'number',
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: true,
+  //   maxWidth: 50,
+  //   minWidth: 10,
+  // },
+  // {
+  //   id: 'anio', name: 'Año', field: 'anio',
+  //   fieldName: 'perdes.anio',
+  //   type: 'number',
+  //   searchType: "number",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: true,
+  //   maxWidth: 50,
+  //   minWidth: 10,
+  // },
   {
-    id: 'DescuentoId', name: 'Tipo Descuento', field: 'DescuentoId',
-    fieldName: 'tipdes.DescuentoId',
-    type: 'number',
-    searchComponent: "inputForTipoDescuentoSearch",
-    searchType: 'number',
-    sortable: true,
-    hidden: true,
-    searchHidden: false,
-  },
-  {
-    id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
-    fieldName: 'tipdes.DescuentoDescripcion',
+    id: 'periodo', name: 'Periodo', field: 'periodo',
+    fieldName: "CONCAT(perdes.anio, '/', perdes.mes)",
     type: 'string',
-    searchType: 'string',
+    searchType: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: true
   },
   {
-    id: 'mes', name: 'Mes', field: 'mes',
-    fieldName: 'perdes.mes',
-    type: 'number',
-    searchType: 'number',
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 50,
-    minWidth: 10,
-  },
-  {
-    id: 'anio', name: 'Año', field: 'anio',
-    fieldName: 'perdes.anio',
-    type: 'number',
-    searchType: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 50,
-    minWidth: 10,
-  },
-  {
-    id: 'desmovimiento', name: 'Detalle', field: 'desmovimiento',
+    id: 'desmovimiento', name: 'Tipo', field: 'desmovimiento',
     fieldName: 'perdes.desmovimiento',
     type: 'string',
     searchType: "string",
@@ -1217,7 +1226,6 @@ export class AyudaAsistencialController extends BaseController {
     const orderBy = orderToSQL(options.sort);
     const anio = req.body.anio
     const mes = req.body.mes
-    console.log('req.body', req.body)
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -1240,6 +1248,7 @@ export class AyudaAsistencialController extends BaseController {
         , perdes.importetotal
         , perdes.tipoint
         , perdes.FechaAnulacion
+        , CONCAT(perdes.anio, '/', perdes.mes) periodo
 
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
