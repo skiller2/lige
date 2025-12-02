@@ -95,26 +95,13 @@ const columnsPersonalDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'mes', name: 'Mes', field: 'mes',
-    fieldName: 'perdes.mes',
-    type: 'number',
-    searchType: 'number',
+    id: 'periodo', name: 'Periodo', field: 'periodoDisplay',
+    fieldName: 'DATEFROMPARTS(perdes.anio, perdes.mes, 1)',
+    type: 'string',
+    searchType: "date",
     sortable: true,
     hidden: false,
-    searchHidden: true,
-    maxWidth: 50,
-    minWidth: 10,
-  },
-  {
-    id: 'anio', name: 'Año', field: 'anio',
-    fieldName: 'perdes.anio',
-    type: 'number',
-    searchType: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 50,
-    minWidth: 10,
+    searchHidden: true
   },
   {
     id: 'desmovimiento', name: 'Detalle', field: 'desmovimiento',
@@ -330,6 +317,15 @@ const columnsObjetivosDescuentos: any[] = [
     searchHidden: false,
     // maxWidth: 50,
     // minWidth: 10,
+  },
+  {
+    id: 'periodo', name: 'Periodo', field: 'periodoDisplay',
+    fieldName: 'DATEFROMPARTS(perdes.anio, perdes.mes, 1)',
+    type: 'string',
+    searchType: "date",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
   },
   {
     id: 'ObjetivoDescuentoCuotaMes', name: 'Mes', field: 'ObjetivoDescuentoCuotaMes',
@@ -565,6 +561,8 @@ export class GestionDescuentosController extends BaseController {
         , perdes.importetotal
         , perdes.tipoint
         , perdes.FechaAnulacion
+        , DATEFROMPARTS(perdes.anio, perdes.mes, 1) AS periodo
+        , FORMAT(DATEFROMPARTS(perdes.anio, perdes.mes, 1), 'yyyy/MM') AS periodoDisplay
 
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
@@ -628,6 +626,11 @@ export class GestionDescuentosController extends BaseController {
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       , des.ObjetivoDescuentoAnoAplica AS anio
       , des.ObjetivoDescuentoMesesAplica AS mes
+      , FORMAT(DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1), 'MM/yyyy') periodo
+      
+      , DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1) AS periodo
+      , FORMAT(DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1), 'yyyy/MM') AS periodoDisplay
+
       , des.ObjetivoDescuentoDescontar
       , CASE 
         WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coo. Cuenta'
@@ -826,7 +829,7 @@ export class GestionDescuentosController extends BaseController {
         PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
         PersonalOtroDescuentoCuotaProceso)
         VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
-      `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId, cuotaAnio, cuotaMes, cuota,importeCuota, 0, 0, 'FA', now, ip, usuario])
+      `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId, cuotaAnio, cuotaMes, cuota, importeCuota, 0, 0, 'FA', now, ip, usuario])
 
       const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
       cuotaAnio = per.cuotaAnio
@@ -1013,9 +1016,9 @@ export class GestionDescuentosController extends BaseController {
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
         let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
 
-//        const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
-//        cuotaAnio = per.cuotaAnio
-//        cuotaMes = per.cuotaMes
+        //        const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+        //        cuotaAnio = per.cuotaAnio
+        //        cuotaMes = per.cuotaMes
 
         const importeCuota = descuento.PersonalOtroDescuentoImporteVariable / descuento.PersonalOtroDescuentoCantidadCuotas
         for (let cuota = 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
@@ -1089,7 +1092,7 @@ export class GestionDescuentosController extends BaseController {
     let ultCuota: number = descuento.PersonalOtroDescuentoCuotaUltNro
 
     const now = new Date()
-    
+
 
     if (personalOtroDescuentoCuotaId && !finalizado) {
       await queryRunner.query(`
@@ -1266,7 +1269,7 @@ export class GestionDescuentosController extends BaseController {
 
 
     const hoy: Date = new Date()
-    
+
     await queryRunner.query(`
       UPDATE PersonalOtroDescuento SET
       PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
@@ -1308,7 +1311,7 @@ export class GestionDescuentosController extends BaseController {
       WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [PersonalId, PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId, usuario, ip, hoy])
   }
 
-  private async updateObjetivoDescuento(queryRunner:any, otroDescuento:any, usuario:string, ip:string) {
+  private async updateObjetivoDescuento(queryRunner: any, otroDescuento: any, usuario: string, ip: string) {
     const ObjetivoDescuentoId: number = otroDescuento.id
     const AplicaA: string = otroDescuento.AplicaA
     const DescuentoId: number = otroDescuento.DescuentoId
@@ -1428,7 +1431,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async cancellationPersonalOtroDescuentoQuery(queryRunner: any, id: number, PersonalId: number, DetalleAnulacion: string, usuario:string, ip:string) {
+  private async cancellationPersonalOtroDescuentoQuery(queryRunner: any, id: number, PersonalId: number, DetalleAnulacion: string, usuario: string, ip: string) {
 
 
     let res = await queryRunner.query(`
@@ -1511,7 +1514,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async cancellationObjetivoDescuentoQuery(queryRunner: any, id: number, ObjetivoId: number, DetalleAnulacion: string, usuario:string, ip:string) {
+  private async cancellationObjetivoDescuentoQuery(queryRunner: any, id: number, ObjetivoId: number, DetalleAnulacion: string, usuario: string, ip: string) {
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoAnoAplica AnoAplica, ObjetivoDescuentoMesesAplica MesesAplica
       , ObjetivoDescuentoCuotaUltNro CuotaUltNro, ObjetivoDescuentoFechaAnulacion FechaAnulacion
@@ -1617,7 +1620,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  
+
   async getTableOptions(req: any, res: Response, next: NextFunction) {
     try {
       this.jsonRes(tableOptions, res);
@@ -1742,6 +1745,7 @@ export class GestionDescuentosController extends BaseController {
         !row[columnsXLS['Cuil']]
         && !row[columnsXLS['Tipo concepto']]
         && !row[columnsXLS['Importe exento']]
+        && !row[columnsXLS['Importe gravado']]
         && !row[columnsXLS['Plan tarifa']]
       ) continue;
 
@@ -1822,9 +1826,12 @@ export class GestionDescuentosController extends BaseController {
 
       //console.log('row', row)
       //throw new ClientException('stop')
-      const Importe = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']] == "10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+      const ImporteExcento = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']] == "10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+      const ImporteGravado = (row[columnsXLS['Importe gravado']] || row[columnsXLS['Importe gravado']]) * ((row[columnsXLS['Tipo concepto']] == "10100") ? 1 : -1)
+
 
       const Detalle = `Plan: ${row[columnsXLS['Plan tarifa']]}, Socio: ${row[columnsXLS['Socio']]}, CUIT: ${row[columnsXLS['Cuil']]} ${row[columnsXLS['Comprobante']]}`
+      const Importe = ImporteExcento + ImporteGravado
 
       const otroDescuento: any = {
         DescuentoId: descuentoIdRequest,
