@@ -11,6 +11,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 
+
 interface ListOptions {
   filtros: any[];
   extra: any;
@@ -33,6 +34,7 @@ interface PersonalEstudio {
     SHARED_IMPORTS,
     CommonModule,
     NzAffixModule,
+    FiltroBuilderComponent,
   ],
   providers: [AngularUtilService],
   templateUrl: './table-ayuda-asistencial-cuotas.component.html',
@@ -110,6 +112,7 @@ export class TableAyudaAsistencialCuotasComponent {
     this.listOptions = options;
     this.formChange$.next('');
   }
+
 
   angularGridReady(angularGrid: any): void {
     this.angularGridEdit = angularGrid.detail;

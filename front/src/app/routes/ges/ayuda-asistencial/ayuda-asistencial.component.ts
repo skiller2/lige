@@ -17,6 +17,7 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { TableAyudaAsistencialCuotasComponent } from "../table-ayuda-asistencial-cuotas/table-ayuda-asistencial-cuotas.component";
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -53,11 +54,13 @@ export class AyudaAsistencialComponent {
     personalId = signal(0)
     anio = signal(0)
     mes = signal(0)
+    viweButtonListado = signal(true)
 
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
     private angularUtilService = inject(AngularUtilService)
     private settingService = inject(SettingsService)
+    private router = inject(Router)
 
     conditional = computed(async () => {
         if (this.refresh()) {
@@ -115,6 +118,10 @@ export class AyudaAsistencialComponent {
     )
 
     async ngOnInit() {
+        // Verificar la ruta actual al inicializar para establecer el valor correcto del signal
+        const currentUrl = this.router.url;
+        this.viweButtonListado.set(currentUrl.includes('/listado'));
+        
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.autoEdit = true

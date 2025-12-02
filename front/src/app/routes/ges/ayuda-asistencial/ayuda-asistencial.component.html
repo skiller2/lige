@@ -2,11 +2,11 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','listado']">Listado</a>
+      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','listado']" (click)="viweButtonListado.set(true)">Listado</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']">Cuotas</a>
+      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']" (click)="viweButtonListado.set(false)">Cuotas</a>
     </li>
     <!-- <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -20,6 +20,7 @@
       <nz-form-control>
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
+      @if(viweButtonListado()) {
       <nz-form-control style="display: flex; justify-content:center; align-items:end;">
         <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows.length}} registros?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length || loadingRec() || loadingCuo()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}">
           <span nz-icon nzType="check" nzTheme="outline"></span>
@@ -37,6 +38,7 @@
         nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user" nzTheme="outline"></span>
         </button>
       </nz-form-control>
+      }
     </nz-form-item>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
