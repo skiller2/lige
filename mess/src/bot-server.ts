@@ -150,38 +150,37 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
   }
 
   public async sendMsg(telNro: string, message: string) {
-    console.log(`Enviando mensaje a ${telNro}: ${message}`)
+    // console.log(`Enviando mensaje a ${telNro}: ${message}`)
     const saludo = BotServer.getSaludo();
 
     // 1) INTENTO DE MENSAJE NORMAL
     try {
-      const resp = await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
-
-      console.log("resp:", resp);
+      await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
+      return
 
       // Verificar si el mensaje se envió correctamente
-      if (resp && resp.messages && resp.messages.length > 0) {
-        console.log("✅ Mensaje enviado correctamente. ID:", resp.messages[0].id);
-        return { success: true, messageId: resp.messages[0].id };
-      }
+      // if (resp && resp.messages && resp.messages.length > 0) {
+      //   // console.log("✅ Mensaje enviado correctamente. ID:", resp.messages[0].id);
+      //   return  { success: true, messageId: resp.messages[0].id };
+      // }
 
     } catch (err: any) {
       console.error("❌ Error al enviar mensaje normal:", err?.response?.data || err.message);
 
-      const errorData = err?.response?.data?.error;
-      const errorDetails = errorData?.error_data?.details || "";
+      // const errorData = err?.response?.data?.error;
+      // const errorDetails = errorData?.error_data?.details || "";
 
-      // Detectar si es error de ventana 24h
-      const esFueraDeVentana =
-        errorDetails.includes("24") ||
-        errorDetails.includes("window") ||
-        errorDetails.toLowerCase().includes("24-hour");
+      // // Detectar si es error de ventana 24h
+      // const esFueraDeVentana =
+      //   errorDetails.includes("24") ||
+      //   errorDetails.includes("window") ||
+      //   errorDetails.toLowerCase().includes("24-hour");
 
-      if (esFueraDeVentana) {
-        console.log("⚠️ Fuera de ventana 24h, intentando enviar template...");
-      } else {
-        console.log("⚠️ Error desconocido, intentando enviar template...");
-      }
+      // if (esFueraDeVentana) {
+      //   console.log("⚠️ Fuera de ventana 24h, intentando enviar template...");
+      // } else {
+      //   console.log("⚠️ Error desconocido, intentando enviar template...");
+      // }
     }
 
     // 2) INTENTO DE PLANTILLA
