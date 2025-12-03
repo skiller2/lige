@@ -64,8 +64,8 @@ export class NovedadesComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
-    // const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
-    // this.startFilters.set(filter)
+    const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
+    this.startFilters.set(filter)
 
     this.selectedDate()
 
