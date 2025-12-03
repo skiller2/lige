@@ -138,7 +138,7 @@ const columnsAyudaAsistencial: any[] = [
     id: "PersonalPrestamoMonto",
     name: "Importe",
     field: "PersonalPrestamoMonto",
-    type: "number",
+    type: "currency",
     fieldName: "pres.PersonalPrestamoMonto",
     searchComponent: "inpurForNumberAdvancedSearch",
     searchType: "numberAdvanced",
@@ -306,7 +306,7 @@ const columnsAyudaAsistencialCuotas: any[] = [
   {
     id: 'importe', name: 'Importe Cuota', field: 'importe',
     fieldName: "perdes.importe",
-    type: 'number',
+    type: 'currency',
     searchType: "numberAdvanced",
     searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
@@ -336,7 +336,7 @@ const columnsAyudaAsistencialCuotas: any[] = [
   {
     id: 'importetotal', name: 'Importe Total', field: 'importetotal',
     fieldName: 'perdes.importetotal',
-    type: 'number',
+    type: 'currency',
     searchType: "numberAdvanced",
     searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
