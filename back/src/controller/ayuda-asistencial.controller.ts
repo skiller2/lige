@@ -179,6 +179,20 @@ const columnsAyudaAsistencial: any[] = [
     fieldName: "sit.SituacionRevistaDescripcion",
     searchType: "string",
     sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
   },
   {
     name: "Grupo Actividad",
@@ -513,7 +527,7 @@ export class AyudaAsistencialController extends BaseController {
           pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
           form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
           pres.PersonalPrestamoAprobado,
-          sit.SituacionRevistaDescripcion,
+          sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId,
         gaper.GrupoActividadId,
         gaper.gaCom,
       1
@@ -564,7 +578,8 @@ export class AyudaAsistencialController extends BaseController {
               
           WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) = DATEFROMPARTS(@0,@1,1) 
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
+      OR pres.PersonalPrestamoAudFechaIng >= DATEFROMPARTS(@0,@1,1)      
       )
       AND (${filterSql})
       ${orderBy}
