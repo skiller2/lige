@@ -20,17 +20,19 @@
       <nz-form-control>
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
-      @if(viweButtonListado()) {
+      
       <nz-form-control style="display: flex; justify-content:center; align-items:end;">
+        @if(viweButtonListado()) {
         <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows.length}} registros?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length || loadingRec() || loadingCuo()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}">
           <span nz-icon nzType="check" nzTheme="outline"></span>
         </button>
         <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Rechazar {{rows.length}} registros?" (nzOnConfirm)="rechazarReg()" [disabled]="!rows.length || loadingApr() || loadingCuo()" [nzLoading]="loadingRec()" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
           <span nz-icon nzType="close" nzTheme="outline"></span>
         </button>
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{selectedPeriod.month}}/{{selectedPeriod.year}}" (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
+        <!-- <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{selectedPeriod.month}}/{{selectedPeriod.year}}" (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
-        </button>
+        </button> -->
+        }
         <button nzType="default" nz-button (click)="openDrawer()" [nzLoading]="false"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus" nzTheme="outline"></span>
         </button> 
@@ -38,7 +40,7 @@
         nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user" nzTheme="outline"></span>
         </button>
       </nz-form-control>
-      }
+      
     </nz-form-item>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
