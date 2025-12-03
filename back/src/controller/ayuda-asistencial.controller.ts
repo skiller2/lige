@@ -172,11 +172,11 @@ const columnsAyudaAsistencial: any[] = [
     searchHidden: false
   },
   {
-    id: "SituacionRevistaDescripcion",
+    id: "SitRevCom",
     name: "Situación Revista",
     type: "string",
-    field: "SituacionRevistaDescripcion",
-    fieldName: "sit.SituacionRevistaDescripcion",
+    field: "SitRevCom",
+    fieldName: "SitRevCom",
     searchType: "string",
     sortable: true,
     searchHidden: true,
@@ -527,7 +527,8 @@ export class AyudaAsistencialController extends BaseController {
           pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
           form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
           pres.PersonalPrestamoAprobado,
-          sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId,
+          sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
+          CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
         gaper.GrupoActividadId,
         gaper.gaCom,
       1
@@ -556,7 +557,7 @@ export class AyudaAsistencialController extends BaseController {
       WHEN ga.GrupoActividadId IS NOT NULL THEN  
         CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
             FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
-            CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+            CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN '' 
               ELSE FORMAT(gaux.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
             END, ')'
         )
