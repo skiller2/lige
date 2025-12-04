@@ -28,7 +28,7 @@ export class InformesController extends BaseController {
 
 
     try {
-      const user = (res.locals.userName)? res.locals.userName : Usuario
+      const user = (res.locals.userName) ? res.locals.userName : Usuario
       if (!user)
         throw new ClientException(`Usuario no identificado`)
 
@@ -39,6 +39,10 @@ export class InformesController extends BaseController {
             if (Filtros.Jerarquico != res.locals.PersonalId) throw new ClientException(`No tiene permiso para ver los movimientos del responsable seleccionado`)
           }
           break;
+        case 'Listado Asistencia Control Acceso':
+          if (res.locals.userName && !await this.hasGroup(req, 'gPersonal') && !await this.hasGroup(req, 'gPersonalCon')) throw new ClientException(`No tiene permiso para descargar el informe. Debe pertenecer al grupo de gPersonal o gPersonalCon.`)
+          if (!Filtros.Ano || !Filtros.Mes) throw new ClientException(`Debe especificar Año y Mes para el informe`)
+          break;
         default:
           break;
       }
@@ -47,7 +51,7 @@ export class InformesController extends BaseController {
       if (resp.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${resp.status}`)
 
-      const data:any = await resp.json()
+      const data: any = await resp.json()
       const rep = data.value.find(x => x.Name.localeCompare(Reporte) === 0)
       if (!rep.Path)
         throw new ClientException(`Reporte ${Reporte} no encontrado`)
@@ -57,7 +61,7 @@ export class InformesController extends BaseController {
       if (para.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${para.status}`)
 
-      const dataparam:any = await para.json()
+      const dataparam: any = await para.json()
 
 
       const filtrosOk = {}
@@ -66,9 +70,9 @@ export class InformesController extends BaseController {
         if (filtro)
           filtrosOk[param.Name] = filtro[1]
       }
-      
+
       const params = new URLSearchParams(filtrosOk);
-      const report = await fetch(this.ssrsURLAccess + rep.Path + (params.toString()? ("&" + params): "") + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
+      const report = await fetch(this.ssrsURLAccess + rep.Path + (params.toString() ? ("&" + params) : "") + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
 
       if (report.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${report.status}`)
