@@ -1,7 +1,33 @@
 <nz-card class="small-margin">
 
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+
+      <div nz-row>
+        <!-- <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
+        </nz-form-control> -->
+      </div>
+ 
+      <div nz-col style="display: flex;flex-direction: row-reverse;">
+        
+        <ng-template #confirm>
+          <nz-form-label>Periodo</nz-form-label>
+          <nz-date-picker nzMode="month" [(ngModel)]="fechaBio" [nzFormat]="'yyyy-MM'" [ngModelOptions]="{standalone: true}" />
+        </ng-template>
+        <li class="ant-btn ant-btn-default ant-btn-icon-only" nz-button nz-popconfirm
+          [nzPopconfirmTitle]="confirm" [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false"
+          (nzOnConfirm)="leerControlAcceso()" nz-tooltip nzTooltipTitle="{{'app.btn.control.acceso' | i18n }}">
+          <span class="anticon anticon-setting" style="margin-top: 0.3rem" nz-icon nzType="copy"
+            nzTheme="outline"></span>
+        </li>
+  
+      </div>
+  
+    </div>
+
   <div nz-row class="contentStyle">
-    <div nz-col nzSpan="13" class="listStyletex">
+    <div nz-col nzSpan="13" class="listStyle">
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
@@ -16,7 +42,7 @@
   </div>
   
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
-
+      <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/procesos-automaticos/listado">Lista</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">

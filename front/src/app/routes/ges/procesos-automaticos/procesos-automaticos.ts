@@ -12,6 +12,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ProcesosAutomaticosDetalleComponent } from "../procesos-automaticos-detalle/procesos-automaticos-detalle";
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
     selector: 'app-procesos-automaticos',
@@ -28,6 +29,8 @@ export class ProcesosAutomaticosComponent {
   reload = signal<number>(0);
   logCodigo = signal<number>(0);
   visibleDetalle = model<boolean>(false);
+  controlAccesoDisabled = signal(false)
+  fechaBio = signal(new Date())
   gridOptions!: GridOption;
   gridData: any;
   startFilters: any[] = [];
@@ -38,12 +41,14 @@ export class ProcesosAutomaticosComponent {
   };
 
   private apiService = inject(ApiService);
+  private searchService = inject(SearchService);
   // private readonly loadingSrv = inject(LoadingService);
   private settingsService = inject(SettingsService);
   private angularGrid!: AngularGridInstance;
   private angularUtilService = inject(AngularUtilService);
   private readonly detailViewRowCount = 1;
   private excelExportService = new ExcelExportService();
+  private notification = inject(NzNotificationService)
 
   listProcesosAutomaticos$ = new BehaviorSubject('');
   columns$ = this.apiService.getCols('/api/procesos-automaticos/cols');
@@ -124,5 +129,19 @@ export class ProcesosAutomaticosComponent {
   openDrawerforDetalle(): void{
     this.visibleDetalle.set(true) 
   }
+
+  async leerControlAcceso() {
+    if (!this.fechaBio()) {
+      this.notification.warning(`Advertencia`, `Ingrese un periodo`);
+      return
+    }
+    const anio = (this.fechaBio() as Date).getFullYear()
+    const mes = (this.fechaBio() as Date).getMonth() + 1
+    this.controlAccesoDisabled.set(true)
+    try {
+        await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(1, anio, mes))
+    } catch (error) { }
+    this.controlAccesoDisabled.set(false)
+}
     
 }
