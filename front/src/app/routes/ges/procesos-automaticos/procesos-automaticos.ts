@@ -15,17 +15,17 @@ import { ProcesosAutomaticosDetalleComponent } from "../procesos-automaticos-det
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
-    selector: 'app-procesos-automaticos',
-    templateUrl: './procesos-automaticos.html',
-    styleUrl:'./procesos-automaticos.less',
-    providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-procesos-automaticos',
+  templateUrl: './procesos-automaticos.html',
+  styleUrl: './procesos-automaticos.less',
+  providers: [AngularUtilService],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProcesosAutomaticosComponent {
   periodo = signal(new Date());
   anio = computed(() => this.periodo()?.getFullYear());
-  mes = computed(() => this.periodo()?.getMonth()+1);
+  mes = computed(() => this.periodo()?.getMonth() + 1);
   reload = signal<number>(0);
   logCodigo = signal<number>(0);
   visibleDetalle = model<boolean>(false);
@@ -36,8 +36,8 @@ export class ProcesosAutomaticosComponent {
   startFilters: any[] = [];
   selectedPeriod = { year: 0, month: 0 };
   listOptions: listOptionsT = {
-      filtros: [],
-      sort: null,
+    filtros: [],
+    sort: null,
   };
 
   private apiService = inject(ApiService);
@@ -53,11 +53,11 @@ export class ProcesosAutomaticosComponent {
   listProcesosAutomaticos$ = new BehaviorSubject('');
   columns$ = this.apiService.getCols('/api/procesos-automaticos/cols');
   gridData$ = this.listProcesosAutomaticos$.pipe(
-      debounceTime(500),
-      switchMap(() => {
-        return this.apiService.getListProcesosAutomaticos(this.listOptions)
+    debounceTime(500),
+    switchMap(() => {
+      return this.apiService.getListProcesosAutomaticos(this.listOptions)
         .pipe(map(data => { return data }))
-      })
+    })
   )
 
   ngOnInit() {
@@ -73,29 +73,29 @@ export class ProcesosAutomaticosComponent {
   }
 
   angularGridReady(angularGrid: any) {
-  
+
     this.angularGrid = angularGrid.detail
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       // totalRecords(this.angularGrid)
     })
-    
+
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
   }
 
-  selectedDate (){
-      const now = new Date(); //date
-      const anio =
-        Number(localStorage.getItem('anio')) > 0
-          ? Number(localStorage.getItem('anio'))
-          : now.getFullYear();
-      const mes =
-        Number(localStorage.getItem('mes')) > 0
-          ? Number(localStorage.getItem('mes'))
-          : now.getMonth() + 1;
-      this.periodo.set(new Date(anio, mes - 1, 1))
-      this.selectedPeriod = { year: anio, month: mes }
+  selectedDate() {
+    const now = new Date(); //date
+    const anio =
+      Number(localStorage.getItem('anio')) > 0
+        ? Number(localStorage.getItem('anio'))
+        : now.getFullYear();
+    const mes =
+      Number(localStorage.getItem('mes')) > 0
+        ? Number(localStorage.getItem('mes'))
+        : now.getMonth() + 1;
+    this.periodo.set(new Date(anio, mes - 1, 1))
+    this.selectedPeriod = { year: anio, month: mes }
   }
 
   dateChange(result: Date): void {
@@ -107,14 +107,14 @@ export class ProcesosAutomaticosComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-      if (e.detail.args.changedSelectedRows.length == 1) {
-          const rowNum = e.detail.args.changedSelectedRows[0]
-          const row = this.angularGrid.dataView.getItemByIdx(rowNum)
-          
-          this.logCodigo.set(Number(row?.ProcesoAutomaticoLogCodigo))
-      } else {
-          this.logCodigo.set(0)
-      }
+    if (e.detail.args.changedSelectedRows.length == 1) {
+      const rowNum = e.detail.args.changedSelectedRows[0]
+      const row = this.angularGrid.dataView.getItemByIdx(rowNum)
+
+      this.logCodigo.set(Number(row?.ProcesoAutomaticoLogCodigo))
+    } else {
+      this.logCodigo.set(0)
+    }
   }
 
   listProcesosAutomaticos(): void {
@@ -126,8 +126,8 @@ export class ProcesosAutomaticosComponent {
     this.listProcesosAutomaticos()
   }
 
-  openDrawerforDetalle(): void{
-    this.visibleDetalle.set(true) 
+  openDrawerforDetalle(): void {
+    this.visibleDetalle.set(true)
   }
 
   async leerControlAcceso() {
@@ -139,9 +139,11 @@ export class ProcesosAutomaticosComponent {
     const mes = (this.fechaBio() as Date).getMonth() + 1
     this.controlAccesoDisabled.set(true)
     try {
-        await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(1, anio, mes))
+      await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(1102, anio, mes))
+      this.notification.success('Finalización', 'Existosa');
+
     } catch (error) { }
     this.controlAccesoDisabled.set(false)
-}
-    
+  }
+
 }

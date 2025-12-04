@@ -3052,7 +3052,6 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       ip
     );
 
-    // todo - agregar proceso automatico log
     try {
 
       let listado = [];
