@@ -838,22 +838,12 @@ export class NovedadesController extends BaseController {
         const imgBuffer = await fsPromises.readFile(imgPath);
         const imgBase64 = imgBuffer.toString('base64');
 
-        // const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
-        // const imgBase64Firma = imgBufferFirma.toString('base64');
-
-        const imgPathinaes = `./assets/icons/inaes.png`
-        const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
-        const imgBase64inaes = imgBufferinaes.toString('base64');
-
         header = (header) ? header : (fs.existsSync(this.PathNovedadTemplate.header) ? fs.readFileSync(this.PathNovedadTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.headerDef, 'utf-8'))
         body = (body) ? body : (fs.existsSync(this.PathNovedadTemplate.body) ? fs.readFileSync(this.PathNovedadTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.bodyDef, 'utf-8'))
         footer = (footer) ? footer : (fs.existsSync(this.PathNovedadTemplate.footer) ? fs.readFileSync(this.PathNovedadTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.footerDef, 'utf-8'))
 
         if (!raw) {
             header = header.replace(/\${imgBase64}/g, imgBase64);
-            footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-            //   body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
-
             header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaNovedad));
         }
         return { header, body, footer }
@@ -927,6 +917,8 @@ export class NovedadesController extends BaseController {
         htmlContent: string,
         headerContent: string,
         footerContent: string,
+        pag?: string,
+        totalPag?: string
     ) {
         domicilioObj = (domicilioObj && domicilioObj != '()') ? domicilioObj : 'Sin especificar'
         asociado = (asociado) ? asociado.toString() : 'Pendiente'
@@ -959,6 +951,11 @@ export class NovedadesController extends BaseController {
 
         htmlContent = htmlContent.replace(/\${textobjetivo}/g, htmlObjetivo);
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
+
+        if (pag && totalPag && pag.length && totalPag.length) {
+            footerContent = footerContent.replace(/<span class="pageNumber"><\/span>/g, pag);
+            footerContent = footerContent.replace(/<span class="totalPages"><\/span>/g, totalPag);
+        }
 
 
         await page.setContent(htmlContent);
@@ -1078,7 +1075,7 @@ export class NovedadesController extends BaseController {
                 const grupo = infoPersonal.GrupoActividadDetalle;
 
                 await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
-                    novedad, page, body, header, footer)
+                    novedad, page, body, header, footer, String(novedades), String(list.length))
             }
 
             await page.close();
