@@ -1002,7 +1002,7 @@ export class NovedadesController extends BaseController {
 
     async generaInformesNovedades(req: any, res: Response, next: NextFunction) {
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
-        const orderBy = orderToSQL(req.body.options.sort)
+        const orderBy = ` ORDER BY nov.Fecha ASC `;
         const queryRunner = dataSource.createQueryRunner();
         const periodo = req.body.periodo ? new Date(req.body.periodo) : null
         const year = periodo ? periodo.getFullYear() : 0
@@ -1022,6 +1022,7 @@ export class NovedadesController extends BaseController {
 
         try {
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
+            const totalNovedades = list.length;
 
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
             const browser = await puppeteer.launch({ headless: 'new' })
@@ -1057,6 +1058,10 @@ export class NovedadesController extends BaseController {
 
             for (const novedad of list) {
                 novedades++
+
+                htmlContent.footer = htmlContent.footer.replace(/\$\{pageNumber\}/g, novedades.toString());
+                htmlContent.footer = htmlContent.footer.replace(/\$\{totalPages\}/g, totalNovedades.toString());
+
                 let filePath = `${filesPath}/${novedad.NovedadCodigo}.pdf`
                 let body = htmlContent.body;
                 let header = htmlContent.header;
@@ -1084,7 +1089,7 @@ export class NovedadesController extends BaseController {
             await page.close();
             await browser.close();
 
-            const buffer = await this.joinPDFsOnPath(filesPath)
+            const buffer = await this.joinPDFsOnPath(filesPath, list)
             const tmpfilename = new FileUploadController().getRandomTempFileName('.pdf');
             let nameFile = 'informe-novedades.pdf'
             writeFileSync(tmpfilename, buffer);
@@ -1110,24 +1115,25 @@ export class NovedadesController extends BaseController {
 
     }
 
-    async joinPDFsOnPath(rutaDirectorio) {
-        const archivosPDF = fs.readdirSync(rutaDirectorio).filter(archivo => archivo.toLowerCase().endsWith('.pdf'));
-
+    async joinPDFsOnPath(rutaDirectorio: string, list: any[]) {
         const pdfFinal = await PDFDocument.create();
 
-        for (const archivo of archivosPDF) {
-            const contenidoPDF = fs.readFileSync(path.join(rutaDirectorio, archivo));
-            const pdf = await PDFDocument.load(contenidoPDF);
-            const paginas = pdf.getPages();
+        // Iterar en el orden de la lista ya ordenada por SQL
+        for (const novedad of list) {
+            const filePath = path.join(rutaDirectorio, `${novedad.NovedadCodigo}.pdf`);
 
-            for (const pagina of paginas) {
-                const nuevaPagina = await pdfFinal.copyPages(pdf, [pdf.getPages().indexOf(pagina)]);
-                pdfFinal.addPage(nuevaPagina[0]);
-            }
+            // Verificar que el archivo exista
+            if (!fs.existsSync(filePath)) continue;
+
+            const contenidoPDF = fs.readFileSync(filePath);
+            const pdf = await PDFDocument.load(new Uint8Array(contenidoPDF));
+
+            const indices = Array.from({ length: pdf.getPageCount() }, (_, i) => i);
+            const paginasCopiadas = await pdfFinal.copyPages(pdf, indices);
+            paginasCopiadas.forEach(pagina => pdfFinal.addPage(pagina));
         }
 
-        const pdfBytes = await pdfFinal.save();
-        return pdfBytes;
+        return await pdfFinal.save();
     }
 
 }
