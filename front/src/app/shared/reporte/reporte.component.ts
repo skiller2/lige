@@ -37,7 +37,11 @@ export class ReporteComponent {
   filtrosReporte = signal<Parameter[]>([])
   private searchService = inject(SearchService)
   public apiService = inject(ApiService)
+
   isLoading = signal(false)
+
+
+  isTitleVisible = model(true)
 
   btnDescargar = viewChild(NzButtonComponent, { read: ElementRef });
 
