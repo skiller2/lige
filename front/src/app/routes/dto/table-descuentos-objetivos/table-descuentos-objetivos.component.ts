@@ -5,7 +5,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, finalize, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { LoadingService } from '@delon/abc/loading';
@@ -73,8 +73,7 @@ export class TableDescuentosObjetivosComponent {
             return this.apiService.getDescuentosObjetivos(this.listOptions, this.anio(), this.mes())
                 .pipe(
                     map(data => { return data }),
-                    doOnSubscribe(() => { }),
-                    tap({ complete: () => { this.loadingSrv.close() } })
+                    finalize(() => this.loadingSrv.close())
                 )
         })
     )
