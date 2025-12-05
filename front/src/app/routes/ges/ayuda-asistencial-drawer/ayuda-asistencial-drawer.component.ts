@@ -36,7 +36,7 @@ export class AyudaAsistencialDrawerComponent {
     placement: NzDrawerPlacement = 'left';
     options: any[] = [];
     isSaving = signal(false)
-
+    tipoChange = signal(0)
     private apiService = inject(ApiService)
     constructor(private searchService: SearchService) { 
         effect(() => {
@@ -64,7 +64,7 @@ export class AyudaAsistencialDrawerComponent {
         debounceTime(500),
         switchMap(() =>
           this.apiService
-            .getAyudaAsitencialByPersonalId({personalId: this.formAyudaAsi.get('personalId')?.value})
+            .getAyudaAsitencialByPersonalId(this.formAyudaAsi.get('aplicaEl')?.value, this.formAyudaAsi.get('personalId')?.value, this.formAyudaAsi.get('formaId')?.value)
             .pipe(
               doOnSubscribe(() => this.tableLoading$.next(true)),
               tap({ complete: () => this.tableLoading$.next(false) })

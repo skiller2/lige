@@ -78,21 +78,22 @@
             [nzLoading]="tableLoading$ | async">
             <thead>
               <tr>
-                <th>Tipo</th>
-                <th>Monto</th>
-                <th>Fecha de Solicitud</th>
-                <th>Fecha de Aprobación</th>
-                <th>Estado</th>
+                <th>Descuento</th>
+                <th>Periodo</th>
+                <th>Importe Cuota</th>
+                <th>Cuota Nro.</th>
+                <th>Cant. Cuotas</th>
+                <th>Importe Total</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let data of tableAdelantos.data">
-                <td>{{ data.FormaPrestamoDescripcion }}</td>
-                <td>{{ data.PersonalPrestamoMonto | I18NCurrency }}</td>
-                <td>{{ data.PersonalPrestamoAudFechaIng | date }}</td>
-                <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
-                <td>{{ data.PersonalPrestamoAprobado }}</td>
-                <td>{{ data.Estado }}</td>
+                <td>{{ data.desmovimiento }}</td>
+                <td>{{ data.periodo }}</td>
+                <td>{{ data.importe | I18NCurrency }}</td>
+                <td>{{ data.cuotanro }}</td>
+                <td>{{ data.cantcuotas }}</td>
+                <td>{{ data.importetotal | I18NCurrency }}</td>
               </tr>
             </tbody>
           </nz-table>

@@ -1456,9 +1456,9 @@ export class ApiService {
   }
 
 
-  getAyudaAsitencialByPersonalId(personalId: any) {
+  getAyudaAsitencialByPersonalId(Periodo: any, personalId: any, DescuentoId: any) {
     if (personalId == 0) return of([])
-    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, personalId).pipe(map(res => res.data));
+    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, {Periodo, personalId}).pipe(map(res => res.data));
   }
 
   setEstado(parameter: any) {

@@ -1148,35 +1148,39 @@ export class AyudaAsistencialController extends BaseController {
   async getPersonalPrestamoByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const personalId: number = Number(req.body.personalId)
+    const periodo: any = req.body.Periodo
+    const anio = new Date(periodo).getFullYear()
+    const mes = new Date(periodo).getMonth() + 1
     try {
       await queryRunner.startTransaction()
 
-      let periodo = await queryRunner.query(
-        `SELECT DATEADD(MONTH,  1,  MAX(DATEFROMPARTS(liqp.anio, liqp.mes, 1))) ultPeriodo
-        FROM lige.dbo.liqmaperiodo liqp
-        WHERE ind_recibos_generados = 1`
-      );
-      periodo = periodo[0].ultPeriodo
-      const mes = periodo.getMonth() + 1
-      const anio = periodo.getFullYear()
-
       let list = await queryRunner.query(
-        `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoAudFechaIng, pre.PersonalPrestamoFechaAprobacion,
-        CONCAT(@2,'/',@1) PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
-        FROM PersonalPrestamo pre
-        LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
-        LEFT JOIN PersonalPrestamoCuota ppc ON ppc.PersonalPrestamoId = pre.PersonalPrestamoId AND ppc.PersonalId = pre.PersonalId
-        WHERE pre.PersonalId = @0 AND ppc.PersonalPrestamoCuotaAno = @1 AND ppc.PersonalPrestamoCuotaMes = @2
-        ORDER BY pre.PersonalPrestamoAudFechaIng DESC`,
-        [personalId, anio, mes]
+        `SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
+            , perdes.id perdes_id
+            , cuit.PersonalCUITCUILCUIT
+            , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+            , perdes.tipocuenta_id
+            , tipdes.DescuentoId
+            , tipdes.DescuentoDescripcion
+            , perdes.mes
+            , perdes.anio
+            , perdes.desmovimiento
+            , perdes.desmovimiento2
+            , perdes.importe
+            , perdes.cuotanro
+            , perdes.cantcuotas
+            , perdes.importetotal
+            , perdes.tipoint
+            , perdes.FechaAnulacion
+            , CONCAT(perdes.anio, '/', perdes.mes) periodo
+        FROM VistaPersonalDescuento perdes
+        LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId    
+        LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        WHERE DATEFROMPARTS(perdes.anio,perdes.mes,1)>= DATEFROMPARTS(@0,@1,1) AND ( (tipdes.DescuentoId IN (51)) ) AND per.PersonalId=@2 AND 1=1 
+        Order by DATEFROMPARTS(perdes.anio,perdes.mes,1)`,
+        [anio, mes, personalId]
       );
-      list = list.map((obj: any) => {
-        let option = getOptionsPersonalPrestamoAprobado.find((option: any) => {
-          return option.value === obj.PersonalPrestamoAprobado
-        })
-        obj.PersonalPrestamoAprobado = option.label
-        return obj
-      })
 
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
