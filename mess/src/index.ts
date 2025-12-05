@@ -46,17 +46,16 @@ if (ENABLE_QUEUE_MSGS) {
 
     const listmsg = await ChatBotController.getColaMsg()
     console.log(`Reviso cola, ${listmsg.length} pendientes`)
-    
+
     for (const msg of listmsg) {
       try {
         if (msg.ClaseMensaje?.includes('NOVEDAD') || (horas >= 8 && horas <= 22)) {
           const texto = String(msg.TextoMensaje || '').trim()
 
-          if (texto == '')
-            throw new Error(`Mensaje vacío, no se envió TextoMensaje`)
+          if (texto == '') throw new Error(`Mensaje vacío, no se envió TextoMensaje`)
 
-          await botServer.sendMsg(msg.Telefono, texto);
-          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId); // todo: con meta, ver caso que no envia mensaje si el contacto no inicio la conversación dentro de las 24hs
+          const result = await botServer.sendMsg(msg.Telefono, texto);
+          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId, result); // todo: con meta, ver caso que no envia mensaje si el contacto no inicio la conversación dentro de las 24hs
 
         }
 
