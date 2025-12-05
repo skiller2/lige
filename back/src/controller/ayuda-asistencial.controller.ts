@@ -114,11 +114,11 @@ const columnsAyudaAsistencial: any[] = [
   {
     id: "PersonalPrestamoAplicaEl",
     name: "Aplica El",
-    type: "string",
+    type: "date",
     field: "PersonalPrestamoAplicaEl",
     fieldName: "pres.PersonalPrestamoAplicaEl",
     searchComponent: "inpurForPeriodoSearch",
-    searchType: "string",
+    searchType: "date",
     sortable: true,
     searchHidden: false
   },
