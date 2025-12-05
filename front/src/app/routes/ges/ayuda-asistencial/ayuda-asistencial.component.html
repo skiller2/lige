@@ -36,7 +36,7 @@
         <button nzType="default" nz-button (click)="openDrawer()" [nzLoading]="false"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus" nzTheme="outline"></span>
         </button> 
-        <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0 || (personalId() != 0 && rows.length !== 1)"
+        <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="!canOpenDetalle()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user" nzTheme="outline"></span>
         </button>
       </nz-form-control>
@@ -64,7 +64,7 @@
         <a nz-tab-link routerLink="/ges/ayuda_asistencial/cuotas">Cuotas</a>
         <ng-template nz-tab>
           @defer (on idle) {
-            <app-table-ayuda-asistencial-cuotas [periodo]="periodo()" [(personalId)]="personalId"></app-table-ayuda-asistencial-cuotas>
+            <app-table-ayuda-asistencial-cuotas [periodo]="periodo()" [(personalId)]="personalId" [(rowsSelectedCount)]="rowsSelectedCountCuotas"></app-table-ayuda-asistencial-cuotas>
           }
         </ng-template>
         

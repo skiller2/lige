@@ -65,6 +65,7 @@ export class TableAyudaAsistencialCuotasComponent {
     extra: null,
   };
   personalId = model<number>(0);
+  rowsSelectedCount = model<number>(0);
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
@@ -141,6 +142,9 @@ export class TableAyudaAsistencialCuotasComponent {
   handleSelectedRowsChanged(e: any): void {
     this.rows = e.detail.args.rows;
     const selectedRows = this.angularGridEdit.dataView.getAllSelectedFilteredIds();
+    
+    this.rowsSelectedCount.set(selectedRows.length);
+    
     if (selectedRows.length === 1) {
         // si queda solo uno seleccionado, poner ese PersonalId
         const idx = this.angularGridEdit.dataView.getRowById(selectedRows[0]);

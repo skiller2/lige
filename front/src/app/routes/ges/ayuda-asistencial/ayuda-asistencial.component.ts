@@ -52,9 +52,18 @@ export class AyudaAsistencialComponent {
     tableLoading$ = new BehaviorSubject(false);
     visibleDetalle = model<boolean>(false)
     personalId = model<number>(0)
+    rowsSelectedCountCuotas = model<number>(0)
     anio = signal(0)
     mes = signal(0)
     viweButtonListado = signal(true)
+
+    canOpenDetalle = computed(() => {
+        if (this.personalId() === 0) return false;
+        if (this.viweButtonListado()) {
+            return this.rows.length === 1;
+        }
+        return this.rowsSelectedCountCuotas() === 1;
+    });
 
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
