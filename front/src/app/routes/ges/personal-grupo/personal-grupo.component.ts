@@ -1,5 +1,5 @@
 import { Component, inject, input, effect, ChangeDetectionStrategy, InputSignal, model } from '@angular/core';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, finalize, map, switchMap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -128,8 +128,7 @@ export class PersonalGrupoComponent {
             return data.persxresp
 
           }),
-          doOnSubscribe(() => {}),
-          tap({ complete: () => { this.loadingSrv.close() } })
+          finalize(() => this.loadingSrv.close())
         )
     })
   )

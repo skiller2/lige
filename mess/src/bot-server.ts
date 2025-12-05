@@ -25,6 +25,7 @@ import { Utils } from "./controller/util.ts";
 import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescrip, flowNovedadHora, flowNovedadFecha, flowNovedadEnvio, flowNovedadAccion, flowNovedadRouter, flowNovedadRecibirDocs, flowNovedadPendiente, flowConsNovedadPendiente, flowProactivoNovedad } from "./flow/flowNovedad.ts";
 import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
 import { Ollama } from "ollama";
+import { ClientException } from "./controller/base.controller.ts";
 
 
 dotenv.config()
@@ -149,38 +150,84 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
   }
 
   public async sendMsg(telNro: string, message: string) {
-    //Probar si se puede mandar por msg normal o usar template en caso de falla
+    // console.log(`Enviando mensaje a ${telNro}: ${message}`)
     const saludo = BotServer.getSaludo();
-    try {
-      await this.adapterProvider.sendMessage(telNro, saludo + "\n" + message, {})
-      return
-    } catch (error) {
-      console.log("Error sendMessage", error)
+
+    switch (process.env.PROVIDER) {
+      case 'META':
+        try {
+          await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
+          return
+        } catch (err: any) {
+          console.error("❌ Error al enviar mensaje normal:", err?.response?.data || err.message || err);
+
+          // const errorData = err?.response?.data?.error;
+          // const errorDetails = errorData?.error_data?.details || "";
+
+          // // Detectar si es error de ventana 24h
+          // const esFueraDeVentana =
+          //   errorDetails.includes("24") ||
+          //   errorDetails.includes("window") ||
+          //   errorDetails.toLowerCase().includes("24-hour");
+
+          // if (esFueraDeVentana) {
+          //   console.log("⚠️ Fuera de ventana 24h, intentando enviar template...");
+          // } else {
+          //   console.log("⚠️ Error desconocido, intentando enviar template...");
+          // }
+        }
+        break
+
+      // 2) INTENTO DE PLANTILLA
+      // try {
+      //   const templateMessage = {
+      //     name: "notificacion",
+      //     language: { code: 'es' },
+      //     components: [
+      //       {
+      //         type: 'body',
+      //         parameters: [
+      //           { type: 'text', text: `${saludo}\n${message}` },
+      //         ],
+      //       },
+      //     ],
+      //   };
+
+      //   const respTemplate = await this.adapterProvider.sendTemplate({
+      //     messaging_product: "whatsapp",
+      //     recipient_type: "individual",
+      //     to: telNro,
+      //     type: "template",
+      //     template: templateMessage,
+      //   });
+
+      //   console.log("✅ Template enviado correctamente:", respTemplate);
+      //   return { success: true, viaTemplate: true, response: respTemplate };
+
+      // } catch (error: any) {
+      //   console.error("❌ Error al enviar template:");
+      //   console.error("RAW:", error);
+      //   console.error("DATA:", JSON.stringify(error?.response?.data, null, 2));
+      //   throw new Error("No se pudo enviar ni mensaje normal ni template");
+      // }
+
+
+
+      case 'BAILEY':
+        try {
+          await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
+          return
+        } catch (error) {
+          console.log("Error sendMessage", error)
+        }
+        break
+
+      default:
+        throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
+
+        break
     }
 
-    const templateMessage = {
-      name: 'NOTIFICACION',
-      language: { code: 'es' },
-      components: [
-        {
-          type: 'body',
-          parameters: [
-            { type: 'text', text: saludo },
-            { type: 'text', text: message },
-          ],
-        },
-      ],
-    };
-
-    try {
-      await this.adapterProvider.sendTemplate({
-        to: telNro,
-        template: templateMessage,
-      });
-      return
-    } catch (error) {
-      console.log("Error sendTemplate", error)
-    }
   }
 
   public runFlow(from: string, name: string) {

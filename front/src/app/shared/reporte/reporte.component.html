@@ -1,4 +1,5 @@
-<span> {{reportTitle()}}</span>
+@if(isTitleVisible()){<span> {{reportTitle()}}</span>}
+
 <ng-content />
 
 <nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="isVisible.set(false)" [nzTitle]="reportTitle()">

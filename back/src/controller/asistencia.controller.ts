@@ -1163,7 +1163,7 @@ export class AsistenciaController extends BaseController {
 
       for (const row of resultNoAutoriz) {
         recdelete++;
-        await queryRunner.query(`DELETE FROM PersonalArt14 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,[row["PersonalArt14Id"], PersonalId]);
+        await queryRunner.query(`DELETE FROM PersonalArt14 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `, [row["PersonalArt14Id"], PersonalId]);
       }
 
       if (recdelete + recupdate == 0) throw new ClientException("No se localizaron registros para finalizar para la persona y metodología indicados");
@@ -3036,9 +3036,24 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
   async getListaAsistenciaControAcceso(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
+    let registrosActualizados = 0
+
+    const anio = req.params.anio
+    const mes = req.params.mes
+
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Proceso Asistencia Biométrico ${mes}/${anio}`,
+      { anio, mes, usuario, ip },
+      usuario,
+      ip
+    );
+
     try {
-      const anio = req.params.anio
-      const mes = req.params.mes
+
       let listado = [];
 
       listado = await this.getAccessControlAsistance(anio, mes);
@@ -3211,6 +3226,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
             const asistenciaRow = asistencia.find((p: any) => p.PersonalCUITCUILCUIT == cuit)
 
             if (asistenciaRow) {
+              registrosActualizados++
               await queryRunner.query(`UPDATE ObjetivoAsistenciaAnoMesPersonalDias 
                 SET ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio1Gral = @4, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio2Gral = @5, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio3Gral = @6, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio4Gral = @7, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio5Gral = @8,
                 ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio6Gral =  @9, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio7Gral = @10, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio8Gral = @11, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio9Gral = @12, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio10Gral = @13,
@@ -3354,9 +3370,29 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
 
       await queryRunner.commitTransaction();
+
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Registros Actualizados': registrosActualizados
+        },
+        usuario,
+        ip
+      );
+
       this.jsonRes(listadoProcessed, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release()

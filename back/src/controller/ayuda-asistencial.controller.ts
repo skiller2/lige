@@ -138,7 +138,7 @@ const columnsAyudaAsistencial: any[] = [
     id: "PersonalPrestamoMonto",
     name: "Importe",
     field: "PersonalPrestamoMonto",
-    type: "number",
+    type: "currency",
     fieldName: "pres.PersonalPrestamoMonto",
     searchComponent: "inpurForNumberAdvancedSearch",
     searchType: "numberAdvanced",
@@ -172,13 +172,27 @@ const columnsAyudaAsistencial: any[] = [
     searchHidden: false
   },
   {
-    id: "SituacionRevistaDescripcion",
+    id: "SitRevCom",
     name: "Situación Revista",
     type: "string",
-    field: "SituacionRevistaDescripcion",
-    fieldName: "sit.SituacionRevistaDescripcion",
+    field: "SitRevCom",
+    fieldName: "SitRevCom",
     searchType: "string",
     sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
   },
   {
     name: "Grupo Actividad",
@@ -307,16 +321,18 @@ const columnsAyudaAsistencialCuotas: any[] = [
     id: 'importe', name: 'Importe Cuota', field: 'importe',
     fieldName: "perdes.importe",
     type: 'currency',
-    searchType: "currency",
+    searchType: "numberAdvanced",
+    searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
   },
   {
     id: 'cuotanro', name: 'Cuota Nro.', field: 'cuotanro',
     fieldName: 'perdes.cuotanro',
     type: 'number',
-    searchType: "number",
+    searchType: "numberAdvanced",
+    searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -325,7 +341,8 @@ const columnsAyudaAsistencialCuotas: any[] = [
     id: 'cantcuotas', name: 'Cantidad Cuotas', field: 'cantcuotas',
     fieldName: 'perdes.cantcuotas',
     type: 'number',
-    searchType: "number",
+    searchType: "numberAdvanced",
+    searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -334,7 +351,8 @@ const columnsAyudaAsistencialCuotas: any[] = [
     id: 'importetotal', name: 'Importe Total', field: 'importetotal',
     fieldName: 'perdes.importetotal',
     type: 'currency',
-    searchType: "currency",
+    searchType: "numberAdvanced",
+    searchComponent: "inpurForNumberAdvancedSearch",
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -509,7 +527,8 @@ export class AyudaAsistencialController extends BaseController {
           pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
           form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
           pres.PersonalPrestamoAprobado,
-          sit.SituacionRevistaDescripcion,
+          sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
+          CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
         gaper.GrupoActividadId,
         gaper.gaCom,
       1
@@ -538,7 +557,7 @@ export class AyudaAsistencialController extends BaseController {
       WHEN ga.GrupoActividadId IS NOT NULL THEN  
         CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
             FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
-            CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+            CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN '' 
               ELSE FORMAT(gaux.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
             END, ')'
         )
@@ -560,7 +579,8 @@ export class AyudaAsistencialController extends BaseController {
               
           WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) = DATEFROMPARTS(@0,@1,1) 
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
+      OR pres.PersonalPrestamoAudFechaIng >= DATEFROMPARTS(@0,@1,1)      
       )
       AND (${filterSql})
       ${orderBy}
