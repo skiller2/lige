@@ -9,7 +9,7 @@ import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 
 
 interface ListOptions {
@@ -122,9 +122,13 @@ export class TableAyudaAsistencialCuotasComponent {
     this.angularGridEdit = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGridEdit.dataView.onRowsChanged.subscribe(() => {
-      totalRecords(this.angularGridEdit);
-    });
+    this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridEdit)
+      columnTotal('importetotal', this.angularGridEdit)
+      columnTotal('importe', this.angularGridEdit)
+
+
+  })
 
     this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
       this.personalEstudios = [this.dataAngularGrid[args.row]];
