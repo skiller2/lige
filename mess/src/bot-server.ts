@@ -192,8 +192,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       case 'META':
         try {
           // Enviar el mensaje
-          const a = await this.sendMsgMeta24hs(telNro, message, saludo);
-          console.log("*****", a);
+          await this.sendMsgMeta24hs(telNro, message, saludo);
           return
         } catch (error) {
           console.log("Error sendMsgMeta24hs:", error);
@@ -235,8 +234,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
         },
       ]
 
-    const respTemplate = await this.adapterProvider.sendTemplate(telNro, template, languageCode, components);
-    console.log("✅ Template enviado correctamente:", respTemplate);
+    await this.adapterProvider.sendTemplate(telNro, template, languageCode, components);
     return
   }
 
