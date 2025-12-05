@@ -149,69 +149,61 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
   }
 
+  public async sendMsgMeta24hs(telNro: string, message: string, saludo: string) {
+    const resp = await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
+
+    const messageId = resp?.messages?.[0]?.id;
+    if (!messageId) throw new Error("No se recibió ID del mensaje enviado")
+
+    const statusPromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.adapterProvider.off('notice', handler);
+        reject(new Error('Time Out'));
+      }, 5000); // 5 segundos de espera
+
+      const handler = (noticeData: any) => {
+        console.log('📨 Notice recibido en handler:', JSON.stringify(noticeData, null, 2));
+
+        // Buscar errores relacionados con 24 horas
+        const errorMessage = noticeData?.instructions?.[0] || JSON.stringify(noticeData);
+        const is24HourError = errorMessage?.includes('24 hours') || errorMessage?.includes('24 hour') || errorMessage?.includes('ventana');
+
+        clearTimeout(timeout);
+        this.adapterProvider.off('notice', handler);
+        
+        if (is24HourError) {
+          reject(new Error(`Error ventana de 24 horas: ${errorMessage}`));
+        } else {
+          resolve(true);
+        }
+      };
+
+      this.adapterProvider.on('notice', handler);
+    });
+
+    return statusPromise
+  }
+
   public async sendMsg(telNro: string, message: string) {
-    // console.log(`Enviando mensaje a ${telNro}: ${message}`)
+    console.log(`Enviando mensaje a ${telNro}: ${message}`)
     const saludo = BotServer.getSaludo();
 
     switch (process.env.PROVIDER) {
       case 'META':
         try {
-          await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
+          // Enviar el mensaje
+          await this.sendMsgMeta24hs(telNro, message, saludo);
           return
-        } catch (err: any) {
-          console.error("❌ Error al enviar mensaje normal:", err?.response?.data || err.message || err);
-
-          // const errorData = err?.response?.data?.error;
-          // const errorDetails = errorData?.error_data?.details || "";
-
-          // // Detectar si es error de ventana 24h
-          // const esFueraDeVentana =
-          //   errorDetails.includes("24") ||
-          //   errorDetails.includes("window") ||
-          //   errorDetails.toLowerCase().includes("24-hour");
-
-          // if (esFueraDeVentana) {
-          //   console.log("⚠️ Fuera de ventana 24h, intentando enviar template...");
-          // } else {
-          //   console.log("⚠️ Error desconocido, intentando enviar template...");
-          // }
+        } catch (error) {
+          console.log("Error sendMsgMeta24hs:", error);
         }
-        break
 
-      // 2) INTENTO DE PLANTILLA
-      // try {
-      //   const templateMessage = {
-      //     name: "notificacion",
-      //     language: { code: 'es' },
-      //     components: [
-      //       {
-      //         type: 'body',
-      //         parameters: [
-      //           { type: 'text', text: `${saludo}\n${message}` },
-      //         ],
-      //       },
-      //     ],
-      //   };
-
-      //   const respTemplate = await this.adapterProvider.sendTemplate({
-      //     messaging_product: "whatsapp",
-      //     recipient_type: "individual",
-      //     to: telNro,
-      //     type: "template",
-      //     template: templateMessage,
-      //   });
-
-      //   console.log("✅ Template enviado correctamente:", respTemplate);
-      //   return { success: true, viaTemplate: true, response: respTemplate };
-
-      // } catch (error: any) {
-      //   console.error("❌ Error al enviar template:");
-      //   console.error("RAW:", error);
-      //   console.error("DATA:", JSON.stringify(error?.response?.data, null, 2));
-      //   throw new Error("No se pudo enviar ni mensaje normal ni template");
-      // }
-
-
+        try {
+          await this.sendTemplateMsg(telNro, message);
+        } catch (error) {
+          console.log("Error sendTemplate", error)
+          return error
+        }
 
       case 'BAILEY':
         try {
@@ -219,15 +211,31 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
           return
         } catch (error) {
           console.log("Error sendMessage", error)
+          return error
         }
         break
 
       default:
         throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
-
-        break
     }
+  }
 
+
+  async sendTemplateMsg(telNro: string, message: string) {
+    const template = "notificacion_general";
+    const languageCode = "es_AR";
+
+    const components = [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', text: message },
+          ],
+        },
+      ]
+
+    await this.adapterProvider.sendTemplate(telNro, template, languageCode, components);
+    return
   }
 
   public runFlow(from: string, name: string) {
@@ -343,6 +351,10 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       console.log('event auth_failure')
     })
 
+    // Listener global para ver todos los webhooks de status
+    this.adapterProvider.on('notice', (noticeData) => {
+      console.log('NOTICE RECIBIDO:', JSON.stringify(noticeData, null, 2));
+    });
 
     this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
