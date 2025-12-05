@@ -189,20 +189,22 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     const saludo = BotServer.getSaludo();
 
     switch (process.env.PROVIDER) {
+      // todo : ver manejo y devolucion de errores para que dsp no haga update en BotColaMensajes
       case 'META':
         try {
           // Enviar el mensaje
           await this.sendMsgMeta24hs(telNro, message, saludo);
-          return
+          return 'sendMsgMeta24hs'
         } catch (error) {
           console.log("Error sendMsgMeta24hs:", error);
         }
 
         try {
           await this.sendTemplateMsg(telNro, message);
+          return 'sendTemplateMsg'
         } catch (error) {
           console.log("Error sendTemplate", error)
-          return error
+          throw error
         }
 
       case 'BAILEY':

@@ -841,8 +841,8 @@ export class CustodiaController extends BaseController {
 
                 errores.push(`${sitrev[0].ApellidoNombre} el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por la persona`)
 
-                const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
-                if (sendit) errores.push(`${sitrev[0].ApellidoNombre} Se envió notificación recordando que descargue el recibo`)
+                // const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+                // if (sendit) errores.push(`${sitrev[0].ApellidoNombre} Se envió notificación recordando que descargue el recibo`)
             }
 
         }

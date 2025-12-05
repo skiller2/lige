@@ -1199,8 +1199,8 @@ export class CargaLicenciaController extends BaseController {
           const msgRecPend = `No se puede cargar horas, recibos no vistos:  ` + bot[0].descarga + ((bot[0].mes_ant) ? `, ${bot[0].descarga_ant}` : '')
           errormsg.push(msgRecPend)
 
-          const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
-          if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+          // const sendit = await AccesoBotController.enqueBotMsg(PersonalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+          // if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
         }
         throw new ClientException(errormsg)
       }

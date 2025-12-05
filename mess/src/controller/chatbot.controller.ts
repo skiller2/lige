@@ -115,7 +115,8 @@ export class ChatBotController extends BaseController {
       WHERE col.FechaProceso IS NULL`, [])
   }
 
-  static async updColaMsg(fecha_ingreso: Date, personal_id: number) {
+  static async updColaMsg(fecha_ingreso: Date, personal_id: number, sentBy:string) {
+    // todo : registrar si se envió por template o msg normal
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
     return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1'])
