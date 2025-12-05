@@ -62,7 +62,7 @@
         <a nz-tab-link routerLink="/ges/ayuda_asistencial/cuotas">Cuotas</a>
         <ng-template nz-tab>
           @defer (on idle) {
-            <app-table-ayuda-asistencial-cuotas [periodo]="periodo()"></app-table-ayuda-asistencial-cuotas>
+            <app-table-ayuda-asistencial-cuotas [periodo]="periodo()" [(personalId)]="personalId"></app-table-ayuda-asistencial-cuotas>
           }
         </ng-template>
         

@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, computed, input, signal, effect } from '@angular/core';
+import { Component, Output, EventEmitter, computed, input, signal, effect, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
@@ -52,6 +52,7 @@ export class TableAyudaAsistencialCuotasComponent {
   columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols/cuotas');
   private angularGridEdit!: AngularGridInstance;
   private gridObj!: SlickGrid;
+  rows: number[] = []
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
   private dataAngularGrid: PersonalEstudio[] = [];
@@ -63,7 +64,7 @@ export class TableAyudaAsistencialCuotasComponent {
     sort: null,
     extra: null,
   };
-
+  personalId = model<number>(0);
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
@@ -106,6 +107,8 @@ export class TableAyudaAsistencialCuotasComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
+    this.gridOptions.enableCheckboxSelector = true
+
   }
 
   listOptionsChange(options: any): void {
@@ -134,4 +137,25 @@ export class TableAyudaAsistencialCuotasComponent {
       format: 'xlsx'
     });
   }
+
+  handleSelectedRowsChanged(e: any): void {
+    this.rows = e.detail.args.rows;
+    const selectedRows = this.angularGridEdit.dataView.getAllSelectedFilteredIds();
+    if (selectedRows.length === 1) {
+        // si queda solo uno seleccionado, poner ese PersonalId
+        const idx = this.angularGridEdit.dataView.getRowById(selectedRows[0]);
+        const item = this.angularGridEdit.dataView.getItemByIdx(idx ?? 0);
+        this.personalId.set(item?.PersonalId ?? 0);
+    } else {
+        // si hay más de uno, dejar el ultimo seleccionado o limpiar si no hay ninguno
+        if (selectedRows.length > 1) {
+            // tomar el seleccionado en la posicion mas reciente del evento changedSelectedRows
+            const lastRowNum = e.detail.args.changedSelectedRows[e.detail.args.changedSelectedRows.length - 1];
+            const item = this.angularGridEdit.dataView.getItemByIdx(lastRowNum);
+            this.personalId.set(item?.PersonalId ?? 0);
+        } else {
+            this.personalId.set(0);
+        }
+    }
+}
 } 

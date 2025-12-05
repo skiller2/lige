@@ -51,7 +51,7 @@ export class AyudaAsistencialComponent {
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
     visibleDetalle = model<boolean>(false)
-    personalId = signal(0)
+    personalId = model<number>(0)
     anio = signal(0)
     mes = signal(0)
     viweButtonListado = signal(true)
