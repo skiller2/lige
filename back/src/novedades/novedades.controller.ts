@@ -898,7 +898,21 @@ export class NovedadesController extends BaseController {
             const page = await browser.newPage();
 
             filesPath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/' + NovedadCodigo + ".pdf"
-            // const den_documento = Math.floor(10000 + Math.random() * 90000);
+
+            // let docRelaciones = await queryRunner.query(`
+            //         SELECT dr.DocumentoId, dr.NovedadCodigo, doc.DocumentoNombreArchivo, doc.DocumentoPath
+            //         FROM DocumentoRelaciones dr
+            //         LEFT JOIN Documento doc ON doc.DocumentoId = dr.DocumentoId
+            //         WHERE NovedadCodigo IN (@0)
+            //     `,[NovedadCodigo])
+
+            //     docRelaciones = docRelaciones.filter(doc => {
+            //         const nombre = doc.DocumentoNombreArchivo.toLowerCase();
+            //         return nombre.endsWith('.png') ||
+            //                 nombre.endsWith('.jpg') ||
+            //                 nombre.endsWith('.jpeg')
+            //     });
+            // const imgsPath = docRelaciones.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
 
             await this.createPdf(filesPath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
                 NovedadInfo, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
@@ -927,6 +941,7 @@ export class NovedadesController extends BaseController {
         htmlContent: string,
         headerContent: string,
         footerContent: string,
+        imgsPaths: string[] = []
     ) {
         domicilioObj = (domicilioObj && domicilioObj != '()') ? domicilioObj : 'Sin especificar'
         asociado = (asociado) ? asociado.toString() : 'Pendiente'
@@ -960,6 +975,35 @@ export class NovedadesController extends BaseController {
         htmlContent = htmlContent.replace(/\${textobjetivo}/g, htmlObjetivo);
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
 
+        // Agrego imagenes al HTML - Documentos Realcionados
+        let htmlImgs = imgsPaths.length? `<tr>` : ``
+        const imgsPorFila = 3;
+        for (let index = 0; index < imgsPaths.length; index++) {
+            const path = imgsPaths[index];
+            if (!fs.existsSync(path)) { continue };
+
+            const imgBuffer = await fsPromises.readFile(path);
+            const imgBase64 = imgBuffer.toString("base64");
+
+            // Detectar extensión real
+            const ext = path.split(".").pop()?.toLowerCase() || "jpg";
+
+            if (index > 0 && index % imgsPorFila === 0) {
+                htmlImgs += "</tr><tr>";
+            }
+
+            htmlImgs += `
+                <td style="width:${100 / imgsPorFila}%; text-align:center;">
+                    <img 
+                        src="data:image/${ext};base64,${imgBase64}" 
+                        style="width:150px; display:block; margin:5px auto;"
+                        alt="imagen"
+                    />
+                </td>`;
+        }
+        if (htmlImgs) htmlImgs += `</tr>`
+
+        htmlContent = htmlContent.replace(/\${docRelacionados}/g, htmlImgs);
 
         await page.setContent(htmlContent);
 
@@ -1082,8 +1126,25 @@ export class NovedadesController extends BaseController {
                 const asociado = infoPersonal.PersonalNroLegajo;
                 const grupo = infoPersonal.GrupoActividadDetalle;
 
+                //Documentos Relacionados al la Novedad
+                let docRelaciones = await queryRunner.query(`
+                    SELECT dr.DocumentoId, dr.NovedadCodigo, doc.DocumentoNombreArchivo, doc.DocumentoPath
+                    FROM DocumentoRelaciones dr
+                    LEFT JOIN Documento doc ON doc.DocumentoId = dr.DocumentoId
+                    WHERE NovedadCodigo IN (@0)
+                `,[novedad.NovedadCodigo])
+
+                //Filtro documentos por imagen
+                docRelaciones = docRelaciones.filter(doc => {
+                    const nombre = doc.DocumentoNombreArchivo.toLowerCase();
+                    return nombre.endsWith('.png') ||
+                            nombre.endsWith('.jpg') ||
+                            nombre.endsWith('.jpeg')
+                });
+                const imgsPath = docRelaciones.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
+
                 await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
-                    novedad, page, body, header, footer)
+                    novedad, page, body, header, footer, imgsPath)
             }
 
             await page.close();
