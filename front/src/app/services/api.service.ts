@@ -1632,7 +1632,10 @@ export class ApiService {
   }
 
   getListAyudaAsistencialCuotas(anio: number, mes: number, filters: any) {
-
+    if ((anio <= 0 || mes <= 0) && !filters.options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/cuotas', { filters, anio, mes }).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))

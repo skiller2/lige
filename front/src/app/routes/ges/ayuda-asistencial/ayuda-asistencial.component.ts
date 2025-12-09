@@ -251,12 +251,17 @@ export class AyudaAsistencialComponent {
     }
 
     dateChange(result: Date): void {
-        this.periodo.set(result)
+        if(result) {
         this.selectedPeriod.year = result.getFullYear();
         this.selectedPeriod.month = result.getMonth() + 1;
+    
+        localStorage.setItem('anio', String(this.selectedPeriod.year));
+        localStorage.setItem('mes', String(this.selectedPeriod.month));
+        }
+        this.periodo.set(result)   
         this.rows = []
         this.registerId = ''
-        this.formChange('');
+        
     }
 
     formChange(event: any) {

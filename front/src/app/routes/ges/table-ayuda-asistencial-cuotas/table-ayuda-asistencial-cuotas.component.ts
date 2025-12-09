@@ -76,8 +76,12 @@ export class TableAyudaAsistencialCuotasComponent {
       if (periodoValue) {
         this.anio.set(periodoValue.getFullYear());
         this.mes.set(periodoValue.getMonth() + 1);
-        this.formChange$.next('');
+        
+      }else{
+        this.anio.set(0);
+        this.mes.set(0);
       }
+      this.formChange$.next('');
     });
   }
 
