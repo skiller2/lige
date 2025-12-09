@@ -333,13 +333,23 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'periodo', name: 'Periodo', field: 'periodoDisplay',
-    fieldName: 'DATEFROMPARTS(perdes.anio, perdes.mes, 1)',
+    id: 'periodo', name: 'Periodo', field: 'periodo',
+    fieldName: 'periodo',
     type: 'string',
-    searchType: "date",
+    searchType: "string",
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    id: 'FechaPeriodo', name: 'Periodo', field: 'FechaPeriodo',
+    fieldName: 'fecper.FechaPeriodo',
+    type: 'date',
+    searchType: "date",
+    sortable: true,
+    searchComponent: "inpurForPeriodoSearch",
+    hidden: true,
+    searchHidden: false
   },
   // {
   //   id: 'ObjetivoDescuentoCuotaMes', name: 'Mes', field: 'ObjetivoDescuentoCuotaMes',
@@ -633,6 +643,10 @@ export class GestionDescuentosController extends BaseController {
       join = `DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
     }
 
+    if (!orderBy || orderBy.trim() === '') {
+      orderBy = '  order by FechaPeriodo desc'
+    }
+
 
 
     return await queryRunner.query(`
@@ -644,11 +658,9 @@ export class GestionDescuentosController extends BaseController {
       , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       , des.ObjetivoDescuentoAnoAplica AS anio
       , des.ObjetivoDescuentoMesesAplica AS mes
-      , FORMAT(DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1), 'MM/yyyy') periodo
+      , fecper.FechaPeriodo
+      , CONCAT(des.ObjetivoDescuentoAnoAplica,'/', des.ObjetivoDescuentoMesesAplica) periodo
       
-      , DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1) AS periodo
-      , FORMAT(DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1), 'yyyy/MM') AS periodoDisplay
-
       , des.ObjetivoDescuentoDescontar
       , CASE 
         WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coo. Cuenta'
@@ -687,6 +699,8 @@ export class GestionDescuentosController extends BaseController {
 
 	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND coo.ObjetivoPersonalJerarquicoDescuentos = 1 AND ${join}
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
+
+      LEFT JOIN (SELECT DATEFROMPARTS(ObjetivoDescuentoAnoAplica,ObjetivoDescuentoMesesAplica,1) FechaPeriodo, ObjetivoId, ObjetivoDescuentoId FROM ObjetivoDescuento) fecper on fecper.ObjetivoId=des.ObjetivoId and fecper.ObjetivoDescuentoId=des.ObjetivoDescuentoId       
       
       WHERE ${condition} and (${filterSql})
       ${orderBy}
