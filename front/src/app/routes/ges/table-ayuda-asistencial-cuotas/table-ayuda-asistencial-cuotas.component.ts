@@ -166,4 +166,8 @@ export class TableAyudaAsistencialCuotasComponent {
         }
     }
 }
+
+  reload(): void {
+    this.formChange$.next('');
+  }
 } 

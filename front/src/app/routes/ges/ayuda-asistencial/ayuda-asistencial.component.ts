@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, effect } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
@@ -30,6 +30,7 @@ import { Router } from '@angular/router';
 })
 export class AyudaAsistencialComponent {
     formAsist = viewChild.required(NgForm)
+    tableCuotas = viewChild<TableAyudaAsistencialCuotasComponent>('tableCuotas')
     rows: number[] = []
     registerId: string = ''
     tituloDrawer: string = ""
@@ -63,6 +64,17 @@ export class AyudaAsistencialComponent {
             return this.rows.length === 1;
         }
         return this.rowsSelectedCountCuotas() === 1;
+    });
+
+    private reloadTableEffect = effect(() => {
+        const viewListado = this.viweButtonListado();
+        const tableComponent = this.tableCuotas();
+        
+        if (!viewListado && tableComponent) {
+            setTimeout(() => {
+                tableComponent.reload();
+            }, 0);
+        }
     });
 
     private apiService = inject(ApiService)
@@ -347,6 +359,10 @@ export class AyudaAsistencialComponent {
 
   openDrawerforConsultDetalle(): void{
     this.visibleDetalle.set(true) 
+  }
+
+  onCuotasClick(): void {
+    this.viweButtonListado.set(false);
   }
 
 }
