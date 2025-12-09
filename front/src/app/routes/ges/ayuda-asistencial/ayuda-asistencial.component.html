@@ -6,7 +6,7 @@
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']" (click)="viweButtonListado.set(false)">Cuotas</a>
+      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']" (click)="onCuotasClick()">Cuotas</a>
     </li>
     <!-- <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -64,7 +64,7 @@
         <a nz-tab-link routerLink="/ges/ayuda_asistencial/cuotas">Cuotas</a>
         <ng-template nz-tab>
           @defer (on idle) {
-            <app-table-ayuda-asistencial-cuotas [periodo]="periodo()" [(personalId)]="personalId" [(rowsSelectedCount)]="rowsSelectedCountCuotas"></app-table-ayuda-asistencial-cuotas>
+            <app-table-ayuda-asistencial-cuotas #tableCuotas [periodo]="periodo()" [(personalId)]="personalId" [(rowsSelectedCount)]="rowsSelectedCountCuotas"></app-table-ayuda-asistencial-cuotas>
           }
         </ng-template>
         
