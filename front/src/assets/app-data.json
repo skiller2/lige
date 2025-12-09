@@ -230,6 +230,17 @@
           "link": "/ges/procesos-automaticos"
         },
         {
+          "text": "Permisos",
+          "icon": "anticon-profile",
+          "children": [
+            {
+              "text": "Permisos carga Objetivos",
+              "link": "/ges/personal_objetivo",
+              "icon": "anticon-profile"
+            }
+          ]
+        },
+        {
           "text": "Configuración",
           "icon": "anticon-profile",
           "children": [
