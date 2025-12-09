@@ -116,7 +116,7 @@ const columnsAyudaAsistencial: any[] = [
     name: "Aplica El",
     type: "string",
     field: "PersonalPrestamoAplicaEl",
-    fieldName: "pres.PersonalPrestamoAplicaEl", 
+    fieldName: "pres.PersonalPrestamoAplicaEl",
     searchType: "date",
     sortable: true,
     searchHidden: true
@@ -317,6 +317,18 @@ const columnsAyudaAsistencialCuotas: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    id: "FechaPeriodo",
+    name: "Aplica El",
+    type: "date",
+    field: "FechaPeriodo",
+    fieldName: "perdes.FechaPeriodo",
+    searchComponent: "inpurForPeriodoSearch",
+    searchType: "date",
+    sortable: false,
+    searchHidden: false,
+    hidden: true,
   },
   {
     id: 'desmovimiento', name: 'Tipo', field: 'desmovimiento',
@@ -1267,6 +1279,9 @@ export class AyudaAsistencialController extends BaseController {
     const mes = req.body.mes
     const queryRunner = dataSource.createQueryRunner();
 
+    let condicion = `1=1`
+    if (mes && anio) condicion = ` perdes.anio = @0 AND perdes.mes = @1 `
+
     try {
       const list = await queryRunner.query(
         `
@@ -1278,6 +1293,7 @@ export class AyudaAsistencialController extends BaseController {
         , perdes.tipocuenta_id
         , tipdes.DescuentoId
         , tipdes.DescuentoDescripcion
+        , perdes.FechaPeriodo
         , perdes.mes
         , perdes.anio
         , perdes.desmovimiento
@@ -1294,7 +1310,7 @@ export class AyudaAsistencialController extends BaseController {
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      WHERE perdes.anio = @0 AND perdes.mes = @1 AND ( (tipdes.DescuentoId IN (51)) ) AND ${filterSql} ${orderBy}`, [anio, mes]
+      WHERE ${condicion} AND ( (tipdes.DescuentoId IN (51)) ) AND ${filterSql} ${orderBy}`, [anio, mes]
       )
 
       this.jsonRes(
