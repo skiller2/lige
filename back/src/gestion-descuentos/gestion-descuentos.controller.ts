@@ -104,6 +104,16 @@ const columnsPersonalDescuentos: any[] = [
     searchHidden: true
   },
   {
+    id: 'FechaPeriodo', name: 'Periodo', field: 'FechaPeriodo',
+    fieldName: 'perdes.FechaPeriodo',
+    type: 'date',
+    searchType: "date",
+    sortable: true,
+    searchComponent: "inpurForPeriodoSearch",
+    hidden: true,
+    searchHidden: false
+  },
+  {
     id: 'desmovimiento', name: 'Detalle', field: 'desmovimiento',
     fieldName: 'perdes.desmovimiento',
     type: 'string',
