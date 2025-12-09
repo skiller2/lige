@@ -114,12 +114,22 @@ const columnsAyudaAsistencial: any[] = [
   {
     id: "PersonalPrestamoAplicaEl",
     name: "Aplica El",
-    type: "date",
+    type: "string",
     field: "PersonalPrestamoAplicaEl",
-    fieldName: "pres.PersonalPrestamoAplicaEl",
-    searchComponent: "inpurForPeriodoSearch",
+    fieldName: "pres.PersonalPrestamoAplicaEl", 
     searchType: "date",
     sortable: true,
+    searchHidden: true
+  },
+  {
+    id: "periodo",
+    name: "Aplica El",
+    type: "date",
+    field: "periodo",
+    fieldName: "pre1.periodo",
+    searchComponent: "inpurForPeriodoSearch",
+    searchType: "date",
+    sortable: false,
     searchHidden: false
   },
   {
@@ -518,70 +528,72 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async listAyudaAsistencialQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
-    return await queryRunner.query(`
-      SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
-      CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
-          pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
-          pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
-          IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-          pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
-          form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
-          pres.PersonalPrestamoAprobado,
-          sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
-          CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
-        gaper.GrupoActividadId,
-        gaper.gaCom,
-      1
-      FROM PersonalPrestamo pres
-      JOIN Personal per ON per.PersonalId = pres.PersonalId 
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
+    return await queryRunner.query(`    
+    SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
+          CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
+              pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
+              pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
+              IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+              pres.PersonalPrestamoAplicaEl, pre1.periodo, pres.PersonalPrestamoMotivo,
+              form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
+              pres.PersonalPrestamoAprobado,
+              sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
+              CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
+            gaper.GrupoActividadId,
+            gaper.gaCom,
+          1
+          FROM PersonalPrestamo pres
+          JOIN Personal per ON per.PersonalId = pres.PersonalId 
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+          LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
 
-      LEFT JOIN 
-      (
-      SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-      FROM PersonalSituacionRevista sitrev2 
-      JOIN PersonalPrestamo pres2 ON pres2.PersonalId = sitrev2.PersonalId
-      WHERE sitrev2.PersonalSituacionRevistaDesde<=IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2) AND  ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31') >= IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2)
-      GROUP BY sitrev2.PersonalId
-      ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
-      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
-              
-      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        LEFT JOIN (Select  DATEFROMPARTS(SUBSTRING(PersonalPrestamoAplicaEl,4,4),SUBSTRING(PersonalPrestamoAplicaEl,1,2),1) as periodo, PersonalId,PersonalPrestamoId
+        from PersonalPrestamo			
+        ) pre1 on pre1.PersonalPrestamoId=pres.PersonalPrestamoId and pre1.PersonalId = pres.PersonalId
 
+          LEFT JOIN 
+          (
+          SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+          FROM PersonalSituacionRevista sitrev2 
+          JOIN PersonalPrestamo pres2 ON pres2.PersonalId = sitrev2.PersonalId
+          WHERE sitrev2.PersonalSituacionRevistaDesde<=IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2) AND  ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31') >= IIF(pres2.PersonalPrestamoAprobado='S',pres2.PersonalPrestamoFechaAprobacion,@2)
+          GROUP BY sitrev2.PersonalId
+          ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+          LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+                  
+          LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
 
+          OUTER APPLY (
+          SELECT TOP 1 ga.GrupoActividadDetalle,gaux.GrupoActividadPersonalId,gaux.GrupoActividadPersonalPersonalId,gaux.GrupoActividadId, gaux.GrupoActividadPersonalDesde,gaux.GrupoActividadPersonalHasta,
+        CASE 
+          WHEN ga.GrupoActividadId IS NOT NULL THEN  
+            CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+                FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+                CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN '' 
+                  ELSE FORMAT(gaux.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+                END, ')'
+            )
+          ELSE '' 
+        END AS gaCom
+          FROM GrupoActividadPersonal gaux
+        LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaux.GrupoActividadId
 
-      OUTER APPLY (
-      SELECT TOP 1 ga.GrupoActividadDetalle,gaux.GrupoActividadPersonalId,gaux.GrupoActividadPersonalPersonalId,gaux.GrupoActividadId, gaux.GrupoActividadPersonalDesde,gaux.GrupoActividadPersonalHasta,
-    CASE 
-      WHEN ga.GrupoActividadId IS NOT NULL THEN  
-        CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
-            FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
-            CASE WHEN gaux.GrupoActividadPersonalHasta IS NULL THEN '' 
-              ELSE FORMAT(gaux.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
-            END, ')'
-        )
-      ELSE '' 
-    END AS gaCom
-      FROM GrupoActividadPersonal gaux
-    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId=gaux.GrupoActividadId
-
-      WHERE 
-          gaux.GrupoActividadPersonalPersonalId = per.PersonalId
-          AND gaux.GrupoActividadPersonalDesde <= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
-          AND ISNULL(gaux.GrupoActividadPersonalHasta,'9999-12-31') >= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
-      ORDER BY 
-          gaux.GrupoActividadId DESC,
-          gaux.GrupoActividadPersonalId DESC
-      ) gaper
-
-
-              
           WHERE 
-      (pres.PersonalPrestamoAprobado IS NULL
-      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
-      OR pres.PersonalPrestamoAudFechaIng >= DATEFROMPARTS(@0,@1,1)      
-      )
+              gaux.GrupoActividadPersonalPersonalId = per.PersonalId
+              AND gaux.GrupoActividadPersonalDesde <= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
+              AND ISNULL(gaux.GrupoActividadPersonalHasta,'9999-12-31') >= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
+          ORDER BY 
+              gaux.GrupoActividadId DESC,
+              gaux.GrupoActividadPersonalId DESC
+          ) gaper
+
+
+                  
+              WHERE 
+          (pres.PersonalPrestamoAprobado IS NULL
+          OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
+          OR pres.PersonalPrestamoAudFechaIng >= DATEFROMPARTS(@0,@1,1)      
+          )
       AND (${filterSql})
       ${orderBy}
     `, [anio, mes, new Date()])
