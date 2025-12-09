@@ -1632,7 +1632,7 @@ export class ApiService {
   }
 
   getListAyudaAsistencialCuotas(anio: number, mes: number, filters: any) {
-    alert("recargar grid cuotas")
+
     return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/cuotas', { filters, anio, mes }).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
