@@ -391,20 +391,20 @@ export class ApiService {
             col.params = { maxDecimal: 2, minDecimal: 2 }
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
-            col.exportWithFormatter=false
+            col.exportWithFormatter = false
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['decimal'],
               col.params = { maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.type = FieldType.float
             col.cssClass = 'text-right'
-            col.exportWithFormatter=false
+            col.exportWithFormatter = false
 
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
             col.params = { maxDecimal: 4, minDecimal: 0 }
             col.cssClass = 'text-right'
-            col.exportWithFormatter=false
+            col.exportWithFormatter = false
           } else if (col.type == 'object')
             col.type = FieldType.object
 
@@ -1110,7 +1110,7 @@ export class ApiService {
     )
 
   }
-  
+
   setNovedad(parameter: any) {
     console.log('parameters', parameter)
     return this.http.post<ResponseJSON<any>>('/api/novedades/config', parameter).pipe(
@@ -1409,7 +1409,7 @@ export class ApiService {
   }
 
   deleteNovedad(NovedadCodigo: any, ObjetivoId: any) {
-    const parameter = {NovedadCodigo, ObjetivoId}
+    const parameter = { NovedadCodigo, ObjetivoId }
     return this.http.delete<ResponseJSON<any>>(`/api/novedades/delete/${NovedadCodigo}`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1458,7 +1458,7 @@ export class ApiService {
 
   getAyudaAsitencialByPersonalId(Periodo: any, personalId: any, DescuentoId: any) {
     if (personalId == 0) return of([])
-    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, {Periodo, personalId}).pipe(map(res => res.data));
+    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, { Periodo, personalId }).pipe(map(res => res.data));
   }
 
   setEstado(parameter: any) {
@@ -1632,6 +1632,12 @@ export class ApiService {
   }
 
   getListAyudaAsistencialCuotas(anio: number, mes: number, filters: any) {
+    
+    if (!anio && !mes && !filters.options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
+
     return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/cuotas', { filters, anio, mes }).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
