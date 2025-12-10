@@ -867,7 +867,7 @@ export class NovedadesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner()
         const fechaActual = new Date();
 
-        let filesPath = ""
+        let filePath = ""
 
         try {
             if (!NovedadCodigo)
@@ -897,7 +897,7 @@ export class NovedadesController extends BaseController {
             const browser = await puppeteer.launch({ headless: 'new' })
             const page = await browser.newPage();
 
-            filesPath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/' + NovedadCodigo + ".pdf"
+            filePath = (process.env.PATH_NOVEDAD_HTML_TEST) ? process.env.PATH_NOVEDAD_HTML_TEST : 'tmp' + '/' + NovedadCodigo + ".pdf"
 
             // let docRelaciones = await queryRunner.query(`
             //         SELECT dr.DocumentoId, dr.NovedadCodigo, doc.DocumentoNombreArchivo, doc.DocumentoPath
@@ -914,15 +914,14 @@ export class NovedadesController extends BaseController {
             //     });
             // const imgsPath = docRelaciones.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
 
-            await this.createPdf(filesPath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
+            await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
                 NovedadInfo, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
 
             await page.close();
             await browser.close();
 
             let nameFile = `NovedadTest-${NovedadCodigo}.pdf`
-            console.log('filesPath', filesPath)
-            await this.dowloadPdfBrowser(res, next, filesPath, nameFile)
+            await this.dowloadPdfBrowser(res, next, filePath, nameFile)
 
         } catch (error) {
             return next(error)
@@ -1003,7 +1002,7 @@ export class NovedadesController extends BaseController {
         }
         if (htmlImgs) htmlImgs += `</tr>`
 
-        htmlContent = htmlContent.replace(/\${docRelacionados}/g, htmlImgs);
+        htmlContent = htmlContent.replace(/\${imgsBase64}/g, htmlImgs);
 
         await page.setContent(htmlContent);
 
@@ -1066,7 +1065,6 @@ export class NovedadesController extends BaseController {
 
         try {
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
-            const totalNovedades = list.length;
 
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
             const browser = await puppeteer.launch({ headless: 'new' })
@@ -1098,8 +1096,9 @@ export class NovedadesController extends BaseController {
             htmlContent.header = htmlContent.header.replace(/\${periodoInicio}/g, primerDia ? this.dateOutputFormat(primerDia) : 'N/A');
             htmlContent.header = htmlContent.header.replace(/\${periodoFin}/g, ultimoDia ? this.dateOutputFormat(ultimoDia) : 'N/A');
 
-            let novedades = 0
-
+            const totalNovedades:number = list.length;
+            let novedades:number = 0
+            let informeNovedadPaths:string[] = []
             for (const novedad of list) {
                 novedades++
 
@@ -1126,38 +1125,53 @@ export class NovedadesController extends BaseController {
                 const asociado = infoPersonal.PersonalNroLegajo;
                 const grupo = infoPersonal.GrupoActividadDetalle;
 
-                //Documentos Relacionados al la Novedad
-                let docRelaciones = await queryRunner.query(`
+                //Documentos Relacionados de la Novedad
+                const docRelaciones = await queryRunner.query(`
                     SELECT dr.DocumentoId, dr.NovedadCodigo, doc.DocumentoNombreArchivo, doc.DocumentoPath
                     FROM DocumentoRelaciones dr
                     LEFT JOIN Documento doc ON doc.DocumentoId = dr.DocumentoId
                     WHERE NovedadCodigo IN (@0)
                 `,[novedad.NovedadCodigo])
 
-                //Filtro documentos por imagen
-                docRelaciones = docRelaciones.filter(doc => {
+                //Filtra Documentos Relacionados por imagen
+                const imgsDoc = docRelaciones.filter(doc => {
                     const nombre = doc.DocumentoNombreArchivo.toLowerCase();
                     return nombre.endsWith('.png') ||
                             nombre.endsWith('.jpg') ||
                             nombre.endsWith('.jpeg')
                 });
-                const imgsPath = docRelaciones.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
+                const imgsPath = imgsDoc.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
 
                 await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
                     novedad, page, body, header, footer, imgsPath)
+
+                //Filtra Documentos Relacionados por pdf
+                const pdfsDoc = docRelaciones.filter(doc => {
+                    const nombre = doc.DocumentoNombreArchivo.toLowerCase();
+                    return nombre.endsWith('.pdf')
+                });
+                let pdfsPath = pdfsDoc.map((doc:any) => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
+                //Agrega los pdf relacionados al final del informe
+                if (pdfsPath.length) {
+                    pdfsPath = [filePath, ...pdfsPath]
+                    const buffer = await this.joinPDFsOnPath(pdfsPath)
+                    //Sobre-escribe el informe
+                    writeFileSync(filePath, buffer);
+                }
+
+                informeNovedadPaths.push(filePath);
             }
 
             await page.close();
             await browser.close();
-
-            const buffer = await this.joinPDFsOnPath(filesPath, list)
+            
+            const buffer = await this.joinPDFsOnPath(informeNovedadPaths)
             const tmpfilename = new FileUploadController().getRandomTempFileName('.pdf');
-            let nameFile = 'informe-novedades.pdf'
+            let nameFile:string = 'informe-novedades.pdf'
             writeFileSync(tmpfilename, buffer);
 
             if (fs.existsSync(filesPath)) {
                 fs.rmSync(filesPath, { recursive: true, force: true });
-                console.log("Carpeta temporal eliminada");
             }
 
             await this.dowloadPdfBrowser(res, next, tmpfilename, nameFile)
@@ -1176,13 +1190,11 @@ export class NovedadesController extends BaseController {
 
     }
 
-    async joinPDFsOnPath(rutaDirectorio: string, list: any[]) {
+    async joinPDFsOnPath(listPaths: any[]) {
         const pdfFinal = await PDFDocument.create();
 
-        // Iterar en el orden de la lista ya ordenada por SQL
-        for (const novedad of list) {
-            const filePath = path.join(rutaDirectorio, `${novedad.NovedadCodigo}.pdf`);
-
+        // Iterar en el orden de la lista
+        for (const filePath of listPaths) {
             // Verificar que el archivo exista
             if (!fs.existsSync(filePath)) continue;
 
