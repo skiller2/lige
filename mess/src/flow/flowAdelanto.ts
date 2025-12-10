@@ -95,8 +95,14 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             const myState: any = state.getMyState()
 
 
-            const cleanedImporte = String(ctx.body).replace(/\./g, '').replace(',', '.');
+            const cleanedImporte = String(ctx.body).replace(/[\$\.\s]/g, '').replace(',', '.');
             const importe: number = parseFloat(cleanedImporte)
+
+            // Validar que cleanedImporte solo contenga dígitos y opcionalmente un punto decimal
+            if (!/^\d+(\.\d+)?$/.test(cleanedImporte)) {
+                return fallBack('El valor ingresado contiene caracteres no válidos. Ingrese solo números, reintente.')
+            }
+
             const maxImporte: number = myState.adelanto.maxImporte
             const anio: number = myState.adelanto.anio
             const mes: number = myState.adelanto.mes
