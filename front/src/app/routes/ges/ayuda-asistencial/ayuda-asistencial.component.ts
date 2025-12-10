@@ -253,7 +253,7 @@ export class AyudaAsistencialComponent {
 
     listOptionsChange(options: any) {
         this.listOptions = options;
-        this.formChange('');
+        this.formChange$.next(''); 
     }
 
     dateChange(result: Date): void {
@@ -263,11 +263,14 @@ export class AyudaAsistencialComponent {
     
         localStorage.setItem('anio', String(this.selectedPeriod.year));
         localStorage.setItem('mes', String(this.selectedPeriod.month));
+        }else{
+            this.selectedPeriod.year = 0;
+            this.selectedPeriod.month = 0;
         }
-        this.periodo.set(result)   
+        this.periodo.set(result) 
         this.rows = []
         this.registerId = ''
-        
+        this.formChange$.next('')
     }
 
     formChange(event: any) {

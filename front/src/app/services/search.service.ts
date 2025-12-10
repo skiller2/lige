@@ -1455,6 +1455,10 @@ export class SearchService {
   }
 
   getPersonasAyudaAsistencial(filters: any) {
+    if ((filters.anio <= 0 || filters.mes <= 0)) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un período.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/list', filters).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
