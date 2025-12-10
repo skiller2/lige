@@ -112,14 +112,16 @@ const columnsAyudaAsistencial: any[] = [
     hidden: false,
   },
   {
-    id: "PersonalPrestamoAplicaEl",
+    id: "periodoDisplay",
     name: "Aplica El",
     type: "string",
-    field: "PersonalPrestamoAplicaEl",
-    fieldName: "pres.PersonalPrestamoAplicaEl",
+    field: "periodoDisplay",
+    fieldName: "periodoDisplay",
     searchType: "date",
     sortable: true,
-    searchHidden: true
+    searchHidden: true,
+    hidden: false,
+
   },
   {
     id: "periodo",
@@ -130,7 +132,9 @@ const columnsAyudaAsistencial: any[] = [
     searchComponent: "inpurForPeriodoSearch",
     searchType: "date",
     sortable: false,
-    searchHidden: false
+    searchHidden: false,
+    hidden: true,
+
   },
   {
     id: "PersonalPrestamoCantidadCuotas",
@@ -310,10 +314,10 @@ const columnsAyudaAsistencialCuotas: any[] = [
   //   minWidth: 10,
   // },
   {
-    id: 'periodo', name: 'Periodo', field: 'periodo',
-    fieldName: "CONCAT(perdes.anio, '/', perdes.mes)",
+    id: 'FechaPeriodo', name: 'Periodo', field: 'periodoDisplay',
+    fieldName: 'perdes.FechaPeriodo',
     type: 'string',
-    searchType: "string",
+    searchType: "date",
     sortable: true,
     hidden: false,
     searchHidden: true
@@ -546,7 +550,8 @@ export class AyudaAsistencialController extends BaseController {
               pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
               pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
               IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-              pres.PersonalPrestamoAplicaEl, pre1.periodo, pres.PersonalPrestamoMotivo,
+              pres.PersonalPrestamoAplicaEl, FORMAT(DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1), 'yyyy/MM') AS periodoDisplay,
+              pre1.periodo, pres.PersonalPrestamoMotivo,
               form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
               pres.PersonalPrestamoAprobado,
               sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
@@ -1304,7 +1309,8 @@ export class AyudaAsistencialController extends BaseController {
         , perdes.importetotal
         , perdes.tipoint
         , perdes.FechaAnulacion
-        , CONCAT(perdes.anio, '/', perdes.mes) periodo
+        , FORMAT(DATEFROMPARTS(perdes.anio, perdes.mes, 1), 'yyyy/MM') AS periodoDisplay
+
 
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
