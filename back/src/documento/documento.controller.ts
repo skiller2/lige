@@ -297,16 +297,22 @@ export class DocumentoController extends BaseController {
       tipo.DocumentoTipoDetalle AS DocumentoTipoDetalle,
       docg.DocumentoTipoCodigo AS DocumentoTipoCodigo, 
       docg.DocumentoFecha, docg.DocumentoFechaDocumentoVencimiento,
-      CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
-      obj.ObjetivoId, TRIM(eledep.ClienteElementoDependienteDescripcion) ClienteElementoDependienteDescripcion,
+      case when pers.PersonalId is null then ''
+        else CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) end as ApellidoNombre,
+      obj.ObjetivoId, 
+      case when eledep.ClienteElementoDependienteId is null then '' 
+        else CONCAT(eledep.ClienteId,'/', eledep.ClienteElementoDependienteId, ' ', TRIM(cliele.ClienteDenominacion), ' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) end as ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
       FROM Documento AS docg   
       LEFT JOIN DocumentoTipo AS tipo ON docg.DocumentoTipoCodigo = tipo.DocumentoTipoCodigo
       LEFT JOIN Personal AS pers ON docg.PersonalId = pers.PersonalId 
       LEFT JOIN Objetivo AS obj ON docg.ObjetivoId = obj.ObjetivoId
+
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
+      LEFT JOIN Cliente AS cliele on cliele.ClienteId = eledep.ClienteId
+
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.Documentoanio = per.anio AND docg.Documentomes = per.mes
-      LEFT JOIN lige.dbo.Cliente AS cli ON docg.DocumentoClienteId = cli.ClienteId
+      LEFT JOIN Cliente AS cli ON docg.DocumentoClienteId = cli.ClienteId
       WHERE ${filterSql}
       ${orderBy}
     `,)
