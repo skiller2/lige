@@ -308,11 +308,11 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     let mensaje = "";
 
     if (horas >= 5 && horas < 12) {
-      mensaje = "Buen día";
+      mensaje = "Buen día.";
     } else if (horas >= 12 && horas < 20) {
-      mensaje = "Buenas tardes";
+      mensaje = "Buenas tardes.";
     } else {
-      mensaje = "Buenas noches";
+      mensaje = "Buenas noches.";
     }
     return mensaje
   }
