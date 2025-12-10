@@ -228,6 +228,17 @@ const columnsAyudaAsistencial: any[] = [
     hidden: true,
     searchHidden: false
   },
+  {
+      name: "Sucursal",
+      type: "string",
+      id: "SucursalDescripcion",
+      field: "SucursalDescripcion",
+      fieldName: "suc.SucursalId",
+      searchComponent: "inpurForSucursalSearch",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    }
 ];
 
 
@@ -557,7 +568,7 @@ export class AyudaAsistencialController extends BaseController {
               sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
               CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
             gaper.GrupoActividadId,
-            gaper.gaCom,
+            gaper.gaCom, suc.SucursalDescripcion, 
           1
           FROM PersonalPrestamo pres
           JOIN Personal per ON per.PersonalId = pres.PersonalId 
@@ -582,7 +593,7 @@ export class AyudaAsistencialController extends BaseController {
 
           OUTER APPLY (
           SELECT TOP 1 ga.GrupoActividadDetalle,gaux.GrupoActividadPersonalId,gaux.GrupoActividadPersonalPersonalId,gaux.GrupoActividadId, gaux.GrupoActividadPersonalDesde,gaux.GrupoActividadPersonalHasta,
-        CASE 
+          CASE 
           WHEN ga.GrupoActividadId IS NOT NULL THEN  
             CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
                 FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
@@ -604,6 +615,8 @@ export class AyudaAsistencialController extends BaseController {
               gaux.GrupoActividadPersonalId DESC
           ) gaper
 
+          LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+          LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 
                   
               WHERE 
