@@ -18,6 +18,7 @@ import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayu
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { TableAyudaAsistencialCuotasComponent } from "../table-ayuda-asistencial-cuotas/table-ayuda-asistencial-cuotas.component";
 import { Router } from '@angular/router';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -57,6 +58,7 @@ export class AyudaAsistencialComponent {
     anio = signal(0)
     mes = signal(0)
     viweButtonListado = signal(true)
+    private readonly loadingSrv = inject(LoadingService);
 
     canOpenDetalle = computed(() => {
         if (this.personalId() === 0) return false;
@@ -124,19 +126,23 @@ export class AyudaAsistencialComponent {
         return mapped
     }));
 
+    
     gridData$ = this.formChange$.pipe(
         debounceTime(500),
         switchMap(() => {
+            this.loadingSrv.open({ type: 'spin', text: '' })
             return this.searchService.getPersonasAyudaAsistencial(
                 { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
             )
-                .pipe(
-                    map((data: any) => { return data }),
-                    doOnSubscribe(() => this.tableLoading$.next(true)),
-                    tap({ complete: () => this.tableLoading$.next(false) })
-                )
+            .pipe(
+                map(data => { 
+                    return data }),
+                doOnSubscribe(() => { }),
+                tap({ complete: () => { this.loadingSrv.close() } })
+            )
         })
     )
+    
 
     async ngOnInit() {
         // Verificar la ruta actual al inicializar para establecer el valor correcto del signal

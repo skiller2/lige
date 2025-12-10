@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, computed, input, signal, effect, model } from '@angular/core';
+import { Component, Output, EventEmitter, computed, input, signal, effect, model,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
@@ -10,6 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { LoadingService } from '@delon/abc/loading';
 
 
 interface ListOptions {
@@ -46,6 +47,8 @@ export class TableAyudaAsistencialCuotasComponent {
 
   anio = signal<number>(0);
   mes = signal<number>(0);
+
+  private readonly loadingSrv = inject(LoadingService);
 
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
@@ -85,17 +88,22 @@ export class TableAyudaAsistencialCuotasComponent {
     });
   }
 
+
   gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => this.apiService.getListAyudaAsistencialCuotas(this.anio(), this.mes(), { options: this.listOptions }).pipe(
-      map(data => {
-        this.dataAngularGrid = data.list;
-        return data.list;
-      }),
-      doOnSubscribe(() => this.tableLoading$.next(true)),
-      tap({ complete: () => this.tableLoading$.next(false) })
-    ))
-  );
+    debounceTime(500),
+    switchMap(() => {
+        this.loadingSrv.open({ type: 'spin', text: '' })
+        return this.apiService.getListAyudaAsistencialCuotas(this.anio(), this.mes(), { options: this.listOptions })
+        .pipe(
+            map(data => { 
+               this.dataAngularGrid = data.list;
+              return data.list; }),
+            doOnSubscribe(() => { }),
+            tap({ complete: () => { this.loadingSrv.close() } })
+        )
+    })
+)
+
 
   ngOnInit(): void {
     this.initializeGridOptions();
