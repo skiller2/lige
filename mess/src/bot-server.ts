@@ -188,6 +188,9 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     // console.log(`Enviando mensaje a ${telNro}: ${message}`)
     const saludo = BotServer.getSaludo();
     const provider = process.env.PROVIDER ? process.env.PROVIDER : null
+    
+    const providerId = provider + '_' + String(process.env.PROVIDER_ID) || ''
+    
 
     switch (provider) {
       // todo : ver manejo y devolucion de errores para que dsp no haga update en BotColaMensajes
@@ -195,14 +198,14 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
         try {
           // Enviar el mensaje
           await this.sendMsgMeta24hs(telNro, message, saludo);
-          return {method: 'sendMsgMeta24hs', provider: provider}
+          return {method: 'sendMsgMeta24hs', provider: providerId}
         } catch (error) {
           console.log("Error sendMsgMeta24hs:", error);
         }
 
         try {
           await this.sendTemplateMsg(telNro, message);
-          return {method: 'sendTemplateMsg', provider: provider}
+          return {method: 'sendTemplateMsg', provider: providerId}
         } catch (error) {
           console.log("Error sendTemplate", error)
           throw error
@@ -211,7 +214,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       case 'BAILEY':
         try {
           await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
-          return {method: 'sendMessage', provider: provider}
+          return {method: 'sendMessage', provider: providerId}
         } catch (error) {
           console.log("Error sendMessage", error)
           return error
