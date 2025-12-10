@@ -158,23 +158,21 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     const statusPromise = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.adapterProvider.off('notice', handler);
-        reject(new Error('Time Out'));
-      }, 5000); // 5 segundos de espera
+        resolve(true); // ✅ Éxito por timeout
+      }, 3000); // Reducido a 3 segundos
 
       const handler = (noticeData: any) => {
         // console.log('Notice recibido en handler:', JSON.stringify(noticeData, null, 2));
 
-        // Buscar errores relacionados con 24 horas
         const errorMessage = noticeData?.instructions?.[0] || JSON.stringify(noticeData);
-        const is24HourError = errorMessage?.includes('24 hours') || errorMessage?.includes('24 hour') || errorMessage?.includes('ventana');
+        const is24HourError = errorMessage?.includes('24 hours') ||
+          errorMessage?.includes('24 hour') ||
+          errorMessage?.includes('ventana');
 
-        clearTimeout(timeout);
-        this.adapterProvider.off('notice', handler);
-        
         if (is24HourError) {
+          clearTimeout(timeout);
+          this.adapterProvider.off('notice', handler);
           reject(new Error(`Error ventana de 24 horas: ${errorMessage}`));
-        } else {
-          resolve(true);
         }
       };
 
@@ -188,9 +186,9 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     // console.log(`Enviando mensaje a ${telNro}: ${message}`)
     const saludo = BotServer.getSaludo();
     const provider = process.env.PROVIDER ? process.env.PROVIDER : null
-    
+
     const providerId = provider + '_' + String(process.env.PROVIDER_ID) || ''
-    
+
 
     switch (provider) {
       // todo : ver manejo y devolucion de errores para que dsp no haga update en BotColaMensajes
@@ -198,14 +196,16 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
         try {
           // Enviar el mensaje
           await this.sendMsgMeta24hs(telNro, message, saludo);
-          return {method: 'sendMsgMeta24hs', provider: providerId}
+          console.log("Mensaje enviado dentro de la ventana de 24hs.");
+          return { method: 'sendMsgMeta24hs', provider: providerId }
+          
         } catch (error) {
           console.log("Error sendMsgMeta24hs:", error);
         }
 
         try {
           await this.sendTemplateMsg(telNro, message);
-          return {method: 'sendTemplateMsg', provider: providerId}
+          return { method: 'sendTemplateMsg', provider: providerId }
         } catch (error) {
           console.log("Error sendTemplate", error)
           throw error
@@ -214,7 +214,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       case 'BAILEY':
         try {
           await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
-          return {method: 'sendMessage', provider: providerId}
+          return { method: 'sendMessage', provider: providerId }
         } catch (error) {
           console.log("Error sendMessage", error)
           return error
@@ -232,13 +232,13 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
     const languageCode = "es_AR";
 
     const components = [
-        {
-          type: 'body',
-          parameters: [
-            { type: 'text', text: message },
-          ],
-        },
-      ]
+      {
+        type: 'body',
+        parameters: [
+          { type: 'text', text: message },
+        ],
+      },
+    ]
 
     await this.adapterProvider.sendTemplate(telNro, template, languageCode, components);
     return
