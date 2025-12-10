@@ -325,7 +325,7 @@ const columnsAyudaAsistencialCuotas: any[] = [
   //   minWidth: 10,
   // },
   {
-    id: 'FechaPeriodo', name: 'Periodo', field: 'periodoDisplay',
+    id: 'FechaPeriodo', name: 'Período', field: 'periodoDisplay',
     fieldName: 'perdes.FechaPeriodo',
     type: 'string',
     searchType: "date",
@@ -335,7 +335,7 @@ const columnsAyudaAsistencialCuotas: any[] = [
   },
   {
     id: "FechaPeriodo",
-    name: "Aplica El",
+    name: "Período",
     type: "date",
     field: "FechaPeriodo",
     fieldName: "perdes.FechaPeriodo",
