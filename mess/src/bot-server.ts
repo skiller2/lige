@@ -210,7 +210,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       case 'BAILEY':
         try {
           await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
-          return
+          return 'sendMsgBailey'
         } catch (error) {
           console.log("Error sendMessage", error)
           return error

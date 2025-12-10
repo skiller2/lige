@@ -333,8 +333,8 @@ const columnsObjetivosDescuentos: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'periodo', name: 'Periodo', field: 'periodo',
-    fieldName: 'periodo',
+    id: 'FechaPeriodo', name: 'Periodo', field: 'periodoDisplay',
+    fieldName: 'fecper.FechaPeriodo',
     type: 'string',
     searchType: "string",
     sortable: true,
@@ -659,7 +659,8 @@ export class GestionDescuentosController extends BaseController {
       , des.ObjetivoDescuentoAnoAplica AS anio
       , des.ObjetivoDescuentoMesesAplica AS mes
       , fecper.FechaPeriodo
-      , CONCAT(des.ObjetivoDescuentoAnoAplica,'/', des.ObjetivoDescuentoMesesAplica) periodo
+      , FORMAT(DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1), 'yyyy/MM') AS periodoDisplay
+
       
       , des.ObjetivoDescuentoDescontar
       , CASE 

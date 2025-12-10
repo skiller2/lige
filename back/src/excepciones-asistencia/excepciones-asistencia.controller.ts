@@ -125,7 +125,7 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    id: 'PersonalArt14FormaArt14', name: 'Forma Art 14', field: 'PersonalArt14FormaArt14',
+    id: 'PersonalArt14FormaArt14', name: 'Forma Art 17', field: 'PersonalArt14FormaArt14',
     fieldName: 'art.PersonalArt14FormaArt14',
     type: 'string',
     formatter: 'collectionFormatter',

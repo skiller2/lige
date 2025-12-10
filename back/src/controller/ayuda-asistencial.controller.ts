@@ -112,14 +112,16 @@ const columnsAyudaAsistencial: any[] = [
     hidden: false,
   },
   {
-    id: "PersonalPrestamoAplicaEl",
+    id: "periodoDisplay",
     name: "Aplica El",
     type: "string",
-    field: "PersonalPrestamoAplicaEl",
-    fieldName: "pres.PersonalPrestamoAplicaEl",
+    field: "periodoDisplay",
+    fieldName: "periodoDisplay",
     searchType: "date",
     sortable: true,
-    searchHidden: true
+    searchHidden: true,
+    hidden: false,
+
   },
   {
     id: "periodo",
@@ -130,7 +132,9 @@ const columnsAyudaAsistencial: any[] = [
     searchComponent: "inpurForPeriodoSearch",
     searchType: "date",
     sortable: false,
-    searchHidden: false
+    searchHidden: false,
+    hidden: true,
+
   },
   {
     id: "PersonalPrestamoCantidadCuotas",
@@ -224,6 +228,17 @@ const columnsAyudaAsistencial: any[] = [
     hidden: true,
     searchHidden: false
   },
+  {
+      name: "Sucursal",
+      type: "string",
+      id: "SucursalDescripcion",
+      field: "SucursalDescripcion",
+      fieldName: "suc.SucursalId",
+      searchComponent: "inpurForSucursalSearch",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    }
 ];
 
 
@@ -310,10 +325,10 @@ const columnsAyudaAsistencialCuotas: any[] = [
   //   minWidth: 10,
   // },
   {
-    id: 'periodo', name: 'Periodo', field: 'periodo',
-    fieldName: "CONCAT(perdes.anio, '/', perdes.mes)",
+    id: 'FechaPeriodo', name: 'Periodo', field: 'periodoDisplay',
+    fieldName: 'perdes.FechaPeriodo',
     type: 'string',
-    searchType: "string",
+    searchType: "date",
     sortable: true,
     hidden: false,
     searchHidden: true
@@ -546,13 +561,14 @@ export class AyudaAsistencialController extends BaseController {
               pres.PersonalPrestamoAudFechaIng, pres.PersonalPrestamoAudUsuarioIng, pres.PersonalPrestamoAudIpIng,
               pres.PersonalPrestamoAudFechaMod, pres.PersonalPrestamoAudUsuarioMod, pres.PersonalPrestamoAudIpMod,
               IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-              pres.PersonalPrestamoAplicaEl, pre1.periodo, pres.PersonalPrestamoMotivo,
+              pres.PersonalPrestamoAplicaEl, FORMAT(DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1), 'yyyy/MM') AS periodoDisplay,
+              pre1.periodo, pres.PersonalPrestamoMotivo,
               form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
               pres.PersonalPrestamoAprobado,
               sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
               CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
             gaper.GrupoActividadId,
-            gaper.gaCom,
+            gaper.gaCom, suc.SucursalDescripcion, 
           1
           FROM PersonalPrestamo pres
           JOIN Personal per ON per.PersonalId = pres.PersonalId 
@@ -577,7 +593,7 @@ export class AyudaAsistencialController extends BaseController {
 
           OUTER APPLY (
           SELECT TOP 1 ga.GrupoActividadDetalle,gaux.GrupoActividadPersonalId,gaux.GrupoActividadPersonalPersonalId,gaux.GrupoActividadId, gaux.GrupoActividadPersonalDesde,gaux.GrupoActividadPersonalHasta,
-        CASE 
+          CASE 
           WHEN ga.GrupoActividadId IS NOT NULL THEN  
             CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
                 FORMAT(gaux.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
@@ -599,6 +615,8 @@ export class AyudaAsistencialController extends BaseController {
               gaux.GrupoActividadPersonalId DESC
           ) gaper
 
+          LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+          LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 
                   
               WHERE 
@@ -1304,7 +1322,8 @@ export class AyudaAsistencialController extends BaseController {
         , perdes.importetotal
         , perdes.tipoint
         , perdes.FechaAnulacion
-        , CONCAT(perdes.anio, '/', perdes.mes) periodo
+        , FORMAT(DATEFROMPARTS(perdes.anio, perdes.mes, 1), 'yyyy/MM') AS periodoDisplay
+
 
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
