@@ -115,10 +115,13 @@ export class ChatBotController extends BaseController {
       WHERE col.FechaProceso IS NULL`, [])
   }
 
-  static async updColaMsg(fecha_ingreso: Date, personal_id: number, sentBy:string) {
-    // todo : registrar si se envió por template o msg normal
+  static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
-    return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1'])
+    
+    if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');
+
+    return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 , SentMethod=@5, SentProvider=@6
+      WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1', method, provider]);
   }
 }

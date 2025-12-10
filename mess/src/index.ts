@@ -55,7 +55,8 @@ if (ENABLE_QUEUE_MSGS) {
           if (texto == '') throw new Error(`Mensaje vacío, no se envió TextoMensaje`)
 
           const result = await botServer.sendMsg(msg.Telefono, texto);
-          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId, result); // todo: con meta, ver caso que no envia mensaje si el contacto no inicio la conversación dentro de las 24hs
+          // console.log(`Mensaje enviado a ${msg.Telefono}, resultado: ${result?.method || 'N/A'} - ${result?.provider || 'N/A'}`);
+          await ChatBotController.updColaMsg(msg.FechaIngreso, msg.PersonalId, result?.method, result?.provider); // todo: con meta, ver caso que no envia mensaje si el contacto no inicio la conversación dentro de las 24hs
 
         }
 

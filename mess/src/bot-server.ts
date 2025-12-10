@@ -162,7 +162,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       }, 5000); // 5 segundos de espera
 
       const handler = (noticeData: any) => {
-        console.log('📨 Notice recibido en handler:', JSON.stringify(noticeData, null, 2));
+        // console.log('Notice recibido en handler:', JSON.stringify(noticeData, null, 2));
 
         // Buscar errores relacionados con 24 horas
         const errorMessage = noticeData?.instructions?.[0] || JSON.stringify(noticeData);
@@ -185,23 +185,24 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
   }
 
   public async sendMsg(telNro: string, message: string) {
-    console.log(`Enviando mensaje a ${telNro}: ${message}`)
+    // console.log(`Enviando mensaje a ${telNro}: ${message}`)
     const saludo = BotServer.getSaludo();
+    const provider = process.env.PROVIDER ? process.env.PROVIDER : null
 
-    switch (process.env.PROVIDER) {
+    switch (provider) {
       // todo : ver manejo y devolucion de errores para que dsp no haga update en BotColaMensajes
       case 'META':
         try {
           // Enviar el mensaje
           await this.sendMsgMeta24hs(telNro, message, saludo);
-          return 'sendMsgMeta24hs'
+          return {method: 'sendMsgMeta24hs', provider: provider}
         } catch (error) {
           console.log("Error sendMsgMeta24hs:", error);
         }
 
         try {
           await this.sendTemplateMsg(telNro, message);
-          return 'sendTemplateMsg'
+          return {method: 'sendTemplateMsg', provider: provider}
         } catch (error) {
           console.log("Error sendTemplate", error)
           throw error
@@ -210,7 +211,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
       case 'BAILEY':
         try {
           await this.adapterProvider.sendMessage(telNro, `${saludo}\n${message}`, {});
-          return 'sendMsgBailey'
+          return {method: 'sendMessage', provider: provider}
         } catch (error) {
           console.log("Error sendMessage", error)
           return error
@@ -355,7 +356,7 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
     // Listener global para ver todos los webhooks de status
     this.adapterProvider.on('notice', (noticeData) => {
-      console.log('NOTICE RECIBIDO:', JSON.stringify(noticeData, null, 2));
+      // console.log('NOTICE RECIBIDO:', JSON.stringify(noticeData, null, 2));
     });
 
     this.botHandle.httpServer(this.botPort)
