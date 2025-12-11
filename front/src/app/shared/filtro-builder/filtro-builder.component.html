@@ -327,7 +327,7 @@
       </nz-select>
 
       <nz-select ngModel nzAllowClear style="width:100%"
-        *ngIf="selections.field.searchComponent=='inpurForMetodologiasSearch'" nzPlaceHolder="Estado" nzShowSearch 
+        *ngIf="selections.field.searchComponent=='inpurForMetodologiasSearch'" nzPlaceHolder="Metodologías" nzShowSearch 
         (ngModelChange)="selectedValueMetodologias($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsMetodologias | async">

@@ -2263,6 +2263,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       metodo: "S",
       descripcion: "Fiestas Importe Adicional",
       etiqueta: "Imp. Adicional Fiesta",
+      conceptoId : 3
     });
 
     recordSet.push({
@@ -2270,18 +2271,21 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       metodo: "S",
       descripcion: "Monto fijo a sumar",
       etiqueta: "Imp. Adicional",
+      conceptoId : 0
     });
     recordSet.push({
       id: "E",
       metodo: "E",
       descripcion: "Equivalencia de categoría",
       etiqueta: "Equivalencia",
+      conceptoId : 0
     });
     recordSet.push({
       id: "A",
       metodo: "A",
       descripcion: "Monto adicional por hora",
       etiqueta: "Imp. Adicional Hora",
+      conceptoId : 0
     });
 
     recordSet.push({
@@ -2289,6 +2293,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       metodo: "H",
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
+      conceptoId : 0
     });
 
     return recordSet

@@ -465,7 +465,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   async selectedValueMetodologias(val: any) {
     if (val) {
-      this.selections.value = val.id
+      this.selections.value = val.metodo + '/' + val.conceptoId
       this.selections.label = val.descripcion
     }
   }

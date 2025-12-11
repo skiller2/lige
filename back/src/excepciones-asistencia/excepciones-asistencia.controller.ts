@@ -125,11 +125,11 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    id: 'PersonalArt14FormaArt14', name: 'Forma Art 17', field: 'PersonalArt14FormaArt14',
-    fieldName: 'art.PersonalArt14FormaArt14',
+    id: 'PersonalArt14FormaCompuesto', name: 'Forma Art 17', field: 'PersonalArt14FormaCompuesto',
+    fieldName: "CONCAT(ISNULL(art.PersonalArt14FormaArt14,''), '/', ISNULL(art.PersonalArt14ConceptoId, 0))",
     type: 'string',
     formatter: 'collectionFormatter',
-    params: { collection: AsistenciaController.getMetodologias().map((obj: any) => { return { label: `${obj.etiqueta} (${obj.descripcion})`, value: obj.id } }), },
+    params: { collection: AsistenciaController.getMetodologias().map((obj: any) => { return { label: `${obj.etiqueta} (${obj.descripcion})`, value: `${obj.metodo}/${(obj.conceptoId ?? 0)}` } }), },
     searchComponent: 'inpurForMetodologiasSearch',
     searchType: 'string',
     sortable: true,
@@ -221,10 +221,15 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const periodo = req.body.periodo ? new Date(req.body.periodo) : null
     const year = periodo ? periodo.getFullYear() : 0
     const month = periodo ? periodo.getMonth() + 1 : 0
+
+    
     try {
       const list = await queryRunner.query(`
         SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-              , art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId
+              , art.PersonalArt14Autorizado,
+              art.PersonalArt14FormaArt14,
+              CONCAT(ISNULL(art.PersonalArt14FormaArt14,''),'/',ISNULL(art.PersonalArt14ConceptoId,0)) AS PersonalArt14FormaCompuesto,
+              art.PersonalArt14CategoriaId
               , art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora
               , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
               , art.PersonalArt14AudFechaIng,art.PersonalArt14AudUsuarioIng,art.PersonalArt14AudIpIng,art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod,art.PersonalArt14AudIpMod
@@ -234,7 +239,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
               , CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo
               , obj.ObjetivoId
               , CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
-              , art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion
+              , ISNULL(art.PersonalArt14ConceptoId,0) as PersonalArt14ConceptoId,con.ConceptoArt14Descripcion
               , IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
 
           suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
