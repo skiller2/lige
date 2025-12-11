@@ -19,6 +19,17 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
+    name: "Sucursal",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inpurForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
     name: "CUIT",
     type: "string",
     id: "PersonalCUITCUILCUIT",
@@ -50,11 +61,34 @@ const listaColumnas: any[] = [
     hidden: true,
   },
   {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: "SituacionRevistaDescripcion",
+    name: "Situación Revista",
+    field: "SituacionRevistaDescripcion",
+    type: "string",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
     name: "Tipo",
     type: "string",
-    id: "TipoEstudioDescripcion",
-    field: "TipoEstudioDescripcion",
-    fieldName: "tipest.TipoEstudioDescripcion",
+    id: "TipoEstudioDescripcionCom",
+    field: "TipoEstudioDescripcionCom",
+    fieldName: "TipoEstudioDescripcionCom",
     sortable: true,
     hidden: false,
     searchHidden: true
@@ -169,7 +203,12 @@ export class EstudioController extends BaseController {
         `SELECT 
           ROW_NUMBER() OVER (ORDER BY perest.PersonalEstudioId) as id,
           CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-          ,cuit.PersonalCUITCUILCUIT
+          ,cuit.PersonalCUITCUILCUIT,
+
+		  sitrev.PersonalSituacionRevistaSituacionId,
+            sitrev.SituacionRevistaDescripcion,
+            sitrev.PersonalSituacionRevistaDesde,
+			sitrev.sitRevCom
           ,perest.PersonalEstudioId
           ,perest.PersonalId
           ,perest.TipoEstudioId
@@ -177,8 +216,12 @@ export class EstudioController extends BaseController {
           ,perest.PersonalEstudioOtorgado
           ,perest.PersonalEstudioHasta
           ,tipest.TipoEstudioDescripcion
-          ,cur.CursoHabilitacionDescripcion
-          ,cur.CursoHabilitacionId
+		  , CASE WHEN cur.CursoHabilitacionId IS NOT NULL THEN CONCAT(TRIM(tipest.TipoEstudioDescripcion), ' - ', ISNULL(cur.CursoHabilitacionDescripcion,''))
+				ELSE tipest.TipoEstudioDescripcion END AS TipoEstudioDescripcionCom
+          ,cur.CursoHabilitacionId,
+		  suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+		  
+		1
 
         FROM PersonalEstudio perest
 
@@ -193,6 +236,25 @@ export class EstudioController extends BaseController {
                     FROM PersonalCUITCUIL cuitmax 
                     WHERE cuitmax.PersonalId = per.PersonalId
                 )
+
+		LEFT JOIN (
+          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
+		  CASE 
+				WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
+					CONCAT(TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', 
+							FORMAT(p.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+							CASE WHEN p.PersonalSituacionRevistaHasta IS NULL THEN '' 
+								ELSE FORMAT(p.PersonalSituacionRevistaHasta, 'dd/MM/yyyy') 
+							END, ')'
+					)
+				ELSE '' 
+			END AS sitRevCom
+          FROM PersonalSituacionRevista p
+          JOIN SituacionRevista s
+          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+			 ) sitrev ON sitrev.PersonalId = per.PersonalId
+			  LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+        LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
         WHERE ${filterSql} ${orderBy}`
       )
 
