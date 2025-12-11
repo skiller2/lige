@@ -86,14 +86,14 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "PersonalSituacionRevistaDesde",
-    name: "Desde",
+    name: "Sit. Rev. Desde",
     field: "PersonalSituacionRevistaDesde",
     fieldName: "persitrev.PersonalSituacionRevistaDesde",
     type: "date",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
   },
   {
     id: "PersonalSituacionRevistaHasta",
@@ -200,8 +200,8 @@ const listaColumnasObjetivos: any[] = [
     searchComponent: "inpurForActivo",
     type: "boolean",
     sortable: true,
-    hidden: false,
-    searchHidden: false
+    hidden: true,
+    searchHidden: true
   },
   {
     id: "StockId",
