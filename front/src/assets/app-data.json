@@ -91,6 +91,11 @@
               "text": "Estudios #",
               "link": "/ges/estudios",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Habilitaciones #",
+              "link": "/ges/habilitaciones",
+              "icon": "anticon-profile"
             }
           ]
         },

@@ -58,6 +58,7 @@ import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excep
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller";
 import { EfectoController } from "../efecto/efecto.controller";
 import { DomicilioController } from "src/domicilio/domicilio.controller";
+import { HabilitacionesController } from "src/habilitaciones/habilitaciones.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -119,3 +120,4 @@ export const procesosAutomaticosController = new ProcesosAutomaticosController()
 export const excepcionesAsistenciaController = new ExcepcionesAsistenciaController()
 export const compensaGeneralACordinadorController = new CompensaGeneralACordinadorController()
 export const efectoController = new EfectoController()
+export const habilitacionesController = new HabilitacionesController()

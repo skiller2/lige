@@ -50,6 +50,7 @@ import { novedadesRouter } from "../novedades/novedades.routes";
 import { procesosAutomaticosRouter } from "../procesos-automaticos/procesos-automaticos.routes";
 import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepciones-asistencia.routes";
 import { efectoRouter } from "../efecto/efecto.router";
+import { habilitacionesRouter } from "src/habilitaciones/habilitaciones.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -103,4 +104,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/procesos-automaticos",procesosAutomaticosRouter)
   server.setRoute("/api/excepciones-asistencia",excepcionesAsistenciaRouter)
   server.setRoute("/api/efecto",efectoRouter)
+  server.setRoute("/api/habilitaciones",habilitacionesRouter)
 }
