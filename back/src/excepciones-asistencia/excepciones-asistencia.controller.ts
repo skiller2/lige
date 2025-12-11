@@ -246,7 +246,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
           ga.GrupoActividadId,
           CASE
             WHEN gaobj.GrupoActividadId IS NOT NULL THEN CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', FORMAT(gaobj.GrupoActividadObjetivoDesde, 'dd/MM/yyyy')
-          , ' - Hasta: ', IIF(gaobj.GrupoActividadObjetivoHasta IS NULL, 'Actualidad', FORMAT(gaobj.GrupoActividadObjetivoHasta, 'dd/MM/yyyy')), ')')
+          , ' - Hasta: ', IIF(gaobj.GrupoActividadObjetivoHasta IS NULL, '', FORMAT(gaobj.GrupoActividadObjetivoHasta, 'dd/MM/yyyy')), ')')
             ELSE NULL END as GrupoActividadObjetivo,
           1
             FROM PersonalArt14 art

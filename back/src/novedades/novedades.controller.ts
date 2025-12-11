@@ -36,6 +36,8 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false,
+        maxWidth: 65
+
     },
     {
         name: "Sucursal",
@@ -172,7 +174,7 @@ const listaColumnas: any[] = [
         id: "Descripcion",
         field: "Descripcion",
         fieldName: "nov.Descripcion",
-        sortable: false,
+        sortable: true,
         hidden: false,
         searchHidden: false
     },
@@ -182,7 +184,7 @@ const listaColumnas: any[] = [
         id: "Accion",
         field: "Accion",
         fieldName: "nov.Accion",
-        sortable: false,
+        sortable: true,
         hidden: false,
         searchHidden: false
     },
@@ -223,7 +225,7 @@ const listaColumnas: any[] = [
         id: "Telefono",
         field: "Telefono",
         fieldName: "nov.Telefono",
-        sortable: false,
+        sortable: true,
         hidden: false,
         searchHidden: false
     },
@@ -975,7 +977,7 @@ export class NovedadesController extends BaseController {
         htmlContent = htmlContent.replace(/\${textcoor}/g, htmlCoor);
 
         // Agrego imagenes al HTML - Documentos Realcionados
-        let htmlImgs = imgsPaths.length? `<tr>` : ``
+        let htmlImgs = imgsPaths.length ? `<tr>` : ``
         const imgsPorFila = 3;
         for (let index = 0; index < imgsPaths.length; index++) {
             const path = imgsPaths[index];
@@ -1096,9 +1098,9 @@ export class NovedadesController extends BaseController {
             htmlContent.header = htmlContent.header.replace(/\${periodoInicio}/g, primerDia ? this.dateOutputFormat(primerDia) : 'N/A');
             htmlContent.header = htmlContent.header.replace(/\${periodoFin}/g, ultimoDia ? this.dateOutputFormat(ultimoDia) : 'N/A');
 
-            const totalNovedades:number = list.length;
-            let novedades:number = 0
-            let informeNovedadPaths:string[] = []
+            const totalNovedades: number = list.length;
+            let novedades: number = 0
+            let informeNovedadPaths: string[] = []
             for (const novedad of list) {
                 novedades++
 
@@ -1131,14 +1133,14 @@ export class NovedadesController extends BaseController {
                     FROM DocumentoRelaciones dr
                     LEFT JOIN Documento doc ON doc.DocumentoId = dr.DocumentoId
                     WHERE NovedadCodigo IN (@0)
-                `,[novedad.NovedadCodigo])
+                `, [novedad.NovedadCodigo])
 
                 //Filtra Documentos Relacionados por imagen
                 const imgsDoc = docRelaciones.filter(doc => {
                     const nombre = doc.DocumentoNombreArchivo.toLowerCase();
                     return nombre.endsWith('.png') ||
-                            nombre.endsWith('.jpg') ||
-                            nombre.endsWith('.jpeg')
+                        nombre.endsWith('.jpg') ||
+                        nombre.endsWith('.jpeg')
                 });
                 const imgsPath = imgsDoc.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
 
@@ -1150,7 +1152,7 @@ export class NovedadesController extends BaseController {
                     const nombre = doc.DocumentoNombreArchivo.toLowerCase();
                     return nombre.endsWith('.pdf')
                 });
-                let pdfsPath = pdfsDoc.map((doc:any) => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
+                let pdfsPath = pdfsDoc.map((doc: any) => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
                 //Agrega los pdf relacionados al final del informe
                 if (pdfsPath.length) {
                     pdfsPath = [filePath, ...pdfsPath]
@@ -1164,10 +1166,10 @@ export class NovedadesController extends BaseController {
 
             await page.close();
             await browser.close();
-            
+
             const buffer = await this.joinPDFsOnPath(informeNovedadPaths)
             const tmpfilename = new FileUploadController().getRandomTempFileName('.pdf');
-            let nameFile:string = 'informe-novedades.pdf'
+            let nameFile: string = 'informe-novedades.pdf'
             writeFileSync(tmpfilename, buffer);
 
             if (fs.existsSync(filesPath)) {
