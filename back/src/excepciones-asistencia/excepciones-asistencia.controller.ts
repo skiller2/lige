@@ -244,11 +244,10 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
           suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
           ga.GrupoActividadId,
-        CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', FORMAT(gaobj.GrupoActividadObjetivoDesde, 'dd/MM/yyyy')
-          , ' - Hasta: ', IIF(gaobj.GrupoActividadObjetivoHasta IS NULL, 'Actualidad', FORMAT(gaobj.GrupoActividadObjetivoHasta, 'dd/MM/yyyy')), ')'
-        ) as GrupoActividadObjetivo,
-
-
+          CASE
+            WHEN gaobj.GrupoActividadId IS NOT NULL THEN CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', FORMAT(gaobj.GrupoActividadObjetivoDesde, 'dd/MM/yyyy')
+          , ' - Hasta: ', IIF(gaobj.GrupoActividadObjetivoHasta IS NULL, 'Actualidad', FORMAT(gaobj.GrupoActividadObjetivoHasta, 'dd/MM/yyyy')), ')')
+            ELSE NULL END as GrupoActividadObjetivo,
           1
             FROM PersonalArt14 art
             JOIN Personal per ON per.PersonalId = art.PersonalId
