@@ -765,7 +765,7 @@ export class AsistenciaController extends BaseController {
           break;
         case "A":
           if (!AdicionalHora)
-            throw new ClientException("Debe ingresar una monto adicional por hora");
+            throw new ClientException("Debe ingresar un monto adicional por hora");
 
           break;
 
