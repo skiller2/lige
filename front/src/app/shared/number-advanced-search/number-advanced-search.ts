@@ -12,7 +12,7 @@ import { Search } from '../schemas/personal.schemas'
 import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
-import { NzInputNumberComponent } from 'ng-zorro-antd/input-number'
+import { NzInputNumberLegacyComponent } from 'ng-zorro-antd/input-number-legacy'
 import { log } from '@delon/util'
 import { SHARED_IMPORTS } from '@shared'
 
@@ -36,7 +36,7 @@ export class NumberAdvancedSearchComponent implements ControlValueAccessor {
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("fsc") fsc!: NzInputNumberComponent
+  @ViewChild("fsc") fsc!: NzInputNumberLegacyComponent
 
 
   // $searchChange = new BehaviorSubject('');

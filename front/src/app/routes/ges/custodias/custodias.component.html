@@ -34,7 +34,7 @@
       </nz-button-group>
     </div>
 
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
+    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
@@ -80,7 +80,7 @@
         </ng-template>
       </nz-tab>
 
-    </nz-tabset>
+    </nz-tabs>
   </nz-card>
   <nz-drawer [nzClosable]="false" [nzVisible]="visible()" nzPlacement="left" nzTitle="Edición masiva de Estado"
     (nzOnClose)="setVisible(false)">

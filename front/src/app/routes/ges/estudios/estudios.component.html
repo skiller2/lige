@@ -75,7 +75,7 @@
   </div>
 
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
     <nz-tab></nz-tab>
     <nz-tab (nzSelect)="selectedTab.set('estudios'); this.CursoHabilitacionSelectedId.set(0)">
       <a nz-tab-link routerLink="/ges/estudios/estudios">{{ 'app.seguros.estudios' | i18n }} </a>
@@ -112,7 +112,7 @@
         </div>
       </ng-template>
     </nz-tab>
-  </nz-tabset>
+  </nz-tabs>
 
   @defer (when visibleDrawer()) {
 

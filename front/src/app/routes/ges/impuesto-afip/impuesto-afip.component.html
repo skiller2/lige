@@ -33,7 +33,7 @@
 
     <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab >
         <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
         @if ((columns$|async); as columnas) {
@@ -97,6 +97,6 @@
           </p>
         </nz-upload>
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
   </form>
 </nz-card>

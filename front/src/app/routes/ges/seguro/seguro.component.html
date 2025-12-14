@@ -62,7 +62,7 @@
   }
 </div>
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/seguro/listado">Listado</a>
@@ -82,6 +82,6 @@
           <app-personal-seguro-poliza [TipoSeguroCodigo]="TipoSeguroCodigo()" [CompaniaSeguroId]="CompaniaSeguroId()" [PolizaSeguroNroPoliza]="PolizaSeguroNroPoliza()" [PolizaSeguroNroEndoso]="PolizaSeguroNroEndoso()"></app-personal-seguro-poliza>
       </ng-template>
     </nz-tab>
-  </nz-tabset>
+  </nz-tabs>
 
 </nz-card>

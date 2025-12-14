@@ -40,7 +40,7 @@
   </div>
 
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/acceso-bot/listado" >{{ 'app.icon.persona' | i18n }}</a>
@@ -77,5 +77,5 @@
       (pristineChange)="onPristineChange($event)"></app-acceso-bot-form>
     </nz-tab>
 
-  </nz-tabset>
+  </nz-tabs>
 </nz-card>

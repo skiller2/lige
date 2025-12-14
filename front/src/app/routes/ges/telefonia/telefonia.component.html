@@ -33,7 +33,7 @@
   </ul>
 
   <form nz-form #telefonoForm="ngForm" [formGroup]="ngForm">
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab>
         <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
         @if ((columns$|async); as columnas) {
@@ -109,6 +109,6 @@
 
 
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
   </form>
 </nz-card>

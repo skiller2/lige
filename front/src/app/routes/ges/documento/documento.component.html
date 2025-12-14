@@ -46,7 +46,7 @@
     </nz-button-group>
   </div>
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/documento/list">Documentos</a>
@@ -81,7 +81,7 @@
       </ng-template>
     </nz-tab>
 
-  </nz-tabset>
+  </nz-tabs>
 
 </nz-card>
 

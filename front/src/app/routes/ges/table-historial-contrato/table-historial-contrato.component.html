@@ -1,6 +1,6 @@
 <nz-card>
 
-  <nz-tabset (nzSelectedIndexChange)="onTabChanged($event)">
+  <nz-tabs (nzSelectedIndexChange)="onTabChanged($event)">
     <nz-tab nzTitle="Contratos" [nzForceRender]="true">
       <ng-template nz-tab>
         @if ((Contrato$|async); as columnas) {
@@ -40,5 +40,5 @@
           }
         </ng-template>
       </nz-tab>
-    </nz-tabset>
+    </nz-tabs>
   </nz-card>

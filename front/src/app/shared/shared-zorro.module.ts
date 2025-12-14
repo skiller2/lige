@@ -14,7 +14,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -30,7 +30,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 
 export const SHARED_ZORRO_MODULES = [
@@ -39,7 +39,7 @@ export const SHARED_ZORRO_MODULES = [
   NzDropDownModule,
   NzGridModule,
   NzCheckboxModule,
-  NzToolTipModule,
+  NzTooltipModule,
   NzPopoverModule,
   NzSelectModule,
   NzIconModule,
@@ -53,7 +53,7 @@ export const SHARED_ZORRO_MODULES = [
   NzDatePickerModule,
   NzTimePickerModule,
   NzTagModule,
-  NzInputNumberModule,
+  NzInputNumberLegacyModule,
   NzBreadCrumbModule,
   NzListModule,
   NzSwitchModule,

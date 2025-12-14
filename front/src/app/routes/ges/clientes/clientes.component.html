@@ -53,7 +53,7 @@
 
   </div>
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/clientes/listado" >{{ 'app.clientes' | i18n }}</a>
@@ -87,7 +87,7 @@
       <app-clientes-form #clienteFormAlta (onAddorUpdate)="handleAddOrUpdate()" (pristineChange)="onPristineChange($event)" ></app-clientes-form>
     </nz-tab>
 
-  </nz-tabset>
+  </nz-tabs>
 </nz-card>
 
 

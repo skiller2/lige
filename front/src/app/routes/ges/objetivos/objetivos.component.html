@@ -49,7 +49,7 @@
 
 
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/objetivos/listado" >{{ 'app.icon.objectives' | i18n }} </a>
@@ -93,7 +93,7 @@
       </app-objetivos-form>
     </nz-tab>
 
-  </nz-tabset>
+  </nz-tabs>
 
 
   <app-objetivo-historial-drawer

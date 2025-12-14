@@ -28,7 +28,7 @@
         nzMode="date"
         (ngModelChange)="onChange($event)" />
 
-      <nz-tabset nzCentered class="hide-ant-tabs-nav" nzLinkRouter>
+      <nz-tabs nzCentered class="hide-ant-tabs-nav" nzLinkRouter>
         <nz-tab></nz-tab>
         <nz-tab >
           <a nz-tab-link routerLink="/ges/cambio_categoria/pendientes">Cambios Pendientes</a>
@@ -49,7 +49,7 @@
 
           </ng-template>
         </nz-tab>
-      </nz-tabset>
+      </nz-tabs>
     </ng-container>
   </form>
   <div class="gridContainer container-fluid" id="gridContainerCateg">

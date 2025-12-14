@@ -74,7 +74,7 @@
         </nz-form-item>
       </form> -->
 
-      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+      <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
         <nz-tab></nz-tab>
         <nz-tab>
           <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
@@ -109,7 +109,7 @@
           <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
           <app-personal-form #perDetalle [personalId]="personalId()" [readonly]="true"></app-personal-form>
         </nz-tab>
-      </nz-tabset>
+      </nz-tabs>
 
     </nz-card>
     <app-licencia-historial-drawer #licHistDrawer [(visibleHistorial)]="visibleHistorial"

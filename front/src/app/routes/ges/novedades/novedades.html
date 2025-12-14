@@ -54,7 +54,7 @@
 
     </div>
     <!--selectedIndex: {{selectedIndex()}}-->
-    <nz-tabset [nzSelectedIndex]="selectedIndex()" nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
+    <nz-tabs [nzSelectedIndex]="selectedIndex()" nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/novedades/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
@@ -90,7 +90,7 @@
         ></app-novedades-form>
       </nz-tab>
 
-    </nz-tabset>
+    </nz-tabs>
 
   </nz-card>
 

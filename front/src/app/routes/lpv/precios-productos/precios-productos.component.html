@@ -42,7 +42,7 @@
 
 </div>
 
-<nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav"  >
+<nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav"  >
 
   <nz-tab>
     <a nz-tab-link routerLink="/lpv/precios_productos/precios" >{{ 'app.precios' | i18n }}</a>
@@ -64,7 +64,7 @@
   </nz-tab>
 
 
-</nz-tabset>
+</nz-tabs>
 </nz-card>
 <app-producto-historial-drawer [(visibleHistorial)]="visibleHistorial" [editProductoId]="editProducto()"></app-producto-historial-drawer>
 

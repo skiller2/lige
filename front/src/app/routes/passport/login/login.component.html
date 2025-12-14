@@ -1,5 +1,5 @@
 <form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
-  <nz-tabset [nzAnimated]="true" class="tabs" (nzSelectChange)="switch($event)">
+  <nz-tabs [nzAnimated]="true" class="tabs" (nzSelectChange)="switch($event)">
     <nz-tab [nzTitle]="'app.login.tab-login-credentials' | i18n">
       @if (error) {
         <nz-alert
@@ -95,7 +95,7 @@
                 </nz-form-control>
               </nz-form-item>
             </nz-tab>
-          </nz-tabset>
+          </nz-tabs>
           <nz-form-item>
             <nz-col [nzSpan]="12">
               <label nz-checkbox formControlName="remember">{{

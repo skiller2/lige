@@ -14,7 +14,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { EditorTipoMovimientoComponent } from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
 import { EditorTipoCuentaComponent } from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
