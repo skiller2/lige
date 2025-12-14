@@ -13,73 +13,87 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
 
-          <nz-form-control>
+      <nz-form-control>
 
-              <nz-date-picker nzMode="month" name="periodo" ngModel
-                  (ngModelChange)="selectedValueChange($event,Busqueda.Periodo)" nzFormat="MM/yyyy" />
-          </nz-form-control>
+        <nz-date-picker nzMode="month" name="periodo" ngModel
+          (ngModelChange)="selectedValueChange($event,Busqueda.Periodo)" nzFormat="MM/yyyy" />
+        </nz-form-control>
 
-      <nz-form-control [nzSpan]="19" style="text-align: right;">
-        <nz-button-group *ngIf="this.selectedObjetivoId">
-          <button nz-button nzType="default" (click)="gotoCargaAsistencia()"><span nz-icon nzType="right"
+        <nz-form-control [nzSpan]="19" style="text-align: right;">
+          @if (this.selectedObjetivoId) {
+            <nz-button-group>
+              <button nz-button nzType="default" (click)="gotoCargaAsistencia()"><span nz-icon nzType="right"
               nzTheme="outline"></span>Asistencia diaria</button>
-        </nz-button-group>
-      </nz-form-control>
-    </nz-form-item>
+            </nz-button-group>
+          }
+        </nz-form-control>
+      </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
-      <nz-form-control>
-        <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-          (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel
-          (valueExtendedChange)="infoObjetivo($event)" />
-      </nz-form-control>
-    </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
+        <nz-form-control>
+          <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
+            (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel
+            (valueExtendedChange)="infoObjetivo($event)" />
+          </nz-form-control>
+        </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-      <nz-form-control *ngIf="$objetivoResponsables| async as objetivoDetalle" [nzSpan]="21">
-        <app-view-responsable *ngIf="this.selectedObjetivoId>0" [list]="objetivoDetalle"></app-view-responsable>
-      </nz-form-control>
-    </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+          @if ($objetivoResponsables| async; as objetivoDetalle) {
+            <nz-form-control [nzSpan]="21">
+              @if (this.selectedObjetivoId>0) {
+                <app-view-responsable [list]="objetivoDetalle"></app-view-responsable>
+              }
+            </nz-form-control>
+          }
+        </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5"><span>Listado:</span><span class="rowapro">Autorizado</span>/<span
-          class="rowpend">Pendiente</span></nz-form-label>
-      <nz-form-control>
-        <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
-          [nzShowPagination]="false">
-          <thead>
-            <tr>
-              <th>Persona</th>
-              <th>Método</th>
-              <th>Vigencia</th>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngIf="$optionsMetodologia | async; let optionsMetodologia">
-
-              <tr *ngFor="let data of excep.data"
-                [ngClass]="{rowapro:data.PersonalArt14Autorizado=='S',rowpend:data.PersonalArt14Autorizado==''}">
-                <td title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col>
-                    {{data.PersonalCUITCUILCUIT}}</span> </td>
-                <td>
-                  <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                  <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
-                  <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
-                  <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
-                  <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
-                    currency:'$'}}</span>
-                </td>
-                <td>{{data.Desde | date}} <BR>{{data.Hasta | date}}</td>
-
-                <!-- td>
-            <a>Action 一 {{data.name}}</a>
-            <nz-divider nzType="vertical"></nz-divider>
-            <a>Delete</a>
-          </td -->
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5"><span>Listado:</span><span class="rowapro">Autorizado</span>/<span
+        class="rowpend">Pendiente</span></nz-form-label>
+        <nz-form-control>
+          <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
+            [nzShowPagination]="false">
+            <thead>
+              <tr>
+                <th>Persona</th>
+                <th>Método</th>
+                <th>Vigencia</th>
               </tr>
-            </ng-container>
+            </thead>
+            <tbody>
+              @if ($optionsMetodologia | async; as optionsMetodologia) {
+                @for (data of excep.data; track data) {
+                  <tr
+                    [ngClass]="{rowapro:data.PersonalArt14Autorizado=='S',rowpend:data.PersonalArt14Autorizado==''}">
+                    <td title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col>
+                  {{data.PersonalCUITCUILCUIT}}</span> </td>
+                  <td>
+                    <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
+                    @if (data.PersonalArt14FormaArt14=='S') {
+                      <span>{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
+                    }
+                    @if (data.PersonalArt14FormaArt14=='H') {
+                      <span>{{data.PersonalArt14Horas}}</span>
+                    }
+                    @if (data.PersonalArt14FormaArt14=='E') {
+                      <span>{{data.CategoriaPersonalDescripcion}}</span>
+                    }
+                    @if (data.PersonalArt14FormaArt14=='A') {
+                      <span>{{data.PersonalArt14AdicionalHora |
+                      currency:'$'}}</span>
+                    }
+                  </td>
+                  <td>{{data.Desde | date}} <BR>{{data.Hasta | date}}</td>
+                  <!-- td>
+                  <a>Action 一 {{data.name}}</a>
+                  <nz-divider nzType="vertical"></nz-divider>
+                  <a>Delete</a>
+                  </td -->
+                </tr>
+              }
+            }
           </tbody>
         </nz-table>
       </nz-form-control>
@@ -90,82 +104,90 @@
       <nz-form-control>
         <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"
           [sucursalId]="selectedSucursalId()" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" />
-      </nz-form-control>
-    </nz-form-item>
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-      <nz-form-control>
-        @let personaResponsables = $personaResponsables | async;
-        <app-view-responsable *ngIf="this.selectedPersonalId > 0" [list]="personaResponsables"></app-view-responsable>
-      </nz-form-control>
-    </nz-form-item>
-
-    <ng-container *ngIf="$optionsMetodologia | async; let optionsMetodologia">
-
+        </nz-form-control>
+      </nz-form-item>
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Metodologia</nz-form-label>
+        <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
         <nz-form-control>
-          <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <ng-container *ngFor="let option of optionsMetodologia">
-              <nz-option [nzValue]="option" [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
-            </ng-container>
-          </nz-select>
+          @let personaResponsables = $personaResponsables | async;
+          @if (this.selectedPersonalId > 0) {
+            <app-view-responsable [list]="personaResponsables"></app-view-responsable>
+          }
         </nz-form-control>
       </nz-form-item>
 
-      <nz-form-item *ngIf="asistenciaexcepcion.controls['metodologia']?.value">
-        <input name="metodo" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.metodo" type="hidden">
-        <input name="metodologiaId" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.id" type="hidden">
-
-        <nz-form-label [nzSpan]="5"> <span>{{asistenciaexcepcion.controls['metodologia'].value.etiqueta}} </span>
-        </nz-form-label>
-        <ng-container [ngSwitch]="asistenciaexcepcion.controls['metodologia'].value.metodo">
-          <nz-form-control *ngSwitchCase="'S'">
-            <nz-input-number name="SumaFija" ngModel [nzStep]="0" style="width:100%"></nz-input-number>
-          </nz-form-control>
-          <nz-form-control *ngSwitchCase="'E'">
-            <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch
-              [nzDropdownMatchSelectWidth]="false">
-              <ng-container *ngFor="let option of $optionsCategoria | async">
-                <ng-container *ngIf="option.ValorLiquidacionSucursalId == selectedSucursalId()">
-                  <nz-option
-                    [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
-                    [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + (option.ValorLiquidacionHoraNormal | I18NCurrency)"></nz-option>
-                </ng-container>
-
-              </ng-container>
+      @if ($optionsMetodologia | async; as optionsMetodologia) {
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Metodologia</nz-form-label>
+          <nz-form-control>
+            <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              @for (option of optionsMetodologia; track option) {
+                <nz-option [nzValue]="option" [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
+              }
             </nz-select>
           </nz-form-control>
-
-          <nz-form-control *ngSwitchCase="'A'">
-            <nz-input-number name="AdicionalHora" ngModel [nzStep]="1" style="width:100%"></nz-input-number>
-          </nz-form-control>
-          <nz-form-control *ngSwitchCase="'H'">
-            <nz-input-number name="Horas" ngModel [nzStep]="1"></nz-input-number>
-          </nz-form-control>
-        </ng-container>
-      </nz-form-item>
-
-    </ng-container>
+        </nz-form-item>
+        @if (asistenciaexcepcion.controls['metodologia']?.value) {
+          <nz-form-item>
+            <input name="metodo" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.metodo" type="hidden">
+            <input name="metodologiaId" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.id" type="hidden">
+            <nz-form-label [nzSpan]="5"> <span>{{asistenciaexcepcion.controls['metodologia'].value.etiqueta}} </span>
+          </nz-form-label>
+          @switch (asistenciaexcepcion.controls['metodologia'].value.metodo) {
+            @case ('S') {
+              <nz-form-control>
+                <nz-input-number name="SumaFija" ngModel [nzStep]="0" style="width:100%"></nz-input-number>
+              </nz-form-control>
+            }
+            @case ('E') {
+              <nz-form-control>
+                <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch
+                  [nzDropdownMatchSelectWidth]="false">
+                  @for (option of $optionsCategoria | async; track option) {
+                    @if (option.ValorLiquidacionSucursalId == selectedSucursalId()) {
+                      <nz-option
+                        [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
+                      [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + (option.ValorLiquidacionHoraNormal | I18NCurrency)"></nz-option>
+                    }
+                  }
+                </nz-select>
+              </nz-form-control>
+            }
+            @case ('A') {
+              <nz-form-control>
+                <nz-input-number name="AdicionalHora" ngModel [nzStep]="1" style="width:100%"></nz-input-number>
+              </nz-form-control>
+            }
+            @case ('H') {
+              <nz-form-control>
+                <nz-input-number name="Horas" ngModel [nzStep]="1"></nz-input-number>
+              </nz-form-control>
+            }
+          }
+        </nz-form-item>
+      }
+    }
     <nz-button-group nz-row nzJustify="space-between">
 
       <button nz-col nz-button nzType="primary" [nzSize]="'default'" (click)="saveexception()">
         <span nz-icon nzType="save" nzTheme="outline"></span>{{ 'app.btn.save' | i18n }}
       </button>
 
-      <button nz-col nzDanger nz-button nzType="primary" [nzSize]="'default'" (click)="endexception()"
-        *ngIf="asistenciaexcepcion.controls['metodo']?.value && asistenciaexcepcion.controls['PersonalId']?.value && selectedObjetivoId">
-        <span nz-icon nzType="delete" nzTheme="outline"></span>{{ 'app.btn.exception.finish' | i18n }}</button>
-    </nz-button-group>
+      @if (asistenciaexcepcion.controls['metodo']?.value && asistenciaexcepcion.controls['PersonalId']?.value && selectedObjetivoId) {
+        <button nz-col nzDanger nz-button nzType="primary" [nzSize]="'default'" (click)="endexception()"
+          >
+          <span nz-icon nzType="delete" nzTheme="outline"></span>{{ 'app.btn.exception.finish' | i18n }}</button>
+        }
+      </nz-button-group>
 
-  </form>
+    </form>
 
-</nz-card>
+  </nz-card>
 
-<ng-template #optionsLoading>
-  <nz-option nzDisabled nzCustomContent>
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Loading Data...
-  </nz-option>
-</ng-template>
+  <ng-template #optionsLoading>
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Loading Data...
+    </nz-option>
+  </ng-template>

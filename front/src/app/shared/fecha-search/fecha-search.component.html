@@ -1,16 +1,16 @@
 <nz-select style="width:30%" [(ngModel)]="_operador" [nzDropdownMatchSelectWidth]="false"
-nzAllowClear (ngModelChange)="modelChangeOp($event)"
-nzShowSearch nzServerSearch>
-    <ng-container *ngFor="let operator of operatorsArray">
-        <nz-option [nzValue]="operator" nzLabel="{{ operator }}"></nz-option>
-    </ng-container>
+  nzAllowClear (ngModelChange)="modelChangeOp($event)"
+  nzShowSearch nzServerSearch>
+  @for (operator of operatorsArray; track operator) {
+    <nz-option [nzValue]="operator" nzLabel="{{ operator }}"></nz-option>
+  }
 </nz-select>
 <nz-date-picker
-    #fsc
-    name="fecProcesoCambio"
-    [(ngModel)]="_selected"
-    (ngModelChange)="onChange($event)"
-    nzMode="date"
-    nzFormat="dd/MM/yyyy"
-    style="width:70%"
-/>
+  #fsc
+  name="fecProcesoCambio"
+  [(ngModel)]="_selected"
+  (ngModelChange)="onChange($event)"
+  nzMode="date"
+  nzFormat="dd/MM/yyyy"
+  style="width:70%"
+  />

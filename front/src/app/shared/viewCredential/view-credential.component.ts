@@ -1,5 +1,5 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, computed, effect, ElementRef, forwardRef, inject, Inject, Injector, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, computed, effect, ElementRef, forwardRef, inject, Inject, Injector, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation, DOCUMENT } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PersonaObj } from '../schemas/personal.schemas';
 import { SHARED_IMPORTS } from '@shared';

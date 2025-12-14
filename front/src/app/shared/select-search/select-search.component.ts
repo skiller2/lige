@@ -1,6 +1,6 @@
 import { Component, ElementRef, input, model, signal, ViewChild } from '@angular/core';
 import { firstValueFrom, Subject } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { Injector, inject } from '@angular/core';
@@ -11,10 +11,8 @@ import { SearchService } from '../../services/search.service';
     templateUrl: './select-search.component.html',
     styleUrls: ['./select-search.component.less'],
     imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        //    SelectSearchComponent
-    ]
+    ...SHARED_IMPORTS
+]
 })
 export class SelectSearchComponent {
   @ViewChild("sss") sss!: NzSelectComponent

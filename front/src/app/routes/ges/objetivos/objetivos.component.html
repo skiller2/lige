@@ -18,7 +18,7 @@
           <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true" ><span nz-icon nzType="menu-unfold" nzTheme="outline"></span></button>
         </a>
         <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0"
-          nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" nzTheme="outline"></span></button> -->
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" nzTheme="outline"></span></button> -->
       </nz-button-group>
 
     </div>
@@ -44,18 +44,18 @@
         }
       </ul>
     </div>
-  
-  </div>
-  
 
-  
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
-      <nz-tab></nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/listado" >{{ 'app.icon.objectives' | i18n }} </a>
-        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+  </div>
+
+
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+    <nz-tab></nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/objetivos/listado" >{{ 'app.icon.objectives' | i18n }} </a>
+      @if ((columns$|async); as columnas) {
+        <ng-template nz-tab>
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
-  
           <div class="gridListContainer container-fluid" >
             <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
               [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
@@ -63,44 +63,45 @@
             </angular-slickgrid>
           </div>
         </ng-template>
-      </nz-tab>
-  
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/editar" >{{ 'app.icon.edit' | i18n }}</a>
-         <app-objetivos-form #objetivoFormEdit  
-          (onAddorUpdate)="handleAddOrUpdate()" 
-          [ObjetivoId]="editObjetivoId()" 
-          [ClienteElementoDependienteId]="editClienteElementoDependienteId()" 
-          [ClienteId]="editClienteId()">
-        </app-objetivos-form>
-      </nz-tab>
+      }
+    </nz-tab>
 
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/detalle" >{{ 'app.detail' | i18n }}</a>
-        <app-objetivos-form #objetivoFormDeta 
-          [ObjetivoId]="editObjetivoId()" 
-          [ClienteElementoDependienteId]="editClienteElementoDependienteId()"  
-          [ClienteId]="editClienteId()">
-        </app-objetivos-form>
-      </nz-tab>
-  
-      <nz-tab> 
-        <a nz-tab-link routerLink="/ges/objetivos/alta" >{{ 'app.alta' | i18n }}</a>
-        <app-objetivos-form #objetivoFormAlta  
-          (onAddorUpdate)="handleAddOrUpdate()" 
-          (pristineChange)="onPristineChange($event)">
-        </app-objetivos-form>
-      </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/objetivos/editar" >{{ 'app.icon.edit' | i18n }}</a>
+      <app-objetivos-form #objetivoFormEdit
+        (onAddorUpdate)="handleAddOrUpdate()"
+        [ObjetivoId]="editObjetivoId()"
+        [ClienteElementoDependienteId]="editClienteElementoDependienteId()"
+        [ClienteId]="editClienteId()">
+      </app-objetivos-form>
+    </nz-tab>
 
-    </nz-tabset>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/objetivos/detalle" >{{ 'app.detail' | i18n }}</a>
+      <app-objetivos-form #objetivoFormDeta
+        [ObjetivoId]="editObjetivoId()"
+        [ClienteElementoDependienteId]="editClienteElementoDependienteId()"
+        [ClienteId]="editClienteId()">
+      </app-objetivos-form>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/objetivos/alta" >{{ 'app.alta' | i18n }}</a>
+      <app-objetivos-form #objetivoFormAlta
+        (onAddorUpdate)="handleAddOrUpdate()"
+        (pristineChange)="onPristineChange($event)">
+      </app-objetivos-form>
+    </nz-tab>
+
+  </nz-tabset>
 
 
-    <app-objetivo-historial-drawer 
-      [(visibleHistorial)]="visibleHistorial"
-      [ClienteId]="editClienteId()" 
-      [ObjetivoId]="editObjetivoId()" 
-      [ObjetivoNombre]="ObjetivoNombre()"
-      [ClienteElementoDependienteId]="editClienteElementoDependienteId()">
-    </app-objetivo-historial-drawer>
+  <app-objetivo-historial-drawer
+    [(visibleHistorial)]="visibleHistorial"
+    [ClienteId]="editClienteId()"
+    [ObjetivoId]="editObjetivoId()"
+    [ObjetivoNombre]="ObjetivoNombre()"
+    [ClienteElementoDependienteId]="editClienteElementoDependienteId()">
+  </app-objetivo-historial-drawer>
 
-  </nz-card>
+</nz-card>

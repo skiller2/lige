@@ -6,39 +6,43 @@
       <nz-form-item>
         <nz-form-label>Periodo</nz-form-label>
         <nz-form-control>
-  
-            <nz-date-picker nzMode="month" name="periodo" [ngModel]="periodo()"
-                (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item>
-  
-    <nz-form-control *ngIf="$listaCustodiaPer | async as listaCustodiaPer ">
-        <nz-table #custPer [nzData]="listaCustodiaPer" nzSize="small" [nzPageSize]="100000000"
-          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Cliente</th>
-              <th>Fecha Inicio</th>
-              <th>Fecha Fin</th>
-              <th>Estado</th>
-              <th>Tipo de Importe</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let data of custPer.data" class="">
-              <td>{{ data.objetivo_custodia_id }}</td>
-              <td>{{ data.cliente.fullName }}</td>
-              <td>{{ data.fecha_inicio }}</td>
-              <td>{{ data.fecha_fin }}</td>
-              <td>{{ data.estado.label }}</td>
-              <td>{{ data.tipo_importe }}</td>
-            </tr>
-          </tbody>
-        </nz-table>
-    </nz-form-control>
-    </nz-form-item>
-    </form>
-  </ng-container>
-</nz-drawer>
+
+          <nz-date-picker nzMode="month" name="periodo" [ngModel]="periodo()"
+            (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+
+          @if ($listaCustodiaPer | async; as listaCustodiaPer ) {
+            <nz-form-control>
+              <nz-table #custPer [nzData]="listaCustodiaPer" nzSize="small" [nzPageSize]="100000000"
+                [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Estado</th>
+                    <th>Tipo de Importe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (data of custPer.data; track data) {
+                    <tr class="">
+                      <td>{{ data.objetivo_custodia_id }}</td>
+                      <td>{{ data.cliente.fullName }}</td>
+                      <td>{{ data.fecha_inicio }}</td>
+                      <td>{{ data.fecha_fin }}</td>
+                      <td>{{ data.estado.label }}</td>
+                      <td>{{ data.tipo_importe }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </nz-table>
+            </nz-form-control>
+          }
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-drawer>

@@ -2,90 +2,92 @@
   (nzOnClose)="closeDrawer()" [nzZIndex]="11000">
   <ng-container *nzDrawerContent>
     @if ((personalDetalle$ | async); as personalDetalle){
-    <div nz-row>
-      <div nz-col nzFlex="100px" class="app-foto-container">
-        <app-image-loader class="app-foto" [src]="'api/file-upload/downloadFile/'+personalDetalle.PersonalFotoId+'/DocumentoImagenFoto/image'" fallback="./assets/dummy-person-image.jpg"/>
-<!--        <img class="app-foto" nz-image 
-        [src]="'api/file-upload/downloadFile/'+personalDetalle.PersonalFotoId+'/DocumentoImagenFoto/image' | urlauth | async"
-        nzFallback="./assets/dummy-person-image.jpg" /> -->
-      </div>
-      <div nz-col nzFlex="240px" class="app-info-pers">
-        <li><span class="app-bold-text">{{personalDetalle.PersonalApellido}}, {{personalDetalle.PersonalNombre}}</span>
+      <div nz-row>
+        <div nz-col nzFlex="100px" class="app-foto-container">
+          <app-image-loader class="app-foto" [src]="'api/file-upload/downloadFile/'+personalDetalle.PersonalFotoId+'/DocumentoImagenFoto/image'" fallback="./assets/dummy-person-image.jpg"/>
+          <!--        <img class="app-foto" nz-image
+          [src]="'api/file-upload/downloadFile/'+personalDetalle.PersonalFotoId+'/DocumentoImagenFoto/image' | urlauth | async"
+          nzFallback="./assets/dummy-person-image.jpg" /> -->
+        </div>
+        <div nz-col nzFlex="240px" class="app-info-pers">
+          <li><span class="app-bold-text">{{personalDetalle.PersonalApellido}}, {{personalDetalle.PersonalNombre}}</span>
         </li>
         <li><span class="app-bold-text">CUIT:</span> {{personalDetalle.PersonalCUITCUILCUIT}}</li>
         <li><span class="app-bold-text">Domicilio:</span> {{personalDetalle.DomicilioCompleto}}</li>
-        <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}}<span *ngIf="personalDetalle.PersonalFechaBaja!=null">, baja: {{personalDetalle.PersonalFechaBaja|date}}</span></li>
-        <li><span class="app-bold-text">Antigüedad:</span> {{ calculateDateDifference(personalDetalle.PersonalFechaIngreso, personalDetalle.PersonalFechaBaja) }}</li>
-        <li><span class="app-bold-text">Edad:</span> {{personalDetalle.PersonalFechaNacimiento|AGE}},
-          {{personalDetalle.PersonalFechaNacimiento|date}}.</li>
-        <li><span class="app-bold-text">Asociado:</span> {{personalDetalle.PersonalNroLegajo }}.</li>
-        @for (mail of personalDetalle.mails; track mail.PersonalEmailEmail) {
-          <li><span class="app-bold-text">Mail:</span> {{mail.PersonalEmailEmail}}.</li> 
-        }
-        <li><span class="app-bold-text">Sucursal:</span> {{personalDetalle.SucursalDescripcion }}.</li>
-        <li><span class="app-bold-text">Estudios:</span> {{personalDetalle.estudios }}.</li>
-        
-        <!-- <li><span class="ant-divider-horizontal.ant-divider-with-text">DNI</span> {{personalDetalle.DomicilioCompleto}}</li> -->
-      </div>
-    </div>
-
-
+        <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}}@if (personalDetalle.PersonalFechaBaja!=null) {
+        <span>, baja: {{personalDetalle.PersonalFechaBaja|date}}</span>
+      }</li>
+      <li><span class="app-bold-text">Antigüedad:</span> {{ calculateDateDifference(personalDetalle.PersonalFechaIngreso, personalDetalle.PersonalFechaBaja) }}</li>
+      <li><span class="app-bold-text">Edad:</span> {{personalDetalle.PersonalFechaNacimiento|AGE}},
+    {{personalDetalle.PersonalFechaNacimiento|date}}.</li>
+    <li><span class="app-bold-text">Asociado:</span> {{personalDetalle.PersonalNroLegajo }}.</li>
+    @for (mail of personalDetalle.mails; track mail.PersonalEmailEmail) {
+      <li><span class="app-bold-text">Mail:</span> {{mail.PersonalEmailEmail}}.</li>
     }
+    <li><span class="app-bold-text">Sucursal:</span> {{personalDetalle.SucursalDescripcion }}.</li>
+    <li><span class="app-bold-text">Estudios:</span> {{personalDetalle.estudios }}.</li>
 
-    <nz-divider nzText="Teléfonos"></nz-divider>
-    @if ((telefonos$ | async); as telefonos){
+    <!-- <li><span class="ant-divider-horizontal.ant-divider-with-text">DNI</span> {{personalDetalle.DomicilioCompleto}}</li> -->
+  </div>
+</div>
 
-    @if (!telefonos.length) { <li>Sin datos</li>}
-    @for (tel of telefonos; track tel.PersonalTelefonoNro) {
+
+}
+
+<nz-divider nzText="Teléfonos"></nz-divider>
+@if ((telefonos$ | async); as telefonos){
+
+  @if (!telefonos.length) { <li>Sin datos</li>}
+  @for (tel of telefonos; track tel.PersonalTelefonoNro) {
     <li title="">
-      {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
-    }
+    {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
+  }
 
-    <nz-divider nzText="Categorías"></nz-divider>
+  <nz-divider nzText="Categorías"></nz-divider>
 
-    @if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
+  @if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
     @if (!categorias.length){ <li>Sin datos</li>}
     @for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
-    <li> {{cat.CategoriaPersonalDescripcion}} @if ( cat.ValorLiquidacionHoraNormal>0 && cat.ValorLiquidacionSucursalId){
-      {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal| I18NCurrency):'(Sin importe)'}} }
-      {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
-    </li>
+      <li> {{cat.CategoriaPersonalDescripcion}} @if ( cat.ValorLiquidacionHoraNormal>0 && cat.ValorLiquidacionSucursalId){
+        {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal| I18NCurrency):'(Sin importe)'}} }
+        {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
+      </li>
     }
-    }
+  }
 
-    <nz-divider nzText="Licencias"></nz-divider>
-    @if ((personalDetalleLicencias$ |async)?.licencias; as licencias){
+  <nz-divider nzText="Licencias"></nz-divider>
+  @if ((personalDetalleLicencias$ |async)?.licencias; as licencias){
     @if (!licencias.length){<li>Sin datos</li>}
     @for (lic of licencias; track lic.desde) {
-    <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
+      <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
     }
-    }
+  }
 
-    <nz-divider nzText="Situación Revista"></nz-divider>
-    @if (personalDetalleSitRevista$ | async; as situacion){
+  <nz-divider nzText="Situación Revista"></nz-divider>
+  @if (personalDetalleSitRevista$ | async; as situacion){
     @if (!situacion.length) {<li>Sin datos</li>}
     @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
-    <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }}
+      <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }}
       {{sit.PersonalSituacionRevistaHasta|date}}</li>
     }
-    }
+  }
 
-    <nz-divider nzText="Responsable"></nz-divider>
-    @if (personalDetalleResponsables$ | async; as responsables){
+  <nz-divider nzText="Responsable"></nz-divider>
+  @if (personalDetalleResponsables$ | async; as responsables){
     @if (responsables.length) {
-    <app-view-responsable [list]="responsables"></app-view-responsable>
+      <app-view-responsable [list]="responsables"></app-view-responsable>
     } @else {
-    <li>Sin datos</li>
+      <li>Sin datos</li>
     }
-    }
+  }
 
-    <nz-divider nzText="Habilitaciones"></nz-divider>
-    @if ((habilitaciones$ | async)?.habilitaciones; as habilitaciones){
+  <nz-divider nzText="Habilitaciones"></nz-divider>
+  @if ((habilitaciones$ | async)?.habilitaciones; as habilitaciones){
     @if (!habilitaciones.length) { <li>Sin datos</li>}
 
     @for (habilitacion of habilitaciones; track habilitacion.PersonalHabilitacionDesde) {
-    <li title="{{ habilitacion.PersonalHabilitacionDesde }}">
-      {{habilitacion.LugarHabilitacionDescripcion}} {{habilitacion.PersonalHabilitacionDesde|date}} -
+      <li title="{{ habilitacion.PersonalHabilitacionDesde }}">
+        {{habilitacion.LugarHabilitacionDescripcion}} {{habilitacion.PersonalHabilitacionDesde|date}} -
       {{habilitacion.PersonalHabilitacionHasta|date}} </li> }
     }
 
@@ -93,26 +95,26 @@
     <nz-divider nzText="Objetivos"></nz-divider>
     @if ((objetivos$ | async)?.asistencia; as objetivos){
 
-    @if (!objetivos.length) { <li>Sin datos</li>}
+      @if (!objetivos.length) { <li>Sin datos</li>}
 
-    @for (objetivo of objetivos; track objetivo.ObjetivoId) {
-    <li title="{{ objetivo.ObjetivoId }}">
-      {{objetivo.ObjetivoCodigo}} {{objetivo.ClienteElementoDependienteDescripcion}} {{objetivo.totalhorascalc}}hs
-      ({{objetivo.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras}})</li> }
-    }
+      @for (objetivo of objetivos; track objetivo.ObjetivoId) {
+        <li title="{{ objetivo.ObjetivoId }}">
+          {{objetivo.ObjetivoCodigo}} {{objetivo.ClienteElementoDependienteDescripcion}} {{objetivo.totalhorascalc}}hs
+        ({{objetivo.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras}})</li> }
+      }
 
-    <nz-divider nzText="Cuentas"></nz-divider>
-    @if ((banco$ | async); as bancos){
+      <nz-divider nzText="Cuentas"></nz-divider>
+      @if ((banco$ | async); as bancos){
 
-    @if (!bancos.length) { <li>Sin datos</li>}
-    @for (banco of bancos; track banco.PersonalBancoCBU) {
-    <li title="{{ banco.PersonalBancoCBU }}">
-      {{banco.BancoDescripcion}} CBU {{banco.PersonalBancoCBU}} </li> }
-    }
+        @if (!bancos.length) { <li>Sin datos</li>}
+        @for (banco of bancos; track banco.PersonalBancoCBU) {
+          <li title="{{ banco.PersonalBancoCBU }}">
+          {{banco.BancoDescripcion}} CBU {{banco.PersonalBancoCBU}} </li> }
+        }
 
-    <nz-divider nzText="Documentación"></nz-divider>
-    <a app-down-file httpUrl="/api/impuestos_afip/downloadF184/{{PersonalId}}"><span nz-icon
+        <nz-divider nzText="Documentación"></nz-divider>
+        <a app-down-file httpUrl="/api/impuestos_afip/downloadF184/{{PersonalId}}"><span nz-icon
         nzType="download"></span>AFIP
       F184</a>
-  </ng-container>
-</nz-drawer>
+    </ng-container>
+  </nz-drawer>

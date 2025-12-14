@@ -6,28 +6,34 @@
 
 <ng-template #selectTpl>
   <nz-select #psc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT" nzShowSearch
-  nzServerSearch (nzOnSearch)="search($event)">
-  <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId"
-      [nzLabel]="option.fullName +' '+ '(' + option.PersonalId + ')'" />
-  </ng-container>
-  <nz-option *ngIf="extendedOption.PersonalId >0 " [nzValue]="extendedOption.PersonalId"
-    [nzLabel]="extendedOption.fullName" />
+    (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT" nzShowSearch
+    nzServerSearch (nzOnSearch)="search($event)">
+    @for (option of $optionsArray | async; track option) {
+      @if (($isOptionsLoading | async) == false) {
+        <nz-option [nzValue]="option.PersonalId"
+          [nzLabel]="option.fullName +' '+ '(' + option.PersonalId + ')'" />
+      }
+    }
+    @if (extendedOption.PersonalId >0 ) {
+      <nz-option [nzValue]="extendedOption.PersonalId"
+        [nzLabel]="extendedOption.fullName" />
+    }
 
-  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Cargando datos...
-  </nz-option>
-</nz-select>
+    @if ($isOptionsLoading | async) {
+      <nz-option nzDisabled nzCustomContent>
+        <span nz-icon nzType="loading" class="loading-icon"></span>
+        Cargando datos...
+      </nz-option>
+    }
+  </nz-select>
 
 </ng-template>
 
 @if (anio()>0 && mes()>0){
-<nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%;">
-  <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
-</nz-input-group>
-<app-detalle-persona [anio]="anio()" [mes]="mes()" [SucursalId]="sucursalId()" [PersonalId]="selectedIdNum"
+  <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%;">
+    <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
+  </nz-input-group>
+  <app-detalle-persona [anio]="anio()" [mes]="mes()" [SucursalId]="sucursalId()" [PersonalId]="selectedIdNum"
   [visible]="visibleDrawer()" (onClose)="closeDrawer()"></app-detalle-persona>
 
 } @else {

@@ -1,14 +1,20 @@
 <nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Detalle o Codigo"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-  <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.GrupoActividadId"  [nzLabel]="option.GrupoActividadDetalle +' '+option.GrupoActividadNumero" />
-  </ng-container>
-  <nz-option *ngIf="extendedOption.GrupoActividadNumero != '' " [nzValue]="extendedOption.GrupoActividadId"
-    [nzLabel]="extendedOption.GrupoActividadDetalle" />
+  @for (option of $optionsArray | async; track option) {
+    @if (($isOptionsLoading | async) == false) {
+      <nz-option [nzValue]="option.GrupoActividadId"  [nzLabel]="option.GrupoActividadDetalle +' '+option.GrupoActividadNumero" />
+    }
+  }
+  @if (extendedOption.GrupoActividadNumero != '' ) {
+    <nz-option [nzValue]="extendedOption.GrupoActividadId"
+      [nzLabel]="extendedOption.GrupoActividadDetalle" />
+  }
 
-  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Cargando datos...
-  </nz-option>
+  @if ($isOptionsLoading | async) {
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Cargando datos...
+    </nz-option>
+  }
 </nz-select>

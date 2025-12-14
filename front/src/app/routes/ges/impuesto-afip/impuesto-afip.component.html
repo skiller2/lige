@@ -10,24 +10,25 @@
         <a [routerLink]="['/', 'ges', 'impuesto_afip','carga']">Carga</a>
       </li>
 
-      <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/impuesto_afip/listado'">
-        <ul>
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, cantxpag:4}"
-            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span> 
-          </li>
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
-            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-            <span nz-icon nzType="download"></span>Comp 1 x pág
-          </li>
-
-          <li nz-menu-item (click)="exportGrid()">
-            <span nz-icon nzType="download"></span>XLS
-          </li>
-        </ul>
-      </li>
+      @if (router.url === '/ges/impuesto_afip/listado') {
+        <li nz-submenu nzTitle="Acciones">
+          <ul>
+            <li nz-menu-item app-down-file [httpMethod]="'POST'"
+              [httpBody]="{anio, mes, options: listOptions, cantxpag:4}"
+              httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+              <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span>
+            </li>
+            <li nz-menu-item app-down-file [httpMethod]="'POST'"
+              [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
+              httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+              <span nz-icon nzType="download"></span>Comp 1 x pág
+            </li>
+            <li nz-menu-item (click)="exportGrid()">
+              <span nz-icon nzType="download"></span>XLS
+            </li>
+          </ul>
+        </li>
+      }
     </ul>
 
     <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
@@ -35,35 +36,39 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab >
         <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
-        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
-          <div class="gridContainer container-fluid" >
-            <angular-slickgrid gridId="grid22" class="" 
-              [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" 
-              [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReady($event)"
-              >
-            </angular-slickgrid>
-          </div>
-        </ng-template>
+        @if ((columns$|async); as columnas) {
+          <ng-template nz-tab>
+            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
+            <div class="gridContainer container-fluid" >
+              <angular-slickgrid gridId="grid22" class=""
+                [columnDefinitions]="columnas | colsFilter"
+                [gridOptions]="gridOptions"
+                [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReady($event)"
+                >
+              </angular-slickgrid>
+            </div>
+          </ng-template>
+        }
       </nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/impuesto_afip/carga">Carga </a>
-        <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
-          <div *ngIf="context.lista?.RegistrosSinComprobantes && 1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
-            <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
-              <div nz-col nzSpan="24" class="p-md text-white">
-                <div class="h2 mt0">
-                  Pendientes: {{ context.lista?.RegistrosSinComprobantes }}
+        @if ({ lista: (listaDescuentos$ | async) }; as context) {
+          @if (context.lista?.RegistrosSinComprobantes && 1) {
+            <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+              <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+                <div nz-col nzSpan="24" class="p-md text-white">
+                  <div class="h2 mt0">
+                    Pendientes: {{ context.lista?.RegistrosSinComprobantes }}
+                  </div>
+                  <p class="text-nowrap mb0">
+                    Cargados: {{ context.lista?.RegistrosConComprobantes }}
+                  </p>
                 </div>
-                <p class="text-nowrap mb0">
-                  Cargados: {{ context.lista?.RegistrosConComprobantes }}
-                </p>
               </div>
             </div>
-          </div>
-        </ng-container>
+          }
+        }
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Forzado</nz-form-label>

@@ -7,7 +7,7 @@
         <nz-form-label [nzSpan]="5">Personal Estudio Id</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <input nz-input formControlName="PersonalEstudioId" ngModel />
+            <input nz-input formControlName="PersonalEstudioId" ngModel />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -15,7 +15,7 @@
         <nz-form-label [nzSpan]="5">PersonalEstudioPagina1Id</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <input nz-input formControlName="PersonalEstudioPagina1Id" ngModel />
+            <input nz-input formControlName="PersonalEstudioPagina1Id" ngModel />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -32,71 +32,71 @@
         <nz-form-label [nzSpan]="5">Nivel de Estudio</nz-form-label>
         <nz-form-control >
           <nz-select  formControlName="TipoEstudioId" nzPlaceHolder="Nivel de Estudio" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsNivelEstudio | async " >
+            @for (option of $optionsNivelEstudio | async ; track option) {
               <nz-option [nzValue]="option.TipoEstudioId" [nzLabel]="option.TipoEstudioDescripcion" ></nz-option>
-            </ng-container>
+            }
           </nz-select>
         </nz-form-control>
       </nz-form-item>
 
-       @if( this.formCli.value.TipoEstudioId != 8){
+      @if( this.formCli.value.TipoEstudioId != 8){
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Título del Certificado</nz-form-label>
           <nz-form-control>
             <input nz-input formControlName="PersonalEstudioTitulo" type="string" />
           </nz-form-control>
         </nz-form-item>
-       }
-        @else {
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Curso</nz-form-label>
-          <nz-form-control>
-          <!-- <app-curso-search formControlName="CursoHabilitacionId" ></app-curso-search>   -->
-          
-          <nz-select  formControlName="CursoHabilitacionId" nzPlaceHolder="Curso" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsCurso | async " >
-              <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod" ></nz-option>
-            </ng-container>
-          </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-       } 
-
+      }
+      @else {
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Fecha Otorgado</nz-form-label>
+        <nz-form-label [nzSpan]="5">Curso</nz-form-label>
         <nz-form-control>
-          <nz-date-picker formControlName="PersonalEstudioOtorgado" ></nz-date-picker>
+          <!-- <app-curso-search formControlName="CursoHabilitacionId" ></app-curso-search>   -->
+
+          <nz-select  formControlName="CursoHabilitacionId" nzPlaceHolder="Curso" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
+            @for (option of $optionsCurso | async ; track option) {
+              <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod" ></nz-option>
+            }
+          </nz-select>
         </nz-form-control>
       </nz-form-item>
+    }
 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Fecha Otorgado</nz-form-label>
       <nz-form-control>
-      
-        <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0"  [cantMaxFiles]="1"
-          [textForSearch]="'EST'" [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="false" ></app-file-upload>
-
+        <nz-date-picker formControlName="PersonalEstudioOtorgado" ></nz-date-picker>
       </nz-form-control>
+    </nz-form-item>
 
-      @if(this.formCli.enabled) {
-        <nz-form-item class="btnCenter">
-            <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+    <nz-form-control>
 
-            @if (this.PersonalIdForEdit() > 0) {
-            
-            <button 
+      <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalEstudioPagina1Id ?? 0"  [cantMaxFiles]="1"
+      [textForSearch]="'EST'" [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="false" ></app-file-upload>
+
+    </nz-form-control>
+
+    @if(this.formCli.enabled) {
+      <nz-form-item class="btnCenter">
+        <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+
+        @if (this.PersonalIdForEdit() > 0) {
+
+          <button
             nz-popconfirm
             nzPopconfirmTitle="Esta seguro que quiere eliminar este estudio?"
             (nzOnConfirm)="deleteEstudio()"
             nzPopconfirmPlacement="top"
-            nz-button 
+            nz-button
             nzType="primary"
-            nzDanger>Eliminar</button>
-          } 
-        </nz-form-item>
-      }
+          nzDanger>Eliminar</button>
+        }
+      </nz-form-item>
+    }
 
-    </form>
+  </form>
 
-    
-      <!-- <p>Debug Valores: {{formCli.value | json }}</p>  -->
-  </ng-container>
+
+  <!-- <p>Debug Valores: {{formCli.value | json }}</p>  -->
+</ng-container>
 </nz-drawer>

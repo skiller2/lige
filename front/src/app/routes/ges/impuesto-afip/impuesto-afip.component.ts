@@ -32,7 +32,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
-import { CommonModule, NgIf } from '@angular/common';
+
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 
@@ -56,12 +56,11 @@ export class CustomDescargaComprobanteComponent {
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   imports: [
-    CommonModule,
     SHARED_IMPORTS,
     NzAffixModule,
     FiltroBuilderComponent,
     NzUploadModule
-  ],
+],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService]
 })

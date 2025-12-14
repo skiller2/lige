@@ -1,6 +1,6 @@
 <nz-card class="small-margin">
-    <br>
-  
+  <br>
+
     <form [formGroup]="formDescuentosCargaManual">
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="4">Tipo de Carga</nz-form-label>
@@ -8,38 +8,46 @@
           <nz-select formControlName="tipocarga" nzPlaceHolder="" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" nzShowSearch
             (ngModelChange)="onSelectChange($event)">
-            <ng-container *ngFor="let option of $optionsTable | async">
+            @for (option of $optionsTable | async; track option) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
+            }
           </nz-select>
         </nz-form-control>
 
-        <nz-form-label *ngIf="ptipocarga() === 'PersonalOtroDescuento'" [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
-        <nz-form-control *ngIf="ptipocarga() === 'PersonalOtroDescuento'"  [nzMd]="5">
-          <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
-            <ng-container *ngFor="let option of $optionsTipo | async">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control>
+        @if (ptipocarga() === 'PersonalOtroDescuento') {
+          <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
+        }
+        @if (ptipocarga() === 'PersonalOtroDescuento') {
+          <nz-form-control  [nzMd]="5">
+            <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
+              @for (option of $optionsTipo | async; track option) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        }
 
 
-        <nz-form-label [nzXs]="4" *ngIf="ptipocarga() === 'ObjetivoDescuento'">Tipo de Descuento Objetivo</nz-form-label>
-        <nz-form-control [nzMd]="5" *ngIf="ptipocarga() === 'ObjetivoDescuento'">
-          <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
-            <ng-container *ngFor="let option of $optionsTipo | async">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control>
+        @if (ptipocarga() === 'ObjetivoDescuento') {
+          <nz-form-label [nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
+        }
+        @if (ptipocarga() === 'ObjetivoDescuento') {
+          <nz-form-control [nzMd]="5">
+            <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
+              @for (option of $optionsTipo | async; track option) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        }
 
       </nz-form-item>
-  @if(ptipocarga() === 'PersonalOtroDescuento' && pDescuentoId()> 0){
-    <app-descuentos-carga-manual-table-personal [pDescuentoId]="pDescuentoId()" [anio]="anio()" [mes]="mes()"></app-descuentos-carga-manual-table-personal>
-  }
+      @if(ptipocarga() === 'PersonalOtroDescuento' && pDescuentoId()> 0){
+        <app-descuentos-carga-manual-table-personal [pDescuentoId]="pDescuentoId()" [anio]="anio()" [mes]="mes()"></app-descuentos-carga-manual-table-personal>
+      }
 
-  @if(ptipocarga() === 'ObjetivoDescuento' && pDescuentoId() > 0){
-    <app-descuentos-carga-manual-table-objetivo [pDescuentoId]="pDescuentoId()" [anio]="anio()" [mes]="mes()"></app-descuentos-carga-manual-table-objetivo>
-  }
+      @if(ptipocarga() === 'ObjetivoDescuento' && pDescuentoId() > 0){
+        <app-descuentos-carga-manual-table-objetivo [pDescuentoId]="pDescuentoId()" [anio]="anio()" [mes]="mes()"></app-descuentos-carga-manual-table-objetivo>
+      }

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, output } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 
@@ -6,7 +6,7 @@ import { SHARED_IMPORTS } from '@shared';
     selector: 'app-periodo-select',
     templateUrl: './periodo-select.component.html',
     styleUrls: ['./periodo-select.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule]
+    imports: [...SHARED_IMPORTS]
 })
 export class PeriodoSelectComponent {
   onChange = output<Date>()

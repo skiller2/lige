@@ -21,91 +21,94 @@
       <a [routerLink]="['/', 'ges', 'telefonia','carga']">Carga</a>
     </li>
 
-    <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/telefonia/listado'">
-      <ul>
-
-        <li nz-menu-item (click)="exportGrid()">
-          <span nz-icon nzType="download"></span>XLS
-        </li>
-      </ul>
-    </li>
+    @if (router.url === '/ges/telefonia/listado') {
+      <li nz-submenu nzTitle="Acciones">
+        <ul>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span>XLS
+          </li>
+        </ul>
+      </li>
+    }
   </ul>
 
   <form nz-form #telefonoForm="ngForm" [formGroup]="ngForm">
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
-      <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-        <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-        <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridData$ | async)?.list || []"
-            (onAngularGridCreated)="angularGridReady($event)">
-          </angular-slickgrid>
-        </div>
-      </ng-template>
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
+        @if ((columns$|async); as columnas) {
+          <ng-template nz-tab>
+            <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+            <div class="gridContainer container-fluid">
+              <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
+                [gridOptions]="gridOptions" [dataset]="(gridData$ | async)?.list || []"
+                (onAngularGridCreated)="angularGridReady($event)">
+              </angular-slickgrid>
+            </div>
+          </ng-template>
+        }
 
-    </nz-tab>
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
-      <ng-template nz-tab >
+      </nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
+        <ng-template nz-tab >
 
-     
-        <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
-        <!--<nz-form-item>
-          <nz-form-label class="inputText" >Archivo Telefonía</nz-form-label>
-          <nz-form-control>
-            <ng-container>
+          <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
+
+            <!--<nz-form-item>
+            <nz-form-label class="inputText" >Archivo Telefonía</nz-form-label>
+            <nz-form-control>
+              <ng-container>
 
               <nz-upload nzAccept="application/xls" nzAction="/api/telefonia/upload" [nzData]="{
               anio: anio,
               mes: mes,
               fecha: fecha
             }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
-                <button nz-button>
-                  <span nz-icon nzType="upload"></span>
-                  {{ 'app.btn.XLS' | i18n }}
-                </button>
-              </nz-upload>
-            </ng-container>
-          </nz-form-control>
-        </nz-form-item>-->
-        <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
-          <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>  
+                  <button nz-button>
+                    <span nz-icon nzType="upload"></span>
+                    {{ 'app.btn.XLS' | i18n }}
+                  </button>
+                </nz-upload>
+              </ng-container>
+            </nz-form-control>
+          </nz-form-item>-->
+          <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
+            <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>
             <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
             [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
-        </nz-form-item>
-        
-        <nz-form-item>
-          <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
-          <nz-form-control>
+          </nz-form-item>
 
-            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
-              <!-- <ng-container > -->
-              <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle={{1}}>
-                 <ng-container>
+          <nz-form-item>
+            <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
+            <nz-form-control>
+
+              @for (movimiento of $importacionesAnteriores | async; track movimiento) {
+                <!-- <ng-container > -->
+                <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle={{1}}>
+                  <ng-container>
                     <a app-down-file  httpUrl="/api/telefonia/download/{{anio}}/{{mes}}/{{movimiento.DocumentoId}}">
-                    <span nz-icon nzType="download" ></span></a>
-                  </ng-container>
-                <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
-              </div>
-            </ng-container>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-spin>
-    
-
-        <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnsImport | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="gridDataImport()">
-          </angular-slickgrid>
-        </div>
-        <div>Registros: {{ gridDataImportLen }}</div>
-      </ng-template>
+                      <span nz-icon nzType="download" ></span></a>
+                    </ng-container>
+                    <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
+                  </div>
+                }
+              </nz-form-control>
+            </nz-form-item>
+          </nz-spin>
 
 
-    </nz-tab>
-  </nz-tabset>
-</form>
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnsImport | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="gridDataImport()">
+            </angular-slickgrid>
+          </div>
+          <div>Registros: {{ gridDataImportLen }}</div>
+        </ng-template>
+
+
+      </nz-tab>
+    </nz-tabset>
+  </form>
 </nz-card>

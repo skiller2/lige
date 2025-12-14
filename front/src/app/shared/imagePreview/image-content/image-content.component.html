@@ -1,41 +1,45 @@
-<app-form (eventEmitter)="fileChangeEvent($event)" *ngIf="!showCropper"></app-form>
+@if (!showCropper) {
+  <app-form (eventEmitter)="fileChangeEvent($event)"></app-form>
+}
 
 <div>
-    <image-cropper
-        [imageChangedEvent]="imageChangedEvent"
-        
-        [imageURL]="personalImageUrl()"
-        [aspectRatio]="1"
-        [resizeToWidth]="imageCroppedX"
-        [resizeToHeight]="imageCroppedY"
-        [roundCropper]="false"
-        [alignImage]="'center'"
-        [style.display]="showCropper ? null : 'none'"
-        format="jpeg"
-        (imageCropped)="imageCropped($event)"
-        (imageLoaded)="imageLoaded()"
-        (cropperReady)="cropperReady($event)"
-        (loadImageFailed)="loadImageFailed()"
-    ></image-cropper>
-    <ng-container *ngIf="showCropper">
-        <img nz-image  [nzSrc]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
-        <span *ngIf="$croppedImageFileSize | async as size">{{size | nzBytes}}, {{ imageCroppedX }}x{{imageCroppedY}}px &#64; {{imageCroppedDpi}}dpi </span>
-        <button nz-button nzType="primary" [nzSize]="'large'" (click)="saveImage()">
-            <span nz-icon nzType="download"></span>
-            Formato PBA
-        </button>
-    </ng-container>
+  <image-cropper
+    [imageChangedEvent]="imageChangedEvent"
 
-    
+    [imageURL]="personalImageUrl()"
+    [aspectRatio]="1"
+    [resizeToWidth]="imageCroppedX"
+    [resizeToHeight]="imageCroppedY"
+    [roundCropper]="false"
+    [alignImage]="'center'"
+    [style.display]="showCropper ? null : 'none'"
+    format="jpeg"
+    (imageCropped)="imageCropped($event)"
+    (imageLoaded)="imageLoaded()"
+    (cropperReady)="cropperReady($event)"
+    (loadImageFailed)="loadImageFailed()"
+  ></image-cropper>
+  @if (showCropper) {
+    <img nz-image  [nzSrc]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
+    @if ($croppedImageFileSize | async; as size) {
+      <span>{{size | nzBytes}}, {{ imageCroppedX }}x{{imageCroppedY}}px &#64; {{imageCroppedDpi}}dpi </span>
+    }
+    <button nz-button nzType="primary" [nzSize]="'large'" (click)="saveImage()">
+      <span nz-icon nzType="download"></span>
+      Formato PBA
+    </button>
+  }
+
+
 </div>
 
 
-<!-- 
+<!--
 <nz-upload [nzDownload]="(dummyDownload) => {}">
-    <button nz-button nzType="primary" [nzSize]="'large'">
-        <span nz-icon nzType="download"></span>
-        Download
-    </button>
+  <button nz-button nzType="primary" [nzSize]="'large'">
+    <span nz-icon nzType="download"></span>
+    Download
+  </button>
 </nz-upload> -->
 
 <!-- [imageFile]="personalImage" -->

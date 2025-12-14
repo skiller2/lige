@@ -7,7 +7,7 @@ import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { CommonModule } from '@angular/common';
+
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
@@ -21,9 +21,12 @@ import { log } from '@delon/util';
 @Component({
     selector: 'app-acceso-bot-form',
     imports: [
-        SHARED_IMPORTS,
-        CommonModule, PersonalSearchComponent, NzFlexModule, NzUploadModule, FileUploadComponent
-    ],
+    SHARED_IMPORTS,
+    PersonalSearchComponent,
+    NzFlexModule,
+    NzUploadModule,
+    FileUploadComponent
+],
     templateUrl: './acceso-bot-form.component.html',
     styleUrl: './acceso-bot-form.component.less'
 })

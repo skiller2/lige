@@ -1,14 +1,20 @@
-<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Inasistencia, Código"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
-  <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.TipoInasistenciaId"
-      nzLabel="{{ option.TipoInasistenciaDescripcion }} ({{option.TipoInasistenciaId}})" />
-  </ng-container>
-  <nz-option *ngIf="extendedOption.TipoInasistenciaId > 0" [nzValue]="extendedOption.TipoInasistenciaId"
-    [nzLabel]="extendedOption.TipoInasistenciaDescripcion" />
-  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Cargando datos...
-  </nz-option>
+  @for (option of $optionsArray | async; track option) {
+    @if (($isOptionsLoading | async) == false) {
+      <nz-option [nzValue]="option.TipoInasistenciaId"
+        nzLabel="{{ option.TipoInasistenciaDescripcion }} ({{option.TipoInasistenciaId}})" />
+    }
+  }
+  @if (extendedOption.TipoInasistenciaId > 0) {
+    <nz-option [nzValue]="extendedOption.TipoInasistenciaId"
+      [nzLabel]="extendedOption.TipoInasistenciaDescripcion" />
+  }
+  @if ($isOptionsLoading | async) {
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Cargando datos...
+    </nz-option>
+  }
 </nz-select>

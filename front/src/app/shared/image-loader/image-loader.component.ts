@@ -3,7 +3,7 @@ import { Component, effect, inject, input, OnInit, signal } from '@angular/core'
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { SHARED_IMPORTS } from '../shared-imports';
-import { CommonModule } from '@angular/common';
+
 import { NzImageModule } from 'ng-zorro-antd/image';
 
 @Component({
@@ -13,7 +13,7 @@ import { NzImageModule } from 'ng-zorro-antd/image';
  <img nz-image [nzSrc]="imageSrc()" nzFallback="fallback()" width="100px" height="75px" style="padding-left: 10px; padding-right: 10px;"/>
 }
  `,
-  imports: [SHARED_IMPORTS, CommonModule, NzImageModule]
+  imports: [SHARED_IMPORTS, NzImageModule]
 
 })
 export class ImageLoaderComponent implements OnInit {

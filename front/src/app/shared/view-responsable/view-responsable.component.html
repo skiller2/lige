@@ -1,29 +1,37 @@
-<nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header" *ngIf="list?.length">
-  <ng-template #colheader>
-    <ul class="ulheader">
-      @if (!hasGroup() ) {
-      <li nz-typography nzType="danger"><strong>Sin Grupo Actividad Vigente</strong></li>
-      } @else {
-      @for (det of list; track $index) {
-      @if (det.tipo == 'Grupo') {
-      <li> {{ det.tipo+': '+det.detalle }} - Desde: {{ det.desde | date}} <span *ngIf="det.hasta
-      ">Hasta: </span> {{det.hasta | date}}</li>}
-      }
-      }
-      <!-- Mostrar alerta si no hay elementos de tipo 'Grupo' -->
+@if (list?.length) {
+  <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header">
+    <ng-template #colheader>
+      <ul class="ulheader">
+        @if (!hasGroup() ) {
+          <li nz-typography nzType="danger"><strong>Sin Grupo Actividad Vigente</strong></li>
+        } @else {
+          @for (det of list; track $index) {
+            @if (det.tipo == 'Grupo') {
+              <li> {{ det.tipo+': '+det.detalle }} - Desde: {{ det.desde | date}} @if (det.hasta
+                ) {
+                <span>Hasta: </span>
+              } {{det.hasta | date}}</li>}
+            }
+          }
+          <!-- Mostrar alerta si no hay elementos de tipo 'Grupo' -->
+        </ul>
+      </ng-template>
+      <nz-collapse-panel [nzHeader]="colheader" (nzActiveChange)="onChangeSize($event)">
+        @for (responsable of list; track responsable) {
+          @if (responsable.ord !=1) {
+            <li title="{{ responsable.id }}">
+              {{responsable.tipo}}: {{responsable.detalle}} (Tel: {{responsable.Telefonos}}) - Desde: {{ responsable.desde |
+              date}} @if (responsable.hasta
+              ) {
+              <span>Hasta: </span>
+            } {{responsable.hasta | date}}</li>
+          }
+        }
+      </nz-collapse-panel>
+    </nz-collapse>
+  }
 
-
-    </ul>
-  </ng-template>
-  <nz-collapse-panel [nzHeader]="colheader" (nzActiveChange)="onChangeSize($event)">
-    <ng-container *ngFor="let responsable of list">
-      <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
-        {{responsable.tipo}}: {{responsable.detalle}} (Tel: {{responsable.Telefonos}}) - Desde: {{ responsable.desde |
-        date}} <span *ngIf="responsable.hasta
-        ">Hasta: </span> {{responsable.hasta | date}}</li>
-    </ng-container>
-  </nz-collapse-panel>
-</nz-collapse>
-
-<span *ngIf="!list || list.length === 0"><p nz-typography nzType="danger"><strong>Sin Grupo Actividad Vigente</strong></p>
-</span>
+  @if (!list || list.length === 0) {
+    <span><p nz-typography nzType="danger"><strong>Sin Grupo Actividad Vigente</strong></p>
+  </span>
+}

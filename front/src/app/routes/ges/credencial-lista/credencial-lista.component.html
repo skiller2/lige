@@ -1,29 +1,36 @@
 <nz-card class="small-margin">
-  <form nz-form *ngIf="$personalData | async as data">
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
-      <nz-form-control [nzSpan]="19">
-        <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="selectedValueChange($event)" [nzDropdownMatchSelectWidth]="false" nzAllowClear
-          nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-
-          <ng-container *ngFor="let option of $optionsArray | async">
-            <nz-option *ngIf="isOptionsLoading == false" [nzValue]="option.PersonalId"
-              [nzLabel]="option.fullName"></nz-option>
-          </ng-container>
-          <nz-option *ngIf="isOptionsLoading" nzDisabled nzCustomContent>
-            <span nz-icon nzType="loading" class="loading-icon"></span>
-            Loading Data...
-          </nz-option>
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
-  </form>
+  @if ($personalData | async; as data) {
+    <form nz-form>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
+        <nz-form-control [nzSpan]="19">
+          <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="selectedValueChange($event)" [nzDropdownMatchSelectWidth]="false" nzAllowClear
+            nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+            @for (option of $optionsArray | async; track option) {
+              @if (isOptionsLoading == false) {
+                <nz-option [nzValue]="option.PersonalId"
+                [nzLabel]="option.fullName"></nz-option>
+              }
+            }
+            @if (isOptionsLoading) {
+              <nz-option nzDisabled nzCustomContent>
+                <span nz-icon nzType="loading" class="loading-icon"></span>
+                Loading Data...
+              </nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  }
 
   <div class="card-container limit-card-columns">
     <app-view-credential [(ngModel)]="credentials" name="Cred" [showPrintBtn]="false"></app-view-credential>
   </div>
   <div style="text-align: right;">
-    <button *ngIf="credentials().length" nz-button nzType="primary" [nzSize]="'large'" (click)="emptyList()">Vaciar lista</button>
+    @if (credentials().length) {
+      <button nz-button nzType="primary" [nzSize]="'large'" (click)="emptyList()">Vaciar lista</button>
+    }
   </div>
 </nz-card>

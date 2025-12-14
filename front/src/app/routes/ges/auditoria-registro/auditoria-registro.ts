@@ -1,12 +1,12 @@
 import { Component, input, model, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 
 @Component({
   selector: 'app-auditoria-registro',
-  imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
+  imports: [...SHARED_IMPORTS, NzAffixModule],
   templateUrl: './auditoria-registro.html',
   styleUrl: './auditoria-registro.less'
 })

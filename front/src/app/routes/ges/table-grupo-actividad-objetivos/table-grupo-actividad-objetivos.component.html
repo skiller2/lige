@@ -1,28 +1,26 @@
 
 <nz-card class="small-margin">
 
-  <div nz-tab *ngIf="(columnsObjetivos$|async) as columnas">
-
-
-    <div class="fila">
-      <div class="izquierda"> 
-        <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters()" (optionsChange)="listOptionsChange($event)" style="width: 80%;" />
+  @if ((columnsObjetivos$|async); as columnas) {
+    <div nz-tab>
+      <div class="fila">
+        <div class="izquierda">
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters()" (optionsChange)="listOptionsChange($event)" style="width: 80%;" />
+        </div>
+        <div class="derecha">
+          <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+          </a>
+        </div>
       </div>
-      <div class="derecha">
-        <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-        </a>
+      <div class="gridContainerGAO container-fluid">
+        <angular-slickgrid gridId="gridEditGAO" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
+          [dataset]="(gridDataObjetivos$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
+          <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
+        </angular-slickgrid>
       </div>
     </div>
-   
-
-    <div class="gridContainerGAO container-fluid">
-      <angular-slickgrid gridId="gridEditGAO" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
-        [dataset]="(gridDataObjetivos$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
-        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
-        <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
-      </angular-slickgrid>
-    </div>
-  </div>
+  }
 
 </nz-card>

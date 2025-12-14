@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { ApiService } from 'src/app/services/api.service';
@@ -12,10 +12,8 @@ import { Injector, inject } from '@angular/core';
     templateUrl: './editor-tipocuenta.component.html',
     styleUrls: ['./editor-tipocuenta.component.less'],
     imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        //    PersonalSearchComponent
-    ]
+    ...SHARED_IMPORTS
+]
 })
 export class EditorTipoCuentaComponent {
   @ViewChild("eto") eto!: NzSelectComponent

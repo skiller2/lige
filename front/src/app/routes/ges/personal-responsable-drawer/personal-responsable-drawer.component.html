@@ -2,26 +2,26 @@
   [nzTitle]="'Historial de Responsables de: '  + PersonalNombre()" (nzOnClose)="visibleResponsable.set(false)">
   <ng-container *nzDrawerContent>
     <nz-card nzType="inner" nzTitle="Reasignar a nuevo Grupo Actividad">
-        <form [formGroup]="formResponsable">
+      <form [formGroup]="formResponsable">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Grupo Actividad</nz-form-label>
           <nz-form-control>
             <nz-select formControlName="GrupoActividadId" nzPlaceHolder="Grupo Actividad" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              <ng-container *ngFor="let option of $optionsResponsable | async">
+              @for (option of $optionsResponsable | async; track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              </ng-container>
+              }
             </nz-select>
           </nz-form-control>
         </nz-form-item>
-  
+
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Desde</nz-form-label>
           <nz-form-control>
             <nz-date-picker  formControlName="Desde"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
-  
+
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
             <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formResponsable.pristine">
@@ -29,8 +29,8 @@
             </button>
           </nz-form-control>
         </nz-form-item>
-  
-        </form>
+
+      </form>
     </nz-card>
 
     @if($listaResponsablePer | async; as listaResponsablePer){
@@ -55,12 +55,12 @@
                 <td>{{ item.Desde }}</td>
                 <td>{{ item.Hasta }}</td>
               </tr>
-              
-            }  
+
+            }
 
           </tbody>
         </nz-table>
-    </nz-form-control>
+      </nz-form-control>
     }
   </ng-container>
 </nz-drawer>

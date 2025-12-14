@@ -1,6 +1,6 @@
 import { Component, SimpleChanges, ViewChild, computed, input, model, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableAbmLicenciaComponent } from '../table-abm-licencia/table-abm-licencia.component'
 import { TableHorasLicenciaComponent } from '../table-horas-licencia/table-horas-licencia.component'
@@ -17,7 +17,7 @@ import { ApiService } from '../../../services/api.service';
 
 @Component({
     selector: 'app-carga-licencias',
-    imports: [SHARED_IMPORTS, CommonModule, TableHorasLicenciaComponent, TableAbmLicenciaComponent, LicenciaDrawerComponent, LicenciaHistorialDrawerComponent],
+    imports: [SHARED_IMPORTS, TableHorasLicenciaComponent, TableAbmLicenciaComponent, LicenciaDrawerComponent, LicenciaHistorialDrawerComponent],
     templateUrl: './carga-licencias.component.html',
     styleUrl: './carga-licencias.component.less'
 })

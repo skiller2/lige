@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { Subject, firstValueFrom } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SearchService } from 'src/app/services/search.service';
@@ -10,10 +10,8 @@ import { SearchService } from 'src/app/services/search.service';
     templateUrl: './editor-tipohora.component.html',
     styleUrls: ['./editor-tipohora.component.less'],
     imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        //    PersonalSearchComponent
-    ]
+    ...SHARED_IMPORTS
+]
 })
 export class EditorTipoHoraComponent {
   @ViewChild("eto") eto!: NzSelectComponent

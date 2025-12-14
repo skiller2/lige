@@ -42,11 +42,11 @@
         <nz-form-label [nzSpan]="5">Modalidad</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <nz-select formControlName="ModalidadCursoCodigo" nzPlaceHolder="Modalidad Curso" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-             <ng-container *ngFor="let option of $optionsModalidadCurso | async">
-               <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
-             </ng-container>
-           </nz-select>
+            <nz-select formControlName="ModalidadCursoCodigo" nzPlaceHolder="Modalidad Curso" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
+              @for (option of $optionsModalidadCurso | async; track option) {
+                <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
+              }
+            </nz-select>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -65,10 +65,10 @@
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
             <nz-select formControlName="CentroCapacitacionId" nzPlaceHolder="Centro de Capacitación" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important"
-            (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})" nzShowSearch>
-              <ng-container *ngFor="let option of $optionsCentroCapacitacion | async">
+              (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})" nzShowSearch>
+              @for (option of $optionsCentroCapacitacion | async; track option) {
                 <nz-option [nzValue]="option.CentroCapacitacionId" [nzLabel]="option.CentroCapacitacionRazonSocial"></nz-option>
-              </ng-container>
+              }
             </nz-select>
           </nz-input-group>
         </nz-form-control>
@@ -79,9 +79,11 @@
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
             <nz-select formControlName="CentroCapacitacionSedeId" nzPlaceHolder="Centro de Capacitación Sede" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-              <ng-container *ngFor="let option of $optionsCentroCapacitacionSede | async">
-                <nz-option *ngIf="option.CentroCapacitacionId == formCli.value.CentroCapacitacionId" [nzValue]="option.CentroCapacitacionSedeId" [nzLabel]="option.CentroCapacitacionSedeDescripcion"></nz-option>
-              </ng-container>
+              @for (option of $optionsCentroCapacitacionSede | async; track option) {
+                @if (option.CentroCapacitacionId == formCli.value.CentroCapacitacionId) {
+                  <nz-option [nzValue]="option.CentroCapacitacionSedeId" [nzLabel]="option.CentroCapacitacionSedeDescripcion"></nz-option>
+                }
+              }
             </nz-select>
           </nz-input-group>
         </nz-form-control>
@@ -89,18 +91,18 @@
 
       @if(this.formCli.enabled) {
         <nz-form-item class="btnCenter">
-            <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()">{{ 'app.btn.save' | i18n }}</button>
+          <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()">{{ 'app.btn.save' | i18n }}</button>
 
-            @if (this.CursoHabilitacionSelectedId() > 0) {
-              <button 
+          @if (this.CursoHabilitacionSelectedId() > 0) {
+            <button
               nz-popconfirm
               nzPopconfirmTitle="Esta seguro que quiere eliminar este Curso?"
               (nzOnConfirm)="deleteCurso()"
               nzPopconfirmPlacement="top"
-              nz-button 
+              nz-button
               nzType="primary"
-              nzDanger>Eliminar</button>
-            }
+            nzDanger>Eliminar</button>
+          }
         </nz-form-item>
       }
     </form>

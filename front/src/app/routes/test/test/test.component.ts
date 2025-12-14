@@ -1,5 +1,5 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, model, viewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, model, viewChild, DOCUMENT } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { NzModalService } from 'ng-zorro-antd/modal';

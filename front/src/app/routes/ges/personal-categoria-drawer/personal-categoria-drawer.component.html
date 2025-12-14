@@ -4,71 +4,75 @@
 
     <nz-card nzType="inner" nzTitle="Asignar Categoría" >
       <form [formGroup]="formCategoria">
-      
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Tipo de Asociado</nz-form-label>
-        <nz-form-control>
-          <nz-select formControlName="TipoAsociadoId" nzPlaceHolder="Tipo Asociado" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" (ngModelChange)="selectedTipoAsociadoChange($event)" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsTipoAsociado | async">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Categoria</nz-form-label>
-        <nz-form-control>
-          <nz-select formControlName="CategoriaId" nzPlaceHolder="Categoria" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsCategoria | async">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Tipo de Asociado</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="TipoAsociadoId" nzPlaceHolder="Tipo Asociado" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" (ngModelChange)="selectedTipoAsociadoChange($event)" nzShowSearch>
+              @for (option of $optionsTipoAsociado | async; track option) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Desde</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker ngModel="date" [(ngModel)]="periodo" formControlName="Desde"></nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Categoria</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="CategoriaId" nzPlaceHolder="Categoria" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              @for (option of $optionsCategoria | async; track option) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formCategoria.pristine">
-            {{ 'app.btn.save' | i18n }}
-          </button>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Desde</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker ngModel="date" [(ngModel)]="periodo" formControlName="Desde"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
 
-    </form>
+        <nz-form-item>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formCategoria.pristine">
+              {{ 'app.btn.save' | i18n }}
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+
+      </form>
     </nz-card>
 
-    <nz-form-control *ngIf="$listaCategoriaPer | async as listaCategoriaPer ">
-      <nz-table #categoriaPer [nzData]="listaCategoriaPer" nzSize="small" [nzPageSize]="100000000"
-        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-        <thead>
-          <tr>
-            <th>Tipo de Asociado</th>
-            <th>Categoria</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let data of categoriaPer.data" class="">
-            <td>{{ data.TipoAsociado }}</td>
-            <td>{{ data.Categoria }}</td>
-            <td>{{ data.Desde }}</td>
-            <td>{{ data.Hasta }}</td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </nz-form-control>
-    
+    @if ($listaCategoriaPer | async; as listaCategoriaPer ) {
+      <nz-form-control>
+        <nz-table #categoriaPer [nzData]="listaCategoriaPer" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th>Tipo de Asociado</th>
+              <th>Categoria</th>
+              <th>Desde</th>
+              <th>Hasta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (data of categoriaPer.data; track data) {
+              <tr class="">
+                <td>{{ data.TipoAsociado }}</td>
+                <td>{{ data.Categoria }}</td>
+                <td>{{ data.Desde }}</td>
+                <td>{{ data.Hasta }}</td>
+              </tr>
+            }
+          </tbody>
+        </nz-table>
+      </nz-form-control>
+    }
+
   </ng-container>
 </nz-drawer>

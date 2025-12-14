@@ -1,7 +1,8 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleDomicilio()" [nzPlacement]="placement" [nzWidth]="750"
   [nzTitle]="'Domicilio: '  + PersonalNombre()" (nzOnClose)="visibleDomicilio.set(false)">
   <ng-container *nzDrawerContent>
-    <nz-form-control *ngIf="$listaDomicilioPer | async as listaDomicilioPer ">
+    @if ($listaDomicilioPer | async; as listaDomicilioPer ) {
+      <nz-form-control>
         <nz-table #asistPer [nzData]="listaDomicilioPer" nzSize="small" [nzPageSize]="100000000"
           [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
           <thead>
@@ -17,18 +18,21 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let data of asistPer.data" class="">
-              <td>{{ data.Calle }}</td>
-              <td>{{ data.Numero }}</td>
-              <td>{{ data.Pais }}</td>
-              <td>{{ data.Provincia }}</td>
-              <td>{{ data.Localidad }}</td>
-              <td>{{ data.Barrio }}</td>
-              <td>{{ data.CodigoPostal }}</td>
-              <td>{{ data.Estado }}</td>
-            </tr>
+            @for (data of asistPer.data; track data) {
+              <tr class="">
+                <td>{{ data.Calle }}</td>
+                <td>{{ data.Numero }}</td>
+                <td>{{ data.Pais }}</td>
+                <td>{{ data.Provincia }}</td>
+                <td>{{ data.Localidad }}</td>
+                <td>{{ data.Barrio }}</td>
+                <td>{{ data.CodigoPostal }}</td>
+                <td>{{ data.Estado }}</td>
+              </tr>
+            }
           </tbody>
         </nz-table>
-    </nz-form-control>
+      </nz-form-control>
+    }
   </ng-container>
 </nz-drawer>

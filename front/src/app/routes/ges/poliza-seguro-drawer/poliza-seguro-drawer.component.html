@@ -14,7 +14,9 @@
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select formControlName="TipoSeguroCodigo"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
-            <nz-option *ngFor="let tiposeguro of $optionsTipoSeguro | async" [nzValue]="tiposeguro.TipoSeguroCodigo" [nzLabel]="tiposeguro.TipoSeguroNombre"></nz-option> 
+            @for (tiposeguro of $optionsTipoSeguro | async; track tiposeguro) {
+              <nz-option [nzValue]="tiposeguro.TipoSeguroCodigo" [nzLabel]="tiposeguro.TipoSeguroNombre"></nz-option>
+            }
           </nz-select>
         </nz-form-control>
       </nz-form-item>
@@ -23,10 +25,12 @@
         <nz-form-label [nzSpan]="5">Compañía</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select formControlName="CompaniaSeguroId"  [nzDropdownMatchSelectWidth]="false"  nzPlaceHolder="Seleccione compañía" nzShowSearch>
-            <nz-option *ngFor="let compania of $optionsCompaniaSeguro | async" [nzValue]="compania.CompaniaSeguroId" [nzLabel]="compania.CompaniaSeguroDescripcion"></nz-option> 
+            @for (compania of $optionsCompaniaSeguro | async; track compania) {
+              <nz-option [nzValue]="compania.CompaniaSeguroId" [nzLabel]="compania.CompaniaSeguroDescripcion"></nz-option>
+            }
           </nz-select>
         </nz-form-control>
-      </nz-form-item>   
+      </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Nro de Póliza</nz-form-label>
@@ -55,83 +59,83 @@
       <nz-form-control>
 
         <app-file-upload formControlName="files" [idForSearh]="formCli.get('DocumentoId')?.value ?? 0" [cantMaxFiles]="1"
-          [textForSearch]="'POLSEG'" [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"  ></app-file-upload>
-      </nz-form-control> 
+        [textForSearch]="'POLSEG'" [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"  ></app-file-upload>
+      </nz-form-control>
 
-      
-    @if(this.formCli.enabled) {
-      <nz-form-item class="btnCenter">
+
+      @if(this.formCli.enabled) {
+        <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
 
-         <!-- @if (this.PolizaSeguroCodigo()) {
-          
-          <button 
-          nz-popconfirm
-          nzPopconfirmTitle="Esta seguro que quiere eliminar esta póliza?"
-          (nzOnConfirm)="deletePoliza()"
-          nzPopconfirmPlacement="top"
-          nz-button 
-          nzType="primary"
+          <!-- @if (this.PolizaSeguroCodigo()) {
+
+          <button
+            nz-popconfirm
+            nzPopconfirmTitle="Esta seguro que quiere eliminar esta póliza?"
+            (nzOnConfirm)="deletePoliza()"
+            nzPopconfirmPlacement="top"
+            nz-button
+            nzType="primary"
           nzDanger>Eliminar</button>
-        } -->
-      </nz-form-item>
-    }
-   
-    @if (PolizaSeguroResultado()) {
+          } -->
+        </nz-form-item>
+      }
 
-      <div class="validation-tables-container">
-        @if (PolizaSeguroResultado()?.notFoundInPersonalTable.length > 0) {
-          <table class="validation-table">
-            <thead>
-              <tr>
-                <th class="table-header">No localizados en el sistema.</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalTable.join(', ') }}</td>
-              </tr>
-            </tbody>
-          </table>
-        }
+      @if (PolizaSeguroResultado()) {
 
-        @if (PolizaSeguroResultado()?.notFoundInPersonalSeguro.length > 0) {
-          <table class="validation-table">
-            <thead>
-              <tr>
-                <th class="table-header">Estan asegurados y no deberian estarlo.</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalSeguro.join(', ') }}</td>
-              </tr>
-            </tbody>
-          </table>
-        }
+        <div class="validation-tables-container">
+          @if (PolizaSeguroResultado()?.notFoundInPersonalTable.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">No localizados en el sistema.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalTable.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
 
-        @if (PolizaSeguroResultado()?.shouldNotBeInSeguro?.length > 0) {
-          <table class="validation-table">
-            <thead>
-              <tr>
-                <th class="table-header">Deberían estar asegurados, pero no lo están.</th>
+          @if (PolizaSeguroResultado()?.notFoundInPersonalSeguro.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">Estan asegurados y no deberian estarlo.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().notFoundInPersonalSeguro.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
 
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="table-content">{{ PolizaSeguroResultado().shouldNotBeInSeguro.join(', ') }}</td>
-              </tr>
-            </tbody>
-          </table>
-        }
-      </div>
-    }
+          @if (PolizaSeguroResultado()?.shouldNotBeInSeguro?.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">Deberían estar asegurados, pero no lo están.</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().shouldNotBeInSeguro.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
+        </div>
+      }
 
 
-  </form>
+    </form>
 
-    
+
     <!-- <p>Debug Valores: {{formCli.value | json }}</p>   -->
 
   </ng-container>

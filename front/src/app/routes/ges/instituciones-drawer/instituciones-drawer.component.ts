@@ -2,7 +2,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, signal, output, effect } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -23,7 +23,7 @@ export interface Option {
 
 @Component({
     selector: 'app-instituciones-drawer',
-    imports: [SHARED_IMPORTS, CommonModule, NzUploadModule, NzAutocompleteModule],
+    imports: [SHARED_IMPORTS, NzUploadModule, NzAutocompleteModule],
     templateUrl: './instituciones-drawer.component.html',
     styleUrl: './instituciones-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush

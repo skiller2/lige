@@ -1,6 +1,6 @@
 import { SHARED_IMPORTS } from '@shared';
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, ElementRef, Inject, OnInit, Renderer2, signal, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, ElementRef, Inject, OnInit, Renderer2, signal, ViewChild, DOCUMENT } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { PersonaObj, Search } from 'src/app/shared/schemas/personal.schemas';

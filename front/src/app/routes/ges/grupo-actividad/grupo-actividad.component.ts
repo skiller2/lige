@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { TableGrupoActividadGruposComponent } from '../table-grupo-actividad-grupos/table-grupo-actividad-grupos.component'
@@ -12,14 +12,13 @@ import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
 @Component({
     selector: 'app-grupo-actividad',
     imports: [
-        SHARED_IMPORTS,
-        CommonModule,
-        TableGrupoActividadGruposComponent,
-        TableGrupoActividadResponsablesComponent,
-        TableGrupoActividadObjetivosComponent,
-        TableGrupoActividadPersonalComponent,
-        ReporteComponent
-    ],
+    SHARED_IMPORTS,
+    TableGrupoActividadGruposComponent,
+    TableGrupoActividadResponsablesComponent,
+    TableGrupoActividadObjetivosComponent,
+    TableGrupoActividadPersonalComponent,
+    ReporteComponent
+],
     templateUrl: './grupo-actividad.component.html',
     styleUrl: './grupo-actividad.component.less'
 })

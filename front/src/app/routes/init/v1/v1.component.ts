@@ -1,5 +1,5 @@
 import { Platform } from '@angular/cdk/platform';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   AfterContentInit,
   AfterViewInit,
@@ -14,6 +14,7 @@ import {
   ViewChild,
   ViewEncapsulation,
   inject,
+  DOCUMENT
 } from '@angular/core';
 import type { Chart } from '@antv/g2';
 //import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';

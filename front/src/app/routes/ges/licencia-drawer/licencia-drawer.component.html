@@ -2,39 +2,39 @@
   [nzTitle]="tituloDrawer() " (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
     @if (cambios()|async) {}
-    <form nz-form ngForm>
-      <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">SucursalId</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <input nz-input name="SucursalId" ngModel  />
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">DocumentoId</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <input nz-input name="DocumentoId" ngModel  />
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">PersonalLicenciaId</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <input nz-input name="PersonalLicenciaId" ngModel  />
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Persona</nz-form-label>
-        <nz-form-control [nzSpan]="18">
-          <nz-input-group>
-            <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) " [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-personal-search>
-            <p> </p>
-          </nz-input-group>
-        </nz-form-control>
-        <nz-form-control [nzSpan]="1">
-          <nz-input-group >
-            <button nz-button nzType="default" [disabled]="PersonalId() == 0 && this.ngForm().value.PersonalId == 0 " (click)="openDrawerforConsultHistory()" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" 
+      <form nz-form ngForm>
+        <nz-form-item style="display:none">
+          <nz-form-label [nzSpan]="3">SucursalId</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <input nz-input name="SucursalId" ngModel  />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item style="display:none">
+          <nz-form-label [nzSpan]="3">DocumentoId</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <input nz-input name="DocumentoId" ngModel  />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item style="display:none">
+          <nz-form-label [nzSpan]="3">PersonalLicenciaId</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <input nz-input name="PersonalLicenciaId" ngModel  />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <nz-input-group>
+              <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) " [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-personal-search>
+              <p> </p>
+            </nz-input-group>
+          </nz-form-control>
+          <nz-form-control [nzSpan]="1">
+            <nz-input-group >
+              <button nz-button nzType="default" [disabled]="PersonalId() == 0 && this.ngForm().value.PersonalId == 0 " (click)="openDrawerforConsultHistory()" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
               nzTheme="outline"></span></button>
-              <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()"><span nz-icon nzType="menu-unfold" 
-                nzTheme="outline"></span></button> -->
+              <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()"><span nz-icon nzType="menu-unfold"
+            nzTheme="outline"></span></button> -->
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -43,7 +43,7 @@
         <nz-form-control>
           <app-situacionrevista-search name="PersonalLicenciaSituacionRevistaId" ngModel ></app-situacionrevista-search>
         </nz-form-control>
-      </nz-form-item> 
+      </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Desde: </nz-form-label>
         <nz-form-control [nzXs]="24">
@@ -62,20 +62,22 @@
           <app-inasistencia-search name="TipoInasistenciaId" ngModel ></app-inasistencia-search>
         </nz-form-control>
       </nz-form-item>
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Categoría</nz-form-label>
-            <nz-form-control>
-                <!-- <app-categoria-persona [sucursalid]="SucursalId" [PersonalId]="PersonalIdForEdit" -->
-              <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [PersonalId]="ngForm().value?.PersonalId"
-                [selectedPeriod]="selectedPeriod()" name="categoria" ngModel ></app-categoria-persona>
-          </nz-form-control>
-        </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Categoría</nz-form-label>
+        <nz-form-control>
+          <!-- <app-categoria-persona [sucursalid]="SucursalId" [PersonalId]="PersonalIdForEdit" -->
+          <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [PersonalId]="ngForm().value?.PersonalId"
+          [selectedPeriod]="selectedPeriod()" name="categoria" ngModel ></app-categoria-persona>
+        </nz-form-control>
+      </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Se paga</nz-form-label>
         <nz-form-control>
-          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga" ngModel 
-           [nzDropdownMatchSelectWidth]="false" >
-          <nz-option *ngFor="let option of options" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga" ngModel
+            [nzDropdownMatchSelectWidth]="false" >
+            @for (option of options; track option) {
+              <nz-option [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            }
           </nz-select>
         </nz-form-control>
       </nz-form-item>
@@ -97,31 +99,31 @@
           <textarea  rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input ></textarea>
         </nz-textarea-count>
       </nz-form-item>
- 
-         <nz-form-control>
-          <!-- DocumentoId: {{ngForm().value.DocumentoId}} -->
-            <app-file-upload  ngModel name="files"   [idForSearh]="this.ngForm().value.DocumentoId ?? 0"
-            [textForSearch]="'LIC'"
-            [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" ></app-file-upload>
-          </nz-form-control>
-      
 
-    @if(this.ngForm().enabled) {
-      <nz-form-item class="btnCenter">
+      <nz-form-control>
+        <!-- DocumentoId: {{ngForm().value.DocumentoId}} -->
+        <app-file-upload  ngModel name="files"   [idForSearh]="this.ngForm().value.DocumentoId ?? 0"
+          [textForSearch]="'LIC'"
+        [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" ></app-file-upload>
+      </nz-form-control>
+
+
+      @if(this.ngForm().enabled) {
+        <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
           <!-- @if (this.ngForm().value.PersonalLicenciaId>0) {
-          
+
           <button [disabled]="ngForm().dirty"
-          nz-popconfirm
-          nzPopconfirmTitle="Esta seguro que quiere eliminar esta licencia?"
-          (nzOnConfirm)="deletelicencia()"
-          nzPopconfirmPlacement="top"
-          nz-button 
-          nzType="primary"
+            nz-popconfirm
+            nzPopconfirmTitle="Esta seguro que quiere eliminar esta licencia?"
+            (nzOnConfirm)="deletelicencia()"
+            nzPopconfirmPlacement="top"
+            nz-button
+            nzType="primary"
           nzDanger>Eliminar</button>
-        } -->
-      </nz-form-item>
-    }
+          } -->
+        </nz-form-item>
+      }
 
     </form>
 

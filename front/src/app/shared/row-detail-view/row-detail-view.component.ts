@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { AngularGridInstance, Column, SlickDataView, SlickGrid } from 'angular-slickgrid';
@@ -6,7 +6,7 @@ import { AngularGridInstance, Column, SlickDataView, SlickGrid } from 'angular-s
 @Component({
     //  selector: 'app-row-detail-view',
     templateUrl: './row-detail-view.component.html',
-    imports: [...SHARED_IMPORTS, CommonModule]
+    imports: [...SHARED_IMPORTS]
 })
 export class RowDetailViewComponent implements OnInit {
 

@@ -7,7 +7,7 @@ import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableHistorialLicenciaComponent } from '../table-historial-licencia/table-historial-licencia.component'
@@ -20,7 +20,7 @@ export interface Option {
 
 @Component({
     selector: 'app-licencia-historial-drawer',
-    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, TableHistorialLicenciaComponent],
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, TableHistorialLicenciaComponent],
     templateUrl: './licencia-historial-drawer.component.html',
     styleUrl: './licencia-historial-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush

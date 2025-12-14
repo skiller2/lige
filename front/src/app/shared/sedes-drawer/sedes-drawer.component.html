@@ -1,7 +1,7 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
   [nzTitle]="'Centro de Capacitación: ' + CentroCapacitacionName()" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
-    
+
     <nz-card nzType="inner" nzTitle="Agregar o modificar Sedes">
       <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
         <nz-button-group style="text-align: right;">
@@ -13,15 +13,17 @@
           </a>
         </nz-button-group>
       </div>
-      <div nz-tab *ngIf="(columnsSedes$|async) as columnas">
-       <div class="gridContainer container-fluid">
-        <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
-          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
-          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
-        </angular-slickgrid>
-      </div>
-    </div>
-    
+      @if ((columnsSedes$|async); as columnas) {
+        <div nz-tab>
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
+              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
+            </angular-slickgrid>
+          </div>
+        </div>
+      }
+
 
     </nz-card>
     <!-- <p>Debug Valores: {{formCli.value | json }}</p>  -->

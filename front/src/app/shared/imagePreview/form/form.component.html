@@ -1,10 +1,16 @@
 <ng-container>
-    <button nz-button onclick="upload.click();"> 
-        <span nz-icon nzType="upload"></span>
-        <span *ngIf="!($currentIsFile | async) ">{{ 'app.btn.file' | i18n }}</span>
+  <button nz-button onclick="upload.click();">
+    <span nz-icon nzType="upload"></span>
+    @if (!($currentIsFile | async) ) {
+      <span>{{ 'app.btn.file' | i18n }}</span>
+    }
 
-        <span *ngIf="($currentFileName | async) as name ">{{name}}</span>
-        <span *ngIf="($currentFileSize | async) as size ">{{size | nzBytes}} </span>
-    </button>
-    <input (change)="fileChange($event)" id="upload" type="file" accept="image/*"/>
+    @if (($currentFileName | async); as name ) {
+      <span>{{name}}</span>
+    }
+    @if (($currentFileSize | async); as size ) {
+      <span>{{size | nzBytes}} </span>
+    }
+  </button>
+  <input (change)="fileChange($event)" id="upload" type="file" accept="image/*"/>
 </ng-container>

@@ -9,9 +9,9 @@
           <nz-form-control>
             <nz-select formControlName="ActaId" nzPlaceHolder="Nro Acta" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="selectedNroActaChange($event)">
-              <ng-container *ngFor="let option of optionsNroActa || []">
+              @for (option of optionsNroActa || []; track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              </ng-container>
+              }
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -20,7 +20,7 @@
           <nz-form-label [nzSpan]="5">Fecha de Acta</nz-form-label>
           <nz-form-control [nzSpan]="15">
             <nz-date-picker formControlName="ActaFechaActa" nzPlaceHolder="" nzDisabled></nz-date-picker>
-          </nz-form-control>  
+          </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
@@ -28,9 +28,9 @@
           <nz-form-control>
             <nz-select formControlName="TipoActa" nzPlaceHolder="Tipo Acta" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              <ng-container *ngFor="let option of $optionsTipoActa | async">
+              @for (option of $optionsTipoActa | async; track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              </ng-container>
+              }
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -40,9 +40,9 @@
           <nz-form-control>
             <nz-select formControlName="PersonalSituacionRevistaId" nzPlaceHolder="Situación Revista Asociada" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              <ng-container *ngFor="let option of $optionsSitRevsitaAsoc | async">
+              @for (option of $optionsSitRevsitaAsoc | async; track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              </ng-container>
+              }
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -67,32 +67,35 @@
 
 
     <!-- grilla con LISTADO DE PersonalActa -->
-    <nz-form-control *ngIf="$listaPersonalActa| async as listaPersonalActa ">
-      <nz-table #PersonalActa [nzData]="listaPersonalActa" nzSize="small" [nzPageSize]="100000000"
-        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-        <thead>
-          <tr>
-            <th nzWidth="140px">Acta</th>
-            <th nzWidth="80px">Tipo</th>
-            <th>Sit.Revista Asoc.</th>
-            <th>Descripción</th>
-            <th nzWidth="90px">Desde</th>
-            <th nzWidth="90px">Hasta</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let data of PersonalActa.data" class="">
-            <td>{{ data.Acta }}</td>
-            <td>{{ data.TipoPersonalActaDescripcion }}</td>
-            <td>{{ data.SituacionRevista }}</td>
-            <td>{{ data.PersonalActaDescripcion }}</td>
-            <td>{{ data.Desde }}</td>
-            <td>{{ data.Hasta }}</td>
-
-          </tr>
-        </tbody>
-      </nz-table>
-    </nz-form-control>
+    @if ($listaPersonalActa| async; as listaPersonalActa ) {
+      <nz-form-control>
+        <nz-table #PersonalActa [nzData]="listaPersonalActa" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th nzWidth="140px">Acta</th>
+              <th nzWidth="80px">Tipo</th>
+              <th>Sit.Revista Asoc.</th>
+              <th>Descripción</th>
+              <th nzWidth="90px">Desde</th>
+              <th nzWidth="90px">Hasta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (data of PersonalActa.data; track data) {
+              <tr class="">
+                <td>{{ data.Acta }}</td>
+                <td>{{ data.TipoPersonalActaDescripcion }}</td>
+                <td>{{ data.SituacionRevista }}</td>
+                <td>{{ data.PersonalActaDescripcion }}</td>
+                <td>{{ data.Desde }}</td>
+                <td>{{ data.Hasta }}</td>
+              </tr>
+            }
+          </tbody>
+        </nz-table>
+      </nz-form-control>
+    }
 
   </ng-container>
 </nz-drawer>

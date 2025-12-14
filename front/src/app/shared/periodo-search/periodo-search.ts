@@ -15,7 +15,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { log } from '@delon/util'
 import { SHARED_IMPORTS } from '@shared'
-import { CommonModule, DatePipe } from '@angular/common'
+import { DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-periodo-search',
@@ -29,7 +29,7 @@ import { CommonModule, DatePipe } from '@angular/common'
         },
         DatePipe
     ],
-    imports: [...SHARED_IMPORTS, CommonModule]
+    imports: [...SHARED_IMPORTS]
 })
 
 export class PeriodoSearchComponent implements ControlValueAccessor {

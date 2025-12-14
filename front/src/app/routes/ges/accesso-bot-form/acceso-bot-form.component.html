@@ -1,95 +1,104 @@
 
-  <ng-container >
-    <form nz-form ngForm >
- 
-      <nz-form-item class="imgContainer">
+<ng-container >
+  <form nz-form ngForm >
 
-        <nz-image-group  >
+    <nz-form-item class="imgContainer">
 
+      <nz-image-group  >
+
+        @for (image of images(); track image) {
           <img
-          *ngFor="let image of images()"
-          nz-image
-          class="imgStyle"
-          [nzSrc]="image.src"
-        />
+            nz-image
+            class="imgStyle"
+            [nzSrc]="image.src"
+            />
+        }
 
-        </nz-image-group> 
-   
-      </nz-form-item>
+      </nz-image-group>
 
-      <nz-form-item class="imgContainer">
+    </nz-form-item>
 
-        <div *ngIf="qrCodeResult">
-            <p>Contenido del QR: {{ qrCodeResult() }}</p>
+    <nz-form-item class="imgContainer">
+
+      @if (qrCodeResult) {
+        <div>
+          <p>Contenido del QR: {{ qrCodeResult() }}</p>
         </div>
-
-  
-</nz-form-item>
+      }
 
 
-      <nz-form-item >
-        <nz-form-label [nzSpan]="7">Persona</nz-form-label>
-        <nz-form-control [nzSpan]="10">
-            <!-- <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) "></app-personal-search>  -->
-            <app-personal-search  name="PersonalId" ngModel  (ngModelChange)="onPersonalIdChange($event)"></app-personal-search> 
+    </nz-form-item>
 
-        </nz-form-control>
-      </nz-form-item>
 
+    <nz-form-item >
+      <nz-form-label [nzSpan]="7">Persona</nz-form-label>
+      <nz-form-control [nzSpan]="10">
+        <!-- <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) "></app-personal-search>  -->
+        <app-personal-search  name="PersonalId" ngModel  (ngModelChange)="onPersonalIdChange($event)"></app-personal-search>
+
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="7">DNI</nz-form-label>
+      <nz-form-control  [nzSpan]="10">
+        <input nz-input type="number" name="PersonalDocumentoNro" ngModel [readonly]="dniDisabled()"   />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="7">Números de Teléfono</nz-form-label>
+      <nz-form-control  [nzSpan]="10">
+        <input nz-input type="number" name="telefono" ngModel   />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="7">Código</nz-form-label>
+      <nz-form-control  [nzSpan]="5" >
+        <input nz-input name="codigo" ngModel  [readonly]="true"   />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="7">Generar Nuevo Código</nz-form-label>
+      <nz-form-control  [nzSpan]="5">
+        <label nz-checkbox ngModel name="nuevoCodigo"  ></label>
+      </nz-form-control>
+    </nz-form-item>
+
+
+    @if (ngForm().enabled) {
+      <nz-form-control>
+        <app-file-upload ngModel name="files" [idForSearh]="this.PersonalId()" [textForSearch]="'DOC'" [fileAccept]="'image/*'"
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'Documento'"></app-file-upload>
+      </nz-form-control>
+    }
+
+
+    @if (ngForm().enabled) {
       <nz-form-item>
-        <nz-form-label [nzSpan]="7">DNI</nz-form-label>
-            <nz-form-control  [nzSpan]="10">
-                <input nz-input type="number" name="PersonalDocumentoNro" ngModel [readonly]="dniDisabled()"   />
-            </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="7">Números de Teléfono</nz-form-label>
-            <nz-form-control  [nzSpan]="10">
-                <input nz-input type="number" name="telefono" ngModel   />
-            </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="7">Código</nz-form-label>
-        <nz-form-control  [nzSpan]="5" >
-            <input nz-input name="codigo" ngModel  [readonly]="true"   />
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="7">Generar Nuevo Código</nz-form-label>
-        <nz-form-control  [nzSpan]="5">
-            <label nz-checkbox ngModel name="nuevoCodigo"  ></label>
-        </nz-form-control>
-      </nz-form-item>
-
-
-        <nz-form-control *ngIf="ngForm().enabled">
-          <app-file-upload ngModel name="files" [idForSearh]="this.PersonalId()" [textForSearch]="'DOC'" [fileAccept]="'image/*'"
-          [columnForSearch]="'PersonalId'" [tableForSearch]="'Documento'"></app-file-upload>
-        </nz-form-control>
-        
-      
-      <nz-form-item *ngIf="ngForm().enabled">
-        <nz-form-control style="display: flex; justify-content: center; align-items: center;">  
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           <!-- <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()"   [disabled]="PersonalId() <= 0">
-            {{ 'app.btn.save' | i18n }}
-          </button> -->
-          <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="!ngForm().dirty">
-            {{ 'app.btn.save' | i18n }}
-          </button>
+          {{ 'app.btn.save' | i18n }}
+        </button> -->
+        <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="!ngForm().dirty">
+          {{ 'app.btn.save' | i18n }}
+        </button>
+        @if (edit()) {
           <button nzType="primary" nz-button nzDanger  nz-popconfirm
-          nzPopconfirmTitle="Esta seguro que quiere eliminar este Acceso?"
-          (nzOnConfirm)="deleteAcceso()"
-          nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()"  >
-          {{ 'app.btn.delete' | i18n }}
+            nzPopconfirmTitle="Esta seguro que quiere eliminar este Acceso?"
+            (nzOnConfirm)="deleteAcceso()"
+            nzPopconfirmPlacement="top" [nzLoading]="isLoading()"  >
+            {{ 'app.btn.delete' | i18n }}
           </button>
-        </nz-form-control>
-      </nz-form-item>
+        }
+      </nz-form-control>
+    </nz-form-item>
+  }
 
-      
-    </form>
-    <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
-  </ng-container>
+
+</form>
+<!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
+</ng-container>
 

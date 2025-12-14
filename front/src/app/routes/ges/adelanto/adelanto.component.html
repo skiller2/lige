@@ -2,49 +2,52 @@
 
   <div nz-col nzSpan="12">
     <nz-form-control>
-      
-    <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+
+      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
       <nz-date-picker nzMode="month"  [(ngModel)]="periodo" (ngModelChange)="dateChange($event)" />
     </nz-form-control>
   </div>
 
-  
+
   <div nz-row class="contentStyle">
     <div nz-col nzSpan="13" class="listStyle">
       <ul nz-menu nzMode="horizontal" style="display: flex;">
-    <li nz-menu-item nzMatchRouter>
-      <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'adelanto','listado']">Listado</a>
-    </li>
-    <li nz-menu-item nzMatchRouter>
-      <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
-    </li>
-
-    <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/adelanto/listado'">
-      <ul>
-        <li nz-menu-item (click)="exportGrid()">
-          <span nz-icon nzType="download"></span>XLS
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'adelanto','listado']">Listado</a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
+        </li>
+
+        @if (router.url === '/ges/adelanto/listado') {
+          <li nz-submenu nzTitle="Acciones">
+            <ul>
+              <li nz-menu-item (click)="exportGrid()">
+                <span nz-icon nzType="download"></span>XLS
+              </li>
+            </ul>
+          </li>
+        }
       </ul>
-    </li>
-  </ul>
+    </div>
   </div>
-</div>
   <form nz-form #adelanto="ngForm" class="">
 
     <!-- <nz-form-item>
-      <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
-      <nz-form-control>
-        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-      </nz-form-control>
-    </nz-form-item> -->
+    <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+    </nz-form-control>
+  </nz-form-item> -->
 
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-      <nz-tab></nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/adelanto/listado">Listado</a>
-        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab></nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/adelanto/listado">Listado</a>
+      @if ((columns$|async); as columnas) {
+        <ng-template nz-tab>
           <shared-filtro-builder #sfb [startFilters]="startFilters()"  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
@@ -53,34 +56,37 @@
             </angular-slickgrid>
           </div>
         </ng-template>
-      </nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/adelanto/carga">Carga</a>
+      }
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/adelanto/carga">Carga</a>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Persona</nz-form-label>
-          <nz-form-control>
-            <app-personal-search name="PersonalId" (ngModelChange)="this.formChange($event)" ngModel [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"/>
-          </nz-form-control>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-          <nz-form-control>
-            <app-view-responsable *ngIf="$personaResponsables| async as perResp"
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+        <nz-form-control>
+          <app-personal-search name="PersonalId" (ngModelChange)="this.formChange($event)" ngModel [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"/>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+        <nz-form-control>
+          @if ($personaResponsables| async; as perResp) {
+            <app-view-responsable
             [list]="perResp"></app-view-responsable>
-          </nz-form-control>
-        </nz-form-item>
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Trabaja en</nz-form-label>
-          <nz-form-control>
-            @if ((objetivos$ | async)?.asistencia; as objetivos){
+          }
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Trabaja en</nz-form-label>
+        <nz-form-control>
+          @if ((objetivos$ | async)?.asistencia; as objetivos){
 
-              @if (!objetivos.length) { <li>No tiene horas cargadas</li>}
-              
-              @for (objetivo of objetivos; track objetivo.ObjetivoId) {
+            @if (!objetivos.length) { <li>No tiene horas cargadas</li>}
+
+            @for (objetivo of objetivos; track objetivo.ObjetivoId) {
               <li title="{{ objetivo.ObjetivoId }}">
-                {{objetivo.ObjetivoCodigo}} {{objetivo.ClienteElementoDependienteDescripcion}} {{objetivo.totalhorascalc}}hs </li> }
-              }            
+              {{objetivo.ObjetivoCodigo}} {{objetivo.ClienteElementoDependienteDescripcion}} {{objetivo.totalhorascalc}}hs </li> }
+            }
           </nz-form-control>
         </nz-form-item>
 
@@ -121,17 +127,21 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let data of tableAdelantos.data">
-                  <td>{{ data.PersonalCUITCUILCUIT }}</td>
-                  <td>{{ data.ApellidoNombre }}</td>
-                  <td>{{ data.PersonalPrestamoMonto | I18NCurrency }}</td>
-                  <td>{{ data.PersonalPrestamoAudFechaIng | date }}</td>
-                  <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
-                  <td *ngIf="data.PersonalPrestamoAprobado=='S'; then aprobado else pendiente"></td>
-                  <ng-template #aprobado>Aprobado</ng-template>
-                  <ng-template #pendiente>Pendiente</ng-template>
-                  <td>{{ data.PersonalPrestamoAplicaEl }}</td>
-                </tr>
+                @for (data of tableAdelantos.data; track data) {
+                  <tr>
+                    <td>{{ data.PersonalCUITCUILCUIT }}</td>
+                    <td>{{ data.ApellidoNombre }}</td>
+                    <td>{{ data.PersonalPrestamoMonto | I18NCurrency }}</td>
+                    <td>{{ data.PersonalPrestamoAudFechaIng | date }}</td>
+                    <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
+                    @if (data.PersonalPrestamoAprobado=='S') {
+                      Aprobado
+                    } @else {
+                      Pendiente
+                    }
+                    <td>{{ data.PersonalPrestamoAplicaEl }}</td>
+                  </tr>
+                }
               </tbody>
             </nz-table>
           </nz-form-control>

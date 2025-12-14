@@ -3,7 +3,7 @@
 
     <div nz-col nzSpan="12">
       <nz-form-control>
-      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
     </div>
@@ -11,130 +11,133 @@
     <div nz-row class="contentStyle">
       <div nz-col nzSpan="13" class="listStyle">
         <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
-      </li>
-
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'liquidacion_banco','ayudaasistencial']">Adelanto/Ayuda</a>
-      </li>
-
-      <li nz-submenu nzTitle="Acciones">
-        <ul style="width: auto !important">
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:11,tabIndex:tabIndex()}"
-            httpUrl="api/liquidaciones/download/banco/">
-            <span nz-icon nzType="download"></span>Generar Banco ITAU
-          </li>
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:4,tabIndex:tabIndex()}"
-            httpUrl="api/liquidaciones/download/banco/">
-            <span nz-icon nzType="download"></span> Generar Banco Patagonia
-          </li>
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex:tabIndex()}"
-            httpUrl="api/liquidaciones/download/banco/">
-            <span nz-icon nzType="download"></span> Generar Banco Macro
-          </li>
-          <li nz-menu-item nz-popconfirm
-          nzPopconfirmTitle="Confirma depósitos pendientes?"
-          [nzBeforeConfirm]=""
-          [nzPopconfirmShowArrow]="false"
-          (nzOnConfirm)="confirmaMovimientosBanco($event)"
-          >
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Confirma depósitos pendientes
-          </li>
-          <li nz-menu-item  nz-popconfirm
-          nzPopconfirmTitle="Elimina movimientos pendientes banco Itau?"
-          [nzBeforeConfirm]=""
-          [nzPopconfirmShowArrow]="false"
-          (nzOnConfirm)="eliminaMovimientosBanco($event,11)" >
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Itau
-          </li>
-          <li nz-menu-item  nz-popconfirm
-          nzPopconfirmTitle="Elimina movimientos pendientes banco Patagonia?"
-          [nzBeforeConfirm]=""
-          [nzPopconfirmShowArrow]="false"
-          (nzOnConfirm)="eliminaMovimientosBanco($event,4)"
-          
-          >
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Patagonia
-          </li>
-          <li nz-menu-item  nz-popconfirm
-          nzPopconfirmTitle="Elimina movimientos pendientes banco Macro?"
-          [nzBeforeConfirm]=""
-          [nzPopconfirmShowArrow]="false"
-          (nzOnConfirm)="eliminaMovimientosBanco($event,10)"
-          
-          >
-            <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Macro
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
           </li>
 
-          <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmImporteCBU" [nzBeforeConfirm]=""
-            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="importCBU(10)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Importa Archivo CBU Banco Macro
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'liquidacion_banco','ayudaasistencial']">Adelanto/Ayuda</a>
           </li>
-          <ng-template #confirmImporteCBU>
-            <span>Importa CBUs desde fecha </span>
-            <nz-date-picker [(ngModel)]="fechaDesdeCBU" [ngModelOptions]="{standalone: true}" />
-            <app-file-upload [(ngModel)]="filesCBU" [ngModelOptions]="{standalone: true}" [idForSearh]="10"></app-file-upload>
 
-            <span>?</span>
-          </ng-template>
+          <li nz-submenu nzTitle="Acciones">
+            <ul style="width: auto !important">
+              <li nz-menu-item app-down-file [httpMethod]="'POST'"
+                [httpBody]="{anio, mes, options: listOptions, BancoId:11,tabIndex:tabIndex()}"
+                httpUrl="api/liquidaciones/download/banco/">
+                <span nz-icon nzType="download"></span>Generar Banco ITAU
+              </li>
+              <li nz-menu-item app-down-file [httpMethod]="'POST'"
+                [httpBody]="{anio, mes, options: listOptions, BancoId:4,tabIndex:tabIndex()}"
+                httpUrl="api/liquidaciones/download/banco/">
+                <span nz-icon nzType="download"></span> Generar Banco Patagonia
+              </li>
+              <li nz-menu-item app-down-file [httpMethod]="'POST'"
+                [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex:tabIndex()}"
+                httpUrl="api/liquidaciones/download/banco/">
+                <span nz-icon nzType="download"></span> Generar Banco Macro
+              </li>
+              <li nz-menu-item nz-popconfirm
+                nzPopconfirmTitle="Confirma depósitos pendientes?"
+                [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="confirmaMovimientosBanco($event)"
+                >
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Confirma depósitos pendientes
+              </li>
+              <li nz-menu-item  nz-popconfirm
+                nzPopconfirmTitle="Elimina movimientos pendientes banco Itau?"
+                [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="eliminaMovimientosBanco($event,11)" >
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Itau
+              </li>
+              <li nz-menu-item  nz-popconfirm
+                nzPopconfirmTitle="Elimina movimientos pendientes banco Patagonia?"
+                [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="eliminaMovimientosBanco($event,4)"
+
+                >
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Patagonia
+              </li>
+              <li nz-menu-item  nz-popconfirm
+                nzPopconfirmTitle="Elimina movimientos pendientes banco Macro?"
+                [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="eliminaMovimientosBanco($event,10)"
+
+                >
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Macro
+              </li>
+
+              <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmImporteCBU" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="importCBU(10)">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Importa Archivo CBU Banco Macro
+              </li>
+              <ng-template #confirmImporteCBU>
+                <span>Importa CBUs desde fecha </span>
+                <nz-date-picker [(ngModel)]="fechaDesdeCBU" [ngModelOptions]="{standalone: true}" />
+                <app-file-upload [(ngModel)]="filesCBU" [ngModelOptions]="{standalone: true}" [idForSearh]="10"></app-file-upload>
+
+                <span>?</span>
+              </ng-template>
 
 
+            </ul>
+
+          </li>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span>XLS
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a [routerLink]="['/', 'ges', 'liquidacion_banco','moviemientospendientes']">Movimientos Pendientes</a>
+          </li>
         </ul>
-
-      </li>
-      <li nz-menu-item (click)="exportGrid()">
-        <span nz-icon nzType="download"></span>XLS
-      </li>
-      <li nz-menu-item nzMatchRouter>
-        <a [routerLink]="['/', 'ges', 'liquidacion_banco','moviemientospendientes']">Movimientos Pendientes</a>
-      </li>
-    </ul>
-  </div>
-</div>
+      </div>
+    </div>
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
-        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-          <div class="gridContainer1 container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReady($event)">
-            </angular-slickgrid>
-          </div>
-
-        </ng-template>
+        @if ((columns$|async); as columnas) {
+          <ng-template nz-tab>
+            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+            <div class="gridContainer1 container-fluid">
+              <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
+                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReady($event)">
+              </angular-slickgrid>
+            </div>
+          </ng-template>
+        }
       </nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidacion_banco/ayudaasistencial">Listado</a>
-        <ng-template nz-tab *ngIf="(columnsAyuda$|async) as columnasAyuda">
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnasAyuda"
-            (optionsChange)="listOptionsChangeAyuda($event)" />
-          <div class="gridContainer2 container-fluid">
-            <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnasAyuda | colsFilter"
-              [gridOptions]="gridOptionsAyuda" [dataset]="(gridDataAyuda$ | async) || []"
-              (onAngularGridCreated)="angularGridReadyAyuda($event)">
-            </angular-slickgrid>
-          </div>
-        </ng-template>
-      </nz-tab>
+        @if ((columnsAyuda$|async); as columnasAyuda) {
+          <ng-template nz-tab>
+            <shared-filtro-builder #sfb [fieldsToSelect]="columnasAyuda"
+              (optionsChange)="listOptionsChangeAyuda($event)" />
+              <div class="gridContainer2 container-fluid">
+                <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnasAyuda | colsFilter"
+                  [gridOptions]="gridOptionsAyuda" [dataset]="(gridDataAyuda$ | async) || []"
+                  (onAngularGridCreated)="angularGridReadyAyuda($event)">
+                </angular-slickgrid>
+              </div>
+            </ng-template>
+          }
+        </nz-tab>
 
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/liquidacion_banco/moviemientospendientes">Movimientos Pendientes</a>
-        <ng-template nz-tab>
-        <movimientos-pendientes></movimientos-pendientes>
-      </ng-template>
-      </nz-tab>
-    
-    </nz-tabset>
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/liquidacion_banco/moviemientospendientes">Movimientos Pendientes</a>
+          <ng-template nz-tab>
+            <movimientos-pendientes></movimientos-pendientes>
+          </ng-template>
+        </nz-tab>
+
+      </nz-tabset>
 
 
-  </form>
-</nz-card>
+    </form>
+  </nz-card>

@@ -5,7 +5,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal'
 import { firstValueFrom, map } from 'rxjs'
 import { SearchService } from 'src/app/services/search.service'
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
-import { CommonModule } from '@angular/common'
+
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker'
 import { NzMenuModule } from 'ng-zorro-antd/menu'
 
@@ -21,7 +21,7 @@ interface Parameter {
 
 @Component({
   selector: '[app-reporte]',
-  imports: [...SHARED_IMPORTS, CommonModule, NzButtonModule, NzModalModule, NzDatePickerModule, NzMenuModule],
+  imports: [...SHARED_IMPORTS, NzButtonModule, NzModalModule, NzDatePickerModule, NzMenuModule],
   templateUrl: './reporte.component.html',
   styleUrl: './reporte.component.less',
   host: {

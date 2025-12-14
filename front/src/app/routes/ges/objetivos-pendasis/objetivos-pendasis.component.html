@@ -28,24 +28,28 @@
         <nz-tab [nzForceRender]="false">
           <a nz-tab-link routerLink="/ges/objetivos_pendasis/pendientes">Pendientes</a>
           <ng-template nz-tab>
-            <div class="gridContainer1 container-fluid" *ngIf="(columns$|async) as columnas">
-              <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
-                [gridOptions]="gridOptionsOPA" [dataset]="(gridData$ | async) || []"
-                (onAngularGridCreated)="angularGridReadyOPA($event)">
-              </angular-slickgrid>
-            </div>
+            @if ((columns$|async); as columnas) {
+              <div class="gridContainer1 container-fluid">
+                <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
+                  [gridOptions]="gridOptionsOPA" [dataset]="(gridData$ | async) || []"
+                  (onAngularGridCreated)="angularGridReadyOPA($event)">
+                </angular-slickgrid>
+              </div>
+            }
           </ng-template>
         </nz-tab>
 
         <nz-tab [nzForceRender]="false">
           <a nz-tab-link routerLink="/ges/objetivos_pendasis/todos">Todos</a>
           <ng-template nz-tab>
-            <div class="gridContainer2 container-fluid" *ngIf="(columns$|async) as columnas">
-              <angular-slickgrid gridId="gridOPAT" class="" [columnDefinitions]="columnas | colsFilter"
-                [gridOptions]="gridOptionsOPAT" [dataset]="(gridData$ | async) || []"
-                (onAngularGridCreated)="angularGridReadyOPAT($event)">
-              </angular-slickgrid>
-            </div>
+            @if ((columns$|async); as columnas) {
+              <div class="gridContainer2 container-fluid">
+                <angular-slickgrid gridId="gridOPAT" class="" [columnDefinitions]="columnas | colsFilter"
+                  [gridOptions]="gridOptionsOPAT" [dataset]="(gridData$ | async) || []"
+                  (onAngularGridCreated)="angularGridReadyOPAT($event)">
+                </angular-slickgrid>
+              </div>
+            }
           </ng-template>
         </nz-tab>
 

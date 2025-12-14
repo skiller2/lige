@@ -9,73 +9,72 @@
     @if (isLoading()) {
       <nz-spin nzTip="Cargando filtros..."></nz-spin>
     }
-    
+
     @if (!isLoading()) {
-      
-    <div *ngFor="let param of filtrosReporte()">
-      <label>{{ param.Prompt }}</label>
-      <nz-input-group [nzSize]="'large'">
-        <!-- Si es String y tiene valores válidos, mostrar un nz-select -->
 
-        <nz-select 
-        *ngIf="param.ParameterType === 'String' && param.ValidValues?.length"
-        nzPlaceHolder="Seleccione una opción" 
-        [nzDropdownMatchSelectWidth]="false" nzShowSearch [(ngModel)]="param.Value"
-        >
-        
-        <nz-option 
-          *ngFor="let option of param.ValidValues" 
-          [nzValue]="option.Value" 
-          [nzLabel]="option.Label">
-        </nz-option>
-        
-      </nz-select>
-      
+      @for (param of filtrosReporte(); track param) {
+        <div>
+          <label>{{ param.Prompt }}</label>
+          <nz-input-group [nzSize]="'large'">
+            <!-- Si es String y tiene valores válidos, mostrar un nz-select -->
+            @if (param.ParameterType === 'String' && param.ValidValues?.length) {
+              <nz-select
+                nzPlaceHolder="Seleccione una opción"
+                [nzDropdownMatchSelectWidth]="false" nzShowSearch [(ngModel)]="param.Value"
+                >
+                @for (option of param.ValidValues; track option) {
+                  <nz-option
+                    [nzValue]="option.Value"
+                    [nzLabel]="option.Label">
+                  </nz-option>
+                }
+              </nz-select>
+            }
+            <!-- Si es String y NO tiene valores válidos, mostrar un input de texto -->
+            @if (param.ParameterType === 'String' && (!param.ValidValues || param.ValidValues.length === 0)) {
+              <input nz-input
+                type="text"
+                [(ngModel)]="param.Value"  />
+            }
+            <!-- Si es Integer, mostrar un input numérico entero -->
+            @if (param.ParameterType === 'Integer') {
+              <nz-input-number
+                [nzMin]="-999999"
+                [nzMax]="999999"
+                [nzStep]="1"
+                [(ngModel)]="param.Value"
+                style="width: 50%">
+              </nz-input-number>
+            }
+            <!-- Si es Float, mostrar un input numérico decimal -->
+            @if (param.ParameterType === 'Float') {
+              <nz-input-number
+                [nzMin]="-999999"
+                [nzMax]="999999"
+                [nzStep]="0.01"
+                [(ngModel)]="param.Value"
+                style="width: 50%">
+              </nz-input-number>
+            }
+            <!-- Si es Boolean, mostrar un checkbox -->
+            @if (param.ParameterType === 'Boolean') {
+              <label nz-checkbox
+                [(ngModel)]="param.Value">
+              </label>
+            }
+            <!-- Si es DateTime, mostrar un input con calendario -->
+            @if (param.ParameterType === 'DateTime') {
+              <nz-date-picker
+                [(ngModel)]="param.Value"
+                >
+              </nz-date-picker>
+            }
+          </nz-input-group>
+        </div>
+      }
 
-        <!-- Si es String y NO tiene valores válidos, mostrar un input de texto -->
-        <input nz-input
-          *ngIf="param.ParameterType === 'String' && (!param.ValidValues || param.ValidValues.length === 0)" type="text"
-          [(ngModel)]="param.Value"  />
-
-        <!-- Si es Integer, mostrar un input numérico entero -->
-        <nz-input-number
-          *ngIf="param.ParameterType === 'Integer'"
-          [nzMin]="-999999"
-          [nzMax]="999999"
-          [nzStep]="1"
-          [(ngModel)]="param.Value"
-          style="width: 50%">
-        </nz-input-number>
-
-        <!-- Si es Float, mostrar un input numérico decimal -->
-        <nz-input-number
-          *ngIf="param.ParameterType === 'Float'"
-          [nzMin]="-999999"
-          [nzMax]="999999"
-          [nzStep]="0.01"
-          [(ngModel)]="param.Value"
-          style="width: 50%">
-        </nz-input-number>
-
-        <!-- Si es Boolean, mostrar un checkbox -->
-        <label nz-checkbox
-          *ngIf="param.ParameterType === 'Boolean'"
-          [(ngModel)]="param.Value">
-        </label>
-
-        <!-- Si es DateTime, mostrar un input con calendario -->
-        <nz-date-picker 
-        *ngIf="param.ParameterType === 'DateTime'" 
-        [(ngModel)]="param.Value"
-        >
-      </nz-date-picker>
-
-      </nz-input-group>
-
-    </div>
-
-  }
-</div>
+    }
+  </div>
   <div *nzModalFooter style="text-align: right;">
 
     <button [disabled]="isLoading()" app-down-file [httpMethod]="'POST'"

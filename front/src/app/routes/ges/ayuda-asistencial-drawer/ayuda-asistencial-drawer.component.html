@@ -1,6 +1,6 @@
 <nz-drawer [nzWidth]="650" [nzVisible]="visible()" [nzClosable]="false"
-    [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)" [nzPlacement]="placement"
->
+  [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)" [nzPlacement]="placement"
+  >
 
   <ng-container *nzDrawerContent>
     <!-- @if (conditional()|async) {} -->
@@ -8,58 +8,62 @@
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Aplica El</nz-form-label>
-          <nz-form-control [nzSpan]="17">
-            <nz-date-picker nzMode="month" formControlName="aplicaEl"></nz-date-picker>
+        <nz-form-control [nzSpan]="17">
+          <nz-date-picker nzMode="month" formControlName="aplicaEl"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Personal</nz-form-label>
-          <nz-form-control [nzSpan]="17">
-            <app-personal-search  formControlName="personalId" [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1" (ngModelChange)="this.formChange($event)"></app-personal-search>
+        <nz-form-control [nzSpan]="17">
+          <app-personal-search  formControlName="personalId" [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1" (ngModelChange)="this.formChange($event)"></app-personal-search>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Situación Revista</nz-form-label>
         <nz-form-control>
-          <ng-container *ngFor="let sitrevista of $sitrevista | async">
+          @for (sitrevista of $sitrevista | async; track sitrevista) {
             <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
               {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
-              <span *ngIf="sitrevista.PersonalSituacionRevistaHasta">hasta {{ sitrevista.PersonalSituacionRevistaHasta
+              @if (sitrevista.PersonalSituacionRevistaHasta) {
+                <span>hasta {{ sitrevista.PersonalSituacionRevistaHasta
                 | date}}</span>
+              }
             </p>
-          </ng-container>
+          }
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
-          <nz-form-control [nzSpan]="17">
-            <nz-select nzShowSearch nzAllowClear formControlName="formaId"
-                [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChangeTipo($event)">
-            <nz-option *ngFor="let option of options" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
-            </nz-select>
+        <nz-form-control [nzSpan]="17">
+          <nz-select nzShowSearch nzAllowClear formControlName="formaId"
+            [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChangeTipo($event)">
+            @for (option of options; track option) {
+              <nz-option [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            }
+          </nz-select>
         </nz-form-control>
       </nz-form-item>
 
-     
+
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Cant. de Cuotas</nz-form-label>
-          <nz-form-control [nzSpan]="5">
-            <input nz-input formControlName="cantCuotas" type="number" />
+        <nz-form-control [nzSpan]="5">
+          <input nz-input formControlName="cantCuotas" type="number" />
         </nz-form-control>
         <nz-form-label [nzSpan]="3">Importe</nz-form-label>
-          <nz-form-control [nzSpan]="9">
-            <input nz-input formControlName="importe" type="text" appDotToComma mask="separator.2"  />
+        <nz-form-control [nzSpan]="9">
+          <input nz-input formControlName="importe" type="text" appDotToComma mask="separator.2"  />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Motivo</nz-form-label>
-          <nz-form-control [nzSpan]="17">
-            <textarea rows="2" nz-input formControlName="motivo"></textarea>
+        <nz-form-control [nzSpan]="17">
+          <textarea rows="2" nz-input formControlName="motivo"></textarea>
         </nz-form-control>
       </nz-form-item>
 
@@ -87,14 +91,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let data of tableAdelantos.data">
-                <td>{{ data.desmovimiento }}</td>
-                <td>{{ data.periodo }}</td>
-                <td>{{ data.importe | I18NCurrency }}</td>
-                <td>{{ data.cuotanro }}</td>
-                <td>{{ data.cantcuotas }}</td>
-                <td>{{ data.importetotal | I18NCurrency }}</td>
-              </tr>
+              @for (data of tableAdelantos.data; track data) {
+                <tr>
+                  <td>{{ data.desmovimiento }}</td>
+                  <td>{{ data.periodo }}</td>
+                  <td>{{ data.importe | I18NCurrency }}</td>
+                  <td>{{ data.cuotanro }}</td>
+                  <td>{{ data.cantcuotas }}</td>
+                  <td>{{ data.importetotal | I18NCurrency }}</td>
+                </tr>
+              }
             </tbody>
           </nz-table>
         </nz-form-control>

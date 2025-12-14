@@ -18,7 +18,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { CommonModule } from '@angular/common';
+
 import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
@@ -52,10 +52,9 @@ export class CustomDescargaComprobanteComponent {
   templateUrl: './objetivos-pendasis.component.html',
   imports: [
     SHARED_IMPORTS,
-    CommonModule,
     NzAffixModule,
-    FiltroBuilderComponent,
-  ],
+    FiltroBuilderComponent
+],
   styleUrls: ['./objetivos-pendasis.component.less'],
   providers: [AngularUtilService]
 })

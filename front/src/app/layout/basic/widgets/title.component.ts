@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -23,21 +23,29 @@ interface PageHeaderPath {
 @Component({
     selector: 'header-title',
     template: `
-    <ng-container *ngIf="!breadcrumb; else breadcrumb!" >
-          <nz-breadcrumb *ngIf="paths && paths.length > 0" >
-            <nz-breadcrumb-item *ngFor="let i of paths" >
-              <ng-container *ngIf="i.link">
+    @if (!breadcrumb) {
+      @if (paths && paths.length > 0) {
+        <nz-breadcrumb >
+          @for (i of paths; track i) {
+            <nz-breadcrumb-item >
+              @if (i.link) {
                 <a [routerLink]="i.link" class="fnt-size-sm">{{ i.title }}</a>
-              </ng-container>
-              <ng-container *ngIf="!i.link" ><span class="fnt-size-sm">{{ i.title }}</span></ng-container>
+              }
+              @if (!i.link) {
+                <span class="fnt-size-sm">{{ i.title }}</span>
+              }
             </nz-breadcrumb-item>
-          </nz-breadcrumb>
-        </ng-container>
-  `,
+          }
+        </nz-breadcrumb>
+      }
+    } @else {
+      <ng-template [ngTemplateOutlet]="breadcrumb!"></ng-template>
+    }
+    `,
     styles: [`
   `],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, NzBreadCrumbModule, RouterModule]
+    imports: [NzBreadCrumbModule, RouterModule]
 })
   
 export class HeaderTitleComponent implements AfterViewInit, OnDestroy {

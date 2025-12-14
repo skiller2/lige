@@ -1,6 +1,6 @@
 
 <form [formGroup]="formCli">
-    <br>
+  <br>
     <nz-form-item >
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Código</nz-form-label>
       <nz-form-control [nzXs]="8" [nzSm]="8" [nzMd]="8">
@@ -42,9 +42,9 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo de novedad</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-select formControlName="TipoNovedadId" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-            <ng-container *ngFor="let option of $optionsTipoNovedad | async">
-                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              </ng-container>
+          @for (option of $optionsTipoNovedad | async; track option) {
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          }
         </nz-select>
       </nz-form-control>
     </nz-form-item>
@@ -66,8 +66,9 @@
     </nz-form-item>
 
     <!-- VisualizacionAuditoria -->
-      @defer (on immediate) {
-      <nz-form-control *ngIf="NovedadCodigo()" [nzXs]="20" [nzSm]="20" [nzMd]="20" [nzLg]="20" style="text-align: right;">
+    @defer (on immediate) {
+    @if (NovedadCodigo()) {
+      <nz-form-control [nzXs]="20" [nzSm]="20" [nzMd]="20" [nzLg]="20" style="text-align: right;">
         <button nz-button nzType="default" nz-popover nzPopoverTitle="Historial de Auditoria" [nzPopoverContent]="contentTemplate"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
         <ng-template #contentTemplate>
@@ -80,92 +81,107 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of history.data">
-                <td>{{ item.usuario }}</td>
-                <td>{{ item.fecha }}</td>
-                <td>{{ item.accion }}</td>
-              </tr>
+              @for (item of history.data; track item) {
+                <tr>
+                  <td>{{ item.usuario }}</td>
+                  <td>{{ item.fecha }}</td>
+                  <td>{{ item.accion }}</td>
+                </tr>
+              }
             </tbody>
           </nz-table>
         </ng-template>
-    </nz-form-control>
-    }
-
-    <div class="input-container1" >
-      <div class="input-label">Registrado por</div>
-    </div>
-
-    <nz-form-item class="marginElement" >
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-        <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
       </nz-form-control>
-    </nz-form-item>
+    }
+  }
 
-    <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().Telefono">
+  <div class="input-container1" >
+    <div class="input-label">Registrado por</div>
+  </div>
+
+  <nz-form-item class="marginElement" >
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  @if (formCli.getRawValue().Telefono) {
+    <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Telefono</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
         <input nz-input formControlName="Telefono">
       </nz-form-control>
     </nz-form-item>
+  }
 
-    <div class="input-container1" *ngIf="formCli.getRawValue().VisualizacionFecha || formCli.getRawValue().VisualizacionPersonaNombre || formCli.getRawValue().VisualizacionTelefono">
+  @if (formCli.getRawValue().VisualizacionFecha || formCli.getRawValue().VisualizacionPersonaNombre || formCli.getRawValue().VisualizacionTelefono) {
+    <div class="input-container1">
       <div class="input-label">Visualización</div>
     </div>
+  }
 
-      <!-- VisualizacionFecha -->
-      <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionFecha">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Fecha</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+  <!-- VisualizacionFecha -->
+  @if (formCli.getRawValue().VisualizacionFecha) {
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Fecha</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
         <nz-date-picker
           formControlName="VisualizacionFecha"
           nzShowTime="true"
           nzFormat="yyyy-MM-dd HH:mm"
           nzMode="date"
           style="width: 100%;" [nzDisabled]="true">
-        </nz-date-picker> 
-        </nz-form-control>
-      </nz-form-item>
-  
-      <!-- VisualizacionPersonaId -->
-      <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionPersonaNombre">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Persona</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-          <input nz-input formControlName="VisualizacionPersonaNombre" [readonly]="true">
-        </nz-form-control>
-      </nz-form-item>
-  
-      <!-- VisualizacionTelefono -->
-      <nz-form-item class="marginElement" *ngIf="formCli.getRawValue().VisualizacionTelefono">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Teléfono</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-          <input nz-input formControlName="VisualizacionTelefono" [readonly]="true">
-        </nz-form-control>
-      </nz-form-item>
+        </nz-date-picker>
+      </nz-form-control>
+    </nz-form-item>
+  }
 
-    <!-- Apartado para adjuntar documentos -->
+  <!-- VisualizacionPersonaId -->
+  @if (formCli.getRawValue().VisualizacionPersonaNombre) {
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Persona</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+        <input nz-input formControlName="VisualizacionPersonaNombre" [readonly]="true">
+      </nz-form-control>
+    </nz-form-item>
+  }
+
+  <!-- VisualizacionTelefono -->
+  @if (formCli.getRawValue().VisualizacionTelefono) {
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Visualización Teléfono</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+        <input nz-input formControlName="VisualizacionTelefono" [readonly]="true">
+      </nz-form-control>
+    </nz-form-item>
+  }
+
+  <!-- Apartado para adjuntar documentos -->
   <nz-form-item>
     <nz-form-control >
       <app-file-upload formControlName="files" [idForSearh]="formCli.getRawValue().DocumentoId ?? 0"
-      [textForSearch]="'NOV'"  
-      columnForSearch="DocumentoId" [tableForSearch]="'Documento'" 
+        [textForSearch]="'NOV'"
+        columnForSearch="DocumentoId" [tableForSearch]="'Documento'"
       [showTipoDocs]="false"></app-file-upload>
     </nz-form-control>
-    
+
   </nz-form-item>
 
-<nz-form-item *ngIf="formCli.enabled">
-    <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-      <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine "  >
-        {{ 'app.btn.save' | i18n }}
-      </button>
-      <button nzType="primary" nz-button nzDanger  nz-popconfirm  [disabled]="NovedadCodigo() === 0" 
-      nzPopconfirmTitle="Esta seguro que quiere eliminar esta novedad?"
-      (nzOnConfirm)="deleteNovedad()"
-      nzPopconfirmPlacement="top"  >
-      {{ 'app.btn.delete' | i18n }}
-      </button>
-    </nz-form-control>
-  </nz-form-item>
+  @if (formCli.enabled) {
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+        <button nzType="primary" nz-button  (click)="save()" [disabled]="formCli.invalid || formCli.pristine "  >
+          {{ 'app.btn.save' | i18n }}
+        </button>
+        <button nzType="primary" nz-button nzDanger  nz-popconfirm  [disabled]="NovedadCodigo() === 0"
+          nzPopconfirmTitle="Esta seguro que quiere eliminar esta novedad?"
+          (nzOnConfirm)="deleteNovedad()"
+          nzPopconfirmPlacement="top"  >
+          {{ 'app.btn.delete' | i18n }}
+        </button>
+      </nz-form-control>
+    </nz-form-item>
+  }
 
-  </form>
+</form>

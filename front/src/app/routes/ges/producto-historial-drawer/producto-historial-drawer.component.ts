@@ -7,7 +7,7 @@ import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableHistorialProductoComponent } from '../table-historial-producto/table-historial-producto.component'
@@ -20,7 +20,7 @@ export interface Option {
 
 @Component({
     selector: 'app-producto-historial-drawer',
-    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, TableHistorialProductoComponent],
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, TableHistorialProductoComponent],
     templateUrl: './producto-historial-drawer.component.html',
     styleUrl: './producto-historial-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush

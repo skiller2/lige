@@ -1,15 +1,21 @@
 <nz-select #dsc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Direccion"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-  <ng-container *ngFor="let option of optionsArray2()">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.properties.place_id"  [nzLabel]="option.properties.formatted" />
-  </ng-container>
-  <nz-option *ngIf="extendedOption().id !='' " [nzValue]="extendedOption().id"
-    [nzLabel]="extendedOption().fullName" />
+  @for (option of optionsArray2(); track option) {
+    @if (($isOptionsLoading | async) == false) {
+      <nz-option [nzValue]="option.properties.place_id"  [nzLabel]="option.properties.formatted" />
+    }
+  }
+  @if (extendedOption().id !='' ) {
+    <nz-option [nzValue]="extendedOption().id"
+      [nzLabel]="extendedOption().fullName" />
+  }
 
-  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Cargando datos...
-  </nz-option>
+  @if ($isOptionsLoading | async) {
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Cargando datos...
+    </nz-option>
+  }
 </nz-select>
 <p>Extendido: {{extendedOption() | json }}</p>

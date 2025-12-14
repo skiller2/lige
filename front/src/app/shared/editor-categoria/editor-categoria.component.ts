@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, SimpleChanges, ViewChild, computed, forwardRef, input, model, signal } from '@angular/core';
 import { Subject, firstValueFrom, noop } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SearchService } from 'src/app/services/search.service';
@@ -18,10 +18,8 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
         },
     ],
     imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        //    PersonalSearchComponent
-    ]
+    ...SHARED_IMPORTS
+]
 })
 export class EditorCategoriaComponent {
   @ViewChild("eto") eto!: NzSelectComponent

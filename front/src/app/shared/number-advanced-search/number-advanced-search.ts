@@ -15,7 +15,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { NzInputNumberComponent } from 'ng-zorro-antd/input-number'
 import { log } from '@delon/util'
 import { SHARED_IMPORTS } from '@shared'
-import { CommonModule } from '@angular/common'
+
 
 @Component({
     selector: 'app-number-advanced-search',
@@ -28,7 +28,7 @@ import { CommonModule } from '@angular/common'
             multi: true,
         }
     ],
-    imports: [...SHARED_IMPORTS, CommonModule]
+    imports: [...SHARED_IMPORTS]
 })
 
 export class NumberAdvancedSearchComponent implements ControlValueAccessor {

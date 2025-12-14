@@ -1,14 +1,20 @@
-<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Rubro, Código"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
-  <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.RubroClienteId"
-      nzLabel="{{ option.RubroClienteDescripcion }} ({{option.RubroClienteId}})" />
-  </ng-container>
-  <nz-option *ngIf="extendedOption.RubroClienteId > 0" [nzValue]="extendedOption.RubroClienteId"
-    [nzLabel]="extendedOption.RubroClienteDescripcion" />
-  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Cargando datos...
-  </nz-option>
+  @for (option of $optionsArray | async; track option) {
+    @if (($isOptionsLoading | async) == false) {
+      <nz-option [nzValue]="option.RubroClienteId"
+        nzLabel="{{ option.RubroClienteDescripcion }} ({{option.RubroClienteId}})" />
+    }
+  }
+  @if (extendedOption.RubroClienteId > 0) {
+    <nz-option [nzValue]="extendedOption.RubroClienteId"
+      [nzLabel]="extendedOption.RubroClienteDescripcion" />
+  }
+  @if ($isOptionsLoading | async) {
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Cargando datos...
+    </nz-option>
+  }
 </nz-select>

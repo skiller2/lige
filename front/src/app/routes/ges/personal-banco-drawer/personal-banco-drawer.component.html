@@ -1,44 +1,44 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleBanco()" [nzPlacement]="placement" [nzWidth]="700"
-[nzTitle]="'Datos Bancarios: '  + PersonalNombre()" (nzOnClose)="visibleBanco.set(false)">
+  [nzTitle]="'Datos Bancarios: '  + PersonalNombre()" (nzOnClose)="visibleBanco.set(false)">
   <ng-container *nzDrawerContent>
 
     <nz-card nzType="inner" nzTitle="Agregar Nuevo Datos Bancarios" >
-    <form [formGroup]="formPerBanco">
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Banco</nz-form-label>
-        <nz-form-control>
-          <nz-select formControlName="BancoId" nzPlaceHolder="Banco" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-            <ng-container *ngFor="let option of $optionsBanco | async">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+      <form [formGroup]="formPerBanco">
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Banco</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="BancoId" nzPlaceHolder="Banco" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              @for (option of $optionsBanco | async; track option) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">CBU</nz-form-label>
-        <nz-form-control>
-          <input nz-input placeholder="" formControlName="CBU" type="text" />
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">CBU</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="" formControlName="CBU" type="text" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Desde</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker ngModel="date" [(ngModel)]="periodo" formControlName="Desde"></nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Desde</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker ngModel="date" [(ngModel)]="periodo" formControlName="Desde"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading1()" [disabled]="formPerBanco.pristine">
-            {{ 'app.btn.save' | i18n }}
-          </button>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading1()" [disabled]="formPerBanco.pristine">
+              {{ 'app.btn.save' | i18n }}
+            </button>
+          </nz-form-control>
+        </nz-form-item>
 
-    </form>
+      </form>
     </nz-card>
 
     <nz-form-control style="text-align: right; margin-right: 25px;">
@@ -48,26 +48,30 @@
     </nz-form-control>
     <br>
 
-    <nz-form-control *ngIf="$listaBancoPer | async as listaBancoPer ">
-      <nz-table #personalBanco [nzData]="listaBancoPer" nzSize="small" [nzPageSize]="100000000"
-        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-        <thead>
-          <tr>
-            <th nzWidth="230px">Banco</th>
-            <th>CBU</th>
-            <th nzWidth="110px">Desde</th>
-            <th nzWidth="110px">Hasta</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let data of personalBanco.data" class="">
-            <td>{{ data.Descripcion }}</td>
-            <td>{{ data.CBU }}</td>
-            <td>{{ data.Desde }}</td>
-            <td>{{ data.Hasta }}</td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </nz-form-control>
-  </ng-container>
-</nz-drawer>
+      @if ($listaBancoPer | async; as listaBancoPer ) {
+        <nz-form-control>
+          <nz-table #personalBanco [nzData]="listaBancoPer" nzSize="small" [nzPageSize]="100000000"
+            [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+            <thead>
+              <tr>
+                <th nzWidth="230px">Banco</th>
+                <th>CBU</th>
+                <th nzWidth="110px">Desde</th>
+                <th nzWidth="110px">Hasta</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (data of personalBanco.data; track data) {
+                <tr class="">
+                  <td>{{ data.Descripcion }}</td>
+                  <td>{{ data.CBU }}</td>
+                  <td>{{ data.Desde }}</td>
+                  <td>{{ data.Hasta }}</td>
+                </tr>
+              }
+            </tbody>
+          </nz-table>
+        </nz-form-control>
+      }
+    </ng-container>
+  </nz-drawer>

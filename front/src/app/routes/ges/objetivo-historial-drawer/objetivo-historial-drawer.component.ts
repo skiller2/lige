@@ -7,7 +7,7 @@ import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableHistorialContratoComponent } from '../table-historial-contrato/table-historial-contrato.component'
@@ -20,7 +20,7 @@ export interface Option {
 
 @Component({
     selector: 'app-objetivo-historial-drawer',
-    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, TableHistorialContratoComponent],
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, TableHistorialContratoComponent],
     templateUrl: './objetivo-historial-drawer.component.html',
     styleUrl: './objetivo-historial-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush

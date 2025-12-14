@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { firstValueFrom, Subject } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { ApiService } from 'src/app/services/api.service';
@@ -12,10 +12,8 @@ import { SearchService } from '../../services/search.service';
     templateUrl: './descripcion-producto-search.component.html',
     styleUrls: ['./descripcion-producto-search.component.less'],
     imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        //    PersonalSearchComponent
-    ]
+    ...SHARED_IMPORTS
+]
 })
 export class DescripcionProductoSearchComponent {
   @ViewChild("eto") eto!: NzSelectComponent

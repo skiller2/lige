@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, input, model, output, signal, viewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
@@ -14,8 +14,7 @@ import { ObjectViewerComponent } from '../../../shared/object-viewer/object-view
 
 @Component({
   selector: 'app-procesos-automaticos-detalle',
-  imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, 
-    CommonModule, FormsModule, NzInputModule, ObjectViewerComponent, ],
+  imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, FormsModule, NzInputModule, ObjectViewerComponent],
   templateUrl: './procesos-automaticos-detalle.html',
   styleUrl: './procesos-automaticos-detalle.less'
 })

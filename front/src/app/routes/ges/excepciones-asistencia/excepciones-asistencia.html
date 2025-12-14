@@ -1,70 +1,71 @@
 <nz-card class="small-margin">
 
-    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
 
-      <div nz-row>
-        <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
-        </nz-form-control>
-      </div>
- 
-      <div nz-col style="display: flex;flex-direction: row-reverse;">
-        
-        <nz-button-group>
-          <button nz-button nzType="default" [disabled]="!rows().length || loadingRec() || loadingPen()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}"
-            nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows().length}} registros?" (nzOnConfirm)="aprobarReg()">
-            <nz-icon nzType="check" nzTheme="outline" />
-          </button>
-          <button nz-button nzType="default" [disabled]="!rows().length || loadingApr() || loadingPen()" [nzLoading]="loadingRec()" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}"
-            nz-popconfirm nzPopconfirmTitle="¿Rechazar {{rows().length}} registros?" (nzOnConfirm)="rechazarReg()">
-            <nz-icon nzType="close" nzTheme="outline" />
-          </button>
-          <button nz-button nzType="default" [disabled]="!rows().length || loadingApr() || loadingRec()" [nzLoading]="loadingPen()" nz-tooltip nzTooltipTitle="{{ 'app.icon.pause' | i18n }}"
-            nz-popconfirm nzPopconfirmTitle="¿Poner en Pendiente {{rows().length}} registros?" (nzOnConfirm)="pendienteReg()">
-            <nz-icon nzType="pause" nzTheme="outline" />
-          </button>
-          <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" 
+    <div nz-row>
+      <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
+      </nz-form-control>
+    </div>
+
+    <div nz-col style="display: flex;flex-direction: row-reverse;">
+
+      <nz-button-group>
+        <button nz-button nzType="default" [disabled]="!rows().length || loadingRec() || loadingPen()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}"
+          nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows().length}} registros?" (nzOnConfirm)="aprobarReg()">
+          <nz-icon nzType="check" nzTheme="outline" />
+        </button>
+        <button nz-button nzType="default" [disabled]="!rows().length || loadingApr() || loadingPen()" [nzLoading]="loadingRec()" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}"
+          nz-popconfirm nzPopconfirmTitle="¿Rechazar {{rows().length}} registros?" (nzOnConfirm)="rechazarReg()">
+          <nz-icon nzType="close" nzTheme="outline" />
+        </button>
+        <button nz-button nzType="default" [disabled]="!rows().length || loadingApr() || loadingRec()" [nzLoading]="loadingPen()" nz-tooltip nzTooltipTitle="{{ 'app.icon.pause' | i18n }}"
+          nz-popconfirm nzPopconfirmTitle="¿Poner en Pendiente {{rows().length}} registros?" (nzOnConfirm)="pendienteReg()">
+          <nz-icon nzType="pause" nzTheme="outline" />
+        </button>
+        <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()"
           [disabled]="personalId() == 0 || (personalId() != 0 && rows().length !== 1)"
           nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user" nzTheme="outline"></span>
-          </button>
-        </nz-button-group>
-  
-      </div>
-  
+        </button>
+      </nz-button-group>
+
     </div>
-  
-    <div nz-row class="contentStyle">
-      <div nz-col nzSpan="13" class="listStyle">
-        <ul nz-menu nzMode="horizontal" style="display: flex;">
-          <li nz-menu-item nzMatchRouter>
-            <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" (click)="reloadList()" >{{ 'ges.asistenciaexcepciones' | i18n }} </a>
-          </li>
-        </ul>
-      </div>
-    
+
+  </div>
+
+  <div nz-row class="contentStyle">
+    <div nz-col nzSpan="13" class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" (click)="reloadList()" >{{ 'ges.asistenciaexcepciones' | i18n }} </a>
+        </li>
+      </ul>
     </div>
-    
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
-        
-        <nz-tab>
-          <a nz-tab-link routerLink="/ges/excepciones-asistencia/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-          <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
-    
-            <div class="gridListContainer container-fluid" >
-              <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
-                [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-                (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-              </angular-slickgrid>
-            </div>
-          </ng-template>
-        </nz-tab>
-  
-    </nz-tabset>
-  
+
+  </div>
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/excepciones-asistencia/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
+      @if ((columns$|async); as columnas) {
+        <ng-template nz-tab>
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+          <div class="gridListContainer container-fluid" >
+            <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
+              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            </angular-slickgrid>
+          </div>
+        </ng-template>
+      }
+    </nz-tab>
+
+  </nz-tabset>
+
 </nz-card>
 
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
-  (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
+(onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

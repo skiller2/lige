@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { I18nPipe } from '@delon/theme';
@@ -8,8 +8,7 @@ import { AdministradoresClientesTableComponent } from '../administradores-client
 
 @Component({
   selector: 'app-administradores-listado',
-  imports: [AdministradoresListadoTableComponent, AdministradoresClientesTableComponent,  SHARED_IMPORTS,
-    CommonModule],
+  imports: [AdministradoresListadoTableComponent, AdministradoresClientesTableComponent, SHARED_IMPORTS],
   templateUrl: './administradores-listado.html',
   styleUrl: './administradores-listado.less'
 })

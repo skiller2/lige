@@ -1,15 +1,19 @@
 <nz-card class="small-margin">
-    <ng-container>
-      <div nz-tab *ngIf="(columns$|async) as columnas">
+  <ng-container>
+    @if ((columns$|async); as columnas) {
+      <div nz-tab>
         <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
-      <div class="gridContainerOrd container-fluid" *ngIf="(columns$|async) as columnas">
-          <angular-slickgrid gridId="gridEditOrd" class="" [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)"
-            (onBeforeEditCell)="handleOnBeforeEditCell($event)"
-            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-          </angular-slickgrid>
-        </div>
+        @if ((columns$|async); as columnas) {
+          <div class="gridContainerOrd container-fluid">
+            <angular-slickgrid gridId="gridEditOrd" class="" [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)"
+              (onBeforeEditCell)="handleOnBeforeEditCell($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            </angular-slickgrid>
+          </div>
+        }
       </div>
-    </ng-container>
-  </nz-card>
+    }
+  </ng-container>
+</nz-card>

@@ -1,6 +1,6 @@
 <form [formGroup]="formCli">
-    <br>
-  
+  <br>
+
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="12" [nzSm]="12" [nzMd]="3">CUIT</nz-form-label>
       <nz-form-control [nzXs]="12" [nzSm]="12" [nzMd]="3">
@@ -14,37 +14,39 @@
 
     </nz-form-item>
 
-        <div class="gridContainerFacturacionForm container-fluid margingrid" >
-          @if(columns$ | async; as columnas) {
-            <angular-slickgrid gridId="gridFacturacionForm" class="" [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
-          }
-        </div>
-  
+    <div class="gridContainerFacturacionForm container-fluid margingrid" >
+      @if(columns$ | async; as columnas) {
+        <angular-slickgrid gridId="gridFacturacionForm" class="" [columnDefinitions]="columnas | colsFilter"
+          [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+        (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
+      }
+    </div>
+
 
     <nz-form-item nzJustify="end" nzAlign="middle" style="width: 100%" >
-        <nz-form-label [nzXs]="3" [nzSm]="3" [nzMd]="3">Tipo Comprobante</nz-form-label>
-        <nz-select  nzAllowClear style="width:20%" nzPlaceHolder="Tipo Comprobante" nzShowSearch formControlName="ComprobanteTipoCodigo" 
+      <nz-form-label [nzXs]="3" [nzSm]="3" [nzMd]="3">Tipo Comprobante</nz-form-label>
+      <nz-select  nzAllowClear style="width:20%" nzPlaceHolder="Tipo Comprobante" nzShowSearch formControlName="ComprobanteTipoCodigo"
         [nzDropdownMatchSelectWidth]="false">
-        <ng-container *ngFor="let option of $optionsComprobanteTipo | async">
+        @for (option of $optionsComprobanteTipo | async; track option) {
           <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
-        </ng-container>
+        }
 
       </nz-select>
-          <nz-form-label [nzXs]="3" [nzSm]="3" [nzMd]="3">Nro Comprobante</nz-form-label>
-          <nz-form-control [nzXs]="6" [nzSm]="6" [nzMd]="6">
-            <input nz-input placeholder="" formControlName="ComprobanteNro" type="string" />
-          </nz-form-control>
-      </nz-form-item>
+      <nz-form-label [nzXs]="3" [nzSm]="3" [nzMd]="3">Nro Comprobante</nz-form-label>
+      <nz-form-control [nzXs]="6" [nzSm]="6" [nzMd]="6">
+        <input nz-input placeholder="" formControlName="ComprobanteNro" type="string" />
+      </nz-form-control>
+    </nz-form-item>
 
-    <nz-form-item *ngIf="formCli.enabled && !isDetail()">
+    @if (formCli.enabled && !isDetail()) {
+      <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           <button nzType="primary" nz-button (click)="save()"  [disabled]="formCli.pristine">
             {{ 'app.btn.save' | i18n }}
           </button>
         </nz-form-control>
       </nz-form-item>
+    }
 
   </form>
 

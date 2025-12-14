@@ -3,70 +3,80 @@
   <ng-container *nzDrawerContent>
     <form nz-form #personalObjetivoDrawerForm="ngForm">
 
-    <nz-form-item>
-      <nz-form-label>Periodo</nz-form-label>
-      <nz-form-control>
+      <nz-form-item>
+        <nz-form-label>Periodo</nz-form-label>
+        <nz-form-control>
 
           <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo"
-              (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
-      </nz-form-control>
-    </nz-form-item>
-    <nz-form-item>
+            (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
 
-    <nz-form-control *ngIf="$listaAsistenciaPer | async as listaAsistenciaPer ">
-        <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="small" [nzPageSize]="100000000"
-          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Objetivo</th>
-              <th>Categoría</th>
-              <th>Horas</th>
-              <!-- <th>Valor Hora</th> -->
-              <th>Excepción</th>
-              <!-- <th>Importe Total</th> -->
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let data of asistPer.data" class="">
-              <td title="{{ data.ObjetivoId }}">
-                {{ data.ObjetivoCodigo }}
-              </td>
-              <td>
-                <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
-                  [textContent]="data.ClienteElementoDependienteDescripcion">
-                </a>
-              </td>
-              <td>{{ data.CategoriaPersonalDescripcion }}</td>
-              <td>{{ data.totalhorascalc }}</td>
-              <!-- <td>
-                <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                  data.ValorHoraNorm | I18NCurrency
-                  }}</span>
-              </td> -->
-
-              <td>
-                <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | I18NCurrency
-                  }}</span>
-                <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
-                <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
-                  {{ data.ValorHoraArt14Categoria | I18NCurrency }}
-                </span>
-                <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
-                  {{ data.PersonalArt14AdicionalHora | I18NCurrency }}</span>
-              </td>
-              <!-- <td>{{ data.totalminutoscalcimporteconart14 | I18NCurrency }}</td> -->
-
-              <!-- td>
-          <a>Action 一 {{data.name}}</a>
-          <nz-divider nzType="vertical"></nz-divider>
-          <a>Delete</a>
-        </td -->
-            </tr>
-          </tbody>
-        </nz-table>
-    </nz-form-control>
-  </nz-form-item>
-</form>
+          @if ($listaAsistenciaPer | async; as listaAsistenciaPer ) {
+            <nz-form-control>
+              <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="small" [nzPageSize]="100000000"
+                [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Objetivo</th>
+                    <th>Categoría</th>
+                    <th>Horas</th>
+                    <!-- <th>Valor Hora</th> -->
+                    <th>Excepción</th>
+                    <!-- <th>Importe Total</th> -->
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (data of asistPer.data; track data) {
+                    <tr class="">
+                      <td title="{{ data.ObjetivoId }}">
+                        {{ data.ObjetivoCodigo }}
+                      </td>
+                      <td>
+                        <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
+                          [textContent]="data.ClienteElementoDependienteDescripcion">
+                        </a>
+                      </td>
+                      <td>{{ data.CategoriaPersonalDescripcion }}</td>
+                      <td>{{ data.totalhorascalc }}</td>
+                      <!-- <td>
+                      <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
+                        data.ValorHoraNorm | I18NCurrency
+                      }}</span>
+                    </td> -->
+                    <td>
+                      @if (data.PersonalArt14SumaFija) {
+                        <span>Suma fija {{ data.PersonalArt14SumaFija | I18NCurrency
+                        }}</span>
+                      }
+                      @if (data.PersonalArt14Horas) {
+                        <span>Horas {{ data.PersonalArt14Horas }}</span>
+                      }
+                      @if (data.art14CategoriaDescripcion) {
+                        <span>Equivalencia {{ data.art14CategoriaDescripcion }}
+                          {{ data.ValorHoraArt14Categoria | I18NCurrency }}
+                        </span>
+                      }
+                      @if (data.PersonalArt14AdicionalHora) {
+                        <span>Adicional Hora
+                        {{ data.PersonalArt14AdicionalHora | I18NCurrency }}</span>
+                      }
+                    </td>
+                    <!-- <td>{{ data.totalminutoscalcimporteconart14 | I18NCurrency }}</td> -->
+                    <!-- td>
+                    <a>Action 一 {{data.name}}</a>
+                    <nz-divider nzType="vertical"></nz-divider>
+                    <a>Delete</a>
+                    </td -->
+                  </tr>
+                }
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        }
+      </nz-form-item>
+    </form>
   </ng-container>
 </nz-drawer>

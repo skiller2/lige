@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, ElementRef } from '@angular/core';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Subject } from 'rxjs';
@@ -13,7 +13,7 @@ import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.comp
     selector: 'app-editor-objetivo',
     templateUrl: './editor-objetivo.component.html',
     styleUrls: ['./editor-objetivo.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent,]
+    imports: [...SHARED_IMPORTS, ObjetivoSearchComponent]
 })
 export class EditorObjetivoComponent {
   selectedId = '';

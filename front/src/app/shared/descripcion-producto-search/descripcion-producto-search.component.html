@@ -1,9 +1,8 @@
 <nz-select #eto [(ngModel)]="selectedId" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-   (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Tipo Producto"
+  (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Tipo Producto"
   nzShowSearch >
-  <ng-container *ngFor="let option of optionsArray">
-
+  @for (option of optionsArray; track option) {
     <nz-option [nzValue]="option.TipoProductoId"
       [nzLabel]="option.TipoProductoDescripcion" />
-  </ng-container>
-</nz-select> 
+    }
+  </nz-select>

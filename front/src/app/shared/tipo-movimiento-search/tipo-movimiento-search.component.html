@@ -1,8 +1,10 @@
-<nz-select #msc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
-nzAllowClear nzPlaceHolder="Tipo de Movimiento" (ngModelChange)="modelChange($event)"
-nzShowSearch nzServerSearch (nzOnSearch)="search($event)" nzMode="multiple">
-    <ng-container *ngFor="let option of $optionsArray | async">
-        <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option"
-          nzLabel="{{ option.des_movimiento }}" />
-    </ng-container>
+<nz-select #msc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  nzAllowClear nzPlaceHolder="Tipo de Movimiento" (ngModelChange)="modelChange($event)"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" nzMode="multiple">
+  @for (option of $optionsArray | async; track option) {
+    @if (($isOptionsLoading | async) == false) {
+      <nz-option [nzValue]="option"
+        nzLabel="{{ option.des_movimiento }}" />
+    }
+  }
 </nz-select>

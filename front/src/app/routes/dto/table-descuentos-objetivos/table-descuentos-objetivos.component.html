@@ -1,47 +1,49 @@
 <nz-card class="small-margin">
 
-  <div nz-tab *ngIf="(columns$|async) as columnas">
-    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
-      <div style="flex: 1;">
-        <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+  @if ((columns$|async); as columnas) {
+    <div nz-tab>
+      <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+        <div style="flex: 1;">
+          <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+        </div>
+        <div style="flex-shrink: 0;">
+          <nz-button-group>
+            <!-- Agregar Descuento -->
+            <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="openDrawerforAltaDescuentos()">
+              <span nz-icon nzType="plus" nzTheme="outline"></span>
+            </button>
+            <!-- Editar Descuento -->
+            <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="openDrawerforEditDescuentos()"
+              [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
+            </button>
+            <!-- Detalle Descuento -->
+            <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.detail' | i18n }}" (click)="openDrawerforDetailDescuentos()"
+              [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
+              <span nz-icon nzType="info-circle" nzTheme="outline"></span>
+            </button>
+            <!-- Anular Descuento -->
+            <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" (click)="openDrawerforCancelDescuentos()"
+              [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+          </nz-button-group>
+        </div>
       </div>
-      <div style="flex-shrink: 0;">
-      <nz-button-group>
-        <!-- Agregar Descuento -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="openDrawerforAltaDescuentos()">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>
-        </button>
-        <!-- Editar Descuento -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="openDrawerforEditDescuentos()"
-          [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
-          <span nz-icon nzType="edit" nzTheme="outline"></span>
-        </button>
-        <!-- Detalle Descuento -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.detail' | i18n }}" (click)="openDrawerforDetailDescuentos()"
-          [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
-          <span nz-icon nzType="info-circle" nzTheme="outline"></span>
-        </button>
-        <!-- Anular Descuento -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.anular' | i18n }}" (click)="openDrawerforCancelDescuentos()"
-          [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
-          <span nz-icon nzType="delete" nzTheme="outline"></span>
-        </button>
-      </nz-button-group>
+      <div class="gridDescObjetivos container-fluid">
+        <angular-slickgrid gridId="gridDescObjetivos" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptions"
+          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+        </angular-slickgrid>
       </div>
     </div>
-    <div class="gridDescObjetivos container-fluid">
-      <angular-slickgrid gridId="gridDescObjetivos" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptions"
-        [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-      </angular-slickgrid>
-    </div>
-  </div>
+  }
 </nz-card>
 
 @defer( when visibleAltaDesc()){
-  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
+<app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
 }
 
 @defer( when visibleEditDesc()){
-  <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [ObjetivoDescuentoId]="ObjetivoDescuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
+<app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [ObjetivoDescuentoId]="ObjetivoDescuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
 }

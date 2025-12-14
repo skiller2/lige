@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -9,11 +9,10 @@ import { SettingsService } from '@delon/theme';
   selector: 'app-efecto',
   imports: [
     SHARED_IMPORTS,
-    CommonModule,
     NzMenuModule,
     TablePersonalEfectoComponent,
     TableObjetivosEfectoComponent
-  ],
+],
   templateUrl: './efecto.component.html',
   styleUrl: './efecto.component.less'
 })

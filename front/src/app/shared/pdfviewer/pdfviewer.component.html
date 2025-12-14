@@ -1,12 +1,14 @@
-<button *ngIf="($currentDownloadablePDF | async)!.length > 0" (click)="download()" nz-button nzType="primary"
+@if (($currentDownloadablePDF | async)!.length > 0) {
+  <button (click)="download()" nz-button nzType="primary"
     nzSize='default'>
     <span nz-icon nzType="download"></span>
     {{ namePDFDownload }} {{ ($currentDownloadablePDF | async)!.length | nzBytes}}
-</button>
+  </button>
+}
 
 <!-- iframe [src]="pdfDataUri" style="width: 100%; min-height: 100vw;"></iframe -->
 
-<ng-container *ngIf="$isProcessing | async">
-    <span nz-icon nzType="loading" class="loading-icon"></span>
-    Convirtiendo PDF...
-</ng-container>
+@if ($isProcessing | async) {
+  <span nz-icon nzType="loading" class="loading-icon"></span>
+  Convirtiendo PDF...
+}

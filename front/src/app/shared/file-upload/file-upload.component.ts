@@ -3,7 +3,7 @@ import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map, of
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from '../../services/api.service';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { CommonModule } from '@angular/common';
+
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
@@ -23,7 +23,7 @@ interface DocTipo {
 
 @Component({
   selector: 'app-file-upload',
-  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule, ImageLoaderComponent],
+  imports: [SHARED_IMPORTS, NzUploadModule, NgxExtendedPdfViewerModule, NzImageModule, NzSelectModule, FormsModule, NzIconModule, ImageLoaderComponent],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.less',
   providers: [

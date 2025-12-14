@@ -14,121 +14,123 @@
       <!-- btn  add -->
       <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" (click)="perAlta.newRecord()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
-          nzTheme="outline"></span></button>
+      nzTheme="outline"></span></button>
       <!-- btn  modify -->
       <button nz-button nzType="default" [disabled]="personalId()? false : true"
         [routerLink]="['/', 'ges', 'personal','editar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span
-          nz-icon nzType="edit" nzTheme="outline"></span></button>
+      nz-icon nzType="edit" nzTheme="outline"></span></button>
       <!-- btn  detalle -->
       <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
-          nzTheme="outline"></span></button>
+      nzTheme="outline"></span></button>
       <!-- btn acta -->
       <button nz-button nzType="default" (click)="openDrawerforConsultActa()" [disabled]="personalId() == 0" nz-tooltip
         nzTooltipTitle="{{ 'app.acta' | i18n }}"><span nz-icon nzType="container" nzTheme="outline"></span></button>
-      <!-- btn  history -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.licencias' | i18n }}"><span nz-icon nzType="clock-circle"
+        <!-- btn  history -->
+        <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="personalId() == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.licencias' | i18n }}"><span nz-icon nzType="clock-circle"
+        nzTheme="outline"></span></button>
+        <!-- btn  objectives -->
+        <button nz-button nzType="default" (click)="openDrawerforConsultObjective()" [disabled]="personalId() == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.objectives' | i18n }}"><span nz-icon nzType="environment"
+        nzTheme="outline"></span></button>
+        <!-- btn  custody -->
+        <button nz-button nzType="default" (click)="openDrawerforConsultCustodias()" [disabled]="personalId() == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.custody' | i18n }}"><span nz-icon nzType="car"
+        nzTheme="outline"></span></button>
+        <!-- btn  addresses -->
+        <button nz-button nzType="default" (click)="openDrawerforConsultDomicilio()" [disabled]="personalId() == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.home' | i18n }}"><span nz-icon nzType="home"
+        nzTheme="outline"></span></button>
+        <!-- btn  documents -->
+        <button nz-button nzType="default" (click)="openDrawerforConsultDocumentos()" [disabled]="personalId() == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.documents' | i18n }}"><span nz-icon nzType="file"
+        nzTheme="outline"></span></button>
+        <!-- btn  datos bancarios -->
+        <button nz-button nzType="default" (click)="openDrawerforConsultBanco()" [disabled]="personalId() == 0" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
+          <!-- btn  responsable -->
+          <button nz-button nzType="default" (click)="openDrawerforConsultResponsable()" [disabled]="personalId() == 0"
+            nz-tooltip nzTooltipTitle="{{ 'app.responsable' | i18n }}"><span nz-icon nzType="eye"
           nzTheme="outline"></span></button>
-      <!-- btn  objectives -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultObjective()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.objectives' | i18n }}"><span nz-icon nzType="environment"
+          <!-- btn  categoria -->
+          <button nz-button nzType="default" (click)="openDrawerforConsultCategoria()" [disabled]="personalId() == 0"
+            nz-tooltip nzTooltipTitle="{{ 'app.category' | i18n }}"><span nz-icon nzType="menu-unfold"
           nzTheme="outline"></span></button>
-      <!-- btn  custody -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultCustodias()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.custody' | i18n }}"><span nz-icon nzType="car"
-          nzTheme="outline"></span></button>
-      <!-- btn  addresses -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultDomicilio()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.home' | i18n }}"><span nz-icon nzType="home"
-          nzTheme="outline"></span></button>
-      <!-- btn  documents -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultDocumentos()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.documents' | i18n }}"><span nz-icon nzType="file"
-          nzTheme="outline"></span></button>
-      <!-- btn  datos bancarios -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultBanco()" [disabled]="personalId() == 0" nz-tooltip
-        nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
-      <!-- btn  responsable -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultResponsable()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.responsable' | i18n }}"><span nz-icon nzType="eye"
-          nzTheme="outline"></span></button>
-      <!-- btn  categoria -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultCategoria()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.category' | i18n }}"><span nz-icon nzType="menu-unfold"
-          nzTheme="outline"></span></button>
-      <!-- btn  situacion revista -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
+          <!-- btn  situacion revista -->
+          <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
+            nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
           nzTheme="outline"></span></button>
 
-    </nz-button-group>
-  </div>
-  <!-- <form nz-form #formAsist="ngForm" class="">
+        </nz-button-group>
+      </div>
+      <!-- <form nz-form #formAsist="ngForm" class="">
       <br>
-      <nz-form-item>
-        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-        </nz-form-control>
-      </nz-form-item>
-    </form> -->
+        <nz-form-item>
+          <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+          </nz-form-control>
+        </nz-form-item>
+      </form> -->
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
-    <nz-tab></nz-tab>
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
-      <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-        <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"
-          (optionsChange)="listOptionsChange($event)" />
-        <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)"
-            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-          </angular-slickgrid>
-        </div>
-      </ng-template>
-    </nz-tab>
+      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+        <nz-tab></nz-tab>
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
+          @if ((columns$|async); as columnas) {
+            <ng-template nz-tab>
+              <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"
+                (optionsChange)="listOptionsChange($event)" />
+                <div class="gridContainer container-fluid">
+                  <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
+                    [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+                    (onAngularGridCreated)="angularGridReady($event)"
+                    (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+                  </angular-slickgrid>
+                </div>
+              </ng-template>
+            }
+          </nz-tab>
 
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/personal/carga">Carga</a>
-      <app-personal-form #perAlta></app-personal-form>
-    </nz-tab>
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
-      @defer (when personalId()){
-      <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
+          <nz-tab>
+            <a nz-tab-link routerLink="/ges/personal/carga">Carga</a>
+            <app-personal-form #perAlta></app-personal-form>
+          </nz-tab>
+          <nz-tab>
+            <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
+            @defer (when personalId()){
+            <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
 
-      }
+          }
 
-    </nz-tab>
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
-      <app-personal-form #perDetalle [personalId]="personalId()" [readonly]="true"></app-personal-form>
-    </nz-tab>
-  </nz-tabset>
+        </nz-tab>
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
+          <app-personal-form #perDetalle [personalId]="personalId()" [readonly]="true"></app-personal-form>
+        </nz-tab>
+      </nz-tabset>
 
-</nz-card>
-<app-licencia-historial-drawer #licHistDrawer [(visibleHistorial)]="visibleHistorial"
-  [PersonalId]="personalId()"></app-licencia-historial-drawer>
-<app-personal-objetivo-drawer #objDrawer [(visibleObjetivo)]="visibleObjetivo"
-  [PersonalId]="personalId()"></app-personal-objetivo-drawer>
-<app-personal-custodias-drawer #custDrawer [(visibleCustodias)]="visibleCustodias"
-  [PersonalId]="personalId()"></app-personal-custodias-drawer>
-<app-personal-domicilio-drawer #domDrawer [(visibleDomicilio)]="visibleDomicilio"
-  [PersonalId]="personalId()"></app-personal-domicilio-drawer>
-<app-personal-situacionrevista-drawer #sitRevistaHistDrawer [(visibleSitRevista)]="visibleSitRevista"
-  [PersonalId]="personalId()"></app-personal-situacionrevista-drawer>
-<app-personal-responsable-drawer #respDrawer [(visibleResponsable)]="visibleResponsable"
-  [PersonalId]="personalId()"></app-personal-responsable-drawer>
-<app-personal-documentos-drawer #docDrawer [(visibleDocumentos)]="visibleDocumentos"
-  [PersonalId]="personalId()"></app-personal-documentos-drawer>
-<app-personal-categoria-drawer #cateDrawer [(visibleCategoria)]="visibleCategoria"
-  [PersonalId]="personalId()"></app-personal-categoria-drawer>
-<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
-  (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
-<app-personal-banco-drawer [(visibleBanco)]="visibleBanco" [PersonalId]="personalId()"></app-personal-banco-drawer>
+    </nz-card>
+    <app-licencia-historial-drawer #licHistDrawer [(visibleHistorial)]="visibleHistorial"
+    [PersonalId]="personalId()"></app-licencia-historial-drawer>
+    <app-personal-objetivo-drawer #objDrawer [(visibleObjetivo)]="visibleObjetivo"
+    [PersonalId]="personalId()"></app-personal-objetivo-drawer>
+    <app-personal-custodias-drawer #custDrawer [(visibleCustodias)]="visibleCustodias"
+    [PersonalId]="personalId()"></app-personal-custodias-drawer>
+    <app-personal-domicilio-drawer #domDrawer [(visibleDomicilio)]="visibleDomicilio"
+    [PersonalId]="personalId()"></app-personal-domicilio-drawer>
+    <app-personal-situacionrevista-drawer #sitRevistaHistDrawer [(visibleSitRevista)]="visibleSitRevista"
+    [PersonalId]="personalId()"></app-personal-situacionrevista-drawer>
+    <app-personal-responsable-drawer #respDrawer [(visibleResponsable)]="visibleResponsable"
+    [PersonalId]="personalId()"></app-personal-responsable-drawer>
+    <app-personal-documentos-drawer #docDrawer [(visibleDocumentos)]="visibleDocumentos"
+    [PersonalId]="personalId()"></app-personal-documentos-drawer>
+    <app-personal-categoria-drawer #cateDrawer [(visibleCategoria)]="visibleCategoria"
+    [PersonalId]="personalId()"></app-personal-categoria-drawer>
+    <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
+    (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
+    <app-personal-banco-drawer [(visibleBanco)]="visibleBanco" [PersonalId]="personalId()"></app-personal-banco-drawer>
 
-<app-personal-acta-drawer #actaDrawer [(visibleActa)]="visibleActa"
-  [PersonalId]="personalId()"></app-personal-acta-drawer>
+    <app-personal-acta-drawer #actaDrawer [(visibleActa)]="visibleActa"
+    [PersonalId]="personalId()"></app-personal-acta-drawer>

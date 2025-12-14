@@ -20,7 +20,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, ContainerService } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { CommonModule, formatDate } from '@angular/common';
+import { formatDate } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
@@ -49,12 +49,11 @@ export class CustomDescargaComprobanteComponent {
     selector: 'categorias-cambio',
     templateUrl: './categorias-cambio.component.html',
     imports: [
-        SHARED_IMPORTS,
-        NzAffixModule,
-        FiltroBuilderComponent,
-        CommonModule,
-        PersonalSearchComponent
-    ],
+    SHARED_IMPORTS,
+    NzAffixModule,
+    FiltroBuilderComponent,
+    PersonalSearchComponent
+],
     styleUrls: ['./categorias-cambio.component.less'],
     providers: [AngularUtilService, ContainerService]
 })

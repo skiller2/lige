@@ -1,163 +1,148 @@
 <br>
-<h1>{{ 'app.validacionIndentidadText' | i18n }}</h1>
+  <h1>{{ 'app.validacionIndentidadText' | i18n }}</h1>
 
-@if (error()){
-  <nz-alert nzType="error" nzShowIcon [nzMessage]="error()"></nz-alert>  
+  @if (error()){
+    <nz-alert nzType="error" nzShowIcon [nzMessage]="error()"></nz-alert>
 
-} @else {
+  } @else {
 
-<form [formGroup]="formCli" *ngIf="codigo() == 0 && retries() < 4" >
-  <nz-collapse nzAccordion  *ngIf="collapseDisabled()" >
-    @for (panel of panels(); track panel) {
-    <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="true"  [ngClass]="{ 'success-panel': panel.success }">
+    @if (codigo() == 0 && retries() < 4) {
+      <form [formGroup]="formCli" >
+        @if (collapseDisabled()) {
+          <nz-collapse nzAccordion  >
+            @for (panel of panels(); track panel) {
+              <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="true"  [ngClass]="{ 'success-panel': panel.success }">
+                <br>
+                  @if (panel.id == 1){
+                    <nz-form-item style="justify-content: center;">
+                      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">CUIT</nz-form-label>
+                      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+                        <input nz-input placeholder="" formControlName="cuit" type="string" />
+                      </nz-form-control>
+                    </nz-form-item>
+                    <br>
+                      <nz-form-item style="justify-content: center;">
+                        <button nzType="primary" nz-button (click)="consultCuit()" [disabled]="formCli.pristine">
+                          {{ 'app.validar.cuit' | i18n }}
+                        </button>
+                      </nz-form-item>
+                      }@else if(panel.id == 2){
+                      <iframe src="./assets/pdf/Lince-Chatbot.html" width="100%" height="400px" style="border: none;">
+                      </iframe>
+                      <nz-form-item style="justify-content: center;">
+                        <button nzType="primary" nz-button (click)="aceptTerminos()">
+                          {{ 'app.terminosycondiciones' | i18n }}
+                        </button>
+                      </nz-form-item>
+                    }
+                    @if (panel.id == 3){
+                      <nz-form-item style="justify-content: center;">
+                        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Recibo</nz-form-label>
+                        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+                          <input nz-input placeholder="" formControlName="recibo" type="string" />
+                        </nz-form-control>
+                      </nz-form-item>
+                      <br>
+                        <nz-form-item style="justify-content: center;">
+                          <button nzType="primary" nz-button (click)="consulrecibo()" [disabled]="formCli.pristine">
+                            {{ 'app.validar.recibo' | i18n }}
+                          </button>
+                        </nz-form-item>
+                        }  @else if (panel.id == 4){
+                        <nz-form-item style="justify-content: center">
+                          <nz-form-control [nzMd]="12">
+                            <nz-input-group  nzAddOnBefore="XXXXXXXXX" style="width: 95%" >
+                              <input
+                                type="string"
+                                nz-input
+                                nzSize="large"
+                                placeholder="Últimos 6 dígitos de CBU"
+                                formControlName="cbu"
+                                maxlength="6" />
+                              </nz-input-group>
+                            </nz-form-control>
+                          </nz-form-item>
+                          <br>
+                            <nz-form-item style="justify-content: center;">
+                              <button nzType="primary" nz-button (click)="consulCBU()" [disabled]="formCli.pristine">
+                                {{ 'app.validar.cbu' | i18n }}
+                              </button>
+                            </nz-form-item>
+                          }
+                        </nz-collapse-panel>
+                      }
+                    </nz-collapse>
+                  }
+                </form>
+              }
 
-      <br>
-      @if (panel.id == 1){
+              @if (codigo() !== 0) {
+                <div class="container">
+                  <div class="number" id="number">{{codigo()}}</div>
+                  <button nzType="primary" nz-button (click)="copyNumber()" >
+                    {{ 'app.btn.copiar' | i18n }}
+                  </button>
+                  <br>
+                    <h2 style="text-align: center; margin-top: 15px;">Aguarde a ser contactado por el BOT para continuar con la validación. Envíe el mensaje con el código cuando se lo soliciten</h2>
+                  </div>
+                }
+                @if (retries() >= 4) {
+                  <div class="container">
+                    <h2>{{ 'app.validate.attempt' | i18n }}</h2>
+                    <br>
+                      <nz-form-item style="justify-content: center;">
+                        <button nzType="default" nz-button (click)="newValidate()"  >
+                          {{ 'app.btn.new.validate' | i18n }}
+                        </button>
+                      </nz-form-item>
+                      <nz-form-item style="justify-content: center;">
+                        <h2 style="text-align: center; margin-top: 15px;"> {{ 'app.comuniquese.rrhh' | i18n }}</h2>
+                      </nz-form-item>
+                    </div>
+                  }
 
-      <nz-form-item style="justify-content: center;">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">CUIT</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="cuit" type="string" />
-        </nz-form-control>
-      </nz-form-item>
-      <br>
-      <nz-form-item style="justify-content: center;">
+                  <br>
+                    <!--
+                    <nz-card>
+                      @if (scannerEnabled()) {
 
-        <button nzType="primary" nz-button (click)="consultCuit()" [disabled]="formCli.pristine">
-          {{ 'app.validar.cuit' | i18n }}
-        </button>
-
-      </nz-form-item>
-
-      }@else if(panel.id == 2){
-
-      <iframe src="./assets/pdf/Lince-Chatbot.html" width="100%" height="400px" style="border: none;">
-      </iframe>
-
-      <nz-form-item style="justify-content: center;">
-        <button nzType="primary" nz-button (click)="aceptTerminos()">
-          {{ 'app.terminosycondiciones' | i18n }}
-        </button>
-      </nz-form-item>
-
-      }
-      @if (panel.id == 3){
-
-      <nz-form-item style="justify-content: center;">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Recibo</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="recibo" type="string" />
-        </nz-form-control>
-      </nz-form-item>
-      <br>
-      <nz-form-item style="justify-content: center;">
-
-        <button nzType="primary" nz-button (click)="consulrecibo()" [disabled]="formCli.pristine">
-          {{ 'app.validar.recibo' | i18n }}
-        </button>
-
-      </nz-form-item>
-
-      }  @else if (panel.id == 4){
-
-        <nz-form-item style="justify-content: center">
-          <nz-form-control [nzMd]="12">
-
-            <nz-input-group  nzAddOnBefore="XXXXXXXXX" style="width: 95%" >
-              <input 
-              type="string" 
-              nz-input  
-              nzSize="large"
-              placeholder="Últimos 6 dígitos de CBU"
-              formControlName="cbu"
-              maxlength="6" />
-            </nz-input-group>
-
-          </nz-form-control>
-        </nz-form-item>
-        <br>
-        <nz-form-item style="justify-content: center;">
-  
-          <button nzType="primary" nz-button (click)="consulCBU()" [disabled]="formCli.pristine">
-            {{ 'app.validar.cbu' | i18n }}
-          </button>
-
-        
-  
-        </nz-form-item>
-  
-        }
-    </nz-collapse-panel>
-    }
-  </nz-collapse>
-</form>
-
-<div class="container" *ngIf="codigo() !== 0">
-  <div class="number" id="number">{{codigo()}}</div>
-  <button nzType="primary" nz-button (click)="copyNumber()" >
-    {{ 'app.btn.copiar' | i18n }}
-  </button>
-
-  <br>
-
-  <h2 style="text-align: center; margin-top: 15px;">Aguarde a ser contactado por el BOT para continuar con la validación. Envíe el mensaje con el código cuando se lo soliciten</h2>
-</div>
-<div class="container" *ngIf="retries() >= 4">
-  <h2>{{ 'app.validate.attempt' | i18n }}</h2>
-  <br>
-  <nz-form-item style="justify-content: center;">
-    <button nzType="default" nz-button (click)="newValidate()"  >
-      {{ 'app.btn.new.validate' | i18n }}
-    </button>
-  </nz-form-item>
-  <nz-form-item style="justify-content: center;">
-    <h2 style="text-align: center; margin-top: 15px;"> {{ 'app.comuniquese.rrhh' | i18n }}</h2>
-  </nz-form-item>
-  
-</div>
-
-<br>
-<!-- 
-<nz-card>
-  @if (scannerEnabled()) {
-
-  <nz-card style="text-align: center;">
-    <p>Enfoque el código de barras del documento delante de la cámara</p>
-    <p>Procure tener buena iluminación</p>
-    <p>En caso de no poder lograr una imagen nítida pruebe cambiar a la cámara alternativa</p>
+                        <nz-card style="text-align: center;">
+                          <p>Enfoque el código de barras del documento delante de la cámara</p>
+                          <p>Procure tener buena iluminación</p>
+                          <p>En caso de no poder lograr una imagen nítida pruebe cambiar a la cámara alternativa</p>
 
 
 
-    <button nz-button nzType="primary" (click)="cambioCam()" style="width:80%;">Cámara Alternativa</button>
-    
-
-  </nz-card>
-<nz-card style="text-align: center;">
-    <ng-container style="max-width: 800px;">
-      <zxing-scanner [formats]="allowedBarCodeFormats" (scanComplete)="scanComplete($event)"
-        (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)" [enable]="scannerEnabled()"
-        [device]="camdevice()"
-        [tryHarder]="true"
-        [autofocusEnabled]="true"
-        [videoConstraints]="videoConstraints()"
-        ></zxing-scanner>
-    </ng-container>
-
-  </nz-card>
-  } @else if (encTelNro()) {
-  }
+                          <button nz-button nzType="primary" (click)="cambioCam()" style="width:80%;">Cámara Alternativa</button>
 
 
+                        </nz-card>
+                        <nz-card style="text-align: center;">
+                          <ng-container style="max-width: 800px;">
+                            <zxing-scanner [formats]="allowedBarCodeFormats" (scanComplete)="scanComplete($event)"
+                              (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)" [enable]="scannerEnabled()"
+                              [device]="camdevice()"
+                              [tryHarder]="true"
+                              [autofocusEnabled]="true"
+                              [videoConstraints]="videoConstraints()"
+                            ></zxing-scanner>
+                          </ng-container>
 
-  @if (codGenerado()) {
-  <nz-result nzStatus="success" nzTitle="Código: {{ codGenerado() }}"
-    nzSubTitle="Aguarde a ser contactactado e ingrese el código cuando se lo soliciten">
-    <div nz-result-extra>
-      <button nz-button nzType="primary" (click)="scannerEnabled.set(true)">Validar DNI y generar nuevo código</button>
-    </div>
-  </nz-result>
+                        </nz-card>
+                      } @else if (encTelNro()) {
+                      }
 
-  } 
 
-</nz-card> -->
-}
+
+                      @if (codGenerado()) {
+                        <nz-result nzStatus="success" nzTitle="Código: {{ codGenerado() }}"
+                          nzSubTitle="Aguarde a ser contactactado e ingrese el código cuando se lo soliciten">
+                          <div nz-result-extra>
+                            <button nz-button nzType="primary" (click)="scannerEnabled.set(true)">Validar DNI y generar nuevo código</button>
+                          </div>
+                        </nz-result>
+
+                      }
+
+                    </nz-card> -->
+                  }

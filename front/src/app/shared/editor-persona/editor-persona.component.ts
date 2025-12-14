@@ -1,6 +1,6 @@
 import { Component, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { CommonModule } from '@angular/common';
+
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { SHARED_IMPORTS } from '@shared';
 
@@ -9,10 +9,9 @@ import { SHARED_IMPORTS } from '@shared';
     templateUrl: './editor-persona.component.html',
     styleUrls: ['./editor-persona.component.less'],
     imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        PersonalSearchComponent
-    ]
+    ...SHARED_IMPORTS,
+    PersonalSearchComponent
+]
 })
 export class EditorPersonaComponent {
   

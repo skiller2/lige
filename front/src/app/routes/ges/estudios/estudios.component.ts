@@ -2,7 +2,7 @@ import { Component, ViewChild, computed, inject, model, signal, ChangeDetectionS
 import { NavigationEnd, Router } from '@angular/router'; 
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
-import { CommonModule } from '@angular/common';
+
 import { SettingsService } from '@delon/theme';
 import { TableEstudiosComponent } from '../table-estudios/table-estudios.component'
 import { EstudiosDrawerComponent } from '../estudios-drawer/estudios-drawer.component';
@@ -25,9 +25,7 @@ import {EnvironmentOutline} from '@ant-design/icons-angular/icons';
   styleUrls: ['./estudios.component.less'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...SHARED_IMPORTS, CommonModule, NzIconModule, TableEstudiosComponent, EstudiosDrawerComponent, 
-    TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent, 
-    InstitucionesDrawerComponent, SedesDrawerComponent],
+  imports: [...SHARED_IMPORTS, NzIconModule, TableEstudiosComponent, EstudiosDrawerComponent, TableCursoComponent, CursoHistorialDrawerComponent, CursosDrawerComponent, TableInstitucionesComponent, InstitucionesDrawerComponent, SedesDrawerComponent],
     providers: [provideNzIconsPatch([EnvironmentOutline])],
 })
 export class EstudiosComponent {

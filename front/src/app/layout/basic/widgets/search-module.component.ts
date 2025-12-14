@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, DOCUMENT } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -215,13 +215,12 @@ interface SearchResult {
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     NzInputModule,
     NzIconModule,
     NzAutocompleteModule,
     NzButtonModule
-  ]
+]
 })
 export class HeaderSearchModuleComponent implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);

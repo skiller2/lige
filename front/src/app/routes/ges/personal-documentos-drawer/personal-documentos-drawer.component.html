@@ -10,9 +10,9 @@
             <nz-select formControlName="DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
               (ngModelChange)="selectLabel($event)">
-              <ng-container *ngFor="let option of optionsLabels() || []">
+              @for (option of optionsLabels() || []; track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              </ng-container>
+              }
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -41,7 +41,7 @@
           <nz-form-control>
             <app-file-upload formControlName="archivo" [cantMaxFiles]="1" [idForSearh]="0"
               [textForSearch]="doctipo_id()" [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'"
-              [previewFile]="true"></app-file-upload>
+            [previewFile]="true"></app-file-upload>
           </nz-form-control>
         </nz-form-item>
 
@@ -51,39 +51,49 @@
               [disabled]="formDocumento.pristine">
               {{ 'app.btn.save' | i18n }}
             </button>
-            <button *ngIf="doc_id()" nzType="primary" nz-button (click)="resetForm()">
-              {{ 'app.btn.clear.form' | i18n }}
-            </button>
+            @if (doc_id()) {
+              <button nzType="primary" nz-button (click)="resetForm()">
+                {{ 'app.btn.clear.form' | i18n }}
+              </button>
+            }
           </nz-form-control>
         </nz-form-item>
       </form>
     </nz-card>
 
-    <nz-form-control *ngIf="$listaDocumentosPer | async as listaDocumentosPer ">
-      <nz-table #asistPer [nzData]="listaDocumentosPer" nzSize="small" [nzPageSize]="100000000"
-        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-        <thead>
-          <tr>
-            <th>Tipo</th>
-            <th class="periodoStyle">Periodo</th>
-            <th>Documento</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let data of asistPer.data" class="">
-            <td>{{ data.Descripcion }}</td>
-            <td class="periodoStyle">{{ data.periodo }}</td>
-            <td>
-              <a *ngIf="data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg'" nz-icon nzType="search"
-                nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
-              <a *ngIf="data.TipoArchivo == 'pdf'" nz-icon nzType="search" nzTheme="outline"
-                (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
-              {{ data.NombreArchivo }}
-            </td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </nz-form-control>
+    @if ($listaDocumentosPer | async; as listaDocumentosPer ) {
+      <nz-form-control>
+        <nz-table #asistPer [nzData]="listaDocumentosPer" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th class="periodoStyle">Periodo</th>
+              <th>Documento</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (data of asistPer.data; track data) {
+              <tr class="">
+                <td>{{ data.Descripcion }}</td>
+                <td class="periodoStyle">{{ data.periodo }}</td>
+                <td>
+                  @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg') {
+                    <a nz-icon nzType="search"
+                    nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
+                  }
+                  @if (data.TipoArchivo == 'pdf') {
+                    <a nz-icon nzType="search" nzTheme="outline"
+                    (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
+                  }
+                  {{ data.NombreArchivo }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </nz-table>
+      </nz-form-control>
+    }
   </ng-container>
 </nz-drawer>
 

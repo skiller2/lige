@@ -2,36 +2,35 @@
   <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
     <nz-form-item class="nfi-margin-bottom">
-      <nz-form-label class="inputText">Archivo Importe Venta</nz-form-label> 
-        <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'IMPVENV'"
-          [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
+      <nz-form-label class="inputText">Archivo Importe Venta</nz-form-label>
+      <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'IMPVENV'"
+      [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
       <nz-form-control>
         <!--{{ngForm.value | json}}-->
-        <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
-
+        @for (movimiento of $importacionesAnteriores | async; track movimiento) {
           <div class="containerAnterioresImporteVentaVigilancia" nz-tooltip nzTooltipTitle={{1}}>
             <ng-container>
               <a app-down-file httpUrl="/api/importe-venta-vigilancia/download/{{movimiento.DocumentoId}}">
                 <span nz-icon nzType="download"></span></a>
-            </ng-container>
-            <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}
-            </span>
-          </div>
-        </ng-container>
-      </nz-form-control>
-    </nz-form-item>
-  </nz-spin>
-</form>
+              </ng-container>
+              <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}
+              </span>
+            </div>
+          }
+        </nz-form-control>
+      </nz-form-item>
+    </nz-spin>
+  </form>
 
-@if(columns$ | async; as columnas) {
+  @if(columns$ | async; as columnas) {
 
-<div class="gridContainer container-fluid">
-  <angular-slickgrid gridId="gridImporteVenta" class="" [columnDefinitions]="columnas | colsFilter"
-    [gridOptions]="gridOptions" [dataset]="gridDataImport()"
-    (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
-</div>
-}
+    <div class="gridContainer container-fluid">
+      <angular-slickgrid gridId="gridImporteVenta" class="" [columnDefinitions]="columnas | colsFilter"
+        [gridOptions]="gridOptions" [dataset]="gridDataImport()"
+      (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
+    </div>
+  }

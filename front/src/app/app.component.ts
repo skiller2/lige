@@ -9,40 +9,46 @@ import { filter, interval, map } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { SwUpdatesService } from './services/sw-updates.service';
-import { CommonModule } from '@angular/common';
+
 import { SHARED_IMPORTS } from '@shared';
 
 @Component({
     selector: 'app-root',
     template: `
 
-   <ng-template #tplpwa>
-    <div class="w-100 position-absolute top-0" *ngIf="modalVersion">
+<ng-template #tplpwa>
+  @if (modalVersion) {
+    <div class="w-100 position-absolute top-0">
       <div class="alert alert-secondary m-2">
-      <button nz-button nzType="primary"  (click)="closeVersion()"></button>
+        <button nz-button nzType="primary"  (click)="closeVersion()"></button>
         {{ 'A new version of this app is available.' | i18n }} <a href="" (click)="updateVersion()" >{{ 'Update now' | i18n}}</a>
       </div>
     </div>
+  }
 
-<div class="" *ngIf="modalPwaPlatform === 'ANDROID' || modalPwaPlatform === 'IOS'">
-    <!-- Android -->
-    <button *ngIf="modalPwaPlatform === 'ANDROID'" nz-button nzType="primary" (click)="addToHomeScreen()">{{ 'Add this WEB app to home screen' | i18n }}</button>
-
-    <!-- iOS with Safari -->
-    <div *ngIf="modalPwaPlatform === 'IOS'" >
-      {{ 'To install this WEB app on your device, tap the "Menu" button' | i18n }}
-      <img src="https://res.cloudinary.com/rodrigokamada/image/upload/v1641089482/Blog/angular-pwa/safari_action_button_38x50.png" class="ios-menu m-0" />
-      {{ 'and then "Add to home screen" button' | i18n }}
-      <i class="bi bi-plus-square"></i>
+  @if (modalPwaPlatform === 'ANDROID' || modalPwaPlatform === 'IOS') {
+    <div class="">
+      <!-- Android -->
+      @if (modalPwaPlatform === 'ANDROID') {
+        <button nz-button nzType="primary" (click)="addToHomeScreen()">{{ 'Add this WEB app to home screen' | i18n }}</button>
+      }
+      <!-- iOS with Safari -->
+      @if (modalPwaPlatform === 'IOS') {
+        <div >
+          {{ 'To install this WEB app on your device, tap the "Menu" button' | i18n }}
+          <img src="https://res.cloudinary.com/rodrigokamada/image/upload/v1641089482/Blog/angular-pwa/safari_action_button_38x50.png" class="ios-menu m-0" />
+          {{ 'and then "Add to home screen" button' | i18n }}
+          <i class="bi bi-plus-square"></i>
+        </div>
+      }
     </div>
-  </div>
+  }
 </ng-template>
-<router-outlet></router-outlet> 
+<router-outlet></router-outlet>
 
 
 `,
-    imports: [RouterOutlet, CommonModule, ...SHARED_IMPORTS,
-    ]
+    imports: [RouterOutlet, ...SHARED_IMPORTS]
 })
 export class AppComponent implements OnInit {
 

@@ -3,36 +3,42 @@
   <nz-tabset (nzSelectedIndexChange)="onTabChanged($event)">
     <nz-tab nzTitle="Contratos" [nzForceRender]="true">
       <ng-template nz-tab>
-        <div class="gridContainer1 container-fluid" *ngIf="(Contrato$|async) as columnas">
-          <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)">
-          </angular-slickgrid>
-        </div>
+        @if ((Contrato$|async); as columnas) {
+          <div class="gridContainer1 container-fluid">
+            <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)">
+            </angular-slickgrid>
+          </div>
+        }
 
 
       </ng-template></nz-tab>
-    <nz-tab nzTitle="Domicilio" [nzForceRender]="true">
-      <ng-template nz-tab>
-        <div class=" gridContainer2 container-fluid" *ngIf="(Domicilio$|async) as columnasDomicilio">
-          <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnasDomicilio | colsFilter"
-            [gridOptions]="gridOptionsDomicilio" [dataset]="(gridDataDomiicilio$ | async) || []"
-            (onAngularGridCreated)="angularGridReadyDomicilio($event)">
-          </angular-slickgrid>
-        </div>
-      </ng-template>
+      <nz-tab nzTitle="Domicilio" [nzForceRender]="true">
+        <ng-template nz-tab>
+          @if ((Domicilio$|async); as columnasDomicilio) {
+            <div class=" gridContainer2 container-fluid">
+              <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnasDomicilio | colsFilter"
+                [gridOptions]="gridOptionsDomicilio" [dataset]="(gridDataDomiicilio$ | async) || []"
+                (onAngularGridCreated)="angularGridReadyDomicilio($event)">
+              </angular-slickgrid>
+            </div>
+          }
+        </ng-template>
 
 
-    </nz-tab>
-    <nz-tab nzTitle="Grupo Activdad" [nzForceRender]="true">
-      <ng-template nz-tab>
-        <div class=" gridContainer3 container-fluid" *ngIf="(GrupoActividad$|async) as columnasGrupoActividad">
-          <angular-slickgrid gridId="grid24" class="" [columnDefinitions]="columnasGrupoActividad | colsFilter"
-            [gridOptions]="gridOptionsGrupoActividad" [dataset]="(gridDataGrupoActividad$ | async) || []"
-            (onAngularGridCreated)="angularGridReadyGrupoActividad($event)">
-          </angular-slickgrid>
-        </div>
-      </ng-template>
-    </nz-tab>
-  </nz-tabset>
-</nz-card>
+      </nz-tab>
+      <nz-tab nzTitle="Grupo Activdad" [nzForceRender]="true">
+        <ng-template nz-tab>
+          @if ((GrupoActividad$|async); as columnasGrupoActividad) {
+            <div class=" gridContainer3 container-fluid">
+              <angular-slickgrid gridId="grid24" class="" [columnDefinitions]="columnasGrupoActividad | colsFilter"
+                [gridOptions]="gridOptionsGrupoActividad" [dataset]="(gridDataGrupoActividad$ | async) || []"
+                (onAngularGridCreated)="angularGridReadyGrupoActividad($event)">
+              </angular-slickgrid>
+            </div>
+          }
+        </ng-template>
+      </nz-tab>
+    </nz-tabset>
+  </nz-card>
