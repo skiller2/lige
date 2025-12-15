@@ -10,7 +10,7 @@
         <a [routerLink]="['/', 'ges', 'personal','detalle']">Detalle</a>
       </li>
     </ul>
-    <nz-button-group>
+    <nz-button-group nz-button nzButtonGroup>
       <!-- btn  add -->
       <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" (click)="perAlta.newRecord()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"

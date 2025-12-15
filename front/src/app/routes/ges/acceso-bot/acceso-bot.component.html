@@ -3,7 +3,7 @@
   <div nz-row>
 
     <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
-      <nz-button-group >
+      <nz-button-group nz-button nzButtonGroup>
         <a [routerLink]="['/', 'ges', 'acceso-bot','editar']" (click)="setEdit(true)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
           <button nz-button nzType="default" [disabled]="editPersonaId > 0? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>

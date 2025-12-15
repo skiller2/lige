@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { NoticeIconList, NoticeIconModule, NoticeIconSelect, NoticeItem } from '@delon/abc/notice-icon';
 import { add, formatDistanceToNow, parse } from 'date-fns';

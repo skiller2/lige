@@ -1,5 +1,5 @@
 <ng-template #phActionTpl>
-  <nz-button-group>
+  <nz-button-group nz-button nzButtonGroup>
     <button nz-button nzType="primary" disabled>L</button>
     <button nz-button nzType="default" disabled>M</button>
     <button nz-button nzType="default">M</button>
@@ -21,7 +21,7 @@
 
         <nz-form-control [nzSpan]="19" style="text-align: right;">
           @if (this.selectedObjetivoId) {
-            <nz-button-group>
+            <nz-button-group nz-button nzButtonGroup>
               <button nz-button nzType="default" (click)="gotoCargaAsistencia()"><span nz-icon nzType="right"
               nzTheme="outline"></span>Asistencia diaria</button>
             </nz-button-group>
@@ -168,7 +168,7 @@
         </nz-form-item>
       }
     }
-    <nz-button-group nz-row nzJustify="space-between">
+    <nz-button-group nz-button nzButtonGroup nz-row nzJustify="space-between">
 
       <button nz-col nz-button nzType="primary" [nzSize]="'default'" (click)="saveexception()">
         <span nz-icon nzType="save" nzTheme="outline"></span>{{ 'app.btn.save' | i18n }}

@@ -30,6 +30,7 @@ import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.
 import { ApiService } from '../../services/api.service';
 import { NumberAdvancedSearchComponent } from '../number-advanced-search/number-advanced-search';
 import { PeriodoSearchComponent } from '../periodo-search/periodo-search';
+import { AsyncPipe } from '@angular/common';
 
 type listOptionsT = {
   filtros: any[],
@@ -49,7 +50,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],

@@ -18,7 +18,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-
+import { AsyncPipe } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
@@ -34,7 +34,7 @@ type listOptionsT = {
 
 @Component({
   imports: [
-    SHARED_IMPORTS,
+    SHARED_IMPORTS
   ],
   template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
@@ -53,7 +53,8 @@ export class CustomDescargaComprobanteComponent {
   imports: [
     SHARED_IMPORTS,
     NzAffixModule,
-    FiltroBuilderComponent
+    FiltroBuilderComponent,
+    AsyncPipe
 ],
   styleUrls: ['./objetivos-pendasis.component.less'],
   providers: [AngularUtilService]

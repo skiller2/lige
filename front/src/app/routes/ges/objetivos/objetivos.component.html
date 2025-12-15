@@ -4,7 +4,7 @@
 
     <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
 
-      <nz-button-group >
+      <nz-button-group nz-button nzButtonGroup>
         <a [routerLink]="['/', 'ges', 'objetivos','editar']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
           <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>

@@ -6,7 +6,7 @@
         <a [routerLink]="['/', 'ges', 'actas','listado']" (click)="refreshListActas('')">Listado</a>
       </li>
     </ul>
-    <nz-button-group>
+    <nz-button-group nz-button nzButtonGroup>
       <!-- btn  add -->
       <button nz-button nzType="default"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="addNewItem()">

@@ -7,7 +7,7 @@
           [nzAllowClear]="false" />
         </nz-form-control>
         <nz-form-control [nzSpan]="14" style="text-align: right;">
-          <nz-button-group>
+          <nz-button-group nz-button nzButtonGroup>
             @if (selectedObjetivoId) {
               <button nz-button nzType="default"
               [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId }]">Asistencia diaria</button>

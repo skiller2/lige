@@ -4,7 +4,7 @@
  
       <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
         
-        <nz-button-group >
+        <nz-button-group nz-button nzButtonGroup>
           <button [disabled]="objetivoIdSelected() == 0" nz-button nzType="default"
           [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected() }]">{{ 'app.asistenciaDiaria' | i18n }}</button>
           

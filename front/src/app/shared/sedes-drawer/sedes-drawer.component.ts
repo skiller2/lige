@@ -11,7 +11,7 @@ import { SearchService } from '../../services/search.service';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from "../custom-search/custom-search";
-
+import { NzButtonModule } from 'ng-zorro-antd/button';
 
 
 type listOptionsT = {
@@ -30,7 +30,8 @@ export interface Option {
     imports: [SHARED_IMPORTS, 
       NzUploadModule, 
       NzAutocompleteModule,
-      CommonModule
+      CommonModule,
+      NzButtonModule
     ],
     providers: [AngularUtilService],
     templateUrl: './sedes-drawer.component.html',

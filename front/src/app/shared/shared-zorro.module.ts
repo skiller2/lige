@@ -16,7 +16,6 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberLegacyModule } from 'ng-zorro-antd/input-number-legacy';
 import { NzListModule } from 'ng-zorro-antd/list';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzPipesModule } from 'ng-zorro-antd/pipes';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
@@ -35,7 +34,6 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 
 export const SHARED_ZORRO_MODULES = [
   NzButtonModule,
-  NzMessageModule,
   NzDropDownModule,
   NzGridModule,
   NzCheckboxModule,

@@ -23,7 +23,7 @@
       </li>
     </ul>
 
-    <nz-button-group>
+    <nz-button-group nz-button nzButtonGroup>
       <button nz-button nzType="default" [disabled]="editCustodiaId()? false : true"
         [routerLink]="['/', 'ges', 'cust','editar']" (click)="setEdit(true)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit"
       nzTheme="outline"></span></button>

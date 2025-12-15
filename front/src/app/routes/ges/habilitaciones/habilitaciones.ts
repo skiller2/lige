@@ -10,10 +10,11 @@ import { SearchService } from 'src/app/services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 
 @Component({
   selector: 'app-habilitaciones',
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
   styleUrl: './habilitaciones.less',

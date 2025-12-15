@@ -11,7 +11,7 @@
 
     <div nz-col style="display: flex;flex-direction: row-reverse;">
 
-      <nz-button-group>
+      <nz-button-group nz-button nzButtonGroup>
         <button nz-button nzType="default" [disabled]="!rows().length || loadingRec() || loadingPen()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}"
           nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows().length}} registros?" (nzOnConfirm)="aprobarReg()">
           <nz-icon nzType="check" nzTheme="outline" />

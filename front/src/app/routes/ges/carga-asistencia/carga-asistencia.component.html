@@ -51,7 +51,7 @@
           </div>
           <div nz-col [nzSpan]="7" style="text-align:right;">
             @if (selectedObjetivoId>0) {
-              <nz-button-group>
+              <nz-button-group nz-button nzButtonGroup>
                 <button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
                   nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck"><span nz-icon
                   [nzType]="isLoadingCheck ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
@@ -168,7 +168,7 @@
           </nz-form-item>
         </div>
         <div nz-col [nzSpan]="2" style="text-align:right;">
-          <nz-button-group>
+          <nz-button-group nz-button nzButtonGroup>
             <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
               nzTheme="outline" nz-tooltip
             nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>

@@ -5,7 +5,7 @@
             <div style="width: 80%;">
               <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" /> 
             </div>
-            <nz-button-group>
+            <nz-button-group nz-button nzButtonGroup>
               <button nz-button nzType="default" (click)="openDrawerForNew()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
               <button nz-button nzType="default" (click)="openDrawerforEdit()" nz-tooltip
