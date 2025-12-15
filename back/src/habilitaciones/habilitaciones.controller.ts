@@ -153,16 +153,128 @@ const GridColums: any[] = [
     },
 ];
 
+const GridDetalleColums: any[] = [
+    {
+        id: "id",
+        name: "id",
+        field: "id",
+        fieldName: "id",
+        type: "number",
+        sortable: false,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        name: "Detalle",
+        type: "string",
+        id: "Detalle",
+        field: "Detalle",
+        fieldName: "geshab.Detalle",
+        sortable: false,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Fecha Ingreso",
+        type: "date",
+        id: "AudFechaIng",
+        field: "AudFechaIng",
+        fieldName: "geshab.AudFechaIng",
+        // searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Estado",
+        type: "string",
+        id: "Detalle",
+        field: "Detalle",
+        fieldName: "est.Detalle",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+]
+
+const GridDocColums: any[] = [
+    {
+        name: "DocumentoId",
+        type: "number",
+        id: "id",
+        field: "id",
+        fieldName: "doc.DocumentoId",
+        sortable: false,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        name: "Tipo Codigo",
+        type: "string",
+        id: "DocumentoTipoCodigo",
+        field: "DocumentoTipoCodigo",
+        fieldName: "doctip.DocumentoTipoCodigo",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+    },
+    {
+        name: "Fecha Ingreso",
+        type: "date",
+        id: "DocumentoAudFechaIng",
+        field: "DocumentoAudFechaIng",
+        fieldName: "doc.DocumentoAudFechaIng",
+        // searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Fecha",
+        type: "date",
+        id: "DocumentoFecha",
+        field: "DocumentoFecha",
+        fieldName: " doc.DocumentoFecha",
+        // searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Fecha Vencimiento",
+        type: "date",
+        id: "DocumentoFechaDocumentoVencimiento",
+        field: "DocumentoFechaDocumentoVencimiento",
+        fieldName: "doc.DocumentoFechaDocumentoVencimiento",
+        // searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+]
+
 export class HabilitacionesController extends BaseController {
     
     async getGridCols(req, res) {
         this.jsonRes(GridColums, res);
     }
 
-    async HabilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
+    async getGridDetalleCols(req, res) {
+        this.jsonRes(GridDetalleColums, res);
+    }
+
+    async getGridDocCols(req, res) {
+        this.jsonRes(GridDocColums, res);
+    }
+
+    async habilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
         return await queryRunner.query(`
         SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
-        per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, IIF(c.PersonalId IS NULL,'0','1') HabNecesaria, d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite
+            per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, IIF(c.PersonalId IS NULL,'0','1') HabNecesaria, 
+            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
+            est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId
         FROM Personal per
         LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId AND ((b.PersonalHabilitacionDesde < @0 AND ISNULL(b.PersonalHabilitacionHasta,'9999-12-31') > @0) OR (b.PersonalHabilitacionDesde IS NULL AND b.PersonalHabilitacionHasta IS NULL))
         LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaDesde < @0 AND ISNULL(c.PersonalHabilitacionNecesariaHasta,'9999-12-31') > @0
@@ -194,7 +306,7 @@ export class HabilitacionesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const periodo = new Date()
         try {
-            const habilitaciones = await this.HabilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
+            const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
             
             this.jsonRes(
                 {
@@ -209,4 +321,70 @@ export class HabilitacionesController extends BaseController {
         }
 
     }
+
+    async listDetalleGestionesQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
+        return await queryRunner.query(`
+        SELECT geshab.Detalle, geshab.AudFechaIng,est.Detalle estado
+        FROM GestionHabilitacion geshab
+        LEFT JOIN PersonalHabilitacion perhab ON perhab.PersonalId=geshab.PersonalId and perhab.PersonalHabilitacionLugarHabilitacionId=geshab.PersonalHabilitacionLugarHabilitacionId and perhab.PersonalHabilitacionId=geshab.PersonalHabilitacionId
+        LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo=geshab.GestionHabilitacionEstadoCodigo
+        WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+        `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+    }
+
+    async getDetalleGestiones(req: any, res: Response, next: NextFunction) {
+        const PersonalId = req.body.PersonalId
+        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const habilitaciones = await this.listDetalleGestionesQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
+            console.log('Detalle.length:', habilitaciones.length);
+            this.jsonRes(
+                {
+                    total: habilitaciones.length,
+                    list: habilitaciones,
+                },
+                res
+            );
+
+        } catch (error) {
+            return next(error)
+        }
+
+    }
+
+    async listDocQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
+        return await queryRunner.query(`
+        SELECT doc.DocumentoId,doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        FROM PersonalHabilitacion perhab 
+        JOIN DocumentoRelaciones docrel on docrel.PersonalId=perhab.PersonalId and docrel.PersonalHabilitacionId=docrel.PersonalHabilitacionId and docrel.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
+        LEFT JOIN Documento doc on doc.DocumentoId=docrel.DocumentoId
+        LEFT JOIN DocumentoTipo doctip on doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
+        WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+        `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+    }
+
+    async getDocRelacionados(req: any, res: Response, next: NextFunction) {
+        const PersonalId = req.body.PersonalId
+        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const habilitaciones = await this.listDocQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
+            // console.log('Doc.length:', habilitaciones.length);
+            this.jsonRes(
+                {
+                    total: habilitaciones.length,
+                    list: habilitaciones,
+                },
+                res
+            );
+
+        } catch (error) {
+            return next(error)
+        }
+
+    }
+    
 }

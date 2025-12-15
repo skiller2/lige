@@ -37,19 +37,18 @@
         <ul nz-menu nzMode="horizontal" style="display: flex;">
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'habilitaciones', 'listado']" (click)="reloadListado()" >{{ 'app.novedades' | i18n }} </a>
+            <a [routerLink]="['/', 'ges', 'habilitaciones', 'listado']" (click)="reloadListado()">{{ 'app.habilitaciones' | i18n }} </a>
           </li>
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" >{{ 'app.detail' | i18n }} </a>
+            <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
           </li>
         </ul>
       </div>
     
     </div>
-    <!--selectedIndex: {{selectedIndex()}}-->
-      <nz-tabset [nzSelectedIndex]="selectedIndex()" nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
-        <nz-tab></nz-tab>
+    <!-- selectedIndex: {{selectedIndex()}} -->
+      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()">
         <nz-tab>
           <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
           <ng-template nz-tab *ngIf="(columns$|async) as columnas">
@@ -66,7 +65,7 @@
   
         <nz-tab>
           <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
-          
+          <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [personalHabilitacionId]="personalHabilitacionId()" [lugarHabilitacionId]="lugarHabilitacionId()"></app-habilitaciones-detalle>
         </nz-tab>
   
     </nz-tabset>
