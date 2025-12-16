@@ -454,7 +454,7 @@ export class AdelantosController extends BaseController {
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 
 
-        WHERE (1=1) and pre.FormaPrestamoId = 7
+        WHERE (1=1) -- and pre.FormaPrestamoId = 7
        -- AND perrel.PersonalCategoriaPersonalId=@0
        AND (${filterSql}) 
        ${orderBy}`,
