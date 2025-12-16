@@ -7,7 +7,7 @@
           <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
         </div>
         <div style="flex-shrink: 0;">
-          <nz-button-group>
+          <nz-button-group nz-button nz-buttonGroup>
             <!-- Agregar Descuento -->
             <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="openDrawerforAltaDescuentos()">
               <span nz-icon nzType="plus" nzTheme="outline"></span>

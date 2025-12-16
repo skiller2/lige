@@ -20,7 +20,7 @@
 
     <nz-form-item class="imgContainer">
 
-      @if (qrCodeResult) {
+      @if (qrCodeResult()) {
         <div>
           <p>Contenido del QR: {{ qrCodeResult() }}</p>
         </div>

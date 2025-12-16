@@ -1,4 +1,4 @@
-<result type="success" [title]="title" description="{{ 'app.register-result.activation-email' | i18n }}">
+<nz-result nzStatus="success" [nzTitle]="title" [nzSubTitle]="'app.register-result.activation-email' | i18n">
   <ng-template #title>
     <div class="title" style="font-size: 20px">
       {{ 'app.register-result.msg' | i18n: { email } }}
@@ -10,4 +10,4 @@
   <button routerLink="/" nz-button nzSize="large">
     {{ 'app.register-result.back-home' | i18n }}
   </button>
-</result>
+</nz-result>

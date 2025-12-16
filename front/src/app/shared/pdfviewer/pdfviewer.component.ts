@@ -93,7 +93,11 @@ export class PdfviewerComponent implements OnChanges {
 
   async download() {
     if (this.$currentDownloadablePDF.value) {
-      this.downloadService.downloadBlob(this.$currentDownloadablePDF.value, this.namePDFDownload, 'pdf');
+      this.downloadService.downloadBlob(
+        this.$currentDownloadablePDF.value as BlobPart,
+        this.namePDFDownload,
+        'pdf'
+      );
     }
   }
 }

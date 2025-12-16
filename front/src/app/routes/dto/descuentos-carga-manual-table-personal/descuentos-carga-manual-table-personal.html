@@ -4,7 +4,7 @@
         nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
         nz-button>{{ 'app.btn.name.xls' | i18n }}
       </button>-->
-      <nz-button-group>
+      <nz-button-group nz-button nz-buttonGroup>
 
         <button nzType="default"
         nz-button nz-popconfirm nzPopconfirmTitle="¿Procesar {{gridDataInsert.length - 1}} registros?"

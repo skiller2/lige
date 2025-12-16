@@ -22,6 +22,7 @@ import {
   tap,
   throttleTime,
 } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -59,7 +60,8 @@ export class CustomDescargaComprobanteComponent {
     SHARED_IMPORTS,
     NzAffixModule,
     FiltroBuilderComponent,
-    NzUploadModule
+    NzUploadModule,
+    AsyncPipe
 ],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService]

@@ -17,7 +17,7 @@
           <label>{{ param.Prompt }}</label>
           <nz-input-group [nzSize]="'large'">
             <!-- Si es String y tiene valores válidos, mostrar un nz-select -->
-            @if (param.ParameterType === 'String' && param.ValidValues?.length) {
+            @if (param.ParameterType === 'String' && param.ValidValues.length) {
               <nz-select
                 nzPlaceHolder="Seleccione una opción"
                 [nzDropdownMatchSelectWidth]="false" nzShowSearch [(ngModel)]="param.Value"
