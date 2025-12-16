@@ -160,6 +160,18 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
+    name: "Total Horas",
+    type: "float",
+    id: "AsistenciaHoras",
+    field: "AsistenciaHoras",
+    fieldName: "objasissub.sumtotalhorascalc",
+    searchType: "float",
+    sortable: true,
+    hidden: false,
+    editable: false
+  },
+
+  {
     name: "Total Horas Normales",
     type: "float",
     id: "AsistenciaHorasN",
