@@ -205,6 +205,7 @@
 
 
 <div nz-row nzGutter="16">
+  
   @if (custodiasPendientes$ | async; as custodiasPendientes) {
   <div nz-col nzXs="24" nzMd="24">
     @if (custodiasPendientes.data.custodiasPendientesTotal > 0){
@@ -222,8 +223,8 @@
 
   @if (objetivosSinAsistencia$ | async; as objetivosSinAsistencia) {
   <div nz-col nzXs="24" nzMd="24">
-    @if (objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0)> {
-    <nz-card "" [nzBordered]="false" [nzTitle]="objsinAsis">
+    @if (objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0) {
+    <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
         Objetivos sin asistencia {{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
         <small class="text-sm font-weight-normal">Objetivos pendientes de carga por grupo</small>
