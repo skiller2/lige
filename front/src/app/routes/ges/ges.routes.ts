@@ -185,7 +185,7 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./efecto/efecto.component').then(c => c.EfectoComponent),
   },
   {
-    path: 'habilitaciones', redirectTo: 'habilitaciones/listados'
+    path: 'habilitaciones', redirectTo: 'habilitaciones/listado'
   },
   {
     path: 'habilitaciones/:tab',

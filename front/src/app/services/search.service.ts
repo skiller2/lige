@@ -2065,4 +2065,30 @@ export class SearchService {
     );
   }
 
+  getDetalleGestionesByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId:number) {
+    if (!PersonalId || !PersonalHabilitacionId || !LugarHabilitacionId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/detalle-list`, { PersonalId, PersonalHabilitacionId, LugarHabilitacionId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getDocsByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId:number) {
+    if (!PersonalId || !PersonalHabilitacionId || !LugarHabilitacionId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/doc-list`, { PersonalId, PersonalHabilitacionId, LugarHabilitacionId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

@@ -7,8 +7,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
-import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { FiltroBuilderComponent } from "src/app/shared/filtro-builder/filtro-builder.component";
+import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 
@@ -26,9 +26,6 @@ export class HabilitacionesComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editNovedadNovedadCodigo = signal(0)
-  editNovedadObjetivoId = signal(0)
-  childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listHabilitaciones$ = new BehaviorSubject('')
   listOptions: listOptionsT = {
@@ -36,13 +33,13 @@ export class HabilitacionesComponent {
     sort: null,
   };
   selectedIndex = signal(0)
-  periodo = signal<Date>(new Date())
-  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
-  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
-  cantRegistros = signal<number>(0)
+  // periodo = signal<Date>(new Date())
+  // anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
+  // mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   isLoading = signal<boolean>(false)
-
-  // childDetalle = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
+  personalId = signal<number>(0)
+  personalHabilitacionId = signal<number>(0)
+  lugarHabilitacionId = signal<number>(0)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -68,30 +65,32 @@ export class HabilitacionesComponent {
     switchMap(() => {
       return this.searchService.getHabilitacionesList(this.listOptions,)
         .pipe(map(data => { 
-          console.log('data: ', data);
-          
           return data.list 
         }))
     })
   )
 
+  // childHabilitacionesDetalle = viewChild.required<HabilitacionesDetalleComponent>('habilitacionesDestalle')
+
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
-      // columnTotal('CantidadNovedades', this.angularGrid)
     })
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
   }
 
   handleSelectedRowsChanged(e: any): void {
-    console.log("handleSelectedRowsChanged", e)
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    console.log('row: ', row);
+    
     if (row?.id) {
-      // this.editNovedadNovedadCodigo.set(row.id)
-      // this.editNovedadObjetivoId.set(row.ObjetivoId)
+      this.personalId.set(row.PersonalId)
+      this.personalHabilitacionId.set(row.PersonalHabilitacionId)
+      this.lugarHabilitacionId.set(row.PersonalHabilitacionLugarHabilitacionId)
+      
       // Asegurar que el componente de edición se inicialice si ya está visible
       // if (this.selectedIndex() === 2) {
       //   this.childDeta().viewRecord(false)
@@ -110,11 +109,15 @@ export class HabilitacionesComponent {
     this.selectedIndex.set(1)
   }
 
-  // goToDetail() {
-  //   if (this.editNovedadNovedadCodigo() > 0) {
-  //     this.selectedIndex.set(2)
-  //     this.childDetalle().viewRecord(true)
-  //   }
-  // }
+  goToDetail() {
+    // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
+      this.selectedIndex.set(2)
+      // this.childDetalle().viewRecord(true)
+    // }
+  }
+
+  onTabsetChange(_event: any) { 
+    window.dispatchEvent(new Event('resize'));
+  }
 
 }
