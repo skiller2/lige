@@ -42,7 +42,7 @@
     "@delon/acl": "^20.1.0",
     "@delon/auth": "^20.1.0",
     "@delon/cache": "^20.1.0",
-    "@delon/chart": "^19.0.1",
+    "@delon/chart": "^20.1.0",
     "@delon/form": "^20.1.0",
     "@delon/mock": "^19.0.1",
     "@delon/theme": "^20.1.0",
