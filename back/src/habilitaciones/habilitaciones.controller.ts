@@ -99,8 +99,18 @@ const GridColums: any[] = [
         searchComponent: "inpurForActivo",
 
     },
+     {
+        name: "Lugar Habilitación Necesaria",
+        type: "string",
+        id: "LugarHabilitacionDescripcion",
+        field: "LugarHabilitacionDescripcion",
+        fieldName: "d.LugarHabilitacionDescripcion",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
     {
-        name: "Habilitacion Desde",
+        name: "Habilitación Desde",
         type: "date",
         id: "PersonalHabilitacionDesde",
         field: "PersonalHabilitacionDesde",
@@ -111,7 +121,7 @@ const GridColums: any[] = [
         searchHidden: false
     },
     {
-        name: "Habilitacion Hasta",
+        name: "Habilitación Hasta",
         type: "date",
         id: "PersonalHabilitacionHasta",
         field: "PersonalHabilitacionHasta",
