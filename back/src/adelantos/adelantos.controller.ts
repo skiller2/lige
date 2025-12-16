@@ -437,7 +437,7 @@ export class AdelantosController extends BaseController {
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
      
         LEFT JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId
-               AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) 
+               AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) and pre.FormaPrestamoId = 7
         LEFT JOIN FormaPrestamo fp ON fp.FormaPrestamoId = pre.FormaPrestamoId
 
         LEFT JOIN 
