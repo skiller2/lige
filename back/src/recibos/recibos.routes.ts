@@ -28,7 +28,7 @@ recibosRouter.get("/download/:anio/:mes/:personalIdRel?", [authMiddleware.verify
 });
 
 
-recibosRouter.post('/downloadfull', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gPersonal'])], authMiddleware.filterSucursal, async (req, res, next) => {
+recibosRouter.post('/downloadfull', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas'])], authMiddleware.filterSucursal, async (req, res, next) => {
   await recibosController.bindPdf(req, res, next)
 })
 
