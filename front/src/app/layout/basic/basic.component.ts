@@ -118,8 +118,6 @@ import { HeaderSearchModuleComponent } from './widgets/search-module.component';
         NzAvatarModule,
         SettingDrawerModule,
         ThemeBtnComponent,
-        HeaderNotifyComponent,
-        HeaderIconComponent,
         HeaderI18nComponent,
         HeaderClearStorageComponent,
         HeaderFullScreenComponent,
