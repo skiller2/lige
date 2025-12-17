@@ -114,7 +114,7 @@ const GridColums: any[] = [
         type: "date",
         id: "PersonalHabilitacionDesde",
         field: "PersonalHabilitacionDesde",
-        fieldName: "b.PersonalHabilitacionDesde",
+        fieldName: "ISNULL(b.PersonalHabilitacionDesde, '9999-12-31')",
         searchComponent: "inpurForFechaSearch",
         sortable: true,
         hidden: false,
@@ -125,7 +125,7 @@ const GridColums: any[] = [
         type: "date",
         id: "PersonalHabilitacionHasta",
         field: "PersonalHabilitacionHasta",
-        fieldName: "b.PersonalHabilitacionHasta",
+        fieldName: "ISNULL(b.PersonalHabilitacionHasta, '9999-12-31')",
         searchComponent: "inpurForFechaSearch",
         sortable: true,
         hidden: false,
@@ -266,15 +266,15 @@ const GridDocColums: any[] = [
 
 export class HabilitacionesController extends BaseController {
     
-    async getGridCols(req, res) {
-        this.jsonRes(GridColums, res);
+    async getGridCols(req, res, next) {
+        this.jsonRes(GridColums, res, next);
     }
 
-    async getGridDetalleCols(req, res) {
+    async getGridDetalleCols(req, res, next) {
         this.jsonRes(GridDetalleColums, res);
     }
 
-    async getGridDocCols(req, res) {
+    async getGridDocCols(req, res, next) {
         this.jsonRes(GridDocColums, res);
     }
 
@@ -396,6 +396,75 @@ export class HabilitacionesController extends BaseController {
             return next(error)
         }
 
+    }
+
+    async getEstadosHabilitaciones(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const tipos = await queryRunner.query(`
+            SELECT est.GestionHabilitacionEstadoCodigo value, est.Detalle label
+            FROM GestionHabilitacionEstado est
+            `,)
+
+            this.jsonRes(
+                {
+                    total: tipos.length,
+                    list: tipos,
+                },
+                res
+            );
+
+        } catch (error) {
+            return next(error)
+        }
+
+    }
+
+    async addHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
+        const PersonalId = req.body.PersonalId
+        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const ip = this.getRemoteAddress(req)
+        const usuario = res.locals.userName
+        const fechaActual = new Date()
+
+        const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
+        const Detalle = req.body.Detalle
+        const NroTramite = req.body.NroTramite
+        const PersonalHabilitacionDesde = req.body.PersonalHabilitacionDesde
+        const PersonalHabilitacionHasta = req.body.PersonalHabilitacionHasta
+        const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
+        const AudFechaIng = req.body.AudFechaIng
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            await queryRunner.query(`
+            INSERT INTO GestionHabilitacion (
+                GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
+                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @8, @9, @9);
+            `,[ ,PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, AudFechaIng, fechaActual, usuario, ip])
+
+            await queryRunner.query(`
+            UPDATE PersonalHabilitacion
+            SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, NroTramite = @6
+            , AudFechaMod = @7, AudIpMod = @8, AusUsuarioMod = @9
+            WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
+            `,[PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId, 
+                PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, NroTramite,
+                fechaActual, ip, usuario
+            ])
+
+
+            await queryRunner.commitTransaction()
+
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
     }
     
 }

@@ -26,90 +26,103 @@ import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.comp
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
-import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline} from '@ant-design/icons-angular/icons';
+import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline } from '@ant-design/icons-angular/icons';
 
 
 @Component({
-    selector: 'app-personal',
-    templateUrl: './personal.component.html',
-    styleUrl: './personal.component.less',
-    // encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, NzIconModule,
-        PersonalFormComponent, LicenciaHistorialDrawerComponent,
-        PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
-        PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
-        DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent,PersonalActaDrawerComponent
-    ],
-    providers: [AngularUtilService, ExcelExportService,provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline])],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-personal',
+  templateUrl: './personal.component.html',
+  styleUrl: './personal.component.less',
+  // encapsulation: ViewEncapsulation.None,
+  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, NzIconModule,
+    PersonalFormComponent, LicenciaHistorialDrawerComponent,
+    PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
+    PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
+    DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent, PersonalActaDrawerComponent
+  ],
+  providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline])],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-  
+
 export class PersonalComponent {
-    angularGrid!: AngularGridInstance;
-    gridOptions!: GridOption;
-    gridDataInsert: any[] = [];
-    detailViewRowCount = 1;
-    excelExportService = new ExcelExportService();
-    listPersonal$ = new BehaviorSubject('');
-    listOptions: listOptionsT = {
-        filtros: [],
-        sort: null,
-    };
-    startFilters: any[]=[]
+  angularGrid!: AngularGridInstance;
+  gridOptions!: GridOption;
+  gridDataInsert: any[] = [];
+  detailViewRowCount = 1;
+  excelExportService = new ExcelExportService();
+  listPersonal$ = new BehaviorSubject('');
+  listOptions: listOptionsT = {
+    filtros: [],
+    sort: null,
+  };
+  startFilters: any[] = []
 
-    private angularUtilService = inject(AngularUtilService)
-    private searchService = inject(SearchService)
-    private apiService = inject(ApiService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
 
-    personalId = signal(0)
-    anio = signal(0)
-    mes = signal(0)
-    visibleHistorial = model<boolean>(false)
-    visibleObjetivo = model<boolean>(false)
-    visibleCustodias = model<boolean>(false)
-    visibleDomicilio = model<boolean>(false)
-    visibleSitRevista = model<boolean>(false)
-    visibleResponsable = model<boolean>(false)
-    visibleDocumentos = model<boolean>(false)
-    visibleDetalle = model<boolean>(false)
-    visibleCategoria = model<boolean>(false)
-    visibleBanco = model<boolean>(false)
-    visibleActa = model<boolean>(false)
+  personalId = signal(0)
+  anio = signal(0)
+  mes = signal(0)
+  visibleHistorial = model<boolean>(false)
+  visibleObjetivo = model<boolean>(false)
+  visibleCustodias = model<boolean>(false)
+  visibleDomicilio = model<boolean>(false)
+  visibleSitRevista = model<boolean>(false)
+  visibleResponsable = model<boolean>(false)
+  visibleDocumentos = model<boolean>(false)
+  visibleDetalle = model<boolean>(false)
+  visibleCategoria = model<boolean>(false)
+  visibleBanco = model<boolean>(false)
+  visibleActa = model<boolean>(false)
+  hiddenColumnIds: string[] = [];
 
 
-    // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
-    // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
-    // childCustDrawer = viewChild.required<PersonalCustodiasDrawerComponent>('custDrawer')
-    // childDomDrawer = viewChild.required<PersonalDomicilioDrawerComponent>('domDrawer')
-    childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
-    childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
-    childPerDocumentosDrawer = viewChild.required<PersonalDocumentosDrawerComponent>('docDrawer')
 
-    columns$ = this.apiService.getCols('/api/personal/cols')
-    gridData$ = this.listPersonal$.pipe(
-      debounceTime(500),
-      switchMap(() => {
-        return this.searchService.getPersonalList({ options: this.listOptions })
-          .pipe(map(data => { return data }))
-      })
-    )
+  // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
+  // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
+  // childCustDrawer = viewChild.required<PersonalCustodiasDrawerComponent>('custDrawer')
+  // childDomDrawer = viewChild.required<PersonalDomicilioDrawerComponent>('domDrawer')
+  childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
+  childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
+  childPerDocumentosDrawer = viewChild.required<PersonalDocumentosDrawerComponent>('docDrawer')
 
-    async ngOnInit(){
-      const date:Date = new Date()
-      this.anio.set(date.getFullYear())
-      this.mes.set(date.getMonth()+1)
-      this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-      this.gridOptions.enableRowDetailView = false
-      this.gridOptions.enableAutoSizeColumns = true
-      this.gridOptions.showFooterRow = true
-      this.gridOptions.createFooterRow = true
-      this.gridOptions.enableCheckboxSelector = true
-      // this.gridOptions.rowSelectionOptions = {
-      //     selectActiveRow: true
-      // }
-      this.startFilters = [
-        {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;12', forced:false},
-      ]
+  columns$ = this.apiService.getCols('/api/personal/cols').pipe(
+    map((cols) => {
+      // Guardar IDs de columnas que tienen showGridColumn: false
+      this.hiddenColumnIds = cols
+        .filter((col: any) => col.showGridColumn === false)
+        .map((col: Column) => col.id as string);
+      return cols;
+    })
+  )
+  gridData$ = this.listPersonal$.pipe(
+    debounceTime(500),
+
+    switchMap(() => {
+      return this.searchService.getPersonalList({ options: this.listOptions })
+        .pipe(map(data => { return data }))
+    })
+  )
+
+  async ngOnInit() {
+    const date: Date = new Date()
+    this.anio.set(date.getFullYear())
+    this.mes.set(date.getMonth() + 1)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = false
+    this.gridOptions.enableAutoSizeColumns = true
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
+    this.gridOptions.enableCheckboxSelector = true
+    this.gridOptions.forceFitColumns = true
+
+    // this.gridOptions.rowSelectionOptions = {
+    //     selectActiveRow: true
+    // }
+    this.startFilters = [
+      { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
+    ]
   }
 
   async angularGridReady(angularGrid: any) {
@@ -118,18 +131,23 @@ export class PersonalComponent {
       totalRecords(this.angularGrid)
     })
 
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+    }
+
     if (this.apiService.isMobile())
-        this.angularGrid.gridService.hideColumnByIds([])
+      this.angularGrid.gridService.hideColumnByIds([])
   }
 
   handleSelectedRowsChanged(e: any): void {
-    if (e.detail.args.changedSelectedRows.length ==1) {
+    if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
       const PersonalId = this.angularGrid.dataView.getItemByIdx(rowNum)?.PersonalId
       this.personalId.set(PersonalId)
 
     } else {
-      this.personalId.set(0)      
+      this.personalId.set(0)
     }
   }
 
@@ -142,53 +160,53 @@ export class PersonalComponent {
     this.listPersonal$.next('');
   }
 
-  openDrawerforConsultHistory(): void{
-    this.visibleHistorial.set(true) 
+  openDrawerforConsultHistory(): void {
+    this.visibleHistorial.set(true)
   }
 
-  openDrawerforConsultObjective(): void{
-    this.visibleObjetivo.set(true) 
+  openDrawerforConsultObjective(): void {
+    this.visibleObjetivo.set(true)
   }
 
-  openDrawerforConsultCustodias(): void{
-    this.visibleCustodias.set(true) 
+  openDrawerforConsultCustodias(): void {
+    this.visibleCustodias.set(true)
   }
 
-  openDrawerforConsultDomicilio(): void{
-    this.visibleDomicilio.set(true) 
+  openDrawerforConsultDomicilio(): void {
+    this.visibleDomicilio.set(true)
   }
 
-  openDrawerforConsultSitRevista(): void{
-    this.visibleSitRevista.set(true) 
+  openDrawerforConsultSitRevista(): void {
+    this.visibleSitRevista.set(true)
   }
 
-  openDrawerforConsultResponsable(): void{
-    this.visibleResponsable.set(true) 
+  openDrawerforConsultResponsable(): void {
+    this.visibleResponsable.set(true)
   }
 
-  openDrawerforConsultDocumentos(): void{
+  openDrawerforConsultDocumentos(): void {
     this.visibleDocumentos.set(true)
     this.childPerDocumentosDrawer().resetFormValues()
   }
 
-  openDrawerforConsultCategoria(): void{
-    this.visibleCategoria.set(true) 
+  openDrawerforConsultCategoria(): void {
+    this.visibleCategoria.set(true)
   }
 
-  openDrawerforConsultDetalle(): void{
-    this.visibleDetalle.set(true) 
+  openDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set(true)
   }
 
-  openDrawerforConsultBanco(): void{
-    this.visibleBanco.set(true) 
+  openDrawerforConsultBanco(): void {
+    this.visibleBanco.set(true)
   }
 
   closeDrawerforConsultDetalle(): void {
-    this.visibleDetalle.set( false)
+    this.visibleDetalle.set(false)
   }
 
-  openDrawerforConsultActa(): void{
-    this.visibleActa.set(true) 
+  openDrawerforConsultActa(): void {
+    this.visibleActa.set(true)
   }
 
   onTabsetChange(_event: any) {
@@ -199,7 +217,7 @@ export class PersonalComponent {
       case 3: //EDIT
         this.childPerFormDrawer().load()
         break;
-      case 2: 
+      case 2:
         break;
       default:
         break;

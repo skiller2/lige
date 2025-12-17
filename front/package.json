@@ -61,7 +61,7 @@
     "ng-zorro-antd": "^20",
     "ngx-extended-pdf-viewer": "^25.6.4",
     "ngx-image-cropper": "^6.3.4",
-    "ngx-mask": "^19.0.7",
+    "ngx-mask": "^20.0.3",
     "ngx-tinymce": "^18.0.0",
     "pdf-lib": "^1.17.1",
     "qrious": "^4.0.2",

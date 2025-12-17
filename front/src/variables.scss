@@ -52,8 +52,9 @@ $slick-link-color-hover:                                    darker($slick-link-c
 $slick-navbar-default-link-hover-color:	                    $slick-gray-dark !default;
 $slick-text-color:             			                        $slick-gray-dark !default;
 $slick-table-background:                                    transparent !default;
-$slick-grid-footer-display:                                 inline;
-$slick-grid-footer-cell-padding:                            2px 2px;
+$slick-grid-footer-display:                                 inline !default;
+$slick-grid-footer-cell-padding:                            2px 2px !default;
+$slick-grid-footer-cell-border-right:                       1px solid rgba(133, 133, 133, 0.20) !default;
 
 /* cell */
 $slick-cell-active-border:                                  none !default;
@@ -63,15 +64,15 @@ $slick-cell-box-shadow:                                     inherit !default;
 $slick-cell-text-color:                                     #000000 !default;
 $slick-cell-font-family:                                    $slick-font-family !default;
 $slick-cell-font-weight:                                    normal !default;
-$slick-cell-border-top:                                     1px solid #{$slick-border-color} !default;
-$slick-cell-border-right:                                   1px transparent !default;
+$slick-cell-border-top:                                     1px solid rgba(133, 133, 133, 0.15) !default;
+$slick-cell-border-right:                                   1px solid rgba(133, 133, 133, 0.25) !default;
 $slick-cell-border-bottom:                                  1px transparent !default;
 $slick-cell-border-left:                                    1px transparent !default;
 $slick-cell-even-background-color: 			                    #ffffff !default;
 $slick-cell-odd-background-color:                           color.adjust($slick-grid-cell-color, $lightness: -3%) !default; // for striping every second row
 $slick-cell-odd-active-background-color:                    color.adjust($slick-grid-cell-color, $lightness: -5%) !default;
-$slick-cell-padding-top-bottom:                             5px !default;
-$slick-cell-padding-left-right:                             6px !default;
+$slick-cell-padding-top-bottom:                             5px;
+$slick-cell-padding-left-right:                             2px;
 $slick-cell-padding:                                        $slick-cell-padding-top-bottom $slick-cell-padding-left-right !default;
 
 /** 4x available slick-pane (top, bottom, left, right) */
@@ -113,7 +114,7 @@ $slick-header-column-background-hover:                      color.adjust($slick-
 $slick-header-column-sortable-background-hover:             #e0e0e0 !default;
 $slick-header-column-name-margin-right:                     5px !default;
 $slick-header-column-border-top:                            0 none !default;                      // header, column titles, that is without the Filters
-$slick-header-column-border-right:                          0 none !default;
+$slick-header-column-border-right:                          1px solid rgba(133, 133, 133, 0.20) !default;
 $slick-header-column-border-bottom:                         0 none !default;
 $slick-header-column-border-left:                           0 none !default;
 $slick-header-filter-row-border-top:                        0 none !default;                      // header row is where the Filters are showing

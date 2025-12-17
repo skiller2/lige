@@ -43,6 +43,7 @@ export class ObjetivosComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
+  hiddenColumnIds: string[] = [];
   editObjetivoId= signal(0)
   editClienteId = signal(0)
   ObjetivoNombre = signal("")
@@ -68,6 +69,9 @@ export class ObjetivosComponent {
 
     columns$ = this.apiService.getCols('/api/objetivos/cols').pipe(
       map((cols) => {
+        // Guardar IDs de columnas que tienen showGridColumn: false
+        this.hiddenColumnIds = cols.filter((col: any) => col.showGridColumn === false).map((col: Column) => col.id as string);
+
         // Configurar la columna Codigo para que se exporte como texto
         const codigoCol = cols.find((col: Column) => col.id === 'Codigo')
         if (codigoCol) {
@@ -120,6 +124,7 @@ export class ObjetivosComponent {
       this.gridOptions.enableRowDetailView = this.apiService.isMobile()
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
+      this.gridOptions.forceFitColumns = true
 
       const dateToday = new Date();
       this.startFilters.set([
@@ -135,6 +140,12 @@ export class ObjetivosComponent {
            totalRecords(this.angularGrid)
            columnTotal('CantidadObjetivos', this.angularGrid)
       })
+
+      // Ocultar columnas basadas en la propiedad hidden de cada columna
+      if (this.hiddenColumnIds.length > 0) {
+        this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+      }
+
       if (this.apiService.isMobile())
           this.angularGrid.gridService.hideColumnByIds([])
   }

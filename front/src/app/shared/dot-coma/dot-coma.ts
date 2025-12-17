@@ -10,7 +10,8 @@ import { NgControl } from '@angular/forms';
 import { DEFAULT_DECIMAL_MARKER } from 'src/app/app.config.defaults';
 
 @Directive({
-  selector: '[appDotToComma]'
+  selector: '[appDotToComma]',
+  standalone: true
 })
 export class DotToCommaDirective {
   decimal = inject(DEFAULT_DECIMAL_MARKER)
