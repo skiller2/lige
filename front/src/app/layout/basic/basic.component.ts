@@ -30,7 +30,7 @@ import { HeaderSearchModuleComponent } from './widgets/search-module.component';
     <header-title class="alain-default__title"></header-title>
 
     <layout-default [options]="options" [content]="contentTpl" [customError]="null" >
-      <layout-default-header-item direction="left" hidden="mobile"> 
+      <layout-default-header-item direction="left"> 
         <header-search-module class="alain-search"></header-search-module>
       </layout-default-header-item>
       <layout-default-header-item direction="right" hidden="mobile"> 
