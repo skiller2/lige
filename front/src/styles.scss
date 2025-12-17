@@ -116,3 +116,7 @@
 .ant-input-group-addon {
   padding:0;
 }
+
+.ant-btn:not(.ant-btn-link) + .ant-btn{
+  margin-left: 0 !important;
+}
