@@ -11,10 +11,13 @@ import { FiltroBuilderComponent } from "src/app/shared/filtro-builder/filtro-bui
 import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { HabilitacionesDetalleComponent } from 'src/app/routes/ges/habilitaciones-detalle/habilitaciones-detalle';
+import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 
 @Component({
   selector: 'app-habilitaciones',
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
+    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
   styleUrl: './habilitaciones.less',
@@ -40,6 +43,7 @@ export class HabilitacionesComponent {
   personalId = signal<number>(0)
   personalHabilitacionId = signal<number>(0)
   lugarHabilitacionId = signal<number>(0)
+  visibleForm = signal<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -64,7 +68,7 @@ export class HabilitacionesComponent {
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getHabilitacionesList(this.listOptions,)
-        .pipe(map(data => { 
+        .pipe(map((data:any) => { 
           return data.list 
         }))
     })
@@ -118,6 +122,10 @@ export class HabilitacionesComponent {
 
   onTabsetChange(_event: any) { 
     window.dispatchEvent(new Event('resize'));
+  }
+
+  openDrawerforForm(): void{
+    this.visibleForm.set(true) 
   }
 
 }

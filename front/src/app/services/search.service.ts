@@ -2091,4 +2091,14 @@ export class SearchService {
     );
   }
 
+  getEstadosHabilitaciones(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/estados`).pipe(
+      map(res => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

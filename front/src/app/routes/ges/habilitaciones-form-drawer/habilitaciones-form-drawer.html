@@ -1,0 +1,98 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
+  [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+    <form [formGroup]="formHabilitacion">
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estados</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            @for (option of $optionsEstadoCodigo | async; track option) {
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Detalle</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <textarea  nz-input formControlName="Detalle" ></textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <input nz-input placeholder="" formControlName="NroTramite" type="text"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Desde</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <nz-date-picker
+            formControlName="PersonalHabilitacionDesde"
+            nzShowTime="true"
+            nzFormat="yyyy-MM-dd"
+            nzMode="date"
+            style="width: 100%;">
+          </nz-date-picker>
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Hasta</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <nz-date-picker
+            formControlName="PersonalHabilitacionHasta"
+            nzShowTime="true"
+            nzFormat="yyyy-MM-dd"
+            nzMode="date"
+            style="width: 100%;">
+          </nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+      
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            <nz-option nzValue="H" nzLabel="Habilitación"></nz-option>
+            <nz-option nzValue="R" nzLabel="Renovación"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <nz-date-picker
+            formControlName="AudFechaIng"
+            nzShowTime="true"
+            nzFormat="yyyy-MM-dd"
+            nzMode="date"
+            style="width: 100%;">
+          </nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          @if (formHabilitacion.enabled) {
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
+              [disabled]="formHabilitacion.pristine">
+              {{ 'app.btn.save' | i18n }}
+            </button>
+          }
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </ng-container>
+</nz-drawer>

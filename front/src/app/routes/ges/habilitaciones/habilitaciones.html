@@ -12,44 +12,43 @@
     <div nz-col style="display: flex;flex-direction: row-reverse;">
 
       <nz-button-group nz-button nzButtonGroup>
-        <!-- <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo()? false : true" (click)="goToEdit()" [routerLink]="['/', 'ges', 'novedades','editar']"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-        <span nz-icon nzType="edit" nzTheme="outline"></span>
-      </button> -->
-      <button nz-button nzType="default"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-        <span nz-icon nzType="plus" nzTheme="outline"></span>
-      </button>
-      <!-- <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo() == 0" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar esta Novedad?" (nzOnConfirm)="deleteNovedadInput()"
-      nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-      <span nz-icon nzType="delete" nzTheme="outline"></span></button>
-      <button nz-button nzType="default" [disabled]="cantRegistros() == 0" app-down-file [httpMethod]="'POST'" [httpBody]="{options: listOptions, periodo: periodo()}" httpUrl="api/novedades/informes"
-        nz-tooltip nzTooltipTitle="{{ 'app.btn.export' | i18n }}">
-      <nz-icon nzType="download" nzTheme="outline" /></button> -->
-    </nz-button-group>
+          <!-- <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo()? false : true" (click)="goToEdit()" [routerLink]="['/', 'ges', 'novedades','editar']"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+          <span nz-icon nzType="edit" nzTheme="outline"></span>
+        </button> -->
+        <button nz-button nzType="default" [disabled]="(!personalId() && !personalHabilitacionId() && !lugarHabilitacionId())"
+          (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <span nz-icon nzType="plus" nzTheme="outline"></span>
+        </button>
+        <!-- <button nz-button nzType="default" [disabled]="editNovedadNovedadCodigo() == 0" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar esta Novedad?" (nzOnConfirm)="deleteNovedadInput()"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+        <span nz-icon nzType="delete" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" [disabled]="cantRegistros() == 0" app-down-file [httpMethod]="'POST'" [httpBody]="{options: listOptions, periodo: periodo()}" httpUrl="api/novedades/informes"
+          nz-tooltip nzTooltipTitle="{{ 'app.btn.export' | i18n }}">
+        <nz-icon nzType="download" nzTheme="outline" /></button> -->
+      </nz-button-group>
+
+    </div>
 
   </div>
 
-</div>
+  <div nz-row class="contentStyle">
+    <div nz-col nzSpan="13" class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'habilitaciones', 'listado']" (click)="reloadListado()" >{{ 'app.novedades' | i18n }} </a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
+        </li>
+      </ul>
+    </div>
 
-<div nz-row class="contentStyle">
-  <div nz-col nzSpan="13" class="listStyle">
-    <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'habilitaciones', 'listado']" (click)="reloadListado()" >{{ 'app.novedades' | i18n }} </a>
-      </li>
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" >{{ 'app.detail' | i18n }} </a>
-      </li>
-    </ul>
   </div>
-
-</div>
-<!--selectedIndex: {{selectedIndex()}}-->
-<nz-tabs [nzSelectedIndex]="selectedIndex()" nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
-  <nz-tab></nz-tab>
+  <!--selectedIndex: {{selectedIndex()}}-->
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()">
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
     @if ((columns$|async); as columnas) {
@@ -67,9 +66,12 @@
 
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
-
+    <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [personalHabilitacionId]="personalHabilitacionId()" [lugarHabilitacionId]="lugarHabilitacionId()"></app-habilitaciones-detalle>
   </nz-tab>
 
-</nz-tabs>
+  </nz-tabs>
 
 </nz-card>
+
+<app-habilitaciones-form-drawer [(visible)]="visibleForm"
+[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>
