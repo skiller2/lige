@@ -8,18 +8,19 @@
 /*$cell-odd-background-color: lightyellow;*/
 //$slick-input-focus-box-shadow: 0 0 0 0.25rem #0d6efd40;
 
-@use "./variables";
 /* make sure to add the @import the SlickGrid Bootstrap Theme AFTER the variables changes */
+@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-bootstrap'  with (
+  $slick-cell-border-right:1px solid rgba(133, 133, 133, 0.25),
+  $slick-header-column-border-right:1px solid rgba(133, 133, 133, 0.25),
+  $slick-cell-padding-left-right:2px,
+);
 
-
-@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-bootstrap';
-
+@use "./variables";
 
 //@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';
 
 //@import '@slickgrid-universal/common/dist/styles/sass/material-svg-icons';
 
-$slick-icon-width:                                          18px !default;
 
 .slick-column-name, .slick-sort-indicator {
   float: none;
@@ -27,13 +28,13 @@ $slick-icon-width:                                          18px !default;
 }
 
 .slickgrid-container {
-  .grid-canvas .slick-cell {
-    padding: 1px;
-  }
+  // .grid-canvas {
+  //   // padding: 1px;
+  // }
  
-  .slick-row .slick-cell.active {
-    padding: 1px;
-  }
+  // .slick-row .slick-cell.active {
+  //   padding: 1px;
+  // }
   
   .slick-header-columns .slick-header-column.ui-state-default {
     padding: 1px 1px 6px;
@@ -101,7 +102,6 @@ $slick-icon-width:                                          18px !default;
 //  }
 
 
-
 .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   display: var(--slick-grid-footer-display, block);
   align-items: var(--slick-grid-footer-align-items, center);
@@ -110,7 +110,7 @@ $slick-icon-width:                                          18px !default;
   font-style: var(--slick-grid-footer-font-style, normal);
   font-weight: var(--slick-grid-footer-font-weight, bold);
   padding: var(--slick-grid-footer-cell-padding, 5px 3px);
-  border-left: var(--slick-grid-footer-cell-border-left, 1px transparent);
+  border-right: var(--slick-grid-footer-cell-border-left, 1px solid rgba(133, 133, 133, 0.20));
 }
 
 .ant-input-group-addon {

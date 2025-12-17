@@ -91,15 +91,26 @@ const GridColums: any[] = [
         type: "string",
         id: "HabNecesaria",
         field: "HabNecesaria",
-        fieldName: "HabNecesaria",
+        fieldName: "IIF(c.PersonalId IS NULL,'0','1')",
         formatter: 'collectionFormatter',
         params: { collection: getHabNecesariaOptions, },
         sortable: true,
         hidden: false,
-        searchHidden: true
+        searchComponent: "inpurForActivo",
+
+    },
+     {
+        name: "Lugar Habilitación Necesaria",
+        type: "string",
+        id: "LugarHabilitacionDescripcion",
+        field: "LugarHabilitacionDescripcion",
+        fieldName: "d.LugarHabilitacionDescripcion",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
     },
     {
-        name: "Habilitacion Desde",
+        name: "Habilitación Desde",
         type: "date",
         id: "PersonalHabilitacionDesde",
         field: "PersonalHabilitacionDesde",
@@ -110,7 +121,7 @@ const GridColums: any[] = [
         searchHidden: false
     },
     {
-        name: "Habilitacion Hasta",
+        name: "Habilitación Hasta",
         type: "date",
         id: "PersonalHabilitacionHasta",
         field: "PersonalHabilitacionHasta",
@@ -295,7 +306,7 @@ export class HabilitacionesController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
         LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo = e.GestionHabilitacionEstadoCodigo
-        WHERE b.PersonalId IS NOT NULL OR c.PersonalId IS NOT NULL AND (${filterSql})
+        WHERE (b.PersonalId IS NOT NULL OR c.PersonalId IS NOT NULL) AND (${filterSql})
         ${orderBy}
         `, [periodo])
     }

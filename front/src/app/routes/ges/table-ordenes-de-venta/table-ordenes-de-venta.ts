@@ -199,6 +199,7 @@ export class TableOrdenesDeVentaComponent {
       totalRecords(this.angularGridEdit)
 
       columnTotal('AsistenciaHorasN', this.angularGridEdit)
+      columnTotal('AsistenciaHorasT', this.angularGridEdit)
       columnTotal('TotalHoraA', this.angularGridEdit)
       columnTotal('TotalHoraB', this.angularGridEdit)
       columnTotal('DiferenciaHoras', this.angularGridEdit)

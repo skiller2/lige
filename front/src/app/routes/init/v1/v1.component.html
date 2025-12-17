@@ -5,8 +5,10 @@
   </h1>
 </div>
 <div nz-row nzGutter="16">
-  <ng-container *ngIf="adelantosPendientes$ | async as adelantosPendientes">
-    <div *ngIf="adelantosPendientes.data.adelantosTotal >0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+  @if (adelantosPendientes$ | async; as adelantosPendientes) {
+  <ng-container>
+    @if (adelantosPendientes.data.adelantosTotal >0) {
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ adelantosPendientes.data.adelantosTotal }}</div>
@@ -15,10 +17,14 @@
 
       </div>
     </div>
+    }
   </ng-container>
+  }
 
-  <ng-container *ngIf="cambioCategoriaPendientes$ | async as cambioCategoriaPendientes">
-    <div *ngIf="cambioCategoriaPendientes.data.total >0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+  @if (cambioCategoriaPendientes$ | async; as cambioCategoriaPendientes) {
+  <ng-container>
+    @if (cambioCategoriaPendientes.data.total >0){
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
           <div class="h2 mt0">{{ cambioCategoriaPendientes.data.total }}</div>
@@ -29,9 +35,14 @@
 
       </div>
     </div>
+    }
   </ng-container>
-  <ng-container *ngIf="licenciasInconsistentes$ | async as licenciasInconsistentes">
-    <div *ngIf="licenciasInconsistentes.data.total >0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+  }
+
+  @if (licenciasInconsistentes$ | async; as licenciasInconsistentes) {
+  <ng-container>
+    @if (licenciasInconsistentes.data.total >0){
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
           <div class="h2 mt0">{{ licenciasInconsistentes.data.total }}</div>
@@ -44,11 +55,13 @@
 
       </div>
     </div>
+    }
   </ng-container>
-
-
-  <ng-container *ngIf="excepcionesPendientes$ | async as excepcionesPendientes">
-    <div *ngIf="excepcionesPendientes.data.excepcionesTotal>0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+  }
+  @if (excepcionesPendientes$ | async; as excepcionesPendientes) {
+  <ng-container>
+    @if (excepcionesPendientes.data.excepcionesTotal>0){
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
           <div class="h2 mt0">{{ excepcionesPendientes.data.excepcionesTotal }}</div>
@@ -62,11 +75,13 @@
         </div>
       </div>
     </div>
+    }
   </ng-container>
-
-
-  <ng-container *ngIf="objetivosSinGrupo$ | async as objetivosSinGrupo">
-    <div *ngIf="objetivosSinGrupo.data.objetivossingrupoTotal>0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+  }
+  @if (objetivosSinGrupo$ | async; as objetivosSinGrupo) {
+  <ng-container>
+    @if (objetivosSinGrupo.data.objetivossingrupoTotal>0) {
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
           <div class="h2 mt0">{{ objetivosSinGrupo.data.objetivossingrupoTotal }}</div>
@@ -78,12 +93,16 @@
         </div>
       </div>
     </div>
+    }
   </ng-container>
-  <ng-container *ngIf="statsRecibosPendientes$ | async as recibosPendientes">
+  }
+  @if (statsRecibosPendientes$ | async; as recibosPendientes) {
+  <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ (recibosPendientes.data.descargados * 100 / recibosPendientes.data.total) | number:'1.0-0' }}%</div>
+          <div class="h2 mt0">{{ (recibosPendientes.data.descargados * 100 / recibosPendientes.data.total) |
+            number:'1.0-0' }}%</div>
           <p class="text-nowrap mb0">Recibos vistos {{recibosPendientes.data.mes}}/{{recibosPendientes.data.anio}}</p>
         </div>
         <div nz-col nzSpan="12">
@@ -91,10 +110,11 @@
       </div>
     </div>
   </ng-container>
-
-  <ng-container *ngIf="objetivosSinAsistencia$ | async as objetivosSinAsistencia">
-    <div *ngIf="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0" nz-col nzXs="24" nzSm="12" nzMd="6"
-      class="mb-md">
+  }
+  @if (objetivosSinAsistencia$ | async; as objetivosSinAsistencia) {
+  <ng-container>
+    @if (objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0){
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
           <div class="h2 mt0">{{ objetivosSinAsistencia.data.objetivosSinAsistenciaTotal }}</div>
@@ -108,11 +128,13 @@
         </div>
       </div>
     </div>
+    }
   </ng-container>
-
-  <ng-container *ngIf="custodiasPendientes$ | async as custodiasPendientes">
-    <div *ngIf="custodiasPendientes.data.custodiasPendientesTotal > 0" nz-col nzXs="24" nzSm="12" nzMd="6"
-      class="mb-md">
+  }
+  @if (custodiasPendientes$ | async; as custodiasPendientes) {
+  <ng-container>
+    @if (custodiasPendientes.data.custodiasPendientesTotal > 0) {
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
           <div class="h2 mt0">{{ custodiasPendientes.data.custodiasPendientesTotal }}</div>
@@ -126,10 +148,11 @@
         </div>
       </div>
     </div>
+    }
   </ng-container>
-
-
-  <ng-container *ngIf="objetivosActivos$ | async as objetivosActivos">
+  }
+  @if (objetivosActivos$ | async; as objetivosActivos) {
+  <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
@@ -143,8 +166,9 @@
       </div>
     </div>
   </ng-container>
-
-  <ng-container *ngIf="clientesActivos$ | async as clientesActivos">
+  }
+  @if (clientesActivos$ | async; as clientesActivos) {
+  <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
@@ -158,8 +182,9 @@
       </div>
     </div>
   </ng-container>
-
-  <ng-container *ngIf="objetivosSinAsistenciaCur$ | async as objetivosSinAsistencia">
+  }
+  @if (objetivosSinAsistenciaCur$ | async; as objetivosSinAsistencia) {
+  <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="app-ant-btn-warning rounded-md">
         <div nz-col nzSpan="12" class="p-md text-black ">
@@ -175,14 +200,16 @@
       </div>
     </div>
   </ng-container>
-
+  }
 </div>
 
 
 <div nz-row nzGutter="16">
-
-  <div *ngIf="custodiasPendientes$ | async as custodiasPendientes" nz-col nzXs="24" nzMd="24">
-    <nz-card *ngIf="custodiasPendientes.data.custodiasPendientesTotal > 0" [nzBordered]="false" [nzTitle]="objsinAsis">
+  
+  @if (custodiasPendientes$ | async; as custodiasPendientes) {
+  <div nz-col nzXs="24" nzMd="24">
+    @if (custodiasPendientes.data.custodiasPendientesTotal > 0){
+    <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
         Custodias pendientes {{ custodiasPendientes.data.mes }}/{{ custodiasPendientes.data.anio }}
         <small class="text-sm font-weight-normal">Custodias pendientes</small>
@@ -190,10 +217,14 @@
       <g2-pie height="275" [data]="custodiasPendientes.data.custodiasPendientes" [hasLegend]="true"
         [total]="custodiasPendientes.data.custodiasPendientesTotal"></g2-pie>
     </nz-card>
+    }
   </div>
-  <div *ngIf="objetivosSinAsistencia$ | async as objetivosSinAsistencia" nz-col nzXs="24" nzMd="24">
-    <nz-card *ngIf="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0" [nzBordered]="false"
-      [nzTitle]="objsinAsis">
+  }
+
+  @if (objetivosSinAsistencia$ | async; as objetivosSinAsistencia) {
+  <div nz-col nzXs="24" nzMd="24">
+    @if (objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0) {
+    <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
         Objetivos sin asistencia {{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
         <small class="text-sm font-weight-normal">Objetivos pendientes de carga por grupo</small>
@@ -201,10 +232,14 @@
       <g2-pie height="275" [data]="objetivosSinAsistencia.data.objetivosSinAsistencia" [hasLegend]="true"
         [total]="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal"></g2-pie>
     </nz-card>
+    }
   </div>
+  }
 
-  <div *ngIf="custodiasPendientesCur$ | async as custodiasPendientes" nz-col nzXs="24" nzMd="24">
-    <nz-card *ngIf="custodiasPendientes.data.custodiasPendientesTotal > 0" [nzBordered]="false" [nzTitle]="objsinAsis">
+  @if (custodiasPendientesCur$ | async; as custodiasPendientes) {
+  <div nz-col nzXs="24" nzMd="24">
+    @if (custodiasPendientes.data.custodiasPendientesTotal > 0) {
+    <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
         Custodias pendientes {{ custodiasPendientes.data.mes }}/{{ custodiasPendientes.data.anio }}
         <small class="text-sm font-weight-normal">Custodias pendientes</small>
@@ -212,9 +247,12 @@
       <g2-pie height="275" [data]="custodiasPendientes.data.custodiasPendientes" [hasLegend]="true"
         [total]="custodiasPendientes.data.custodiasPendientesTotal"></g2-pie>
     </nz-card>
+    }
   </div>
+  }
 
-  <div *ngIf="horasTrabajadas$ | async as horasTrabajadas" nz-col nzXs="24" nzMd="12">
+  @if (horasTrabajadas$ | async; as horasTrabajadas) {
+  <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="horasTrab">
       <ng-template #horasTrab>
         Horas trabajadas
@@ -224,8 +262,10 @@
       <g2-custom #g2horascustom height="275" autoLabel="true" (render)="render($event)"></g2-custom>
     </nz-card>
   </div>
+  }
 
-  <div *ngIf="objetivosActivos$ | async as objetivosActivos" nz-col nzXs="24" nzMd="12">
+  @if (objetivosActivos$ | async; as objetivosActivos) {
+  <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="objetivosTitle">
       <ng-template #objetivosTitle>
         Objetivos Activos
@@ -234,9 +274,9 @@
       <g2-bar height="275" [data]="objetivosActivos.data.objetivosActivos"></g2-bar>
     </nz-card>
   </div>
-
-
-  <div *ngIf="clientesActivos$ | async as clientesActivos" nz-col nzXs="24" nzMd="12">
+  }
+  @if (clientesActivos$ | async; as clientesActivos) {
+  <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="clientesTitle">
       <ng-template #clientesTitle>
         Clientes Activos
@@ -245,4 +285,5 @@
       <g2-bar height="275" [data]="clientesActivos.data.clientesActivos"></g2-bar>
     </nz-card>
   </div>
+  }
 </div>
