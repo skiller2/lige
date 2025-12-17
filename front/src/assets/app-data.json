@@ -210,6 +210,11 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Contratos #",
+          "link": "/ges/contratos",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Facturación #",
           "link": "/ges/facturacion",
           "icon": "anticon-profile"
