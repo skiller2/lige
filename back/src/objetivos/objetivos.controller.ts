@@ -24,25 +24,16 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
-        name: "Codigo",
+        name: "Código Objetivo",
         type: "number",
         id: "Codigo",
         field: "Codigo",
         fieldName: "Codigo",
         sortable: true,
         hidden: false,
-        searchHidden: true
-    },
-    {
-        name: "Cliente",
-        type: "number",
-        id: "ClienteId",
-        field: "ClienteId",
-        fieldName: "obj.ClienteId",
-        searchComponent: "inpurForClientSearch",
-        sortable: true,
-        hidden: true,
-        searchHidden: false
+        searchHidden: true,
+        maxWidth: 150,
+        showGridColumn: true
     },
     {
         name: "Objetivo",
@@ -56,18 +47,6 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Razón Social",
-        type: "string",
-        id: "ClienteDenominacion",
-        field: "ClienteDenominacion",
-        fieldName: "cli.ClienteDenominacion",
-        searchType: "string",
-        sortable: true,
-
-        searchHidden: false,
-        hidden: false,
-    },
-    {
         name: "Descripcion Objetivo",
         type: "string",
         id: "Descripcion",
@@ -77,6 +56,29 @@ const listaColumnas: any[] = [
         searchHidden: false,
         sortable: true
 
+    },
+    {
+        name: "Cliente",
+        type: "number",
+        id: "ClienteId",
+        field: "ClienteId",
+        fieldName: "obj.ClienteId",
+        searchComponent: "inpurForClientSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Cliente",
+        type: "string",
+        id: "ClienteDenominacion",
+        field: "ClienteDenominacion",
+        fieldName: "cli.ClienteDenominacion",
+        searchType: "string",
+        sortable: true,
+
+        searchHidden: false,
+        hidden: false,
     },
     {
         name: "Grupo Actividad",
@@ -369,7 +371,7 @@ const columnasGrillaHistoryGrupoActividad: any[] = [
 
 
 export class ObjetivosController extends BaseController {
-    
+
     async getGridCols(req, res) {
         this.jsonRes(listaColumnas, res);
     }
@@ -677,8 +679,8 @@ export class ObjetivosController extends BaseController {
                     AND bar.BarrioId = dom.DomicilioBarrioId
                 WHERE obj.ObjetivoId = @0 
                     AND nexdom.NexoDomicilioActual = 1
-                ORDER BY dom.DomicilioId DESC;`, 
-                            [ObjetivoId])
+                ORDER BY dom.DomicilioId DESC;`,
+            [ObjetivoId])
 
     }
 

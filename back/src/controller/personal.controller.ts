@@ -190,7 +190,9 @@ const columns: any[] = [
     fieldName: "perdom.domCompleto",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    showGridColumn: false
+
   },
   {
     name: "Dom. Calle",
