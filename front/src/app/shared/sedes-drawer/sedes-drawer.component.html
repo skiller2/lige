@@ -16,7 +16,7 @@
       @if ((columnsSedes$|async); as columnas) {
         <div nz-tab>
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
+            <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter" [options]="gridOptionsEdit"
               [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
               (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
             </angular-slickgrid>

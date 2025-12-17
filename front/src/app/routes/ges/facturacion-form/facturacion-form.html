@@ -16,8 +16,8 @@
 
     <div class="gridContainerFacturacionForm container-fluid margingrid" >
       @if(columns$ | async; as columnas) {
-        <angular-slickgrid gridId="gridFacturacionForm" class="" [columnDefinitions]="columnas | colsFilter"
-          [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+        <angular-slickgrid gridId="gridFacturacionForm" class="" [columns]="columnas | colsFilter"
+          [options]="gridOptions" [dataset]="(gridData$ | async) || []"
         (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
       }
     </div>

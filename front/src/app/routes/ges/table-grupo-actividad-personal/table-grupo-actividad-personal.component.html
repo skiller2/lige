@@ -17,8 +17,8 @@
           </div>
         </div>
         <div class="gridContainerGAP container-fluid">
-          <angular-slickgrid gridId="gridEditGAP" [columnDefinitions]="columnas  | colsFilter"
-            [gridOptions]="gridOptionsEdit" [dataset]="(gridDataPersonal$ | async) || []"
+          <angular-slickgrid gridId="gridEditGAP" [columns]="columnas  | colsFilter"
+            [options]="gridOptionsEdit" [dataset]="(gridDataPersonal$ | async) || []"
             (onAngularGridCreated)="angularGridReadyEdit($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
             <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->

@@ -4,7 +4,7 @@
       (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters"/>
       @if ((columns$|async); as columnas) {
         <div class="gridNoDescargas container-fluid">
-          <angular-slickgrid gridId="gridNoDescargas" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridDetalleOptions"
+          <angular-slickgrid gridId="gridNoDescargas" [columns]="columnas | colsFilter" [options]="gridDetalleOptions"
             [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>
         </div>

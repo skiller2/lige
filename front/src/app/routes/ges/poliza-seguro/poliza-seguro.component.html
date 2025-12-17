@@ -20,8 +20,8 @@
         <div class="gridContainerPoliza container-fluid">
           <angular-slickgrid 
             gridId="gridPoliza" 
-            [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" 
+            [columns]="columnas | colsFilter"
+            [options]="gridOptions" 
             [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">

@@ -28,8 +28,8 @@
         <div class="gridContainercargaManualobjetivo container-fluid">
           <angular-slickgrid 
             gridId="gridCargaManualObjetivo" 
-            [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptionsEdit" 
+            [columns]="columnas | colsFilter"
+            [options]="gridOptionsEdit" 
             [dataset]="gridDataInsert || []"
             (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">

@@ -5,8 +5,8 @@
       <div class="gridDetalleContainer">
         <angular-slickgrid 
           gridId="gridDetalle" 
-          [columnDefinitions]="columnasDet"
-          [gridOptions]="gridDetalleOptions" 
+          [columns]="columnasDet"
+          [options]="gridDetalleOptions" 
           [dataset]="(gridDetalleData$ | async) || []"
           (onAngularGridCreated)="angularGridDetalleReady($event)">
         </angular-slickgrid>
@@ -17,8 +17,8 @@
       <div class="gridDocContainer">
         <angular-slickgrid 
           gridId="gridDoc" 
-          [columnDefinitions]="columnasDoc"
-          [gridOptions]="gridDocOptions" 
+          [columns]="columnasDoc"
+          [options]="gridDocOptions" 
           [dataset]="(gridDocData$ | async) || []"
           (onAngularGridCreated)="angularGridDocReady($event)">
         </angular-slickgrid>

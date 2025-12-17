@@ -54,8 +54,8 @@
   </form>
   <div class="gridContainer container-fluid" id="gridContainerCateg">
     <angular-slickgrid gridId="grid22"
-      [columnDefinitions]="columns$ | async | colsFilter" 
-      [gridOptions]="gridOptions"
+      [columns]="columns$ | async | colsFilter" 
+      [options]="gridOptions"
       [dataset]="(gridData$ | async) || []"
       (onAngularGridCreated)="angularGridReady($event)">
     </angular-slickgrid>

@@ -299,7 +299,9 @@ export class ApiService {
         viewComponent: viewComponent,
 
         // Optionally pass your Parent Component reference to your Child Component (row detail component)
-        parent: parent
+//        parent: parent,
+
+        parentRef: parent
       },
 
       //    autoFitColumnsOnFirstLoad: true,

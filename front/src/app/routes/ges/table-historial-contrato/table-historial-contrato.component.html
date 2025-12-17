@@ -5,8 +5,8 @@
       <ng-template nz-tab>
         @if ((Contrato$|async); as columnas) {
           <div class="gridContainer1 container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+            <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
+              [options]="gridOptions" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)">
             </angular-slickgrid>
           </div>
@@ -18,8 +18,8 @@
         <ng-template nz-tab>
           @if ((Domicilio$|async); as columnasDomicilio) {
             <div class=" gridContainer2 container-fluid">
-              <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnasDomicilio | colsFilter"
-                [gridOptions]="gridOptionsDomicilio" [dataset]="(gridDataDomiicilio$ | async) || []"
+              <angular-slickgrid gridId="grid23" class="" [columns]="columnasDomicilio | colsFilter"
+                [options]="gridOptionsDomicilio" [dataset]="(gridDataDomiicilio$ | async) || []"
                 (onAngularGridCreated)="angularGridReadyDomicilio($event)">
               </angular-slickgrid>
             </div>
@@ -32,8 +32,8 @@
         <ng-template nz-tab>
           @if ((GrupoActividad$|async); as columnasGrupoActividad) {
             <div class=" gridContainer3 container-fluid">
-              <angular-slickgrid gridId="grid24" class="" [columnDefinitions]="columnasGrupoActividad | colsFilter"
-                [gridOptions]="gridOptionsGrupoActividad" [dataset]="(gridDataGrupoActividad$ | async) || []"
+              <angular-slickgrid gridId="grid24" class="" [columns]="columnasGrupoActividad | colsFilter"
+                [options]="gridOptionsGrupoActividad" [dataset]="(gridDataGrupoActividad$ | async) || []"
                 (onAngularGridCreated)="angularGridReadyGrupoActividad($event)">
               </angular-slickgrid>
             </div>

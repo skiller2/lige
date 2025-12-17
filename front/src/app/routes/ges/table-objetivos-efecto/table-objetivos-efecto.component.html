@@ -6,8 +6,8 @@
         <div class="gridContainerObjetivosEfecto container-fluid">
           <angular-slickgrid 
             gridId="gridObjetivosEfecto" 
-            [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" 
+            [columns]="columnas | colsFilter"
+            [options]="gridOptions" 
             [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>

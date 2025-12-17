@@ -38,8 +38,8 @@
             (optionsChange)="listOptionsChange($event)" />
   
           <div class="gridContainer container-fluid">
-           <angular-slickgrid gridId="gridFacturacion" class="" [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+           <angular-slickgrid gridId="gridFacturacion" class="" [columns]="columnas | colsFilter"
+              [options]="gridOptions" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)"
               (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
             </angular-slickgrid>

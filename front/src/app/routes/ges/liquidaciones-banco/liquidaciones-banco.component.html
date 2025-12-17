@@ -105,8 +105,8 @@
           <ng-template nz-tab>
             <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
             <div class="gridContainer1 container-fluid">
-              <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
+                [options]="gridOptions" [dataset]="(gridData$ | async) || []"
                 (onAngularGridCreated)="angularGridReady($event)">
               </angular-slickgrid>
             </div>
@@ -120,8 +120,8 @@
             <shared-filtro-builder #sfb [fieldsToSelect]="columnasAyuda"
               (optionsChange)="listOptionsChangeAyuda($event)" />
               <div class="gridContainer2 container-fluid">
-                <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnasAyuda | colsFilter"
-                  [gridOptions]="gridOptionsAyuda" [dataset]="(gridDataAyuda$ | async) || []"
+                <angular-slickgrid gridId="grid23" class="" [columns]="columnasAyuda | colsFilter"
+                  [options]="gridOptionsAyuda" [dataset]="(gridDataAyuda$ | async) || []"
                   (onAngularGridCreated)="angularGridReadyAyuda($event)">
                 </angular-slickgrid>
               </div>

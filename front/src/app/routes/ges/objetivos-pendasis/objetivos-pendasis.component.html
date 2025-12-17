@@ -30,8 +30,8 @@
           <ng-template nz-tab>
             @if ((columns$|async); as columnas) {
               <div class="gridContainer1 container-fluid">
-                <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
-                  [gridOptions]="gridOptionsOPA" [dataset]="(gridData$ | async) || []"
+                <angular-slickgrid gridId="gridOPA" class="" [columns]="columnas | colsFilter"
+                  [options]="gridOptionsOPA" [dataset]="(gridData$ | async) || []"
                   (onAngularGridCreated)="angularGridReadyOPA($event)">
                 </angular-slickgrid>
               </div>
@@ -44,8 +44,8 @@
           <ng-template nz-tab>
             @if ((columns$|async); as columnas) {
               <div class="gridContainer2 container-fluid">
-                <angular-slickgrid gridId="gridOPAT" class="" [columnDefinitions]="columnas | colsFilter"
-                  [gridOptions]="gridOptionsOPAT" [dataset]="(gridData$ | async) || []"
+                <angular-slickgrid gridId="gridOPAT" class="" [columns]="columnas | colsFilter"
+                  [options]="gridOptionsOPAT" [dataset]="(gridData$ | async) || []"
                   (onAngularGridCreated)="angularGridReadyOPAT($event)">
                 </angular-slickgrid>
               </div>

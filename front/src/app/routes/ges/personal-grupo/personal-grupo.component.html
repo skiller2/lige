@@ -14,8 +14,8 @@
   
 
   <div class="gridContainer container-fluid">
-    <angular-slickgrid gridId="gridPersonalGrupo" class="" [columnDefinitions]="columnas | colsFilter"
-      [gridOptions]="gridOptionsPersonal" [dataset]="(gridDataPersonal$ | async) || []"
+    <angular-slickgrid gridId="gridPersonalGrupo" class="" [columns]="columnas | colsFilter"
+      [options]="gridOptionsPersonal" [dataset]="(gridDataPersonal$ | async) || []"
       (onAngularGridCreated)="angularGridReady($event)">
     </angular-slickgrid>
   </div>

@@ -6,7 +6,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -62,7 +62,8 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
         NzUploadModule,
         ObjetivoSearchComponent,
         ClienteSearchComponent,
-        PersonalSearchComponent
+      PersonalSearchComponent,
+        
     ],
     providers: [AngularUtilService]
 })

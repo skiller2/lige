@@ -7,8 +7,8 @@
       <div class="gridContainerEst container-fluid">
         <angular-slickgrid 
           gridId="gridEst" 
-          [columnDefinitions]="columnas | colsFilter"
-          [gridOptions]="gridOptions" 
+          [columns]="columnas | colsFilter"
+          [options]="gridOptions" 
           [dataset]="(gridData$ | async) || []"
           (onAngularGridCreated)="angularGridReady($event)">
         </angular-slickgrid>

@@ -15,7 +15,7 @@
       [startFilters]="startFilters" />
       @if ((columns$|async); as columnas) {
         <div class="gridDetalleContainer container-fluid">
-          <angular-slickgrid gridId="gridDetalle" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridDetalleOptions"
+          <angular-slickgrid gridId="gridDetalle" [columns]="columnas | colsFilter" [options]="gridDetalleOptions"
             [dataset]="(gridDetalleData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>
         </div>

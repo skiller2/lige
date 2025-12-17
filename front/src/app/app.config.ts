@@ -79,6 +79,7 @@ const providers: Array<Provider | EnvironmentProviders> = [
   provideSFConfig({ widgets: SF_WIDGETS }),
   provideStartup(),
 
+  
 
   importProvidersFrom(AngularSlickgridModule.forRoot()),
 

@@ -40,8 +40,8 @@
           <ng-template nz-tab>
             <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
             <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-                [gridOptions]="gridOptions" [dataset]="(gridData$ | async)?.list || []"
+              <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
+                [options]="gridOptions" [dataset]="(gridData$ | async)?.list || []"
                 (onAngularGridCreated)="angularGridReady($event)">
               </angular-slickgrid>
             </div>
@@ -100,8 +100,8 @@
 
 
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnsImport | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="gridDataImport()">
+            <angular-slickgrid gridId="grid23" class="" [columns]="columnsImport | colsFilter"
+              [options]="gridOptions" [dataset]="gridDataImport()">
             </angular-slickgrid>
           </div>
           <div>Registros: {{ gridDataImportLen }}</div>

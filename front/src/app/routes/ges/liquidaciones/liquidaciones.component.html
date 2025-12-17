@@ -193,8 +193,8 @@
             <div>
               <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
               <div class="gridContainer1 container-fluid">
-                <angular-slickgrid gridId="gridLiq" [columnDefinitions]="columnas | colsFilter"
-                  [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+                <angular-slickgrid gridId="gridLiq" [columns]="columnas | colsFilter"
+                  [options]="gridOptions" [dataset]="(gridData$ | async) || []"
                   (onAngularGridCreated)="angularGridReady($event)"
                   (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)">
                   >
@@ -213,8 +213,8 @@
 
           <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
           <div class="gridContainer2 container-fluid">
-            <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnDefinitions | colsFilter"
-              [gridOptions]="gridOptionsEdit" [dataset]="gridDataInsert || []"
+            <angular-slickgrid gridId="gridEdit" [columns]="columnDefinitions | colsFilter"
+              [options]="gridOptionsEdit" [dataset]="gridDataInsert || []"
               (onAngularGridCreated)="angularGridReadyEdit($event)">
               <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
             </angular-slickgrid>
@@ -301,8 +301,8 @@
           </form>
 
           <div class="gridContainer3 container-fluid">
-            <angular-slickgrid gridId="gridImport" class="" [columnDefinitions]="columnsImport | colsFilter"
-              [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []">
+            <angular-slickgrid gridId="gridImport" class="" [columns]="columnsImport | colsFilter"
+              [options]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []">
             </angular-slickgrid>
           </div>
         </ng-template>
