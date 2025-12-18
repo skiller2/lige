@@ -580,7 +580,6 @@ export class CargaAsistenciaComponent {
         this.$isObjetivoDataLoading.next(true);
 
 
-        this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.gridOptionsEdit.params.anio = this.selectedPeriod.year
         this.gridOptionsEdit.params.mes = this.selectedPeriod.month
@@ -588,6 +587,7 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
 
         this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+        this.angularGridEdit.slickGrid.setOptions({ skipFreezeColumnValidation:true, frozenColumn: 2 })
 
         this.addGridData.set(true);
         this.clearAngularGrid()

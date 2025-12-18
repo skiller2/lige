@@ -10,6 +10,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
 import { ALLOW_ANONYMOUS } from '@delon/auth';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
+import { I18NService } from '@core';
 
 
 @Injectable({
@@ -253,6 +254,10 @@ export class ApiService {
       //enableExcelCopyBuffer: true,
       enableExcelExport: true,
       externalResources: [xlsService as ExternalResource],
+
+      //enableTranslate: true,
+      //i18n: I18NService,
+
 
       enableAutoTooltip: true,
       enableFiltering: false,
