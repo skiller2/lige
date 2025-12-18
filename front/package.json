@@ -48,6 +48,7 @@
     "@delon/theme": "^20.1.0",
     "@delon/util": "^20.1.0",
     "@geoapify/geocoder-autocomplete": "^2.1.0",
+    "@ngx-translate/core": "^16.0.4",
     "@slickgrid-universal/common": "^9.11.0",
     "@slickgrid-universal/event-pub-sub": "^9.11.0",
     "@slickgrid-universal/excel-export": "^9.11.0",

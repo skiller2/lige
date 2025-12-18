@@ -14,7 +14,7 @@ import { DireccionSearchComponent } from 'src/app/shared/direccion-search/direcc
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
 import { BarcodeFormat } from '@zxing/library';
-import { I18NService } from '@core';
+//import { I18NService } from '@core';
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
@@ -50,7 +50,7 @@ export class TestComponent {
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
   direccion = model({})
-  private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
+  //private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   
   responsable = model(0)
 
@@ -83,8 +83,8 @@ export class TestComponent {
 
   ngOnInit(): void {
     this.responsable.set(699)
-    console.log('I18NService.getDateFormat()',this.i18n.getDateFormat())
-    console.log('I18NService.getDateFormat()',this.i18n)
+    //console.log('I18NService.getDateFormat()',this.i18n.getDateFormat())
+    //console.log('I18NService.getDateFormat()',this.i18n)
 
     const autocomplete = new GeocoderAutocomplete(
       this.el.nativeElement ,

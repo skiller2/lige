@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { default as ngLang } from '@angular/common/locales/zh';
 import { ApplicationConfig, DEFAULT_CURRENCY_CODE, EnvironmentProviders, Provider, importProvidersFrom } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -24,6 +24,7 @@ import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { NgxMaskOptions, provideEnvironmentNgxMask } from 'ngx-mask';
 import { decimalMarkerFactory, DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR, thousandSeparatorFactory } from './app.config.defaults';
+import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 
 const defaultLang: AlainProvideLang = {
   abbr: 'es-AR',
@@ -80,6 +81,20 @@ const providers: Array<Provider | EnvironmentProviders> = [
   provideStartup(),
 
   
+
+  provideTranslateService({
+    loader: {
+      provide: TranslateLoader,
+      useFactory: (http: HttpClient) => {
+        return {
+          getTranslation: (lang: string) => http.get(`./assets/tmp/i18n/${lang}.json`)
+        };
+      },
+      deps: [HttpClient]
+    },
+  }),
+
+
 
   importProvidersFrom(AngularSlickgridModule.forRoot()),
 
