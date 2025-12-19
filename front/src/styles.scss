@@ -13,7 +13,7 @@
 @use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-default.scss'  with (
   $slick-cell-border-right:1px solid rgba(133, 133, 133, 0.25),
   $slick-header-column-border-right:1px solid rgba(133, 133, 133, 0.25),
-  $slick-cell-padding-left-right:2px,
+  $slick-cell-padding-left-right:1px,
 
 );
 
