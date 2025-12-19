@@ -36,7 +36,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false,
-        maxWidth: 65
+        maxWidth: 100
 
     },
     {
