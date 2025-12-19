@@ -59,6 +59,8 @@ export class AyudaAsistencialComponent {
     mes = signal(0)
     viweButtonListado = signal(true)
     private readonly loadingSrv = inject(LoadingService);
+    hiddenColumnIds: string[] = [];
+
 
     canOpenDetalle = computed(() => {
         if (this.personalId() === 0) return false;
@@ -71,7 +73,7 @@ export class AyudaAsistencialComponent {
     private reloadTableEffect = effect(() => {
         const viewListado = this.viweButtonListado();
         const tableComponent = this.tableCuotas();
-        
+
         if (!viewListado && tableComponent) {
             setTimeout(() => {
                 tableComponent.reload();
@@ -92,7 +94,13 @@ export class AyudaAsistencialComponent {
     });
 
     columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols: Column<any>[]) => {
+        // Reiniciar el array de columnas ocultas
+        this.hiddenColumnIds = [];
+
         let mapped = cols.map((col: Column) => {
+            // Guardar IDs de columnas que tienen showGridColumn: false
+            if ((col as any).showGridColumn === false) this.hiddenColumnIds.push(col.id as string);
+
             if (col.id == 'PersonalPrestamoMonto') {
                 col.editor = {
                     model: Editors['float'],
@@ -121,12 +129,13 @@ export class AyudaAsistencialComponent {
                     required: true
                 }
             }
+
             return col
         });
         return mapped
     }));
 
-    
+
     gridData$ = this.formChange$.pipe(
         debounceTime(500),
         switchMap(() => {
@@ -134,21 +143,22 @@ export class AyudaAsistencialComponent {
             return this.searchService.getPersonasAyudaAsistencial(
                 { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
             )
-            .pipe(
-                map(data => { 
-                    return data }),
-                doOnSubscribe(() => { }),
-                tap({ complete: () => { this.loadingSrv.close() } })
-            )
+                .pipe(
+                    map(data => {
+                        return data
+                    }),
+                    doOnSubscribe(() => { }),
+                    tap({ complete: () => { this.loadingSrv.close() } })
+                )
         })
     )
-    
+
 
     async ngOnInit() {
         // Verificar la ruta actual al inicializar para establecer el valor correcto del signal
         const currentUrl = this.router.url;
         this.viweButtonListado.set(currentUrl.includes('/listado'));
-        
+
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.autoEdit = true
@@ -161,6 +171,8 @@ export class AyudaAsistencialComponent {
         }
         this.gridOptions.cellHighlightCssClass = 'changed'
         this.gridOptions.enableCellNavigation = true
+        this.gridOptions.forceFitColumns = true
+
 
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
             if (column.id != 'PersonalPrestamoAplicaEl' && column.id != 'PersonalPrestamoCantidadCuotas' && column.id != 'PersonalPrestamoMonto')
@@ -210,6 +222,11 @@ export class AyudaAsistencialComponent {
 
         })
 
+        // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+        if (this.hiddenColumnIds.length > 0) {
+            this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+        }
+
     }
 
     handleOnBeforeEditCell(e: Event) {
@@ -229,7 +246,7 @@ export class AyudaAsistencialComponent {
     handleSelectedRowsChanged(e: any): void {
         this.rows = e.detail.args.rows;
         const selectedRows = this.angularGrid.dataView.getAllSelectedFilteredIds();
-        
+
         if (selectedRows.length === 1) {
             // si queda solo uno seleccionado, poner ese PersonalId
             const idx = this.angularGrid.dataView.getRowById(selectedRows[0]);
@@ -253,21 +270,21 @@ export class AyudaAsistencialComponent {
 
     listOptionsChange(options: any) {
         this.listOptions = options;
-        this.formChange$.next(''); 
+        this.formChange$.next('');
     }
 
     dateChange(result: Date): void {
-        if(result) {
-        this.selectedPeriod.year = result.getFullYear();
-        this.selectedPeriod.month = result.getMonth() + 1;
-    
-        localStorage.setItem('anio', String(this.selectedPeriod.year));
-        localStorage.setItem('mes', String(this.selectedPeriod.month));
-        }else{
+        if (result) {
+            this.selectedPeriod.year = result.getFullYear();
+            this.selectedPeriod.month = result.getMonth() + 1;
+
+            localStorage.setItem('anio', String(this.selectedPeriod.year));
+            localStorage.setItem('mes', String(this.selectedPeriod.month));
+        } else {
             this.selectedPeriod.year = 0;
             this.selectedPeriod.month = 0;
         }
-        this.periodo.set(result) 
+        this.periodo.set(result)
         this.rows = []
         this.registerId = ''
         this.formChange$.next('')
@@ -366,17 +383,17 @@ export class AyudaAsistencialComponent {
         };
     }
 
-    
-  closeDrawerforConsultDetalle(): void {
-    this.visibleDetalle.set( false)
-  }
 
-  openDrawerforConsultDetalle(): void{
-    this.visibleDetalle.set(true) 
-  }
+    closeDrawerforConsultDetalle(): void {
+        this.visibleDetalle.set(false)
+    }
 
-  onCuotasClick(): void {
-    this.viweButtonListado.set(false);
-  }
+    openDrawerforConsultDetalle(): void {
+        this.visibleDetalle.set(true)
+    }
+
+    onCuotasClick(): void {
+        this.viweButtonListado.set(false);
+    }
 
 }

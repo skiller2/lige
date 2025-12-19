@@ -88,7 +88,7 @@ const columnsAyudaAsistencial: any[] = [
   //   searchHidden: false
   // },
   {
-    id: "PersonalPrestamoAudFechaIng",
+    id: "FechaSolicitud",
     name: "Fecha Solicitud",
     field: "PersonalPrestamoAudFechaIng",
     type: "date",
@@ -238,6 +238,17 @@ const columnsAyudaAsistencial: any[] = [
       sortable: true,
       hidden: false,
       searchHidden: false
+    },
+    {
+      name: "Auditoría Usuario Ingreso",
+      type: "string",
+      id: "PersonalPrestamoAudUsuarioIng",
+      field: "PersonalPrestamoAudUsuarioIng",
+      fieldName: "pres.PersonalPrestamoAudUsuarioIng",
+      sortable: true,
+      hidden: false,
+      searchHidden: false,
+      showGridColumn: false
     }
 ];
 
