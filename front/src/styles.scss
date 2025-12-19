@@ -8,14 +8,15 @@
 /*$cell-odd-background-color: lightyellow;*/
 //$slick-input-focus-box-shadow: 0 0 0 0.25rem #0d6efd40;
 
+
 /* make sure to add the @import the SlickGrid Bootstrap Theme AFTER the variables changes */
-@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-bootstrap'  with (
+@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-default.scss'  with (
   $slick-cell-border-right:1px solid rgba(133, 133, 133, 0.25),
   $slick-header-column-border-right:1px solid rgba(133, 133, 133, 0.25),
   $slick-cell-padding-left-right:2px,
+
 );
 
-@use "./variables";
 
 //@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';
 
@@ -119,4 +120,32 @@
 
 .ant-btn:not(.ant-btn-link) + .ant-btn{
   margin-left: 0;
+}
+
+
+// .slick-row {
+//   .detail-view-toggle {
+//     &.expand, &.collapse {
+//       width: var(--slick-icon-width,$slick-icon-width);
+//     }
+//   }
+// }
+
+// .slick-cell.selected.active.editable {
+//   margin:0;
+//   padding:0;
+// }
+
+input:disabled{
+  pointer-events: all;
+  user-select: all;
+}
+
+textarea:disabled {
+  pointer-events: all;
+  user-select: all !important;
+}
+
+nz-select-item {
+  user-select: all !important;
 }
