@@ -279,18 +279,16 @@ export class AdelantosController extends BaseController {
 
       const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
 
-      const periodoAnterior = this.periodoAnterior(perUltRecibo[0])
+      const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [personalId])
 
-      const bot = await AccesoBotController.getBotStatus(periodoAnterior.anio, periodoAnterior.mes, queryRunner, [personalId])
-
-      if (bot[0].visto != 1 && bot[0].doc_id > 0) {
+      if (bot[0].visto != 1 && bot[0].doc_id > 0 && bot[0].visto_ant != 1 && bot[0].doc_id_ant > 0) {
         let errormsg: string[] = []
 
         if (bot[0].registrado == 0) {
           errormsg.push(`No se puede solicitar adelanto, la persona no se encuentra registrada en el Bot`)
         } else {
 
-          errormsg.push(`No se puede solicitar adelanto, el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por la persona`)
+          errormsg.push(`No se puede solicitar adelanto, recibos no vistos:  ` + bot[0].descarga + ((bot[0].mes_ant) ? `, ${bot[0].descarga_ant}` : '')) 
 
           // const sendit = await AccesoBotController.enqueBotMsg(personalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
           // if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
