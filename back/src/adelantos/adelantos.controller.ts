@@ -233,6 +233,16 @@ export class AdelantosController extends BaseController {
     }
   }
 
+
+  periodoAnterior(per: {anio:number,mes:number}): {anio:number,mes:number} {
+    if (per.mes > 1) {
+      return { anio: per.anio, mes: per.mes - 1 };
+    }
+    // Si es enero, retrocede a diciembre del año anterior
+    return { anio: per.anio - 1, mes: 12 };
+  }
+
+
   async setAdelanto(anio: number, mes: number, personalId: number, monto: number, req: any, res: Response, next: NextFunction) {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -269,7 +279,9 @@ export class AdelantosController extends BaseController {
 
       const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
 
-      const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [personalId])
+      const periodoAnterior = this.periodoAnterior(perUltRecibo[0])
+
+      const bot = await AccesoBotController.getBotStatus(periodoAnterior.anio, periodoAnterior.mes, queryRunner, [personalId])
 
       if (bot[0].visto != 1 && bot[0].doc_id > 0) {
         let errormsg: string[] = []
@@ -290,6 +302,9 @@ export class AdelantosController extends BaseController {
       const FormaPrestamoDescripcion = FormaPrestamo[0]?.FormaPrestamoDescripcion
       if (!FormaPrestamoDescripcion)
         throw new ClientException(`Formato de la ayuda no reconocido ${FormaPrestamoId}`)
+
+
+
 
       const adelantoExistente = await queryRunner.query(`
         DELETE FROM PersonalPrestamo 
