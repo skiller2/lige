@@ -26,15 +26,16 @@
         "@delon/theme": "^20.1.0",
         "@delon/util": "^20.1.0",
         "@geoapify/geocoder-autocomplete": "^2.1.0",
-        "@slickgrid-universal/common": "^5.12.2",
-        "@slickgrid-universal/event-pub-sub": "^5.12.2",
-        "@slickgrid-universal/excel-export": "^5.12.2",
-        "@slickgrid-universal/row-detail-view-plugin": "^5.12.2",
+        "@ngx-translate/core": "^16.0.4",
+        "@slickgrid-universal/common": "^9.11.0",
+        "@slickgrid-universal/event-pub-sub": "^9.11.0",
+        "@slickgrid-universal/excel-export": "^9.11.0",
+        "@slickgrid-universal/row-detail-view-plugin": "^9.11.0",
         "@zxing/browser": "^0.1.5",
         "@zxing/library": "^0.21.2",
         "@zxing/ngx-scanner": "^20.0.0",
         "ajv-formats": "^3.0.1",
-        "angular-slickgrid": "^8.13.0",
+        "angular-slickgrid": "^9.11.0",
         "file-saver": "^2.0.5",
         "ng-zorro-antd": "^20",
         "ngx-extended-pdf-viewer": "^25.6.4",
@@ -332,7 +333,7 @@
 
     "@eslint/js": ["@eslint/js@8.57.1", "", {}, "sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q=="],
 
-    "@excel-builder-vanilla/types": ["@excel-builder-vanilla/types@3.0.14", "", { "dependencies": { "fflate": "^0.8.2" } }, "sha512-9gq9hPPdVGzz/3fESgVW6WlxienIxpr83QnGS364cRPmzxg3cZQewZvKns2DFYfLLMxBLH3L6PperVqInR+0ag=="],
+    "@excel-builder-vanilla/types": ["@excel-builder-vanilla/types@4.2.1", "", { "dependencies": { "fflate": "^0.8.2" } }, "sha512-AtVzHKfH7TtRTH7Yczwu6SMXYhmvO+W6H2L4ktg7JesK4cHSS7FinzFk+zkPWs2ROZEXYHLZxJTGY7OrhiOTjw=="],
 
     "@exodus/schemasafe": ["@exodus/schemasafe@1.3.0", "", {}, "sha512-5Aap/GaRupgNx/feGBwLLTVv8OQFfv3pq2lPRzPg9R+IOBnDgghTGW7l7EuVXOvg5cc/xSAlRW8rBrjIC3Nvqw=="],
 
@@ -472,7 +473,7 @@
 
     "@ng-util/monaco-editor": ["@ng-util/monaco-editor@18.1.0", "", { "dependencies": { "tslib": "^2.3.0" } }, "sha512-6+cFcOOgLV9yDZ6/csHZmUCRju+E7SLSCLfz5FbV1pSTQSl1mbUhIU71GRjwnXbn89fKTkAPpGtsMsqcDR+8/Q=="],
 
-    "@ngx-translate/core": ["@ngx-translate/core@15.0.0", "", { "peerDependencies": { "@angular/common": ">=16.0.0", "@angular/core": ">=16.0.0", "rxjs": "^6.5.5 || ^7.4.0" } }, "sha512-Am5uiuR0bOOxyoercDnAA3rJVizo4RRqJHo8N3RqJ+XfzVP/I845yEnMADykOHvM6HkVm4SZSnJBOiz0Anx5BA=="],
+    "@ngx-translate/core": ["@ngx-translate/core@16.0.4", "", { "dependencies": { "tslib": "^2.3.0" }, "peerDependencies": { "@angular/common": ">=16", "@angular/core": ">=16" } }, "sha512-s8llTL2SJvROhqttxvEs7Cg+6qSf4kvZPFYO+cTOY1d8DWTjlutRkWAleZcPPoeX927Dm7ALfL07G7oYDJ7z6w=="],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
 
@@ -592,25 +593,25 @@
 
     "@sigstore/verify": ["@sigstore/verify@2.1.1", "", { "dependencies": { "@sigstore/bundle": "^3.1.0", "@sigstore/core": "^2.0.0", "@sigstore/protobuf-specs": "^0.4.1" } }, "sha512-hVJD77oT67aowHxwT4+M6PGOp+E2LtLdTK3+FC0lBO9T7sYwItDMXZ7Z07IDCvR1M717a4axbIWckrW67KMP/w=="],
 
-    "@slickgrid-universal/binding": ["@slickgrid-universal/binding@5.12.2", "", {}, "sha512-o7dTmmW4DVBZi01VQHjO/cIJEH5RNz+rIrnQKwldTRoKC05vKOQTF/vuQAqTkhI7YHzFaspfvdy92oagEt5niw=="],
+    "@slickgrid-universal/binding": ["@slickgrid-universal/binding@9.11.0", "", {}, "sha512-k2T2kdvqVoAgrMu88iqzGDbln5uAaiQ/eJ8yu5DHXNrua9kM5nybcaifW3GQeF0+bLy8cDB/Xgql1uDMQxq5KQ=="],
 
-    "@slickgrid-universal/common": ["@slickgrid-universal/common@5.12.2", "", { "dependencies": { "@excel-builder-vanilla/types": "^3.0.14", "@formkit/tempo": "^0.1.2", "@slickgrid-universal/binding": "5.12.2", "@slickgrid-universal/event-pub-sub": "5.12.2", "@slickgrid-universal/utils": "5.12.0", "@types/sortablejs": "^1.15.8", "@types/trusted-types": "^2.0.7", "autocompleter": "^9.3.2", "dequal": "^2.0.3", "multiple-select-vanilla": "^3.4.4", "sortablejs": "^1.15.6", "un-flatten-tree": "^2.0.12", "vanilla-calendar-pro": "^2.9.10" } }, "sha512-TLhU9FnPyqUfq276I+6AYBmgFuxNFca0JoFFYyZ2EB68vKxKVo/+EoQzJ9H5btP3xheWqatd660tHvMNvuwq8Q=="],
+    "@slickgrid-universal/common": ["@slickgrid-universal/common@9.11.0", "", { "dependencies": { "@excel-builder-vanilla/types": "^4.2.1", "@formkit/tempo": "^0.1.2", "@slickgrid-universal/binding": "9.11.0", "@slickgrid-universal/event-pub-sub": "9.11.0", "@slickgrid-universal/utils": "9.11.0", "@types/sortablejs": "^1.15.9", "@types/trusted-types": "^2.0.7", "autocompleter": "^9.3.2", "dequal": "^2.0.3", "multiple-select-vanilla": "^4.4.0", "sortablejs": "^1.15.6", "un-flatten-tree": "^2.0.12", "vanilla-calendar-pro": "^3.0.5" } }, "sha512-hMR4jSquP/dOuTMZ7FOrJUXUhV07xyXggg9yeRwUJzZa6ScOvgcxp5sE5n5v6yXm/O0pUvD+X2nuhOV/Ebi/WA=="],
 
-    "@slickgrid-universal/custom-footer-component": ["@slickgrid-universal/custom-footer-component@5.12.2", "", { "dependencies": { "@formkit/tempo": "^0.1.2", "@slickgrid-universal/binding": "5.12.2", "@slickgrid-universal/common": "5.12.2" } }, "sha512-aEWgqm2z1EXvl9auh2PJk7U49U2zAf2nGvPEknXd36Q5zdMLmzJjVsgS9CWFa4Y2mrJtJZ0yMoybNNnSzL55fg=="],
+    "@slickgrid-universal/custom-footer-component": ["@slickgrid-universal/custom-footer-component@9.11.0", "", { "dependencies": { "@formkit/tempo": "^0.1.2", "@slickgrid-universal/binding": "9.11.0", "@slickgrid-universal/common": "9.11.0" } }, "sha512-yB0ft3oRWi7hqXZ0vFS6rHTXj5aHkBblwTlJAS4cGopGH5K3WCoz91YtGlZPn21nf1ISYjQL7KjTjTzcbK0btQ=="],
 
-    "@slickgrid-universal/empty-warning-component": ["@slickgrid-universal/empty-warning-component@5.12.2", "", { "dependencies": { "@slickgrid-universal/common": "5.12.2" } }, "sha512-EfFzcjp5dw5tqsZRT/eLpQuxXbVr5kmpvxg7U9dO7ms/00TzPiZEz1mQIP0pKOq8mn01QgQJh1++grjx9DIvGg=="],
+    "@slickgrid-universal/empty-warning-component": ["@slickgrid-universal/empty-warning-component@9.11.0", "", { "dependencies": { "@slickgrid-universal/common": "9.11.0" } }, "sha512-Yy3tycRv9IVNhIp8ce0oegdInclarh/eJbtH2o2V5tMbQDEZpbsN6oK8r7K26Q26rDlJ3m9IWVz7aP2CG8rAKw=="],
 
-    "@slickgrid-universal/event-pub-sub": ["@slickgrid-universal/event-pub-sub@5.12.2", "", { "dependencies": { "@slickgrid-universal/utils": "5.12.0" } }, "sha512-VgFIBN/n2fQ71usKxZcFlIfqRDk6mcwq7klug0jyreD3v73iy560GqSXW8vdddinbovGr3pzCbGYjazdkQBzRA=="],
+    "@slickgrid-universal/event-pub-sub": ["@slickgrid-universal/event-pub-sub@9.11.0", "", { "dependencies": { "@slickgrid-universal/utils": "9.11.0" } }, "sha512-8vvPWZ7MWV7e1SmIZwlIZMUskKJu85ivMovNgrJiH/4Bufy51iSvEC3b+RjdI21129zma9Ne662nti2W+OOFrA=="],
 
-    "@slickgrid-universal/excel-export": ["@slickgrid-universal/excel-export@5.12.2", "", { "dependencies": { "@slickgrid-universal/common": "5.12.2", "@slickgrid-universal/utils": "5.12.0", "excel-builder-vanilla": "^3.0.14" } }, "sha512-JxXwxrqQjN1FfzXkt0M7cXxWJjulB0iCMTHkoCOHYKFZcLfSWidvDpqvah6xTh+KBsCqDQTD3moseL5tazLH3w=="],
+    "@slickgrid-universal/excel-export": ["@slickgrid-universal/excel-export@9.11.0", "", { "dependencies": { "@slickgrid-universal/common": "9.11.0", "@slickgrid-universal/utils": "9.11.0", "excel-builder-vanilla": "^4.2.1" } }, "sha512-SC+Zyck7Hq30gMgRNI8rsRf5aM+O7Va/PFbutmcXNZMN5OapuoP6AcIuU2n2DvnGWrdlunuvGNUUInEk158ruQ=="],
 
-    "@slickgrid-universal/pagination-component": ["@slickgrid-universal/pagination-component@5.12.2", "", { "dependencies": { "@slickgrid-universal/binding": "5.12.2", "@slickgrid-universal/common": "5.12.2" } }, "sha512-nC+EUZRvMYWPV8ntJ2RVagf4y1wfKqhXlkxi+m6tYF/Xa7+of5GFwi/Z4O+hta50OCWSwile1l07o9vdm3mDOw=="],
+    "@slickgrid-universal/pagination-component": ["@slickgrid-universal/pagination-component@9.11.0", "", { "dependencies": { "@slickgrid-universal/binding": "9.11.0", "@slickgrid-universal/common": "9.11.0" } }, "sha512-mSdnqdeJlstGr61mpfEQZ2xVSpimPfGd1YjUfE0GS+JbU5oK63bXKc7SdvpHgsFrhP3Men1nvfls55jVB/6lVg=="],
 
-    "@slickgrid-universal/row-detail-view-plugin": ["@slickgrid-universal/row-detail-view-plugin@5.12.2", "", { "dependencies": { "@slickgrid-universal/common": "5.12.2", "@slickgrid-universal/utils": "5.12.0" } }, "sha512-QMUVlq394m8kmz7P/e3bd5K3Wq+uC8OVdLF3DPGKyJkC0rT9MJhVxqOWhCxV2NAr3cXPtwWxbJOOHibpBQEsfQ=="],
+    "@slickgrid-universal/row-detail-view-plugin": ["@slickgrid-universal/row-detail-view-plugin@9.11.0", "", { "dependencies": { "@slickgrid-universal/common": "9.11.0", "@slickgrid-universal/utils": "9.11.0" } }, "sha512-gmrLVOqqLzAgqbqPKy34Vdwo2c3ic8UC3QjqB6JUIC+A6cl5YWsUic6zuXmlwkcE+30CpZ7KRqDnh15F9k6omg=="],
 
-    "@slickgrid-universal/rxjs-observable": ["@slickgrid-universal/rxjs-observable@5.12.2", "", { "dependencies": { "@slickgrid-universal/common": "5.12.2", "rxjs": "^7.8.1" } }, "sha512-AxGSKgrCJrNif6YaMLdsGve4jkrNEPBe3AtkgYGKSibQcvV7FMa5IbHLmD9Z/cu4CusGyr4EWFB5murtGPHsQA=="],
+    "@slickgrid-universal/rxjs-observable": ["@slickgrid-universal/rxjs-observable@9.11.0", "", { "dependencies": { "@slickgrid-universal/common": "9.11.0", "rxjs": "^7.8.2" } }, "sha512-fweUKWtPE7TEqt8UWlbwPRBkXdX98lJ+0jJIr8Y2n0+tN3TzrnY0+wHZ+G+gTsy+CTwbjcHNDwpd5M8eYaevvA=="],
 
-    "@slickgrid-universal/utils": ["@slickgrid-universal/utils@5.12.0", "", {}, "sha512-vw5Is2bdY+EjYw8dAJaAW6f+Iir0trwcz43cVI+Cpic9sTC6c7+UP89cvyW1sISN7YsWYRdtJjDT+BW9i6sSwg=="],
+    "@slickgrid-universal/utils": ["@slickgrid-universal/utils@9.11.0", "", {}, "sha512-c4nxKxiroeUn+Kr6QyWralhuEMGNmECx9I4sqGZ8R0gTKru9kJTUdqwbzL4dcW7gD7UrzJjadR2RY3mlVGNnkA=="],
 
     "@socket.io/component-emitter": ["@socket.io/component-emitter@3.1.2", "", {}, "sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA=="],
 
@@ -726,7 +727,7 @@
 
     "algoliasearch": ["algoliasearch@5.35.0", "", { "dependencies": { "@algolia/abtesting": "1.1.0", "@algolia/client-abtesting": "5.35.0", "@algolia/client-analytics": "5.35.0", "@algolia/client-common": "5.35.0", "@algolia/client-insights": "5.35.0", "@algolia/client-personalization": "5.35.0", "@algolia/client-query-suggestions": "5.35.0", "@algolia/client-search": "5.35.0", "@algolia/ingestion": "1.35.0", "@algolia/monitoring": "1.35.0", "@algolia/recommend": "5.35.0", "@algolia/requester-browser-xhr": "5.35.0", "@algolia/requester-fetch": "5.35.0", "@algolia/requester-node-http": "5.35.0" } }, "sha512-Y+moNhsqgLmvJdgTsO4GZNgsaDWv8AOGAaPeIeHKlDn/XunoAqYbA+XNpBd1dW8GOXAUDyxC9Rxc7AV4kpFcIg=="],
 
-    "angular-slickgrid": ["angular-slickgrid@8.13.0", "", { "dependencies": { "@ngx-translate/core": "^15.0.0", "@slickgrid-universal/common": "~5.12.2", "@slickgrid-universal/custom-footer-component": "~5.12.2", "@slickgrid-universal/empty-warning-component": "~5.12.2", "@slickgrid-universal/event-pub-sub": "~5.12.2", "@slickgrid-universal/pagination-component": "~5.12.2", "@slickgrid-universal/row-detail-view-plugin": "~5.12.2", "@slickgrid-universal/rxjs-observable": "~5.12.2", "dequal": "^2.0.3", "rxjs": "^7.8.1", "tslib": "^2.3.0" }, "peerDependencies": { "@angular/core": ">=18.0.0" } }, "sha512-FvczaPVttrWGjBmnE4ex9cz4/652DSYONFurLEUlqXz+AQDSVp2bzBpMQl1QRqLvT0iseNx7eEJQY5XjWyOzrg=="],
+    "angular-slickgrid": ["angular-slickgrid@9.11.0", "", { "dependencies": { "@ngx-translate/core": "^16.0.4", "@slickgrid-universal/common": "9.11.0", "@slickgrid-universal/custom-footer-component": "9.11.0", "@slickgrid-universal/empty-warning-component": "9.11.0", "@slickgrid-universal/event-pub-sub": "9.11.0", "@slickgrid-universal/pagination-component": "9.11.0", "@slickgrid-universal/row-detail-view-plugin": "9.11.0", "@slickgrid-universal/rxjs-observable": "9.11.0", "@slickgrid-universal/utils": "9.11.0", "dequal": "^2.0.3", "rxjs": "^7.8.2", "tslib": "^2.3.0" }, "peerDependencies": { "@angular/core": ">=19.0.0" } }, "sha512-0JZ8AUnAfmVaP1eSrW9dj/gw0OpIyrA8XW2fys9vCSdol9Km/e8tzYhekiRKIcTp7bma3GrL6MHlT1aUjVbsbQ=="],
 
     "ansi-escapes": ["ansi-escapes@7.0.0", "", { "dependencies": { "environment": "^1.0.0" } }, "sha512-GdYO7a61mR0fOlAsvC9/rIHf7L96sBc6dEWzeOu+KAea5bZyQRPIpojrVoI4AXGJS/ycu/fBTdLrUkA4ODrvjw=="],
 
@@ -1174,7 +1175,7 @@
 
     "eventsource-parser": ["eventsource-parser@3.0.6", "", {}, "sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg=="],
 
-    "excel-builder-vanilla": ["excel-builder-vanilla@3.0.14", "", { "dependencies": { "fflate": "^0.8.2" } }, "sha512-lXjyxAVVSwkHIikzCpQq+ydtrXWIGec/x6f5IzZV30BvW30i1adzNISSuq+OZqMuxbffKgmH0wgRkvSrl9WHgg=="],
+    "excel-builder-vanilla": ["excel-builder-vanilla@4.2.1", "", { "dependencies": { "fflate": "^0.8.2" } }, "sha512-lqQ7WtIvJcVfuGi64/QOIkjEoqypr8P9YIYiR1LdRXCuPvdC8olvf3EoGeFsorkJt4Ml56qBUDthQIYz83H1Qg=="],
 
     "execa": ["execa@7.2.0", "", { "dependencies": { "cross-spawn": "^7.0.3", "get-stream": "^6.0.1", "human-signals": "^4.3.0", "is-stream": "^3.0.0", "merge-stream": "^2.0.0", "npm-run-path": "^5.1.0", "onetime": "^6.0.0", "signal-exit": "^3.0.7", "strip-final-newline": "^3.0.0" } }, "sha512-UduyVP7TLB5IcAQl+OzLyLcS/l32W/GLg+AhHJ+ow40FOk2U3SAllPwR44v4vmdFwIWqpdwxxpQbF1n5ta9seA=="],
 
@@ -1750,7 +1751,7 @@
 
     "msgpackr-extract": ["msgpackr-extract@3.0.3", "", { "dependencies": { "node-gyp-build-optional-packages": "5.2.2" }, "optionalDependencies": { "@msgpackr-extract/msgpackr-extract-darwin-arm64": "3.0.3", "@msgpackr-extract/msgpackr-extract-darwin-x64": "3.0.3", "@msgpackr-extract/msgpackr-extract-linux-arm": "3.0.3", "@msgpackr-extract/msgpackr-extract-linux-arm64": "3.0.3", "@msgpackr-extract/msgpackr-extract-linux-x64": "3.0.3", "@msgpackr-extract/msgpackr-extract-win32-x64": "3.0.3" }, "bin": { "download-msgpackr-prebuilds": "bin/download-prebuilds.js" } }, "sha512-P0efT1C9jIdVRefqjzOQ9Xml57zpOXnIuS+csaB4MdZbTdmGDLo8XhzBG1N7aO11gKDDkJvBLULeFTo46wwreA=="],
 
-    "multiple-select-vanilla": ["multiple-select-vanilla@3.4.4", "", { "dependencies": { "@types/trusted-types": "^2.0.7" } }, "sha512-V59lF9bCmLrmGiqmvhoGNS99wnwCHk58La7JawlYl74glm6+YDgS/y9UdGSnoP6QaPJMany4oPzuOtWk45VCUg=="],
+    "multiple-select-vanilla": ["multiple-select-vanilla@4.4.0", "", { "dependencies": { "@types/trusted-types": "^2.0.7" } }, "sha512-QxZep610yATWMZhDMq0kzZWZSTb/Iffc0OdknY1El5SOjSm0o7CSHxN7CfOJRlbSyYGNv4TyFlL5A8FRN08F2A=="],
 
     "mute-stream": ["mute-stream@2.0.0", "", {}, "sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA=="],
 
@@ -2428,7 +2429,7 @@
 
     "validate-npm-package-name": ["validate-npm-package-name@6.0.2", "", {}, "sha512-IUoow1YUtvoBBC06dXs8bR8B9vuA3aJfmQNKMoaPG/OFsPmoQvw8xh+6Ye25Gx9DQhoEom3Pcu9MKHerm/NpUQ=="],
 
-    "vanilla-calendar-pro": ["vanilla-calendar-pro@2.9.10", "", {}, "sha512-0yqWqlvitfQSRqjyVVr613whIgp62qC1JHgXyLalcJkNkMRZXRqEr+QQQvRdQavB2PBgB4HW+GM6VU4KU0K3Ng=="],
+    "vanilla-calendar-pro": ["vanilla-calendar-pro@3.0.5", "", {}, "sha512-4X9bmTo1/KzbZrB7B6mZXtvVXIhcKxaVSnFZuaVtps7tshKJDxgaIElkgdia6IjB5qWetWuu7kZ+ZaV1sPxy6w=="],
 
     "vary": ["vary@1.1.2", "", {}, "sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg=="],
 
@@ -2583,6 +2584,8 @@
     "@parcel/watcher/detect-libc": ["detect-libc@1.0.3", "", { "bin": { "detect-libc": "./bin/detect-libc.js" } }, "sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg=="],
 
     "@parcel/watcher/node-addon-api": ["node-addon-api@7.1.1", "", {}, "sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ=="],
+
+    "@slickgrid-universal/common/@types/sortablejs": ["@types/sortablejs@1.15.9", "", {}, "sha512-7HP+rZGE2p886PKV9c9OJzLBI6BBJu1O7lJGYnPyG3fS4/duUCcngkNCjsLwIMV+WMqANe3tt4irrXHSIe68OQ=="],
 
     "@tufjs/models/minimatch": ["minimatch@9.0.5", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow=="],
 

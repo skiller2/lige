@@ -210,8 +210,8 @@
           "icon": "anticon-profile"
         },
         {
-          "text": "Contratos #",
-          "link": "/ges/contratos",
+          "text": "Condiciones Venta #",
+          "link": "/ges/condiciones-venta",
           "icon": "anticon-profile"
         },
         {
