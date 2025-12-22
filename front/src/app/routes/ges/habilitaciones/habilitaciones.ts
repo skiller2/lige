@@ -12,12 +12,11 @@ import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-s
 import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { HabilitacionesDetalleComponent } from 'src/app/routes/ges/habilitaciones-detalle/habilitaciones-detalle';
-import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 
 @Component({
   selector: 'app-habilitaciones',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
-    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent],
+    HabilitacionesDetalleComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
   styleUrl: './habilitaciones.less',
@@ -35,7 +34,7 @@ export class HabilitacionesComponent {
     filtros: [],
     sort: null,
   };
-  selectedIndex = signal(0)
+  selectedIndex = signal(1)
   // periodo = signal<Date>(new Date())
   // anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   // mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
@@ -43,7 +42,6 @@ export class HabilitacionesComponent {
   personalId = signal<number>(0)
   personalHabilitacionId = signal<number>(0)
   lugarHabilitacionId = signal<number>(0)
-  visibleForm = signal<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -73,8 +71,6 @@ export class HabilitacionesComponent {
         }))
     })
   )
-
-  // childHabilitacionesDetalle = viewChild.required<HabilitacionesDetalleComponent>('habilitacionesDestalle')
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
@@ -108,7 +104,7 @@ export class HabilitacionesComponent {
     this.listHabilitaciones$.next('')
   }
 
-  reloadListado() {
+  refreshListado() {
     this.listHabilitaciones$.next('')
     this.selectedIndex.set(1)
   }
@@ -116,16 +112,11 @@ export class HabilitacionesComponent {
   goToDetail() {
     // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
       this.selectedIndex.set(2)
-      // this.childDetalle().viewRecord(true)
     // }
   }
 
   onTabsetChange(_event: any) { 
     window.dispatchEvent(new Event('resize'));
-  }
-
-  openDrawerforForm(): void{
-    this.visibleForm.set(true) 
   }
 
 }

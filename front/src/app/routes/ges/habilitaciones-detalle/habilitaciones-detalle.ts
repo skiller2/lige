@@ -9,10 +9,11 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { SearchService } from 'src/app/services/search.service';
 import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
+import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 
 @Component({
   selector: 'app-habilitaciones-detalle',
-  imports: [SHARED_IMPORTS, CommonModule],
+  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones-detalle.html',
   styleUrl: './habilitaciones-detalle.less',
@@ -36,8 +37,8 @@ export class HabilitacionesDetalleComponent {
   personalId = input<number>(0)
   personalHabilitacionId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
+  visibleForm = signal<boolean>(false)
 
-  // childDetalle = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -101,11 +102,19 @@ export class HabilitacionesDetalleComponent {
       this.angularGridDoc.gridService.hideColumnByIds([])
   }
 
+  refreshGrid(_e: any){
+    this.habilitacionesChange$.next('');
+  }
+
   cambios = computed(async () => {
     this.personalId()
     this.personalHabilitacionId()
     this.lugarHabilitacionId()
-    this.habilitacionesChange$.next('');
+    this.refreshGrid('')
   });
+
+  openDrawerforForm(): void{
+    this.visibleForm.set(true) 
+  }
 
 }

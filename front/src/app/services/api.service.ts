@@ -1870,6 +1870,18 @@ export class ApiService {
     );
   }
 
+  addGestionHabiltacion(detalle:any){
+    return this.http.post<ResponseJSON<any>>('/api/habilitaciones/add-detalle', detalle).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res.data)),
+    )
+  }
+
+  updateGestionHabiltacion(detalle:any){
+    return this.http.post<ResponseJSON<any>>('/api/habilitaciones/update-detalle', {detalle}).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res.data)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

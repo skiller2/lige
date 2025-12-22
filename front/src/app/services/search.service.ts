@@ -2101,4 +2101,24 @@ export class SearchService {
     );
   }
 
+  getPersonalHabilitacionById(personalHabilitacionId:number, personalId:number, lugarHabilitacionId:number){
+    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/personal`, { personalHabilitacionId, personalId, lugarHabilitacionId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getGestionHabilitacionById(codigo:number, personalId:number, lugarHabilitacionId:number, personalHabilitacionId: number){
+    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/gestion`, { codigo, personalId, lugarHabilitacionId, personalHabilitacionId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
