@@ -350,7 +350,7 @@ export class HabilitacionesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             const habilitaciones = await this.listDetalleGestionesQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
-            console.log('Detalle.length:', habilitaciones.length);
+            
             this.jsonRes(
                 {
                     total: habilitaciones.length,
@@ -450,7 +450,7 @@ export class HabilitacionesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             const PersonalHabilitacion = await queryRunner.query(`
-            SELECT 
+            SELECT geshab.GestionHabilitacionCodigo,
             geshab.GestionHabilitacionEstadoCodigo, geshab.Detalle, geshab.AudFechaIng
             FROM GestionHabilitacion geshab 
             WHERE geshab.GestionHabilitacionCodigo = @0 AND geshab.PersonalId = @1 AND geshab.PersonalHabilitacionId = @2 AND geshab.PersonalHabilitacionLugarHabilitacionId = @3
@@ -470,6 +470,7 @@ export class HabilitacionesController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
+        fechaActual.setHours(0,0,0,0)
 
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
@@ -478,8 +479,7 @@ export class HabilitacionesController extends BaseController {
         const PersonalHabilitacionHasta = req.body.PersonalHabilitacionHasta
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
-        const file: any[] = req.body.archivo
-        console.log('req.body: ', req.body);
+        const file:any[] = req.body.file
         
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -487,8 +487,16 @@ export class HabilitacionesController extends BaseController {
             await queryRunner.startTransaction();
 
             //Validacion
-            if (!NroTramite.length) {
-                throw new ClientException(`El campo Nro tramite no puede estar vacio`)
+            let error:string[] = []
+            if (!GestionHabilitacionEstadoCodigo) {
+                error.push(` Estado`)
+            }
+            if (!Detalle) {
+                error.push(` Detalle`)
+            }
+            if (error.length) {
+                error.unshift('Deben completar los siguientes campos:')
+                throw new ClientException(error)
             }
             if ((PersonalHabilitacionDesde.length || PersonalHabilitacionHasta.length || PersonalHabilitacionClase.length) 
             && (!PersonalHabilitacionDesde.length || !PersonalHabilitacionHasta.length || !PersonalHabilitacionClase.length)) {
@@ -549,6 +557,7 @@ export class HabilitacionesController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
+        fechaActual.setHours(0,0,0,0)
 
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
@@ -565,8 +574,16 @@ export class HabilitacionesController extends BaseController {
             await queryRunner.startTransaction();
 
             //Validacion
-            if (!NroTramite.length) {
-                throw new ClientException(`El campo Nro tramite no pued eestar vacio`)
+            let error:string[] = []
+            if (!GestionHabilitacionEstadoCodigo) {
+                error.push(` Estado`)
+            }
+            if (!Detalle) {
+                error.push(` Detalle`)
+            }
+            if (error.length) {
+                error.unshift('Deben completar los siguientes campos:')
+                throw new ClientException(error)
             }
             if ((PersonalHabilitacionDesde.length || PersonalHabilitacionHasta.length || PersonalHabilitacionClase.length) 
             && (!PersonalHabilitacionDesde.length || !PersonalHabilitacionHasta.length || !PersonalHabilitacionClase.length)) {

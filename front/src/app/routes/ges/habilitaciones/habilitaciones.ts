@@ -90,11 +90,6 @@ export class HabilitacionesComponent {
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)
       this.lugarHabilitacionId.set(row.PersonalHabilitacionLugarHabilitacionId)
-      
-      // Asegurar que el componente de edición se inicialice si ya está visible
-      // if (this.selectedIndex() === 2) {
-      //   this.childDeta().viewRecord(false)
-      // }
     }
 
   }
@@ -112,6 +107,12 @@ export class HabilitacionesComponent {
   goToDetail() {
     // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
       this.selectedIndex.set(2)
+    // }
+  }
+
+  goToCredentials() {
+    // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
+      this.selectedIndex.set(3)
     // }
   }
 

@@ -34,17 +34,19 @@ export class HabilitacionesDetalleComponent {
   
   selectedIndex = signal(0)
   // isLoading = signal<boolean>(false)
+  codigo = signal<number>(0)
   personalId = input<number>(0)
   personalHabilitacionId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
   visibleForm = signal<boolean>(false)
+  visibleFormEdit = signal<boolean>(false)
 
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
-  private injector = inject(Injector)
+  // private injector = inject(Injector)
 
   columnsDetalle$ = this.apiService.getCols('/api/habilitaciones/detalle-cols')
   columnsDoc$ = this.apiService.getCols('/api/habilitaciones/doc-cols')
@@ -102,6 +104,19 @@ export class HabilitacionesDetalleComponent {
       this.angularGridDoc.gridService.hideColumnByIds([])
   }
 
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGridDetalle.slickGrid.getDataItem(selrow)
+    // console.log('row: ', row);
+    
+    if (row?.id) {
+      this.codigo.set(row.GestionHabilitacionCodigo)
+    }else{
+      this.codigo.set(0)
+    }
+
+  }
+
   refreshGrid(_e: any){
     this.habilitacionesChange$.next('');
   }
@@ -115,6 +130,10 @@ export class HabilitacionesDetalleComponent {
 
   openDrawerforForm(): void{
     this.visibleForm.set(true) 
+  }
+
+  openDrawerforFormEdit(): void{
+    this.visibleFormEdit.set(true) 
   }
 
 }

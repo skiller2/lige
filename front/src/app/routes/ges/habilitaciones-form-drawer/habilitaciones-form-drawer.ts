@@ -29,7 +29,6 @@ export class HabilitacionesFormDrawerComponent {
   personalId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
   personalHabilitacionId = input<number>(0)
-  // docId = model<number>(0);
   prevFiles = signal<any[]>([]);
   randNum = signal<number>(0);
   optionsLabels = signal<any[]>([]);
@@ -43,6 +42,7 @@ export class HabilitacionesFormDrawerComponent {
 
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
+    GestionHabilitacionCodigo:0,
     GestionHabilitacionEstadoCodigo:0,
     Detalle:'',
     NroTramite:'',
@@ -53,6 +53,13 @@ export class HabilitacionesFormDrawerComponent {
     // DocumentoId: 0,
     file: []
   })
+
+  GestionHabilitacionCodigo():number {
+    const value = this.formHabilitacion.get("GestionHabilitacionCodigo")?.value 
+    if (value)
+      return value
+    return 0
+  }
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
@@ -71,6 +78,7 @@ export class HabilitacionesFormDrawerComponent {
 
         if (this.codigo()) {
           let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
+          gestionHabi.AudFechaIng = this.formatDate(gestionHabi.AudFechaIng);
           lastConfig = {...lastConfig, ...gestionHabi}
         }
 
@@ -127,6 +135,17 @@ export class HabilitacionesFormDrawerComponent {
     const copia = event.map(item => ({ ...item }))
     this.prevFiles.set([...copia])
     this.randNum.set(Math.random())
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return ''
+    const date = new Date(dateString);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}/${month}/${day}`;
   }
 
 }

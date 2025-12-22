@@ -4,7 +4,7 @@
     <form [formGroup]="formHabilitacion">
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estados</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
             @for (option of $optionsEstadoCodigo | async; track option) {
@@ -60,22 +60,24 @@
         </nz-form-control>
       </nz-form-item>
 
-      @if (codigo()) {
+      @if (GestionHabilitacionCodigo()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <input nz-input placeholder="" formControlName="NroTramite" type="text" readonly/>
+          <input nz-input placeholder="" formControlName="AudFechaIng" type="text" readonly/>
         </nz-form-control>
       </nz-form-item>
       }
 
+      @if (!GestionHabilitacionCodigo()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <app-file-upload formControlName="file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'HABPERPRO'"
-          [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="false" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
+          <app-file-upload formControlName="file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="''"
+          [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="true" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
+      }
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">

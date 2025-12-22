@@ -6,6 +6,10 @@
       (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
         <span nz-icon nzType="plus" nzTheme="outline"></span>
       </button>
+      <button nz-button nzType="default" [disabled]="!codigo()"
+      (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+        <span nz-icon nzType="edit" nzTheme="outline"></span>
+      </button>
     </nz-button-group>
   </div>
   <div class="grillas-wrapper">
@@ -17,7 +21,8 @@
           [columns]="columnasDet"
           [options]="gridDetalleOptions" 
           [dataset]="(gridDetalleData$ | async) || []"
-          (onAngularGridCreated)="angularGridDetalleReady($event)">
+          (onAngularGridCreated)="angularGridDetalleReady($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
         </angular-slickgrid>
       </div>
     }
@@ -38,4 +43,7 @@
 </nz-card>
 
 <app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)"
+[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>
+
+<app-habilitaciones-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [codigo]="codigo()"
 [personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>

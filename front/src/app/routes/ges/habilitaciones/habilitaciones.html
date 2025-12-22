@@ -11,6 +11,10 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']" (click)="goToCredentials()">{{ 'app.credenciales' | i18n }} </a>
+        </li>
       </ul>
     </div>
 
@@ -45,6 +49,10 @@
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
     <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [personalHabilitacionId]="personalHabilitacionId()" [lugarHabilitacionId]="lugarHabilitacionId()"></app-habilitaciones-detalle>
+  </nz-tab>
+
+  <nz-tab>
+    <a nz-tab-link routerLink="/ges/habilitaciones/credenciales" >{{ 'app.detail' | i18n }}</a>
   </nz-tab>
 
   </nz-tabs>
