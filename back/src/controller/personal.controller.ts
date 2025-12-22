@@ -93,6 +93,26 @@ const columns: any[] = [
     searchHidden: false
   },
   {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inputForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  },
+  {
     id: "SituacionRevistaId",
     name: "Situacion Revista",
     field: "SituacionRevistaId",
@@ -163,26 +183,6 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    name: "Grupo Actividad",
-    type: "string",
-    id: "GrupoActividadDetalle",
-    field: "GrupoActividadDetalle",
-    fieldName: "ga.GrupoActividadDetalle",
-    sortable: true,
-    searchHidden: true
-  },
-  {
-    name: "Grupo Actividad",
-    type: "number",
-    id: "GrupoActividadId",
-    field: "GrupoActividadId",
-    fieldName: "ga.GrupoActividadId",
-    searchComponent: 'inputForGrupoActividadSearch',
-    sortable: false,
-    hidden: true,
-    searchHidden: false
-  },
-  {
     name: "Domicilio",
     type: "string",
     id: "domCompleto",
@@ -249,6 +249,39 @@ const columns: any[] = [
     sortable: true,
     hidden: true,
     searchHidden: false
+  },
+  {
+    name: "Categoría Cod",
+    type: "string",
+    id: "CategoriaCod",
+    field: "CategoriaCod",
+    fieldName: "percat.CategoriaCod",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Categoría",
+    type: "string",
+    id: "PersonalCategoriaCom",
+    field: "PersonalCategoriaCom",
+    fieldName: "percat.PersonalCategoriaCom",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
+  },
+  {
+    name: "Email",
+    type: "string",
+    id: "PersonalEmailEmail",
+    field: "PersonalEmailEmail",
+    fieldName: "email.PersonalEmailEmail",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
+
   },
 ]
 
@@ -373,7 +406,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  static async infoPersonalQuery(PersonalId:any, anio:number, mes:number){
+  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number) {
     return dataSource.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
@@ -605,7 +638,9 @@ export class PersonalController extends BaseController {
             peredad.PersonalEdad,
         perdom.domCompleto,
         perdom.domCalleNro,
-        perdom.DomicilioCodigoPostal, perdom.DomicilioPaisId, perdom.DomicilioProvinciaId,perdom.DomicilioLocalidadId,perdom.DomicilioBarrioId
+        perdom.DomicilioCodigoPostal, perdom.DomicilioPaisId, perdom.DomicilioProvinciaId,perdom.DomicilioLocalidadId,perdom.DomicilioBarrioId,
+		percat.PersonalCategoriaCom,percat.CategoriaCod,
+		TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail
 
         FROM Personal per
         LEFT JOIN (
@@ -678,6 +713,16 @@ export class PersonalController extends BaseController {
                                 LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
                                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
                                 ) AS perdom on perdom.PersonalId=per.PersonalId
+		Left join (
+					SELECT per.PersonalId, STRING_AGG(CONCAT(TRIM(tipo.TipoAsociadoDescripcion),' - ',TRIM(catper.CategoriaPersonalDescripcion)), ', ') PersonalCategoriaCom, STRING_AGG(CONCAT(tipo.TipoAsociadoId,'/',percat.PersonalCategoriaId),',') CategoriaCod
+					FROM Personal per
+					LEFT JOIN PersonalCategoria percat ON percat.PersonalCategoriaPersonalId = per.PersonalId 
+					LEFT JOIN TipoAsociado tipo ON tipo.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId
+					LEFT JOIN CategoriaPersonal catper ON catper.CategoriaPersonalId = percat.PersonalCategoriaCategoriaPersonalId AND catper.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId
+					WHERE  percat.PersonalCategoriaDesde<=GETDATE() AND ISNULL(percat.PersonalCategoriaHasta,'9999-12-31')>=GETDATE()
+					GROUP BY per.PersonalId
+					) AS percat on percat.PersonalId= per.PersonalId
+		Left join PersonalEmail email on email.PersonalId=per.PersonalId and email.PersonalEmailInactivo=0
 
         WHERE (1=1)
         AND (${filterSql})
