@@ -22,7 +22,8 @@
       [nzLabel]="condition"
     [nzValue]="condition"></nz-option>
   </nz-select> -->
-  <nz-select [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field"
+  <nz-select [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
+    style="display:inline-block; width: 15%"
     (ngModelChange)="onOptionChange()" #fieldSelector>
     @for (field of fieldsToSelect(); track field) {
       @if (field.searchHidden!=true) {
