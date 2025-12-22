@@ -335,7 +335,7 @@ export class HabilitacionesController extends BaseController {
 
     async listDetalleGestionesQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
         return await queryRunner.query(`
-        SELECT geshab.Detalle, geshab.AudFechaIng,est.Detalle estado
+        SELECT ROW_NUMBER() OVER (ORDER BY geshab.GestionHabilitacionCodigo) id, geshab.GestionHabilitacionCodigo, geshab.Detalle, geshab.AudFechaIng, est.Detalle estado
         FROM GestionHabilitacion geshab
         LEFT JOIN PersonalHabilitacion perhab ON perhab.PersonalId=geshab.PersonalId and perhab.PersonalHabilitacionLugarHabilitacionId=geshab.PersonalHabilitacionLugarHabilitacionId and perhab.PersonalHabilitacionId=geshab.PersonalHabilitacionId
         LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo=geshab.GestionHabilitacionEstadoCodigo
@@ -367,11 +367,11 @@ export class HabilitacionesController extends BaseController {
 
     async listDocQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
         return await queryRunner.query(`
-        SELECT doc.DocumentoId,doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        SELECT doc.DocumentoId, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
         FROM PersonalHabilitacion perhab 
-        JOIN DocumentoRelaciones docrel on docrel.PersonalId=perhab.PersonalId and docrel.PersonalHabilitacionId=docrel.PersonalHabilitacionId and docrel.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
-        LEFT JOIN Documento doc on doc.DocumentoId=docrel.DocumentoId
-        LEFT JOIN DocumentoTipo doctip on doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
+        JOIN DocumentoRelaciones docrel ON docrel.PersonalId = perhab.PersonalId AND docrel.PersonalHabilitacionId = docrel.PersonalHabilitacionId AND docrel.PersonalHabilitacionLugarHabilitacionId = perhab.PersonalHabilitacionLugarHabilitacionId
+        LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
+        LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
         `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
     }
@@ -420,10 +420,53 @@ export class HabilitacionesController extends BaseController {
 
     }
 
+    async getPersonalHabilitacion(req: any, res: Response, next: NextFunction) {
+        const PersonalId = req.body.personalId
+        const PersonalHabilitacionId = req.body.personalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const PersonalHabilitacion = await queryRunner.query(`
+            SELECT perhab.PersonalHabilitacionDesde, perhab.PersonalHabilitacionHasta, perhab.PersonalHabilitacionClase , perhab.NroTramite
+            FROM PersonalHabilitacion perhab 
+            -- JOIN DocumentoRelaciones docrel on docrel.PersonalId=perhab.PersonalId and docrel.PersonalHabilitacionId=docrel.PersonalHabilitacionId and docrel.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
+            -- LEFT JOIN Documento doc on doc.DocumentoId = docrel.DocumentoId
+            -- LEFT JOIN DocumentoTipo doctip on doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
+            WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+            `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+
+            this.jsonRes(PersonalHabilitacion[0], res);
+
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    async getGestionHabilitacion(req: any, res: Response, next: NextFunction) {
+        const GestionHabilitacionCodigo = req.body.codigo
+        const PersonalId = req.body.personalId
+        const PersonalHabilitacionId = req.body.personalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const PersonalHabilitacion = await queryRunner.query(`
+            SELECT 
+            geshab.GestionHabilitacionEstadoCodigo, geshab.Detalle, geshab.AudFechaIng
+            FROM GestionHabilitacion geshab 
+            WHERE geshab.GestionHabilitacionCodigo = @0 AND geshab.PersonalId = @1 AND geshab.PersonalHabilitacionId = @2 AND geshab.PersonalHabilitacionLugarHabilitacionId = @3
+            `, [GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+
+            this.jsonRes(PersonalHabilitacion[0], res);
+
+        } catch (error) {
+            return next(error)
+        }
+    }
+
     async addHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
-        const PersonalId = req.body.PersonalId
-        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
-        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const PersonalId = req.body.personalId
+        const PersonalHabilitacionId = req.body.personalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -434,20 +477,103 @@ export class HabilitacionesController extends BaseController {
         const PersonalHabilitacionDesde = req.body.PersonalHabilitacionDesde
         const PersonalHabilitacionHasta = req.body.PersonalHabilitacionHasta
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
-        const AudFechaIng = req.body.AudFechaIng
+        // const AudFechaIng = req.body.AudFechaIng
+        const file: any[] = req.body.archivo
+        console.log('req.body: ', req.body);
+        
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            //Validacion
+            if (!NroTramite.length) {
+                throw new ClientException(`El campo Nro tramite no puede estar vacio`)
+            }
+            if ((PersonalHabilitacionDesde.length || PersonalHabilitacionHasta.length || PersonalHabilitacionClase.length) 
+            && (!PersonalHabilitacionDesde.length || !PersonalHabilitacionHasta.length || !PersonalHabilitacionClase.length)) {
+                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            }
+            
+            //Obtiene el Ultimo Codigo registrado
+            let res = await queryRunner.query(`
+            SELECT ISNULL(GestionHabilitacionCodigoUlt, 0) CodigoUlt
+            FROM PersonalHabilitacion
+            WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
+            `,[ PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId])
+            const newCodigoUlt = res[0].CodigoUlt+1
+
+            //Actualiza el Ultimo Codigo registrado
+            await queryRunner.query(`
+            UPDATE PersonalHabilitacion
+            SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, GestionHabilitacionCodigoUlt = @6, NroTramite = @7
+            , AudFechaMod = @8, AudIpMod = @9, AusUsuarioMod = @10
+            WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
+            `,[PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId, 
+                PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, newCodigoUlt, NroTramite,
+                fechaActual, ip, usuario
+            ])
+
+            //Inserta el Codigo registrado
+            await queryRunner.query(`
+            INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
+            , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+            `,[newCodigoUlt ,PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
+
+            //Registra el nuevo documento
+            if (file?.length > 0) {
+                const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, PersonalHabilitacionDesde, PersonalHabilitacionHasta, NroTramite, null, null, file[0], usuario, ip, queryRunner)
+                const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+                await queryRunner.query(`
+                INSERT INTO DocumentoRelaciones (
+                    DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
+                    , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
+                `,[doc_id ,PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+            }
+
+            await queryRunner.commitTransaction()
+            this.jsonRes({GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual}, res, 'Carga de exitosa');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+    }
+
+    async updateHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
+        const PersonalId = req.body.personalId
+        const PersonalHabilitacionId = req.body.personalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        const GestionHabilitacionCodigo = req.body.codigo
+        const ip = this.getRemoteAddress(req)
+        const usuario = res.locals.userName
+        const fechaActual = new Date()
+
+        const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
+        const Detalle = req.body.Detalle
+        const NroTramite = req.body.NroTramite
+        const PersonalHabilitacionDesde = req.body.PersonalHabilitacionDesde
+        const PersonalHabilitacionHasta = req.body.PersonalHabilitacionHasta
+        const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
+        // const AudFechaIng = req.body.AudFechaIng
+        // const file: any[] = req.body.archivo
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            await queryRunner.query(`
-            INSERT INTO GestionHabilitacion (
-                GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
-                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @8, @9, @9);
-            `,[ ,PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, AudFechaIng, fechaActual, usuario, ip])
-
+            //Validacion
+            if (!NroTramite.length) {
+                throw new ClientException(`El campo Nro tramite no pued eestar vacio`)
+            }
+            if ((PersonalHabilitacionDesde.length || PersonalHabilitacionHasta.length || PersonalHabilitacionClase.length) 
+            && (!PersonalHabilitacionDesde.length || !PersonalHabilitacionHasta.length || !PersonalHabilitacionClase.length)) {
+                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            }
+            
+            //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
             UPDATE PersonalHabilitacion
             SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, NroTramite = @6
@@ -458,9 +584,18 @@ export class HabilitacionesController extends BaseController {
                 fechaActual, ip, usuario
             ])
 
+            //Inserta el Codigo registrado
+            await queryRunner.query(`
+            UPDATE GestionHabilitacion
+            SET GestionHabilitacionEstadoCodigo = @4, Detalle = @5,
+                 AudFechaMod = @6, AudUsuarioMod = @7, AudIpMod = @8
+            WHERE GestionHabilitacionCodigo = @0 AND PersonalHabilitacionId = @1 AND PersonalId = @2 AND PersonalHabilitacionLugarHabilitacionId = @3
+            `,[GestionHabilitacionCodigo ,PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId,
+                GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
+
 
             await queryRunner.commitTransaction()
-
+            this.jsonRes({}, res, 'Carga de exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)

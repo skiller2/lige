@@ -10,20 +10,19 @@
 
 
 /* make sure to add the @import the SlickGrid Bootstrap Theme AFTER the variables changes */
-@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-default.scss'  with (
-  $slick-cell-border-right:1px solid rgba(133, 133, 133, 0.25),
-  $slick-header-column-border-right:1px solid rgba(133, 133, 133, 0.25),
-  $slick-cell-padding-left-right:1px,
-
+@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-default.scss' with (
+  $slick-cell-border-right: 1px solid rgba(133, 133, 133, 0.25),
+  $slick-header-column-border-right: 1px solid rgba(133, 133, 133, 0.25),
+  $slick-cell-padding: 1px
 );
-
 
 //@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';
 
 //@import '@slickgrid-universal/common/dist/styles/sass/material-svg-icons';
 
 
-.slick-column-name, .slick-sort-indicator {
+.slick-column-name,
+.slick-sort-indicator {
   float: none;
   margin-bottom: auto;
 }
@@ -32,63 +31,61 @@
   // .grid-canvas {
   //   // padding: 1px;
   // }
- 
+
   // .slick-row .slick-cell.active {
   //   padding: 1px;
   // }
-  
-  .slick-header-columns .slick-header-column.ui-state-default {
-    padding: 1px 1px 6px;
-    //  font-size: var(--slick-font-size-base, 14px);
-  }
 
-  app-tipocuenta ,
-  app-tipomovimiento-persona, 
-  app-objetivo-search ,
-  app-personal-search ,
-  app-categoria-persona ,
-  app-tipohora-persona  {
-    > .ant-select-single .ant-select-selector .ant-select-selection-item, .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+  app-tipocuenta,
+  app-tipomovimiento-persona,
+  app-objetivo-search,
+  app-personal-search,
+  app-categoria-persona,
+  app-tipohora-persona {
+
+    >.ant-select-single .ant-select-selector .ant-select-selection-item,
+    .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
       line-height: unset;
 
     }
 
-    > .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+    >.ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
       width: 100%;
       height: 26px;
       padding: 0 3px;
     }
 
-    > .ant-select-single .ant-select-selector .ant-select-selection-search {
+    >.ant-select-single .ant-select-selector .ant-select-selection-search {
       left: 2px;
     }
 
-    > .ant-select-single .ant-select-selector .ant-select-selection-item {
-      padding: 0;
-    }
-    
-
-    > .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+    >.ant-select-single .ant-select-selector .ant-select-selection-item {
       padding: 0;
     }
 
-    > .ant-select-single:not(.ant-select-customize-input) .ant-select-selector .ant-select-selection-search-input {
+
+    >.ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+      padding: 0;
+    }
+
+    >.ant-select-single:not(.ant-select-customize-input) .ant-select-selector .ant-select-selection-search-input {
       /* height: 30px; */
       height: unset;
     }
 
   }
 
-  app-tipocuenta > nz-select,
-  app-tipomovimiento-persona > nz-select, 
-  app-editor-persona > nz-select,
-  app-categoria-persona > nz-select,
-  app-tipohora-persona > nz-select {
-    display:block;
+  app-tipocuenta>nz-select,
+  app-tipomovimiento-persona>nz-select,
+  app-editor-persona>nz-select,
+  app-categoria-persona>nz-select,
+  app-tipohora-persona>nz-select {
+    display: block;
     width: 100%;
   }
-  
+
 }
+
 /*
 .ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector,
 .ant-picker.ant-picker-disabled,
@@ -102,6 +99,9 @@
 //    display: none !important;
 //  }
 
+.slickgrid-container .slick-header-columns .slick-header-column.slick-state-default {
+  padding: var(--slick-header-padding, 1px 1px 6px 1px);
+}
 
 .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   display: var(--slick-grid-footer-display, block);
@@ -110,15 +110,15 @@
   font-size: var(--slick-grid-footer-font-size, 13px);
   font-style: var(--slick-grid-footer-font-style, normal);
   font-weight: var(--slick-grid-footer-font-weight, bold);
-  padding: var(--slick-grid-footer-cell-padding, 5px 3px);
+  padding: var(--slick-grid-footer-cell-padding, 5px 0px);
   border-right: var(--slick-grid-footer-cell-border-left, 1px solid rgba(133, 133, 133, 0.20));
 }
 
 .ant-input-group-addon {
-  padding:0;
+  padding: 0;
 }
 
-.ant-btn:not(.ant-btn-link) + .ant-btn{
+.ant-btn:not(.ant-btn-link)+.ant-btn {
   margin-left: 0;
 }
 
@@ -136,7 +136,7 @@
 //   padding:0;
 // }
 
-input:disabled{
+input:disabled {
   pointer-events: all;
   user-select: all;
 }

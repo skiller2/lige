@@ -33,7 +33,6 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
           <nz-date-picker
             formControlName="PersonalHabilitacionDesde"
-            nzShowTime="true"
             nzFormat="yyyy-MM-dd"
             nzMode="date"
             style="width: 100%;">
@@ -44,7 +43,6 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
           <nz-date-picker
             formControlName="PersonalHabilitacionHasta"
-            nzShowTime="true"
             nzFormat="yyyy-MM-dd"
             nzMode="date"
             style="width: 100%;">
@@ -62,23 +60,20 @@
         </nz-form-control>
       </nz-form-item>
 
+      @if (codigo()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <nz-date-picker
-            formControlName="AudFechaIng"
-            nzShowTime="true"
-            nzFormat="yyyy-MM-dd"
-            nzMode="date"
-            style="width: 100%;">
-          </nz-date-picker>
+          <input nz-input placeholder="" formControlName="NroTramite" type="text" readonly/>
         </nz-form-control>
       </nz-form-item>
+      }
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          
+          <app-file-upload formControlName="file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'HABPERPRO'"
+          [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="false" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
 

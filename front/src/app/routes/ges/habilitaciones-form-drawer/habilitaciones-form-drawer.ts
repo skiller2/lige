@@ -1,30 +1,39 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, signal, output, effect } from '@angular/core';
+import { Component, ViewEncapsulation, model, input, computed, inject, signal, output, effect, viewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
 
 @Component({
     selector: 'app-habilitaciones-form-drawer',
-    imports: [SHARED_IMPORTS, CommonModule],
+    imports: [SHARED_IMPORTS, CommonModule, FileUploadComponent],
     templateUrl: './habilitaciones-form-drawer.html',
     styleUrl: './habilitaciones-form-drawer.less',
-    changeDetection: ChangeDetectionStrategy.OnPush
+    encapsulation: ViewEncapsulation.None
+    // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HabilitacionesFormDrawerComponent {
   tituloDrawer = signal<string>("Nueva Habilitación Detalle")
   placement: NzDrawerPlacement = 'left';
-  disabled = input<boolean>(false)
-  RefreshCurso = model<boolean>(false)
+  // disabled = input<boolean>(false)
+  RefreshDetalle = model<boolean>(false)
   visible = model<boolean>(false)
+  onAddorUpdate = output()
   
+  codigo = input<number>(0)
   personalId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
   personalHabilitacionId = input<number>(0)
+  // docId = model<number>(0);
+  prevFiles = signal<any[]>([]);
+  randNum = signal<number>(0);
+  optionsLabels = signal<any[]>([]);
+  label = signal<string>('. . .');
 
   formEdit = signal<number>(0)
   isLoading = signal(false);
@@ -41,31 +50,83 @@ export class HabilitacionesFormDrawerComponent {
     PersonalHabilitacionHasta:'',
     PersonalHabilitacionClase:'',
     AudFechaIng:'',
+    // DocumentoId: 0,
+    file: []
   })
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
+  $optionsTipos = this.searchService.getDocumentoTipoOptions();
 
+  fileUploadComponent = viewChild.required(FileUploadComponent);
+
+  private apiService = inject(ApiService)
   constructor(
-    // private apiService = ApiService,
     // private notification = NzNotificationService,
     private searchService: SearchService
   ) {
     effect(async() => {
       const visible = this.visible()
       if (visible) {
-        
+        let lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId(), this.lugarHabilitacionId()))
+
+        if (this.codigo()) {
+          let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
+          lastConfig = {...lastConfig, ...gestionHabi}
+        }
+
+        this.formHabilitacion.reset(lastConfig)
+        this.formHabilitacion.markAsUntouched()
+        this.formHabilitacion.markAsPristine()
+        // if (this.disabled())
+        //   this.formHabilitacion.disable()
+        // else
+        //   this.formHabilitacion.enable()
+      }
+      else {
+        this.formHabilitacion.reset()
+        this.formHabilitacion.enable()
       }
     })
   }
 
+  async ngOnInit() {
+    try {
+      const res = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
+      this.optionsLabels.set(res)
+    } catch (error) {
+      
+    }
+  }
+
   async save() {
     this.isLoading.set(true)
-    let vals = this.formHabilitacion.value
+    let vals:any = this.formHabilitacion.value
+    vals.personalId = this.personalId()
+    vals.lugarHabilitacionId = this.lugarHabilitacionId()
+    vals.personalHabilitacionId = this.personalHabilitacionId()
     try {
-      
+
+      if (this.codigo()) {
+        vals.codigo = this.codigo()
+        await firstValueFrom(this.apiService.updateGestionHabiltacion(vals))
+      } else {
+        let result:any = await firstValueFrom(this.apiService.addGestionHabiltacion(vals))
+        this.formHabilitacion.patchValue(result)
+      } 
+
+      this.formHabilitacion.markAsUntouched()
+      this.formHabilitacion.markAsPristine()
+      this.onAddorUpdate.emit()
     } catch (error) {
-      // Handle error if needed
     }
     this.isLoading.set(false)
   }
+
+  handlePrevFiles(event: any[]) {
+    console.log('handle',event)
+    const copia = event.map(item => ({ ...item }))
+    this.prevFiles.set([...copia])
+    this.randNum.set(Math.random())
+  }
+
 }

@@ -35,3 +35,15 @@ habilitacionesRouter.post('/doc-list', [authMiddleware.verifyToken, authMiddlewa
 habilitacionesRouter.post('/add-detalle', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.addHabilitacionDetalle(req, res, next)
 })
+
+habilitacionesRouter.post('/update-detalle', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.updateHabilitacionDetalle(req, res, next)
+})
+
+habilitacionesRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.getPersonalHabilitacion(req, res, next)
+})
+
+habilitacionesRouter.post('/gestion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.getGestionHabilitacion(req, res, next)
+})
