@@ -1,0 +1,116 @@
+CondicionVentaIdForEdit: {{CondicionVentaIdForEdit()}}
+
+
+<!--<form [formGroup]="formCondicionVenta">
+  <br>
+
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+      <app-objetivo-search 
+        formControlName="ObjetivoId" 
+        (valueExtendedChange)="objetivoDetalleChange($event)">
+      </app-objetivo-search>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item style="display:none">
+    <nz-form-control>
+      <input formControlName="ClienteId" type="hidden" />
+      <input formControlName="ClienteElementoDependienteId" type="hidden" />
+      <input formControlName="id" type="hidden" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Desde mes/año aplica</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <nz-date-picker
+        formControlName="PeriodoDesdeAplica"
+        nzMode="month"
+        nzFormat="MM/yyyy"
+        (ngModelChange)="onPeriodoDesdeAplicaChange($event)"
+        style="width: 100%;">
+      </nz-date-picker>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+      <input 
+        nz-input 
+        formControlName="PeriodoFacturacion" 
+        placeholder="Ingrese el período de facturación"
+        type="text" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <nz-input-number
+        formControlName="GeneracionFacturaDia"
+        [nzMin]="1"
+        [nzMax]="31"
+        [nzStep]="1"
+        nzPlaceHolder="Día del mes (1-31)"
+        style="width: 100%;">
+      </nz-input-number>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura (Complemento)</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11">
+      <nz-input-number
+        formControlName="GeneracionFacturaDiaComplemento"
+        [nzMin]="0"
+        [nzMax]="31"
+        [nzStep]="1"
+        nzPlaceHolder="Día complemento"
+        style="width: 100%;">
+      </nz-input-number>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Observaciones</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+      <textarea 
+        nz-input 
+        formControlName="Observaciones" 
+        placeholder="Ingrese observaciones"
+        [nzAutosize]="{ minRows: 3, maxRows: 6 }">
+      </textarea>
+    </nz-form-control>
+  </nz-form-item>
+
+  @if (formCondicionVenta.enabled) {
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+        <button 
+          nzType="primary" 
+          nz-button  
+          (click)="save()" 
+          [disabled]="formCondicionVenta.invalid || formCondicionVenta.pristine">
+          {{ 'app.btn.save' | i18n }}
+        </button>
+        <button 
+          nzType="primary" 
+          nz-button 
+          nzDanger  
+          nz-popconfirm  
+          [disabled]="CondicionVentaId() === 0"
+          nzPopconfirmTitle="¿Está seguro que quiere eliminar esta condición de venta?"
+          (nzOnConfirm)="deleteRecord()"
+          nzPopconfirmPlacement="top">
+          {{ 'app.btn.delete' | i18n }}
+        </button>
+      </nz-form-control>
+    </nz-form-item>
+  }
+
+</form>
+-->

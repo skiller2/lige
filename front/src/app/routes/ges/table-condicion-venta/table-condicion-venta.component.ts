@@ -1,4 +1,4 @@
-import { Component, Inject, Output, EventEmitter, computed, input, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, Inject, Output, EventEmitter, computed, input, ChangeDetectionStrategy, OnInit, model, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
@@ -39,6 +39,7 @@ export class TableCondicionVentaComponent implements OnInit {
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
   private dataAngularGrid: [] = [];
+  CondicionVentaId = model<number>(0);
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -71,10 +72,9 @@ export class TableCondicionVentaComponent implements OnInit {
     this.initializeGridOptions();
   }
 
-  cambios = computed(async () => {
+  cambios = effect(() => {
     this.RefreshCondVenta() 
     this.formChange$.next('');
-    
   });
 
 
@@ -111,6 +111,17 @@ export class TableCondicionVentaComponent implements OnInit {
       filename: 'lista-condiciones-venta',
       format: 'xlsx'
     });
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGrid.slickGrid.getDataItem(selrow)
+
+    if (row?.id) {
+      this.CondicionVentaId.set(row.id);
+    }
+
   }
 
 

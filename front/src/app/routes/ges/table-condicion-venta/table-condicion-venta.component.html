@@ -1,8 +1,8 @@
 <nz-card #tabcondventa class="small-margin">
-    @if (cambios()|async) {}
     <ng-container>
       <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-  
+      CondicionVentaId tabla: {{CondicionVentaId()}}
+
       @if(columns$ | async; as columnas) {
         <div class="gridContainerCondVenta container-fluid" >
           <angular-slickgrid 
@@ -10,7 +10,8 @@
             [columns]="columnas | colsFilter"
             [options]="gridOptions" 
             [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)">
+            (onAngularGridCreated)="angularGridReady($event)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
       }

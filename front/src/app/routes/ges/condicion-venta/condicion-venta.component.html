@@ -32,37 +32,46 @@
         <ul nz-menu nzMode="horizontal" style="display: flex;">
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'listado']"  >{{ 'app.listado' | i18n }} </a>
+            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'listado']" (click)="viewListado.set(true)">{{ 'app.listado' | i18n }} </a>
           </li>
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
             <a [routerLink]="['/', 'ges', 'condiciones-venta', 'detalle']" >{{ 'app.detail' | i18n }} </a>
           </li>
         </ul>
+        @if(!childIsPristine()){
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'alta']">{{ 'app.alta' | i18n }}</a>
+          </li>
+        }
       </div>
 
     </div>
-    <!--selectedIndex: {{selectedIndex()}}-->
-    <nz-tabs  nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
+    <nz-tabs  nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-        <app-table-condicion-venta></app-table-condicion-venta>
+        @defer (when viewListado()) {
+          <app-table-condicion-venta #tableCondicionVenta [(CondicionVentaId)]="CondicionVentaId"></app-table-condicion-venta>
+        }
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/editar" >{{ 'app.icon.edit' | i18n }}</a>
+        <!--<app-condicion-venta-form #condicionVentaFormEditar [CondicionVentaIdForEdit]="CondicionVentaId()"></app-condicion-venta-form>-->
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/detalle" >{{ 'app.detail' | i18n }}</a>
-       
+        <!--<app-condicion-venta-form #condicionVentaFormDetalle [CondicionVentaIdForEdit]="CondicionVentaId()"></app-condicion-venta-form>-->
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/alta" >{{ 'app.alta' | i18n }}</a>
+        <app-condicion-venta-form #condicionVentaFormAlta  [viewListado]="viewListado()" [(CondicionVentaIdForEdit)]="CondicionVentaId"></app-condicion-venta-form>
       </nz-tab>
 
-    </nz-tabs>
+    </nz-tabs> 
     
   </nz-card>

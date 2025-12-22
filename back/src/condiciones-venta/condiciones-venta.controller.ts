@@ -35,9 +35,9 @@ export class CondicionesVentaController extends BaseController {
             field: "ClienteDenominacion",
             fieldName: "cli.ClienteDenominacion",
             searchType: "string",
-            sortable: true,
+            sortable: false,
             hidden: false,
-            searchHidden: false
+            searchHidden: true
         },
         {
             name: "Objetivo",
@@ -57,16 +57,16 @@ export class CondicionesVentaController extends BaseController {
             field: "ObjetivoDescripcion",
             fieldName: "obj.ObjetivoDescripcion",
             searchType: "string",
-            sortable: true,
+            sortable: false,
             hidden: false,
-            searchHidden: false
+            searchHidden: true
         },
         {
             name: "Periodo Aplica Desde",
             type: "date",
-            id: "PeriodoAplicaDesde",
-            field: "PeriodoAplicaDesde",
-            fieldName: "cond.PeriodoAplicaDesde",
+            id: "PeriodoDesdeAplica",
+            field: "PeriodoDesdeAplica",
+            fieldName: "conven.PeriodoDesdeAplica",
             searchComponent: "inpurForFechaSearch",
             sortable: true,
             hidden: false,
@@ -77,7 +77,7 @@ export class CondicionesVentaController extends BaseController {
             type: "date",
             id: "AutorizacionFecha",
             field: "AutorizacionFecha",
-            fieldName: "cond.AutorizacionFecha",
+            fieldName: "conven.AutorizacionFecha",
             searchComponent: "inpurForFechaSearch",
             sortable: true,
             hidden: false,
@@ -109,7 +109,7 @@ export class CondicionesVentaController extends BaseController {
             type: "string",
             id: "PeriodoFacturacion",
             field: "PeriodoFacturacion",
-            fieldName: "cond.PeriodoFacturacion",
+            fieldName: "conven.PeriodoFacturacion",
             searchType: "string",
             sortable: true,
             hidden: false,
@@ -118,9 +118,9 @@ export class CondicionesVentaController extends BaseController {
         {
             name: "Dia generación factura",
             type: "number",
-            id: "DiaGeneracionFactura",
-            field: "DiaGeneracionFactura",
-            fieldName: "cond.DiaGeneracionFactura",
+            id: "GeneracionFacturaDia",
+            field: "GeneracionFacturaDia",
+            fieldName: "conven.GeneracionFacturaDia",
             searchType: "number",
             sortable: true,
             hidden: false,
@@ -129,9 +129,9 @@ export class CondicionesVentaController extends BaseController {
         {
             name: "Dia generación factura Complemento",
             type: "number",
-            id: "DiaGeneracionFacturaComplemento",
-            field: "DiaGeneracionFacturaComplemento",
-            fieldName: "cond.DiaGeneracionFacturaComplemento",
+            id: "GeneracionFacturaDiaComplemento",
+            field: "GeneracionFacturaDiaComplemento",
+            fieldName: "conven.GeneracionFacturaDiaComplemento",
             searchType: "number",
             sortable: true,
             hidden: false,
@@ -142,7 +142,7 @@ export class CondicionesVentaController extends BaseController {
             type: "string",
             id: "Observaciones",
             field: "Observaciones",
-            fieldName: "cond.Observaciones",
+            fieldName: "conven.Observaciones",
             searchType: "string",
             sortable: true,
             hidden: false,
@@ -165,9 +165,8 @@ export class CondicionesVentaController extends BaseController {
         try {
 
             const condicionesVenta = await queryRunner.query(
-                `
-                Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
-                cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId, 
+                `Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
+                cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId,obj.ObjetivoDescripcion, 
                     CONCAT(ele.ClienteId,'/', ele.ClienteElementoDependienteId, ' ', TRIM(cli.ClienteDenominacion), ' ',TRIM(ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
                     conven.PeriodoDesdeAplica, FORMAT(conven.PeriodoDesdeAplica,'yyyy-MM') FormatPeriodoDesdeAplica,conven.AutorizacionFecha,per.PersonalId,
                     case when per.PersonalId is null then null
@@ -177,13 +176,14 @@ export class CondicionesVentaController extends BaseController {
                     con.ClienteElementoDependienteContratoId, con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta
 
                 from ClienteElementoDependiente ele
+                LEFT JOIN CondicionVenta conven ON  ele.ClienteId=conven.ClienteId and ele.ClienteElementoDependienteId=conven.ClienteElementoDependienteId
                 left join ClienteElementoDependienteContrato con on con.ClienteId=conven.ClienteId and con.ClienteElementoDependienteId=conven.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=DATEFROMPARTS(@0,@1,1)
                 Left join Cliente cli on cli.ClienteId=ele.ClienteId
                 Left join Objetivo obj on obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and obj.ClienteId=ele.ClienteId
                 Left join Personal per on per.PersonalId=conven.AutorizacionPersonalId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
-                WHERE (conven.PeriodoDesdeAplica>=(DATEFROMPARTS(@0,@1,1)) or conven.PeriodoDesdeAplica is null) AND 
+                WHERE (conven.PeriodoDesdeAplica>=(DATEFROMPARTS(@0,@1,1)) or conven.PeriodoDesdeAplica is null)  AND 
              ${filterSql} ${orderBy}`, [2025, 10])
 
             this.jsonRes(
