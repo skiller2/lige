@@ -22,9 +22,8 @@
       [nzLabel]="condition"
     [nzValue]="condition"></nz-option>
   </nz-select> -->
-  <nz-select [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
-    style="display:inline-block; width: 15%"
-    (ngModelChange)="onOptionChange()" #fieldSelector>
+  <nz-select  nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
+    style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector>
     @for (field of fieldsToSelect(); track field) {
       @if (field.searchHidden!=true) {
         <nz-option [nzLabel]="field.name" [nzValue]="field">
@@ -40,7 +39,7 @@
   </nz-select>
   -->
   @if (selections.field.name) {
-    <div nz-col [nzSpan]="5" class="input-search"
+    <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" class="input-search"
       style="text-align: center; display:inline-block; width: 100%">
       @if (!selections.field.searchComponent) {
         <input placeholder="Valor" #inputElement nz-input type="text"
