@@ -22,7 +22,7 @@
       [nzLabel]="condition"
     [nzValue]="condition"></nz-option>
   </nz-select> -->
-  <nz-select  nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
+  <nz-select  nz-col [nzXs]="20" [nzSm]="11" [nzMd]="7" [nzLg]="5" [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
     style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector>
     @for (field of fieldsToSelect(); track field) {
       @if (field.searchHidden!=true) {
@@ -39,7 +39,7 @@
   </nz-select>
   -->
   @if (selections.field.name) {
-    <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" class="input-search"
+    <div nz-col [nzXs]="20" [nzSm]="11" [nzMd]="7" [nzLg]="5" class="input-search"
       style="text-align: center; display:inline-block; width: 100%">
       @if (!selections.field.searchComponent) {
         <input placeholder="Valor" #inputElement nz-input type="text"
@@ -387,6 +387,6 @@
       }
     </div>
   }
-  <button nz-button (click)="handleInputConfirm()">+</button>
+  <button style="text-align: center; display:inline-block; width: 100%" nz-button  nz-col [nzXs]="3" [nzSm]="2" [nzMd]="2" [nzLg]="1"  (click)="handleInputConfirm()" >+</button>
 }
 </nz-card>
