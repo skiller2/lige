@@ -24,7 +24,7 @@ const listaColumnas: any[] = [
         id: "ClienteId",
         field: "ClienteId",
         fieldName: "cli.ClienteId",
-        searchComponent: "inpurForClientSearch",
+        searchComponent: "inputForClientSearch",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -46,7 +46,7 @@ const listaColumnas: any[] = [
         id: "ObjetivoCodigo",
         field: "ObjetivoCodigo",
         fieldName: "obj.ObjetivoCodigo",
-        searchComponent: "inpurForObjetivoSearch",
+        searchComponent: "inputForObjetivoSearch",
 
         sortable: true,
         hidden: false,

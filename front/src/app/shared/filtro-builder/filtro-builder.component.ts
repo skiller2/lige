@@ -215,7 +215,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         }
       }
 
-      if ((this.selections.field.type == 'date' || this.selections.field.type == 'dateTime') && this.selections.field.searchComponent != 'inpurForNumberAdvancedSearch' && this.selections.value instanceof Date != true) {
+      if ((this.selections.field.type == 'date' || this.selections.field.type == 'dateTime') && this.selections.field.searchComponent != 'inputForNumberAdvancedSearch' && this.selections.value instanceof Date != true) {
         const value = new Date(this.selections.value.value)
         const operator = this.selections.value.operator
         this.selections.value = value
@@ -513,17 +513,17 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       return
     let label = ''
     //TODO revisar que pasa con el resto de los filtros
-    if (fieldObj.searchComponent == 'inpurForPersonalSearch') {
+    if (fieldObj.searchComponent == 'inputForPersonalSearch') {
       const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value))
       label = person[0].fullName
     }
 
-    if (fieldObj.searchComponent == 'inpurForClientSearch') {
+    if (fieldObj.searchComponent == 'inputForClientSearch') {
       const cliente = await firstValueFrom(this.searchService.getClientFromName('ClienteId', value))
       label = cliente[0].ClienteDenominacion
     }
 
-    if (fieldObj.searchComponent == 'inpurForSituacionRevistaSearch') {
+    if (fieldObj.searchComponent == 'inputForSituacionRevistaSearch') {
       let valueSplit = value.split(";")
       let result = ''
        for (const value of valueSplit) {
@@ -538,12 +538,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = res[0].GrupoActividadDetalle
     }
 
-    if (fieldObj.searchComponent == 'inpurForActivo') {
+    if (fieldObj.searchComponent == 'inputForActivo') {
       label = value == 1 ? 'SI' : 'NO'
     }
 
 
-    /*if (fieldObj.searchComponent == 'inpurForCursoSearch') {
+    /*if (fieldObj.searchComponent == 'inputForCursoSearch') {
       const curso = await firstValueFrom(this.searchService.getCursoFromName('CursoHabilitacionId', value))
       label = curso[0].CursoHabilitacionDescripcion
     }*/

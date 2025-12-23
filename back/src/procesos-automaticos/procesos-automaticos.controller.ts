@@ -38,7 +38,7 @@ const listaColumnas: any[] = [
   {
     id: 'FechaInicio', name: 'Inicio', field: 'FechaInicio',
     fieldName: 'palog.FechaInicio',
-    searchComponent: 'inpurForFechaSearch',
+    searchComponent: 'inputForFechaSearch',
     type: 'date',
     searchType: 'date',
     sortable: true,
@@ -48,7 +48,7 @@ const listaColumnas: any[] = [
   {
     id: 'FechaFin', name: 'Fin', field: 'FechaFin',
     fieldName: 'palog.FechaFin',
-    searchComponent: 'inpurForFechaSearch',
+    searchComponent: 'inputForFechaSearch',
     type: 'date',
     searchType: 'date',
     sortable: true,
@@ -58,7 +58,7 @@ const listaColumnas: any[] = [
   {
     id: 'ProcesoAutomaticoEstadoCod', name: 'Descripcion', field: 'ProcesoAutomaticoEstadoCod',
     fieldName: 'paest.ProcesoAutomaticoEstadoCod',
-    searchComponent: 'inpurForProcesoAutomaticoEstadosSearch',
+    searchComponent: 'inputForProcesoAutomaticoEstadosSearch',
     type: 'number',
     searchType: 'number',
     sortable: true,

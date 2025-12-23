@@ -21,7 +21,7 @@ const columnasGrilla: any[] = [
     id: "ObjetivoCodigo",
     field: "ObjetivoCodigo",
     fieldName: "carg.objetivo_id",
-    searchComponent: "inpurForObjetivoSearch",
+    searchComponent: "inputForObjetivoSearch",
     hidden: false,
     searchHidden:false
   },
@@ -31,7 +31,7 @@ const columnasGrilla: any[] = [
     id: "ClienteElementoDependienteDescripcion",
     field: "ClienteElementoDependienteDescripcion",
     fieldName: "carg.objetivo_id",
-    searchComponent: "inpurForObjetivoSearch",
+    searchComponent: "inputForObjetivoSearch",
     hidden: false,
     searchHidden:false
   },
@@ -41,7 +41,7 @@ const columnasGrilla: any[] = [
     id: "PersonaDescripcion",
     field: "PersonaDescripcion",
     fieldName: "carg.persona_id",
-    searchComponent: "inpurForPersonalSearch",
+    searchComponent: "inputForPersonalSearch",
     hidden: false,
     searchHidden:false
   },
@@ -51,7 +51,7 @@ const columnasGrilla: any[] = [
     id: "Fechadeultimamodificación",
     field: "Fechadeultimamodificación",
     fieldName: "carg.aud_fecha_mod",
-      searchComponent: "inpurForFechaSearch",
+      searchComponent: "inputForFechaSearch",
     hidden: false,
     searchHidden:false
   },
@@ -61,7 +61,7 @@ const columnasGrilla: any[] = [
     id: "CUIT",
     field: "CUIT",
     fieldName: "carg.persona_id",
-    searchComponent: "inpurForPersonalSearch",
+    searchComponent: "inputForPersonalSearch",
     hidden: false,
     searchHidden:false
   },

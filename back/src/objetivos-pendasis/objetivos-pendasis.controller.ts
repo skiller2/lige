@@ -22,7 +22,7 @@ const columnasGrilla: any[] = [
     id: "SucursalId",
     field: "SucursalId",
     fieldName: "suc.SucursalId",
-    searchComponent: "inpurForSucursalSearch",
+    searchComponent: "inputForSucursalSearch",
     hidden: true,
     searchHidden: false
   },
@@ -32,7 +32,7 @@ const columnasGrilla: any[] = [
     id: "ObjetivoId",
     field: "ObjetivoId",
     fieldName: "obj.ObjetivoId",
-    searchComponent: 'inpurForObjetivoSearch',
+    searchComponent: 'inputForObjetivoSearch',
     sortable: true,
     hidden: true
   },
@@ -95,7 +95,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     maxWidth: 80,
-    searchComponent: "inpurForNumberAdvancedSearch"
+    searchComponent: "inputForNumberAdvancedSearch"
 
   },
   /*

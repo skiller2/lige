@@ -14,7 +14,7 @@ const listaColumnas: any[] = [
     id: "ApellidoNombre",
     field: "ApellidoNombre",
     fieldName: "per.PersonalId",
-    searchComponent:"inpurForPersonalSearch",
+    searchComponent:"inputForPersonalSearch",
     sortable: true,
     customTooltip: {
       useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
@@ -88,7 +88,7 @@ const listaColumnas: any[] = [
     type: "string",
     id: "ClienteId",
     field: "ClienteId",
-    searchComponent:"inpurForClientSearch",
+    searchComponent:"inputForClientSearch",
     fieldName: "obj.ClienteId",
     hidden: true,
     searchHidden: false 
@@ -99,7 +99,7 @@ const listaColumnas: any[] = [
     id: "Sucursal",
     field: "Sucursal",
     fieldName: "suc.SucursalId",
-    searchComponent:"inpurForSucursalSearch",
+    searchComponent:"inputForSucursalSearch",
     searchType:"number",
     sortable: true,
     hidden: true,

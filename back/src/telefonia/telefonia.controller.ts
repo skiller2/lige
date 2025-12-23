@@ -55,7 +55,7 @@ export class TelefoniaController extends BaseController {
       id: "ApellidoNombre",
       field: "ApellidoNombre",
       fieldName: "per.PersonalId",
-      searchComponent: "inpurForPersonalSearch",
+      searchComponent: "inputForPersonalSearch",
       searchType: "number",
       sortable: true,
       searchHidden: false,
@@ -77,7 +77,7 @@ export class TelefoniaController extends BaseController {
       id: "ClienteElementoDependienteDescripcion",
       field: "ClienteElementoDependienteDescripcion",
       fieldName: "tel.TelefoniaObjetivoId",
-      searchComponent: "inpurForObjetivoSearch",
+      searchComponent: "inputForObjetivoSearch",
       searchType: "number",
       sortable: true,
       searchHidden: false

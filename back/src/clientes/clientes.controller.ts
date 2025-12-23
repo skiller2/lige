@@ -27,7 +27,7 @@ export class ClientesController extends BaseController {
             id: "ClienteId",
             field: "ClienteId",
             fieldName: "cli.ClienteId",
-            searchComponent: "inpurForClientSearch",
+            searchComponent: "inputForClientSearch",
             sortable: true,
             hidden: true,
             searchHidden: false
@@ -70,7 +70,7 @@ export class ClientesController extends BaseController {
             type: "date",
             id: "ClienteFechaAlta",
             field: "ClienteFechaAlta",
-            fieldName: "inpurForFechaSearch",
+            fieldName: "inputForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -123,7 +123,7 @@ export class ClientesController extends BaseController {
             field: "activo",
             fieldName: "calc.activo",
             type: 'string',
-            searchComponent: "inpurForActivo",
+            searchComponent: "inputForActivo",
 
             sortable: true,
 

@@ -32,7 +32,7 @@ export class AccesoBotController extends BaseController {
             id: "AudFechaMod",
             field: "AudFechaMod",
             fieldName: "reg.AudFechaMod",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -53,7 +53,7 @@ export class AccesoBotController extends BaseController {
             id: "PersonalId",
             field: "PersonalId",
             fieldName: "per.PersonalId",
-            searchComponent: "inpurForPersonalSearch",
+            searchComponent: "inputForPersonalSearch",
             hidden: true,
             searchHidden: false,
             sortable: true

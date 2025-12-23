@@ -85,7 +85,7 @@ export class GrupoActividadController extends BaseController {
             exportWithFormatter: true,
             params: { collection: getOptions, },
             type: 'string',
-            searchComponent: "inpurForInactivo",
+            searchComponent: "inputForInactivo",
             sortable: true
         },
         {
@@ -95,7 +95,7 @@ export class GrupoActividadController extends BaseController {
             field: "GrupoActividadSucursalId",
             fieldName: "grup.GrupoActividadSucursalId",
             formatter: 'collectionFormatter',
-            searchComponent: "inpurForSucursalSearch",
+            searchComponent: "inputForSucursalSearch",
             sortable: true,
             searchHidden: false
         }
@@ -141,7 +141,7 @@ export class GrupoActividadController extends BaseController {
             formatter: 'collectionFormatter',
             exportWithFormatter: true,
             type: 'string',
-            searchComponent: "inpurForGrupoActividad",
+            searchComponent: "inputForGrupoActividad",
             sortable: true
         },
         {
@@ -159,7 +159,7 @@ export class GrupoActividadController extends BaseController {
             id: "PersonalId",
             field: "PersonalId",
             fieldName: "per.PersonalId",
-            searchComponent: "inpurForPersonalSearch",
+            searchComponent: "inputForPersonalSearch",
             sortable: false,
             hidden: true,
             searchHidden: false
@@ -170,7 +170,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadJerarquicoDesde",
             field: "GrupoActividadJerarquicoDesde",
             fieldName: "jer.GrupoActividadJerarquicoDesde",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
         },
         {
@@ -179,7 +179,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadJerarquicoHasta",
             field: "GrupoActividadJerarquicoHasta",
             fieldName: "jer.GrupoActividadJerarquicoHasta",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
         }
 
@@ -214,7 +214,7 @@ export class GrupoActividadController extends BaseController {
             id: "ObjetivoId",
             field: "ObjetivoId",
             fieldName: "obj.ObjetivoId",
-            searchComponent: "inpurForObjetivoSearch",
+            searchComponent: "inputForObjetivoSearch",
             sortable: false,
             hidden: true,
         },
@@ -244,7 +244,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadObjetivoDesde",
             field: "GrupoActividadObjetivoDesde",
             fieldName: "gaobj.GrupoActividadObjetivoDesde",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
         },
         {
@@ -253,7 +253,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadObjetivoHasta",
             field: "GrupoActividadObjetivoHasta",
             fieldName: "gaobj.GrupoActividadObjetivoHasta",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
         }
 
@@ -297,7 +297,7 @@ export class GrupoActividadController extends BaseController {
             id: "PersonalId",
             field: "PersonalId",
             fieldName: "per.PersonalId",
-            searchComponent: "inpurForPersonalSearch",
+            searchComponent: "inputForPersonalSearch",
             sortable: false,
             hidden: true,
             searchHidden: false
@@ -328,7 +328,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadPersonalDesde",
             field: "GrupoActividadPersonalDesde",
             fieldName: "gaper.GrupoActividadPersonalDesde",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
         },
         {
@@ -337,7 +337,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadPersonalHasta",
             field: "GrupoActividadPersonalHasta",
             fieldName: "gaper.GrupoActividadPersonalHasta",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
         }
 

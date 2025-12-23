@@ -32,7 +32,7 @@ const listaColumnas: any[] = [
     id: "PersonalId",
     field: "PersonalId",
     fieldName: "per.PersonalId",
-    searchComponent: "inpurForPersonalSearch",
+    searchComponent: "inputForPersonalSearch",
     sortable: false,
     hidden: true,
     searchHidden: false
@@ -52,7 +52,7 @@ const listaColumnas: any[] = [
     id: "TipoSeguroCodigo",
     field: "TipoSeguroCodigo",
     fieldName: "tipseg.TipoSeguroCodigo",
-    searchComponent: "inpurForTipoSeguroSearch",
+    searchComponent: "inputForTipoSeguroSearch",
     sortable: false,
     hidden: true,
     searchHidden: false
@@ -81,7 +81,7 @@ const listaColumnas: any[] = [
     field: "SituacionRevistaId",
     type: "number",
     fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
-    searchComponent: "inpurForSituacionRevistaSearch",
+    searchComponent: "inputForSituacionRevistaSearch",
     searchType: "number",
     sortable: true,
     searchHidden: false,
@@ -93,7 +93,7 @@ const listaColumnas: any[] = [
     id: "PersonalSeguroDesde",
     field: "PersonalSeguroDesde",
     fieldName: "seg.PersonalSeguroDesde",
-    searchComponent: "inpurForFechaSearch",
+    searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -104,7 +104,7 @@ const listaColumnas: any[] = [
     id: "PersonalSeguroHasta",
     field: "PersonalSeguroHasta",
     fieldName: "seg.PersonalSeguroHasta",
-    searchComponent: "inpurForFechaSearch",
+    searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -124,7 +124,7 @@ const listaColumnas: any[] = [
     id: "PersonalSituacionRevistaDesde",
     field: "PersonalSituacionRevistaDesde",
     fieldName: "sitrev.PersonalSituacionRevistaDesde",
-    searchComponent: "inpurForFechaSearch",
+    searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
     searchHidden: false
@@ -168,7 +168,7 @@ const listaColumnasPoliza: any[] = [
     id: "TipoSeguroCodigo",
     field: "TipoSeguroCodigo",
     fieldName: "tipseg.TipoSeguroCodigo",
-    searchComponent: "inpurForTipoSeguroSearch",
+    searchComponent: "inputForTipoSeguroSearch",
     sortable: false,
     hidden: true,
     searchHidden: false
@@ -244,7 +244,7 @@ const listaColumnasPersonalSeguro: any[] = [
     id: "PersonalId",
     field: "PersonalId",
     fieldName: "per.PersonalId",
-    searchComponent: "inpurForPersonalSearch",
+    searchComponent: "inputForPersonalSearch",
     sortable: false,
     hidden: true,
     searchHidden: false
@@ -325,7 +325,7 @@ const listaColumnasPersonalSeguro: any[] = [
     id: "TipoSeguroCodigo",
     field: "TipoSeguroCodigo",
     fieldName: "tipseg.TipoSeguroCodigo",
-    searchComponent: "inpurForTipoSeguroSearch",
+    searchComponent: "inputForTipoSeguroSearch",
     sortable: false,
     hidden: true,
     searchHidden: false

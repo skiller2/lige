@@ -27,7 +27,7 @@ const GridColums: any[] = [
         id: "PersonalId",
         field: "PersonalId",
         fieldName: "per.PersonalId",
-        searchComponent: "inpurForPersonalSearch",
+        searchComponent: "inputForPersonalSearch",
         sortable: false,
         hidden: true,
         searchHidden: true
@@ -58,7 +58,7 @@ const GridColums: any[] = [
         id: "SituacionRevistaId",
         field: "SituacionRevistaId",
         fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
-        searchComponent: "inpurForSituacionRevistaSearch",
+        searchComponent: "inputForSituacionRevistaSearch",
         searchType: "number",
         sortable: true,
         searchHidden: false,
@@ -81,7 +81,7 @@ const GridColums: any[] = [
         id: "PersonalSituacionRevistaDesde",
         field: "PersonalSituacionRevistaDesde",
         fieldName: "sitrev.PersonalSituacionRevistaDesde",
-        searchComponent: "inpurForFechaSearch",
+        searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -96,7 +96,7 @@ const GridColums: any[] = [
         params: { collection: getHabNecesariaOptions, },
         sortable: true,
         hidden: false,
-        searchComponent: "inpurForActivo",
+        searchComponent: "inputForActivo",
 
     },
      {
@@ -115,7 +115,7 @@ const GridColums: any[] = [
         id: "PersonalHabilitacionDesde",
         field: "PersonalHabilitacionDesde",
         fieldName: "ISNULL(b.PersonalHabilitacionDesde, '9999-12-31')",
-        searchComponent: "inpurForFechaSearch",
+        searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -126,7 +126,7 @@ const GridColums: any[] = [
         id: "PersonalHabilitacionHasta",
         field: "PersonalHabilitacionHasta",
         fieldName: "ISNULL(b.PersonalHabilitacionHasta, '9999-12-31')",
-        searchComponent: "inpurForFechaSearch",
+        searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -147,7 +147,7 @@ const GridColums: any[] = [
         id: "FechaEstado",
         field: "FechaEstado",
         fieldName: "e.AudFechaIng",
-        searchComponent: "inpurForFechaSearch",
+        searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -191,7 +191,7 @@ const GridDetalleColums: any[] = [
         id: "AudFechaIng",
         field: "AudFechaIng",
         fieldName: "geshab.AudFechaIng",
-        // searchComponent: "inpurForFechaSearch",
+        // searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: true
@@ -235,7 +235,7 @@ const GridDocColums: any[] = [
         id: "DocumentoAudFechaIng",
         field: "DocumentoAudFechaIng",
         fieldName: "doc.DocumentoAudFechaIng",
-        // searchComponent: "inpurForFechaSearch",
+        // searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: true
@@ -246,7 +246,7 @@ const GridDocColums: any[] = [
         id: "DocumentoFecha",
         field: "DocumentoFecha",
         fieldName: " doc.DocumentoFecha",
-        // searchComponent: "inpurForFechaSearch",
+        // searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: true
@@ -257,7 +257,7 @@ const GridDocColums: any[] = [
         id: "DocumentoFechaDocumentoVencimiento",
         field: "DocumentoFechaDocumentoVencimiento",
         fieldName: "doc.DocumentoFechaDocumentoVencimiento",
-        // searchComponent: "inpurForFechaSearch",
+        // searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: true
