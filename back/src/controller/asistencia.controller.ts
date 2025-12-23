@@ -3684,7 +3684,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString(16).padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
   }
 
-  static createDigestAuthOptions(authHeader: string, username: string, password: string, url: string) {
+  static createDigestAuthOptions(authHeader: string, username: string, password: string, url: string, nc: number = 1): DigestAuthOptions {
     if (!authHeader) {
       throw new Error("Digest authentication not supported on this endpoint.");
     }
@@ -3704,7 +3704,6 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
     // Generate client nonce
     const cnonce = CryptoJS.lib.WordArray.random(16).toString();
-    const nc = 1;
 
     // Create the Digest auth header
     const authOptions: DigestAuthOptions = {
@@ -3727,9 +3726,11 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     const password = process.env.CA_PASSWORD
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+    
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const authHeader = initialResponse.headers.get('www-authenticate')
     let authOptions = AsistenciaController.createDigestAuthOptions(authHeader, username, password, url)
+
     let recordsArray = []
     let searchResultPosition = 1
     let retryfetch = 1
@@ -3740,21 +3741,27 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       "statisticalTime": "month",
       "month": `${anio}-${mes}` // Año-mes del periodo de datos obtenidos
     }
+ 
     do {
-      const digestAuthHeader = this.generateDigestAuthHeader(authOptions)
-      const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader }
+      authOptions.nc++
+      const digestAuthHeader = this.generateDigestAuthHeader(authOptions)    
 
+      console.info('digestAuthHeader authorization envia', digestAuthHeader);
+      const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader }
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
+
       if (response.status == 401 && retryfetch < 5) {
+        authOptions = AsistenciaController.createDigestAuthOptions(response.headers.get('www-authenticate') || authHeader, username, password, url,0)
+        await new Promise(r => setTimeout(r, 500 * retryfetch/5)); // Espera progresiva
         retryfetch++
-        authOptions = AsistenciaController.createDigestAuthOptions(response.headers.get('www-authenticate'), username, password, url)
         continue
-      }
+      } 
 
       if (response.status != 200)
         throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status, response, body: await response.text() })
 
-      authOptions.nc++
+
+      retryfetch = 1
       searchResultPosition += 10
       data.searchResultPosition = searchResultPosition
 
