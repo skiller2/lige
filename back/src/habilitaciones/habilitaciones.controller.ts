@@ -138,7 +138,7 @@ const GridColums: any[] = [
         field: "Estado",
         fieldName: "est.Detalle",
         sortable: true,
-        hidden: true,
+        hidden: false,
         searchHidden: false
     },
     {
@@ -199,8 +199,8 @@ const GridDetalleColums: any[] = [
     {
         name: "Estado",
         type: "string",
-        id: "Detalle",
-        field: "Detalle",
+        id: "estado",
+        field: "estado",
         fieldName: "est.Detalle",
         sortable: true,
         hidden: false,
