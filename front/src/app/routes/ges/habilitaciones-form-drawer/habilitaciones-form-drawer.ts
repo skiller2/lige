@@ -119,7 +119,10 @@ export class HabilitacionesFormDrawerComponent {
         await firstValueFrom(this.apiService.updateGestionHabiltacion(vals))
       } else {
         let result:any = await firstValueFrom(this.apiService.addGestionHabiltacion(vals))
-        this.formHabilitacion.patchValue(result)
+        let data = result.data
+        data.AudFechaIng = this.formatDate(data.AudFechaIng);
+        
+        this.formHabilitacion.patchValue(data)
       } 
 
       this.formHabilitacion.markAsUntouched()

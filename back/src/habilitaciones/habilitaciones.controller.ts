@@ -475,8 +475,8 @@ export class HabilitacionesController extends BaseController {
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
         const NroTramite = req.body.NroTramite
-        const PersonalHabilitacionDesde = req.body.PersonalHabilitacionDesde
-        const PersonalHabilitacionHasta = req.body.PersonalHabilitacionHasta
+        const PersonalHabilitacionDesde:Date = req.body.PersonalHabilitacionDesde? new Date(req.body.PersonalHabilitacionDesde) : null
+        const PersonalHabilitacionHasta:Date = req.body.PersonalHabilitacionHasta? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
         const file:any[] = req.body.file
@@ -498,18 +498,18 @@ export class HabilitacionesController extends BaseController {
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde.length || PersonalHabilitacionHasta.length || PersonalHabilitacionClase.length) 
-            && (!PersonalHabilitacionDesde.length || !PersonalHabilitacionHasta.length || !PersonalHabilitacionClase.length)) {
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length) 
+            && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
                 throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
             }
             
             //Obtiene el Ultimo Codigo registrado
-            let res = await queryRunner.query(`
+            let result = await queryRunner.query(`
             SELECT ISNULL(GestionHabilitacionCodigoUlt, 0) CodigoUlt
             FROM PersonalHabilitacion
             WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
             `,[ PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId])
-            const newCodigoUlt = res[0].CodigoUlt+1
+            const newCodigoUlt = result[0].CodigoUlt+1
 
             //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
@@ -542,7 +542,7 @@ export class HabilitacionesController extends BaseController {
             }
 
             await queryRunner.commitTransaction()
-            this.jsonRes({GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual}, res, 'Carga de exitosa');
+            this.jsonRes({GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual}, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -562,8 +562,8 @@ export class HabilitacionesController extends BaseController {
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
         const NroTramite = req.body.NroTramite
-        const PersonalHabilitacionDesde = req.body.PersonalHabilitacionDesde
-        const PersonalHabilitacionHasta = req.body.PersonalHabilitacionHasta
+        const PersonalHabilitacionDesde:Date = req.body.PersonalHabilitacionDesde? new Date(req.body.PersonalHabilitacionDesde) : null
+        const PersonalHabilitacionHasta:Date = req.body.PersonalHabilitacionHasta? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
         // const file: any[] = req.body.archivo
@@ -585,8 +585,8 @@ export class HabilitacionesController extends BaseController {
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde.length || PersonalHabilitacionHasta.length || PersonalHabilitacionClase.length) 
-            && (!PersonalHabilitacionDesde.length || !PersonalHabilitacionHasta.length || !PersonalHabilitacionClase.length)) {
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length) 
+            && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
                 throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
             }
             
@@ -612,7 +612,7 @@ export class HabilitacionesController extends BaseController {
 
 
             await queryRunner.commitTransaction()
-            this.jsonRes({}, res, 'Carga de exitosa');
+            this.jsonRes({}, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)

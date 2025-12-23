@@ -1872,7 +1872,7 @@ export class ApiService {
 
   addGestionHabiltacion(detalle:any){
     return this.http.post<ResponseJSON<any>>('/api/habilitaciones/add-detalle', detalle).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res.data)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
