@@ -367,9 +367,9 @@ export class HabilitacionesController extends BaseController {
 
     async listDocQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
         return await queryRunner.query(`
-        SELECT doc.DocumentoId, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
         FROM PersonalHabilitacion perhab 
-        JOIN DocumentoRelaciones docrel ON docrel.PersonalId = perhab.PersonalId AND docrel.PersonalHabilitacionId = docrel.PersonalHabilitacionId AND docrel.PersonalHabilitacionLugarHabilitacionId = perhab.PersonalHabilitacionLugarHabilitacionId
+        JOIN DocumentoRelaciones docrel ON docrel.PersonalId = perhab.PersonalId AND docrel.PersonalHabilitacionId = perhab.PersonalHabilitacionId AND docrel.PersonalHabilitacionLugarHabilitacionId = perhab.PersonalHabilitacionLugarHabilitacionId
         LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
         LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
@@ -383,7 +383,7 @@ export class HabilitacionesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             const habilitaciones = await this.listDocQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
-            // console.log('Doc.length:', habilitaciones.length);
+            console.log('Doc.length:', habilitaciones.length);
             this.jsonRes(
                 {
                     total: habilitaciones.length,
@@ -572,9 +572,10 @@ export class HabilitacionesController extends BaseController {
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
+            
             //Validacion
             let error:string[] = []
+            
             if (!GestionHabilitacionEstadoCodigo) {
                 error.push(` Estado`)
             }
@@ -607,7 +608,7 @@ export class HabilitacionesController extends BaseController {
             SET GestionHabilitacionEstadoCodigo = @4, Detalle = @5,
                  AudFechaMod = @6, AudUsuarioMod = @7, AudIpMod = @8
             WHERE GestionHabilitacionCodigo = @0 AND PersonalHabilitacionId = @1 AND PersonalId = @2 AND PersonalHabilitacionLugarHabilitacionId = @3
-            `,[GestionHabilitacionCodigo ,PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId,
+            `,[GestionHabilitacionCodigo , PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
                 GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
 

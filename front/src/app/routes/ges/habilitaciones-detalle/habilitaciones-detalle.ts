@@ -81,6 +81,7 @@ export class HabilitacionesDetalleComponent {
     switchMap(() => {
       return this.searchService.getDocsByHabilitacion(this.personalId(), this.personalHabilitacionId(), this.lugarHabilitacionId())
         .pipe(map(data => { 
+          console.log('data.length: ', data.length);
           return data.list 
         }))
     })

@@ -18,7 +18,7 @@ import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.comp
     // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HabilitacionesFormDrawerComponent {
-  tituloDrawer = signal<string>("Nueva Habilitación Detalle")
+  tituloDrawer = input<string>("Nueva Habilitación Detalle")
   placement: NzDrawerPlacement = 'left';
   // disabled = input<boolean>(false)
   RefreshDetalle = model<boolean>(false)
