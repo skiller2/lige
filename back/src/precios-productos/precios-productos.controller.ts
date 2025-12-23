@@ -26,7 +26,7 @@ export class PreciosProductosController extends BaseController {
             field: "SucursalId",
             fieldName: "vent.SucursalId",
             formatter: 'collectionFormatter',
-            searchComponent: "inpurForSucursalSearch",
+            searchComponent: "inputForSucursalSearch",
             sortable: true,
             searchHidden: false
         },
@@ -69,7 +69,7 @@ export class PreciosProductosController extends BaseController {
             field: "TipoProductoId",
             fieldName: "prod.cod_tipo_producto",
             formatter: 'collectionFormatter',
-            searchComponent: "inpurForProductoSearch",
+            searchComponent: "inputForProductoSearch",
             searchType: "string",
             searchHidden: false
         },
@@ -98,7 +98,7 @@ export class PreciosProductosController extends BaseController {
             id: "desde",
             field: "desde",
             fieldName: "vent.importe_desde",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -109,7 +109,7 @@ export class PreciosProductosController extends BaseController {
             id: "hasta",
             field: "hasta",
             fieldName: "vent.importe_hasta",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false

@@ -23,7 +23,7 @@ export class CondicionesVentaController extends BaseController {
             id: "ClienteId",
             field: "ClienteId",
             fieldName: "cli.ClienteId",
-            searchComponent: "inpurForClientSearch",
+            searchComponent: "inputForClientSearch",
             sortable: true,
             hidden: true,
             searchHidden: false
@@ -45,7 +45,7 @@ export class CondicionesVentaController extends BaseController {
             id: "ObjetivoId",
             field: "ObjetivoId",
             fieldName: "obj.ObjetivoId",
-            searchComponent: "inpurForObjetivoSearch",
+            searchComponent: "inputForObjetivoSearch",
             sortable: true,
             hidden: true,
             searchHidden: false
@@ -67,7 +67,7 @@ export class CondicionesVentaController extends BaseController {
             id: "PeriodoDesdeAplica",
             field: "PeriodoDesdeAplica",
             fieldName: "conven.PeriodoDesdeAplica",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -78,7 +78,7 @@ export class CondicionesVentaController extends BaseController {
             id: "AutorizacionFecha",
             field: "AutorizacionFecha",
             fieldName: "conven.AutorizacionFecha",
-            searchComponent: "inpurForFechaSearch",
+            searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -89,7 +89,7 @@ export class CondicionesVentaController extends BaseController {
             id: "AutorizacionPersonalId",
             field: "AutorizacionPersonalId",
             fieldName: "per.PersonalId",
-            searchComponent: "inpurForPersonalSearch",
+            searchComponent: "inputForPersonalSearch",
             sortable: true,
             hidden: true,
             searchHidden: false

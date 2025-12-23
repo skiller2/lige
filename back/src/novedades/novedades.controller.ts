@@ -56,7 +56,7 @@ const listaColumnas: any[] = [
         id: "SucursalId",
         field: "SucursalId",
         fieldName: "suc.SucursalId",
-        searchComponent: "inpurForSucursalSearch",
+        searchComponent: "inputForSucursalSearch",
         sortable: false,
         hidden: true,
         searchHidden: false
@@ -77,7 +77,7 @@ const listaColumnas: any[] = [
         id: "ClienteId",
         field: "ClienteId",
         fieldName: "cli.ClienteId",
-        searchComponent: "inpurForClientSearch",
+        searchComponent: "inputForClientSearch",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -100,7 +100,7 @@ const listaColumnas: any[] = [
         id: "ObjetivoId",
         field: "ObjetivoId",
         fieldName: " obj.ObjetivoId",
-        searchComponent: "inpurForObjetivoSearch",
+        searchComponent: "inputForObjetivoSearch",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -194,7 +194,7 @@ const listaColumnas: any[] = [
         id: "Fecha",
         field: "Fecha",
         fieldName: "nov.Fecha",
-        searchComponent: "inpurForFechaSearch",
+        searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -213,7 +213,7 @@ const listaColumnas: any[] = [
         id: "PersonalId", name: "Personal", field: "PersonalId",
         type: "string",
         fieldName: "nov.PersonalId",
-        searchComponent: "inpurForPersonalSearch",
+        searchComponent: "inputForPersonalSearch",
         searchType: "number",
         sortable: true,
         searchHidden: false,
