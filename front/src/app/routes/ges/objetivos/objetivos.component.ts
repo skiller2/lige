@@ -84,11 +84,11 @@ export class ObjetivosComponent {
             return String(value || '')
           }
         }
-        if (cols[4]) {
-          cols[4].asyncPostRender = this.renderClienteDenominacionComponent.bind(this)
-        }
         if (cols[5]) {
-          cols[5].asyncPostRender = this.renderDescripcionObjetivoComponent.bind(this)
+          cols[5].asyncPostRender = this.renderClienteDenominacionComponent.bind(this)
+        }
+        if (cols[3]) {
+          cols[3].asyncPostRender = this.renderDescripcionObjetivoComponent.bind(this)
         }
         if (cols[6]) {
           cols[6].asyncPostRender = this.renderGrupoActividadDetalleComponent.bind(this)
