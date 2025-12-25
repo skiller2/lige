@@ -1,27 +1,14 @@
 CondicionVentaIdForEdit: {{CondicionVentaIdForEdit()}}
 
-
-<!--<form [formGroup]="formCondicionVenta">
+<form [formGroup]="formCondicionVenta">
   <br>
-
-
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <app-objetivo-search 
-        formControlName="ObjetivoId" 
-        (valueExtendedChange)="objetivoDetalleChange($event)">
-      </app-objetivo-search>
+      <app-objetivo-search  formControlName="ObjetivoId" (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
     </nz-form-control>
   </nz-form-item>
 
-  <nz-form-item style="display:none">
-    <nz-form-control>
-      <input formControlName="ClienteId" type="hidden" />
-      <input formControlName="ClienteElementoDependienteId" type="hidden" />
-      <input formControlName="id" type="hidden" />
-    </nz-form-control>
-  </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Desde mes/año aplica</nz-form-label>
@@ -30,20 +17,17 @@ CondicionVentaIdForEdit: {{CondicionVentaIdForEdit()}}
         formControlName="PeriodoDesdeAplica"
         nzMode="month"
         nzFormat="MM/yyyy"
-        (ngModelChange)="onPeriodoDesdeAplicaChange($event)"
-        style="width: 100%;">
+        style="width: 100%;"
+        (ngModelChange)="onPeriodoDesdeAplicaChange($event)">
       </nz-date-picker>
+      
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <input 
-        nz-input 
-        formControlName="PeriodoFacturacion" 
-        placeholder="Ingrese el período de facturación"
-        type="text" />
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+          <nz-input-number formControlName="PeriodoFacturacion" [nzMin]="1" [nzMax]="12" [nzStep]="1" nzPlaceHolder="Mes" style="width: 100%;"/>
     </nz-form-control>
   </nz-form-item>
 
@@ -91,6 +75,7 @@ CondicionVentaIdForEdit: {{CondicionVentaIdForEdit()}}
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
         <button 
+        style="margin-right: 10px;"
           nzType="primary" 
           nz-button  
           (click)="save()" 
@@ -113,4 +98,3 @@ CondicionVentaIdForEdit: {{CondicionVentaIdForEdit()}}
   }
 
 </form>
--->

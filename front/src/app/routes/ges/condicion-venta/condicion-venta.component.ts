@@ -12,8 +12,9 @@ import { CondicionVentaFormComponent } from '../condicion-venta-form/condicion-v
   imports: [ SHARED_IMPORTS,
     CommonModule,
     I18nPipe,
-    TableCondicionVentaComponent,
-    CondicionVentaFormComponent],
+   TableCondicionVentaComponent,
+    CondicionVentaFormComponent,
+  ],
   templateUrl: './condicion-venta.component.html', 
   styleUrl: './condicion-venta.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +24,7 @@ export class CondicionVentaComponent {
   periodo = signal<Date>(new Date())
   CondicionVentaId = model(0); 
   childIsPristine = signal(true)
-  viewListado = signal(false)
+  viewListado = model<boolean>(true)
   childAlta = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormAlta')
   childDetalle = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormDetalle')
   childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')

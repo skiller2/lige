@@ -200,4 +200,106 @@ export class CondicionesVentaController extends BaseController {
 
     }
 
+    async addCondicionVenta(req: any, res: any, next: any) {
+
+        const queryRunner = dataSource.createQueryRunner();
+        const CondicionVenta = { ...req.body };
+        console.log(CondicionVenta)
+        let CondicionVentaNew = { CondicionVentaId: 0}
+        try {
+            //validaciones
+            //await this.FormValidations(ObjCliente, queryRunner)
+            await queryRunner.startTransaction()
+
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+
+            const objetivoInfo = await this.ObjetivoInfoFromId(CondicionVenta.ObjetivoId)
+
+           CondicionVentaNew.CondicionVentaId = await this.insertCondicionVenta(queryRunner,
+             objetivoInfo.clienteId, 
+             objetivoInfo.ClienteElementoDependienteId,
+             CondicionVenta.PeriodoDesdeAplica,
+             CondicionVenta.PeriodoFacturacion.toString(),
+             CondicionVenta.GeneracionFacturaDia,
+             CondicionVenta.GeneracionFacturaDiaComplemento,
+             CondicionVenta.Observaciones,
+             usuario,
+             ip)
+
+             await this.rollbackTransaction(queryRunner)
+
+            //await queryRunner.commitTransaction()
+            return this.jsonRes(CondicionVentaNew, res, 'Carga  de nuevo registro exitoso');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async insertCondicionVenta(queryRunner: QueryRunner,
+         ClienteId: number,
+          ClienteElementoDependienteId: number,
+          PeriodoDesdeAplica: Date,
+          PeriodoFacturacion: string,
+          GeneracionFacturaDia: number,
+          GeneracionFacturaDiaComplemento: number,
+          Observaciones: string,
+          usuario: string,
+          ip: string) {
+        let FechaActual = new Date()
+
+        await queryRunner.query(`INSERT INTO CondicionVenta (
+            ClienteId,
+            ClienteElementoDependienteId,
+            PeriodoDesdeAplica,
+            AutorizacionFecha,
+            AutorizacionPersonalId,
+            AutorizacionEstado,
+            PeriodoFacturacion,
+            GeneracionFacturaDia,
+            GeneracionFacturaDiaComplemento,
+            Observaciones,
+            AudFechaIng,
+            AudUsuarioIng,
+            AudIpIng,
+            AudFechaMod,
+            AudUsuarioMod,
+            AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`,
+             [  ClienteId,
+                ClienteElementoDependienteId,
+                PeriodoDesdeAplica, 
+                null,
+                null,
+                null,
+                PeriodoFacturacion + 'M', 
+                GeneracionFacturaDia, 
+                GeneracionFacturaDiaComplemento,
+                Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
+           const CondicionVentaId = await queryRunner.query(`SELECT IDENT_CURRENT('CondicionVenta')`)
+           return CondicionVentaId[0]['']
+    }
+
+    async ObjetivoInfoFromId(objetivoId: string) {
+        try {
+          const result = await dataSource.query(
+            `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId,
+            CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
+            ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
+            FROM Objetivo obj 
+            JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+            JOIN ClienteElementoDependiente ele ON ele.ClienteId = obj.ClienteId AND ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            WHERE obj.ObjetivoId = @0`,
+            [objetivoId]
+          );
+          const info = result[0];
+          return info
+            } catch (error) {
+            return null
+        }
+      }
+
+
 }

@@ -13,4 +13,7 @@ condicionesVentaRouter.post('/list', [authMiddleware.verifyToken, authMiddleware
     condicionesVentaController.listCondicionesVenta(req, res, next)
 })
 
+condicionesVentaRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.addCondicionVenta(req, res, next)
+})
 

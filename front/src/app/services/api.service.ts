@@ -1373,6 +1373,13 @@ export class ApiService {
     )
   }
 
+  addCondicionVenta(condicionVenta: any) {
+    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/add', condicionVenta).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+
   addObjetivo(objetivo: any) {
     return this.http.post<ResponseJSON<any>>('/api/objetivos/add', objetivo).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
