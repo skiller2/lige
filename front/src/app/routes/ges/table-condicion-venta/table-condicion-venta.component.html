@@ -1,7 +1,8 @@
 <nz-card #tabcondventa class="small-margin">
+
     <ng-container>
       <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-      CondicionVentaId tabla: {{CondicionVentaId()}}
+      codobj: {{codobj()}}
 
       @if(columns$ | async; as columnas) {
         <div class="gridContainerCondVenta container-fluid" >

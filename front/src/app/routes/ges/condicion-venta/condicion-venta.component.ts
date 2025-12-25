@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, model, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, model, OnInit, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { I18nPipe, SettingsService } from '@delon/theme';
@@ -19,10 +19,10 @@ import { CondicionVentaFormComponent } from '../condicion-venta-form/condicion-v
   styleUrl: './condicion-venta.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CondicionVentaComponent {
+export class CondicionVentaComponent implements OnInit {
 
   periodo = signal<Date>(new Date())
-  CondicionVentaId = model(0); 
+  codobj = model<string>(''); 
   childIsPristine = signal(true)
   viewListado = model<boolean>(true)
   childAlta = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormAlta')
@@ -32,6 +32,11 @@ export class CondicionVentaComponent {
 
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
+  }
+
+  ngOnInit(): void {
+    this.codobj.set('')
+    this.viewListado.set(true)
   }
 
 

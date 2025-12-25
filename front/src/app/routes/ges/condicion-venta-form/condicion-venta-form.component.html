@@ -1,7 +1,15 @@
-CondicionVentaIdForEdit: {{CondicionVentaIdForEdit()}}
+codobjId --- : {{codobjId()}}
 
 <form [formGroup]="formCondicionVenta">
   <br>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">codobjId</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+      <input nz-input placeholder="" formControlName="codobjId" type="string" />
+    </nz-form-control>
+  </nz-form-item>
+
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">

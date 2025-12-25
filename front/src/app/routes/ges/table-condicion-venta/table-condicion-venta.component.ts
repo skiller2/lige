@@ -39,7 +39,7 @@ export class TableCondicionVentaComponent implements OnInit {
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
   private dataAngularGrid: [] = [];
-  CondicionVentaId = model<number>(0);
+  codobj = model<string>('');
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -47,11 +47,21 @@ export class TableCondicionVentaComponent implements OnInit {
     extra: null,
   };
 
+  private previousCodobj: string = '';
+
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
     public searchService: SearchService
-  ) { }
+  ) { 
+     effect(() => {
+      const currentCodobj = this.codobj();
+      if (currentCodobj !== this.previousCodobj) {
+        this.previousCodobj = currentCodobj;
+        this.formChange$.next('');
+      }
+     });
+  }
 
 
   columns$ = this.apiService.getCols('/api/condiciones-venta/cols');
@@ -117,9 +127,9 @@ export class TableCondicionVentaComponent implements OnInit {
 
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-
+console.log("row ", row)
     if (row?.id) {
-      this.CondicionVentaId.set(row.id);
+      this.codobj.set(row.codobj);
     }
 
   }

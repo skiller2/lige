@@ -26,13 +26,12 @@ export class CondicionVentaFormComponent implements OnInit {
   onAddorUpdate = output<('save' | 'delete')>();
   isLoading = signal(false);
   objetivoExtended = signal<any>(null);
-   CondicionVentaIdForEdit = model(0);
-  viewListado = model<boolean>(false)
-
+  codobjId = model<string>('');
 
   fb = inject(FormBuilder)
   formCondicionVenta = this.fb.group({ 
     id: 0,
+    codobjId: '',
     ObjetivoId: 0, 
     PeriodoDesdeAplica: null as Date | null,
     PeriodoFacturacion: '',
@@ -99,7 +98,9 @@ export class CondicionVentaFormComponent implements OnInit {
   }
   */
   ngOnInit(): void {
-  this.viewListado.set(false)
+  this.formCondicionVenta.patchValue({
+    codobjId: this.codobjId(),
+  });
   }
 
   objetivoDetalleChange(event: any) {

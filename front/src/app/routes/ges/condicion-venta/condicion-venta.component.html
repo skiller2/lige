@@ -4,28 +4,26 @@
 
     
     <div nz-row >
-      @if(viewListado()) {
           <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
           <nz-form-control [nzSpan]="14">
             <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
           </nz-form-control>
-     }
+     
     </div>
    
     <div nz-col style="display: flex;flex-direction: row-reverse;">
-
       <nz-button-group nz-button nzButtonGroup>
         <a [routerLink]="['/', 'ges', 'condiciones-venta','alta']" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
         </a>
         <a [routerLink]="['/', 'ges', 'condiciones-venta','Modificar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-          <button nz-button nzType="default"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+          <button nz-button nzType="default" [disabled]="codobj()"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>
         <a [routerLink]="['/', 'ges', 'condiciones-venta','autorizar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
-          <button nz-button nzType="default"><span nz-icon nzType="check" nzTheme="outline"></span></button>
+          <button nz-button nzType="default" [disabled]="codobj()"><span nz-icon nzType="check" nzTheme="outline"></span></button>
         </a>
         <a [routerLink]="['/', 'ges', 'condiciones-venta','rechazar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-          <button nz-button nzType="default"><span nz-icon nzType="close" nzTheme="outline"></span></button>
+          <button nz-button nzType="default" [disabled]="codobj()"><span nz-icon nzType="close" nzTheme="outline"></span></button>
         </a>
       </nz-button-group>
     </div>
@@ -55,9 +53,7 @@
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-        @defer (when viewListado()) {
-        <app-table-condicion-venta #tableCondicionVenta [(CondicionVentaId)]="CondicionVentaId"></app-table-condicion-venta>
-        }
+        <app-table-condicion-venta #tableCondicionVenta [(codobj)]="codobj" ></app-table-condicion-venta>
       </nz-tab>
 
       <nz-tab>
@@ -72,7 +68,7 @@
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/alta" >{{ 'app.alta' | i18n }}</a>
-        <app-condicion-venta-form #condicionVentaFormAlta  [(viewListado)]="viewListado" [(CondicionVentaIdForEdit)]="CondicionVentaId"></app-condicion-venta-form>
+        <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj"></app-condicion-venta-form>
       </nz-tab>
 
     </nz-tabs> 
