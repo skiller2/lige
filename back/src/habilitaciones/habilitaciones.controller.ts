@@ -328,10 +328,9 @@ export class HabilitacionesController extends BaseController {
 				b2.PersonalHabilitacionId,
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
-								 WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NULL THEN 0
-					WHEN b2.PersonalHabilitacionHasta IS NULL THEN NULL
-					WHEN b2.PersonalHabilitacionHasta < @0 THEN 0
-					ELSE DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+					WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
+					ELSE 0
 				END AS DiasFaltantesVencimiento
 			FROM PersonalHabilitacion b2
 		) dias ON dias.PersonalId = b.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId
