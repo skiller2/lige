@@ -21,6 +21,7 @@ import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-s
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
 
 enum Busqueda {
     Sucursal,
@@ -36,7 +37,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent]
+    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent,NzSpaceModule]
 })
 export class CargaAsistenciaComponent {
     @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =

@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 
 
@@ -57,9 +58,8 @@ export class AdelantoComponent {
     let mapped = cols.map((col: Column) => {
       if (col.id == 'PersonalPrestamoMonto') {
         col.editor = {
-          model: Editors['float'],
+          model: CustomFloatEditor,
           decimal: 2,
-          valueStep: 1,
           minValue: 0,
           maxValue: 10000000,
           alwaysSaveOnEnterKey: true,
