@@ -2121,4 +2121,14 @@ export class SearchService {
     );
   }
 
+  getRubroClienteOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/rubro/rublo-cliente/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

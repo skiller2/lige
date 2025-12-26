@@ -5,7 +5,6 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { RubroSearchComponent } from '../../../shared/rubro-search/rubro-search.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
@@ -30,7 +29,6 @@ import { NzInputGroupComponent } from 'ng-zorro-antd/input'
         SHARED_IMPORTS,
         CommonModule,
         PersonalSearchComponent,
-        RubroSearchComponent,
         ClienteSearchComponent,
         NzAutocompleteModule,
         NzSelectModule,
@@ -57,10 +55,6 @@ export class ObjetivosFormComponent {
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
     ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
-  }
-  objRubro = {
-    ClienteElementoDependienteRubroId:0,
-    RubroId:0
   }
   objDocRequerido = {
     DocumentoTipoCodigo:0
@@ -108,7 +102,7 @@ export class ObjetivosFormComponent {
     DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
-    infoRubro: this.fb.array([this.fb.group({ ...this.objRubro })]), 
+    rubrosCliente: [],  
     infoDocRequerido: this.fb.array([this.fb.group({ ...this.objDocRequerido })]),
     infoActividad: this.fb.array([this.fb.group({ ...this.objActividad })]), 
     estado: 0,
@@ -131,6 +125,7 @@ export class ObjetivosFormComponent {
   $sucursales = this.searchService.getSucursales();
   $optionsDocumentoTipo = this.searchService.getDocumentoTipoOptions();
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
+  $optionsRubroCliente = this.searchService.getRubroClienteOptions();
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -164,10 +159,8 @@ export class ObjetivosFormComponent {
       this.formCli.get('codigo')?.disable()
       this.formCli.reset()
       this.infoCoordinadorCuenta().clear()
-      this.infoRubro().clear()
       this.infoDocRequerido().clear()
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
       this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
       this.formCli.markAsPristine()
     }
@@ -179,8 +172,6 @@ export class ObjetivosFormComponent {
       if (readonly){
         this.formCli.disable()
         this.formCli.get('GrupoActividadId')?.disable()
-        this.formCli.get('RubroId')?.disable()
-        this.formCli.get('infoRubro')?.disable()
         this.formCli.get('DocumentoTipoCodigo')?.disable()
         this.formCli.get('infoDocRequerido')?.disable()
       }else{
@@ -197,9 +188,9 @@ export class ObjetivosFormComponent {
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-   
+    console.log('infoObjetivo: ', infoObjetivo);
+    
     this.infoCoordinadorCuenta().clear()
-    this.infoRubro().clear()
     this.infoDocRequerido().clear()
     this.infoActividad().clear()
     
@@ -211,14 +202,6 @@ export class ObjetivosFormComponent {
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
      
     }  
-
-    infoObjetivo?.infoRubro.forEach((obj: any) => {
-      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
-    });
-    
-    if(infoObjetivo.infoRubro.length == 0){
-      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
-    }
 
     infoObjetivo?.infoDocRequerido.forEach((obj: any) => {
       this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
@@ -238,12 +221,10 @@ export class ObjetivosFormComponent {
     
     if (this.formCli.disabled){
       this.infoCoordinadorCuenta().disable()
-      this.infoRubro().disable()
       this.infoDocRequerido().disable()
       this.infoActividad().disable()
     }else {
       this.infoCoordinadorCuenta().enable()
-      this.infoRubro().enable()
       this.infoDocRequerido().enable()
       this.infoActividad().disable()
     }
@@ -264,7 +245,6 @@ export class ObjetivosFormComponent {
     this.formCli.get('codigo')?.disable()
     //this.formCli.get('ClienteId')?.disable();
     this.formCli.get('GrupoActividadId')?.disable()
-    this.formCli.get('RubroId')?.disable()
     this.formCli.get('DocumentoTipoCodigo')?.disable()
     //this.formCli.reset(infoObjetivo)
   }
@@ -275,25 +255,22 @@ export class ObjetivosFormComponent {
   async save() {
     this.isLoading.set(true)
     let form = this.formCli.getRawValue();
-    //console.log("combinedData ", combinedData)
+    console.log("form ", form)
+    return
     try {
         if (this.ObjetivoId()) {
           let CordinadorCuenta = form.infoCoordinadorCuenta
-          let Rubro = form.infoRubro
           // este es para cuando es update
 
           if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
             form.infoCoordinadorCuenta = []   
           
-          if( Rubro.length === 1 && !Rubro[0]?.ClienteElementoDependienteRubroId && String(Rubro[0]?.RubroId) === '')
-            form.infoRubro = []
 
           let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.ObjetivoId()))
           //this.formCli.reset(result.data)
           //console.log("result ", result)
           this.formCli.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            infoRubro: result.data.infoRubro,
             infoActividad: result.data.infoActividad,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
             clienteOld: result.data.ClienteId,
@@ -314,7 +291,6 @@ export class ObjetivosFormComponent {
           this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
           this.formCli.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            infoRubro: result.data.infoRubro,
             infoActividad: result.data.infoActividad,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
             clienteOld: result.data.ClienteId,
@@ -336,10 +312,6 @@ export class ObjetivosFormComponent {
     return this.formCli.get("infoCoordinadorCuenta") as FormArray
   }
 
-  infoRubro(): FormArray {
-    return this.formCli.get("infoRubro") as FormArray
-  }
-
   infoDocRequerido(): FormArray {
     return this.formCli.get("infoDocRequerido") as FormArray
   }
@@ -355,13 +327,6 @@ export class ObjetivosFormComponent {
     
   }
 
-  addRubro(e?: MouseEvent): void {
-
-    e?.preventDefault();
-    this.infoRubro().push(this.fb.group({ ...this.objRubro }))
-    
-  }
-
   addDocRequerido(e?: MouseEvent): void {
 
     e?.preventDefault();
@@ -374,15 +339,6 @@ export class ObjetivosFormComponent {
     e.preventDefault();
     if (this.infoCoordinadorCuenta().length > 1 ) {
       this.infoCoordinadorCuenta().removeAt(index)
-    }
-    this.formCli.markAsDirty();
-  }
-
-  removeRubro(index: number, e: MouseEvent): void {
-   
-    e.preventDefault();
-    if (this.infoRubro().length > 1 ) {
-      this.infoRubro().removeAt(index)
     }
     this.formCli.markAsDirty();
   }

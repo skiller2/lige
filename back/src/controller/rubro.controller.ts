@@ -47,12 +47,17 @@ export class RubroController extends BaseController {
         return next(error)
       });
   }
-  async execProcedure(someParam: number) {
-    /*
-        const result = await this.connection.query(
-          'EXEC procedures.MyProcedure @0', [someParam]
-        );
-        */
-    // ... do something with the result
+
+  async getRubroCliente(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT RubroClienteId value, RubroClienteDescripcion label
+        FROM RubroCliente
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
   }
 }

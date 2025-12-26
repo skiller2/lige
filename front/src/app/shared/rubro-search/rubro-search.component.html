@@ -1,5 +1,5 @@
 <nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Rubro, Código"
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Rubro, Código" nzMode="multiple"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
   @for (option of $optionsArray | async; track option) {
     @if (($isOptionsLoading | async) == false) {
