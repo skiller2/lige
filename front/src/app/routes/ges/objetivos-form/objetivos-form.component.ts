@@ -81,7 +81,6 @@ export class ObjetivosFormComponent {
   onAddorUpdate = output()
   files = []
   pristineChange = output<boolean>()
-  optionsLugarHabilitacion = signal<any[]>([])
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -131,6 +130,7 @@ export class ObjetivosFormComponent {
   $optionsDescuento = this.searchService.getDescuento();
   $sucursales = this.searchService.getSucursales();
   $optionsDocumentoTipo = this.searchService.getDocumentoTipoOptions();
+  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -142,8 +142,6 @@ export class ObjetivosFormComponent {
   }
 
   async ngOnInit() {
-    const optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
-    this.optionsLugarHabilitacion.set(optionsLugarHabilitacion)
 
     this.formCli.statusChanges.subscribe(() => {
       this.checkPristine();
@@ -277,7 +275,6 @@ export class ObjetivosFormComponent {
   async save() {
     this.isLoading.set(true)
     let form = this.formCli.getRawValue();
-
     //console.log("combinedData ", combinedData)
     try {
         if (this.ObjetivoId()) {
