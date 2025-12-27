@@ -19,7 +19,7 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
         NzUploadModule
     ],
     templateUrl: './mess.component.html',
-    styleUrl: './mess.component.less'
+    styleUrl: './mess.component.scss'
 })
 export class MessComponent {
   messInfo = signal({'msg':'descansando'})

@@ -14,7 +14,7 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 @Component({
     selector: 'app-descuentos-personal-alta-drawer',
     templateUrl: './descuentos-personal-alta-drawer.component.html',
-    styleUrl: './descuentos-personal-alta-drawer.component.less',
+    styleUrl: './descuentos-personal-alta-drawer.component.scss',
     encapsulation: ViewEncapsulation.None,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent],
     providers: [AngularUtilService]

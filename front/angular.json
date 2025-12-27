@@ -14,7 +14,7 @@
       "prefix": "app",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "less"
+          "style": "scss"
         },
         "@schematics/angular:application": {
           "strict": true
@@ -48,11 +48,10 @@
               }
             ],
             "styles": [
-              "src/styles.less",
-              "src/styles.scss"
+              "src/styles.scss",
+              "src/styles.less"
             ],
             "scripts": [
-              "node_modules/sortablejs/Sortable.min.js"
             ],
             "allowedCommonJsDependencies": [
               "ajv",

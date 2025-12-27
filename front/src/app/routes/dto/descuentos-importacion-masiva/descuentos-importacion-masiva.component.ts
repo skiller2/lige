@@ -20,7 +20,7 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 @Component({
     selector: 'app-descuentos-importacion-masiva-drawer',
     templateUrl: './descuentos-importacion-masiva.component.html',
-    styleUrl: './descuentos-importacion-masiva.component.less',
+    styleUrl: './descuentos-importacion-masiva.component.scss',
     encapsulation: ViewEncapsulation.None,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule, FileUploadComponent],
     providers: [AngularUtilService],

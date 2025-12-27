@@ -17,7 +17,7 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 @Component({
     selector: 'app-descuentos-objetivos-alta-drawer',
     templateUrl: './descuentos-objetivos-alta-drawer.component.html',
-    styleUrl: './descuentos-objetivos-alta-drawer.component.less',
+    styleUrl: './descuentos-objetivos-alta-drawer.component.scss',
     encapsulation: ViewEncapsulation.None,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, ObjetivoSearchComponent, ViewResponsableComponent],
     providers: [AngularUtilService],

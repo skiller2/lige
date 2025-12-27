@@ -16,7 +16,7 @@ import { AplicaASearchComponent } from '../../../shared/aplicaA-search/aplicaA-s
   selector: 'app-descuentos-carga-manual-table-objetivo',
   imports: [ SHARED_IMPORTS, CommonModule,],
   templateUrl: './descuentos-carga-manual-table-objetivo.html',
-  styleUrl: './descuentos-carga-manual-table-objetivo.less',
+  styleUrl: './descuentos-carga-manual-table-objetivo.scss',
   providers: [AngularUtilService]
 })
 export class DescuentosCargaManualTableObjetivoComponent implements OnInit {

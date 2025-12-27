@@ -25,7 +25,7 @@ import { HeaderSearchModuleComponent } from './widgets/search-module.component';
 
 @Component({
     selector: 'layout-basic',
-    styleUrls: ['./basic.component.less'],
+    styleUrls: ['./basic.component.scss'],
     template: `
     <header-title class="alain-default__title"></header-title>
 

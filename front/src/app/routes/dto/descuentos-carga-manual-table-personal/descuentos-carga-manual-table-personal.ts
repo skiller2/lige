@@ -15,7 +15,7 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
   selector: 'app-descuentos-carga-manual-table-personal',
   imports: [ SHARED_IMPORTS, CommonModule,],
   templateUrl: './descuentos-carga-manual-table-personal.html',
-  styleUrl: './descuentos-carga-manual-table-personal.less',
+  styleUrl: './descuentos-carga-manual-table-personal.scss',
   providers: [AngularUtilService]
 })
 export class DescuentosCargaManualTablePersonalComponent implements OnInit {

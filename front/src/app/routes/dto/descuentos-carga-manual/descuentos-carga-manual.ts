@@ -10,7 +10,7 @@ import { DescuentosCargaManualTableObjetivoComponent } from '../descuentos-carga
   selector: 'app-descuentos-carga-manual',
   imports: [...SHARED_IMPORTS, CommonModule, DescuentosCargaManualTablePersonalComponent, DescuentosCargaManualTableObjetivoComponent],
   templateUrl: './descuentos-carga-manual.html',
-  styleUrl: './descuentos-carga-manual.less'
+  styleUrl: './descuentos-carga-manual.scss'
 })
 export class DescuentosCargaManualComponent implements OnInit {
 

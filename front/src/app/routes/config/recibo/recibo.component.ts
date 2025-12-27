@@ -15,7 +15,7 @@ import { firstValueFrom } from 'rxjs';
         SHARED_IMPORTS, PersonalSearchComponent
     ],
     templateUrl: './recibo.component.html',
-    styleUrl: './recibo.component.less',
+    styleUrl: './recibo.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReciboComponent {
