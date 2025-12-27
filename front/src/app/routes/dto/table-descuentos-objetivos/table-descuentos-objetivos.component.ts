@@ -15,7 +15,7 @@ import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-
 @Component({
     selector: 'app-table-descuentos-objetivos',
     templateUrl: './table-descuentos-objetivos.component.html',
-    styleUrls: ['./table-descuentos-objetivos.component.less'],
+    styleUrls: ['./table-descuentos-objetivos.component.scss'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosObjetivosAltaDrawerComponent],
