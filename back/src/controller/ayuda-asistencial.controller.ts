@@ -266,7 +266,7 @@ const columnsAyudaAsistencialCuotas: any[] = [
   {
     id: 'PersonalCUITCUILCUIT', name: 'CUIT', field: 'PersonalCUITCUILCUIT',
     fieldName: 'cuit.PersonalCUITCUILCUIT',
-    type: 'number',
+    type: 'string',
     searchType: 'number',
     sortable: true,
     hidden: false,

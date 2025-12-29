@@ -23,11 +23,22 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true,
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "string",
-    id: "SucursalDescripcion",
-    field: "SucursalDescripcion",
-    fieldName: "suc.SucursalId",
+    id: "SucursalDescripcionP",
+    field: "SucursalDescripcionP",
+    fieldName: "sucp.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Sucursal Objetivo",
+    type: "string",
+    id: "SucursalDescripcionO",
+    field: "SucursalDescripcionO",
+    fieldName: "suco.SucursalId",
     searchComponent: "inputForSucursalSearch",
     sortable: true,
     hidden: false,
@@ -46,7 +57,8 @@ const columnsExcepcionesAsistencia: any[] = [
   {
     id: 'PersonalCUITCUILCUIT', name: 'CUIT', field: 'PersonalCUITCUILCUIT',
     fieldName: 'cuit.PersonalCUITCUILCUIT',
-    type: 'number',
+    type: 'string',
+    searchType: 'number',
     sortable: true,
     hidden: false,
     searchHidden: true,
@@ -242,7 +254,9 @@ export class ExcepcionesAsistenciaController extends BaseController {
               , ISNULL(art.PersonalArt14ConceptoId,0) as PersonalArt14ConceptoId,con.ConceptoArt14Descripcion
               , IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
 
-          suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+          sucp.SucursalId , TRIM(sucp.SucursalDescripcion) AS SucursalDescripcionP,
+          suco.SucursalId , TRIM(suco.SucursalDescripcion) AS SucursalDescripcionO,
+
           ga.GrupoActividadId,
           CASE
             WHEN gaobj.GrupoActividadId IS NOT NULL THEN CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', FORMAT(gaobj.GrupoActividadObjetivoDesde, 'dd/MM/yyyy')
@@ -259,7 +273,10 @@ export class ExcepcionesAsistenciaController extends BaseController {
             LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
-            LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+        LEFT JOIN Sucursal sucp ON sucp.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+
+						
+        LEFT JOIN Sucursal suco ON suco.SucursalId=eledep.ClienteElementoDependienteSucursalId
 
         OUTER APPLY (
               SELECT TOP 1 gaobj.GrupoActividadObjetivoId,gaobj.GrupoActividadObjetivoObjetivoId,gaobj.GrupoActividadId, gaobj.GrupoActividadObjetivoDesde,gaobj.GrupoActividadObjetivoHasta

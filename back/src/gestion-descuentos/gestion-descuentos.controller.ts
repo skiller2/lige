@@ -25,7 +25,7 @@ const columnsPersonalDescuentos: any[] = [
   {
     id: 'PersonalCUITCUILCUIT', name: 'CUIT', field: 'PersonalCUITCUILCUIT',
     fieldName: 'cuit.PersonalCUITCUILCUIT',
-    type: 'number',
+    type: 'string',
     searchType: 'number',
     sortable: true,
     hidden: false,
@@ -230,7 +230,7 @@ const columnsObjetivosDescuentos: any[] = [
   {
     id: 'ClienteFacturacionCUIT', name: 'CUIT', field: 'ClienteFacturacionCUIT',
     fieldName: 'fac.ClienteFacturacionCUIT',
-    type: 'number',
+    type: 'string',
     searchType: 'number',
     sortable: true,
     hidden: false,
