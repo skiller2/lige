@@ -11,16 +11,16 @@ efectoRouter.get("/objetivo/:id", [authMiddleware.verifyToken, ], (req, res, nex
   efectoController.getEfectoByObjetivoId(req, res, next);
 });
 
-efectoRouter.get("/colsPersonal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+efectoRouter.get("/colsPersonal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
   efectoController.getGridColsPersonal(req, res);
 });
-efectoRouter.post("/getEfectoPersonal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+efectoRouter.post("/getEfectoPersonal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   efectoController.getEfectoPersonal(req, res, next);
 });
 
-efectoRouter.get("/colsObjetivos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+efectoRouter.get("/colsObjetivos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
   efectoController.getGridColsObjetivos(req, res);
 });
-efectoRouter.post("/getEfectoObjetivos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+efectoRouter.post("/getEfectoObjetivos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   efectoController.getEfectoObjetivos(req, res, next);
 });
