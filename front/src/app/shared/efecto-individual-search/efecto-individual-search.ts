@@ -8,7 +8,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { SearchEfecto } from '../schemas/efecto.schemas';
+import { SearchEfectoIndividual } from '../schemas/efecto.schemas';
 import { SearchService } from 'src/app/services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { ResponseNameFromId } from '../schemas/ResponseJSON';
@@ -19,19 +19,19 @@ import { CommonModule } from '@angular/common';
 
 
 @Component({
-  selector: 'app-efecto-search',
+  selector: 'app-efecto-individual-search',
   imports: [...SHARED_IMPORTS, CommonModule],
-  templateUrl: './efecto-search.html',
-  styleUrl: './efecto-search.scss',
+  templateUrl: './efecto-individual-search.html',
+  styleUrl: './efecto-individual-search.scss',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => EfectoSearchComponent),
+      useExisting: forwardRef(() => EfectoIndividualSearchComponent),
       multi: true,
     },
   ],
 })
-export class EfectoSearchComponent implements ControlValueAccessor {
+export class EfectoIndividualSearchComponent {
   tmpInputVal: any;
   constructor(private searchService: SearchService) { }
 
@@ -41,7 +41,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
-  extendedOption = { EfectoId: 0, fullName: "" }
+  extendedOption = { EfectoEfectoIndividualId: 0, fullName: "" }
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -90,10 +90,10 @@ export class EfectoSearchComponent implements ControlValueAccessor {
       }
 
       firstValueFrom(
-        this.searchService.getEfectoFromName('EfectoId', this._selectedId)
+        this.searchService.getEfectoIndividualFromName('EfectoEfectoIndividualId', this._selectedId)
           .pipe(tap(res => {
             if (res && res.length > 0) {
-              this.extendedOption = { EfectoId: res[0].EfectoId, fullName: res[0].EfectoDescripcion }
+              this.extendedOption = {EfectoEfectoIndividualId: res[0].EfectoEfectoIndividualId, fullName: res[0].EfectoEfectoIndividualDescripcion }
               this._selected = this._selectedId
               this.valueExtendedEmitter.emit(this.extendedOption)
               if (this.tmpInputVal != this._selected) {
@@ -112,15 +112,14 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     }
   }
 
-  selectedInfoChange$ = new BehaviorSubject<SearchEfecto[] | null>(null);
+  selectedInfoChange$ = new BehaviorSubject<SearchEfectoIndividual[] | null>(null);
 
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false);
-  $optionsArray: Observable<SearchEfecto[]> = this.$searchChange.pipe(
+  $optionsArray: Observable<SearchEfectoIndividual[]> = this.$searchChange.pipe(
     debounceTime(500),
-    switchMap(value =>
-      this.searchService
-        .getEfectoFromName(Number(value) ? 'EfectoId' : 'EfectoDescripcion', value)
+    switchMap(value =>this.searchService
+        .getEfectoIndividualFromName(Number(value) ? 'EfectoEfectoIndividualId' : 'EfectoEfectoIndividualDescripcion', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
@@ -133,7 +132,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    this.extendedOption = { EfectoId: 0, fullName: "" }
+    this.extendedOption = { EfectoEfectoIndividualId: 0, fullName: "" }
     this.$searchChange.next(value)
   }
 

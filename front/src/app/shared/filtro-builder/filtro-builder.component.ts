@@ -22,6 +22,7 @@ import { TipoMovimientoSearchComponent } from '../tipo-movimiento-search/tipo-mo
 import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
 import { ClienteSearchComponent } from '../cliente-search/cliente-search.component';
 import { EfectoSearchComponent } from '../efecto-search/efecto-search';
+import { EfectoIndividualSearchComponent } from '../efecto-individual-search/efecto-individual-search';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
@@ -50,7 +51,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 @Component({
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
-        ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent,
+        ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent,EfectoIndividualSearchComponent,
         RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
     ],
     templateUrl: './filtro-builder.component.html',
@@ -526,8 +527,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
 
     if (fieldObj.searchComponent == 'inputForEfectoSearch') {
-      const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoDescripcion', value))
+      const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value))
       label = efecto[0].EfectoDescripcion
+    }
+    
+    if (fieldObj.searchComponent == 'inputForEfectoIndividualSearch') {
+      const efectoIndividual = await firstValueFrom(this.searchService.getEfectoIndividualFromName('EfectoEfectoIndividualId', value))
+      label = efectoIndividual[0].EfectoEfectoIndividualDescripcion
     }
 
     if (fieldObj.searchComponent == 'inputForSituacionRevistaSearch') {

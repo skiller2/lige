@@ -55,6 +55,11 @@
           [(valueExtended)]="valueExtended"
           (keydown.enter)="handleInputConfirm()" />
       }
+      @if (selections.field.searchComponent=='inputForEfectoIndividualSearch') {
+        <app-efecto-individual-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+          [(valueExtended)]="valueExtended"
+          (keydown.enter)="handleInputConfirm()" />
+      }
       @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
         <app-seguro-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
           [(valueExtended)]="valueExtended"

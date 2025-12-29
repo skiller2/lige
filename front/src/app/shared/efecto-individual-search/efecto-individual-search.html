@@ -1,0 +1,19 @@
+<nz-select #csc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Descripción del Efecto Individual"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+  @for (option of $optionsArray | async; track option) {
+    @if (($isOptionsLoading | async) == false) {
+      <nz-option [nzValue]="option.EfectoEfectoIndividualId" [nzLabel]="option.EfectoEfectoIndividualDescripcion" />
+    }
+  }
+  @if (extendedOption.EfectoEfectoIndividualId >0 ) {
+    <nz-option [nzValue]="extendedOption.EfectoEfectoIndividualId"
+      [nzLabel]="extendedOption.fullName" />
+  }
+  @if ($isOptionsLoading | async) {
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Cargando datos...
+    </nz-option>
+  }
+</nz-select>

@@ -146,7 +146,8 @@ const listaColumnasPersonal: any[] = [
     type: "number",
     sortable: true,
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    // searchComponent: "inputForEfectoIndividualSearch",
   },
   {
     id: "EfectoEfectoIndividualDescripcion",
@@ -321,7 +322,8 @@ const listaColumnasObjetivos: any[] = [
     type: "number",
     sortable: true,
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    // searchComponent: "inputForEfectoIndividualSearch",
   },
   {
     id: "EfectoEfectoIndividualDescripcion",
@@ -390,6 +392,46 @@ export class EfectoController extends BaseController {
       case "EfectoId":
         if (value > 0) {
           query += ` EfectoId = '${value}' AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (buscar == false) {
+      this.jsonRes({ recordsArray: [] }, res);
+      return;
+    }
+
+    dataSource
+      .query((query += " 1=1"))
+      .then((records) => {
+        this.jsonRes({ recordsArray: records }, res);
+      })
+      .catch((error) => {
+        return next(error)
+      });
+  }
+
+  // TODO: READAPTAR PARA QUE SE BUSQUE POR EFECTOID + EFECTOEFFECTOINDIVIDUALID (VER API Y FRONT TAMBIEN)
+  searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
+    const { fieldName, value} = req.body;
+    let buscar = false;
+    let query: string = `SELECT EfectoId,EfectoEfectoIndividualId, EfectoEfectoIndividualDescripcion  FROM EfectoIndividualDescripcion WHERE`;
+    switch (fieldName) {
+      case "EfectoEfectoIndividualDescripcion":
+        const valueArray: Array<string> = value.split(/[\s,.]+/);
+        valueArray.forEach((element, index) => {
+          if (element.trim().length > 1) {
+            query += `(EfectoEfectoIndividualDescripcion LIKE '%${element.trim()}%') AND `;
+            buscar = true;
+          }
+        });
+        break;
+      case "EfectoEfectoIndividualId":
+        if (value.length > 0) {
+          query += `EfectoEfectoIndividualId = '${value.EfectoEfectoIndividualId}' AND `;
           buscar = true;
         }
         break;
