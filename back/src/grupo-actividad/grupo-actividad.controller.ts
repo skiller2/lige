@@ -89,7 +89,7 @@ export class GrupoActividadController extends BaseController {
             sortable: true
         },
         {
-            name: "Sucursal",
+            name: "Sucursal Grupo",
             type: "string",
             id: "SucursalId",
             field: "GrupoActividadSucursalId",

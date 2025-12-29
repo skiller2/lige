@@ -50,6 +50,16 @@
           [(valueExtended)]="valueExtended"
           (keydown.enter)="handleInputConfirm()" />
       }
+      @if (selections.field.searchComponent=='inputForEfectoSearch') {
+        <app-efecto-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+          [(valueExtended)]="valueExtended"
+          (keydown.enter)="handleInputConfirm()" />
+      }
+      @if (selections.field.searchComponent=='inputForEfectoIndividualSearch') {
+        <app-efecto-individual-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+          [(valueExtended)]="valueExtended"
+          (keydown.enter)="handleInputConfirm()" />
+      }
       @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
         <app-seguro-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
           [(valueExtended)]="valueExtended"
@@ -382,6 +392,16 @@
           (keydown.enter)="handleInputConfirm()">
           @for (option of $optionsBarrios | async; track option) {
             <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
+          }
+        </nz-select>
+      }
+      @if (selections.field.searchComponent=='inputForLugarHabilitacionSearch') {
+        <nz-select ngModel nzAllowClear style="width:100%"
+          nzPlaceHolder="Lugar Habilitacion" nzShowSearch
+          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+          (keydown.enter)="handleInputConfirm()">
+          @for (option of $optionsLugarHabilitacion | async; track option) {
+            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
           }
         </nz-select>
       }

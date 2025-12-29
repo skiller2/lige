@@ -20,7 +20,7 @@ export class PreciosProductosController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Sucursal",
+            name: "Sucursal Producto",
             type: "string",
             id: "SucursalId",
             field: "SucursalId",

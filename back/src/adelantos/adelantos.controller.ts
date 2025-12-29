@@ -10,7 +10,7 @@ export class AdelantosController extends BaseController {
 
   listaColumnas: any[] = [
     {
-      name: "Sucursal",
+      name: "Sucursal Persona",
       type: "string",
       id: "SucursalDescripcion",
       field: "SucursalDescripcion",

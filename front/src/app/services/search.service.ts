@@ -21,6 +21,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from 'src/app/shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from 'src/app/shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
+import { ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from 'src/app/shared/schemas/efecto.schemas';
 import { ResponseBySearchRubro, SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from 'src/app/shared/schemas/seguro.schemas';
 import { ResponseBySearchInasistencia, SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
@@ -1760,7 +1761,7 @@ export class SearchService {
   }
 
   getLugarHabilitacionOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/personal/lugarhabilitacion/options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/lugar/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -2148,6 +2149,39 @@ export class SearchService {
         return of([]);
       })
     );
+  }
+
+  
+  getEfectoFromName(fieldName: string, values: string): Observable<SearchEfecto[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', {fieldName: fieldName,value: values,}).pipe(map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
+  getEfectoIndividualFromName(fieldName: string, values: string): Observable<SearchEfectoIndividual[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchEfectoIndividual>>('api/efecto/searchEfectoIndividual', {fieldName: fieldName,value: values,}).pipe(map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
   }
 
 }

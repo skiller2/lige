@@ -94,7 +94,7 @@ const listaColumnas: any[] = [
     searchHidden: false 
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "string",
     id: "Sucursal",
     field: "Sucursal",

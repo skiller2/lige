@@ -20,6 +20,10 @@ habilitacionesRouter.get("/estados", [authMiddleware.verifyToken], (req, res, ne
   habilitacionesController.getEstadosHabilitaciones(req, res, next);
 });
 
+habilitacionesRouter.get("/lugar/options", [authMiddleware.verifyToken], (req, res, next) => {
+  habilitacionesController.getLugarHabilitacion(req, res, next);
+});
+
 habilitacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.list(req, res, next)
 })

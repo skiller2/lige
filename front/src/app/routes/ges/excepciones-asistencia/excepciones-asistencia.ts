@@ -57,8 +57,7 @@ export class ExcepcionesAsistenciaComponent {
   startFilters = signal<any[]>([])
 
   columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {
-    cols[6].asyncPostRender = this.renderAngularComponent.bind(this)
-    return cols
+    return cols.map(col => col.id === 'ObjetivoDescripcion' ? { ...col, asyncPostRender: this.renderAngularComponent.bind(this) } : col);
   }));
   
   tableLoading$ = new BehaviorSubject(false);

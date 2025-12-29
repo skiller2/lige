@@ -175,20 +175,14 @@
                   [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
                   <thead>
                     <tr>
-                      <th>Descripción</th>
-                      <th>Atributo</th>
-                      <th>Efe. Individual Descripción</th>
-                      <th>Efe. Individual Atributo</th>
+                      <th>Descripción Completa</th>
                       <th nzWidth="100px">Stock</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (data of efectObj.data; track data) {
                       <tr class="">
-                        <td>{{ data.EfectoDescripcion }}</td>
-                        <td>{{ data.EfectoAtrDescripcion }}</td>
-                        <td>{{ data.EfectoEfectoIndividualDescripcion }}</td>
-                        <td>{{ data.EfectoIndividualAtrDescripcion }}</td>
+                        <td>{{ data.EfectoDescripcionCompleta }}</td>
                         <td nzWidth="100px">{{ data.StockStock }}</td>
                       </tr>
                     }
@@ -569,20 +563,14 @@
                     [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
                     <thead>
                       <tr>
-                        <th>Descripción</th>
-                        <th>Atributos</th>
-                        <th>Efe. Individual Descripción</th>
-                        <th>Efe. Individual Atributos</th>
+                        <th>Descripción Completa</th>
                         <th nzWidth="100px">Stock</th>
                       </tr>
                     </thead>
                     <tbody>
                       @for (data of efectPer.data; track data) {
                         <tr class="">
-                          <td>{{ data.EfectoDescripcion }}</td>
-                          <td>{{ data.EfectoAtrDescripcion }}</td>
-                          <td>{{ data.EfectoEfectoIndividualDescripcion }}</td>
-                          <td>{{ data.EfectoIndividualAtrDescripcion }}</td>
+                          <td>{{ data.EfectoDescripcionCompleta }}</td>
                           <td nzWidth="100px">{{ data.StockStock }}</td>
                         </tr>
                       }

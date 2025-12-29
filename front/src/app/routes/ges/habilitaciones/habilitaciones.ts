@@ -35,7 +35,7 @@ export class HabilitacionesComponent {
     sort: null,
   };
   selectedIndex = signal(1)
-  // periodo = signal<Date>(new Date())
+  periodo = signal<Date>(new Date())
   // anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   // mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   isLoading = signal<boolean>(false)
@@ -60,6 +60,12 @@ export class HabilitacionesComponent {
     this.gridOptions.createFooterRow = true
 
     this.settingsService.setLayout('collapsed', true)
+
+    this.startFilters.set([
+      { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
+      { field: 'PersonalHabilitacionDesde', condition: 'AND', operator: '<=', value: this.periodo(), forced: false },
+      { field: 'PersonalHabilitacionHasta', condition: 'AND', operator: '>=', value: this.periodo(), forced: false },
+    ])
   }
 
   gridData$ = this.listHabilitaciones$.pipe(

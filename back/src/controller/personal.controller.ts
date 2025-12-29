@@ -82,7 +82,7 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "string",
     id: "SucursalDescripcion",
     field: "SucursalDescripcion",
@@ -2788,26 +2788,6 @@ export class PersonalController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release()
-    }
-  }
-
-
-
-  private async getLugarHabilitacionQuery(queryRunner: any) {
-    return await queryRunner.query(`
-      SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
-      FROM LugarHabilitacion
-      WHERE LugarHabilitacionInactivo IS NULL
-    `)
-  }
-
-  async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const options = await this.getLugarHabilitacionQuery(queryRunner)
-      this.jsonRes(options, res);
-    } catch (error) {
-      return next(error)
     }
   }
 

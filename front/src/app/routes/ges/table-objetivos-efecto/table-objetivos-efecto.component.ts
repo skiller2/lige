@@ -92,6 +92,7 @@ export class TableObjetivosEfectoComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
+    this.gridOptions.forceFitColumns = true;
   }
 
   listOptionsChange(options: any): void {
