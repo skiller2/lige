@@ -160,7 +160,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Total Horas",
+    name: "Total Horas Pagadas",
     type: "float",
     id: "AsistenciaHorasT",
     field: "AsistenciaHorasT",
