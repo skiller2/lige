@@ -40,7 +40,7 @@ const listaColumnas: any[] = [
 
     },
     {
-        name: "Sucursal",
+        name: "Sucursal Objetivo",
         type: "string",
         id: "SucursalDescripcion",
         field: "SucursalDescripcion",
@@ -51,7 +51,7 @@ const listaColumnas: any[] = [
 
     },
     {
-        name: "Sucursal",
+        name: "Sucursal Objetivo",
         type: "string",
         id: "SucursalId",
         field: "SucursalId",
