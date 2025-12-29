@@ -114,7 +114,9 @@ const listaColumnasPersonal: any[] = [
     type: "number",
     sortable: true,
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    searchComponent: "inputForEfectoSearch",
+
   },
   {
     id: "EfectoDescripcion",
@@ -287,7 +289,8 @@ const listaColumnasObjetivos: any[] = [
     type: "number",
     sortable: true,
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    searchComponent: "inputForEfectoSearch",
   },
 
   {
@@ -368,6 +371,46 @@ const listaColumnasObjetivos: any[] = [
 ]
 
 export class EfectoController extends BaseController {
+
+  searchEfecto(req: any, res: Response, next: NextFunction) {
+    const { fieldName, value } = req.body;
+    let buscar = false;
+    let query: string = `SELECT EfectoId,EfectoDescripcion  FROM EfectoDescripcion WHERE`;
+    switch (fieldName) {
+      case "EfectoDescripcion":
+        const valueArray: Array<string> = value.split(/[\s,.]+/);
+        valueArray.forEach((element, index) => {
+          if (element.trim().length > 1) {
+            //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
+            query += `(EfectoDescripcion LIKE '%${element.trim()}%') AND `;
+            buscar = true;
+          }
+        });
+        break;
+      case "EfectoId":
+        if (value > 0) {
+          query += ` EfectoId = '${value}' AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (buscar == false) {
+      this.jsonRes({ recordsArray: [] }, res);
+      return;
+    }
+
+    dataSource
+      .query((query += " 1=1"))
+      .then((records) => {
+        this.jsonRes({ recordsArray: records }, res);
+      })
+      .catch((error) => {
+        return next(error)
+      });
+  }
 
 
   async getGridColsPersonal(req, res) {
@@ -496,37 +539,6 @@ export class EfectoController extends BaseController {
     LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
       AND ${filterSql} `)
-  }
-
-  
-
-  async searchEfecto(req: any, res: Response, next: NextFunction) {
-    const { id } = req.body;
-    
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const efecto = await queryRunner.query(`SELECT EfectoId id, EfectoDescripcion label FROM EfectoDescripcion`)
-      return this.jsonRes(efecto, res);
-    } catch (error) {
-      return next(error)
-    } finally {
-
-    }
-
-  }
-
-  async searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
-
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const Curso = await queryRunner.query(`SELECT EfectoId, EfectoEfectoIndividualId, EfectoEfectoIndividualDescripcion label FROM EfectoIndividualDescripcion`)
-      return this.jsonRes(Curso, res);
-    } catch (error) {
-      return next(error)
-    } finally {
-
-    }
-
   }
 
 
