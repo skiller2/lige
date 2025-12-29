@@ -1,7 +1,7 @@
 import { Component, Inject, Output, EventEmitter, computed, input, ChangeDetectionStrategy, OnInit, model, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -40,6 +40,7 @@ export class TableCondicionVentaComponent implements OnInit {
   private excelExportService = new ExcelExportService();
   private dataAngularGrid: [] = [];
   codobj = model<string>('');
+  PeriodoDesdeAplica = model<string>('');
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -123,13 +124,17 @@ export class TableCondicionVentaComponent implements OnInit {
     });
   }
 
-  handleSelectedRowsChanged(e: any): void {
+  async handleSelectedRowsChanged(e: any): Promise<void> {
 
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
 console.log("row ", row)
     if (row?.id) {
+
+      const result = await firstValueFrom(this.apiService.existCondicionVenta(row.codobj, row.PeriodoDesdeAplica));
+      console.log("result ", result)
       this.codobj.set(row.codobj);
+      this.PeriodoDesdeAplica.set(row.PeriodoDesdeAplica);
     }
 
   }

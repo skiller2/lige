@@ -17,3 +17,7 @@ condicionesVentaRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.
   condicionesVentaController.addCondicionVenta(req, res, next)
 })
 
+ condicionesVentaRouter.get('/exist/:codobjId/:PeriodoDesdeAplica',
+   [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.existCondicionVenta(req, res, next)
+})

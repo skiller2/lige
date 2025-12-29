@@ -28,7 +28,7 @@ export class CondicionVentaComponent implements OnInit {
   childAlta = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormAlta')
   childDetalle = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormDetalle')
   childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')
-
+PeriodoDesdeAplica = model<string>('');
 
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
@@ -37,6 +37,7 @@ export class CondicionVentaComponent implements OnInit {
   ngOnInit(): void {
     this.codobj.set('')
     this.viewListado.set(true)
+    this.PeriodoDesdeAplica.set('')
   }
 
 

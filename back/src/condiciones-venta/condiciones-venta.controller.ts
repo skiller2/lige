@@ -301,5 +301,21 @@ export class CondicionesVentaController extends BaseController {
         }
       }
 
+    async existCondicionVenta(req: any, res: any, next: any) {
+      try {
+        
+
+        console.log("req.params ", req.params.codcliente)
+
+        console.log("codcliente ", req.params.codcliente)
+        console.log("codclienteelemento ", req.params.codclienteelemento)
+        console.log("periodoDesdeAplica ", req.params.periodoDesdeAplica)
+        const result = await dataSource.query(`SELECT ClienteId from CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`, [req.params.codcliente, req.params.codclienteelemento, req.params.periodoDesdeAplica])
+        return result
+      } catch (error) {
+       // return next(error)
+      }
+    }
+
 
 }
