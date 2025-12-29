@@ -121,10 +121,6 @@ personalRouter.get(`${base}/grupoactividad/options`, authMiddleware.verifyToken,
   personalController.getGrupoActividad(req, res, next);
 });
 
-personalRouter.get(`${base}/lugarhabilitacion/options`, authMiddleware.verifyToken, (req, res, next) => {
-  personalController.getLugarHabilitacion(req, res, next);
-});
-
 personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
   personalController.getDocumentosByPersonalId(req, res, next);
 });

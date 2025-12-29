@@ -101,13 +101,25 @@ const GridColums: any[] = [
     },
     {
         name: "Lugar Habilitación Necesaria",
+        type: "number",
+        id: "LugarHabilitacionId",
+        field: "LugarHabilitacionId",
+        fieldName: "d.LugarHabilitacionId",
+        searchComponent: "inputForLugarHabilitacionSearch",
+        searchType: "number",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Lugar Habilitación Necesaria",
         type: "string",
         id: "LugarHabilitacionDescripcion",
         field: "LugarHabilitacionDescripcion",
         fieldName: "d.LugarHabilitacionDescripcion",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Habilitación Desde",
@@ -646,6 +658,24 @@ export class HabilitacionesController extends BaseController {
             await this.rollbackTransaction(queryRunner)
             return next(error)
         }
+    }
+
+    private async getLugarHabilitacionQuery(queryRunner: any) {
+        return await queryRunner.query(`
+          SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
+          FROM LugarHabilitacion
+          WHERE LugarHabilitacionInactivo IS NULL
+        `)
+      }
+    
+    async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+        const options = await this.getLugarHabilitacionQuery(queryRunner)
+        this.jsonRes(options, res);
+    } catch (error) {
+        return next(error)
+    }
     }
 
 }
