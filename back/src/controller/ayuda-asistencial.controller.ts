@@ -229,7 +229,7 @@ const columnsAyudaAsistencial: any[] = [
     searchHidden: false
   },
   {
-      name: "Sucursal",
+      name: "Sucursal Persona",
       type: "string",
       id: "SucursalDescripcion",
       field: "SucursalDescripcion",

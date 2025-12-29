@@ -36,7 +36,7 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "number",
     id: "SucursalId",
     field: "SucursalId",
@@ -47,7 +47,7 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "string",
     id: "SucursalDescripcion",
     field: "SucursalDescripcion",
@@ -304,7 +304,7 @@ const columnasGrillaHoras: any[] = [
     sortable: true
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "number",
     id: "SucursalId",
     field: "SucursalId",
@@ -315,7 +315,7 @@ const columnasGrillaHoras: any[] = [
     sortable: true
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "string",
     id: "SucursalDescripcion",
     field: "SucursalDescripcion",

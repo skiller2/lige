@@ -57,7 +57,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Objetivo",
     type: "number",
     id: "SucursalId",
     field: "SucursalId",
@@ -69,7 +69,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Objetivo",
     type: "string",
     id: "SucursalDescripcion",
     field: "SucursalDescripcion",

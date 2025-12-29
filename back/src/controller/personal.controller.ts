@@ -82,7 +82,7 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Persona",
     type: "string",
     id: "SucursalDescripcion",
     field: "SucursalDescripcion",

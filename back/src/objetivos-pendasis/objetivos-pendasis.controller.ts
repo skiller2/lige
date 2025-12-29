@@ -7,7 +7,7 @@ import { ObjetivoController } from "src/controller/objetivo.controller";
 const columnasGrilla: any[] = [
   {
     id: "SucursalDescripcion",
-    name: "Sucursal",
+    name: "Sucursal Objetivo",
     field: "SucursalDescripcion",
     fieldName: "suc.SucursalDescripcion",
     type: "string",
@@ -17,7 +17,7 @@ const columnasGrilla: any[] = [
     maxWidth: 150,
   },
   {
-    name: "Sucursal",
+    name: "Sucursal Objetivo",
     type: "number",
     id: "SucursalId",
     field: "SucursalId",
