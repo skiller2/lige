@@ -27,3 +27,6 @@ efectoRouter.post("/getEfectoObjetivos", [authMiddleware.verifyToken,authMiddlew
 
 efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfecto(req, res, next);
 });
+
+efectoRouter.post("/searchEfectoIndividual", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfectoIndividual(req, res, next);
+});
