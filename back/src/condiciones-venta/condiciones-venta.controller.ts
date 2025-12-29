@@ -53,9 +53,9 @@ export class CondicionesVentaController extends BaseController {
         {
             name: "Objetivo",
             type: "string",
-            id: "ObjetivoDescripcion",
-            field: "ObjetivoDescripcion",
-            fieldName: "obj.ObjetivoDescripcion",
+            id: "ClienteElementoDependienteDescripcion",
+            field: "ClienteElementoDependienteDescripcion",
+            fieldName: "ClienteElementoDependienteDescripcion",
             searchType: "string",
             sortable: false,
             hidden: false,
@@ -165,25 +165,33 @@ export class CondicionesVentaController extends BaseController {
         try {
 
             const condicionesVenta = await queryRunner.query(
-                `Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
-                cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId,obj.ObjetivoDescripcion, 
-                    CONCAT(ele.ClienteId,'/', ele.ClienteElementoDependienteId, ' ', TRIM(cli.ClienteDenominacion), ' ',TRIM(ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
+                `
+                Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
+                cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId, 
+                    CONCAT(ele.ClienteId,'/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
                     conven.PeriodoDesdeAplica, FORMAT(conven.PeriodoDesdeAplica,'yyyy-MM') FormatPeriodoDesdeAplica,conven.AutorizacionFecha,per.PersonalId,
                     case when per.PersonalId is null then null
                         else CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) end as ApellidoNombre,
                     conven.PeriodoFacturacion,conven.GeneracionFacturaDia,conven.GeneracionFacturaDiaComplemento,conven.Observaciones,
 
-                    con.ClienteElementoDependienteContratoId, con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta
+                    con.ClienteElementoDependienteContratoId, con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
+                    suc.SucursalDescripcion
 
                 from ClienteElementoDependiente ele
-                LEFT JOIN CondicionVenta conven ON  ele.ClienteId=conven.ClienteId and ele.ClienteElementoDependienteId=conven.ClienteElementoDependienteId
-                left join ClienteElementoDependienteContrato con on con.ClienteId=conven.ClienteId and con.ClienteElementoDependienteId=conven.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=DATEFROMPARTS(@0,@1,1)
+                join ClienteElementoDependienteContrato con on con.ClienteId=ele.ClienteId and con.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=DATEFROMPARTS(@0,@1,1)
+                LEFT JOIN CondicionVenta conven ON  ele.ClienteId=conven.ClienteId and ele.ClienteElementoDependienteId=conven.ClienteElementoDependienteId and conven.PeriodoDesdeAplica>=con.ClienteElementoDependienteContratoFechaDesde and conven.PeriodoDesdeAplica<=ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')
+                    and conven.PeriodoDesdeAplica = (
+                    SELECT max(PeriodoDesdeAplica) 
+                        FROM CondicionVenta cv
+                        WHERE cv.ClienteId = ele.ClienteId
+                        AND cv.ClienteElementoDependienteId = ele.ClienteElementoDependienteId
+                            and cv.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1)
+                    )
                 Left join Cliente cli on cli.ClienteId=ele.ClienteId
                 Left join Objetivo obj on obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and obj.ClienteId=ele.ClienteId
                 Left join Personal per on per.PersonalId=conven.AutorizacionPersonalId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-                WHERE (conven.PeriodoDesdeAplica>=(DATEFROMPARTS(@0,@1,1)) or conven.PeriodoDesdeAplica is null)  AND 
+                LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)    AND 
              ${filterSql} ${orderBy}`, [2025, 10])
 
             this.jsonRes(
@@ -208,13 +216,17 @@ export class CondicionesVentaController extends BaseController {
         let CondicionVentaNew = { CondicionVentaId: 0}
         try {
             //validaciones
-            //await this.FormValidations(ObjCliente, queryRunner)
+            await this.FormValidations(CondicionVenta, queryRunner)
+            //throw new ClientException('test')
+
             await queryRunner.startTransaction()
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
 
             const objetivoInfo = await this.ObjetivoInfoFromId(CondicionVenta.ObjetivoId)
+
+            await this.insertInfoProductos(queryRunner, objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, CondicionVenta.PeriodoDesdeAplica, CondicionVenta.infoProductos, usuario, ip)
 
            CondicionVentaNew.CondicionVentaId = await this.insertCondicionVenta(queryRunner,
              objetivoInfo.clienteId, 
@@ -237,6 +249,117 @@ export class CondicionesVentaController extends BaseController {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async insertInfoProductos(
+        queryRunner: QueryRunner, 
+        ClienteId: number, 
+        ClienteElementoDependienteId: number, 
+        PeriodoDesdeAplica: Date, 
+        infoProductos: any, usuario: string, ip: string) {
+
+        const FechaActual = new Date();
+        
+        for (const producto of infoProductos) {
+            const productoResult = await queryRunner.query(
+                `SELECT ProductoCodigo,Nombre FROM Producto WHERE ProductoCodigo = @0`,
+                [producto.ProductoId]
+            );
+            
+            if (productoResult.length === 0) {
+                throw new ClientException(`No se encontró el producto con ID ${producto.ProductoId}`);
+            }
+            
+            const ProductoCodigo = productoResult[0].ProductoCodigo;
+            
+            await queryRunner.query(
+                `INSERT INTO CondicionVentaDetalle (
+                    ClienteId,
+                    ClienteElementoDependienteId,
+                    PeriodoDesdeAplica,
+                    ProductoCodigo,
+                    TextoFactura,
+                    Cantidad,
+                    IndCantidadHorasVenta,
+                    ImporteFijo,
+                    IndImporteListaPrecio,
+                    IndImporteAcuerdoConCliente,
+                    AudFechaIng,
+                    AudFechaMod,
+                    AudUsuarioIng,
+                    AudUsuarioMod,
+                    AudIpIng,
+                    AudIpMod
+                ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`,
+                [
+                    ClienteId,
+                    ClienteElementoDependienteId,
+                    PeriodoDesdeAplica,
+                    ProductoCodigo,
+                    producto.TextoFactura || null,
+                    producto.cantidad,
+                    producto.IndCantidadHorasVenta ? 1 : 0,
+                    producto.importeFijo || null,
+                    producto.IndImporteListaPrecio ? 1 : 0,
+                    producto.IndImporteAcuerdoConCliente ? 1 : 0,
+                    FechaActual,
+                    FechaActual,
+                    usuario,
+                    usuario,
+                    ip,
+                    ip
+                ]
+            );
+        }
+    }
+
+    async FormValidations(CondicionVenta: any, queryRunner: any) {
+
+        if (!CondicionVenta.ObjetivoId) {
+            throw new ClientException(`Debe completar el campo Objetivo.`)
+        }
+        if (!CondicionVenta.PeriodoDesdeAplica) {
+            throw new ClientException(`Debe completar el campo Periodo.`)
+        }
+        if (!CondicionVenta.PeriodoFacturacion) {
+            throw new ClientException(`Debe completar el campo Periodo Facturacion.`)
+        }
+        if (!CondicionVenta.GeneracionFacturaDia) {
+            throw new ClientException(`Debe completar el campo Dia de Generación Factura.`)
+        }
+        if (!CondicionVenta.GeneracionFacturaDiaComplemento) {
+            throw new ClientException(`Debe completar el campo Dia de Generación Factura Complemento.`)
+        }
+        
+        for (const producto of CondicionVenta.infoProductos) {
+            if (!producto.ProductoId) {
+                throw new ClientException(`Debe completar el campo Producto.`)
+            }
+            if (!producto.cantidad) {
+                throw new ClientException(`Debe completar el campo Cantidad.`)
+            }
+            if (!producto.importeFijo) {
+                throw new ClientException(`Debe completar el campo Importe Fijo.`)
+            }
+            if (producto.IndCantidadHorasVenta == '') {
+                throw new ClientException(`Debe completar el campo Cantidad horas venta.`)
+            }
+            if (producto.IndImporteListaPrecio == '') {
+                throw new ClientException(`Debe completar el campo Importe lista de precio.`)
+            }
+            if (producto.IndImporteAcuerdoConCliente == '') {
+                throw new ClientException(`Debe completar el campo Importe acordado con cliente.`)
+            }
+            if (!producto.TextoFactura) {
+                throw new ClientException(`Debe completar el campo TextoFactura.`)
+            }
+        }
+    }
+
+    async getTipoProductoSearchOptions(req: any, res: any, next: any) {
+        const result = await dataSource.query(`
+        SELECT ProductoCodigo,Nombre FROM Producto `)
+        this.jsonRes(result, res);
     }
 
     async insertCondicionVenta(queryRunner: QueryRunner,
@@ -274,7 +397,7 @@ export class CondicionesVentaController extends BaseController {
                 null,
                 null,
                 null,
-                PeriodoFacturacion + 'M', 
+                PeriodoFacturacion, 
                 GeneracionFacturaDia, 
                 GeneracionFacturaDiaComplemento,
                 Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])

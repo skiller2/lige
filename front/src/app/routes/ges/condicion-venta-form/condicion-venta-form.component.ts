@@ -1,5 +1,5 @@
 import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -29,16 +29,31 @@ export class CondicionVentaFormComponent implements OnInit {
   codobjId = model<string>('');
   PeriodoDesdeAplica = model('');
 
+  $optionsTipoProducto = this.searchService.getTipoProductoSearch();
+
+  objProductos = {
+    ProductoId: 0,
+    cantidad: 0,
+    importeFijo: 0,
+    IndCantidadHorasVenta: false,
+    IndImporteListaPrecio: false,
+    IndImporteAcuerdoConCliente: false,
+    TextoFactura: '',
+  }
+
+
   fb = inject(FormBuilder)
   formCondicionVenta = this.fb.group({ 
-    id: 0,
+    CondicionVentaId: 0,
     codobjId: '',
     ObjetivoId: 0, 
-    PeriodoDesdeAplica: null as Date | null,
+    PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
-    GeneracionFacturaDia: null as number | null,
-    GeneracionFacturaDiaComplemento: null as number | null,
+    GeneracionFacturaDia: 0,
+    GeneracionFacturaDiaComplemento: 0,
     Observaciones: '',
+    infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
+    infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
     }) 
 
 
@@ -49,6 +64,30 @@ export class CondicionVentaFormComponent implements OnInit {
       });
     });
   }
+
+  infoProductos(): FormArray {
+    return this.formCondicionVenta.get("infoProductos") as FormArray
+  }
+
+  addProductos(e?: MouseEvent): void {
+
+    e?.preventDefault();
+    this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+
+  }
+
+  removeProductos(index: number, e: MouseEvent): void {
+
+    e.preventDefault();
+    if (this.infoProductos().length > 1) {
+      this.infoProductos().removeAt(index)
+    } else {
+      this.infoProductos().clear()
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+    }
+    this.formCondicionVenta.markAsDirty();
+  }
+
 
    /*checkPristine() {
     this.pristineChange.emit(this.formCondicionVenta.pristine);
@@ -154,7 +193,7 @@ export class CondicionVentaFormComponent implements OnInit {
     if (date) {
       const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
       this.formCondicionVenta.patchValue({
-        PeriodoDesdeAplica: normalizedDate,
+        PeriodoDesdeAplica: normalizedDate.toISOString(),
       });
     } else {
       this.formCondicionVenta.patchValue({

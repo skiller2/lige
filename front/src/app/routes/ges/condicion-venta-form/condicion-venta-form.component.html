@@ -11,13 +11,6 @@ codobjId --- : {{codobjId()}}
   </nz-form-item>
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">PeriodoDesdeAplica</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <input nz-input placeholder="" formControlName="PeriodoDesdeAplica" type="string" />
-    </nz-form-control>
-  </nz-form-item>
-
-  <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
       <app-objetivo-search  formControlName="ObjetivoId" (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
@@ -26,7 +19,7 @@ codobjId --- : {{codobjId()}}
 
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Desde mes/año aplica</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       <nz-date-picker
         formControlName="PeriodoDesdeAplica"
@@ -85,6 +78,122 @@ codobjId --- : {{codobjId()}}
       </textarea>
     </nz-form-control>
   </nz-form-item>
+
+
+  <div class="input-container">
+    <div class="input-label">Productos</div>
+  </div>
+  <div formArrayName="infoProductos" style="padding-top: 25px;">
+    @for (control of infoProductos().controls; track control; let i = $index) {
+      <div
+        [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Producto</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+            <nz-select nzAllowClear style="width:100%"
+          nzPlaceHolder="Producto" formControlName="ProductoId" nzShowSearch [nzDropdownMatchSelectWidth]="false">
+          @for (option of $optionsTipoProducto | async; track option) {
+            <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
+          }
+        </nz-select>
+          </nz-form-control>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+            <nz-input-number 
+            formControlName="cantidad" 
+            [nzMin]="0" 
+            [nzStep]="1" 
+            style="width: 100%;" 
+            nzPlaceHolder="Cantidad">
+          </nz-input-number>
+          </nz-form-control>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe Fijo</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+            <nz-input-number 
+            style="width: 100%" 
+            formControlName="importeFijo"
+            [nzMin]="0"
+            [nzStep]="0.01"
+            nzPlaceHolder="Importe Fijo"
+          ></nz-input-number>
+          </nz-form-control>
+
+        </nz-form-item>
+        <nz-form-item class="marginElement">
+         
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad horas venta</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+            <nz-select 
+              formControlName="IndCantidadHorasVenta" 
+              style="width: 100%" 
+              nzPlaceHolder="Seleccione"
+              nzAllowClear
+              [nzDropdownMatchSelectWidth]="false">
+              <nz-option [nzValue]="" nzLabel="Seleccione"></nz-option>
+              <nz-option [nzValue]="true" nzLabel="Sí"></nz-option>
+              <nz-option [nzValue]="false" nzLabel="No"></nz-option>
+            </nz-select>
+          </nz-form-control>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe lista de precio</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+            <nz-select 
+              formControlName="IndImporteListaPrecio" 
+              style="width: 100%" 
+              nzPlaceHolder="Seleccione"
+              nzAllowClear
+              [nzDropdownMatchSelectWidth]="false">
+              <nz-option [nzValue]="" nzLabel="Seleccione"></nz-option>
+              <nz-option [nzValue]="true" nzLabel="Sí"></nz-option>
+              <nz-option [nzValue]="false" nzLabel="No"></nz-option>
+            </nz-select>
+          </nz-form-control>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe acordado con cliente</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+            <nz-select 
+              formControlName="IndImporteAcuerdoConCliente" 
+              style="width: 100%" 
+              nzPlaceHolder="Seleccione"
+              nzAllowClear
+              [nzDropdownMatchSelectWidth]="false">
+              <nz-option   [nzValue]="" nzLabel="Seleccione"></nz-option>
+              <nz-option [nzValue]="true" nzLabel="Sí"></nz-option>
+              <nz-option [nzValue]="false" nzLabel="No"></nz-option>
+            </nz-select>
+          </nz-form-control>
+
+        </nz-form-item>
+        <nz-form-item class="marginElement">
+     
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto Factura</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16">
+            <textarea nz-input formControlName="TextoFactura" rows="3" style="width: 100%;" nzPlaceHolder="Ingrese el texto de la factura"></textarea>
+          </nz-form-control>
+
+          @if (formCondicionVenta.enabled) {
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2" class="button-group-direction">
+              <div class="button-group" style="width: 100%">
+                @if (infoProductos().controls.length == i+1) {
+                  <button nz-button nzType="primary" class="add-button"
+                    nzType="primary" class="add-button" (click)="addProductos($event)" nz-tooltip
+                    nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                    <span nz-icon nzType="plus"></span>
+                  </button>
+                }
+                @if (infoProductos().length >= 2) {
+                  <button nz-button nzType="default"
+                    (click)="removeProductos(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                    <span nz-icon nzType="delete" nzTheme="outline"></span>
+                  </button>
+                }
+              </div>
+            </nz-form-control>
+          }
+
+        </nz-form-item>
+      </div>
+    } 
+  </div> 
 
   @if (formCondicionVenta.enabled) {
     <nz-form-item>
