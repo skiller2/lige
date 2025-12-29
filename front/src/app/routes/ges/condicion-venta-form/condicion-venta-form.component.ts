@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -27,6 +27,7 @@ export class CondicionVentaFormComponent implements OnInit {
   isLoading = signal(false);
   objetivoExtended = signal<any>(null);
   codobjId = model<string>('');
+  PeriodoDesdeAplica = model('');
 
   fb = inject(FormBuilder)
   formCondicionVenta = this.fb.group({ 
@@ -39,6 +40,15 @@ export class CondicionVentaFormComponent implements OnInit {
     GeneracionFacturaDiaComplemento: null as number | null,
     Observaciones: '',
     }) 
+
+
+  constructor() {
+    effect(() => {
+      this.formCondicionVenta.patchValue({
+        codobjId: this.codobjId(),
+      });
+    });
+  }
 
    /*checkPristine() {
     this.pristineChange.emit(this.formCondicionVenta.pristine);

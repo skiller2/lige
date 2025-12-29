@@ -1379,6 +1379,19 @@ export class ApiService {
     )
   }
 
+  existCondicionVenta(codobjId: any, PeriodoDesdeAplica: any) {
+    const codcliente = codobjId.split('/')[0];
+    const codclienteelemento = codobjId.split('/')[1];
+    const periodo = PeriodoDesdeAplica || '';
+    console.log("codcliente ", codcliente)
+    console.log("codclienteelemento ", codclienteelemento)
+    console.log("periodo ", periodo)
+    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/exist/${codcliente}/${codclienteelemento}/${periodo}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+    )
+  }
+
 
   addObjetivo(objetivo: any) {
     return this.http.post<ResponseJSON<any>>('/api/objetivos/add', objetivo).pipe(

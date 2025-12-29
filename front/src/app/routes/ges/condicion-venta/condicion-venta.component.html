@@ -53,7 +53,7 @@
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-        <app-table-condicion-venta #tableCondicionVenta [(codobj)]="codobj" ></app-table-condicion-venta>
+        <app-table-condicion-venta #tableCondicionVenta [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-table-condicion-venta>
       </nz-tab>
 
       <nz-tab>
@@ -68,7 +68,7 @@
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/alta" >{{ 'app.alta' | i18n }}</a>
-        <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj"></app-condicion-venta-form>
+        <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form>
       </nz-tab>
 
     </nz-tabs> 
