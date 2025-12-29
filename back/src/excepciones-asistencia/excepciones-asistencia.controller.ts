@@ -30,18 +30,7 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: "sucp.SucursalId",
     searchComponent: "inputForSucursalSearch",
     sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    name: "Sucursal Objetivo",
-    type: "string",
-    id: "SucursalDescripcionO",
-    field: "SucursalDescripcionO",
-    fieldName: "suco.SucursalId",
-    searchComponent: "inputForSucursalSearch",
-    sortable: true,
-    hidden: false,
+    hidden: true,
     searchHidden: false
   },
   {
@@ -79,6 +68,17 @@ const columnsExcepcionesAsistencia: any[] = [
     searchType: 'number',
     sortable: true,
     hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Sucursal Objetivo",
+    type: "string",
+    id: "SucursalDescripcionO",
+    field: "SucursalDescripcionO",
+    fieldName: "suco.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
     searchHidden: false
   },
   {
