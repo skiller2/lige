@@ -9,6 +9,7 @@ import * as path from 'path';
 import { FileUploadController } from "src/controller/file-upload.controller";
 import * as fs from 'fs';
 import { promisify } from 'util';
+import { max } from "moment";
 
 const listaColumnasPersonal: any[] = [
   {
@@ -118,52 +119,62 @@ const listaColumnasPersonal: any[] = [
     searchComponent: "inputForEfectoSearch",
 
   },
+  // {
+  //   id: "EfectoDescripcion",
+  //   name: "Efecto",
+  //   field: "EfectoDescripcion",
+  //   fieldName: "efe.EfectoDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "EfectoAtrDescripcion",
+  //   name: "Atributo del Efecto",
+  //   field: "EfectoAtrDescripcion",
+  //   fieldName: "efe.EfectoAtrDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "EfectoEfectoIndividualId",
+  //   name: "Efecto Individual Asociado al efecto",
+  //   field: "EfectoEfectoIndividualId",
+  //   fieldName: "stk.EfectoEfectoIndividualId",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true,
+  //   // searchComponent: "inputForEfectoIndividualSearch",
+  // },
+  // {
+  //   id: "EfectoEfectoIndividualDescripcion",
+  //   name: "Efecto Individual Asociado al efecto",
+  //   field: "EfectoEfectoIndividualDescripcion",
+  //   fieldName: "efeind.EfectoEfectoIndividualDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "EfectoIndividualAtrDescripcion",
+  //   name: "Atributo del Efecto Individual",
+  //   field: "EfectoIndividualAtrDescripcion",
+  //   fieldName: "efeind.EfectoIndividualAtrDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
   {
-    id: "EfectoDescripcion",
-    name: "Efecto",
-    field: "EfectoDescripcion",
-    fieldName: "efe.EfectoDescripcion",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
-    id: "EfectoAtrDescripcion",
-    name: "Atributo del Efecto",
-    field: "EfectoAtrDescripcion",
-    fieldName: "efe.EfectoAtrDescripcion",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    id: "EfectoEfectoIndividualId",
-    name: "Efecto Individual Asociado al efecto",
-    field: "EfectoEfectoIndividualId",
-    fieldName: "stk.EfectoEfectoIndividualId",
-    type: "number",
-    sortable: true,
-    hidden: true,
-    searchHidden: false,
-    // searchComponent: "inputForEfectoIndividualSearch",
-  },
-  {
-    id: "EfectoEfectoIndividualDescripcion",
-    name: "Efecto Individual Asociado al efecto",
-    field: "EfectoEfectoIndividualDescripcion",
-    fieldName: "efeind.EfectoEfectoIndividualDescripcion",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
-    id: "EfectoIndividualAtrDescripcion",
-    name: "Atributo del Efecto Individual",
-    field: "EfectoIndividualAtrDescripcion",
-    fieldName: "efeind.EfectoIndividualAtrDescripcion",
+    id: "EfectoDescripcionCompleto",
+    name: "Efecto Descripción Completa",
+    field: "EfectoDescripcionCompleto",
+    fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')",
     type: "string",
     sortable: true,
     hidden: false,
@@ -180,6 +191,8 @@ const listaColumnasPersonal: any[] = [
     searchHidden: false,
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+
   },
   {
     id: "StockReservado",
@@ -192,6 +205,8 @@ const listaColumnasPersonal: any[] = [
     searchHidden: false,
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+
   },
 
 
@@ -293,53 +308,62 @@ const listaColumnasObjetivos: any[] = [
     searchHidden: false,
     searchComponent: "inputForEfectoSearch",
   },
-
+  // {
+  //   id: "EfectoDescripcion",
+  //   name: "Efecto",
+  //   field: "EfectoDescripcion",
+  //   fieldName: "efe.EfectoDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "EfectoAtrDescripcion",
+  //   name: "Atributo del Efecto",
+  //   field: "EfectoAtrDescripcion",
+  //   fieldName: "efe.EfectoAtrDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "EfectoEfectoIndividualId",
+  //   name: "Efecto Individual Asociado al efecto",
+  //   field: "EfectoEfectoIndividualId",
+  //   fieldName: "stk.EfectoEfectoIndividualId",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true,
+  //   // searchComponent: "inputForEfectoIndividualSearch",
+  // },
+  // {
+  //   id: "EfectoEfectoIndividualDescripcion",
+  //   name: "Efecto Individual Asociado al efecto",
+  //   field: "EfectoEfectoIndividualDescripcion",
+  //   fieldName: "efeind.EfectoEfectoIndividualDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "EfectoIndividualAtrDescripcion",
+  //   name: "Atributo del Efecto Individual",
+  //   field: "EfectoIndividualAtrDescripcion",
+  //   fieldName: "efeind.EfectoIndividualAtrDescripcion",
+  //   type: "string",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
   {
-    id: "EfectoDescripcion",
-    name: "Efecto",
-    field: "EfectoDescripcion",
-    fieldName: "efe.EfectoDescripcion",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
-    id: "EfectoAtrDescripcion",
-    name: "Atributo del Efecto",
-    field: "EfectoAtrDescripcion",
-    fieldName: "efe.EfectoAtrDescripcion",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    id: "EfectoEfectoIndividualId",
-    name: "Efecto Individual Asociado al efecto",
-    field: "EfectoEfectoIndividualId",
-    fieldName: "stk.EfectoEfectoIndividualId",
-    type: "number",
-    sortable: true,
-    hidden: true,
-    searchHidden: false,
-    // searchComponent: "inputForEfectoIndividualSearch",
-  },
-  {
-    id: "EfectoEfectoIndividualDescripcion",
-    name: "Efecto Individual Asociado al efecto",
-    field: "EfectoEfectoIndividualDescripcion",
-    fieldName: "efeind.EfectoEfectoIndividualDescripcion",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
-    id: "EfectoIndividualAtrDescripcion",
-    name: "Atributo del Efecto Individual",
-    field: "EfectoIndividualAtrDescripcion",
-    fieldName: "efeind.EfectoIndividualAtrDescripcion",
+    id: "EfectoDescripcionCompleto",
+    name: "Efecto Descripción Completa",
+    field: "EfectoDescripcionCompleto",
+    fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')",
     type: "string",
     sortable: true,
     hidden: false,
@@ -356,6 +380,7 @@ const listaColumnasObjetivos: any[] = [
     searchHidden: false,
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
   },
   {
     id: "StockReservado",
@@ -368,6 +393,8 @@ const listaColumnasObjetivos: any[] = [
     searchHidden: false,
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+
   },
 
 ]
@@ -416,7 +443,7 @@ export class EfectoController extends BaseController {
 
   // TODO: READAPTAR PARA QUE SE BUSQUE POR EFECTOID + EFECTOEFFECTOINDIVIDUALID (VER API Y FRONT TAMBIEN)
   searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value} = req.body;
+    const { fieldName, value } = req.body;
     let buscar = false;
     let query: string = `SELECT EfectoId,EfectoEfectoIndividualId, EfectoEfectoIndividualDescripcion  FROM EfectoIndividualDescripcion WHERE`;
     switch (fieldName) {
@@ -483,7 +510,8 @@ export class EfectoController extends BaseController {
     SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
 		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
 		, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
+		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, 
+    CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )') EfectoDescripcionCompleto, 
       1
     FROM Stock stk
     JOIN Personal per ON per.PersonalId = stk.PersonalId
@@ -536,7 +564,8 @@ export class EfectoController extends BaseController {
        obj.ClienteElementoDependienteId, 
        
        stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
+      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,
+      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,  
       1
       FROM Stock stk
       JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
@@ -571,7 +600,8 @@ export class EfectoController extends BaseController {
       CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion,
       stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
-          1
+                CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+    1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
     LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
