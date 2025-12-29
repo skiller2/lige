@@ -477,6 +477,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           importeMonto
         ]
       );
+      await queryRunner.query(
+        `UPDATE Personal SET PersonalComprobantePagoAFIPUltNro = @0 WHERE PersonalId = @1`,
+        [PersonalComprobantePagoAFIPUltNro, personalID]
+      );
 
 
       // verificar que el periodo no tenga los recibos generados
