@@ -14,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
         SHARED_IMPORTS,
     ],
     templateUrl: './novedad.html',
-    styleUrl: './novedad.less',
+    styleUrl: './novedad.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NovedadComponent {

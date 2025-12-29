@@ -35,7 +35,6 @@ export class PersonalFormComponent {
   optionsTelefonoTipo = signal<any[]>([])
   optionsEstudioEstado = signal<any[]>([])
   optionsEstudioTipo = signal<any[]>([])
-  optionsLugarHabilitacion = signal<any[]>([])
   optionsTipoDocumento = signal<any[]>([])
   
   fb = inject(FormBuilder)
@@ -68,6 +67,7 @@ export class PersonalFormComponent {
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
   $optionsEstadoCivil = this.searchService.getEstadoCivilOptions();
+  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
   optionsSexo = [{value:'M', label:'MASCULINO'}, {value:'F', label:'FEMENINO'}]
 
   fotoId():number {
@@ -159,14 +159,12 @@ export class PersonalFormComponent {
     const optionsEstudioEstado = await firstValueFrom(this.searchService.getEstadoEstudioOptions())
     const optionsEstudioTipo = await firstValueFrom(this.searchService.getTipoEstudioOptions())
     const optionsParentesco = await firstValueFrom(this.searchService.getTipoParentescoOptions())
-    const optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
     const optionsTipoDocumento = await firstValueFrom(this.searchService.getTipoDocumentoOptions())
     
     this.optionsTelefonoTipo.set(optionsTelefonoTipo)
     this.optionsEstudioEstado.set(optionsEstudioEstado)
     this.optionsEstudioTipo.set(optionsEstudioTipo)
     this.optionsParentesco.set(optionsParentesco)
-    this.optionsLugarHabilitacion.set(optionsLugarHabilitacion)
     this.optionsTipoDocumento.set(optionsTipoDocumento)
   }
 

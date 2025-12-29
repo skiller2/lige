@@ -93,7 +93,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Importe</nz-form-label>
           <nz-form-control>
-            <input type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel />
+            <input type="text" [placeholder]="'Monto'" nz-input name="monto" appDotToComma mask="separator.2" ngModel />
           </nz-form-control>
         </nz-form-item>
 

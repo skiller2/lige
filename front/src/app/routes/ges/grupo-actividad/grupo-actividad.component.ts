@@ -20,7 +20,7 @@ import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
     ReporteComponent
 ],
     templateUrl: './grupo-actividad.component.html',
-    styleUrl: './grupo-actividad.component.less'
+    styleUrl: './grupo-actividad.component.scss'
 })
   
 export class GrupoActividadComponent {

@@ -237,9 +237,9 @@ export class SearchService {
 
   // estudios
 
-   //SearchEstudio
-   getAplicaAOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/aplicaa/options`).pipe(  
+  //SearchEstudio
+  getAplicaAOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/aplicaa/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -945,7 +945,7 @@ export class SearchService {
     return this.http
       .get(`api/asistencia/descuentosperxobj/${anio}/${mes}/${objetivoId}`)
       .pipe(
-        map((res: ResponseJSON<any>) => res ),
+        map((res: ResponseJSON<any>) => res),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);
@@ -991,7 +991,7 @@ export class SearchService {
   }
 
   deleteAsistenciaExcepcion(params: any) {
-    const periodo = params.periodo ? new Date(params.periodo) : null; 
+    const periodo = params.periodo ? new Date(params.periodo) : null;
     const anio = periodo ? periodo.getFullYear() : 0;
     const mes = periodo ? periodo.getMonth() + 1 : 0;
     return this.http
@@ -1273,8 +1273,8 @@ export class SearchService {
       );
   }
 
-  getNovedad(novedadId: number) { 
-    return this.http 
+  getNovedad(novedadId: number) {
+    return this.http
       .get<ResponseJSON<any>>(`api/novedades/infNovedad/${novedadId}`)
       .pipe(
         map(res => res.data),
@@ -1964,7 +1964,7 @@ export class SearchService {
     );
   }
 
-  getSitRevsitaAsocByPersonalId(PersonalId:number): Observable<any> {
+  getSitRevsitaAsocByPersonalId(PersonalId: number): Observable<any> {
     if (!PersonalId) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevistaaso/options/${PersonalId}`).pipe(
       map(res => res.data),
@@ -1976,7 +1976,7 @@ export class SearchService {
   }
 
   getProcesoAutomatico(logCod: number) {
-    if (!logCod ) {
+    if (!logCod) {
       return of({});
     }
     return this.http.get<ResponseJSON<any>>(`api/procesos-automaticos/${logCod}`).pipe(
@@ -1988,7 +1988,7 @@ export class SearchService {
     );
   }
 
-  getNovedadesFilters(){
+  getNovedadesFilters() {
     return this.http.get<ResponseJSON<any>>(`api/novedades/filters`)
       .pipe(
         map(res => res.data),
@@ -2010,6 +2010,10 @@ export class SearchService {
   }
 
   getEfectoPersonal(listOptions: any) {
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoPersonal`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -2019,7 +2023,12 @@ export class SearchService {
     );
   }
 
+
   getEfectoObjetivos(listOptions: any) {
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -2030,7 +2039,7 @@ export class SearchService {
   }
 
   getEfectoByPersonalId(personalId: number) {
-    if (!personalId ) {
+    if (!personalId) {
       return of([]);
     }
     return this.http.get<ResponseJSON<any>>(`api/efecto/personal/${personalId}`).pipe(
@@ -2043,7 +2052,7 @@ export class SearchService {
   }
 
   getEfectoByObjetivoId(objetivoId: number) {
-    if (!objetivoId ) {
+    if (!objetivoId) {
       return of([]);
     }
     return this.http.get<ResponseJSON<any>>(`api/efecto/objetivo/${objetivoId}`).pipe(
@@ -2065,7 +2074,7 @@ export class SearchService {
     );
   }
 
-  getDetalleGestionesByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId:number) {
+  getDetalleGestionesByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId: number) {
     if (!PersonalId || !PersonalHabilitacionId || !LugarHabilitacionId) {
       return of([]);
     }
@@ -2078,7 +2087,7 @@ export class SearchService {
     );
   }
 
-  getDocsByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId:number) {
+  getDocsByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId: number) {
     if (!PersonalId || !PersonalHabilitacionId || !LugarHabilitacionId) {
       return of([]);
     }
@@ -2101,7 +2110,7 @@ export class SearchService {
     );
   }
 
-  getPersonalHabilitacionById(personalHabilitacionId:number, personalId:number, lugarHabilitacionId:number){
+  getPersonalHabilitacionById(personalHabilitacionId: number, personalId: number, lugarHabilitacionId: number) {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/personal`, { personalHabilitacionId, personalId, lugarHabilitacionId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -2111,8 +2120,18 @@ export class SearchService {
     );
   }
 
-  getGestionHabilitacionById(codigo:number, personalId:number, lugarHabilitacionId:number, personalHabilitacionId: number){
+  getGestionHabilitacionById(codigo: number, personalId: number, lugarHabilitacionId: number, personalHabilitacionId: number) {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/gestion`, { codigo, personalId, lugarHabilitacionId, personalHabilitacionId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getRubroClienteOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/rubro/rublo-cliente/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

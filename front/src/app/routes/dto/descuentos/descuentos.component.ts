@@ -15,7 +15,7 @@ import { DescuentosCargaManualComponent } from '../descuentos-carga-manual/descu
 @Component({
     selector: 'app-descuentos',
     templateUrl: './descuentos.component.html',
-    styleUrls: ['./descuentos.component.less'],
+    styleUrls: ['./descuentos.component.scss'],
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, TableDescuentosPersonalComponent, TableDescuentosObjetivosComponent, DescuentosImportacionMasivaComponent, DescuentosCargaManualComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,

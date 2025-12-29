@@ -30,11 +30,11 @@ const GridColums: any[] = [
         searchComponent: "inputForPersonalSearch",
         sortable: false,
         hidden: true,
-        searchHidden: true
+        searchHidden: false
     },
     {
         name: "CUIT",
-        type: "number",
+        type: "string",
         id: "PersonalCUITCUILCUIT",
         field: "PersonalCUITCUILCUIT",
         fieldName: "cuit.PersonalCUITCUILCUIT",
@@ -99,7 +99,7 @@ const GridColums: any[] = [
         searchComponent: "inputForActivo",
 
     },
-     {
+    {
         name: "Lugar Habilitación Necesaria",
         type: "string",
         id: "LugarHabilitacionDescripcion",
@@ -161,6 +161,18 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false
+    },
+    {
+        name: "Dias Faltantes Vencimiento",
+        type: "number",
+        id: "DiasFaltantesVencimiento",
+        field: "DiasFaltantesVencimiento",
+        fieldName: "IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento)",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        searchType: "numberAdvanced",
+        searchComponent: "inputForNumberAdvancedSearch",
     },
 ];
 
@@ -265,7 +277,7 @@ const GridDocColums: any[] = [
 ]
 
 export class HabilitacionesController extends BaseController {
-    
+
     async getGridCols(req, res, next) {
         this.jsonRes(GridColums, res, next);
     }
@@ -280,12 +292,16 @@ export class HabilitacionesController extends BaseController {
 
     async habilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
         return await queryRunner.query(`
+        
+
         SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, IIF(c.PersonalId IS NULL,'0','1') HabNecesaria, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
-            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId,
+		    IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento
+
         FROM Personal per
         LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId AND ((b.PersonalHabilitacionDesde < @0 AND ISNULL(b.PersonalHabilitacionHasta,'9999-12-31') > @0) OR (b.PersonalHabilitacionDesde IS NULL AND b.PersonalHabilitacionHasta IS NULL))
         LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaDesde < @0 AND ISNULL(c.PersonalHabilitacionNecesariaHasta,'9999-12-31') > @0
@@ -306,6 +322,18 @@ export class HabilitacionesController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
         LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo = e.GestionHabilitacionEstadoCodigo
+		LEFT JOIN (
+			SELECT 
+				b2.PersonalId,
+				b2.PersonalHabilitacionId,
+				b2.PersonalHabilitacionLugarHabilitacionId,
+				CASE 
+					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+					WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
+					ELSE 0
+				END AS DiasFaltantesVencimiento
+			FROM PersonalHabilitacion b2
+		) dias ON dias.PersonalId = b.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId
         WHERE (b.PersonalId IS NOT NULL OR c.PersonalId IS NOT NULL) AND (${filterSql})
         ${orderBy}
         `, [periodo])
@@ -318,7 +346,7 @@ export class HabilitacionesController extends BaseController {
         const periodo = new Date()
         try {
             const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
-            
+
             this.jsonRes(
                 {
                     total: habilitaciones.length,
@@ -350,7 +378,7 @@ export class HabilitacionesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             const habilitaciones = await this.listDetalleGestionesQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
-            
+
             this.jsonRes(
                 {
                     total: habilitaciones.length,
@@ -470,24 +498,24 @@ export class HabilitacionesController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
-        fechaActual.setHours(0,0,0,0)
+        fechaActual.setHours(0, 0, 0, 0)
 
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
         const NroTramite = req.body.NroTramite
-        const PersonalHabilitacionDesde:Date = req.body.PersonalHabilitacionDesde? new Date(req.body.PersonalHabilitacionDesde) : null
-        const PersonalHabilitacionHasta:Date = req.body.PersonalHabilitacionHasta? new Date(req.body.PersonalHabilitacionHasta) : null
+        const PersonalHabilitacionDesde: Date = req.body.PersonalHabilitacionDesde ? new Date(req.body.PersonalHabilitacionDesde) : null
+        const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
-        const file:any[] = req.body.file
-        
+        const file: any[] = req.body.file
+
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
             //Validacion
-            let error:string[] = []
+            let error: string[] = []
             if (!GestionHabilitacionEstadoCodigo) {
                 error.push(` Estado`)
             }
@@ -498,18 +526,18 @@ export class HabilitacionesController extends BaseController {
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length) 
-            && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
                 throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
             }
-            
+
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
             SELECT ISNULL(GestionHabilitacionCodigoUlt, 0) CodigoUlt
             FROM PersonalHabilitacion
             WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
-            `,[ PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId])
-            const newCodigoUlt = result[0].CodigoUlt+1
+            `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId])
+            const newCodigoUlt = result[0].CodigoUlt + 1
 
             //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
@@ -517,7 +545,7 @@ export class HabilitacionesController extends BaseController {
             SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, GestionHabilitacionCodigoUlt = @6, NroTramite = @7
             , AudFechaMod = @8, AudIpMod = @9, AusUsuarioMod = @10
             WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
-            `,[PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId, 
+            `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
                 PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, newCodigoUlt, NroTramite,
                 fechaActual, ip, usuario
             ])
@@ -527,7 +555,7 @@ export class HabilitacionesController extends BaseController {
             INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
             , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
             ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
-            `,[newCodigoUlt ,PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
+            `, [newCodigoUlt, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
             //Registra el nuevo documento
             if (file?.length > 0) {
@@ -538,11 +566,11 @@ export class HabilitacionesController extends BaseController {
                     DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
                     , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
                 ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                `,[doc_id ,PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+                `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
             }
 
             await queryRunner.commitTransaction()
-            this.jsonRes({GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual}, res, 'Carga exitosa');
+            this.jsonRes({ GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual }, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -557,13 +585,13 @@ export class HabilitacionesController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
-        fechaActual.setHours(0,0,0,0)
+        fechaActual.setHours(0, 0, 0, 0)
 
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
         const NroTramite = req.body.NroTramite
-        const PersonalHabilitacionDesde:Date = req.body.PersonalHabilitacionDesde? new Date(req.body.PersonalHabilitacionDesde) : null
-        const PersonalHabilitacionHasta:Date = req.body.PersonalHabilitacionHasta? new Date(req.body.PersonalHabilitacionHasta) : null
+        const PersonalHabilitacionDesde: Date = req.body.PersonalHabilitacionDesde ? new Date(req.body.PersonalHabilitacionDesde) : null
+        const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
         // const file: any[] = req.body.archivo
@@ -572,10 +600,10 @@ export class HabilitacionesController extends BaseController {
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-            
+
             //Validacion
-            let error:string[] = []
-            
+            let error: string[] = []
+
             if (!GestionHabilitacionEstadoCodigo) {
                 error.push(` Estado`)
             }
@@ -586,18 +614,18 @@ export class HabilitacionesController extends BaseController {
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length) 
-            && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
                 throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
             }
-            
+
             //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
             UPDATE PersonalHabilitacion
             SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, NroTramite = @6
             , AudFechaMod = @7, AudIpMod = @8, AusUsuarioMod = @9
             WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
-            `,[PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId, 
+            `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
                 PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, NroTramite,
                 fechaActual, ip, usuario
             ])
@@ -608,7 +636,7 @@ export class HabilitacionesController extends BaseController {
             SET GestionHabilitacionEstadoCodigo = @4, Detalle = @5,
                  AudFechaMod = @6, AudUsuarioMod = @7, AudIpMod = @8
             WHERE GestionHabilitacionCodigo = @0 AND PersonalHabilitacionId = @1 AND PersonalId = @2 AND PersonalHabilitacionLugarHabilitacionId = @3
-            `,[GestionHabilitacionCodigo , PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
+            `, [GestionHabilitacionCodigo, PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
                 GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
 
@@ -619,5 +647,5 @@ export class HabilitacionesController extends BaseController {
             return next(error)
         }
     }
-    
+
 }

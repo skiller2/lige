@@ -192,27 +192,27 @@ const listaColumnasObjetivos: any[] = [
     hidden: true,
     searchHidden: true
   },
-  {
-    id: "ContieneEfectoIndividual",
-    name: "Contiene Efecto Individual",
-    field: "ContieneEfectoIndividual",
-    fieldName: "efe.ContieneEfectoIndividual",
-    searchComponent: "inputForActivo",
-    type: "boolean",
-    sortable: true,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: "StockId",
-    name: "StockId",
-    field: "StockId",
-    fieldName: "stk.StockId",
-    type: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
+  // {
+  //   id: "ContieneEfectoIndividual",
+  //   name: "Contiene Efecto Individual",
+  //   field: "ContieneEfectoIndividual",
+  //   fieldName: "efe.ContieneEfectoIndividual",
+  //   searchComponent: "inputForActivo",
+  //   type: "boolean",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: true
+  // },
+  // {
+  //   id: "StockId",
+  //   name: "StockId",
+  //   field: "StockId",
+  //   fieldName: "stk.StockId",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: true
+  // },
   {
     name: "Cliente",
     type: "string",
@@ -221,11 +221,11 @@ const listaColumnasObjetivos: any[] = [
     fieldName: "obj.ClienteId",
     searchComponent: "inputForClientSearch",
     sortable: true,
-    hidden: false,
+    hidden: true,
     searchHidden: false
   },
   {
-    name: "Razon social",
+    name: "Cliente",
     type: "string",
     id: "ClienteDenominacion",
     field: "ClienteDenominacion",
@@ -236,8 +236,19 @@ const listaColumnasObjetivos: any[] = [
     editable: false
   },
   {
+    name: "Objetivo",
+    type: "number",
+    id: "ObjetivoId",
+    field: "ObjetivoId",
+    fieldName: "obj.ObjetivoId",
+    searchComponent: "inputForObjetivoSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
     id: "ClienteElementoDependienteId",
-    name: "Elemento Dependiente",
+    name: "ClienteElementoDependienteId",
     field: "ClienteElementoDependienteId",
     fieldName: "obj.ClienteElementoDependienteId",
     type: "number",
@@ -246,45 +257,26 @@ const listaColumnasObjetivos: any[] = [
     searchHidden: true
   },
   {
+    id: "ClienteElementoDependienteDescripcion",
+    name: "Objetivo",
+    field: "ClienteElementoDependienteDescripcion",
+    fieldName: "ClienteElementoDependienteDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
     id: "EfectoId",
-    name: "EfectoId",
+    name: "Efecto",
     field: "EfectoId",
     fieldName: "stk.EfectoId",
     type: "number",
     sortable: true,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: "EfectoEfectoIndividualId",
-    name: "Efecto Individual Id",
-    field: "EfectoEfectoIndividualId",
-    fieldName: "stk.EfectoEfectoIndividualId",
-    type: "number",
-    sortable: true,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: "StockStock",
-    name: "Stock",
-    field: "StockStock",
-    fieldName: "stk.StockStock",
-    type: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    id: "StockReservado",
-    name: "Stock Reservado",
-    field: "StockReservado",
-    fieldName: "stk.StockReservado",
-    type: "number",
-    sortable: true,
     hidden: false,
     searchHidden: true
   },
+
   {
     id: "EfectoDescripcion",
     name: "Efecto",
@@ -295,19 +287,30 @@ const listaColumnasObjetivos: any[] = [
     hidden: false,
     searchHidden: true
   },
+
   {
     id: "EfectoAtrDescripcion",
-    name: "Atr. Efecto",
+    name: "Atributo del Efecto",
     field: "EfectoAtrDescripcion",
     fieldName: "efe.EfectoAtrDescripcion",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
+  },
+  {
+    id: "EfectoEfectoIndividualId",
+    name: "Efecto Individual Asociado al efecto",
+    field: "EfectoEfectoIndividualId",
+    fieldName: "stk.EfectoEfectoIndividualId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
   },
   {
     id: "EfectoEfectoIndividualDescripcion",
-    name: "Descripción Individual",
+    name: "Efecto Individual Asociado al efecto",
     field: "EfectoEfectoIndividualDescripcion",
     fieldName: "efeind.EfectoEfectoIndividualDescripcion",
     type: "string",
@@ -317,14 +320,38 @@ const listaColumnasObjetivos: any[] = [
   },
   {
     id: "EfectoIndividualAtrDescripcion",
-    name: "Atr. Individual",
+    name: "Atributo del Efecto Individual",
     field: "EfectoIndividualAtrDescripcion",
     fieldName: "efeind.EfectoIndividualAtrDescripcion",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true
-  }
+    searchHidden: false
+  },
+  {
+    id: "StockStock",
+    name: "Stock",
+    field: "StockStock",
+    fieldName: "ISNULL(stk.StockStock, 0)",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+  },
+  {
+    id: "StockReservado",
+    name: "Stock Reservado",
+    field: "StockReservado",
+    fieldName: "ISNULL(stk.StockReservado, 0)",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+  },
 
 ]
 
@@ -443,12 +470,14 @@ export class EfectoController extends BaseController {
              CASE WHEN efe.ContieneEfectoIndividual = 1 THEN 'Si' ELSE 'No' END as ContieneEfectoIndividual,
              stk.StockId,
       obj.ClienteId,
-      cli.ClienteDenominacion,
-       obj.ClienteElementoDependienteId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
+      CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion,
+      stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
           1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+    LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
     JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
