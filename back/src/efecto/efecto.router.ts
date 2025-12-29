@@ -25,11 +25,5 @@ efectoRouter.post("/getEfectoObjetivos", [authMiddleware.verifyToken,authMiddlew
   efectoController.getEfectoObjetivos(req, res, next);
 });
 
-efectoRouter.get("/searchEfecto", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-  efectoController.searchEfecto(req, res, next);
+efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfecto(req, res, next);
 });
-
-efectoRouter.get("/searchEfectoIndividual", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-  efectoController.searchEfectoIndividual(req, res, next);
-});
-
