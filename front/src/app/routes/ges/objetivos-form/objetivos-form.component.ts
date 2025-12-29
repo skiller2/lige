@@ -56,9 +56,7 @@ export class ObjetivosFormComponent {
     ObjetivoPersonalJerarquicoDescuentos:false,
     ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
   }
-  objDocRequerido = {
-    DocumentoTipoCodigo:0
-  }
+
   objActividad = {
     GrupoActividadObjetivoId:0,
     GrupoActividadId:0,
@@ -103,7 +101,7 @@ export class ObjetivosFormComponent {
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
     rubrosCliente: [],  
-    infoDocRequerido: this.fb.array([this.fb.group({ ...this.objDocRequerido })]),
+    docsRequerido: [],
     infoActividad: this.fb.array([this.fb.group({ ...this.objActividad })]), 
     estado: 0,
     files:[],
@@ -159,9 +157,7 @@ export class ObjetivosFormComponent {
       this.formCli.get('codigo')?.disable()
       this.formCli.reset()
       this.infoCoordinadorCuenta().clear()
-      this.infoDocRequerido().clear()
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-      this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
       this.formCli.markAsPristine()
     }
   }
@@ -173,7 +169,6 @@ export class ObjetivosFormComponent {
         this.formCli.disable()
         this.formCli.get('GrupoActividadId')?.disable()
         this.formCli.get('DocumentoTipoCodigo')?.disable()
-        this.formCli.get('infoDocRequerido')?.disable()
       }else{
         this.formCli.enable()
       }
@@ -191,7 +186,6 @@ export class ObjetivosFormComponent {
     console.log('infoObjetivo: ', infoObjetivo);
     
     this.infoCoordinadorCuenta().clear()
-    this.infoDocRequerido().clear()
     this.infoActividad().clear()
     
     infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
@@ -203,14 +197,6 @@ export class ObjetivosFormComponent {
      
     }  
 
-    infoObjetivo?.infoDocRequerido.forEach((obj: any) => {
-      this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
-    });
-    
-    if(infoObjetivo.infoDocRequerido.length == 0){
-      this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
-    }
-
     infoObjetivo?.infoActividad.forEach((obj: any) => {
       this.infoActividad().push(this.fb.group({ ...this.objActividad }))
     });
@@ -221,11 +207,9 @@ export class ObjetivosFormComponent {
     
     if (this.formCli.disabled){
       this.infoCoordinadorCuenta().disable()
-      this.infoDocRequerido().disable()
       this.infoActividad().disable()
     }else {
       this.infoCoordinadorCuenta().enable()
-      this.infoDocRequerido().enable()
       this.infoActividad().disable()
     }
 
@@ -255,8 +239,6 @@ export class ObjetivosFormComponent {
   async save() {
     this.isLoading.set(true)
     let form = this.formCli.getRawValue();
-    console.log("form ", form)
-    return
     try {
         if (this.ObjetivoId()) {
           let CordinadorCuenta = form.infoCoordinadorCuenta
@@ -280,7 +262,6 @@ export class ObjetivosFormComponent {
           //this.edit.set(false)
 
         } else {
-         
 
           // este es para cuando es un nuevo registro
 
@@ -312,10 +293,6 @@ export class ObjetivosFormComponent {
     return this.formCli.get("infoCoordinadorCuenta") as FormArray
   }
 
-  infoDocRequerido(): FormArray {
-    return this.formCli.get("infoDocRequerido") as FormArray
-  }
-
   infoActividad(): FormArray {
     return this.formCli.get("infoActividad") as FormArray
   }
@@ -327,27 +304,11 @@ export class ObjetivosFormComponent {
     
   }
 
-  addDocRequerido(e?: MouseEvent): void {
-
-    e?.preventDefault();
-    this.infoDocRequerido().push(this.fb.group({ ...this.objDocRequerido }))
-    
-  }
-
   removeCordinadorCuenta(index: number, e: MouseEvent): void {
    
     e.preventDefault();
     if (this.infoCoordinadorCuenta().length > 1 ) {
       this.infoCoordinadorCuenta().removeAt(index)
-    }
-    this.formCli.markAsDirty();
-  }
-  
-  removeDocRequerido(index: number, e: MouseEvent): void {
-   
-    e.preventDefault();
-    if (this.infoDocRequerido().length > 1 ) {
-      this.infoDocRequerido().removeAt(index)
     }
     this.formCli.markAsDirty();
   }
