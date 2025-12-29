@@ -76,7 +76,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "SituacionRevistaDescripcion",
-    name: "SituacionRevista",
+    name: "Situacion Revista",
     field: "SituacionRevistaDescripcion",
     fieldName: "sitrev.SituacionRevistaDescripcion",
     type: "string",
@@ -86,7 +86,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "PersonalSituacionRevistaDesde",
-    name: "Sit. Rev. Desde",
+    name: "Situación Revista Desde",
     field: "PersonalSituacionRevistaDesde",
     fieldName: "persitrev.PersonalSituacionRevistaDesde",
     type: "date",
@@ -97,36 +97,25 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "PersonalSituacionRevistaHasta",
-    name: "Hasta",
+    name: "Situación Revista Hasta",
     field: "PersonalSituacionRevistaHasta",
     fieldName: "persitrev.PersonalSituacionRevistaHasta",
     type: "date",
     searchComponent: "inputForFechaSearch",
     sortable: true,
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
-  // {
-  //   id: "EfectoId",
-  //   name: "Efecto ID",
-  //   field: "EfectoId",
-  //   fieldName: "stk.EfectoId",
-  //   type: "number",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: false
-  // },
-  // {
-  //   id: "EfectoEfectoIndividualId",
-  //   name: "Efecto Individual ID",
-  //   field: "EfectoEfectoIndividualId",
-  //   fieldName: "stk.EfectoEfectoIndividualId",
-  //   type: "number",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: false
-  // },
-
+  {
+    id: "EfectoId",
+    name: "Efecto",
+    field: "EfectoId",
+    fieldName: "stk.EfectoId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
   {
     id: "EfectoDescripcion",
     name: "Efecto",
@@ -139,17 +128,27 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "EfectoAtrDescripcion",
-    name: "Atr. Efecto",
+    name: "Atributo del Efecto",
     field: "EfectoAtrDescripcion",
     fieldName: "efe.EfectoAtrDescripcion",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
+  },
+  {
+    id: "EfectoEfectoIndividualId",
+    name: "Efecto Individual Asociado al efecto",
+    field: "EfectoEfectoIndividualId",
+    fieldName: "stk.EfectoEfectoIndividualId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
   },
   {
     id: "EfectoEfectoIndividualDescripcion",
-    name: "Efe. Individual",
+    name: "Efecto Individual Asociado al efecto",
     field: "EfectoEfectoIndividualDescripcion",
     fieldName: "efeind.EfectoEfectoIndividualDescripcion",
     type: "string",
@@ -159,25 +158,39 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "EfectoIndividualAtrDescripcion",
-    name: "Efe. Atr. Individual",
+    name: "Atributo del Efecto Individual",
     field: "EfectoIndividualAtrDescripcion",
     fieldName: "efeind.EfectoIndividualAtrDescripcion",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: "StockStock",
     name: "Stock",
     field: "StockStock",
-    fieldName: "stk.StockStock",
+    fieldName: "ISNULL(stk.StockStock, 0)",
     type: "number",
     sortable: true,
     hidden: false,
-    searchHidden: true,
-    maxWidth: 50
-  }
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+  },
+  {
+    id: "StockReservado",
+    name: "Stock Reservado",
+    field: "StockReservado",
+    fieldName: "ISNULL(stk.StockReservado, 0)",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+  },
+
 
 ]
 
@@ -273,8 +286,8 @@ const listaColumnasObjetivos: any[] = [
     fieldName: "stk.EfectoId",
     type: "number",
     sortable: true,
-    hidden: false,
-    searchHidden: true
+    hidden: true,
+    searchHidden: false
   },
 
   {
@@ -287,7 +300,6 @@ const listaColumnasObjetivos: any[] = [
     hidden: false,
     searchHidden: true
   },
-
   {
     id: "EfectoAtrDescripcion",
     name: "Atributo del Efecto",
@@ -484,6 +496,37 @@ export class EfectoController extends BaseController {
     LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
       AND ${filterSql} `)
+  }
+
+  
+
+  async searchEfecto(req: any, res: Response, next: NextFunction) {
+    const { id } = req.body;
+    
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const efecto = await queryRunner.query(`SELECT EfectoId id, EfectoDescripcion label FROM EfectoDescripcion`)
+      return this.jsonRes(efecto, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+
+    }
+
+  }
+
+  async searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const Curso = await queryRunner.query(`SELECT EfectoId, EfectoEfectoIndividualId, EfectoEfectoIndividualDescripcion label FROM EfectoIndividualDescripcion`)
+      return this.jsonRes(Curso, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+
+    }
+
   }
 
 
