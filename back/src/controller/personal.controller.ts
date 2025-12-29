@@ -2791,26 +2791,6 @@ export class PersonalController extends BaseController {
     }
   }
 
-
-
-  private async getLugarHabilitacionQuery(queryRunner: any) {
-    return await queryRunner.query(`
-      SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
-      FROM LugarHabilitacion
-      WHERE LugarHabilitacionInactivo IS NULL
-    `)
-  }
-
-  async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      const options = await this.getLugarHabilitacionQuery(queryRunner)
-      this.jsonRes(options, res);
-    } catch (error) {
-      return next(error)
-    }
-  }
-
   private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuario: number, ip: string) {
     //Compruebo si hubo cambios
     let cambios: boolean = false
