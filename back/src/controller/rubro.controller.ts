@@ -52,7 +52,7 @@ export class RubroController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await queryRunner.query(`
-        SELECT RubroClienteId value, RubroClienteDescripcion label
+        SELECT RubroClienteId value, TRIM(RubroClienteDescripcion) label
         FROM RubroCliente
       `)
       this.jsonRes(options, res);
