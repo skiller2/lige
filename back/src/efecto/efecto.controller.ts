@@ -244,6 +244,7 @@ const listaColumnasObjetivos: any[] = [
   //   hidden: false,
   //   searchHidden: true
   // },
+
   {
     name: "Cliente",
     type: "string",
@@ -265,6 +266,17 @@ const listaColumnasObjetivos: any[] = [
     searchHidden: true,
     hidden: false,
     editable: false
+  },
+  {
+    name: "Sucursal Objetivo",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
   },
   {
     name: "Objetivo",
@@ -296,6 +308,28 @@ const listaColumnasObjetivos: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    name: "Contrato Desde",
+    type: "date",
+    id: "ClienteElementoDependienteContratoFechaDesde",
+    field: "ClienteElementoDependienteContratoFechaDesde",
+    fieldName: "con.ClienteElementoDependienteContratoFechaDesde",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Contrato Hasta",
+    type: "date",
+    id: "ClienteElementoDependienteContratoFechaHasta",
+    field: "ClienteElementoDependienteContratoFechaHasta",
+    fieldName: "con.ClienteElementoDependienteContratoFechaHasta",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
   },
   {
     id: "EfectoId",
@@ -597,12 +631,13 @@ export class EfectoController extends BaseController {
       SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
              CASE WHEN efe.ContieneEfectoIndividual = 1 THEN 'Si' ELSE 'No' END as ContieneEfectoIndividual,
              stk.StockId,
-      obj.ClienteId,
-      cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
-      CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion,
-      stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
+          obj.ClienteId,
+          cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
+          CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion,
+          stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
-                CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+          CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+          suc.SucursalDescripcion,
     1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
@@ -611,6 +646,7 @@ export class EfectoController extends BaseController {
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
     LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
       AND ${filterSql} `)
   }
