@@ -223,6 +223,17 @@
           }
         </nz-select>
       }
+      <!-- todo: agregar filtro de estados en excepciones asistencia -->
+      <!-- @if (selections.field.searchComponent=='inputForExcepcionAsistenciaAprobadoSearch') {
+        <nz-select ngModel nzAllowClear style="width:100%"
+          nzPlaceHolder="Estado" nzShowSearch
+          (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+          (keydown.enter)="handleInputConfirm()">
+          @for (option of $optionsExcepcionAsistenciaAprobado | async; track option) {
+            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      } -->
       @if (selections.field.searchComponent=='inputForTipoPrestamoSearch') {
         <nz-select ngModel nzAllowClear style="width:100%"
           nzPlaceHolder="Descripcion" nzShowSearch
