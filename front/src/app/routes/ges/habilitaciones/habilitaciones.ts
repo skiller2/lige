@@ -12,11 +12,12 @@ import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-s
 import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { HabilitacionesDetalleComponent } from 'src/app/routes/ges/habilitaciones-detalle/habilitaciones-detalle';
+import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 
 @Component({
   selector: 'app-habilitaciones',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
-    HabilitacionesDetalleComponent],
+    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
   styleUrl: './habilitaciones.less',
@@ -42,6 +43,7 @@ export class HabilitacionesComponent {
   personalId = signal<number>(0)
   personalHabilitacionId = signal<number>(0)
   lugarHabilitacionId = signal<number>(0)
+  visibleForm = signal<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -124,6 +126,14 @@ export class HabilitacionesComponent {
 
   onTabsetChange(_event: any) { 
     window.dispatchEvent(new Event('resize'));
+  }
+
+  refreshGrid(_e: any){
+    this.listHabilitaciones$.next('');
+  }
+
+  openDrawerforForm(): void{
+    this.visibleForm.set(true) 
   }
 
 }

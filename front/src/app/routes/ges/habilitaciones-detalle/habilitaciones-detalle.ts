@@ -9,11 +9,11 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { SearchService } from 'src/app/services/search.service';
 import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
-import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
+import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-detalle-form-drawer/habilitaciones-detalle-form-drawer';
 
 @Component({
   selector: 'app-habilitaciones-detalle',
-  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent],
+  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent ],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones-detalle.html',
   styleUrl: './habilitaciones-detalle.less',
