@@ -2036,10 +2036,10 @@ export class SearchService {
 
 
   getEfectoObjetivos(listOptions: any) {
-    // if (!listOptions.filtros.length) {
-    //   this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
-    //   return of([]);
-    // }
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
