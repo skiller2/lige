@@ -4,43 +4,12 @@
     <form [formGroup]="formHabilitacion">
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Pesonal</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Lugar Habilitacion</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18">
-          <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione tipo" nzAllowClear 
-           [nzDropdownMatchSelectWidth]="false" style="width: 100%" (ngModelChange)="selectedLugarHabilitacionChange($event)">
-            @for (option of $optionsLugarHabilitacion | async; track option) {
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            }
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
             @for (option of $optionsEstadoCodigo | async; track option) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="7">Categoria de la Habilitacion</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-          <nz-select formControlName="HabilitacionCategoriaCodigo" nzPlaceHolder="Seleccione categoria" nzAllowClear
-           [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzMode="multiple">
-            <ng-container *ngFor="let option of optionsHabilitacionCategoria()">
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            </ng-container>
           </nz-select>
         </nz-form-control>
       </nz-form-item>
@@ -91,6 +60,16 @@
         </nz-form-control>
       </nz-form-item>
 
+      @if (GestionHabilitacionCodigo()) {
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <input nz-input placeholder="" formControlName="AudFechaIng" type="text" readonly/>
+        </nz-form-control>
+      </nz-form-item>
+      }
+
+      @if (!GestionHabilitacionCodigo()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
@@ -98,6 +77,7 @@
           [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="true" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
+      }
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">

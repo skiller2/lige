@@ -1770,6 +1770,17 @@ export class SearchService {
     );
   }
 
+  getHabilitacionCategoriaOptions(LugarHabilitacionId:number): Observable<any> {
+    if (!LugarHabilitacionId)  return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/categoria/options/${LugarHabilitacionId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getDocumentoTipoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/documento/tipos/options`).pipe(
       map(res => res.data),

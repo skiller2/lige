@@ -24,6 +24,10 @@ habilitacionesRouter.get("/lugar/options", [authMiddleware.verifyToken], (req, r
   habilitacionesController.getLugarHabilitacion(req, res, next);
 });
 
+habilitacionesRouter.get("/categoria/options/:LugarHabilitacionId", [authMiddleware.verifyToken], (req, res, next) => {
+  habilitacionesController.getHabilitacionCategoria(req, res, next);
+});
+
 habilitacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.list(req, res, next)
 })
@@ -34,6 +38,10 @@ habilitacionesRouter.post('/detalle-list', [authMiddleware.verifyToken, authMidd
 
 habilitacionesRouter.post('/doc-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.getDocRelacionados(req, res, next)
+})
+
+habilitacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.addHabilitacion(req, res, next)
 })
 
 habilitacionesRouter.post('/add-detalle', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

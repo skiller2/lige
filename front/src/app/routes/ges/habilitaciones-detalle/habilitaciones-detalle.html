@@ -42,8 +42,8 @@
   </div>
 </nz-card>
 
-<app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Nueva Habilitación Detalle'"
-[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>
+<app-habilitaciones-detalle-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Nueva Habilitación Detalle'"
+[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-detalle-form-drawer>
 
-<app-habilitaciones-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Editar Habilitación Detalle'" [codigo]="codigo()"
-[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>
+<app-habilitaciones-detalle-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Editar Habilitación Detalle'" [codigo]="codigo()"
+[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-detalle-form-drawer>

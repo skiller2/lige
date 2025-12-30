@@ -30,7 +30,7 @@
             <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
           </div>
           <nz-button-group nz-button nzButtonGroup class="derecha">
-            <button nz-button nzType="default" [disabled]="true" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <button nz-button nzType="default" (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus" nzTheme="outline"></span>
             </button>
           </nz-button-group>
@@ -58,3 +58,6 @@
   </nz-tabs>
 
 </nz-card>
+
+<app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Nueva Habilitación'"
+></app-habilitaciones-form-drawer>
