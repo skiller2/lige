@@ -276,7 +276,8 @@ const listaColumnasObjetivos: any[] = [
     searchComponent: "inputForSucursalSearch",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: false,
+    maxWidth: 150,
   },
   {
     name: "Objetivo",
@@ -314,7 +315,7 @@ const listaColumnasObjetivos: any[] = [
     type: "date",
     id: "ClienteElementoDependienteContratoFechaDesde",
     field: "ClienteElementoDependienteContratoFechaDesde",
-    fieldName: "con.ClienteElementoDependienteContratoFechaDesde",
+    fieldName: "eledepcon.ClienteElementoDependienteContratoFechaDesde",
     searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
@@ -324,8 +325,8 @@ const listaColumnasObjetivos: any[] = [
     name: "Contrato Hasta",
     type: "date",
     id: "ClienteElementoDependienteContratoFechaHasta",
-    field: "ISSNULL(ClienteElementoDependienteContratoFechaHasta, '9999-12-31')",
-    fieldName: "con.ClienteElementoDependienteContratoFechaHasta",
+    field: "ClienteElementoDependienteContratoFechaHasta",
+    fieldName: "eledepcon.ClienteElementoDependienteContratoFechaHasta",
     searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
@@ -345,7 +346,7 @@ const listaColumnasObjetivos: any[] = [
     name: "Objetivo Activo",
     id: "Activo",
     field: "Activo",
-    fieldName: "ISNULL(con.Activo,'0')",
+    fieldName: "ISNULL(eledepcon.Activo,'0')",
     type: 'string',
     searchComponent: "inputForActivo",
 
@@ -667,9 +668,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
           cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
           CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion,
           stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
-          efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
+          efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, eledepcon.ClienteElementoDependienteContratoId,eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
-          suc.SucursalDescripcion, ISNULL(con.Activo,'0') AS Activo,
+          suc.SucursalDescripcion, ISNULL(eledepcon.Activo,0) AS Activo,
 		
     1
     FROM Stock stk
@@ -678,17 +679,28 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
     JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-	LEFT JOIN (SELECT con.ClienteId,con.ClienteElementoDependienteId, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
-				  CASE
-					WHEN con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
-					ELSE '0' END AS Activo
-				FROM ClienteElementoDependienteContrato con
-				WHERE con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>@0
-	
-		) con ON con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId
+	LEFT JOIN (
+                            SELECT 
+                                ec.ClienteId, 
+                                ec.ClienteElementoDependienteId, 
+                                ec.ClienteElementoDependienteContratoId, 
+                                ec.ClienteElementoDependienteContratoFechaDesde, 
+                                ec.ClienteElementoDependienteContratoFechaHasta,
+								CASE
+									WHEN ec.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
+									ELSE '0' END AS Activo,
+                                ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
+                                                    ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
+                            FROM ClienteElementoDependienteContrato ec
+                            WHERE EOMONTH(@0) >= ec.ClienteElementoDependienteContratoFechaDesde
+                        ) eledepcon ON eledepcon.ClienteId = obj.ClienteId 
+                            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                            AND eledepcon.RowNum = 1       
+                                    
     --LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>@0
     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
+	  
       AND ${filterSql} `)
   }
 
