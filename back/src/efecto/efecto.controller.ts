@@ -1,7 +1,7 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL, } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
@@ -324,12 +324,42 @@ const listaColumnasObjetivos: any[] = [
     name: "Contrato Hasta",
     type: "date",
     id: "ClienteElementoDependienteContratoFechaHasta",
-    field: "ClienteElementoDependienteContratoFechaHasta",
+    field: "ISSNULL(ClienteElementoDependienteContratoFechaHasta, '9999-12-31')",
     fieldName: "con.ClienteElementoDependienteContratoFechaHasta",
     searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
     searchHidden: false
+  },
+  // {
+  //   name: "Objetivo Activo",
+  //   type: "number",
+  //   id: "ElementoDepependienteActivo",
+  //   field: "ElementoDepependienteActivo",
+  //   fieldName: "(CASE WHEN con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN 1 ELSE 0)",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false
+  // },
+  {
+    name: "Objetivo Activo",
+    id: "Activo",
+    field: "Activo",
+    fieldName: "ISNULL(con.Activo,'0')",
+    type: 'string',
+    searchComponent: "inputForActivo",
+
+    sortable: true,
+
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsSINO },
+
+    exportWithFormatter: true,
+    hidden: false,
+    searchHidden: false,
+    minWidth: 70,
+    maxWidth: 70,
+    cssClass: 'text-center'
   },
   {
     id: "EfectoId",
@@ -628,7 +658,9 @@ export class EfectoController extends BaseController {
   private getEfectoObjetivosQuery(queryRunner: any, listOptions: any) {
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasObjetivos)
     return queryRunner.query(`
-      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
+     DECLARE @0 DATE = GETDATE()
+
+SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
              CASE WHEN efe.ContieneEfectoIndividual = 1 THEN 'Si' ELSE 'No' END as ContieneEfectoIndividual,
              stk.StockId,
           obj.ClienteId,
@@ -637,15 +669,24 @@ export class EfectoController extends BaseController {
           stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
-          suc.SucursalDescripcion,
+          suc.SucursalDescripcion, ISNULL(con.Activo,'0') AS Activo,
+		
     1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
     LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
     JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
-    LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=GETDATE() AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=GETDATE()
+    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
+	LEFT JOIN (SELECT con.ClienteId,con.ClienteElementoDependienteId, con.ClienteElementoDependienteContratoId,con.ClienteElementoDependienteContratoFechaDesde,con.ClienteElementoDependienteContratoFechaHasta,
+				  CASE
+					WHEN con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
+					ELSE '0' END AS Activo
+				FROM ClienteElementoDependienteContrato con
+				WHERE con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>@0
+	
+		) con ON con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId
+    --LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>@0
     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
       AND ${filterSql} `)
