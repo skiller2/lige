@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, model } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -39,8 +39,8 @@ export class ExcepcionesAsistenciaComponent {
     sort: null,
   };
   periodo = signal<Date>(new Date())
-  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
-  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
+  anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
   loadingApr = signal(false)
   loadingRec = signal(false)
   loadingPen = signal(false)
@@ -55,11 +55,16 @@ export class ExcepcionesAsistenciaComponent {
   private apiService = inject(ApiService)
   private injector = inject(Injector)
   startFilters = signal<any[]>([])
+  hiddenColumnIds: string[] = [];
 
   columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {
-    return cols.map(col => col.id === 'ObjetivoDescripcion' ? { ...col, asyncPostRender: this.renderAngularComponent.bind(this) } : col);
+    this.hiddenColumnIds = [];
+    return cols.map(col => (
+      (col as any).showGridColumn === false && this.hiddenColumnIds.push(col.id as string),
+      col.id === 'ObjetivoDescripcion' ? { ...col, asyncPostRender: this.renderAngularComponent.bind(this) } : col
+    ));
   }));
-  
+
   tableLoading$ = new BehaviorSubject(false);
 
   // firstFilter = false
@@ -71,9 +76,11 @@ export class ExcepcionesAsistenciaComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
     this.gridOptions.enableCheckboxSelector = true
+    this.gridOptions.forceFitColumns = true
+
     this.gridOptions.rowSelectionOptions = {
       selectActiveRow: false
-  }
+    }
 
     this.selectedDate()
 
@@ -93,9 +100,9 @@ export class ExcepcionesAsistenciaComponent {
     switchMap(() => {
       return this.searchService.getListExcepcionesAsistencia(this.listOptions, this.periodo())
         .pipe(
-            map(data => { return data.list }),
-            doOnSubscribe(() => this.tableLoading$.next(true)),
-            tap({ complete: () => this.tableLoading$.next(false) })
+          map(data => { return data.list }),
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
         )
     })
   )
@@ -108,6 +115,12 @@ export class ExcepcionesAsistenciaComponent {
       columnTotal('PersonalArt14Horas', this.angularGrid)
       columnTotal('PersonalArt14AdicionalHora', this.angularGrid)
     })
+
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+    }
+
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
   }
@@ -115,7 +128,7 @@ export class ExcepcionesAsistenciaComponent {
   handleSelectedRowsChanged(e: any): void {
     this.rows.set(e.detail.args.rows)
     const selectedRows = this.angularGrid.dataView.getAllSelectedFilteredIds();
-    
+
     if (selectedRows.length === 1) {
       // si queda solo uno seleccionado, poner ese PersonalId
       const idx = this.angularGrid.dataView.getRowById(selectedRows[0]);
@@ -193,7 +206,7 @@ export class ExcepcionesAsistenciaComponent {
     this.loadingPen.set(false)
   }
 
-  selectedDate (){
+  selectedDate() {
     const now = new Date(); //date
     const anio =
       Number(localStorage.getItem('anio')) > 0
@@ -228,15 +241,15 @@ export class ExcepcionesAsistenciaComponent {
         cssClasses: ''
       };
       if (typeof previousItemMetadata === 'object') {
-          meta = previousItemMetadata(rowNumber);
+        meta = previousItemMetadata(rowNumber);
       }
 
       if (meta && item) {
         const row = this.rowsError();
         if (row.find((num) => num == rowNumber)) {
-            meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
+          meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
         } else {
-            meta.cssClasses = ''
+          meta.cssClasses = ''
         }
       }
 
@@ -245,11 +258,11 @@ export class ExcepcionesAsistenciaComponent {
   }
 
   closeDrawerforConsultDetalle(): void {
-    this.visibleDetalle.set( false)
+    this.visibleDetalle.set(false)
   }
 
-  openDrawerforConsultDetalle(): void{
-    this.visibleDetalle.set(true) 
+  openDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set(true)
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {

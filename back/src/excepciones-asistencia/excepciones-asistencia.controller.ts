@@ -5,11 +5,12 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { AsistenciaController } from "src/controller/asistencia.controller";
 
-const getOptionsPersonalPrestamoAprobado: any[] = [
+const getOptionsExcepcionAsistenciaAprobado: any[] = [
   { label: 'Aprobado', value: 'S' },
   { label: 'Rechazado', value: 'N' },
   { label: 'Anulado', value: 'A' },
-  { label: 'Pendiente', value: null }
+  { label: 'Pendiente', value: 'P' },
+  { label: 'Anulado (Coordinador Zona)', value: 'AC' },
 ]
 
 const columnsExcepcionesAsistencia: any[] = [
@@ -90,7 +91,7 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    name: "Grupo Actividad Obj.",
+    name: "Grupo Actividad Objetivo",
     type: "string",
     id: "GrupoActividadObjetivo",
     field: "GrupoActividadObjetivo",
@@ -99,7 +100,7 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    name: "Grupo Actividad Obj.",
+    name: "Grupo Actividad Objetivo",
     type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
@@ -114,19 +115,48 @@ const columnsExcepcionesAsistencia: any[] = [
     type: 'string',
     fieldName: 'art.PersonalArt14Autorizado',
     formatter: 'collectionFormatter',
-    params: { collection: getOptionsPersonalPrestamoAprobado, },
+    params: { collection: getOptionsExcepcionAsistenciaAprobado},
+    // searchComponent: 'inputForExcepcionAsistenciaAprobadoSearch', el que va
     searchComponent: 'inputForPrestamoAprobadoSearch',
     searchType: 'string',
     sortable: true,
     searchHidden: false
   },
   {
-    id: 'FechaDeAutorizacion', name: 'Fecha de Autorizacion', field: 'FechaDeAutorizacion',
-    fieldName: 'art.FechaDeAutorizacion',
+    id: 'AutorizadoFecha', name: 'Fecha Aprobación', field: 'AutorizadoFecha',
+    fieldName: 'art.AutorizadoFecha',
     type: 'date',
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    id: 'AutorizadoPor', name: 'Aprobado Por', field: 'AutorizadoPor',
+    fieldName: 'art.AutorizadoPor',
+    type: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: 'PersonalArt14Anulacion', name: 'Fecha Anulación/Rechazo', field: 'PersonalArt14Anulacion',
+    fieldName: 'art.PersonalArt14Anulacion',
+    type: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
+
+  },
+  {
+    id: 'AnulacionUsuario', name: 'Anulado/Rechazado Por', field: 'AnulacionUsuario',
+    fieldName: 'art.AnulacionUsuario',
+    type: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
+
   },
   {
     id: 'PersonalArt14DetalleMotivo', name: 'Motivo', field: 'PersonalArt14DetalleMotivo',
@@ -197,25 +227,42 @@ const columnsExcepcionesAsistencia: any[] = [
     searchHidden: true
   },
   {
-    id: 'PersonalArt14AudFechaMod', name: 'Fecha Ult. Mod.', field: 'PersonalArt14AudFechaMod',
+    id: 'PersonalArt14AudFechaIng', name: 'Fecha Ingreso', field: 'PersonalArt14AudFechaIng',
+    fieldName: 'art.PersonalArt14AudFechaIng',
+    type: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
+
+  },
+  {
+    id: 'PersonalArt14AudUsuarioIng', name: 'Usuario Ingreso', field: 'PersonalArt14AudUsuarioIng',
+    fieldName: 'art.PersonalArt14AudUsuarioIng',
+    type: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
+  },
+  {
+    id: 'PersonalArt14AudFechaMod', name: 'Fecha Ultima Modificación.', field: 'PersonalArt14AudFechaMod',
     fieldName: 'art.PersonalArt14AudFechaMod',
     type: 'date',
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    showGridColumn: false
   },
   {
-    id: 'PersonalArt14AudUsuarioMod', name: 'Usuario Ult. Mod.', field: 'PersonalArt14AudUsuarioMod',
+    id: 'PersonalArt14AudUsuarioMod', name: 'Usuario Ultima Modificación.', field: 'PersonalArt14AudUsuarioMod',
     fieldName: 'art.PersonalArt14AudUsuarioMod',
     type: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    showGridColumn: false
   },
-
-
-  // art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod
-
 
 ]
 
@@ -234,18 +281,21 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const year = periodo ? periodo.getFullYear() : 0
     const month = periodo ? periodo.getMonth() + 1 : 0
 
-    
+
     try {
       const list = await queryRunner.query(`
         SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-              , art.PersonalArt14Autorizado,
+              , ISNULL(art.PersonalArt14Autorizado, 'P') AS PersonalArt14Autorizado,
               art.PersonalArt14FormaArt14,
               CONCAT(ISNULL(art.PersonalArt14FormaArt14,''),'/',ISNULL(art.PersonalArt14ConceptoId,0)) AS PersonalArt14FormaCompuesto,
               art.PersonalArt14CategoriaId
               , art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora
               , art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion
               , art.PersonalArt14AudFechaIng,art.PersonalArt14AudUsuarioIng,art.PersonalArt14AudIpIng,art.PersonalArt14AudFechaMod,art.PersonalArt14AudUsuarioMod,art.PersonalArt14AudIpMod
-              , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AudFechaMod, null) AS FechaDeAutorizacion
+              , art.AutorizadoFecha
+              , art.AutorizadoPor
+              , art.PersonalArt14Anulacion
+              , art.AnulacionUsuario
               , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde
               , IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
               , CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo
@@ -350,7 +400,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14AutorizadoDesde = PersonalArt14Desde, PersonalArt14AutorizadoHasta = PersonalArt14Hasta, PersonalArt14Autorizado = 'S', PersonalArt14Anulacion = null,
+      SET PersonalArt14AutorizadoDesde = PersonalArt14Desde, PersonalArt14AutorizadoHasta = PersonalArt14Hasta, PersonalArt14Autorizado = 'S', PersonalArt14Anulacion = null, AnulacionUsuario = null,
+      AutorizadoPor = @4, AutorizadoFecha = @2,
       PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4      
       WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId, now, ip, usuario])
@@ -430,7 +481,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14Anulacion = @2, PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4, PersonalArt14Autorizado = 'N'
+      SET PersonalArt14Anulacion = @2,AnulacionUsuario = @4, PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4, PersonalArt14Autorizado = 'N'
       WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
@@ -510,9 +561,9 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14Autorizado = null, PersonalArt14Anulacion = null,
+      SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14Autorizado = null, PersonalArt14Anulacion = null, AnulacionUsuario = null, AutorizadoPor = null, AutorizadoFecha = null,
       PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4
-      WHERE PersonalArt14Id = @0 AND PersonalId = @1fi
+      WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId, now, ip, usuario])
       return 1
     }
