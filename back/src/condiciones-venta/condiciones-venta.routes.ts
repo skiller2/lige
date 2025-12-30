@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
-import { condicionesVentaController } from "../controller/controller.module";
+import { condicionesVentaController, facturacionController } from "../controller/controller.module";
+import { facturacionRouter } from "src/facturacion/facturacion.routes";
 
 export const condicionesVentaRouter = Router();
 
@@ -20,4 +21,8 @@ condicionesVentaRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.
  condicionesVentaRouter.get('/exist/:codobjId/:PeriodoDesdeAplica',
    [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   condicionesVentaController.existCondicionVenta(req, res, next)
+})
+
+condicionesVentaRouter.get('/options', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getTipoProductoSearchOptions(req, res, next)
 })
