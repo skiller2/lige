@@ -155,12 +155,14 @@ export class CondicionesVentaController extends BaseController {
     }
 
     async listCondicionesVenta(req: any, res: any, next: any) {
-
-        const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
-        const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
-        console.log("req.body.options.", req.body.options);
+        const filterSql = filtrosToSql(req.body.filters.filtros, this.listaColumnas);
+        const orderBy = orderToSQL(req.body.filters.sort)
+        const queryRunner = dataSource.createQueryRunner();
+       console.log("req.body.periodo...", req.body.periodo)
+        const periodoDate = new Date(req.body.periodo)
+        const anio = periodoDate.getFullYear()
+        const mes = periodoDate.getMonth() + 1
 
         try {
 
@@ -192,7 +194,7 @@ export class CondicionesVentaController extends BaseController {
                 Left join Personal per on per.PersonalId=conven.AutorizacionPersonalId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)    AND 
-             ${filterSql} ${orderBy}`, [2025, 10])
+             ${filterSql} ${orderBy}`, [anio, mes])
 
             this.jsonRes(
                 {
@@ -213,7 +215,7 @@ export class CondicionesVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const CondicionVenta = { ...req.body };
         console.log(CondicionVenta)
-        let CondicionVentaNew = { CondicionVentaId: 0}
+       // let CondicionVentaNew = { CondicionVentaId: 0}
         try {
             //validaciones
             await this.FormValidations(CondicionVenta, queryRunner)
@@ -228,7 +230,7 @@ export class CondicionesVentaController extends BaseController {
 
             await this.insertInfoProductos(queryRunner, objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, CondicionVenta.PeriodoDesdeAplica, CondicionVenta.infoProductos, usuario, ip)
 
-           CondicionVentaNew.CondicionVentaId = await this.insertCondicionVenta(queryRunner,
+          await this.insertCondicionVenta(queryRunner,
              objetivoInfo.clienteId, 
              objetivoInfo.ClienteElementoDependienteId,
              CondicionVenta.PeriodoDesdeAplica,
@@ -239,10 +241,8 @@ export class CondicionesVentaController extends BaseController {
              usuario,
              ip)
 
-             await this.rollbackTransaction(queryRunner)
-
-            //await queryRunner.commitTransaction()
-            return this.jsonRes(CondicionVentaNew, res, 'Carga  de nuevo registro exitoso');
+            await queryRunner.commitTransaction()
+            return this.jsonRes({}, res, 'Carga  de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -401,8 +401,7 @@ export class CondicionesVentaController extends BaseController {
                 GeneracionFacturaDia, 
                 GeneracionFacturaDiaComplemento,
                 Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
-           const CondicionVentaId = await queryRunner.query(`SELECT IDENT_CURRENT('CondicionVenta')`)
-           return CondicionVentaId[0]['']
+         
     }
 
     async ObjetivoInfoFromId(objetivoId: string) {

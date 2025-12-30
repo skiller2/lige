@@ -1,6 +1,6 @@
 import { Component, Inject, Output, EventEmitter, computed, input, ChangeDetectionStrategy, OnInit, model, output, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
@@ -11,12 +11,6 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 
-
-interface ListOptions {
-  filtros: any[];
-  extra: any;
-  sort: any;
-}
 
 
 @Component({
@@ -39,13 +33,13 @@ export class TableCondicionVentaComponent implements OnInit {
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
   private dataAngularGrid: [] = [];
+  periodo = input<Date>();
   codobj = model<string>('');
   PeriodoDesdeAplica = model<string>('');
 
-  private listOptions: ListOptions = {
+  private listOptions: listOptionsT = {
     filtros: [],
-    sort: null,
-    extra: null,
+    sort: null
   };
 
   private previousCodobj: string = '';
@@ -61,6 +55,9 @@ export class TableCondicionVentaComponent implements OnInit {
         this.previousCodobj = currentCodobj;
         this.formChange$.next('');
       }
+      if (this.periodo()) {
+        this.formChange$.next('');
+      }
      });
   }
 
@@ -69,7 +66,7 @@ export class TableCondicionVentaComponent implements OnInit {
 
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
-    switchMap(() => this.apiService.setListCondicionesVenta({ options: this.listOptions }).pipe(
+    switchMap(() => this.apiService.setListCondicionesVenta( this.listOptions , this.periodo()).pipe(
       map(data => {
         this.dataAngularGrid = data.list;
         return data.list;

@@ -1739,9 +1739,8 @@ export class ApiService {
   }
 
 
-  setListCondicionesVenta(filters: any) { 
-    const parameter = filters
-    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/list', parameter).pipe(
+  setListCondicionesVenta(filters: any, periodo: any) { 
+    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/list', {filters, periodo}).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );

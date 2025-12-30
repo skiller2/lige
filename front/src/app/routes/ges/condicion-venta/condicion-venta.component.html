@@ -53,7 +53,7 @@
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-        <app-table-condicion-venta #tableCondicionVenta [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-table-condicion-venta>
+        <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-table-condicion-venta>
       </nz-tab>
 
       <nz-tab>
