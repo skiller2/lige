@@ -1149,15 +1149,14 @@ export class AsistenciaController extends BaseController {
         [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
 
-      let hasta: Date = new Date(fechaDesde);
-      hasta.setDate(fechaDesde.getDate() - 1);
       let recupdate = 0;
       let recdelete = 0;
       for (const row of resultAutoriz) {
         recupdate++;
         await queryRunner.query(
-          `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-          [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
+          `UPDATE PersonalArt14 SET AnulacionUsuario=@3,PersonalArt14Anulacion=@2,PersonalArt14Autorizado=@5, PersonalArt14AudFechaMod=@2, PersonalArt14AudUsuarioMod=@3, PersonalArt14AudIpMod=@4 
+            WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
+          [row["PersonalArt14Id"], PersonalId, now, usuario, ip, 'AC']
         );
       }
 
