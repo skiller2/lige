@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -13,6 +13,8 @@ import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { HabilitacionesDetalleComponent } from 'src/app/routes/ges/habilitaciones-detalle/habilitaciones-detalle';
 import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
+import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-habilitaciones',
@@ -24,6 +26,9 @@ import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaci
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HabilitacionesComponent {
+
+  public router = inject(Router);
+  public route = inject(ActivatedRoute);
 
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
@@ -52,7 +57,13 @@ export class HabilitacionesComponent {
   private injector = inject(Injector)
   startFilters = signal<any[]>([])
 
-  columns$ = this.apiService.getCols('/api/habilitaciones/cols')
+  columns$ = this.apiService.getCols('/api/habilitaciones/cols').pipe(
+      map((cols) => {
+        if (cols[3]) {
+          cols[3].asyncPostRender = this.renderApellidoNombreComponent.bind(this)
+        }
+        return cols
+      }))
 
   async ngOnInit() {
 
@@ -134,6 +145,17 @@ export class HabilitacionesComponent {
 
   openDrawerforForm(): void{
     this.visibleForm.set(true) 
+  }
+
+  renderApellidoNombreComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    
+    let PersonalId = dataContext.PersonalId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params:{ PersonalId: PersonalId } , detail: cellNode.innerText})
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+  
+    cellNode.replaceChildren(componentOutput.domElement)
+    
   }
 
 }

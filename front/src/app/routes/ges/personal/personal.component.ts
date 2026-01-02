@@ -21,8 +21,8 @@ import { PersonalDocumentosDrawerComponent } from '../personal-documentos-drawer
 import { PersonalCategoriaDrawerComponent } from '../personal-categoria-drawer/personal-categoria-drawer.component'
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component'
 import { PersonalActaDrawerComponent } from '../personal-acta-drawer/personal-acta-drawer.component'
-
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
+import { ActivatedRoute, Router } from '@angular/router';
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
@@ -45,6 +45,9 @@ import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOut
 })
 
 export class PersonalComponent {
+  public router = inject(Router);
+  public route = inject(ActivatedRoute);
+
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
@@ -55,7 +58,7 @@ export class PersonalComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: any[] = []
+  startFilters = signal<any[]>([])
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -120,9 +123,20 @@ export class PersonalComponent {
     // this.gridOptions.rowSelectionOptions = {
     //     selectActiveRow: true
     // }
-    this.startFilters = [
+    this.startFilters.set([
       { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
-    ]
+    ])
+  }
+
+  ngAfterViewInit(): void {
+    
+    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
+
+    setTimeout(() => {
+      if (PersonalId > 0) {
+        this.startFilters.set([ {field:'ApellidoNombre', condition:'AND', operator:'=', value: String(PersonalId), forced:false} ]);
+      }
+    }, 1000)
   }
 
   async angularGridReady(angularGrid: any) {

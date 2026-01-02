@@ -22,7 +22,7 @@ const GridColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Personal",
+        name: "Apellido Nombre",
         type: "number",
         id: "PersonalId",
         field: "PersonalId",
@@ -521,6 +521,9 @@ export class HabilitacionesController extends BaseController {
         // const AudFechaIng = req.body.AudFechaIng
         const file: any[] = req.body.file
 
+        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
+        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
+
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
@@ -607,6 +610,9 @@ export class HabilitacionesController extends BaseController {
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
         // const file: any[] = req.body.archivo
+
+        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
+        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
 
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -723,7 +729,7 @@ export class HabilitacionesController extends BaseController {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            //Validacion
+            //Validación
             let error: string[] = []
             if (!GestionHabilitacionEstadoCodigo) {
                 error.push(` Estado`)
@@ -740,17 +746,18 @@ export class HabilitacionesController extends BaseController {
                 throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
             }
 
-            // const valHabilitacionNecesaria = await queryRunner.query(`
-            //     SELECT PersonalHabilitacionNecesariaId
-            //     FROM PersonalHabilitacionNecesaria
-            //     WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
-            //     AND PersonalHabilitacionNecesariaDesde <= @2
-            //     AND (PersonalHabilitacionNecesariaHasta >= @3 || PersonalHabilitacionNecesariaHasta IS NULL)
-            // `, [ PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta ])
-            // if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
-            //     throw new ClientException(`El personal no tiene la habilitacion necesaria del Lugar Habilitacion`)
-            // }
-
+            const valHabilitacionNecesaria = await queryRunner.query(`
+                SELECT PersonalHabilitacionNecesariaId
+                FROM PersonalHabilitacionNecesaria
+                WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
+                AND PersonalHabilitacionNecesariaDesde <= @2
+                AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
+            `, [ PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta ])
+            console.log('valHabilitacionNecesaria: ', valHabilitacionNecesaria);
+            
+            if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
+                throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
+            }
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
@@ -763,20 +770,31 @@ export class HabilitacionesController extends BaseController {
 
             await queryRunner.query(`
                 INSERT INTO PersonalHabilitacion (
-                PersonalHabilitacionNecesariaId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
-                , PersonalHabilitacionRechazado, PersonalHabilitacionNecesariaDesde, PersonalHabilitacionNecesariaHasta
+                PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId
+                , PersonalHabilitacionRechazado, PersonalHabilitacionDesde, PersonalHabilitacionHasta
                 , GestionHabilitacionCodigoUlt
-                , PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudUsuarioIng, PersonalHabilitacionNecesariaAudIpIng
-                , PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudUsuarioMod, PersonalHabilitacionNecesariaAudIpMod
+                , AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AusUsuarioMod
                 ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @7, @8, @8, @9, @9)
             `, [newPersonalHabilitacionId, PersonalId, LugarHabilitacionId
                 , 'N', PersonalHabilitacionDesde, PersonalHabilitacionHasta
                 , newCodigoUlt
-                , fechaActual, usuario, ip
+                , fechaActual, ip, usuario
             ])
-            
 
-            //Inserta el Codigo registrado
+            for (const codigo of HabilitacionCategoriaCodigo) {
+                await queryRunner.query(`
+                INSERT INTO HabilitacionCategoriaPersonal (
+                PersonalId, HabilitacionCategoriaCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                , Desde, Hasta
+                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+                `, [ 
+                    PersonalId, codigo, newPersonalHabilitacionId, LugarHabilitacionId
+                    , PersonalHabilitacionDesde, PersonalHabilitacionHasta
+                    , fechaActual, usuario, ip
+                ])
+            }
+
             await queryRunner.query(`
             INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
             , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
