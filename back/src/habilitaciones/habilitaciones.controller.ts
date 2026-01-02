@@ -22,7 +22,7 @@ const GridColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Personal",
+        name: "Apellido Nombre",
         type: "number",
         id: "PersonalId",
         field: "PersonalId",
