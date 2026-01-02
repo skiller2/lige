@@ -1889,14 +1889,20 @@ export class ApiService {
     );
   }
 
-  addGestionHabiltacion(detalle:any){
-    return this.http.post<ResponseJSON<any>>('/api/habilitaciones/add-detalle', detalle).pipe(
+  addPersonalHabiltacion(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/add', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updateGestionHabiltacion(detalle:any){
-    return this.http.post<ResponseJSON<any>>('/api/habilitaciones/update-detalle', detalle).pipe(
+  addGestionHabiltacion(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/add-detalle', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  updateGestionHabiltacion(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/update-detalle', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res.data)),
     )
   }

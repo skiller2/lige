@@ -48,7 +48,7 @@ export class HabilitacionesFormDrawerComponent {
     PersonalHabilitacionId:0,
     PersonalId:0,
     LugarHabilitacionId:0,
-    HabilitacionCategoriaCodigo:'',
+    HabilitacionCategoriaCodigo:[],
     // GestionHabilitacionCodigo:0,
     GestionHabilitacionEstadoCodigo:0,
     Detalle:'',
@@ -111,7 +111,7 @@ export class HabilitacionesFormDrawerComponent {
 
     try {
 
-      // await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
+      await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
 
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()
