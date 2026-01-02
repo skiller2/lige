@@ -40,6 +40,7 @@ PeriodoDesdeAplica = model<string>('');
     this.PeriodoDesdeAplica.set('')
   }
 
+  
 
   async handleAddOrUpdate(){
     //this.childTableCondicionVenta().RefreshCondVenta.set(true)
@@ -52,10 +53,13 @@ PeriodoDesdeAplica = model<string>('');
        // this.childAlta().newRecord()
         break
       case 3: //DETAIL
-       // this.childDetalle().viewRecord(true)
+       //this.childDetalle().viewRecord(true)
         break;
       case 2: //EDIT
-       // this.childEditar().viewRecord(false)
+        this.childEditar().viewRecord(false)
+        break;
+        case 1: //list
+        this.ngOnInit()
         break;
         default:
         break;

@@ -1,5 +1,6 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
+import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryRunner, QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
@@ -423,21 +424,40 @@ export class CondicionesVentaController extends BaseController {
         }
       }
 
-    async existCondicionVenta(req: any, res: any, next: any) {
-      try {
-        
+      async infCondicionVenta(req: any, res: Response, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const codobjId = Number(req.params.codobjId)
+            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId)
+            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica) 
+            let infoCondicionVenta = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica)
 
-        console.log("req.params ", req.params.codcliente)
-
-        console.log("codcliente ", req.params.codcliente)
-        console.log("codclienteelemento ", req.params.codclienteelemento)
-        console.log("periodoDesdeAplica ", req.params.periodoDesdeAplica)
-        const result = await dataSource.query(`SELECT ClienteId from CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`, [req.params.codcliente, req.params.codclienteelemento, req.params.periodoDesdeAplica])
-        return result
-      } catch (error) {
-       // return next(error)
-      }
+           /* if (domiclio) {
+                infoCliente = { ...infoCliente[0], ...domiclio[0] }
+            } else {
+                infoCliente = infoCliente[0]
+            }
+            infoCliente.infoDomicilio = domiclio
+            */
+            await queryRunner.commitTransaction()
+            return this.jsonRes(infoCondicionVenta, res)
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
     }
 
 
+    
+    async getInfoCondicionVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
+
+
+        return await
+         queryRunner.query(` SELECT ClienteId,ClienteElementoDependienteId,PeriodoDesdeAplica,PeriodoFacturacion,GeneracionFacturaDia,GeneracionFacturaDiaComplemento,Observaciones from CondicionVenta 
+            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+             [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
+    }
 }

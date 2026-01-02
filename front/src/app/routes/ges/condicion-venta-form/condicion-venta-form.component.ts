@@ -59,9 +59,12 @@ export class CondicionVentaFormComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      this.formCondicionVenta.patchValue({
-        codobjId: this.codobjId(),
-      });
+   
+        this.formCondicionVenta.patchValue({
+          codobjId: this.codobjId(),
+        });
+
+      
     });
   }
 
@@ -131,25 +134,53 @@ export class CondicionVentaFormComponent implements OnInit {
     this.objetivoExtended.set(null);
     this.formCondicionVenta.markAsPristine();
   }
-
+*/
   
 
   async viewRecord(readonly: boolean) {
-    if (this.CondicionVentaIdForEdit())
-     // await this.load()
+    if (this.codobjId() && this.PeriodoDesdeAplica())
+      await this.load()
     if (readonly)
       this.formCondicionVenta.disable()
     else
       this.formCondicionVenta.enable()
-    this.formCondicionVenta.get('id')?.disable()
     this.formCondicionVenta.markAsPristine()
 
   }
-  */
+
+  async load() {
+    // this.files = []
+
+    let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta( this.codobjId(), this.PeriodoDesdeAplica()))
+console.log("infoCliente ", infoCliente)
+   // this.infoClienteContacto().clear()
+
+   // infoCliente.infoClienteContacto.forEach((obj: any) => {
+   //   this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+   // });
+
+    if (infoCliente && infoCliente.length > 0) {
+      const data = infoCliente[0];
+      this.formCondicionVenta.patchValue({
+        //ClienteId: data.ClienteId ?? null,
+        //ClienteElementoDependienteId: data.ClienteElementoDependienteId ?? null,
+        PeriodoDesdeAplica: data.PeriodoDesdeAplica,
+        PeriodoFacturacion: data.PeriodoFacturacion ,
+        GeneracionFacturaDia: data.GeneracionFacturaDia ,
+        GeneracionFacturaDiaComplemento: data.GeneracionFacturaDiaComplemento,
+        Observaciones: data.Observaciones 
+      });
+    }
+    //this.formCondicionVenta.get('codobjId')?.disable()
+    //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
+
+  }
+
+  
   ngOnInit(): void {
-  this.formCondicionVenta.patchValue({
-    codobjId: this.codobjId(),
-  });
+    this.formCondicionVenta.patchValue({
+      codobjId: this.codobjId(),
+    });
   }
 
   objetivoDetalleChange(event: any) {

@@ -18,11 +18,11 @@ condicionesVentaRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.
   condicionesVentaController.addCondicionVenta(req, res, next)
 })
 
- condicionesVentaRouter.get('/exist/:codobjId/:PeriodoDesdeAplica',
-   [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  condicionesVentaController.existCondicionVenta(req, res, next)
-})
-
 condicionesVentaRouter.get('/options', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   condicionesVentaController.getTipoProductoSearchOptions(req, res, next)
+})
+
+
+condicionesVentaRouter.get('/infCondicionVenta/:codobjId/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+  condicionesVentaController.infCondicionVenta(req, res, next)
 })

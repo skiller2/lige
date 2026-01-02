@@ -1310,6 +1310,16 @@ export class SearchService {
       );
   }
 
+  getInfoCondicionVenta(codobjId: string, PeriodoDesdeAplica: string) {
+    return this.http
+      .get<ResponseJSON<any>>(`api/condiciones-venta/infCondicionVenta/${codobjId}/${PeriodoDesdeAplica}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
+
   getEstadoCustodia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/custodia/estados`).pipe(
       map(res => res.data),

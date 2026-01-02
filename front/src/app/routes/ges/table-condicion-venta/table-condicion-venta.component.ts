@@ -125,14 +125,23 @@ export class TableCondicionVentaComponent implements OnInit {
 
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-console.log("row ", row)
+
     if (row?.id) {
 
-      const result = await firstValueFrom(this.apiService.existCondicionVenta(row.codobj, row.PeriodoDesdeAplica));
-      console.log("result ", result)
       this.codobj.set(row.codobj);
       this.PeriodoDesdeAplica.set(row.PeriodoDesdeAplica);
-    }
+
+      //if (row?.id && row.codobj && row.PeriodoDesdeAplica) {
+
+      //  const result = await firstValueFrom(this.apiService.existCondicionVenta(row.codobj, row.PeriodoDesdeAplica));
+      //  if (result.length > 0) {
+      //    this.codobj.set(row.codobj);
+      //    this.PeriodoDesdeAplica.set(row.PeriodoDesdeAplica);
+      //  }
+      
+      }
+
+    
 
   }
 
