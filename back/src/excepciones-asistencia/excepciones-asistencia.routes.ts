@@ -12,14 +12,15 @@ excepcionesAsistenciaRouter.post('/list', [authMiddleware.verifyToken, authMiddl
   excepcionesAsistenciaController.list(req, res, next)
 })
 
-excepcionesAsistenciaRouter.post('/aprobar', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gOperaciones'])], (req, res, next) => {
+// Nota: se agrega 'Liquidaciones Consultas' en acción de aprobar, rechazar y pendiente (Excepcion asistencia) para contemplar caso de ArAy
+excepcionesAsistenciaRouter.post('/aprobar', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gOperaciones'])], (req, res, next) => {
   excepcionesAsistenciaController.personalArt14AprovarLista(req, res, next)
 })
 
-excepcionesAsistenciaRouter.post('/rechazar', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gOperaciones'])], (req, res, next) => {
+excepcionesAsistenciaRouter.post('/rechazar', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gOperaciones'])], (req, res, next) => {
   excepcionesAsistenciaController.personalArt14RechazarLista(req, res, next)
 })
 
-excepcionesAsistenciaRouter.post('/pendiente', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gOperaciones'])], (req, res, next) => {
+excepcionesAsistenciaRouter.post('/pendiente', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gOperaciones'])], (req, res, next) => {
   excepcionesAsistenciaController.personalArt14PendienteLista(req, res, next)
 })
