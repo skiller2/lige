@@ -801,6 +801,7 @@ export class CustodiaController extends BaseController {
 
     async validPersona(PersonalId: number, fechaDesde: Date, queryRunner: QueryRunner, usuario: string, ip: string) {
         let errores: string[] = []
+        fechaDesde.setHours(0, 0, 0, 0)
         const sitrev = await queryRunner.query(`SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, ps.PersonalSituacionRevistaSituacionId, ps.PersonalSituacionRevistaDesde, ps.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion
             FROM Personal per
             LEFT JOIN PersonalSituacionRevista ps  ON ps.PersonalId = per.PersonalId AND ps.PersonalSituacionRevistaDesde <= @1  AND @1 <= ISNULL(ps.PersonalSituacionRevistaHasta,'9999-12-31')
@@ -930,7 +931,9 @@ export class CustodiaController extends BaseController {
 
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+                    console.log('Validando Persona:', obj.personalId, new Date(objetivoCustodia.fechaInicio))
                     const erroresPersona = await this.validPersona(obj.personalId, new Date(objetivoCustodia.fechaInicio), queryRunner, usuario, ip);
+                    console.log('Errores Persona:', erroresPersona)
                     errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
