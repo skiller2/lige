@@ -887,7 +887,8 @@ export class AsistenciaController extends BaseController {
 
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
-                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
+                `UPDATE PersonalArt14 SET PersonalArt14Autorizado='AC',AnulacionUsuario=@4,PersonalArt14Anulacion=@3, PersonalArt14AutorizadoDesde=null, PersonalArt14AutorizadoHasta=null
+                , PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                             WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                 [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
               );
@@ -899,7 +900,8 @@ export class AsistenciaController extends BaseController {
 
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
-                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
+                `UPDATE PersonalArt14 SET PersonalArt14Autorizado='AC',AnulacionUsuario=@4,PersonalArt14Anulacion=@3, PersonalArt14AutorizadoDesde=null, PersonalArt14AutorizadoHasta=null
+                , PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                 [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
               );
@@ -916,7 +918,8 @@ export class AsistenciaController extends BaseController {
         }
         if (PersonalArt14FormaArt14 == metodo) {
           await queryRunner.query(
-            `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
+            `UPDATE PersonalArt14 SET PersonalArt14Autorizado='AC',AnulacionUsuario=@4,PersonalArt14Anulacion=@3, PersonalArt14AutorizadoDesde=null, PersonalArt14AutorizadoHasta=null
+            , PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
             [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
           );
@@ -1045,7 +1048,7 @@ export class AsistenciaController extends BaseController {
           fechaDesde,  // PersonalArt14Desde
           fechaHasta,   // PersonalArt14Hasta
 
-          null, // PersonalArt14Autorizado
+          'P', // PersonalArt14Autorizado
           null, // PersonalArt14AutorizadoDesde
           null, // PersonalArt14AutorizadoHasta
           null, // PersonalArt14Anulacion
@@ -2074,9 +2077,27 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 			WHERE art14SX.PersonalArt14FormaArt14 = 'S' AND art14SX.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(@1,@2,'01') >= art14SX.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(@1,@2,'02') <= ISNULL(art14SX.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14SX.PersonalArt14Anulacion IS NULL
 			GROUP BY art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId
 		) art14s ON art14S.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14S.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+
       LEFT JOIN PersonalArt14 art14E ON art14E.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14E.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14E.PersonalArt14FormaArt14 = 'E' AND art14E.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14E.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14E.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14E.PersonalArt14Anulacion IS NULL
-      LEFT JOIN PersonalArt14 art14H ON art14H.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14H.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14H.PersonalArt14FormaArt14 = 'H' AND art14H.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14H.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14H.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14H.PersonalArt14Anulacion IS NULL
-      LEFT JOIN PersonalArt14 art14A ON art14A.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14A.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14A.PersonalArt14FormaArt14 = 'A' AND art14A.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14A.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14A.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14A.PersonalArt14Anulacion IS NULL
+      
+		
+		
+      LEFT JOIN (
+		SELECT art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId, SUM(art14SX.PersonalArt14Horas) PersonalArt14Horas FROM 
+			PersonalArt14 art14SX 
+			WHERE art14SX.PersonalArt14FormaArt14 = 'H' AND art14SX.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(@1,@2,'01') >= art14SX.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(@1,@2,'02') <= ISNULL(art14SX.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14SX.PersonalArt14Anulacion IS NULL
+			GROUP BY art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId
+		) art14H ON art14H.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14H.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+
+
+
+      LEFT JOIN (
+		SELECT art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId, SUM(art14SX.PersonalArt14AdicionalHora) PersonalArt14AdicionalHora FROM 
+			PersonalArt14 art14SX 
+			WHERE art14SX.PersonalArt14FormaArt14 = 'A' AND art14SX.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(@1,@2,'01') >= art14SX.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(@1,@2,'02') <= ISNULL(art14SX.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14SX.PersonalArt14Anulacion IS NULL
+			GROUP BY art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId
+		) art14A ON art14A.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14A.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+
       
       LEFT JOIN ValorLiquidacion valart14cat ON valart14cat.ValorLiquidacionSucursalId = suc.SucursalId AND valart14cat.ValorLiquidacionTipoAsociadoId = art14E.PersonalArt14TipoAsociadoId AND valart14cat.ValorLiquidacionCategoriaPersonalId = art14E.PersonalArt14CategoriaId AND 
       DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
@@ -2088,7 +2109,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
       AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C','R')
-
+      
       ${extraFiltersStr}
 `,
       [, anio, mes]

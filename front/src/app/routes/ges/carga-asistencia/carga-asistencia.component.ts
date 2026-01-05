@@ -112,13 +112,15 @@ export class CargaAsistenciaComponent {
             map((data: any[]) => {
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[1][0]?.ClienteDenominacion}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
-                this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
-                [{ value: `Mes: ${mes}` }],
-                [{ value: `Cliente: ${data[1][0]?.ClienteDenominacion} ` }],
-                [{ value: `Código Objetivo: ${data[2][0]?.ObjetivoCodigo}` }],
-                [{ value: `Objetivo: ${data[2][0]?.ClienteElementoDependienteDescripcion}` }],
-                [{ value: `Grupo Actividad: ${data[0][0]?.detalle}` }],
-                []]
+                this.customHeaderExcel = [
+                    [{ value: `Año: ${anio}` }],
+                    [{ value: `Mes: ${mes}` }],
+                    [{ value: `Cliente: ${data[1][0]?.ClienteDenominacion} ` }],
+                    [{ value: `Código Objetivo: ${data[2][0]?.ObjetivoCodigo}` }],
+                    [{ value: `Objetivo: ${data[2][0]?.ClienteElementoDependienteDescripcion}` }],
+                    [{ value: `Grupo Actividad: ${data[0][0]?.detalle}` }],
+                    []
+                ]
 
                 this.angularGridEdit.resizerService.resizeGrid();
 
@@ -134,7 +136,7 @@ export class CargaAsistenciaComponent {
                 this.contratos = data[1]
 
 
-                console.log('ver', data)
+                // console.log('ver', data)
 
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && (this.contratos.length > 0 || data[3].length > 0))
 
@@ -147,11 +149,7 @@ export class CargaAsistenciaComponent {
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
 
-                for (const col of this.angularGridEdit.slickGrid.getColumns())
-                    if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
-
-                totalRecords(this.angularGridEdit, 'apellidoNombre')
-                columnTotal('total', this.angularGridEdit)
+                this.refreshTotals()
                 this.getHorasNormales(this.gridDataInsert)
                 this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB, Observaciones: data[2][0]?.Observaciones}, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
@@ -886,6 +884,8 @@ export class CargaAsistenciaComponent {
         if (lastrow && (lastrow.apellidoNombre != '')) {
             this.addNewItem("bottom")
         }
+
+        this.refreshTotals()
     }
     addCustomHeader() {
         let totalHeader: any[] = []
@@ -976,6 +976,14 @@ export class CargaAsistenciaComponent {
         if (carry)
             result = 'A' + result
         return result
+    }
+
+    private refreshTotals(){
+        for (const col of this.angularGridEdit.slickGrid.getColumns())
+            if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
+
+        totalRecords(this.angularGridEdit, 'apellidoNombre')
+        columnTotal('total', this.angularGridEdit)
     }
 
 }
