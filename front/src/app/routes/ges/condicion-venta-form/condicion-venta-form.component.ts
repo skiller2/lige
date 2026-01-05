@@ -32,13 +32,13 @@ export class CondicionVentaFormComponent implements OnInit {
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
 
   objProductos = {
-    ProductoId: 0,
-    cantidad: 0,
-    importeFijo: 0,
-    IndCantidadHorasVenta: false,
-    IndImporteListaPrecio: false,
-    IndImporteAcuerdoConCliente: false,
-    TextoFactura: '',
+    Cantidad: 0,
+    ImporteFijo: null,
+    IndCantidadHorasVenta: null,
+    IndImporteAcuerdoConCliente: null,
+    IndImporteListaPrecio: null,
+    ProductoCodigo: '',
+    TextoFactura: ''
   }
 
 
@@ -140,39 +140,30 @@ export class CondicionVentaFormComponent implements OnInit {
   async viewRecord(readonly: boolean) {
     if (this.codobjId() && this.PeriodoDesdeAplica())
       await this.load()
-    if (readonly)
+    if (readonly){
       this.formCondicionVenta.disable()
-    else
+    }else{
       this.formCondicionVenta.enable()
+      this.formCondicionVenta.get('PeriodoDesdeAplica')?.disable()
+      this.formCondicionVenta.get('ObjetivoId')?.disable()
+    }
     this.formCondicionVenta.markAsPristine()
 
   }
 
   async load() {
-    // this.files = []
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta( this.codobjId(), this.PeriodoDesdeAplica()))
-console.log("infoCliente ", infoCliente)
-   // this.infoClienteContacto().clear()
+    console.log("infoCliente ", infoCliente)
 
-   // infoCliente.infoClienteContacto.forEach((obj: any) => {
-   //   this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-   // });
+    // Limpiar el FormArray antes de agregar nuevos elementos
+    this.infoProductos().clear();
 
-    if (infoCliente && infoCliente.length > 0) {
-      const data = infoCliente[0];
-      this.formCondicionVenta.patchValue({
-        //ClienteId: data.ClienteId ?? null,
-        //ClienteElementoDependienteId: data.ClienteElementoDependienteId ?? null,
-        PeriodoDesdeAplica: data.PeriodoDesdeAplica,
-        PeriodoFacturacion: data.PeriodoFacturacion ,
-        GeneracionFacturaDia: data.GeneracionFacturaDia ,
-        GeneracionFacturaDiaComplemento: data.GeneracionFacturaDiaComplemento,
-        Observaciones: data.Observaciones 
-      });
-    }
-    //this.formCondicionVenta.get('codobjId')?.disable()
-    //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
+   infoCliente.infoProductos.forEach((obj: any) => {
+     this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+   });
+console.log("infoProductos", this.infoProductos())
+   this.formCondicionVenta.reset(infoCliente)
 
   }
 
@@ -222,7 +213,9 @@ console.log("infoCliente ", infoCliente)
 
   onPeriodoDesdeAplicaChange(date: Date | null): void {
     if (date) {
+      date = new Date(date);
       const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
+      
       this.formCondicionVenta.patchValue({
         PeriodoDesdeAplica: normalizedDate.toISOString(),
       });

@@ -428,20 +428,23 @@ export class CondicionesVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
-            const codobjId = Number(req.params.codobjId)
-            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId)
-            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica) 
-            let infoCondicionVenta = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica)
+            const codobjId = Number(req.params.codobjId);
+            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
+            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
 
-           /* if (domiclio) {
-                infoCliente = { ...infoCliente[0], ...domiclio[0] }
-            } else {
-                infoCliente = infoCliente[0]
-            }
-            infoCliente.infoDomicilio = domiclio
-            */
-            await queryRunner.commitTransaction()
-            return this.jsonRes(infoCondicionVenta, res)
+            const infoCondicionVentaArr = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
+            const infoProductos = await this.getInfoProductos( queryRunner,codobjId, ClienteElementoDependienteId,PeriodoDesdeAplica);
+            console.log("infoProductos", infoProductos)
+            console.log("infoProductos[0]", infoProductos[0])
+            const infoCondicionVenta = infoCondicionVentaArr[0] ;
+
+            if (infoCondicionVenta) 
+            infoCondicionVenta.infoProductos = infoProductos;
+            
+console.log("infoCondicionVenta", infoCondicionVenta)
+            await queryRunner.commitTransaction();
+            return this.jsonRes(infoCondicionVenta, res);
+
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -453,10 +456,31 @@ export class CondicionesVentaController extends BaseController {
 
     
     async getInfoCondicionVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
-
-
         return await
-         queryRunner.query(` SELECT ClienteId,ClienteElementoDependienteId,PeriodoDesdeAplica,PeriodoFacturacion,GeneracionFacturaDia,GeneracionFacturaDiaComplemento,Observaciones from CondicionVenta 
+         queryRunner.query(` SELECT  
+            obj.ObjetivoId,
+            Cond.ClienteId,
+            Cond.ClienteElementoDependienteId,
+            Cond.PeriodoDesdeAplica,
+            Cond.PeriodoFacturacion,
+            Cond.GeneracionFacturaDia,
+            Cond.GeneracionFacturaDiaComplemento,
+            Cond.Observaciones
+        FROM CondicionVenta AS Cond
+        INNER JOIN Objetivo AS obj 
+            ON obj.ClienteId = Cond.ClienteId
+        AND obj.ClienteElementoDependienteId = Cond.ClienteElementoDependienteId
+        WHERE Cond.ClienteId = @0
+        AND Cond.ClienteElementoDependienteId = @1
+        AND Cond.PeriodoDesdeAplica = @2`,
+             [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
+    }
+
+    async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
+        return await
+         queryRunner.query(` 
+            SELECT ProductoCodigo,TextoFactura,Cantidad,IndCantidadHorasVenta,ImporteFijo,IndImporteListaPrecio,IndImporteAcuerdoConCliente
+            FROM CondicionVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
              [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }

@@ -1,9 +1,8 @@
-codobjId --- : {{codobjId()}}
- PeriodoDesdeAplica --- : {{PeriodoDesdeAplica()}}
+
 <form [formGroup]="formCondicionVenta">
   <br>
 
-  <nz-form-item class="marginElement">
+  <nz-form-item class="marginElement" style="display:none">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">codobjId</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
       <input nz-input placeholder="" formControlName="codobjId" type="string" />
@@ -85,14 +84,13 @@ codobjId --- : {{codobjId()}}
   </div>
   <div formArrayName="infoProductos" style="padding-top: 25px;">
     @for (control of infoProductos().controls; track control; let i = $index) {
-      <div
-        [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
+      <div [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}" [style.margin-top.px]="i % 2 !== 0 ? 15 : 0">
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Producto</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
             <nz-select nzAllowClear style="width:100%"
-          nzPlaceHolder="Producto" formControlName="ProductoId" nzShowSearch [nzDropdownMatchSelectWidth]="false">
+          nzPlaceHolder="Producto" formControlName="ProductoCodigo" nzShowSearch [nzDropdownMatchSelectWidth]="false">
           @for (option of $optionsTipoProducto | async; track option) {
             <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
           }
@@ -101,7 +99,7 @@ codobjId --- : {{codobjId()}}
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
             <nz-input-number 
-            formControlName="cantidad" 
+            formControlName="Cantidad" 
             [nzMin]="0" 
             [nzStep]="1" 
             style="width: 100%;" 
@@ -112,7 +110,7 @@ codobjId --- : {{codobjId()}}
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
             <nz-input-number 
             style="width: 100%" 
-            formControlName="importeFijo"
+            formControlName="ImporteFijo"
             [nzMin]="0"
             [nzStep]="0.01"
             nzPlaceHolder="Importe Fijo"
@@ -196,7 +194,7 @@ codobjId --- : {{codobjId()}}
   </div> 
 
   @if (formCondicionVenta.enabled) {
-    <nz-form-item>
+    <nz-form-item class="btn-margintop">
       <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
         <button 
         style="margin-right: 10px;"

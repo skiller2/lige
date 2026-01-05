@@ -53,7 +53,7 @@ PeriodoDesdeAplica = model<string>('');
        // this.childAlta().newRecord()
         break
       case 3: //DETAIL
-       //this.childDetalle().viewRecord(true)
+        this.childDetalle().viewRecord(true)
         break;
       case 2: //EDIT
         this.childEditar().viewRecord(false)

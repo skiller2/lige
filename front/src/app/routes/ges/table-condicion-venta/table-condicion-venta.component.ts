@@ -50,14 +50,14 @@ export class TableCondicionVentaComponent implements OnInit {
     public searchService: SearchService
   ) { 
      effect(() => {
-      const currentCodobj = this.codobj();
+      const currentCodobj = this.codobj()
       if (currentCodobj !== this.previousCodobj) {
-        this.previousCodobj = currentCodobj;
-        this.formChange$.next('');
-      }
+        this.previousCodobj = currentCodobj
+        this.formChange$.next('')     
+       }
       if (this.periodo()) {
-        this.formChange$.next('');
-      }
+        this.formChange$.next('')    
+        }
      });
   }
 
