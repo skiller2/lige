@@ -753,7 +753,6 @@ export class HabilitacionesController extends BaseController {
                 AND PersonalHabilitacionNecesariaDesde <= @2
                 AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
             `, [ PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta ])
-            console.log('valHabilitacionNecesaria: ', valHabilitacionNecesaria);
             
             if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
                 throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
