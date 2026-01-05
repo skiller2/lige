@@ -1,9 +1,27 @@
-import { Component, Inject, Output, EventEmitter, computed, input, ChangeDetectionStrategy, OnInit, model, output, effect } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  OnInit,
+  model,
+  input,
+  effect
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  map,
+  switchMap,
+  tap
+} from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import {
+  AngularGridInstance,
+  AngularUtilService,
+  SlickGrid,
+  GridOption
+} from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -11,81 +29,98 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 
-
-
 @Component({
   selector: 'app-table-condicion-venta',
-    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzAffixModule],
+  standalone: true,
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzAffixModule],
   templateUrl: './table-condicion-venta.component.html',
   styleUrl: './table-condicion-venta.component.less',
-  standalone: true,
+  providers: [AngularUtilService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableCondicionVentaComponent implements OnInit {
 
+  // Trigger para recargar la grilla
+  // Se emite cada vez que hay cambios de filtros o refresh externo
+  formChange$ = new BehaviorSubject('refresh');
 
-  private formChange$ = new BehaviorSubject<string>('');
+  // Estado de loading de la tabla
   tableLoading$ = new BehaviorSubject<boolean>(false);
-  RefreshCondVenta = input<boolean>(false);
-  private angularGrid!: AngularGridInstance;
-  private gridObj!: SlickGrid;
-  private readonly detailViewRowCount = 11;
+
+  // signal desde el padre
+  // Se usa para forzar el refresh de la grilla
+  RefreshCondVenta = model<boolean>(false);
+
+  // Grid (Angular SlickGrid)
+  angularGrid!: AngularGridInstance;
+  gridObj!: SlickGrid;
   gridOptions!: GridOption;
-  private excelExportService = new ExcelExportService();
-  private dataAngularGrid: [] = [];
+  readonly detailViewRowCount = 11;
+
+  // Exportación a Excel
+  excelExportService = new ExcelExportService();
+
+  // Data actual de la grilla
+  dataAngularGrid: [] = [];
+
+  // Período seleccionado (input signal)
   periodo = input<Date>();
+
+  // Objetivo seleccionado
   codobj = model<string>('');
+
+  // Fecha desde aplica
   PeriodoDesdeAplica = model<string>('');
 
-  private listOptions: listOptionsT = {
+  // Filtros y orden de la grilla
+  listOptions: listOptionsT = {
     filtros: [],
     sort: null
   };
 
-  private previousCodobj: string = '';
-
   constructor(
     private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
+    public angularUtilService: AngularUtilService,
     public searchService: SearchService
-  ) { 
-     effect(() => {
-      const currentCodobj = this.codobj()
-      if (currentCodobj !== this.previousCodobj) {
-        this.previousCodobj = currentCodobj
-        this.formChange$.next('')     
-       }
-      if (this.periodo()) {
-        this.formChange$.next('')    
-        }
-     });
-  }
+  ) {}
 
+  // Effect que escucha el refresh desde el padre
+  // Cuando RefreshCondVenta pasa a true, limpia filtros y recarga la grilla
+  private refreshEffect = effect(() => {
+    if (this.RefreshCondVenta()) {
+      console.log('🔄 Recargando grilla');
+      this.listOptions.filtros = [];
+      this.formChange$.next('refresh');
+    }
+  });
 
+  // Columnas de la grilla (configuradas desde backend)
   columns$ = this.apiService.getCols('/api/condiciones-venta/cols');
 
+  // Data source de la grilla
+  // Cada vez que formChange$ emite → se vuelve a pedir la data
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
-    switchMap(() => this.apiService.setListCondicionesVenta( this.listOptions , this.periodo()).pipe(
-      map(data => {
-        this.dataAngularGrid = data.list;
-        return data.list;
-      }),
-      doOnSubscribe(() => this.tableLoading$.next(true)),
-      tap({ complete: () => this.tableLoading$.next(false) })
-    ))
+    switchMap(() =>
+      this.apiService
+        .setListCondicionesVenta(this.listOptions, this.periodo())
+        .pipe(
+          map(data => {
+            this.dataAngularGrid = data.list;
+            console.log('dataAngularGrid...', this.dataAngularGrid);
+            return data.list;
+          }),
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    )
   );
 
   ngOnInit(): void {
     this.initializeGridOptions();
   }
 
-  cambios = effect(() => {
-    this.RefreshCondVenta() 
-    this.formChange$.next('');
-  });
-
-
+  // Configuración base de la grilla
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
       '.gridContainerCondVenta',
@@ -95,25 +130,31 @@ export class TableCondicionVentaComponent implements OnInit {
       this,
       RowDetailViewComponent
     );
+
+    // Ajustes responsive
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
   }
 
+  // Cambio de filtros desde el componente de filtros
   listOptionsChange(options: any): void {
     this.listOptions = options;
-    this.formChange$.next('');
+    this.formChange$.next('filters');
   }
 
+  // Evento cuando la grilla está lista
   angularGridReady(angularGrid: any): void {
     this.angularGrid = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
+    // Actualiza el total de registros
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
     });
   }
 
+  // Exporta la grilla a Excel
   exportGrid(): void {
     this.excelExportService.exportToExcel({
       filename: 'lista-condiciones-venta',
@@ -121,30 +162,14 @@ export class TableCondicionVentaComponent implements OnInit {
     });
   }
 
+  // Selección de filas en la grilla
   async handleSelectedRowsChanged(e: any): Promise<void> {
-
-    const selrow = e.detail.args.rows[0]
-    const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    const selrow = e.detail.args.rows[0];
+    const row = this.angularGrid.slickGrid.getDataItem(selrow);
 
     if (row?.id) {
-
       this.codobj.set(row.codobj);
       this.PeriodoDesdeAplica.set(row.PeriodoDesdeAplica);
-
-      //if (row?.id && row.codobj && row.PeriodoDesdeAplica) {
-
-      //  const result = await firstValueFrom(this.apiService.existCondicionVenta(row.codobj, row.PeriodoDesdeAplica));
-      //  if (result.length > 0) {
-      //    this.codobj.set(row.codobj);
-      //    this.PeriodoDesdeAplica.set(row.PeriodoDesdeAplica);
-      //  }
-      
-      }
-
-    
-
+    }
   }
-
-
-
 }

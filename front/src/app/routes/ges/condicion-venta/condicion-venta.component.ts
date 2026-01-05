@@ -28,8 +28,9 @@ export class CondicionVentaComponent implements OnInit {
   childAlta = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormAlta')
   childDetalle = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormDetalle')
   childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')
+  childTableCondicionVenta = viewChild<TableCondicionVentaComponent>('tableCondicionVenta')
 PeriodoDesdeAplica = model<string>('');
-
+RefreshCondVenta = model<boolean>(false)
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
   }
@@ -58,13 +59,11 @@ PeriodoDesdeAplica = model<string>('');
       case 2: //EDIT
         this.childEditar().viewRecord(false)
         break;
-        case 1: //list
-        this.ngOnInit()
-        break;
         default:
         break;
     }
 
   }
+
 
 }
