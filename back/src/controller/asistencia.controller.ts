@@ -887,7 +887,8 @@ export class AsistenciaController extends BaseController {
 
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
-                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
+                `UPDATE PersonalArt14 SET PersonalArt14Autorizado='AC',AnulacionUsuario=@4,PersonalArt14Anulacion=@3, PersonalArt14AutorizadoDesde=null, PersonalArt14AutorizadoHasta=null
+                , PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                             WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                 [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
               );
@@ -899,7 +900,8 @@ export class AsistenciaController extends BaseController {
 
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
-                `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
+                `UPDATE PersonalArt14 SET PersonalArt14Autorizado='AC',AnulacionUsuario=@4,PersonalArt14Anulacion=@3, PersonalArt14AutorizadoDesde=null, PersonalArt14AutorizadoHasta=null
+                , PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                 [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
               );
@@ -916,7 +918,8 @@ export class AsistenciaController extends BaseController {
         }
         if (PersonalArt14FormaArt14 == metodo) {
           await queryRunner.query(
-            `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2, PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
+            `UPDATE PersonalArt14 SET PersonalArt14Autorizado='AC',AnulacionUsuario=@4,PersonalArt14Anulacion=@3, PersonalArt14AutorizadoDesde=null, PersonalArt14AutorizadoHasta=null
+            , PersonalArt14AudFechaMod=@3, PersonalArt14AudUsuarioMod=@4, PersonalArt14AudIpMod=@5
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
             [row["PersonalArt14Id"], PersonalId, hasta, now, usuario, ip]
           );
