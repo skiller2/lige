@@ -358,7 +358,7 @@ export class HabilitacionesController extends BaseController {
         const periodo = new Date()
         try {
             const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
-
+            
             this.jsonRes(
                 {
                     total: habilitaciones.length,
@@ -467,7 +467,9 @@ export class HabilitacionesController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             const PersonalHabilitacion = await queryRunner.query(`
-            SELECT perhab.PersonalHabilitacionDesde, perhab.PersonalHabilitacionHasta, perhab.PersonalHabilitacionClase , perhab.NroTramite
+            SELECT 
+            perhab.PersonalHabilitacionId, perhab.PersonalId, perhab.PersonalHabilitacionLugarHabilitacionId
+            perhab.PersonalHabilitacionDesde, perhab.PersonalHabilitacionHasta, perhab.PersonalHabilitacionClase , perhab.NroTramite
             FROM PersonalHabilitacion perhab 
             -- JOIN DocumentoRelaciones docrel on docrel.PersonalId=perhab.PersonalId and docrel.PersonalHabilitacionId=docrel.PersonalHabilitacionId and docrel.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
             -- LEFT JOIN Documento doc on doc.DocumentoId = docrel.DocumentoId
@@ -746,17 +748,17 @@ export class HabilitacionesController extends BaseController {
                 throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
             }
 
-            const valHabilitacionNecesaria = await queryRunner.query(`
-                SELECT PersonalHabilitacionNecesariaId
-                FROM PersonalHabilitacionNecesaria
-                WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
-                AND PersonalHabilitacionNecesariaDesde <= @2
-                AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
-            `, [ PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta ])
+            // const valHabilitacionNecesaria = await queryRunner.query(`
+            //     SELECT PersonalHabilitacionNecesariaId
+            //     FROM PersonalHabilitacionNecesaria
+            //     WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
+            //     AND PersonalHabilitacionNecesariaDesde <= @2
+            //     AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
+            // `, [ PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta ])
             
-            if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
-                throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
-            }
+            // if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
+            //     throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
+            // }
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
@@ -780,19 +782,19 @@ export class HabilitacionesController extends BaseController {
                 , fechaActual, ip, usuario
             ])
 
-            for (const codigo of HabilitacionCategoriaCodigo) {
-                await queryRunner.query(`
-                INSERT INTO HabilitacionCategoriaPersonal (
-                PersonalId, HabilitacionCategoriaCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                , Desde, Hasta
-                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
-                `, [ 
-                    PersonalId, codigo, newPersonalHabilitacionId, LugarHabilitacionId
-                    , PersonalHabilitacionDesde, PersonalHabilitacionHasta
-                    , fechaActual, usuario, ip
-                ])
-            }
+            // for (const codigo of HabilitacionCategoriaCodigo) {
+            //     await queryRunner.query(`
+            //     INSERT INTO HabilitacionCategoriaPersonal (
+            //     PersonalId, HabilitacionCategoriaCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+            //     , Desde, Hasta
+            //     , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            //     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+            //     `, [ 
+            //         PersonalId, codigo, newPersonalHabilitacionId, LugarHabilitacionId
+            //         , PersonalHabilitacionDesde, PersonalHabilitacionHasta
+            //         , fechaActual, usuario, ip
+            //     ])
+            // }
 
             await queryRunner.query(`
             INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
@@ -811,6 +813,7 @@ export class HabilitacionesController extends BaseController {
                 ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
                 `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
             }
+            // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
             this.jsonRes({ PersonalHabilitacionId: newPersonalHabilitacionId }, res, 'Carga exitosa');
