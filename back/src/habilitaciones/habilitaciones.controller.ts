@@ -22,6 +22,16 @@ const GridColums: any[] = [
         searchHidden: true
     },
     {
+        id: "PersonalHabilitacionId",
+        name: "PersonalHabilitacionId",
+        field: "PersonalHabilitacionId",
+        fieldName: "b.PersonalHabilitacionId",
+        type: "number",
+        sortable: false,
+        hidden: false,
+        searchHidden: true
+    },
+    {
         name: "Apellido Nombre",
         type: "number",
         id: "PersonalId",
@@ -303,9 +313,9 @@ export class HabilitacionesController extends BaseController {
     }
 
     async habilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
+        periodo.setHours(0,0,0,0)
         return await queryRunner.query(`
         
-
         SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, IIF(c.PersonalId IS NULL,'0','1') HabNecesaria, 
@@ -315,7 +325,7 @@ export class HabilitacionesController extends BaseController {
 		    IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento
 
         FROM Personal per
-        LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId AND ((b.PersonalHabilitacionDesde < @0 AND ISNULL(b.PersonalHabilitacionHasta,'9999-12-31') > @0) OR (b.PersonalHabilitacionDesde IS NULL AND b.PersonalHabilitacionHasta IS NULL))
+        LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId AND ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta,'9999-12-31') >= @0) OR (b.PersonalHabilitacionDesde IS NULL AND b.PersonalHabilitacionHasta IS NULL))
         LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaDesde < @0 AND ISNULL(c.PersonalHabilitacionNecesariaHasta,'9999-12-31') > @0
         LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId OR d.LugarHabilitacionId = c.PersonalHabilitacionNecesariaLugarHabilitacionId
         LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = b.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
