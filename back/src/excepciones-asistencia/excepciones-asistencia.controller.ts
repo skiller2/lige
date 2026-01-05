@@ -285,7 +285,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
     try {
       const list = await queryRunner.query(`
         SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-              , ISNULL(art.PersonalArt14Autorizado, 'P') AS PersonalArt14Autorizado,
+              , art.PersonalArt14Autorizado,
               art.PersonalArt14FormaArt14,
               CONCAT(ISNULL(art.PersonalArt14FormaArt14,''),'/',ISNULL(art.PersonalArt14ConceptoId,0)) AS PersonalArt14FormaCompuesto,
               art.PersonalArt14CategoriaId
@@ -396,7 +396,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
       SELECT PersonalArt14Autorizado FROM PersonalArt14 WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
     `, [personalArt14Id, personalId])
 
-    if (res[0]?.PersonalArt14Autorizado != 'S') {
+    if (res[0]?.PersonalArt14Autorizado == 'A' || res[0]?.PersonalArt14Autorizado == 'AC' || res[0]?.PersonalArt14Autorizado == 'N' ) return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
+    if (res[0]?.PersonalArt14Autorizado == 'P' || res[0]?.PersonalArt14Autorizado == null) {
       const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14

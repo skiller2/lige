@@ -104,7 +104,7 @@
           "icon": "anticon-profile",
           "children": [
             {
-              "text": "Excepción Asistencia (Art.14)",
+              "text": "Excepción Asistencia",
               "i18n": "ges.asistenciaexcepcion",
               "icon": "anticon-profile",
               "link": "/ges/asistencia_excepcion"

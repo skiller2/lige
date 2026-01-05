@@ -1048,7 +1048,7 @@ export class AsistenciaController extends BaseController {
           fechaDesde,  // PersonalArt14Desde
           fechaHasta,   // PersonalArt14Hasta
 
-          null, // PersonalArt14Autorizado
+          'P', // PersonalArt14Autorizado
           null, // PersonalArt14AutorizadoDesde
           null, // PersonalArt14AutorizadoHasta
           null, // PersonalArt14Anulacion

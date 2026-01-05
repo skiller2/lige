@@ -82,6 +82,10 @@ export class ExcepcionesAsistenciaComponent {
       selectActiveRow: false
     }
 
+    this.startFilters.set([
+      { field: 'PersonalArt14Autorizado', condition: 'AND', operator: '=', value: 'P', forced: false },
+    ])
+
     this.selectedDate()
 
     effect(async () => {
