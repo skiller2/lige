@@ -1,9 +1,9 @@
-import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription, distinctUntilChanged } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
@@ -16,10 +16,12 @@ import { LoadingService } from '@delon/abc/loading';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class CondicionVentaFormComponent implements OnInit {
+export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
+  private periodoSubscription?: Subscription;
+  private isNormalizingPeriodo = false;
   /*pristineChange = output<boolean>()*/
 
   CondicionVentaId = model<number>(0);
@@ -32,13 +34,13 @@ export class CondicionVentaFormComponent implements OnInit {
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
 
   objProductos = {
-    ProductoId: 0,
-    cantidad: 0,
-    importeFijo: 0,
-    IndCantidadHorasVenta: false,
-    IndImporteListaPrecio: false,
-    IndImporteAcuerdoConCliente: false,
-    TextoFactura: '',
+    Cantidad: 0,
+    ImporteFijo: null,
+    IndCantidadHorasVenta: null,
+    IndImporteAcuerdoConCliente: null,
+    IndImporteListaPrecio: null,
+    ProductoCodigo: '',
+    TextoFactura: ''
   }
 
 
@@ -140,39 +142,30 @@ export class CondicionVentaFormComponent implements OnInit {
   async viewRecord(readonly: boolean) {
     if (this.codobjId() && this.PeriodoDesdeAplica())
       await this.load()
-    if (readonly)
+    if (readonly){
       this.formCondicionVenta.disable()
-    else
+    }else{
       this.formCondicionVenta.enable()
+      this.formCondicionVenta.get('PeriodoDesdeAplica')?.disable()
+      this.formCondicionVenta.get('ObjetivoId')?.disable()
+    }
     this.formCondicionVenta.markAsPristine()
 
   }
 
   async load() {
-    // this.files = []
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta( this.codobjId(), this.PeriodoDesdeAplica()))
-console.log("infoCliente ", infoCliente)
-   // this.infoClienteContacto().clear()
+    console.log("infoCliente ", infoCliente)
 
-   // infoCliente.infoClienteContacto.forEach((obj: any) => {
-   //   this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-   // });
+    // Limpiar el FormArray antes de agregar nuevos elementos
+    this.infoProductos().clear();
 
-    if (infoCliente && infoCliente.length > 0) {
-      const data = infoCliente[0];
-      this.formCondicionVenta.patchValue({
-        //ClienteId: data.ClienteId ?? null,
-        //ClienteElementoDependienteId: data.ClienteElementoDependienteId ?? null,
-        PeriodoDesdeAplica: data.PeriodoDesdeAplica,
-        PeriodoFacturacion: data.PeriodoFacturacion ,
-        GeneracionFacturaDia: data.GeneracionFacturaDia ,
-        GeneracionFacturaDiaComplemento: data.GeneracionFacturaDiaComplemento,
-        Observaciones: data.Observaciones 
-      });
-    }
-    //this.formCondicionVenta.get('codobjId')?.disable()
-    //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
+   infoCliente.infoProductos.forEach((obj: any) => {
+     this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+   });
+console.log("infoProductos", this.infoProductos())
+   this.formCondicionVenta.reset(infoCliente)
 
   }
 
@@ -181,6 +174,33 @@ console.log("infoCliente ", infoCliente)
     this.formCondicionVenta.patchValue({
       codobjId: this.codobjId(),
     });
+
+    // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
+    const periodoControl = this.formCondicionVenta.get('PeriodoDesdeAplica');
+    if (periodoControl) {
+      this.periodoSubscription = periodoControl.valueChanges.pipe(
+        distinctUntilChanged()
+      ).subscribe((value: string | Date | null) => {
+        if (!this.isNormalizingPeriodo && value) {
+          const date = value instanceof Date ? value : new Date(value);
+          if (!isNaN(date.getTime())) {
+            const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
+            // Solo normalizar si la fecha no está ya normalizada (no es el primer día del mes)
+            if (date.getDate() !== 1 || date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0) {
+              this.isNormalizingPeriodo = true;
+              periodoControl.setValue(normalizedDate.toISOString(), { emitEvent: false });
+              this.isNormalizingPeriodo = false;
+            }
+          }
+        }
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.periodoSubscription) {
+      this.periodoSubscription.unsubscribe();
+    }
   }
 
   objetivoDetalleChange(event: any) {
@@ -220,16 +240,4 @@ console.log("infoCliente ", infoCliente)
     // this.onAddorUpdate.emit('delete');
   }
 
-  onPeriodoDesdeAplicaChange(date: Date | null): void {
-    if (date) {
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
-      this.formCondicionVenta.patchValue({
-        PeriodoDesdeAplica: normalizedDate.toISOString(),
-      });
-    } else {
-      this.formCondicionVenta.patchValue({
-        PeriodoDesdeAplica: null,
-      });
-    }
-  }
 }

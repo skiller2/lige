@@ -216,33 +216,49 @@ export class CondicionesVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const CondicionVenta = { ...req.body };
         console.log(CondicionVenta)
-       // let CondicionVentaNew = { CondicionVentaId: 0}
+      
         try {
+
             //validaciones
             await this.FormValidations(CondicionVenta, queryRunner)
             //throw new ClientException('test')
 
             await queryRunner.startTransaction()
-
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-
             const objetivoInfo = await this.ObjetivoInfoFromId(CondicionVenta.ObjetivoId)
 
-            await this.insertInfoProductos(queryRunner, objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, CondicionVenta.PeriodoDesdeAplica, CondicionVenta.infoProductos, usuario, ip)
+            await this.insertCondicionVenta(queryRunner,
+                objetivoInfo.clienteId, 
+                objetivoInfo.ClienteElementoDependienteId,
+                CondicionVenta.PeriodoDesdeAplica,
+                CondicionVenta.PeriodoFacturacion.toString(),
+                CondicionVenta.GeneracionFacturaDia,
+                CondicionVenta.GeneracionFacturaDiaComplemento,
+                CondicionVenta.Observaciones,
+                usuario,
+                ip)
 
-          await this.insertCondicionVenta(queryRunner,
-             objetivoInfo.clienteId, 
-             objetivoInfo.ClienteElementoDependienteId,
-             CondicionVenta.PeriodoDesdeAplica,
-             CondicionVenta.PeriodoFacturacion.toString(),
-             CondicionVenta.GeneracionFacturaDia,
-             CondicionVenta.GeneracionFacturaDiaComplemento,
-             CondicionVenta.Observaciones,
-             usuario,
-             ip)
+             for (const producto of CondicionVenta.infoProductos) {
+                if(producto.ProductoCodigo) {
+                    await this.CondicionVentaDetalle(queryRunner,
+                        objetivoInfo.clienteId, 
+                        objetivoInfo.ClienteElementoDependienteId,
+                        CondicionVenta.PeriodoDesdeAplica,
+                        producto.ProductoCodigo,
+                        producto.TextoFactura,
+                        producto.Cantidad,
+                        producto.IndCantidadHorasVenta,
+                        producto.ImporteFijo,
+                        producto.IndImporteAcuerdoConCliente,
+                        producto.IndImporteListaPrecio,
+                        usuario,
+                        ip)  
+                }
+             }
 
-            await queryRunner.commitTransaction()
+           // await queryRunner.commitTransaction();
+           throw new ClientException('test')
             return this.jsonRes({}, res, 'Carga  de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
@@ -252,66 +268,61 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async insertInfoProductos(
-        queryRunner: QueryRunner, 
-        ClienteId: number, 
-        ClienteElementoDependienteId: number, 
-        PeriodoDesdeAplica: Date, 
-        infoProductos: any, usuario: string, ip: string) {
-
+    async CondicionVentaDetalle(
+        queryRunner: QueryRunner,
+        ClienteId: number,
+        ClienteElementoDependienteId: number,
+        PeriodoDesdeAplica: Date,
+        ProductoCodigo: string,
+        TextoFactura: string,
+        Cantidad: number,
+        IndCantidadHorasVenta: boolean,
+        ImporteFijo: number,
+        IndImporteListaPrecio: boolean,
+        IndImporteAcuerdoConCliente: boolean,
+        usuario: string,
+        ip: string
+    ) {
         const FechaActual = new Date();
-        
-        for (const producto of infoProductos) {
-            const productoResult = await queryRunner.query(
-                `SELECT ProductoCodigo,Nombre FROM Producto WHERE ProductoCodigo = @0`,
-                [producto.ProductoId]
-            );
-            
-            if (productoResult.length === 0) {
-                throw new ClientException(`No se encontró el producto con ID ${producto.ProductoId}`);
-            }
-            
-            const ProductoCodigo = productoResult[0].ProductoCodigo;
-            
-            await queryRunner.query(
-                `INSERT INTO CondicionVentaDetalle (
-                    ClienteId,
-                    ClienteElementoDependienteId,
-                    PeriodoDesdeAplica,
-                    ProductoCodigo,
-                    TextoFactura,
-                    Cantidad,
-                    IndCantidadHorasVenta,
-                    ImporteFijo,
-                    IndImporteListaPrecio,
-                    IndImporteAcuerdoConCliente,
-                    AudFechaIng,
-                    AudFechaMod,
-                    AudUsuarioIng,
-                    AudUsuarioMod,
-                    AudIpIng,
-                    AudIpMod
-                ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`,
-                [
-                    ClienteId,
-                    ClienteElementoDependienteId,
-                    PeriodoDesdeAplica,
-                    ProductoCodigo,
-                    producto.TextoFactura || null,
-                    producto.cantidad,
-                    producto.IndCantidadHorasVenta ? 1 : 0,
-                    producto.importeFijo || null,
-                    producto.IndImporteListaPrecio ? 1 : 0,
-                    producto.IndImporteAcuerdoConCliente ? 1 : 0,
-                    FechaActual,
-                    FechaActual,
-                    usuario,
-                    usuario,
-                    ip,
-                    ip
-                ]
-            );
-        }
+
+        await queryRunner.query(
+            `INSERT INTO CondicionVentaDetalle (
+                ClienteId,
+                ClienteElementoDependienteId,
+                PeriodoDesdeAplica,
+                ProductoCodigo,
+                TextoFactura,
+                Cantidad,
+                IndCantidadHorasVenta,
+                ImporteFijo,
+                IndImporteListaPrecio,
+                IndImporteAcuerdoConCliente,
+                AudFechaIng,
+                AudFechaMod,
+                AudUsuarioIng,
+                AudUsuarioMod,
+                AudIpIng,
+                AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+            [
+                ClienteId,
+                ClienteElementoDependienteId,
+                PeriodoDesdeAplica,
+                ProductoCodigo,
+                TextoFactura,
+                Cantidad,
+                IndCantidadHorasVenta,
+                ImporteFijo,
+                IndImporteListaPrecio,
+                IndImporteAcuerdoConCliente,
+                FechaActual,
+                FechaActual,
+                usuario,
+                usuario,
+                ip,
+                ip
+            ]
+        );
     }
 
     async FormValidations(CondicionVenta: any, queryRunner: any) {
@@ -328,27 +339,24 @@ export class CondicionesVentaController extends BaseController {
         if (!CondicionVenta.GeneracionFacturaDia) {
             throw new ClientException(`Debe completar el campo Dia de Generación Factura.`)
         }
-        if (!CondicionVenta.GeneracionFacturaDiaComplemento) {
-            throw new ClientException(`Debe completar el campo Dia de Generación Factura Complemento.`)
-        }
         
         for (const producto of CondicionVenta.infoProductos) {
-            if (!producto.ProductoId) {
+            if (!producto.ProductoCodigo) {
                 throw new ClientException(`Debe completar el campo Producto.`)
             }
-            if (!producto.cantidad) {
+            if (!producto.Cantidad) {
                 throw new ClientException(`Debe completar el campo Cantidad.`)
             }
-            if (!producto.importeFijo) {
+            if (!producto.ImporteFijo) {
                 throw new ClientException(`Debe completar el campo Importe Fijo.`)
             }
-            if (producto.IndCantidadHorasVenta == '') {
+            if (!producto.IndCantidadHorasVenta) {
                 throw new ClientException(`Debe completar el campo Cantidad horas venta.`)
             }
-            if (producto.IndImporteListaPrecio == '') {
+            if (!producto.IndImporteListaPrecio) {
                 throw new ClientException(`Debe completar el campo Importe lista de precio.`)
             }
-            if (producto.IndImporteAcuerdoConCliente == '') {
+            if (!producto.IndImporteAcuerdoConCliente ) {
                 throw new ClientException(`Debe completar el campo Importe acordado con cliente.`)
             }
             if (!producto.TextoFactura) {
@@ -428,20 +436,20 @@ export class CondicionesVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
-            const codobjId = Number(req.params.codobjId)
-            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId)
-            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica) 
-            let infoCondicionVenta = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica)
+            const codobjId = Number(req.params.codobjId);
+            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
+            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
 
-           /* if (domiclio) {
-                infoCliente = { ...infoCliente[0], ...domiclio[0] }
-            } else {
-                infoCliente = infoCliente[0]
-            }
-            infoCliente.infoDomicilio = domiclio
-            */
-            await queryRunner.commitTransaction()
-            return this.jsonRes(infoCondicionVenta, res)
+            const infoCondicionVentaArr = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
+            const infoProductos = await this.getInfoProductos( queryRunner,codobjId, ClienteElementoDependienteId,PeriodoDesdeAplica);
+            const infoCondicionVenta = infoCondicionVentaArr[0] ;
+
+            if (infoCondicionVenta) 
+            infoCondicionVenta.infoProductos = infoProductos;
+            
+            await queryRunner.commitTransaction();
+            return this.jsonRes(infoCondicionVenta, res);
+
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -453,10 +461,31 @@ export class CondicionesVentaController extends BaseController {
 
     
     async getInfoCondicionVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
-
-
         return await
-         queryRunner.query(` SELECT ClienteId,ClienteElementoDependienteId,PeriodoDesdeAplica,PeriodoFacturacion,GeneracionFacturaDia,GeneracionFacturaDiaComplemento,Observaciones from CondicionVenta 
+         queryRunner.query(` SELECT  
+            obj.ObjetivoId,
+            Cond.ClienteId,
+            Cond.ClienteElementoDependienteId,
+            Cond.PeriodoDesdeAplica,
+            Cond.PeriodoFacturacion,
+            Cond.GeneracionFacturaDia,
+            Cond.GeneracionFacturaDiaComplemento,
+            Cond.Observaciones
+        FROM CondicionVenta AS Cond
+        INNER JOIN Objetivo AS obj 
+            ON obj.ClienteId = Cond.ClienteId
+        AND obj.ClienteElementoDependienteId = Cond.ClienteElementoDependienteId
+        WHERE Cond.ClienteId = @0
+        AND Cond.ClienteElementoDependienteId = @1
+        AND Cond.PeriodoDesdeAplica = @2`,
+             [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
+    }
+
+    async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
+        return await
+         queryRunner.query(` 
+            SELECT ProductoCodigo,TextoFactura,Cantidad,IndCantidadHorasVenta,ImporteFijo,IndImporteListaPrecio,IndImporteAcuerdoConCliente
+            FROM CondicionVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
              [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }

@@ -33,11 +33,11 @@
         <ul nz-menu nzMode="horizontal" style="display: flex;">
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'listado']" (click)="viewListado.set(true)">{{ 'app.listado' | i18n }} </a>
+            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'listado']" (click)="viewListado.set(true); RefreshCondVenta.set(true)">{{ 'app.listado' | i18n }} </a>
           </li>
           <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
-            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'detalle']" (click)="viewListado.set(false)">{{ 'app.detail' | i18n }} </a>
+            <a [routerLink]="['/', 'ges', 'condiciones-venta', 'detalle']" (click)="viewListado.set(false); RefreshCondVenta.set(false)">{{ 'app.detail' | i18n }} </a>
           </li>
         </ul>
         @if(!childIsPristine()){
@@ -53,12 +53,17 @@
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-        <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-table-condicion-venta>
+        <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [(RefreshCondVenta)]="RefreshCondVenta"></app-table-condicion-venta>
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/modificar" >{{ 'app.icon.edit' | i18n }}</a>
         <app-condicion-venta-form #condicionVentaFormEditar [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form >
+      </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/condiciones-venta/detalle" >{{ 'app.icon.detail' | i18n }}</a>
+        <app-condicion-venta-form #condicionVentaFormDetalle [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form >
       </nz-tab>
 
       <nz-tab>
