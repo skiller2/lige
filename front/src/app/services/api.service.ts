@@ -1892,6 +1892,12 @@ export class ApiService {
     )
   }
 
+  updatePersonalHabiltacion(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/update', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   addGestionHabiltacion(params:any){
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/add-detalle', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

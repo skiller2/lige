@@ -11,10 +11,10 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
         </li>
-        <li nz-menu-item nzMatchRouter>
+        <!-- <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']" (click)="goToCredentials()">{{ 'app.credenciales' | i18n }} </a>
-        </li>
+        </li> -->
       </ul>
     </div>
 
@@ -32,6 +32,10 @@
           <nz-button-group nz-button nzButtonGroup class="derecha">
             <button nz-button nzType="default" (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus" nzTheme="outline"></span>
+            </button>
+            <button nz-button nzType="default" (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"
+              [disabled]="personalHabilitacionId()? false : true">
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
             </button>
           </nz-button-group>
         </div>
@@ -51,9 +55,9 @@
     <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [personalHabilitacionId]="personalHabilitacionId()" [lugarHabilitacionId]="lugarHabilitacionId()"></app-habilitaciones-detalle>
   </nz-tab>
 
-  <nz-tab>
+  <!-- <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/credenciales" >{{ 'app.detail' | i18n }}</a>
-  </nz-tab>
+  </nz-tab> -->
 
   </nz-tabs>
 
@@ -61,3 +65,6 @@
 
 <app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Nueva Habilitación'"
 ></app-habilitaciones-form-drawer>
+
+<app-habilitaciones-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="apellidoNombreSelected()"
+[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>

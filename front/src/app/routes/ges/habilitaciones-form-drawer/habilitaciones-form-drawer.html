@@ -3,15 +3,17 @@
   <ng-container *nzDrawerContent>
     <form [formGroup]="formHabilitacion">
 
+      @if (!formEdit()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Pesonal</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
         </nz-form-control>
       </nz-form-item>
+      }
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Lugar Habilitación</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Habilitación Necesaria</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18">
           <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione tipo" nzAllowClear 
            [nzDropdownMatchSelectWidth]="false" style="width: 100%" (ngModelChange)="selectedLugarHabilitacionChange($event)">
@@ -22,6 +24,7 @@
         </nz-form-control>
       </nz-form-item>
 
+      @if (!formEdit()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
@@ -98,6 +101,7 @@
           [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="true" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
+      }
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">

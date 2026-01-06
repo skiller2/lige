@@ -34,11 +34,12 @@ export class HabilitacionesFormDrawerComponent {
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
 
-  formEdit = signal<number>(0)
+  // formEdit = signal<number>(0)
   isLoading = signal(false);
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
+  formEdit = computed(() => (this.personalHabilitacionId() && this.personalId() && this.lugarHabilitacionId())? true : false)
   
   onRefreshInstituciones = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
@@ -84,8 +85,13 @@ export class HabilitacionesFormDrawerComponent {
       const visible = this.visible()
       if (visible) {
 
-        this.formHabilitacion.reset()
+        if (this.formEdit()) {
+          const res = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
 
+          this.formHabilitacion.reset(res)
+        }else{
+          this.formHabilitacion.reset()
+        }
         this.formHabilitacion.markAsUntouched()
         this.formHabilitacion.markAsPristine()
       }
@@ -110,9 +116,12 @@ export class HabilitacionesFormDrawerComponent {
     let vals:any = this.formHabilitacion.value
 
     try {
-
-      await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
-
+      if (this.formEdit()){
+        await firstValueFrom(this.apiService.updatePersonalHabiltacion(vals))
+      }else{
+        await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
+      }
+      
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()
       this.onAddorUpdate.emit()

@@ -34,7 +34,6 @@ export class HabilitacionesFormDrawerComponent {
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
 
-  formEdit = signal<number>(0)
   isLoading = signal(false);
   
   onRefreshInstituciones = output<void>();
@@ -74,7 +73,7 @@ export class HabilitacionesFormDrawerComponent {
     effect(async() => {
       const visible = this.visible()
       if (visible) {
-        let lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId(), this.lugarHabilitacionId()))
+        let lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
 
         if (this.codigo()) {
           let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))

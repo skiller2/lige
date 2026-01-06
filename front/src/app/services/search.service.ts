@@ -2142,8 +2142,8 @@ export class SearchService {
     );
   }
 
-  getPersonalHabilitacionById(personalHabilitacionId: number, personalId: number, lugarHabilitacionId: number) {
-    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/personal`, { personalHabilitacionId, personalId, lugarHabilitacionId }).pipe(
+  getPersonalHabilitacionById(personalHabilitacionId: number, personalId: number) {
+    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/personal`, { personalHabilitacionId, personalId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

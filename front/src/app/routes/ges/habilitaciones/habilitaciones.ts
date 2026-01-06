@@ -45,10 +45,12 @@ export class HabilitacionesComponent {
   // anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   // mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   isLoading = signal<boolean>(false)
+  apellidoNombreSelected = signal<string>('')
   personalId = signal<number>(0)
   personalHabilitacionId = signal<number>(0)
   lugarHabilitacionId = signal<number>(0)
   visibleForm = signal<boolean>(false)
+  visibleFormEdit = signal<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -103,9 +105,9 @@ export class HabilitacionesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    console.log('row: ', row);
     
     if (row?.id) {
+      this.apellidoNombreSelected.set(row.ApellidoNombre)
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)
       this.lugarHabilitacionId.set(row.PersonalHabilitacionLugarHabilitacionId)
@@ -145,6 +147,10 @@ export class HabilitacionesComponent {
 
   openDrawerforForm(): void{
     this.visibleForm.set(true) 
+  }
+
+  openDrawerforFormEdit(): void{
+    this.visibleFormEdit.set(true) 
   }
 
   renderApellidoNombreComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
