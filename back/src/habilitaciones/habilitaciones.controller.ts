@@ -21,16 +21,16 @@ const GridColums: any[] = [
         hidden: true,
         searchHidden: true
     },
-    {
-        id: "PersonalHabilitacionId",
-        name: "PersonalHabilitacionId",
-        field: "PersonalHabilitacionId",
-        fieldName: "b.PersonalHabilitacionId",
-        type: "number",
-        sortable: false,
-        hidden: false,
-        searchHidden: true
-    },
+    // {
+    //     id: "PersonalHabilitacionId",
+    //     name: "PersonalHabilitacionId",
+    //     field: "PersonalHabilitacionId",
+    //     fieldName: "vishab.PersonalHabilitacionId",
+    //     type: "number",
+    //     sortable: false,
+    //     hidden: false,
+    //     searchHidden: true
+    // },
     {
         name: "Apellido Nombre",
         type: "number",
@@ -101,7 +101,7 @@ const GridColums: any[] = [
         type: "string",
         id: "HabNecesaria",
         field: "HabNecesaria",
-        fieldName: "IIF(c.PersonalId IS NULL,'0','1')",
+        fieldName: "vishab.HabNecesaria",
         formatter: 'collectionFormatter',
         params: { collection: getHabNecesariaOptions, },
         sortable: true,
@@ -114,7 +114,7 @@ const GridColums: any[] = [
         type: "number",
         id: "LugarHabilitacionId",
         field: "LugarHabilitacionId",
-        fieldName: "d.LugarHabilitacionId",
+        fieldName: "vishab.LugarHabilitacionId",
         searchComponent: "inputForLugarHabilitacionSearch",
         searchType: "number",
         sortable: true,
@@ -126,7 +126,7 @@ const GridColums: any[] = [
         type: "string",
         id: "LugarHabilitacionDescripcion",
         field: "LugarHabilitacionDescripcion",
-        fieldName: "d.LugarHabilitacionDescripcion",
+        fieldName: "vishab.LugarHabilitacionDescripcion",
         sortable: true,
         hidden: false,
         searchHidden: true
@@ -136,7 +136,7 @@ const GridColums: any[] = [
         type: "date",
         id: "PersonalHabilitacionDesde",
         field: "PersonalHabilitacionDesde",
-        fieldName: "ISNULL(b.PersonalHabilitacionDesde, '9999-12-31')",
+        fieldName: "ISNULL(vishab.PersonalHabilitacionDesde, '9999-12-31')",
         searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
@@ -147,7 +147,7 @@ const GridColums: any[] = [
         type: "date",
         id: "PersonalHabilitacionHasta",
         field: "PersonalHabilitacionHasta",
-        fieldName: "ISNULL(b.PersonalHabilitacionHasta, '9999-12-31')",
+        fieldName: "ISNULL(vishab.PersonalHabilitacionHasta, '9999-12-31')",
         searchComponent: "inputForFechaSearch",
         sortable: true,
         hidden: false,
@@ -179,7 +179,7 @@ const GridColums: any[] = [
         type: "number",
         id: "NroTramite",
         field: "NroTramite",
-        fieldName: "b.NroTramite",
+        fieldName: "vishab.NroTramite",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -189,7 +189,7 @@ const GridColums: any[] = [
         type: "number",
         id: "DiasFaltantesVencimiento",
         field: "DiasFaltantesVencimiento",
-        fieldName: "IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento)",
+        fieldName: " IIF(vishab.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento)",
         sortable: true,
         hidden: false,
         searchHidden: false,
@@ -197,7 +197,6 @@ const GridColums: any[] = [
         searchComponent: "inputForNumberAdvancedSearch",
     },
 ];
-
 const GridDetalleColums: any[] = [
     {
         id: "id",
@@ -318,17 +317,16 @@ export class HabilitacionesController extends BaseController {
         
         SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
-            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, IIF(c.PersonalId IS NULL,'0','1') HabNecesaria, 
-            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
-            est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
-            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId,
-		    IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, vishab.HabNecesaria, vishab.LugarHabilitacionId,
+            vishab.LugarHabilitacionDescripcion, vishab.PersonalHabilitacionDesde, vishab.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
+            est.Detalle Estado, e.AudFechaIng AS FechaEstado, vishab.NroTramite,
+            vishab.PersonalHabilitacionId, vishab.PersonalHabilitacionLugarHabilitacionId,
+		    IIF(vishab.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento
 
         FROM Personal per
-        LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId AND ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta,'9999-12-31') >= @0) OR (b.PersonalHabilitacionDesde IS NULL AND b.PersonalHabilitacionHasta IS NULL))
-        LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaDesde < @0 AND ISNULL(c.PersonalHabilitacionNecesariaHasta,'9999-12-31') > @0
-        LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId OR d.LugarHabilitacionId = c.PersonalHabilitacionNecesariaLugarHabilitacionId
-        LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = b.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+		left JOIN VistaPersonalHabilitacionHabilitacionNecesaria vishab on vishab.PersonalId=per.PersonalId-- and vishab.PersonalHabilitacionDesde <= @0 AND ISNULL(vishab.PersonalHabilitacionHasta, '9999-12-31') >= @0
+   
+        LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = vishab.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = vishab.PersonalHabilitacionId
 
         LEFT JOIN 
                 (
@@ -350,13 +348,15 @@ export class HabilitacionesController extends BaseController {
 				b2.PersonalHabilitacionId,
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
-					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+					WHEN b2.PersonalHabilitacionHasta>CAST(@0 AS DATE) and b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
 					WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
 					ELSE 0
 				END AS DiasFaltantesVencimiento
 			FROM PersonalHabilitacion b2
-		) dias ON dias.PersonalId = b.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId
-        WHERE (b.PersonalId IS NOT NULL OR c.PersonalId IS NOT NULL) AND (${filterSql})
+		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = vishab.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+
+
+        WHERE (${filterSql})
         ${orderBy}
         `, [periodo])
     }
