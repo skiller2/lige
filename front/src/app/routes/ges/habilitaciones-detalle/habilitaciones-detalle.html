@@ -1,6 +1,8 @@
 <nz-card class="small-margin">
   <div class="fila">
-    <div class="izquierda"></div>
+    <div class="izquierda">
+      <p>{{ detalle() }}</p>
+    </div>
     <nz-button-group nz-button nzButtonGroup class="derecha">
       <button nz-button nzType="default" [disabled]="(!personalId() && !personalHabilitacionId() && !lugarHabilitacionId())"
       (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
@@ -27,7 +29,46 @@
       </div>
     }
 
-    @if(columnsDoc$ | async; as columnasDoc) {
+
+    @if (gridDocData$ | async; as listaDocumentos ) {
+      <div class="gridDocContainer">
+        <nz-table #asistPer [nzData]="listaDocumentos" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+            @for(column of columnsDoc$ | async; track column){
+              @if(!column.hidden){
+                <th>{{column.name}}</th>
+              }
+            }
+            <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+          @for (data of asistPer.data; track data) {
+            <tr class="">
+              <td>{{ data.DocumentoTipoCodigo }}</td>
+              <td class="periodoStyle">{{ formatDate(data.DocumentoAudFechaIng) }}</td>
+              <td class="periodoStyle">{{ formatDate(data.DocumentoFecha) }}</td>
+              <td class="periodoStyle">{{ formatDate(data.DocumentoFechaDocumentoVencimiento) }}</td>
+              <td>
+                @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
+                  <a nz-icon nzType="search"
+                  nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
+                }
+                @if (data.TipoArchivo == 'pdf') {
+                  <a nz-icon nzType="search" nzTheme="outline"
+                  (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
+                }
+              </td>
+            </tr>
+            }
+          </tbody>
+        </nz-table>
+      </div>
+    }
+
+    <!-- @if(columnsDoc$ | async; as columnasDoc) {
       <div class="gridDocContainer">
         <angular-slickgrid 
           gridId="gridDoc" 
@@ -37,7 +78,7 @@
           (onAngularGridCreated)="angularGridDocReady($event)">
         </angular-slickgrid>
       </div>
-    }
+    } -->
 
   </div>
 </nz-card>
@@ -47,3 +88,20 @@
 
 <app-habilitaciones-detalle-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Editar Habilitación Detalle'" [codigo]="codigo()"
 [personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-detalle-form-drawer>
+
+<nz-modal [(nzVisible)]="modalViewerVisiable1" nzTitle="" nzWidth="700" nzOkDisabled="true"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <ngx-extended-pdf-viewer [src]="src()" [height]="'auto'" [textLayer]="true" [showHandToolButton]="false"
+      [filenameForDownload]="fileName()">
+    </ngx-extended-pdf-viewer>
+
+  </ng-container>
+</nz-modal>
+
+<nz-modal [(nzVisible)]="modalViewerVisiable2" nzTitle="" nzWidth="700" nzOkDisabled="true"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <app-image-loader [src]="srcImg()" />
+  </ng-container>
+</nz-modal>

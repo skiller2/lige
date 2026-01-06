@@ -418,6 +418,7 @@ export class HabilitacionesController extends BaseController {
     async listDocQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
         return await queryRunner.query(`
         SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo
         FROM PersonalHabilitacion perhab 
         JOIN DocumentoRelaciones docrel ON docrel.PersonalId = perhab.PersonalId AND docrel.PersonalHabilitacionId = perhab.PersonalHabilitacionId AND docrel.PersonalHabilitacionLugarHabilitacionId = perhab.PersonalHabilitacionLugarHabilitacionId
         LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
@@ -434,10 +435,15 @@ export class HabilitacionesController extends BaseController {
         try {
             const habilitaciones = await this.listDocQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
             
+            let list = habilitaciones.map(obj =>{
+                obj.TipoArchivo = obj.NombreArchivo.split('.').pop()?.toLowerCase()
+                return obj
+            })
+            
             this.jsonRes(
                 {
-                    total: habilitaciones.length,
-                    list: habilitaciones,
+                    total: list.length,
+                    list,
                 },
                 res
             );
