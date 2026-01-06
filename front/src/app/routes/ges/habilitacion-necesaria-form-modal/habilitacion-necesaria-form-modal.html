@@ -1,0 +1,21 @@
+<nz-modal [nzVisible]="visible()" [nzTitle]="'Habilitación necesaria: '+ apellidoNombre()" (nzOnCancel)="handleCancel()">
+  <div *nzModalContent>
+    <form [formGroup]="formHabilitacionNecesaria">
+        <nz-form-label>Habilitaciones</nz-form-label>
+        <nz-form-control>
+        <nz-select formControlName="LugarHabilitacionIds" nzMode="multiple" nzAllowClear 
+        [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsLugarHabilitacion | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+        </nz-select>
+        </nz-form-control>
+    </form>
+  </div>
+  <div *nzModalFooter>
+    <button nz-button nzType="default" (click)="handleCancel()">Cancelar</button>
+    <button nzType="primary" nz-button (click)="saveHabilitacionNecesaria()" [nzLoading]="isLoading()">
+      {{ 'app.btn.save' | i18n }}
+    </button>
+  </div>
+</nz-modal>

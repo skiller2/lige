@@ -44,6 +44,7 @@ export class HabilitacionesDetalleComponent {
   lugarHabilitacionId = input<number>(0)
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)
+  loadingDelete = signal<boolean>(false)
 
   modalViewerVisiable1 = signal<boolean>(false)
   modalViewerVisiable2 = signal<boolean>(false)
@@ -91,7 +92,6 @@ export class HabilitacionesDetalleComponent {
     switchMap(() => {
       return this.searchService.getDocsByHabilitacion(this.personalId(), this.personalHabilitacionId(), this.lugarHabilitacionId())
         .pipe(map(data => { 
-          console.log('data.length: ', data.length);
           return data.list 
         }))
     })
@@ -175,6 +175,24 @@ export class HabilitacionesDetalleComponent {
     const day = String(date.getDate()).padStart(2, '0');
 
     return `${year}/${month}/${day}`;
+  }
+
+  async deleteDocumento(docId:number) {
+    if (!docId) return
+    this.loadingDelete.set(true);
+    try {
+      const id = docId;
+      if (id != null) {
+        await firstValueFrom(this.apiService.deleteDocumento(id, 'Documento'));
+        // Emito cambio para refrescar la lista, el grid, etc.
+        this.refreshGrid('')
+      }
+    } catch (error) {
+      // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
+      console.error('Error borrando documento', error);
+    } finally {
+      this.loadingDelete.set(false);
+    }
   }
 
 }

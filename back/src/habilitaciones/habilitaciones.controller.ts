@@ -21,16 +21,16 @@ const GridColums: any[] = [
         hidden: true,
         searchHidden: true
     },
-    {
-        id: "PersonalHabilitacionId",
-        name: "PersonalHabilitacionId",
-        field: "PersonalHabilitacionId",
-        fieldName: "b.PersonalHabilitacionId",
-        type: "number",
-        sortable: false,
-        hidden: false,
-        searchHidden: true
-    },
+    // {
+    //     id: "PersonalHabilitacionId",
+    //     name: "PersonalHabilitacionId",
+    //     field: "PersonalHabilitacionId",
+    //     fieldName: "vishab.PersonalHabilitacionId",
+    //     type: "number",
+    //     sortable: false,
+    //     hidden: false,
+    //     searchHidden: true
+    // },
     {
         name: "Apellido Nombre",
         type: "number",
@@ -110,11 +110,11 @@ const GridColums: any[] = [
 
     },
     {
-        name: "Lugar Habilitación Necesaria",
+        name: "Lugar Habilitación",
         type: "number",
         id: "LugarHabilitacionId",
         field: "LugarHabilitacionId",
-        fieldName: "d.LugarHabilitacionId",
+        fieldName: "vishab.LugarHabilitacionId",
         searchComponent: "inputForLugarHabilitacionSearch",
         searchType: "number",
         sortable: true,
@@ -189,7 +189,7 @@ const GridColums: any[] = [
         type: "number",
         id: "DiasFaltantesVencimiento",
         field: "DiasFaltantesVencimiento",
-        fieldName: "IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento)",
+        fieldName: " IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento)",
         sortable: true,
         hidden: false,
         searchHidden: false,
@@ -197,7 +197,6 @@ const GridColums: any[] = [
         searchComponent: "inputForNumberAdvancedSearch",
     },
 ];
-
 const GridDetalleColums: any[] = [
     {
         id: "id",
@@ -316,19 +315,38 @@ export class HabilitacionesController extends BaseController {
         periodo.setHours(0,0,0,0)
         return await queryRunner.query(`
         
-        SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+       
+SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
-            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, IIF(c.PersonalId IS NULL,'0','1') HabNecesaria, 
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
             b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId,
-		    IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento
+		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
+
+			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria
+
 
         FROM Personal per
-        LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId AND ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta,'9999-12-31') >= @0) OR (b.PersonalHabilitacionDesde IS NULL AND b.PersonalHabilitacionHasta IS NULL))
-        LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaDesde < @0 AND ISNULL(c.PersonalHabilitacionNecesariaHasta,'9999-12-31') > @0
-        LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId OR d.LugarHabilitacionId = c.PersonalHabilitacionNecesariaLugarHabilitacionId
-        LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = b.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+   
+		JOIN (
+				SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId
+				FROM  PersonalHabilitacion b 
+				WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+
+				UNION
+
+				SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId 
+				FROM PersonalHabilitacionNecesaria c 
+				
+				) vishab on vishab.PersonalId=per.PersonalId
+
+	
+		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.PersonalHabilitacionLugarHabilitacionId and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.PersonalHabilitacionLugarHabilitacionId
+		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+
+		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
         LEFT JOIN 
                 (
@@ -351,12 +369,13 @@ export class HabilitacionesController extends BaseController {
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
 					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
-					WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
+					--WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
 					ELSE 0
 				END AS DiasFaltantesVencimiento
 			FROM PersonalHabilitacion b2
-		) dias ON dias.PersonalId = b.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = b.PersonalHabilitacionLugarHabilitacionId
-        WHERE (b.PersonalId IS NOT NULL OR c.PersonalId IS NOT NULL) AND (${filterSql})
+		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+
+        WHERE (${filterSql})
         ${orderBy}
         `, [periodo])
     }
@@ -837,44 +856,59 @@ export class HabilitacionesController extends BaseController {
         }
     }
 
-    async updateHabilitacion(req: any, res: Response, next: NextFunction) {
+    async updateHabilitacionesNecesarias(req: any, res: Response, next: NextFunction) {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
 
-        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        // const PersonalHabilitacionNecesariaId = req.body.PersonalHabilitacionNecesariaId
         const PersonalId = req.body.PersonalId
-        const LugarHabilitacionId = req.body.LugarHabilitacionId
-        // const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
-        // const HabilitacionCategoriaCodigo = req.body.HabilitacionCategoriaCodigo
-        // const Detalle = req.body.Detalle
-        // const NroTramite = req.body.NroTramite
-        // const PersonalHabilitacionDesde: Date = req.body.PersonalHabilitacionDesde ? new Date(req.body.PersonalHabilitacionDesde) : null
-        // const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
-        // const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
-        
-        // const file: any[] = req.body.file
-
-        // if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
-        // if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
+        const LugarHabilitacionIds = req.body.LugarHabilitacionIds
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            await queryRunner.query(`
-                UPDATE PersonalHabilitacion
-                SET PersonalHabilitacionLugarHabilitacionId = @2, AudFechaMod = @3, AudIpMod = @4, AusUsuarioMod = @5
-                WHERE PersonalHabilitacionId = @0 AND PersonalId = @1
-            `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, fechaActual, ip, usuario])
+            // await queryRunner.query(`
+            //     UPDATE PersonalHabilitacion
+            //     SET PersonalHabilitacionLugarHabilitacionId = @2, AudFechaMod = @3, AudIpMod = @4, AusUsuarioMod = @5
+            //     WHERE PersonalHabilitacionId = @0 AND PersonalId = @1
+            // `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, fechaActual, ip, usuario])
 
-            // throw new ClientException(`DEBUG`)
+            throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+    }
+
+    async getHabilitacionNecesariaByPersonalId(req: any, res: Response, next: NextFunction) {
+        
+        const PersonalId = req.params.PersonalId
+        
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const habs = []
+            const habilitacion = await queryRunner.query(`
+                SELECT PersonalHabilitacionNecesariaLugarHabilitacionId
+                FROM PersonalHabilitacionNecesaria
+                WHERE PersonalId = @0
+            `, [PersonalId])
+            for (const hab of habilitacion)
+                habs.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
+
+            const obj = {
+                PersonalId,
+                LugarHabilitacionIds : habs,
+                LugarHabilitacionIdsOld : habs
+            } 
+            this.jsonRes(obj, res);
+        } catch (error) {
             return next(error)
         }
     }

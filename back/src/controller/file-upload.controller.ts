@@ -826,6 +826,7 @@ export class FileUploadController extends BaseController {
             await unlink(finalurl)
           }
 
+          await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [deleteId])
           await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
 
           break;

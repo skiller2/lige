@@ -32,7 +32,7 @@
 
     @if (gridDocData$ | async; as listaDocumentos ) {
       <div class="gridDocContainer">
-        <nz-table #asistPer [nzData]="listaDocumentos" nzSize="small" [nzPageSize]="100000000"
+        <nz-table #asistPer [nzData]="listaDocumentos" nzSize="small" [nzPageSize]="100000"
           [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
           <thead>
             <tr>
@@ -52,14 +52,22 @@
               <td class="periodoStyle">{{ formatDate(data.DocumentoFecha) }}</td>
               <td class="periodoStyle">{{ formatDate(data.DocumentoFechaDocumentoVencimiento) }}</td>
               <td>
-                @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
-                  <a nz-icon nzType="search"
-                  nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
-                }
-                @if (data.TipoArchivo == 'pdf') {
-                  <a nz-icon nzType="search" nzTheme="outline"
-                  (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
-                }
+              @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
+                <button nz-button nzType="default"
+                (click)="LoadImage(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
+                  <span nz-icon nzType="search" nzTheme="outline"></span>
+                </button>
+              }
+              @if (data.TipoArchivo == 'pdf') {
+                <button nz-button nzType="default"
+                (click)="LoadArchivo(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
+                  <span nz-icon nzType="search" nzTheme="outline"></span>
+                </button>
+              }
+                <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
+                (nzOnConfirm)="deleteDocumento(data.id)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                  <span nz-icon nzType="delete" nzTheme="outline"></span>
+                </button>
               </td>
             </tr>
             }

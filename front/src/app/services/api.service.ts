@@ -1903,8 +1903,8 @@ export class ApiService {
     )
   }
 
-  updatePersonalHabiltacion(params:any){
-    return this.http.post<ResponseJSON<any>>('api/habilitaciones/update', params).pipe(
+  updatePersonalHabiltacionesNecesarias(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/necesarias/update', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
