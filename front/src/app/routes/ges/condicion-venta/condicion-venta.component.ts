@@ -56,7 +56,7 @@ RefreshCondVenta = model<boolean>(false)
     console.log("_event.index ", _event.index)
     switch (_event.index) {
       case 4: //INSERT
-       // this.childAlta().newRecord()
+       this.childAlta().newRecord()
         break
       case 3: //DETAIL
         this.childDetalle().viewRecord(true)

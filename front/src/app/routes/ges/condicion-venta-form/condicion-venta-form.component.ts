@@ -34,13 +34,13 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
 
   objProductos = {
-    Cantidad: '',
+    Cantidad: null,
     ImporteFijo: null,
     IndCantidadHorasVenta: null,
     IndImporteAcuerdoConCliente: null,
     IndImporteListaPrecio: null,
-    ProductoCodigo: '',
-    TextoFactura: ''
+    ProductoCodigo: null,
+    TextoFactura: null
   }
 
 
@@ -93,50 +93,14 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.formCondicionVenta.markAsDirty();
   }
 
+async newRecord() {
+  this.formCondicionVenta.enable()
+  this.formCondicionVenta.reset();
+  this.infoProductos().clear();
+  this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+  this.formCondicionVenta.markAsPristine();
+}
 
-   /*checkPristine() {
-    this.pristineChange.emit(this.formCondicionVenta.pristine);
-  }
-
-
-
-
-  objetivoDetalleChange(event: any) {
-    if (event && event.clienteId && event.ClienteElementoDependienteId !== undefined) {
-      this.objetivoExtended.set(event);
-      this.formCondicionVenta.patchValue({
-        ClienteId: event.clienteId,
-        ClienteElementoDependienteId: event.ClienteElementoDependienteId,
-        ObjetivoId: event.objetivoId || 0,
-      });
-    } else {
-      this.objetivoExtended.set(null);
-      this.formCondicionVenta.patchValue({
-        ClienteId: 0,
-        ClienteElementoDependienteId: 0,
-        ObjetivoId: 0,
-      });
-    }
-  }
-
-
-  async newRecord() {
-    this.formCondicionVenta.reset({
-      id: 0,
-      ClienteId: 0,
-      ClienteElementoDependienteId: 0,
-      ObjetivoId: 0,
-      PeriodoDesdeAplica: null,
-      PeriodoFacturacion: '',
-      GeneracionFacturaDia: null,
-      GeneracionFacturaDiaComplemento: null,
-      Observaciones: '',
-    });
-    this.CondicionVentaId.set(0);
-    this.objetivoExtended.set(null);
-    this.formCondicionVenta.markAsPristine();
-  }
-*/
   
 
   async viewRecord(readonly: boolean) {
@@ -146,8 +110,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.formCondicionVenta.disable()
     }else{
       this.formCondicionVenta.enable()
-      this.formCondicionVenta.get('PeriodoDesdeAplica')?.disable()
-      this.formCondicionVenta.get('ObjetivoId')?.disable()
     }
     this.formCondicionVenta.markAsPristine()
 
@@ -156,7 +118,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   async load() {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta( this.codobjId(), this.PeriodoDesdeAplica()))
-    console.log("infoCliente ", infoCliente)
 
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
@@ -164,7 +125,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
    infoCliente.infoProductos.forEach((obj: any) => {
      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
    });
-console.log("infoProductos", this.infoProductos())
    this.formCondicionVenta.reset(infoCliente)
 
   }
@@ -210,16 +170,19 @@ console.log("infoProductos", this.infoProductos())
     this.loadingSrv.open({ type: 'spin', text: '' });
     try {
       const formValue = this.formCondicionVenta.getRawValue();
-      
-      // Normalizar PeriodoDesdeAplica antes de guardar
 
-      console.log(formValue)
+       if (this.codobjId()) {
+        //console.log("voy a actualizar condicion de venta")
+       const result = await firstValueFrom(this.apiService.updateCondicionVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
      
-       if (this.CondicionVentaId()) {
-        //await firstValueFrom(this.apiService.updateCondicionVenta(dataToSave, this.CondicionVentaId()));
       } else {
-         const result = await firstValueFrom(this.apiService.addCondicionVenta(formValue));
-        this.CondicionVentaId.set(result.data.id);
+       // console.log("voy a insertar condicion de venta")
+        const result = await firstValueFrom(this.apiService.addCondicionVenta(formValue));
+        const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
+        const clienteid = result.data.ClienteId;
+        console.log("result ", result)
+        this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
+       
       }
       
      //await this.load();
@@ -231,13 +194,6 @@ console.log("infoProductos", this.infoProductos())
     }
     this.loadingSrv.close();
 
-  }
-
-  async deleteRecord() {
-    // TODO: Implementar eliminación
-    // await firstValueFrom(this.apiService.deleteCondicionVenta(this.CondicionVentaId()));
-    // this.CondicionVentaId.set(0);
-    // this.onAddorUpdate.emit('delete');
   }
 
 }

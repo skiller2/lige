@@ -1319,6 +1319,8 @@ export class SearchService {
       );
   }
 
+  
+
 
   getEstadoCustodia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/custodia/estados`).pipe(

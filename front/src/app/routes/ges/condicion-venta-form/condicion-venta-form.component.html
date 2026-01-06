@@ -203,17 +203,6 @@
           [disabled]="formCondicionVenta.invalid || formCondicionVenta.pristine">
           {{ 'app.btn.save' | i18n }}
         </button>
-        <button 
-          nzType="primary" 
-          nz-button 
-          nzDanger  
-          nz-popconfirm  
-          [disabled]="CondicionVentaId() === 0"
-          nzPopconfirmTitle="¿Está seguro que quiere eliminar esta condición de venta?"
-          (nzOnConfirm)="deleteRecord()"
-          nzPopconfirmPlacement="top">
-          {{ 'app.btn.delete' | i18n }}
-        </button>
       </nz-form-control>
     </nz-form-item>
   }

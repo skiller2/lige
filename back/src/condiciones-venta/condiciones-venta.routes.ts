@@ -35,3 +35,7 @@ condicionesVentaRouter.delete('/rechazar/:codobj/:ClienteElementoDependienteId/:
   condicionesVentaController.rechazarCondicionVenta(req, res, next)
 })
 
+condicionesVentaRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.updateCondicionVenta(req, res, next)
+})
+

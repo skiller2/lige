@@ -257,9 +257,17 @@ export class CondicionesVentaController extends BaseController {
                 }
              }
 
-           // await queryRunner.commitTransaction();
-           throw new ClientException('test')
-            return this.jsonRes({}, res, 'Carga  de nuevo registro exitoso');
+
+            const result =  {
+                ClienteId: objetivoInfo.clienteId, 
+                ClienteElementoDependienteId: objetivoInfo.ClienteElementoDependienteId,
+                PeriodoDesdeAplica: CondicionVenta.PeriodoDesdeAplica
+             }
+
+
+            await queryRunner.commitTransaction();
+           //throw new ClientException('test')
+            return this.jsonRes(result, res, 'Carga  de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -576,6 +584,85 @@ export class CondicionesVentaController extends BaseController {
             return next(error)
         } finally {
             await queryRunner.release()
+        }
+    }
+
+    async updateCondicionVenta(req: any, res: any, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+           await queryRunner.startTransaction()
+            const condicionVenta = req.body.condicionVenta;
+            const ClienteId = req.body.ClienteId; 
+            const clienteelementodependienteid = req.body.clienteelementodependienteid; 
+            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica); 
+
+         
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+
+            if(!PeriodoDesdeAplica) {
+                throw new ClientException("error al obtener el periodo desde aplica")
+            }
+            if(!ClienteId) {
+                throw new ClientException("error al obtener el cliente")
+            }
+            if(!clienteelementodependienteid) {
+                throw new ClientException("error al obtener el cliente elemento dependiente")
+            }
+
+         
+            //actualiza CondicionVenta
+            await this.updateCondicionVentaQuery(queryRunner, condicionVenta);
+
+            //actualiza CondicionVentaDetalle
+
+            await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
+            //throw new ClientException('test ok')
+            await queryRunner.commitTransaction();
+            return this.jsonRes({}, res, 'Actualización exitosa');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async updateCondicionVentaQuery(queryRunner: any, condicionVenta: any) {
+        await queryRunner.query(`UPDATE CondicionVenta SET
+            PeriodoFacturacion = @0,
+            GeneracionFacturaDia = @1,
+            GeneracionFacturaDiaComplemento = @2,
+            Observaciones = @3
+        WHERE ClienteId = @4 AND ClienteElementoDependienteId = @5 AND PeriodoDesdeAplica = @6`, 
+        [condicionVenta.PeriodoFacturacion, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.Observaciones, condicionVenta.ClienteId, condicionVenta.ClienteElementoDependienteId, condicionVenta.PeriodoDesdeAplica]);
+    }   
+
+
+    async updateCondicionVentaDetalleQuery(queryRunner: any, infoProductos: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
+        let FechaActual = new Date()
+        console.log("infoProductos ", infoProductos)
+        const ProductoIds = infoProductos.map((row: { ProductoCodigo: any; }) => row.ProductoCodigo).filter((id) => id !== null && id !== undefined);
+
+        if (ProductoIds.length > 0) {
+            await queryRunner.query(`DELETE FROM CondicionVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                 [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
+        }
+
+        for (const [idx, producto] of infoProductos.entries()) {
+            if (producto.ProductoCodigo) {
+                await queryRunner.query(`UPDATE CondicionVentaDetalle
+                    SET ProductoCodigo = @2,TextoFactura = @3,Cantidad = @4,IndCantidadHorasVenta = @5,ImporteFijo = @6,IndImporteListaPrecio = @7,IndImporteAcuerdoConCliente = @8, AudFechaIng = @9, AudFechaMod = @10,AudUsuarioIng = @11, AudUsuarioMod = @12, AudIpIng = @13, AudIpMod = @14
+                    WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`, 
+                    [ ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, producto.ProductoCodigo, producto.TextoFactura, producto.Cantidad, producto.IndCantidadHorasVenta, producto.ImporteFijo, producto.IndImporteListaPrecio, producto.IndImporteAcuerdoConCliente, FechaActual, FechaActual, usuario, usuario, ip, ip])
+            } else {
+                await queryRunner.query(`INSERT INTO CondicionVentaDetalle (
+                    ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, ProductoCodigo, TextoFactura, Cantidad, IndCantidadHorasVenta, ImporteFijo, IndImporteListaPrecio, IndImporteAcuerdoConCliente, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod) 
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`, [
+                    ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, producto.ProductoCodigo, producto.TextoFactura, producto.Cantidad, producto.IndCantidadHorasVenta, producto.ImporteFijo, producto.IndImporteListaPrecio, producto.IndImporteAcuerdoConCliente, FechaActual, FechaActual, usuario, usuario, ip, ip
+                ])
+
+            }
         }
     }
 }

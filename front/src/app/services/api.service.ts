@@ -1379,6 +1379,15 @@ export class ApiService {
     )
   }
 
+  updateCondicionVenta(condicionVenta: any, codobj: any, PeriodoDesdeAplica: any) {
+    const ClienteId = codobj.split('/')[0];
+    const clienteelementodependienteid = codobj.split('/')[1];
+    const parameter = { condicionVenta, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica }
+    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/update',  parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   existCondicionVenta(codobjId: any, PeriodoDesdeAplica: any) {
     const codcliente = codobjId.split('/')[0];
     const codclienteelemento = codobjId.split('/')[1];
