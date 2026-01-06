@@ -116,8 +116,7 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14Autorizado',
     formatter: 'collectionFormatter',
     params: { collection: getOptionsExcepcionAsistenciaAprobado},
-    // searchComponent: 'inputForExcepcionAsistenciaAprobadoSearch', el que va
-    searchComponent: 'inputForPrestamoAprobadoSearch',
+    searchComponent: 'inputForExcepcionAsistenciaAprobadoSearch',    
     searchType: 'string',
     sortable: true,
     searchHidden: false
@@ -267,6 +266,11 @@ const columnsExcepcionesAsistencia: any[] = [
 ]
 
 export class ExcepcionesAsistenciaController extends BaseController {
+
+    getEstadoExcepcionAsistencia(req: any, res: Response, next: NextFunction) {
+      return this.jsonRes(getOptionsExcepcionAsistenciaAprobado, res)
+    }
+  
 
   async getGridColums(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsExcepcionesAsistencia, res)

@@ -1340,6 +1340,16 @@ export class SearchService {
     );
   }
 
+   getEstadoExcepcionAsistencia(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/excepciones-asistencia/estados`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getOptionsCondicionAnteIva(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getCondicion`).pipe(
       map(res => res.data),

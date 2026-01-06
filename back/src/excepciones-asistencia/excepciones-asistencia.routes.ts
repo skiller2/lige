@@ -24,3 +24,5 @@ excepcionesAsistenciaRouter.post('/rechazar', [authMiddleware.verifyToken, authM
 excepcionesAsistenciaRouter.post('/pendiente', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gOperaciones'])], (req, res, next) => {
   excepcionesAsistenciaController.personalArt14PendienteLista(req, res, next)
 })
+
+excepcionesAsistenciaRouter.get('/estados', [authMiddleware.verifyToken], (req, res, next) => { excepcionesAsistenciaController.getEstadoExcepcionAsistencia(req, res, next) } )
