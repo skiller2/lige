@@ -28,6 +28,10 @@ habilitacionesRouter.get("/categoria/options/:LugarHabilitacionId", [authMiddlew
   habilitacionesController.getHabilitacionCategoria(req, res, next);
 });
 
+habilitacionesRouter.get("/necesarias/:PersonalId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.getHabilitacionNecesariaByPersonalId(req, res, next);
+});
+
 habilitacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.list(req, res, next)
 })
@@ -44,8 +48,8 @@ habilitacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.ha
   habilitacionesController.addHabilitacion(req, res, next)
 })
 
-habilitacionesRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  habilitacionesController.updateHabilitacion(req, res, next)
+habilitacionesRouter.post('/necesarias/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.updateHabilitacionesNecesarias(req, res, next)
 })
 
 habilitacionesRouter.post('/add-detalle', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

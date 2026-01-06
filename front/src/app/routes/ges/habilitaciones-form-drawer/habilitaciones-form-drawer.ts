@@ -21,25 +21,20 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 export class HabilitacionesFormDrawerComponent {
   tituloDrawer = input<string>("Nueva Habilitación Detalle")
   placement: NzDrawerPlacement = 'left';
-  // disabled = input<boolean>(false)
   RefreshDetalle = model<boolean>(false)
   visible = model<boolean>(false)
   onAddorUpdate = output()
   
-  personalId = input<number>(0)
-  lugarHabilitacionId = input<number>(0)
-  personalHabilitacionId = input<number>(0)
   prevFiles = signal<any[]>([]);
   randNum = signal<number>(0);
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
 
-  // formEdit = signal<number>(0)
   isLoading = signal(false);
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
-  formEdit = computed(() => (this.personalHabilitacionId() && this.personalId() && this.lugarHabilitacionId())? true : false)
+  // formEdit = computed(() => (this.personalHabilitacionId() && this.personalId() && this.lugarHabilitacionId())? true : false)
   
   onRefreshInstituciones = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
@@ -84,14 +79,9 @@ export class HabilitacionesFormDrawerComponent {
     effect(async() => {
       const visible = this.visible()
       if (visible) {
+        // const res = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
 
-        if (this.formEdit()) {
-          const res = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
-
-          this.formHabilitacion.reset(res)
-        }else{
-          this.formHabilitacion.reset()
-        }
+        this.formHabilitacion.reset()
         this.formHabilitacion.markAsUntouched()
         this.formHabilitacion.markAsPristine()
       }
@@ -116,11 +106,7 @@ export class HabilitacionesFormDrawerComponent {
     let vals:any = this.formHabilitacion.value
 
     try {
-      if (this.formEdit()){
-        await firstValueFrom(this.apiService.updatePersonalHabiltacion(vals))
-      }else{
-        await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
-      }
+      await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
       
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()

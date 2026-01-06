@@ -2172,6 +2172,19 @@ export class SearchService {
     );
   }
 
+  getHabilitacionNecesariaByPersonalId(personalId: number) {
+    if (!personalId) {
+      return of([]);
+    }
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/necesarias/${personalId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getRubroClienteOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/rubro/rublo-cliente/options`).pipe(
       map(res => res.data),

@@ -856,44 +856,59 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    async updateHabilitacion(req: any, res: Response, next: NextFunction) {
+    async updateHabilitacionesNecesarias(req: any, res: Response, next: NextFunction) {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
 
-        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        // const PersonalHabilitacionNecesariaId = req.body.PersonalHabilitacionNecesariaId
         const PersonalId = req.body.PersonalId
-        const LugarHabilitacionId = req.body.LugarHabilitacionId
-        // const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
-        // const HabilitacionCategoriaCodigo = req.body.HabilitacionCategoriaCodigo
-        // const Detalle = req.body.Detalle
-        // const NroTramite = req.body.NroTramite
-        // const PersonalHabilitacionDesde: Date = req.body.PersonalHabilitacionDesde ? new Date(req.body.PersonalHabilitacionDesde) : null
-        // const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
-        // const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
-        
-        // const file: any[] = req.body.file
-
-        // if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
-        // if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
+        const LugarHabilitacionIds = req.body.LugarHabilitacionIds
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            await queryRunner.query(`
-                UPDATE PersonalHabilitacion
-                SET PersonalHabilitacionLugarHabilitacionId = @2, AudFechaMod = @3, AudIpMod = @4, AusUsuarioMod = @5
-                WHERE PersonalHabilitacionId = @0 AND PersonalId = @1
-            `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, fechaActual, ip, usuario])
+            // await queryRunner.query(`
+            //     UPDATE PersonalHabilitacion
+            //     SET PersonalHabilitacionLugarHabilitacionId = @2, AudFechaMod = @3, AudIpMod = @4, AusUsuarioMod = @5
+            //     WHERE PersonalHabilitacionId = @0 AND PersonalId = @1
+            // `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, fechaActual, ip, usuario])
 
-            // throw new ClientException(`DEBUG`)
+            throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+    }
+
+    async getHabilitacionNecesariaByPersonalId(req: any, res: Response, next: NextFunction) {
+        
+        const PersonalId = req.params.PersonalId
+        
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const habs = []
+            const habilitacion = await queryRunner.query(`
+                SELECT PersonalHabilitacionNecesariaLugarHabilitacionId
+                FROM PersonalHabilitacionNecesaria
+                WHERE PersonalId = @0
+            `, [PersonalId])
+            for (const hab of habilitacion)
+                habs.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
+
+            const obj = {
+                PersonalId,
+                LugarHabilitacionIds : habs,
+                LugarHabilitacionIdsOld : habs
+            } 
+            this.jsonRes(obj, res);
+        } catch (error) {
             return next(error)
         }
     }

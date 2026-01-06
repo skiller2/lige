@@ -33,8 +33,8 @@
             <button nz-button nzType="default" (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus" nzTheme="outline"></span>
             </button>
-            <button nz-button nzType="default" (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"
-              [disabled]="personalHabilitacionId()? false : true">
+            <button nz-button nzType="default" (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"
+              [disabled]="personalId()? false : true">
               <span nz-icon nzType="edit" nzTheme="outline"></span>
             </button>
           </nz-button-group>
@@ -66,6 +66,4 @@
 
 <app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Nueva Habilitación'"
 ></app-habilitaciones-form-drawer>
-
-<app-habilitaciones-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="apellidoNombreSelected()"
-[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [personalHabilitacionId]="personalHabilitacionId()"></app-habilitaciones-form-drawer>
+<app-habilitacion-necesaria-form-modal [(visible)]="visibleFormEdit" [apellidoNombre]="apellidoNombreSelected()" [personalId]="personalId()"></app-habilitacion-necesaria-form-modal>

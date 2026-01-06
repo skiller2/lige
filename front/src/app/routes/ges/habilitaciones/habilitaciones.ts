@@ -15,11 +15,13 @@ import { HabilitacionesDetalleComponent } from 'src/app/routes/ges/habilitacione
 import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HabilitacionNecesariaFormModalComponent } from 'src/app/routes/ges/habilitacion-necesaria-form-modal/habilitacion-necesaria-form-modal';
 
 @Component({
   selector: 'app-habilitaciones',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
-    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent],
+    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent, 
+    HabilitacionNecesariaFormModalComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
   styleUrl: './habilitaciones.less',
@@ -107,7 +109,7 @@ export class HabilitacionesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    // console.log('row: ', row);
+    console.log('row: ', row);
     
     if (row?.id) {
       this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion}`)
