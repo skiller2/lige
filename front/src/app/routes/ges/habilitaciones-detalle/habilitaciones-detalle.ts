@@ -10,10 +10,13 @@ import { SearchService } from 'src/app/services/search.service';
 import { columnTotal, totalRecords } from "src/app/shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-detalle-form-drawer/habilitaciones-detalle-form-drawer';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 
 @Component({
   selector: 'app-habilitaciones-detalle',
-  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent ],
+  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent, NgxExtendedPdfViewerModule, ImageLoaderComponent  ],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones-detalle.html',
   styleUrl: './habilitaciones-detalle.less',
@@ -32,6 +35,7 @@ export class HabilitacionesDetalleComponent {
   excelExportService = new ExcelExportService()
   habilitacionesChange$ = new BehaviorSubject('')
   
+  detalle = input<string>('')
   selectedIndex = signal(0)
   // isLoading = signal<boolean>(false)
   codigo = signal<number>(0)
@@ -41,6 +45,12 @@ export class HabilitacionesDetalleComponent {
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)
 
+  modalViewerVisiable1 = signal<boolean>(false)
+  modalViewerVisiable2 = signal<boolean>(false)
+  public src = signal<Blob>(new Blob())
+  public srcImg = signal<string>('')
+  fileName = signal<string>('')
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -135,6 +145,36 @@ export class HabilitacionesDetalleComponent {
 
   openDrawerforFormEdit(): void{
     this.visibleFormEdit.set(true) 
+  }
+
+  async LoadArchivo(url: string, filename: string) {
+      this.modalViewerVisiable1.set(false)
+      this.src.set(await fetch(`${url}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
+      this.fileName.set(filename)
+      this.modalViewerVisiable1.set(true)
+    }
+
+  async LoadImage(url: string, filename: string) {
+    this.modalViewerVisiable2.set(false)
+    this.srcImg.set(url)
+    this.fileName.set(filename)
+    this.modalViewerVisiable2.set(true)
+  }
+
+  handleCancel(): void {
+    this.modalViewerVisiable1.set(false)
+    this.modalViewerVisiable2.set(false)
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return ''
+    const date = new Date(dateString);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}/${month}/${day}`;
   }
 
 }

@@ -46,6 +46,7 @@ export class HabilitacionesComponent {
   // mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   isLoading = signal<boolean>(false)
   apellidoNombreSelected = signal<string>('')
+  detalleSelected = signal<string>('')
   personalId = signal<number>(0)
   personalHabilitacionId = signal<number>(0)
   lugarHabilitacionId = signal<number>(0)
@@ -73,6 +74,7 @@ export class HabilitacionesComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+    this.gridOptions.forceFitColumns = true
 
     this.settingsService.setLayout('collapsed', true)
 
@@ -105,8 +107,10 @@ export class HabilitacionesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    // console.log('row: ', row);
     
     if (row?.id) {
+      this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion}`)
       this.apellidoNombreSelected.set(row.ApellidoNombre)
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)
