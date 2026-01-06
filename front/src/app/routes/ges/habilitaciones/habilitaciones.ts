@@ -61,12 +61,11 @@ export class HabilitacionesComponent {
   startFilters = signal<any[]>([])
 
   columns$ = this.apiService.getCols('/api/habilitaciones/cols').pipe(
-      map((cols) => {
-        if (cols[3]) {
-          cols[3].asyncPostRender = this.renderApellidoNombreComponent.bind(this)
-        }
-        return cols
-      }))
+    map((cols: Column<any>[]) => {
+      return cols.map(col => 
+        col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
+      )
+    }))
 
   async ngOnInit() {
 
