@@ -489,4 +489,93 @@ export class CondicionesVentaController extends BaseController {
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
              [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }
+
+
+    async getAutorizarCondicionVenta(req: any, res: any, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const codobj = req.params.codobj;
+            const usuario = res.locals.PersonalId;
+            const ip = this.getRemoteAddress(req);
+            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
+            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
+
+
+            const result = await queryRunner.query(`
+                SELECT  ClienteId,ClienteElementoDependienteId,PeriodoDesdeAplica,AutorizacionFecha,AutorizacionPersonalId,AutorizacionEstado
+                    FROM CondicionVenta 
+                    WHERE ClienteId = @0
+                    AND ClienteElementoDependienteId = @1
+                    AND PeriodoDesdeAplica = @2`, [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
+
+            if (result.length > 0) {
+                if (result[0].AutorizacionFecha && result[0].AutorizacionPersonalId && result[0].AutorizacionEstado) {
+                    throw new ClientException(`Ya se aprobo el registro seleccionado.`)
+                }
+                else {
+                    await this.updateAutorizacionCondicionVenta(queryRunner, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, ip)
+                }
+            }else{
+                throw new ClientException(`No existe el registro seleccionado.`)
+            }
+            //throw new ClientException('test')
+            await queryRunner.commitTransaction();
+            return this.jsonRes({}, res, 'Autorización exitosa');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async updateAutorizacionCondicionVenta(queryRunner: any, codobj: string, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
+        let FechaActual = new Date()
+        await queryRunner.query(`
+        UPDATE CondicionVenta 
+        SET
+            AutorizacionFecha = @0,
+            AutorizacionPersonalId = @1,
+            AutorizacionEstado = 'A',
+            AudFechaMod = @2,
+            AudUsuarioMod = @3,
+            AudIpMod = @4
+        WHERE ClienteId = @5
+        AND ClienteElementoDependienteId = @6
+        AND PeriodoDesdeAplica = @7
+        `,  [FechaActual,usuario,FechaActual,usuario,ip,codobj,ClienteElementoDependienteId,PeriodoDesdeAplica])
+
+    }
+
+    async rechazarCondicionVenta(req: any, res: any, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const codobj = req.params.codobj;
+            const usuario = res.locals.PersonalId;
+            const ip = this.getRemoteAddress(req);
+            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
+            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
+
+            // delete CondicionVentaDetalle
+            await queryRunner.query(`DELETE FROM CondicionVentaDetalle  WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
+
+            // delete CondicionVenta
+            await queryRunner.query(`DELETE FROM CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                 [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
+
+            
+            //throw new ClientException('test')
+            await queryRunner.commitTransaction();
+            return this.jsonRes({}, res, 'Rechazo exitoso');
+
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
 }

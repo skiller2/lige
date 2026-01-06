@@ -1738,7 +1738,7 @@ export class ApiService {
 
   setListCondicionesVenta(filters: any, periodo: any) { 
     console.log("voy a cargargar")
-    
+
     return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/list', {filters, periodo}).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -1911,6 +1911,26 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res.data)),
     )
   }
+
+  
+  autorizarCondicionVenta(codobj: any, PeriodoDesdeAplica: any) {
+    const objetivo = codobj.split('/')[0];
+    const clienteelementodependienteid = codobj.split('/')[1];
+    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/autorizar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    )
+  }
+
+  rechazarCondicionVenta(codobj: any, PeriodoDesdeAplica: any) {
+    const objetivo = codobj.split('/')[0];
+    const clienteelementodependienteid = codobj.split('/')[1];
+    return this.http.delete<ResponseJSON<any>>(`api/condiciones-venta/rechazar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    )
+  }
+
 
 }
 

@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, model, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, model, OnInit, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { I18nPipe, SettingsService } from '@delon/theme';
 import { TableCondicionVentaComponent } from '../table-condicion-venta/table-condicion-venta.component';
 import { AngularUtilService } from 'angular-slickgrid';
 import { CondicionVentaFormComponent } from '../condicion-venta-form/condicion-venta-form.component';
+import { firstValueFrom } from 'rxjs';
+import { ApiService } from 'src/app/services/api.service';
+
 @Component({
   selector: 'app-condicion-venta',
   standalone: true,
@@ -34,6 +37,8 @@ RefreshCondVenta = model<boolean>(false)
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
   }
+
+  private apiService = inject(ApiService);
 
   ngOnInit(): void {
     this.codobj.set('')
@@ -65,5 +70,12 @@ RefreshCondVenta = model<boolean>(false)
 
   }
 
+  async autorizarCondicionVenta() {
+    await firstValueFrom(this.apiService.autorizarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
+  }
+
+  async rechazarCondicionVenta() {
+    await firstValueFrom(this.apiService.rechazarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
+  }
 
 }

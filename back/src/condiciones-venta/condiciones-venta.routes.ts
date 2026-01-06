@@ -26,3 +26,12 @@ condicionesVentaRouter.get('/options', [authMiddleware.verifyToken, authMiddlewa
 condicionesVentaRouter.get('/infCondicionVenta/:codobjId/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
   condicionesVentaController.infCondicionVenta(req, res, next)
 })
+
+condicionesVentaRouter.get('/autorizar/:codobj/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getAutorizarCondicionVenta(req, res, next)
+})
+
+condicionesVentaRouter.delete('/rechazar/:codobj/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.rechazarCondicionVenta(req, res, next)
+})
+

@@ -19,11 +19,11 @@
         <a [routerLink]="['/', 'ges', 'condiciones-venta','modificar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
           <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>
-        <a [routerLink]="['/', 'ges', 'condiciones-venta','autorizar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())"><span nz-icon nzType="check" nzTheme="outline"></span></button>
+        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
+          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())" (click)="autorizarCondicionVenta()"><span nz-icon nzType="check" nzTheme="outline"></span></button>
         </a>
-        <a [routerLink]="['/', 'ges', 'condiciones-venta','rechazar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())"><span nz-icon nzType="close" nzTheme="outline"></span></button>
+        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
+          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())" (click)="rechazarCondicionVenta()"><span nz-icon nzType="close" nzTheme="outline"></span></button>
         </a>
       </nz-button-group>
     </div>
