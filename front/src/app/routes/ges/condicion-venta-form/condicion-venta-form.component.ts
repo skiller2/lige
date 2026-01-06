@@ -34,7 +34,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
 
   objProductos = {
-    Cantidad: 0,
+    Cantidad: '',
     ImporteFijo: null,
     IndCantidadHorasVenta: null,
     IndImporteAcuerdoConCliente: null,
@@ -51,8 +51,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ObjetivoId: 0, 
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
-    GeneracionFacturaDia: 0,
-    GeneracionFacturaDiaComplemento: 0,
+    GeneracionFacturaDia: '',
+    GeneracionFacturaDiaComplemento: '',
     Observaciones: '',
     infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
     infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),

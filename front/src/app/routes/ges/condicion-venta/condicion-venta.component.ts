@@ -76,6 +76,8 @@ RefreshCondVenta = model<boolean>(false)
 
   async rechazarCondicionVenta() {
     await firstValueFrom(this.apiService.rechazarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
+    this.RefreshCondVenta.set(true)
+    
   }
 
 }
