@@ -112,11 +112,11 @@ export class HabilitacionesComponent {
     // console.log('row: ', row);
     
     if (row?.id) {
-      this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion}`)
+      this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion} - ${this.formatDate(row.PersonalHabilitacionDesde)} - ${this.formatDate(row.PersonalHabilitacionHasta)} - ${row.SituacionRevistaDescripcion} - ${this.formatDate(row.FechaEstado)} - ${row.NroTramite}`)
       this.apellidoNombreSelected.set(row.ApellidoNombre)
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)
-      this.lugarHabilitacionId.set(row.PersonalHabilitacionLugarHabilitacionId)
+      this.lugarHabilitacionId.set(row.LugarHabilitacionId)
     }
 
   }
@@ -168,6 +168,17 @@ export class HabilitacionesComponent {
   
     cellNode.replaceChildren(componentOutput.domElement)
     
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return ''
+    const date = new Date(dateString);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}/${month}/${day}`;
   }
 
 }
