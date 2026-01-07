@@ -225,7 +225,7 @@ const GridDetalleColums: any[] = [
         field: "AudFechaIng",
         fieldName: "geshab.AudFechaIng",
         // searchComponent: "inputForFechaSearch",
-        sortable: true,
+        sortable: false,
         hidden: false,
         searchHidden: true
     },
@@ -235,7 +235,7 @@ const GridDetalleColums: any[] = [
         id: "estado",
         field: "estado",
         fieldName: "est.Detalle",
-        sortable: true,
+        sortable: false,
         hidden: false,
         searchHidden: false
     },
@@ -409,6 +409,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         LEFT JOIN PersonalHabilitacion perhab ON perhab.PersonalId=geshab.PersonalId and perhab.PersonalHabilitacionLugarHabilitacionId=geshab.PersonalHabilitacionLugarHabilitacionId and perhab.PersonalHabilitacionId=geshab.PersonalHabilitacionId
         LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo=geshab.GestionHabilitacionEstadoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+        order by geshab.AudFechaIng desc
         `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
     }
 
