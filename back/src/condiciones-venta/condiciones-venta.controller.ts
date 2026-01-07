@@ -594,8 +594,7 @@ export class CondicionesVentaController extends BaseController {
             const condicionVenta = req.body.condicionVenta;
             const ClienteId = req.body.ClienteId; 
             const clienteelementodependienteid = req.body.clienteelementodependienteid; 
-            const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica); 
-
+            const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica); 
          
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
@@ -615,7 +614,6 @@ export class CondicionesVentaController extends BaseController {
             await this.updateCondicionVentaQuery(queryRunner, condicionVenta);
 
             //actualiza CondicionVentaDetalle
-
             await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
             //throw new ClientException('test ok')
             await queryRunner.commitTransaction();
@@ -641,7 +639,6 @@ export class CondicionesVentaController extends BaseController {
 
     async updateCondicionVentaDetalleQuery(queryRunner: any, infoProductos: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
         let FechaActual = new Date()
-        console.log("infoProductos ", infoProductos)
         const ProductoIds = infoProductos.map((row: { ProductoCodigo: any; }) => row.ProductoCodigo).filter((id) => id !== null && id !== undefined);
 
         if (ProductoIds.length > 0) {
@@ -651,10 +648,48 @@ export class CondicionesVentaController extends BaseController {
 
         for (const [idx, producto] of infoProductos.entries()) {
             if (producto.ProductoCodigo) {
-                await queryRunner.query(`UPDATE CondicionVentaDetalle
-                    SET ProductoCodigo = @2,TextoFactura = @3,Cantidad = @4,IndCantidadHorasVenta = @5,ImporteFijo = @6,IndImporteListaPrecio = @7,IndImporteAcuerdoConCliente = @8, AudFechaIng = @9, AudFechaMod = @10,AudUsuarioIng = @11, AudUsuarioMod = @12, AudIpIng = @13, AudIpMod = @14
-                    WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`, 
-                    [ ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, producto.ProductoCodigo, producto.TextoFactura, producto.Cantidad, producto.IndCantidadHorasVenta, producto.ImporteFijo, producto.IndImporteListaPrecio, producto.IndImporteAcuerdoConCliente, FechaActual, FechaActual, usuario, usuario, ip, ip])
+                await queryRunner.query(
+                    `
+                    UPDATE CondicionVentaDetalle
+                    SET 
+                      ProductoCodigo = @3,
+                      TextoFactura = @4,
+                      Cantidad = @5,
+                      IndCantidadHorasVenta = @6,
+                      ImporteFijo = @7,
+                      IndImporteListaPrecio = @8,
+                      IndImporteAcuerdoConCliente = @9,
+                      AudFechaIng = @10,
+                      AudFechaMod = @11,
+                      AudUsuarioIng = @12,
+                      AudUsuarioMod = @13,
+                      AudIpIng = @14,
+                      AudIpMod = @15
+                    WHERE 
+                      ClienteId = @0 
+                      AND ClienteElementoDependienteId = @1 
+                      AND PeriodoDesdeAplica = @2
+                    `,
+                    [
+                      ClienteId,                         
+                      ClienteElementoDependienteId,      
+                      PeriodoDesdeAplica,                
+                      producto.ProductoCodigo,           
+                      producto.TextoFactura,             
+                      Number(producto.Cantidad),         
+                      producto.IndCantidadHorasVenta,    
+                      Number(producto.ImporteFijo),      
+                      producto.IndImporteListaPrecio,    
+                      producto.IndImporteAcuerdoConCliente, 
+                      FechaActual,                       
+                      FechaActual,                      
+                      usuario,                          
+                      usuario,                           
+                      ip,                              
+                      ip                                 
+                    ]
+                  )
+                  
             } else {
                 await queryRunner.query(`INSERT INTO CondicionVentaDetalle (
                     ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, ProductoCodigo, TextoFactura, Cantidad, IndCantidadHorasVenta, ImporteFijo, IndImporteListaPrecio, IndImporteAcuerdoConCliente, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod) 
