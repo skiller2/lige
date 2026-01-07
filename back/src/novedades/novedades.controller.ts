@@ -1154,12 +1154,14 @@ export class NovedadesController extends BaseController {
                 });
                 let pdfsPath = pdfsDoc.map((doc: any) => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
                 //Agrega los pdf relacionados al final del informe
-                if (pdfsPath.length) {
-                    pdfsPath = [filePath, ...pdfsPath]
-                    const buffer = await this.joinPDFsOnPath(pdfsPath)
-                    //Sobre-escribe el informe
-                    writeFileSync(filePath, buffer);
-                }
+                
+                // comento temporalmente la union de pdfs relacionados
+                // if (pdfsPath.length) {
+                //     pdfsPath = [filePath, ...pdfsPath]
+                //     const buffer = await this.joinPDFsOnPath(pdfsPath)
+                //     //Sobre-escribe el informe
+                //     writeFileSync(filePath, buffer);
+                // }
 
                 informeNovedadPaths.push(filePath);
             }
