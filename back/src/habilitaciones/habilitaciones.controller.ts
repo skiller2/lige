@@ -575,9 +575,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
-                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
             }
 
             //Obtiene el Ultimo Codigo registrado
@@ -666,9 +666,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
-                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
             }
 
             //Actualiza el Ultimo Codigo registrado
@@ -775,9 +775,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
-                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
             }
 
             const valHabilitacionNecesaria = await queryRunner.query(`
@@ -856,27 +856,19 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    async updateHabilitacionesNecesarias(req: any, res: Response, next: NextFunction) {
+    async updatePersonalHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
-        const fechaActual = new Date()
 
-        // const PersonalHabilitacionNecesariaId = req.body.PersonalHabilitacionNecesariaId
         const PersonalId = req.body.PersonalId
-        const LugarHabilitacionIds = req.body.LugarHabilitacionIds
+        const LugarHabilitacionIds:number[] = req.body.LugarHabilitacionIds? req.body.LugarHabilitacionIds : []
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
-            // await queryRunner.query(`
-            //     UPDATE PersonalHabilitacion
-            //     SET PersonalHabilitacionLugarHabilitacionId = @2, AudFechaMod = @3, AudIpMod = @4, AusUsuarioMod = @5
-            //     WHERE PersonalHabilitacionId = @0 AND PersonalId = @1
-            // `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, fechaActual, ip, usuario])
-
-            throw new ClientException(`DEBUG`)
+            
+            await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
 
             await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Carga exitosa');
@@ -886,27 +878,75 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
+    async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuario: string, ip: string) {
+        //Compruebo si hubo cambios
+        let cambios: boolean = false
+
+        const habsOld: number[] = []
+        const list = await this.queryHabilitacionNecesariaByPersonalId(queryRunner, personalId)
+        for (const hab of list)
+            habsOld.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
+
+        if (habilitaciones.length != habsOld.length)
+            cambios = true
+        else
+            habsOld.forEach((hab: any, index: number) => {
+                if (habilitaciones.find(h => hab != h)) cambios = true
+            });
+        if (!cambios) return
+
+
+        //Actualizo
+        const now = new Date()
+        const desde = new Date()
+        desde.setHours(0,0,0,0)
+        let PersonalHabilitacionNecesariaId:number = 0
+
+        await queryRunner.query(`
+            DELETE FROM PersonalHabilitacionNecesaria
+            WHERE PersonalId IN (@0)
+        `, [personalId])
+
+        for (const lugarHabilitacionId of habilitaciones) {
+            PersonalHabilitacionNecesariaId++
+            await queryRunner.query(`
+                INSERT INTO PersonalHabilitacionNecesaria (
+                    PersonalHabilitacionNecesariaId, PersonalId, PersonalHabilitacionNecesariaLugarHabilitacionId, PersonalHabilitacionNecesariaDesde, 
+                    PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudIpIng, PersonalHabilitacionNecesariaAudUsuarioIng,
+                    PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudIpMod, PersonalHabilitacionNecesariaAudUsuarioMod)
+                VALUES(@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+            `, [PersonalHabilitacionNecesariaId, personalId, lugarHabilitacionId, desde, now, ip, usuario])
+        }
+        await queryRunner.query(`
+            UPDATE Personal SET PersonalHabilitacionNecesariaUltNro = @1
+            WHERE PersonalId IN (@0)
+        `, [personalId, PersonalHabilitacionNecesariaId])
+    }
+
+    private async queryHabilitacionNecesariaByPersonalId(queryRunner: any, PersonalId:any){
+        return await queryRunner.query(`
+            SELECT PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria
+            WHERE PersonalId = @0
+        `, [PersonalId])
+    }
+
     async getHabilitacionNecesariaByPersonalId(req: any, res: Response, next: NextFunction) {
         
         const PersonalId = req.params.PersonalId
-        
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             const habs = []
-            const habilitacion = await queryRunner.query(`
-                SELECT PersonalHabilitacionNecesariaLugarHabilitacionId
-                FROM PersonalHabilitacionNecesaria
-                WHERE PersonalId = @0
-            `, [PersonalId])
-            for (const hab of habilitacion)
+            const habilitaciones = await this.queryHabilitacionNecesariaByPersonalId(queryRunner, PersonalId)
+            for (const hab of habilitaciones)
                 habs.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
 
             const obj = {
                 PersonalId,
-                LugarHabilitacionIds : habs,
-                LugarHabilitacionIdsOld : habs
-            } 
+                LugarHabilitacionIds : habs
+            }
+
             this.jsonRes(obj, res);
         } catch (error) {
             return next(error)

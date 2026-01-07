@@ -109,7 +109,7 @@ export class HabilitacionesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    console.log('row: ', row);
+    // console.log('row: ', row);
     
     if (row?.id) {
       this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion}`)

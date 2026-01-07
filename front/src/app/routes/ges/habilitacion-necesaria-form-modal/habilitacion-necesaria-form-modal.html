@@ -1,4 +1,4 @@
-<nz-modal [nzVisible]="visible()" [nzTitle]="'Habilitación necesaria: '+ apellidoNombre()" (nzOnCancel)="handleCancel()">
+<nz-modal [nzVisible]="visible()" [nzTitle]="'Habilitación necesaria: '+ apellidoNombre()" (nzOnCancel)="handleCancel()" [nzMaskClosable]="false">
   <div *nzModalContent>
     <form [formGroup]="formHabilitacionNecesaria">
         <nz-form-label>Habilitaciones</nz-form-label>
@@ -14,7 +14,7 @@
   </div>
   <div *nzModalFooter>
     <button nz-button nzType="default" (click)="handleCancel()">Cancelar</button>
-    <button nzType="primary" nz-button (click)="saveHabilitacionNecesaria()" [nzLoading]="isLoading()">
+    <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formHabilitacionNecesaria.pristine">
       {{ 'app.btn.save' | i18n }}
     </button>
   </div>

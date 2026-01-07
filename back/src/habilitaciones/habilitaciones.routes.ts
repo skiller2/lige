@@ -48,15 +48,15 @@ habilitacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.ha
   habilitacionesController.addHabilitacion(req, res, next)
 })
 
-habilitacionesRouter.post('/necesarias/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  habilitacionesController.updateHabilitacionesNecesarias(req, res, next)
+habilitacionesRouter.post('/necesaria/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.updatePersonalHabilitacionNecesaria(req, res, next)
 })
 
-habilitacionesRouter.post('/add-detalle', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+habilitacionesRouter.post('/gestion/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.addHabilitacionDetalle(req, res, next)
 })
 
-habilitacionesRouter.post('/update-detalle', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+habilitacionesRouter.post('/gestion/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.updateHabilitacionDetalle(req, res, next)
 })
 

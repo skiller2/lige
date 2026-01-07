@@ -1909,14 +1909,20 @@ export class ApiService {
     )
   }
 
-  addGestionHabiltacion(params:any){
-    return this.http.post<ResponseJSON<any>>('api/habilitaciones/add-detalle', params).pipe(
+  addGestionHabilitacion(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/gestion/add', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updateGestionHabiltacion(params:any){
-    return this.http.post<ResponseJSON<any>>('api/habilitaciones/update-detalle', params).pipe(
+  updateGestionHabilitacion(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/gestion/update', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res.data)),
+    )
+  }
+
+  updateHabilitacionNecesaria(params:any){
+    return this.http.post<ResponseJSON<any>>('api/habilitaciones/necesaria/update', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res.data)),
     )
   }

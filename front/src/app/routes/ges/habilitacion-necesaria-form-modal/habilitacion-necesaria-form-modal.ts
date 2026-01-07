@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, model, input, effect } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, model, input, output, effect } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { FormBuilder } from '@angular/forms';
 import { ApiService } from 'src/app/services/api.service';
@@ -20,6 +20,7 @@ export class HabilitacionNecesariaFormModalComponent {
   apellidoNombre = input<string>('')
   personalId = input<number>(0)
   visible = model<boolean>(false)
+  onAddorUpdate = output()
 
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
@@ -27,7 +28,6 @@ export class HabilitacionNecesariaFormModalComponent {
   fb = inject(FormBuilder)
   formHabilitacionNecesaria = this.fb.group({
     PersonalId:0,
-    LugarHabilitacionIdsOld:[],
     LugarHabilitacionIds: []
   })
 
@@ -35,10 +35,10 @@ export class HabilitacionNecesariaFormModalComponent {
     effect(async() => {
       const visible = this.visible()
       if (visible) {
-        let lastConfig = await firstValueFrom(this.searchService.getHabilitacionNecesariaByPersonalId(this.personalId()))
-        // console.log('lastConfig: ', lastConfig);
+        let res = await firstValueFrom(this.searchService.getHabilitacionNecesariaByPersonalId(this.personalId()))
+        // console.log('habsNecesaria: ', res);
         
-        this.formHabilitacionNecesaria.reset(lastConfig)
+        this.formHabilitacionNecesaria.reset(res)
         this.formHabilitacionNecesaria.markAsUntouched()
         this.formHabilitacionNecesaria.markAsPristine()
       }
@@ -51,12 +51,16 @@ export class HabilitacionNecesariaFormModalComponent {
 
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
 
-   async saveHabilitacionNecesaria() {
+   async save() {
     this.isLoading.set(true)
-
+    let vals:any = this.formHabilitacionNecesaria.value
     try {
-      console.log();
-      
+      // console.log('vals: ', vals);
+      await firstValueFrom(this.apiService.updateHabilitacionNecesaria(vals))
+
+      this.formHabilitacionNecesaria.markAsUntouched()
+      this.formHabilitacionNecesaria.markAsPristine()
+      this.onAddorUpdate.emit()
     } catch (error) {
     }
     this.isLoading.set(false)
