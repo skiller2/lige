@@ -114,7 +114,7 @@ const GridColums: any[] = [
         type: "number",
         id: "LugarHabilitacionId",
         field: "LugarHabilitacionId",
-        fieldName: "vishab.LugarHabilitacionId",
+        fieldName: "vishab.PersonalHabilitacionLugarHabilitacionId",
         searchComponent: "inputForLugarHabilitacionSearch",
         searchType: "number",
         sortable: true,
@@ -122,7 +122,7 @@ const GridColums: any[] = [
         searchHidden: false
     },
     {
-        name: "Lugar Habilitación Necesaria",
+        name: "Lugar Habilitación",
         type: "string",
         id: "LugarHabilitacionDescripcion",
         field: "LugarHabilitacionDescripcion",
@@ -321,7 +321,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
-            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId,
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.PersonalHabilitacionLugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria
