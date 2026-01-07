@@ -118,7 +118,6 @@ async newRecord() {
   async load() {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta( this.codobjId(), this.PeriodoDesdeAplica()))
-
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
 
@@ -180,8 +179,8 @@ async newRecord() {
         const result = await firstValueFrom(this.apiService.addCondicionVenta(formValue));
         const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
         const clienteid = result.data.ClienteId;
-        console.log("result ", result)
         this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
+        this.PeriodoDesdeAplica.set(result.data.PeriodoDesdeAplica);
        
       }
       
