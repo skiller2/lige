@@ -114,7 +114,7 @@ const GridColums: any[] = [
         type: "number",
         id: "LugarHabilitacionId",
         field: "LugarHabilitacionId",
-        fieldName: "vishab.PersonalHabilitacionLugarHabilitacionId",
+        fieldName: "vishab.LugarHabilitacionId",
         searchComponent: "inputForLugarHabilitacionSearch",
         searchType: "number",
         sortable: true,
@@ -321,7 +321,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
-            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.PersonalHabilitacionLugarHabilitacionId,
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria
@@ -330,23 +330,23 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         FROM Personal per
    
 		JOIN (
-				SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId
+				SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
 				FROM  PersonalHabilitacion b 
 				WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
 
 				UNION
 
-				SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId 
+				SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
 				FROM PersonalHabilitacionNecesaria c 
 				
 				) vishab on vishab.PersonalId=per.PersonalId
 
 	
-		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.PersonalHabilitacionLugarHabilitacionId and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
-		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.PersonalHabilitacionLugarHabilitacionId
-		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
+		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
 
-		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
         LEFT JOIN 
                 (
@@ -373,7 +373,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 					ELSE 0
 				END AS DiasFaltantesVencimiento
 			FROM PersonalHabilitacion b2
-		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId
 
         WHERE (${filterSql})
         ${orderBy}
