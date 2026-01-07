@@ -53,22 +53,30 @@
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-        <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [(RefreshCondVenta)]="RefreshCondVenta"></app-table-condicion-venta>
+        <ng-template nz-tab>
+          <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [(RefreshCondVenta)]="RefreshCondVenta"></app-table-condicion-venta>
+        </ng-template>
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/modificar" >{{ 'app.icon.edit' | i18n }}</a>
-        <app-condicion-venta-form #condicionVentaFormEditar [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form >
+        <ng-template nz-tab>
+          <app-condicion-venta-form #condicionVentaFormEditar [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form >
+        </ng-template>
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/detalle" >{{ 'app.icon.detail' | i18n }}</a>
-        <app-condicion-venta-form #condicionVentaFormDetalle [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form >
+        <ng-template nz-tab>
+          <app-condicion-venta-form #condicionVentaFormDetalle [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form >
+        </ng-template>
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/condiciones-venta/alta" >{{ 'app.alta' | i18n }}</a>
-        <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form>
+        <ng-template nz-tab>
+          <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj" [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"></app-condicion-venta-form>
+        </ng-template>
       </nz-tab>
 
     </nz-tabs> 
