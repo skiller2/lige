@@ -299,7 +299,7 @@ export class CondicionesVentaController extends BaseController {
                     await this.CondicionVentaDetalle(queryRunner,
                         objetivoInfo.clienteId,
                         objetivoInfo.ClienteElementoDependienteId,
-                        CondicionVenta.PeriodoDesdeAplica,
+                        PeriodoDesdeAplica,
                         producto.ProductoCodigo,
                         producto.TextoFactura,
                         producto.Cantidad,
