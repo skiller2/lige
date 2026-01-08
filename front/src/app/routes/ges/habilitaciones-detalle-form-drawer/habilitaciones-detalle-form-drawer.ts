@@ -115,9 +115,9 @@ export class HabilitacionesFormDrawerComponent {
 
       if (this.codigo()) {
         vals.codigo = this.codigo()
-        await firstValueFrom(this.apiService.updateGestionHabiltacion(vals))
+        await firstValueFrom(this.apiService.updateGestionHabilitacion(vals))
       } else {
-        let result:any = await firstValueFrom(this.apiService.addGestionHabiltacion(vals))
+        let result:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
         let data = result.data
         data.AudFechaIng = this.formatDate(data.AudFechaIng);
         
@@ -133,7 +133,7 @@ export class HabilitacionesFormDrawerComponent {
   }
 
   handlePrevFiles(event: any[]) {
-    console.log('handle',event)
+    // console.log('handle',event)
     const copia = event.map(item => ({ ...item }))
     this.prevFiles.set([...copia])
     this.randNum.set(Math.random())

@@ -55,7 +55,7 @@ novedadesRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasG
   }
 );
 
-novedadesRouter.post("/informes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+novedadesRouter.post("/informes", [authMiddleware.verifyToken, authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])],
   (req, res, next) => {
     novedadesController.generaInformesNovedades(req, res, next);
   }

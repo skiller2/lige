@@ -33,35 +33,37 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-          <nz-input-number formControlName="PeriodoFacturacion" [nzMin]="1" [nzMax]="12" [nzStep]="1" nzPlaceHolder="Mes" style="width: 100%;"/>
+          <input nz-input formControlName="PeriodoFacturacion" placeholder="Ej: '1S' ,'1M', '1A'." style="width: 100%;"/>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-      <nz-input-number
+      <input
+        nz-input
+        nzInputNumber
         formControlName="GeneracionFacturaDia"
-        [nzMin]="1"
-        [nzMax]="31"
-        [nzStep]="1"
-        nzPlaceHolder="Día del mes (1-31)"
+        min="1"
+        max="31"
+        step="1"
+        placeholder="Día del mes (1-31)"
         style="width: 100%;">
-      </nz-input-number>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura (Complemento)</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11">
-      <nz-input-number
+      <input
+        nz-input
+        nzInputNumber
         formControlName="GeneracionFacturaDiaComplemento"
-        [nzMin]="0"
-        [nzMax]="31"
-        [nzStep]="1"
-        nzPlaceHolder="Día complemento"
+        min="0"
+        max="31"
+        step="1"
+        placeholder="Día complemento"
         style="width: 100%;">
-      </nz-input-number>
     </nz-form-control>
   </nz-form-item>
 
@@ -89,7 +91,7 @@
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Producto</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
             <nz-select nzAllowClear style="width:100%"
-          nzPlaceHolder="Producto" formControlName="ProductoCodigo" nzShowSearch [nzDropdownMatchSelectWidth]="false">
+          nzPlaceholder="Producto" formControlName="ProductoCodigo" nzShowSearch [nzDropdownMatchSelectWidth]="false">
           @for (option of $optionsTipoProducto | async; track option) {
             <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
           }
@@ -97,23 +99,25 @@
           </nz-form-control>
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
-            <nz-input-number 
+            <input
+            nz-input
+            nzInputNumber
             formControlName="Cantidad" 
-            [nzMin]="0" 
-            [nzStep]="1" 
+            min="0" 
+            step="1" 
             style="width: 100%;" 
-            nzPlaceHolder="Cantidad">
-          </nz-input-number>
+            placeholder="Cantidad">
           </nz-form-control>
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe Fijo</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
-            <nz-input-number 
+            <input
+            nz-input
+            nzInputNumber
             style="width: 100%" 
             formControlName="ImporteFijo"
-            [nzMin]="0"
-            [nzStep]="0.01"
-            nzPlaceHolder="Importe Fijo"
-          ></nz-input-number>
+            min="0"
+            step="0.01"
+            placeholder="Importe Fijo">
           </nz-form-control>
 
         </nz-form-item>
@@ -124,7 +128,7 @@
             <nz-select 
               formControlName="IndCantidadHorasVenta" 
               style="width: 100%" 
-              nzPlaceHolder="Seleccione"
+              nzPlaceholder="Seleccione"
               nzAllowClear
               [nzDropdownMatchSelectWidth]="false">
               <nz-option [nzValue]="" nzLabel="Seleccione"></nz-option>
@@ -137,7 +141,7 @@
             <nz-select 
               formControlName="IndImporteListaPrecio" 
               style="width: 100%" 
-              nzPlaceHolder="Seleccione"
+              nzPlaceholder="Seleccione"
               nzAllowClear
               [nzDropdownMatchSelectWidth]="false">
               <nz-option [nzValue]="" nzLabel="Seleccione"></nz-option>
@@ -150,7 +154,7 @@
             <nz-select 
               formControlName="IndImporteAcuerdoConCliente" 
               style="width: 100%" 
-              nzPlaceHolder="Seleccione"
+              nzPlaceholder="Seleccione"
               nzAllowClear
               [nzDropdownMatchSelectWidth]="false">
               <nz-option   [nzValue]="" nzLabel="Seleccione"></nz-option>
@@ -164,7 +168,7 @@
      
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16">
-            <textarea nz-input formControlName="TextoFactura" rows="3" style="width: 100%;" nzPlaceHolder="Ingrese el texto de la factura"></textarea>
+            <textarea nz-input formControlName="TextoFactura" rows="3" style="width: 100%;" nzPlaceholder="Ingrese el texto de la factura"></textarea>
           </nz-form-control>
 
           @if (formCondicionVenta.enabled) {

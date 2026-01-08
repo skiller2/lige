@@ -122,7 +122,7 @@ const GridColums: any[] = [
         searchHidden: false
     },
     {
-        name: "Lugar Habilitación Necesaria",
+        name: "Lugar Habilitación",
         type: "string",
         id: "LugarHabilitacionDescripcion",
         field: "LugarHabilitacionDescripcion",
@@ -225,7 +225,7 @@ const GridDetalleColums: any[] = [
         field: "AudFechaIng",
         fieldName: "geshab.AudFechaIng",
         // searchComponent: "inputForFechaSearch",
-        sortable: true,
+        sortable: false,
         hidden: false,
         searchHidden: true
     },
@@ -235,7 +235,7 @@ const GridDetalleColums: any[] = [
         id: "estado",
         field: "estado",
         fieldName: "est.Detalle",
-        sortable: true,
+        sortable: false,
         hidden: false,
         searchHidden: false
     },
@@ -321,7 +321,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
-            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId,
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria
@@ -330,23 +330,23 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         FROM Personal per
    
 		JOIN (
-				SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId
+				SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
 				FROM  PersonalHabilitacion b 
 				WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
 
 				UNION
 
-				SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId 
+				SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
 				FROM PersonalHabilitacionNecesaria c 
 				
 				) vishab on vishab.PersonalId=per.PersonalId
 
 	
-		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.PersonalHabilitacionLugarHabilitacionId and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
-		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.PersonalHabilitacionLugarHabilitacionId
-		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId --and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
+		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
 
-		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
         LEFT JOIN 
                 (
@@ -369,11 +369,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
 					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+                    WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
 					--WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
 					ELSE 0
 				END AS DiasFaltantesVencimiento
 			FROM PersonalHabilitacion b2
-		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.PersonalHabilitacionLugarHabilitacionId
+		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId
 
         WHERE (${filterSql})
         ${orderBy}
@@ -409,6 +410,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         LEFT JOIN PersonalHabilitacion perhab ON perhab.PersonalId=geshab.PersonalId and perhab.PersonalHabilitacionLugarHabilitacionId=geshab.PersonalHabilitacionLugarHabilitacionId and perhab.PersonalHabilitacionId=geshab.PersonalHabilitacionId
         LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo=geshab.GestionHabilitacionEstadoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+        order by geshab.AudFechaIng desc
         `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
     }
 
@@ -575,9 +577,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
-                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
             }
 
             //Obtiene el Ultimo Codigo registrado
@@ -666,9 +668,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
-                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
             }
 
             //Actualiza el Ultimo Codigo registrado
@@ -775,9 +777,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 error.unshift('Deben completar los siguientes campos:')
                 throw new ClientException(error)
             }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || PersonalHabilitacionClase.length)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !PersonalHabilitacionClase.length)) {
-                throw new ClientException(`Los campos Desde, Hasta y Tipo deben de completarse al mismo tiempo`)
+            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
             }
 
             const valHabilitacionNecesaria = await queryRunner.query(`
@@ -856,27 +858,19 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    async updateHabilitacionesNecesarias(req: any, res: Response, next: NextFunction) {
+    async updatePersonalHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
-        const fechaActual = new Date()
 
-        // const PersonalHabilitacionNecesariaId = req.body.PersonalHabilitacionNecesariaId
         const PersonalId = req.body.PersonalId
-        const LugarHabilitacionIds = req.body.LugarHabilitacionIds
+        const LugarHabilitacionIds:number[] = req.body.LugarHabilitacionIds? req.body.LugarHabilitacionIds : []
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
-            // await queryRunner.query(`
-            //     UPDATE PersonalHabilitacion
-            //     SET PersonalHabilitacionLugarHabilitacionId = @2, AudFechaMod = @3, AudIpMod = @4, AusUsuarioMod = @5
-            //     WHERE PersonalHabilitacionId = @0 AND PersonalId = @1
-            // `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, fechaActual, ip, usuario])
-
-            throw new ClientException(`DEBUG`)
+            
+            await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
 
             await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Carga exitosa');
@@ -886,27 +880,75 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
+    async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuario: string, ip: string) {
+        //Compruebo si hubo cambios
+        let cambios: boolean = false
+
+        const habsOld: number[] = []
+        const list = await this.queryHabilitacionNecesariaByPersonalId(queryRunner, personalId)
+        for (const hab of list)
+            habsOld.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
+
+        if (habilitaciones.length != habsOld.length)
+            cambios = true
+        else
+            habsOld.forEach((hab: any, index: number) => {
+                if (habilitaciones.find(h => hab != h)) cambios = true
+            });
+        if (!cambios) return
+
+
+        //Actualizo
+        const now = new Date()
+        const desde = new Date()
+        desde.setHours(0,0,0,0)
+        let PersonalHabilitacionNecesariaId:number = 0
+
+        await queryRunner.query(`
+            DELETE FROM PersonalHabilitacionNecesaria
+            WHERE PersonalId IN (@0)
+        `, [personalId])
+
+        for (const lugarHabilitacionId of habilitaciones) {
+            PersonalHabilitacionNecesariaId++
+            await queryRunner.query(`
+                INSERT INTO PersonalHabilitacionNecesaria (
+                    PersonalHabilitacionNecesariaId, PersonalId, PersonalHabilitacionNecesariaLugarHabilitacionId, PersonalHabilitacionNecesariaDesde, 
+                    PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudIpIng, PersonalHabilitacionNecesariaAudUsuarioIng,
+                    PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudIpMod, PersonalHabilitacionNecesariaAudUsuarioMod)
+                VALUES(@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+            `, [PersonalHabilitacionNecesariaId, personalId, lugarHabilitacionId, desde, now, ip, usuario])
+        }
+        await queryRunner.query(`
+            UPDATE Personal SET PersonalHabilitacionNecesariaUltNro = @1
+            WHERE PersonalId IN (@0)
+        `, [personalId, PersonalHabilitacionNecesariaId])
+    }
+
+    private async queryHabilitacionNecesariaByPersonalId(queryRunner: any, PersonalId:any){
+        return await queryRunner.query(`
+            SELECT PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria
+            WHERE PersonalId = @0
+        `, [PersonalId])
+    }
+
     async getHabilitacionNecesariaByPersonalId(req: any, res: Response, next: NextFunction) {
         
         const PersonalId = req.params.PersonalId
-        
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             const habs = []
-            const habilitacion = await queryRunner.query(`
-                SELECT PersonalHabilitacionNecesariaLugarHabilitacionId
-                FROM PersonalHabilitacionNecesaria
-                WHERE PersonalId = @0
-            `, [PersonalId])
-            for (const hab of habilitacion)
+            const habilitaciones = await this.queryHabilitacionNecesariaByPersonalId(queryRunner, PersonalId)
+            for (const hab of habilitaciones)
                 habs.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
 
             const obj = {
                 PersonalId,
-                LugarHabilitacionIds : habs,
-                LugarHabilitacionIdsOld : habs
-            } 
+                LugarHabilitacionIds : habs
+            }
+
             this.jsonRes(obj, res);
         } catch (error) {
             return next(error)

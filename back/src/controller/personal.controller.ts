@@ -9,6 +9,7 @@ import { Options } from "../schemas/filtro";
 import {  promisify } from 'util';
 import * as fs from 'fs';
 import { FileUploadController } from "../controller/file-upload.controller"
+import { habilitacionesController } from "src/controller/controller.module"
 import { max } from "moment";
 
 const stat = promisify(fs.stat);
@@ -716,7 +717,7 @@ export class PersonalController extends BaseController {
                                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
                                 ) AS perdom on perdom.PersonalId=per.PersonalId
 		Left join (
-					SELECT per.PersonalId, STRING_AGG(CONCAT(TRIM(tipo.TipoAsociadoDescripcion),' - ',TRIM(catper.CategoriaPersonalDescripcion)), ', ') PersonalCategoriaCom, STRING_AGG(CONCAT(tipo.TipoAsociadoId,'/',percat.PersonalCategoriaId),',') CategoriaCod
+					SELECT per.PersonalId, STRING_AGG(CONCAT(TRIM(tipo.TipoAsociadoDescripcion),' - ',TRIM(catper.CategoriaPersonalDescripcion)), ', ') PersonalCategoriaCom, STRING_AGG(CONCAT(tipo.TipoAsociadoId,'/',percat.PersonalCategoriaCategoriaPersonalId),',') CategoriaCod
 					FROM Personal per
 					LEFT JOIN PersonalCategoria percat ON percat.PersonalCategoriaPersonalId = per.PersonalId 
 					LEFT JOIN TipoAsociado tipo ON tipo.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId
@@ -1050,10 +1051,7 @@ export class PersonalController extends BaseController {
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
 
       //Habilitacion necesaria
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
-
-
-
+      await habilitacionesController.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
 
       if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
 
@@ -1733,7 +1731,7 @@ export class PersonalController extends BaseController {
     const familiares: any[] = req.body.familiares
     const beneficiarios: any[] = req.body.beneficiarios
     const SucursalId = req.body.SucursalId
-    const habilitacion = req.body.habilitacion
+    const habilitacion: number[] = (req.body.habilitacion) ? req.body.habilitacion : []
 
     let now = new Date()
     now.setHours(0, 0, 0, 0)
@@ -1785,7 +1783,7 @@ export class PersonalController extends BaseController {
         throw setPersonalSeguroBeneficiario
 
       //Habilitacion Necesaria
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
+      await habilitacionesController.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
 
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
@@ -2793,48 +2791,48 @@ export class PersonalController extends BaseController {
     }
   }
 
-  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuario: number, ip: string) {
-    //Compruebo si hubo cambios
-    let cambios: boolean = false
-    const habilitacionesOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
+  // private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones: any[], usuario: number, ip: string) {
+  //   //Compruebo si hubo cambios
+  //   let cambios: boolean = false
+  //   const habilitacionesOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
 
-    if (habilitaciones.length != habilitacionesOld.length)
-      cambios = true
-    else
-      habilitacionesOld.forEach((hab: any, index: number) => {
-        if (habilitaciones.find(h => hab != h)) {
-          cambios = true
-        }
-      });
-    if (!cambios) return
+  //   if (habilitaciones.length != habilitacionesOld.length)
+  //     cambios = true
+  //   else
+  //     habilitacionesOld.forEach((hab: any, index: number) => {
+  //       if (habilitaciones.find(h => hab != h)) {
+  //         cambios = true
+  //       }
+  //     });
+  //   if (!cambios) return
 
 
-    //Actualizo
-    const now = new Date()
-    const time = this.getTimeString(now)
+  //   //Actualizo
+  //   const now = new Date()
+  //   const time = this.getTimeString(now)
 
-    let PersonalHabilitacionNecesariaId: number = 0
-    now.setHours(0, 0, 0, 0)
-    await queryRunner.query(`
-      DELETE FROM PersonalHabilitacionNecesaria
-      WHERE PersonalId IN (@0)
-      `, [personalId])
-    for (const habilitacionId of habilitaciones) {
-      PersonalHabilitacionNecesariaId++
-      await queryRunner.query(`
-          INSERT INTO PersonalHabilitacionNecesaria (
-          PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId, PersonalHabilitacionNecesariaDesde, 
-          PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudIpIng, PersonalHabilitacionNecesariaAudUsuarioIng,
-          PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudIpMod, PersonalHabilitacionNecesariaAudUsuarioMod)
-          VALUES(@0,@1,@2,@3, @3, @4, @5,@3, @4, @5)
-          `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuario])
-    }
-    await queryRunner.query(`
-      UPDATE Personal SET
-      PersonalHabilitacionNecesariaUltNro = @1
-      WHERE PersonalId IN (@0)
-      `, [personalId, PersonalHabilitacionNecesariaId])
-  }
+  //   let PersonalHabilitacionNecesariaId: number = 0
+  //   now.setHours(0, 0, 0, 0)
+  //   await queryRunner.query(`
+  //     DELETE FROM PersonalHabilitacionNecesaria
+  //     WHERE PersonalId IN (@0)
+  //     `, [personalId])
+  //   for (const habilitacionId of habilitaciones) {
+  //     PersonalHabilitacionNecesariaId++
+  //     await queryRunner.query(`
+  //         INSERT INTO PersonalHabilitacionNecesaria (
+  //         PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId, PersonalHabilitacionNecesariaDesde, 
+  //         PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudIpIng, PersonalHabilitacionNecesariaAudUsuarioIng,
+  //         PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudIpMod, PersonalHabilitacionNecesariaAudUsuarioMod)
+  //         VALUES(@0,@1,@2,@3, @3, @4, @5,@3, @4, @5)
+  //         `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuario])
+  //   }
+  //   await queryRunner.query(`
+  //     UPDATE Personal SET
+  //     PersonalHabilitacionNecesariaUltNro = @1
+  //     WHERE PersonalId IN (@0)
+  //     `, [personalId, PersonalHabilitacionNecesariaId])
+  // }
 
   async getEstadoCivil(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();

@@ -196,7 +196,7 @@ const columnsExcepcionesAsistencia: any[] = [
   {
     id: 'PersonalArt14SumaFija', name: 'Suma Fija', field: 'PersonalArt14SumaFija',
     fieldName: 'art.PersonalArt14SumaFija',
-    type: 'number',
+    type: 'currency',
     sortable: true,
     hidden: false,
     searchHidden: true
@@ -212,7 +212,7 @@ const columnsExcepcionesAsistencia: any[] = [
   {
     id: 'PersonalArt14AdicionalHora', name: 'Importe adicional Hora', field: 'PersonalArt14AdicionalHora',
     fieldName: 'art.PersonalArt14AdicionalHora',
-    type: 'number',
+    type: 'currency',
     sortable: true,
     hidden: false,
     searchHidden: true
