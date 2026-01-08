@@ -499,6 +499,7 @@ export class CondicionesVentaController extends BaseController {
             const codobjId = Number(req.params.codobjId);
             const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
+            PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
             const infoCondicionVentaArr = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
             const infoProductos = await this.getInfoProductos(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
@@ -561,6 +562,7 @@ export class CondicionesVentaController extends BaseController {
             const ip = this.getRemoteAddress(req);
             const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
+            PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
 
             const result = await queryRunner.query(`
@@ -618,6 +620,7 @@ export class CondicionesVentaController extends BaseController {
             const ip = this.getRemoteAddress(req);
             const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
+            PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
             // delete CondicionVentaDetalle
             await queryRunner.query(`DELETE FROM CondicionVentaDetalle  WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
@@ -648,6 +651,7 @@ export class CondicionesVentaController extends BaseController {
             const ClienteId = req.body.ClienteId;
             const clienteelementodependienteid = req.body.clienteelementodependienteid;
             const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica);
+            PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
