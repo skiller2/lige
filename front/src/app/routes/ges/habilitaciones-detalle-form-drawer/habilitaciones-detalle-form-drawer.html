@@ -4,6 +4,35 @@
     <form [formGroup]="formHabilitacion">
 
       <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            <nz-option nzValue="H" nzLabel="Habilitación"></nz-option>
+            <nz-option nzValue="R" nzLabel="Renovación"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <app-personal-search formControlName="PersonalId"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Lugar Habilitación</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18">
+          <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione lugar" nzAllowClear 
+           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            @for (option of $optionsLugarHabilitacion | async; track option) {
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione estado" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
@@ -21,6 +50,7 @@
         </nz-form-control>
       </nz-form-item>
 
+      @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
@@ -49,16 +79,7 @@
           </nz-date-picker>
         </nz-form-control>
       </nz-form-item>
-      
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-            <nz-option nzValue="H" nzLabel="Habilitación"></nz-option>
-            <nz-option nzValue="R" nzLabel="Renovación"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+      }
 
       @if (GestionHabilitacionCodigo()) {
       <nz-form-item class="marginElement">

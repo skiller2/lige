@@ -8,10 +8,11 @@ import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 @Component({
     selector: 'app-habilitaciones-detalle-form-drawer',
-    imports: [SHARED_IMPORTS, CommonModule, FileUploadComponent],
+    imports: [SHARED_IMPORTS, CommonModule, FileUploadComponent, PersonalSearchComponent],
     templateUrl: './habilitaciones-detalle-form-drawer.html',
     styleUrl: './habilitaciones-detalle-form-drawer.less',
     encapsulation: ViewEncapsulation.None
@@ -41,8 +42,12 @@ export class HabilitacionesFormDrawerComponent {
 
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
+    PersonalHabilitacionId:0,
+    PersonalId:0,
+    LugarHabilitacionId:0,
+
     GestionHabilitacionCodigo:0,
-    GestionHabilitacionEstadoCodigo:0,
+    GestionHabilitacionEstadoCodigo:'',
     Detalle:'',
     NroTramite:'',
     PersonalHabilitacionDesde:'',
@@ -53,6 +58,13 @@ export class HabilitacionesFormDrawerComponent {
     file: []
   })
 
+  GestionHabilitacionEstadoCodigo():string {
+    const value = this.formHabilitacion.get("GestionHabilitacionEstadoCodigo")?.value 
+    if (value)
+      return value
+    return ''
+  }
+
   GestionHabilitacionCodigo():number {
     const value = this.formHabilitacion.get("GestionHabilitacionCodigo")?.value 
     if (value)
@@ -62,6 +74,7 @@ export class HabilitacionesFormDrawerComponent {
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
+  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
 
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
@@ -73,6 +86,9 @@ export class HabilitacionesFormDrawerComponent {
     effect(async() => {
       const visible = this.visible()
       if (visible) {
+        this.formHabilitacion.get('PersonalId')?.disable();
+        this.formHabilitacion.get('LugarHabilitacionId')?.disable();
+
         let lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
 
         if (this.codigo()) {
@@ -84,10 +100,6 @@ export class HabilitacionesFormDrawerComponent {
         this.formHabilitacion.reset(lastConfig)
         this.formHabilitacion.markAsUntouched()
         this.formHabilitacion.markAsPristine()
-        // if (this.disabled())
-        //   this.formHabilitacion.disable()
-        // else
-        //   this.formHabilitacion.enable()
       }
       else {
         this.formHabilitacion.reset()

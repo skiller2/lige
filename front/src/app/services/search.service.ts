@@ -1792,6 +1792,17 @@ export class SearchService {
     );
   }
 
+  getLugarHabilitacionByPersonlaId(id:number): Observable<any> {
+    if (!id) return of([])
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/lugar/options/personal/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getHabilitacionCategoriaOptions(LugarHabilitacionId:number): Observable<any> {
     if (!LugarHabilitacionId)  return of([]);
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/categoria/options/${LugarHabilitacionId}`).pipe(
@@ -2145,7 +2156,7 @@ export class SearchService {
   }
 
   getEstadosHabilitaciones(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/estados`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/estados/options`).pipe(
       map(res => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');

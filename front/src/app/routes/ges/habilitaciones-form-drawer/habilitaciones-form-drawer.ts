@@ -1,12 +1,13 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ViewEncapsulation, model, input, computed, inject, signal, output, effect, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, map } from 'rxjs';
 import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
@@ -36,8 +37,8 @@ export class HabilitacionesFormDrawerComponent {
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   // formEdit = computed(() => (this.personalHabilitacionId() && this.personalId() && this.lugarHabilitacionId())? true : false)
   
-  onRefreshInstituciones = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
+  lugarHabilitacion$ = new BehaviorSubject('')
 
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
@@ -46,7 +47,7 @@ export class HabilitacionesFormDrawerComponent {
     LugarHabilitacionId:0,
     HabilitacionCategoriaCodigo:[],
     // GestionHabilitacionCodigo:0,
-    GestionHabilitacionEstadoCodigo:0,
+    GestionHabilitacionEstadoCodigo:'',
     Detalle:'',
     NroTramite:'',
     PersonalHabilitacionDesde:'',
@@ -56,6 +57,13 @@ export class HabilitacionesFormDrawerComponent {
     file: []
   })
 
+  GestionHabilitacionEstadoCodigo():string {
+    const value = this.formHabilitacion.get("GestionHabilitacionEstadoCodigo")?.value 
+    if (value)
+      return value
+    return ''
+  }
+
   LugarHabilitacionId():number {
     const value = this.formHabilitacion.get("LugarHabilitacionId")?.value 
     if (value)
@@ -63,11 +71,16 @@ export class HabilitacionesFormDrawerComponent {
     return 0
   }
 
+  signalPersonalId = toSignal(
+    this.formHabilitacion.get("PersonalId")!.valueChanges,
+    { initialValue: this.formHabilitacion.get('PersonalId')!.value }
+  )
+
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
-  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
 
   optionsHabilitacionCategoria = signal<any[]>([])
+  optionsLugarHabilitacion = signal<any[]>([])
 
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
@@ -76,6 +89,16 @@ export class HabilitacionesFormDrawerComponent {
     // private notification = NzNotificationService,
     private searchService: SearchService
   ) {
+    effect(async() => {
+      const PersonalId = this.signalPersonalId()
+      
+      if (PersonalId) {
+        const res = await firstValueFrom(this.searchService.getLugarHabilitacionByPersonlaId(PersonalId))
+        this.optionsLugarHabilitacion.set(res)
+      }else
+        this.optionsLugarHabilitacion.set([])
+      
+    })
     effect(async() => {
       const visible = this.visible()
       if (visible) {

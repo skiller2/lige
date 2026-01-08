@@ -16,12 +16,16 @@ habilitacionesRouter.get("/doc-cols", [authMiddleware.verifyToken], (req, res, n
   habilitacionesController.getGridDocCols(req, res, next);
 });
 
-habilitacionesRouter.get("/estados", [authMiddleware.verifyToken], (req, res, next) => {
+habilitacionesRouter.get("/estados/options", [authMiddleware.verifyToken], (req, res, next) => {
   habilitacionesController.getEstadosHabilitaciones(req, res, next);
 });
 
 habilitacionesRouter.get("/lugar/options", [authMiddleware.verifyToken], (req, res, next) => {
   habilitacionesController.getLugarHabilitacion(req, res, next);
+});
+
+habilitacionesRouter.get("/lugar/options/personal/:PersonalId", [authMiddleware.verifyToken], (req, res, next) => {
+  habilitacionesController.getLugarHabilitacionByPersonalId(req, res, next);
 });
 
 habilitacionesRouter.get("/categoria/options/:LugarHabilitacionId", [authMiddleware.verifyToken], (req, res, next) => {

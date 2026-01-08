@@ -720,6 +720,23 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
+    async getLugarHabilitacionByPersonalId(req: any, res: Response, next: NextFunction) {
+        const PersonalId = req.params.PersonalId;
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const options = await queryRunner.query(`
+                SELECT lughab.LugarHabilitacionId value, TRIM(lughab.LugarHabilitacionDescripcion) label
+                FROM PersonalHabilitacionNecesaria perhab
+                INNER JOIN LugarHabilitacion lughab ON lughab.LugarHabilitacionId = perhab.PersonalHabilitacionNecesariaLugarHabilitacionId
+                WHERE perhab.PersonalId IN (@0) AND lughab.LugarHabilitacionInactivo IS NULL
+            `, [PersonalId])
+
+            this.jsonRes(options, res);
+        } catch (error) {
+            return next(error)
+        }
+    }
+
     private async getHabilitacionCategoriaQuery(queryRunner: any, LugarHabilitacionId:any) {
         return await queryRunner.query(`
           SELECT HabilitacionCategoriaCodigo value, TRIM(Detalle) label
@@ -808,12 +825,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 INSERT INTO PersonalHabilitacion (
                 PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId
                 , PersonalHabilitacionRechazado, PersonalHabilitacionDesde, PersonalHabilitacionHasta
-                , GestionHabilitacionCodigoUlt
+                , PersonalHabilitacionClase, GestionHabilitacionCodigoUlt
                 , AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AusUsuarioMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @7, @8, @8, @9, @9)
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @8, @9, @9, @10, @10)
             `, [newPersonalHabilitacionId, PersonalId, LugarHabilitacionId
                 , 'N', PersonalHabilitacionDesde, PersonalHabilitacionHasta
-                , newCodigoUlt
+                , PersonalHabilitacionClase, newCodigoUlt
                 , fechaActual, ip, usuario
             ])
 

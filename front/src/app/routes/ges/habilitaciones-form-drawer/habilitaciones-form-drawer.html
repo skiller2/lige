@@ -14,7 +14,7 @@
       </nz-form-item>
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Pesonal</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
         </nz-form-control>
@@ -25,9 +25,9 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18">
           <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione lugar" nzAllowClear 
            [nzDropdownMatchSelectWidth]="false" style="width: 100%" (ngModelChange)="selectedLugarHabilitacionChange($event)">
-            @for (option of $optionsLugarHabilitacion | async; track option) {
+            <ng-container *ngFor="let option of optionsLugarHabilitacion()">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-            }
+            </ng-container>
           </nz-select>
         </nz-form-control>
       </nz-form-item>
@@ -62,6 +62,7 @@
         </nz-form-control>
       </nz-form-item>
 
+      @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
@@ -90,6 +91,7 @@
           </nz-date-picker>
         </nz-form-control>
       </nz-form-item>
+      }
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
