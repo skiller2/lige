@@ -280,10 +280,13 @@ export class CondicionesVentaController extends BaseController {
             const ip = this.getRemoteAddress(req)
             const objetivoInfo = await this.ObjetivoInfoFromId(CondicionVenta.ObjetivoId)
 
+            const PeriodoDesdeAplica = new Date(CondicionVenta.PeriodoDesdeAplica);
+            PeriodoDesdeAplica.setHours(0, 0, 0, 0)
+
             await this.insertCondicionVenta(queryRunner,
                 objetivoInfo.clienteId,
                 objetivoInfo.ClienteElementoDependienteId,
-                CondicionVenta.PeriodoDesdeAplica,
+                PeriodoDesdeAplica,
                 CondicionVenta.PeriodoFacturacion.toString(),
                 CondicionVenta.GeneracionFacturaDia,
                 CondicionVenta.GeneracionFacturaDiaComplemento,
