@@ -20,7 +20,8 @@ import {
   AngularGridInstance,
   AngularUtilService,
   SlickGrid,
-  GridOption
+  GridOption,
+  Column
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -78,6 +79,9 @@ export class TableCondicionVentaComponent implements OnInit {
     sort: null
   };
 
+  // IDs de columnas ocultas
+  hiddenColumnIds: string[] = [];
+
   constructor(
     private apiService: ApiService,
     public angularUtilService: AngularUtilService,
@@ -96,7 +100,15 @@ export class TableCondicionVentaComponent implements OnInit {
   });
 
   // Columnas de la grilla (configuradas desde backend)
-  columns$ = this.apiService.getCols('/api/condiciones-venta/cols');
+  columns$ = this.apiService.getCols('/api/condiciones-venta/cols').pipe(
+    map((cols) => {
+      // Guardar IDs de columnas que tienen showGridColumn: false
+      this.hiddenColumnIds = cols
+        .filter((col: any) => col.showGridColumn === false)
+        .map((col: Column) => col.id as string);
+      return cols;
+    })
+  );
 
   // Data source de la grilla
   // Cada vez que formChange$ emite → se vuelve a pedir la data
@@ -136,6 +148,7 @@ export class TableCondicionVentaComponent implements OnInit {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
+    this.gridOptions.forceFitColumns = true;
   }
 
   // Cambio de filtros desde el componente de filtros
@@ -153,6 +166,14 @@ export class TableCondicionVentaComponent implements OnInit {
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
     });
+
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
+    }
+
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds([]);
   }
 
   // Exporta la grilla a Excel
