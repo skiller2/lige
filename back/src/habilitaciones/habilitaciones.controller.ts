@@ -342,7 +342,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 				) vishab on vishab.PersonalId=per.PersonalId
 
 	
-		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId --and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
 		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
 		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
 
@@ -369,6 +369,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
 					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+                    WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
 					--WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
 					ELSE 0
 				END AS DiasFaltantesVencimiento
