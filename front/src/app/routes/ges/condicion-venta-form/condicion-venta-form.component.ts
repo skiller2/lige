@@ -94,6 +94,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
 async newRecord() {
+  this.codobjId.set('')
+  this.PeriodoDesdeAplica.set('')
   this.formCondicionVenta.enable()
   this.formCondicionVenta.reset();
   this.infoProductos().clear();

@@ -557,6 +557,7 @@ export class CondicionesVentaController extends BaseController {
             await queryRunner.startTransaction()
             const codobj = req.params.codobj;
             const usuario = res.locals.userName;
+            const personalId = res.locals.PersonalId;
             const ip = this.getRemoteAddress(req);
             const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
@@ -574,7 +575,7 @@ export class CondicionesVentaController extends BaseController {
                     throw new ClientException(`Ya se aprobo el registro seleccionado.`)
                 }
                 else {
-                    await this.updateAutorizacionCondicionVenta(queryRunner, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, ip)
+                    await this.updateAutorizacionCondicionVenta(queryRunner, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, personalId, ip)
                 }
             } else {
                 throw new ClientException(`No existe el registro seleccionado.`)
@@ -590,7 +591,7 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async updateAutorizacionCondicionVenta(queryRunner: any, codobj: string, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
+    async updateAutorizacionCondicionVenta(queryRunner: any, codobj: string, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, personalId: number, ip: string) {
         let FechaActual = new Date()
         await queryRunner.query(`
         UPDATE CondicionVenta 
@@ -604,7 +605,7 @@ export class CondicionesVentaController extends BaseController {
         WHERE ClienteId = @5
         AND ClienteElementoDependienteId = @6
         AND PeriodoDesdeAplica = @7
-        `, [FechaActual, usuario, FechaActual, usuario, ip, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
+        `, [FechaActual, personalId, FechaActual, usuario, ip, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
 
     }
 
