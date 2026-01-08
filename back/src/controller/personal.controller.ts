@@ -715,7 +715,7 @@ export class PersonalController extends BaseController {
                                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
                                 ) AS perdom on perdom.PersonalId=per.PersonalId
 		Left join (
-					SELECT per.PersonalId, STRING_AGG(CONCAT(TRIM(tipo.TipoAsociadoDescripcion),' - ',TRIM(catper.CategoriaPersonalDescripcion)), ', ') PersonalCategoriaCom, STRING_AGG(CONCAT(tipo.TipoAsociadoId,'/',percat.PersonalCategoriaId),',') CategoriaCod
+					SELECT per.PersonalId, STRING_AGG(CONCAT(TRIM(tipo.TipoAsociadoDescripcion),' - ',TRIM(catper.CategoriaPersonalDescripcion)), ', ') PersonalCategoriaCom, STRING_AGG(CONCAT(tipo.TipoAsociadoId,'/',percat.PersonalCategoriaCategoriaPersonalId),',') CategoriaCod
 					FROM Personal per
 					LEFT JOIN PersonalCategoria percat ON percat.PersonalCategoriaPersonalId = per.PersonalId 
 					LEFT JOIN TipoAsociado tipo ON tipo.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId
