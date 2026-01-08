@@ -6,7 +6,7 @@ import { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
-import { isObject, promisify } from 'util';
+import {  promisify } from 'util';
 import * as fs from 'fs';
 import { FileUploadController } from "../controller/file-upload.controller"
 import { habilitacionesController } from "src/controller/controller.module"
@@ -99,8 +99,9 @@ const columns: any[] = [
     id: "GrupoActividadDetalle",
     field: "GrupoActividadDetalle",
     fieldName: "ga.GrupoActividadDetalle",
+    searchComponent: "inputForGrupoActividadSearch",
     sortable: true,
-    searchHidden: true
+    searchHidden: false
   },
   {
     name: "Grupo Actividad",
@@ -257,6 +258,7 @@ const columns: any[] = [
     id: "CategoriaCod",
     field: "CategoriaCod",
     fieldName: "percat.CategoriaCod",
+    searchComponent: "inputForTipoAsociadoCategoriaSearch",
     sortable: true,
     hidden: true,
     searchHidden: false

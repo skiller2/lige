@@ -113,7 +113,13 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             filterString.push(`${fieldName} IS NULL`)
           else {
             const vals =String(valorBusqueda).split(';').map(value => value.trim());
-            filterString.push(`${fieldName} IN ('${vals.join('\',\'')}')`)
+            // Si el campo es CategoriaCod y el valor contiene "/", usar CHARINDEX en lugar de IN
+            if (fieldName.includes('CategoriaCod') && vals.some(v => v.includes('/'))) {
+              const charIndexConditions = vals.map(v => `CHARINDEX('${v}', ${fieldName}) > 0`).join(' OR ');
+              filterString.push(`(${charIndexConditions})`)
+            } else {
+              filterString.push(`${fieldName} IN ('${vals.join('\',\'')}')`)
+            }
           }
           break;
         case ">":

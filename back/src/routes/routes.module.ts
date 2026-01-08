@@ -50,6 +50,7 @@ import { novedadesRouter } from "../novedades/novedades.routes";
 import { procesosAutomaticosRouter } from "../procesos-automaticos/procesos-automaticos.routes";
 import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepciones-asistencia.routes";
 import { efectoRouter } from "../efecto/efecto.router";
+import { tipoAsociadoCategoriaRouter } from "../tipo-asociado-categoria/tipo-asociado-categoria.router";
 import { habilitacionesRouter } from "src/habilitaciones/habilitaciones.routes";
 import { condicionesVentaRouter } from "src/condiciones-venta/condiciones-venta.routes";
 export function makeRoutes(server: WebServer) {
@@ -104,6 +105,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/procesos-automaticos",procesosAutomaticosRouter)
   server.setRoute("/api/excepciones-asistencia",excepcionesAsistenciaRouter)
   server.setRoute("/api/efecto",efectoRouter)
+  server.setRoute("/api/tipo-asociado-categoria",tipoAsociadoCategoriaRouter)
   server.setRoute("/api/habilitaciones",habilitacionesRouter)
   server.setRoute("/api/condiciones-venta",condicionesVentaRouter)
 }
