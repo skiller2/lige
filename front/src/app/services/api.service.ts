@@ -1946,6 +1946,17 @@ export class ApiService {
     )
   }
 
+  updHabilitacionNecesaria(anio: number, mes: number) {
+    return this.http
+      .post<ResponseJSON<any>>(`api/habilitaciones/update-hab-necesaria`,{anio,mes})
+      .pipe(
+        tap((res: ResponseJSON<any>) => this.response(res)),
+        
+        //catchError(() => of([]))
+      );
+  }
+
+
 
 }
 

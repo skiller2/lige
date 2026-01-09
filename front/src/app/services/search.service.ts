@@ -11,7 +11,8 @@ import {
   Observable,
   of,
   share,
-  shareReplay
+  shareReplay,
+  tap
 } from 'rxjs';
 import {
   PersonaObj,
@@ -1138,14 +1139,6 @@ export class SearchService {
       return of([])
     return this.http
       .get<ResponseJSON<any>>(`api/asistencia/listacontrolacceso/${anio}/${mes}/${ObjetivoId}`)
-      .pipe(
-        map(res => res.data),
-        //catchError(() => of([]))
-      );
-  }
-  updHabilitacionNecesaria(anio: number, mes: number) {
-    return this.http
-      .post<ResponseJSON<any>>(`api/habilitaciones/update-hab-necesaria`,{anio,mes})
       .pipe(
         map(res => res.data),
         //catchError(() => of([]))

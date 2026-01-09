@@ -183,7 +183,7 @@ export class HabilitacionesComponent {
   async updHabilitacionNecesaria() {
     const anio = this.periodo() ? this.periodo().getFullYear():0
     const mes = this.periodo() ? this.periodo().getMonth() + 1 : 0
-    await firstValueFrom(this.searchService.updHabilitacionNecesaria(anio, mes))
+    await firstValueFrom(this.apiService.updHabilitacionNecesaria(anio, mes))
   }
 
   
