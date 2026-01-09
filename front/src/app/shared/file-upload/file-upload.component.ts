@@ -42,50 +42,57 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   constructor() {
     pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
-    /*
-        effect(async() => {
-          const id = this.idForSearh();
-          const text = this.textForSearch();
-          this.formChangeArchivos$.next('');
-          this.initializeDocumentTypes();
-        });
-    */
+
+    effect(async() => {
+      const desde = this.desdeSelected()
+      const hasta = this.hastaSelected()
+      if (!this.showDesdeHasta()) return this.disabledByDesdeHasta.set(false)
+
+      if ((!desde || desde == '') || (!hasta || hasta == '')) {
+        return this.disabledByDesdeHasta.set(true)
+      }
+      return this.disabledByDesdeHasta.set(false)
+    });
 
   }
 
-
-  uploading$ = new BehaviorSubject({ loading: false, event: null });
   private apiService = inject(ApiService)
-  ArchivosAdd: any[] = []
-  // valueFile = input()
-  files = model<any[]>([])
-  prevFiles = output<any[]>()
   private notification = inject(NzNotificationService)
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  private propagateChange: (_: any) => void = noop
 
-  ArchivoIdForDelete = 0
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
 
   idForSearh = input(0)
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")
   showTipoDocs = input(false)
-
-  modalViewerVisiable = signal(false)
-  blobUrl = ""
-  Fullpath = signal("")
-  FileName = signal("")
+  showDesdeHasta = input(false)
   fileAccept = input("")
-  cantFilesAnteriores = signal(0)
   cantMaxFiles = input(10)
   forceImg = input<boolean>(false)
   previewFile = input<boolean>(true)
-  isDisabled = signal(false)
-  docTiposValidos = signal<any[]>([])
   searchById = input<boolean>(false)
 
-  tipoSelected = signal<string>("")
+  ArchivosAdd: any[] = []
+  // valueFile = input()
+  files = model<any[]>([])
+  prevFiles = output<any[]>()
+  blobUrl = ""
+  ArchivoIdForDelete = 0
+  modalViewerVisiable = signal(false)
+  Fullpath = signal("")
+  FileName = signal("")
+  cantFilesAnteriores = signal(0)
+  isDisabled = signal(false)
+  docTiposValidos = signal<any[]>([])
   textForSearchSelected = signal<DocTipo[]>([])
+  disabledByDesdeHasta = signal<boolean>(true)
+  //Inputs
+  tipoSelected = signal<string>("")
+  desdeSelected = signal<string>("")
+  hastaSelected = signal<string>("")
 
   onTipoSelectedChange(newValue: string) {
     this.tipoSelected.set(newValue)
@@ -114,30 +121,33 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   async LoadArchivosAnteriores(idForSearh: any) {
  
-    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "")
+    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== ""){
+      console.log('this.docTiposValidos()[0]', this.docTiposValidos()[0]);
+      
       this.tipoSelected.set(this.docTiposValidos()[0])
+    }
 
     if (idForSearh && this.tipoSelected() != "" && this.tableForSearch() != "" && !this.searchById()) {
- 
+      console.log('1');
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
 
     } else if (idForSearh && this.searchById()) {
-
+      console.log('2');
       const result = await firstValueFrom(this.apiService.getArchivoAnterior(idForSearh))
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
       
     } else {
+      console.log('3');
       this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)
       this.files.set([])
     }
     this.propagateChange(this.files())
-
   }
 
   async LoadArchivo(documentId: any, tableForSearch: string, filename: string) {
@@ -190,13 +200,14 @@ export class FileUploadComponent implements ControlValueAccessor {
           //          this.blobUrl = URL.createObjectURL(src)
           Response.data[0].tableForSearch = this.tableForSearch()
           Response.data[0].doctipo_id = this.tipoSelected()
+          Response.data[0].DocumentoFecha = this.desdeSelected()
+          Response.data[0].DocumentoFechaDocumentoVencimiento = this.hastaSelected()
           //          Response.data[0].fileUrl = this.blobUrl
           //          Response.data[0].fileUrl = `api/file-upload/downloadFile1/${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}/temp/original`
           Response.data[0].persona_id = 0
           Response.data[0].den_documento = ""
           Response.data[0].objetivo_id = 0
           Response.data[0].cliente_id = 0
-          Response.data[0].fec_doc_ven = null
           Response.data[0].nombre_archivo = ""
           console.log('Response.data[0]', Response.data[0])
           console.log('this.files()', this.files())
@@ -258,24 +269,15 @@ export class FileUploadComponent implements ControlValueAccessor {
       */
   }
 
-  private propagateChange: (_: any) => void = noop
-
   registerOnChange(fn: any) {
     this.propagateChange = fn
   }
 
-  registerOnTouched(fn: any) {
-
-  }
+  registerOnTouched(fn: any) {}
 
   writeValue(value: any) {
     //this.formChangeArchivos$.next('');
-
   }
-
-  ///
-
-
 
   handleCancel(): void {
     this.modalViewerVisiable.set(false)

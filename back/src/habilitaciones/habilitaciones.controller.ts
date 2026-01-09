@@ -772,7 +772,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
-        const file: any[] = req.body.file
+        const documentos: any[] = req.body.documentos
 
         if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
         if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
@@ -854,17 +854,28 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
             `, [newCodigoUlt, PersonalId, LugarHabilitacionId, newPersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
-            //Registra el nuevo documento
-            if (file?.length > 0) {
-                const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, PersonalHabilitacionDesde, PersonalHabilitacionHasta, NroTramite, null, null, file[0], usuario, ip, queryRunner)
-                const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                await queryRunner.query(`
-                INSERT INTO DocumentoRelaciones (
-                    DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                    , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
+            //Registra documentos
+            for (const docs of documentos) {
+                if (docs.files?.length > 0) {
+                    for (const file of docs.files) {
+                        const DocumentoFecha = file.DocumentoFecha? new Date(file.DocumentoFecha) : null
+                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+
+                        if (DocumentoFecha) DocumentoFecha.setHours(0,0,0,0)
+                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0,0,0,0)
+                            
+                        const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, NroTramite, null, null, file[0], usuario, ip, queryRunner)
+                        const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+                        await queryRunner.query(`
+                        INSERT INTO DocumentoRelaciones (
+                            DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
+                            , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                        ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
+                        `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
+                    }
+                }
             }
+            
             // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
