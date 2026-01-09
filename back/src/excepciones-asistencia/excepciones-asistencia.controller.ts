@@ -306,9 +306,9 @@ export class ExcepcionesAsistenciaController extends BaseController {
               , obj.ObjetivoId
               , CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion) ObjetivoDescripcion
               , ISNULL(art.PersonalArt14ConceptoId,0) as PersonalArt14ConceptoId,con.ConceptoArt14Descripcion
-              , IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
-
-          sucp.SucursalId , TRIM(sucp.SucursalDescripcion) AS SucursalDescripcionP,
+              , IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion
+              , art.PersonalArt14DetalleMotivo
+              , sucp.SucursalId , TRIM(sucp.SucursalDescripcion) AS SucursalDescripcionP,
           suco.SucursalId , TRIM(suco.SucursalDescripcion) AS SucursalDescripcionO,
 
           ga.GrupoActividadId,
