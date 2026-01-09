@@ -56,11 +56,11 @@ export class LiquidacionesController extends BaseController {
       fechaDesde.setHours(0, 0, 0, 0)
 
       const dups = this.getDuplicates(sheet1.data, 0)
-      
-      let tmp = dups.map((row)=>row[1])
-      if (tmp.length >0)
+
+      let tmp = dups.map((row) => row[1])
+      if (tmp.length > 0)
         throw new ClientException(`Hay ${tmp.length} CUITs repetidos ${tmp.toString()}`)
-      
+
       for (const row of sheet1.data) {
         const cuitTmp = String(row[1]).match(/[0-9]{11}/)
         if (!cuitTmp)
@@ -527,12 +527,13 @@ export class LiquidacionesController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     let fechaActual = new Date()
     const periodo = req.body[0].split('/');
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
-
-    const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
 
     try {
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
