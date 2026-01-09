@@ -37,6 +37,11 @@
               [disabled]="personalId()? false : true">
               <span nz-icon nzType="edit" nzTheme="outline"></span>
             </button>
+            <button nz-button nzType="default" nz-popconfirm 
+              nzPopconfirmTitle="Actualizo habilitación necesaria?" (nzOnConfirm)="updHabilitacionNecesaria()"
+              nz-tooltip nzTooltipTitle="{{'app.btn.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"
+                nzTheme="outline"></span></button>
+
           </nz-button-group>
         </div>
         
