@@ -180,5 +180,7 @@ export class HabilitacionesComponent {
 
     return `${year}/${month}/${day}`;
   }
-
+  updHabilitacionNecesaria(): void { 
+    
+  }
 }
