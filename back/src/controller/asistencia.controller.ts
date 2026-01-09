@@ -784,7 +784,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'gOperaciones') &&  !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar la excepción`)
 
       if (metodologiaId == "F")
