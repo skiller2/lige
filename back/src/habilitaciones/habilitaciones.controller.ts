@@ -972,4 +972,28 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
+    // funcion encargada de crear o eliminar el registro de habilutacion necesaria, en base a la asistencia que posee la persona
+    async backgroundProcessHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
+        
+        // si la persona esta de baja, eliminar la habilitacion necesaria
+
+        // ver si tuvo asistencia en el periodo pasado, pero esta activo, no elimino la habilitacion necesaria
+
+        // si tuvo asistencia, chequear que tenga la habilitacion necesaria, si no la tiene, crearla
+
+        // si no tuvo asistencia, chequear si tiene habilitacion necesaria, si la tiene, eliminarla
+
+/*      otros casos: 
+                - esta activa pero no tuvo asistencia, que se hace?
+                - estuvo de baja en el periodo, que se hace? se elimina la habilitacion necesaria
+                - estuvo de baja en el periodo pero ahora esta activa, que se hace? se crea la habilitacion necesaria si tuvo asistencia
+                - 
+
+
+*/
+
+        
+
+    }
+
 }
