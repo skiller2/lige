@@ -784,7 +784,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'gOperaciones') &&  !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'gOperaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar la excepción`)
 
       if (metodologiaId == "F")
@@ -3806,4 +3806,56 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     return recordsArray
   }
 
+  async updateHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
+    let registrosActualizados = 0
+
+    const anio = req.params.anio
+    const mes = req.params.mes
+
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Habilitación Necesaria ${mes}/${anio}`,
+      { anio, mes, usuario, ip },
+      usuario,
+      ip
+    );
+
+    try {
+      await queryRunner.commitTransaction();
+
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Registros Actualizados': registrosActualizados
+        },
+        usuario,
+        ip
+      );
+
+      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
+
+      this.jsonRes([], res);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 }
