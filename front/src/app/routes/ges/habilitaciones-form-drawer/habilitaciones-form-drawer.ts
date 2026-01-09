@@ -2,7 +2,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ViewEncapsulation, model, input, computed, inject, signal, output, effect, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -40,6 +40,8 @@ export class HabilitacionesFormDrawerComponent {
   uploading$ = new BehaviorSubject({loading:false,event:null});
   lugarHabilitacion$ = new BehaviorSubject('')
 
+  objDoc = {files:[]}
+
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
     PersonalHabilitacionId:0,
@@ -54,7 +56,7 @@ export class HabilitacionesFormDrawerComponent {
     PersonalHabilitacionHasta:'',
     PersonalHabilitacionClase:'',
     // DocumentoId: 0,
-    file: []
+    documentos: this.fb.array([this.fb.group({...this.objDoc})]),
   })
 
   GestionHabilitacionEstadoCodigo():string {
@@ -69,6 +71,10 @@ export class HabilitacionesFormDrawerComponent {
     if (value)
       return value
     return 0
+  }
+
+  documentos():FormArray {
+    return this.formHabilitacion.get("documentos") as FormArray
   }
 
   signalPersonalId = toSignal(
@@ -105,6 +111,9 @@ export class HabilitacionesFormDrawerComponent {
         // const res = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
 
         this.formHabilitacion.reset()
+        this.documentos().clear()
+        if (this.documentos().length == 0)
+          this.documentos().push(this.fb.group({...this.objDoc}))
         this.formHabilitacion.markAsUntouched()
         this.formHabilitacion.markAsPristine()
       }
@@ -129,7 +138,9 @@ export class HabilitacionesFormDrawerComponent {
     let vals:any = this.formHabilitacion.value
 
     try {
-      await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
+      console.log('vals: ', vals);
+      
+      // await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
       
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()
@@ -149,6 +160,19 @@ export class HabilitacionesFormDrawerComponent {
   async selectedLugarHabilitacionChange(event: any){
     const Categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(this.LugarHabilitacionId()))
     this.optionsHabilitacionCategoria.set(Categorias)
+  }
+
+  addDoc(e?: MouseEvent): void {
+    e?.preventDefault();
+    this.documentos().push(this.fb.group({...this.objDoc}))
+  }
+
+  removeDoc(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    if (this.documentos().controls.length > 1 ) {
+      this.documentos().removeAt(index)
+      this.formHabilitacion.markAsDirty()
+    }
   }
 
 }
