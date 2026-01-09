@@ -708,6 +708,7 @@ export class AsistenciaController extends BaseController {
       const usuario = res.locals.userName
       const now = new Date()
       const ip = this.getRemoteAddress(req)
+
       let {
         SucursalId,
         periodo,
@@ -719,7 +720,11 @@ export class AsistenciaController extends BaseController {
         AdicionalHora,
         Horas,
         metodologiaId,
+        Motivo
       } = req.body;
+
+      if (!periodo) throw new ClientException("Debe ingresar un período válido");
+
       const AplicaEl: Date = periodo ? new Date(periodo) : null
       const persona_cuit = req.persona_cuit;
       const anio = AplicaEl.getFullYear();
@@ -749,7 +754,7 @@ export class AsistenciaController extends BaseController {
 
       switch (metodo) {
         case "S":
-          if (!SumaFija)
+          if (!SumaFija || SumaFija <= 0)
             throw new ClientException("Debe ingresar una monto");
 
           break;
@@ -759,12 +764,12 @@ export class AsistenciaController extends BaseController {
 
           break;
         case "H":
-          if (!Horas)
+          if (!Horas || Horas <= 0)
             throw new ClientException("Debe ingresar horas adicionales");
 
           break;
         case "A":
-          if (!AdicionalHora)
+          if (!AdicionalHora || AdicionalHora <= 0)
             throw new ClientException("Debe ingresar un monto adicional por hora");
 
           break;
@@ -773,10 +778,13 @@ export class AsistenciaController extends BaseController {
           throw new ClientException("Debe seleccionar metodología");
           break;
       }
+
+      if (!Motivo || Motivo.replace(/\s/g, '').length <= 5) throw new ClientException("Debe ingresar un motivo válido.");
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'gOperaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar la excepción`)
 
       if (metodologiaId == "F")
@@ -850,7 +858,7 @@ export class AsistenciaController extends BaseController {
                 FROM PersonalArt14 art
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
                 --AND art.PersonalArt14FormaArt14 = @2 
-                AND art.PersonalArt14Autorizado is null
+                AND (art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P')
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
                 AND art.PersonalArt14Desde <= @3 AND (ISNULL(art.PersonalArt14Hasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
         [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
@@ -1033,11 +1041,11 @@ export class AsistenciaController extends BaseController {
         `INSERT INTO PersonalArt14(PersonalArt14Id, PersonalArt14FormaArt14, PersonalArt14SumaFija, PersonalArt14AdicionalHora, PersonalArt14Horas, PersonalArt14Porcentaje, PersonalArt14Desde, PersonalArt14Hasta,
         PersonalArt14Autorizado, PersonalArt14AutorizadoDesde, PersonalArt14AutorizadoHasta, PersonalArt14Anulacion, 
         PersonalArt14AudFechaIng, PersonalArt14AudUsuarioIng, PersonalArt14AudIpIng, PersonalArt14AudFechaMod, PersonalArt14AudUsuarioMod, PersonalArt14AudIpMod,
-        PersonalId, PersonalArt14TipoAsociadoId, PersonalArt14CategoriaId, PersonalArt14ConceptoId, PersonalArt14ObjetivoId, PersonalArt14QuienAutorizoId) 
+        PersonalId, PersonalArt14TipoAsociadoId, PersonalArt14CategoriaId, PersonalArt14ConceptoId, PersonalArt14ObjetivoId, PersonalArt14QuienAutorizoId, PersonalArt14DetalleMotivo) 
         VALUES(@0, @1, @2, @3, @4, @5, @6, @7,
         @8, @9, @10, @11, 
         @12, @13, @14, @12, @13, @14,
-        @15, @16, @17, @18, @19, @20)`,
+        @15, @16, @17, @18, @19, @20, @21)`,
         [
           PersonalArt14UltNro, // PersonalArt14Id
           metodo, // PersonalArt14FormaArt14
@@ -1063,6 +1071,8 @@ export class AsistenciaController extends BaseController {
           ConceptoId, // PersonalArt14ConceptoId
           ObjetivoId, // PersonalArt14ObjetivoId
           null, // PersonalArt14QuienAutorizoId
+
+          Motivo // PersonalArt14DetalleMotivo
         ]
       );
 
@@ -1147,7 +1157,7 @@ export class AsistenciaController extends BaseController {
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
                 AND art.PersonalArt14FormaArt14 = @2
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0) 
-                AND art.PersonalArt14Autorizado is null
+                AND (art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P')
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3) AND art.PersonalArt14Anulacion is null`,
         [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
@@ -1189,6 +1199,7 @@ export class AsistenciaController extends BaseController {
               IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
               art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
               IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
+              PersonalArt14DetalleMotivo,
               1
               FROM PersonalArt14 art
               JOIN Personal per ON per.PersonalId = art.PersonalId
@@ -1207,7 +1218,7 @@ export class AsistenciaController extends BaseController {
 
               WHERE obj.ObjetivoId = @0 
               -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
-              AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1))) )
+              AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR ((art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P') AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1))) )
               AND art.PersonalArt14Anulacion is null
 
               `,
@@ -1923,7 +1934,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 WHERE art.PersonalId = @0 
                 -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
-                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1) )) )
+                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR ((art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P') AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1) )) )
                 AND art.PersonalArt14Anulacion is null
 
                 `,
@@ -2283,7 +2294,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       metodo: "S",
       descripcion: "Fiestas Importe Adicional",
       etiqueta: "Imp. Adicional Fiesta",
-      conceptoId : 3
+      conceptoId: 3
     });
 
     recordSet.push({
@@ -2291,21 +2302,21 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       metodo: "S",
       descripcion: "Monto fijo a sumar",
       etiqueta: "Imp. Adicional",
-      conceptoId : 0
+      conceptoId: 0
     });
     recordSet.push({
       id: "E",
       metodo: "E",
       descripcion: "Equivalencia de categoría",
       etiqueta: "Equivalencia",
-      conceptoId : 0
+      conceptoId: 0
     });
     recordSet.push({
       id: "A",
       metodo: "A",
       descripcion: "Monto adicional por hora",
       etiqueta: "Imp. Adicional Hora",
-      conceptoId : 0
+      conceptoId: 0
     });
 
     recordSet.push({
@@ -2313,7 +2324,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       metodo: "H",
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
-      conceptoId : 0
+      conceptoId: 0
     });
 
     return recordSet
@@ -3746,7 +3757,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     const password = process.env.CA_PASSWORD
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-    
+
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const authHeader = initialResponse.headers.get('www-authenticate')
     let authOptions = AsistenciaController.createDigestAuthOptions(authHeader, username, password, url)
@@ -3761,21 +3772,21 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       "statisticalTime": "month",
       "month": `${anio}-${mes}` // Año-mes del periodo de datos obtenidos
     }
- 
+
     do {
       authOptions.nc++
-      const digestAuthHeader = this.generateDigestAuthHeader(authOptions)    
+      const digestAuthHeader = this.generateDigestAuthHeader(authOptions)
 
       console.info('digestAuthHeader authorization envia', digestAuthHeader);
       const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader }
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
 
       if (response.status == 401 && retryfetch < 5) {
-        authOptions = AsistenciaController.createDigestAuthOptions(response.headers.get('www-authenticate') || authHeader, username, password, url,0)
-        await new Promise(r => setTimeout(r, 500 * retryfetch/5)); // Espera progresiva
+        authOptions = AsistenciaController.createDigestAuthOptions(response.headers.get('www-authenticate') || authHeader, username, password, url, 0)
+        await new Promise(r => setTimeout(r, 500 * retryfetch / 5)); // Espera progresiva
         retryfetch++
         continue
-      } 
+      }
 
       if (response.status != 200)
         throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status, response, body: await response.text() })
@@ -3795,4 +3806,56 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     return recordsArray
   }
 
+  async updateHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
+    let registrosActualizados = 0
+
+    const anio = req.params.anio
+    const mes = req.params.mes
+
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Habilitación Necesaria ${mes}/${anio}`,
+      { anio, mes, usuario, ip },
+      usuario,
+      ip
+    );
+
+    try {
+      await queryRunner.commitTransaction();
+
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Registros Actualizados': registrosActualizados
+        },
+        usuario,
+        ip
+      );
+
+      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
+
+      this.jsonRes([], res);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 }

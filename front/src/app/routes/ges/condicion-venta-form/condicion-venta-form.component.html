@@ -40,15 +40,7 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-      <input
-        nz-input
-        nzInputNumber
-        formControlName="GeneracionFacturaDia"
-        min="1"
-        max="31"
-        step="1"
-        placeholder="Día del mes (1-31)"
-        style="width: 100%;">
+      <input nz-input nzInputNumber formControlName="GeneracionFacturaDia" min="1" max="31" step="1" placeholder="Día del mes (1-31)" style="width: 100%;">
     </nz-form-control>
   </nz-form-item>
 
@@ -131,7 +123,6 @@
               nzPlaceholder="Seleccione"
               nzAllowClear
               [nzDropdownMatchSelectWidth]="false">
-              <nz-option [nzValue]="" nzLabel="Seleccione"></nz-option>
               <nz-option [nzValue]="true" nzLabel="Sí"></nz-option>
               <nz-option [nzValue]="false" nzLabel="No"></nz-option>
             </nz-select>
@@ -144,7 +135,6 @@
               nzPlaceholder="Seleccione"
               nzAllowClear
               [nzDropdownMatchSelectWidth]="false">
-              <nz-option [nzValue]="" nzLabel="Seleccione"></nz-option>
               <nz-option [nzValue]="true" nzLabel="Sí"></nz-option>
               <nz-option [nzValue]="false" nzLabel="No"></nz-option>
             </nz-select>
@@ -157,7 +147,6 @@
               nzPlaceholder="Seleccione"
               nzAllowClear
               [nzDropdownMatchSelectWidth]="false">
-              <nz-option   [nzValue]="" nzLabel="Seleccione"></nz-option>
               <nz-option [nzValue]="true" nzLabel="Sí"></nz-option>
               <nz-option [nzValue]="false" nzLabel="No"></nz-option>
             </nz-select>

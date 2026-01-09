@@ -87,9 +87,9 @@ export class ObjetivosComponent {
         if (cols[5]) {
           cols[5].asyncPostRender = this.renderClienteDenominacionComponent.bind(this)
         }
-        if (cols[3]) {
-          cols[3].asyncPostRender = this.renderDescripcionObjetivoComponent.bind(this)
-        }
+        //if (cols[3]) {
+        //  cols[3].asyncPostRender = this.renderDescripcionObjetivoComponent.bind(this)
+        //}
         if (cols[6]) {
           cols[6].asyncPostRender = this.renderGrupoActividadDetalleComponent.bind(this)
         }
@@ -232,6 +232,13 @@ export class ObjetivosComponent {
   
     cellNode.replaceChildren(componentOutput.domElement)
     
+  }
+
+  async openCondVentaLink(){
+    const objetivoId = this.editObjetivoId();
+    if (objetivoId && objetivoId > 0) {
+      this.router.navigate(['/ges/carga_asistencia', { ObjetivoId: objetivoId }]);
+    }
   }
 
   renderDescripcionObjetivoComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
