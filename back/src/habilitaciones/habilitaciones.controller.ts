@@ -4,6 +4,8 @@ import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
+import { AsistenciaController } from "src/controller/asistencia.controller";
+import { CustodiaController } from "src/controller/custodia.controller";
 
 const getHabNecesariaOptions: any[] = [
     { label: 'Si', value: '1' },
@@ -1006,5 +1008,61 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         
 
     }
+
+  async updateHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
+    let registrosActualizados = 0
+
+    const anio = req.params.anio
+    const mes = req.params.mes
+
+    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      queryRunner,
+      `Habilitación Necesaria ${mes}/${anio}`,
+      { anio, mes, usuario, ip },
+      usuario,
+      ip
+    );
+
+      try {
+      await queryRunner.startTransaction();
+      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
+        
+          
+      await queryRunner.commitTransaction();
+
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Registros Actualizados': registrosActualizados
+        },
+        usuario,
+        ip
+      );
+
+
+      this.jsonRes({ registrosActualizados }, res,'Registros actualizados');
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
 }

@@ -1143,6 +1143,14 @@ export class SearchService {
         //catchError(() => of([]))
       );
   }
+  updHabilitacionNecesaria(anio: number, mes: number) {
+    return this.http
+      .post<ResponseJSON<any>>(`api/habilitaciones/update-hab-necesaria`,{anio,mes})
+      .pipe(
+        map(res => res.data),
+        //catchError(() => of([]))
+      );
+  }
 
   getTiposHora() {
     return this.http

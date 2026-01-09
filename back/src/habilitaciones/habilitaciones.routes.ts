@@ -68,6 +68,10 @@ habilitacionesRouter.post('/personal', [authMiddleware.verifyToken, authMiddlewa
   habilitacionesController.getPersonalHabilitacion(req, res, next)
 })
 
+habilitacionesRouter.post('/update-hab-necesaria', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  habilitacionesController.updateHabilitacionNecesaria(req, res, next)
+})
+
 habilitacionesRouter.post('/gestion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.getGestionHabilitacion(req, res, next)
 })

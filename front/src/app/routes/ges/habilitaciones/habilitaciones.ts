@@ -20,7 +20,7 @@ import { HabilitacionNecesariaFormModalComponent } from 'src/app/routes/ges/habi
 @Component({
   selector: 'app-habilitaciones',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
-    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent, 
+    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent,
     HabilitacionNecesariaFormModalComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
@@ -64,7 +64,7 @@ export class HabilitacionesComponent {
 
   columns$ = this.apiService.getCols('/api/habilitaciones/cols').pipe(
     map((cols: Column<any>[]) => {
-      return cols.map(col => 
+      return cols.map(col =>
         col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
       )
     }))
@@ -91,8 +91,8 @@ export class HabilitacionesComponent {
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getHabilitacionesList(this.listOptions,)
-        .pipe(map((data:any) => { 
-          return data.list 
+        .pipe(map((data: any) => {
+          return data.list
         }))
     })
   )
@@ -110,7 +110,7 @@ export class HabilitacionesComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     console.log('row: ', row);
-    
+
     if (row?.id) {
       this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion} - ${this.formatDate(row.PersonalHabilitacionDesde)} - ${this.formatDate(row.PersonalHabilitacionHasta)} - ${row.SituacionRevistaDescripcion} - ${this.formatDate(row.FechaEstado)} - ${row.NroTramite}`)
       this.apellidoNombreSelected.set(row.ApellidoNombre)
@@ -120,7 +120,7 @@ export class HabilitacionesComponent {
     }
 
   }
-  
+
   listOptionsChange(options: any) {
     this.listOptions = options
     this.listHabilitaciones$.next('')
@@ -139,35 +139,35 @@ export class HabilitacionesComponent {
 
   goToCredentials() {
     // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
-      this.selectedIndex.set(3)
+    this.selectedIndex.set(3)
     // }
   }
 
-  onTabsetChange(_event: any) { 
+  onTabsetChange(_event: any) {
     window.dispatchEvent(new Event('resize'));
   }
 
-  refreshGrid(_e: any){
+  refreshGrid(_e: any) {
     this.listHabilitaciones$.next('');
   }
 
-  openDrawerforForm(): void{
-    this.visibleForm.set(true) 
+  openDrawerforForm(): void {
+    this.visibleForm.set(true)
   }
 
-  openDrawerforFormEdit(): void{
-    this.visibleFormEdit.set(true) 
+  openDrawerforFormEdit(): void {
+    this.visibleFormEdit.set(true)
   }
 
   renderApellidoNombreComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
-    
+
     let PersonalId = dataContext.PersonalId
-    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params:{ PersonalId: PersonalId } , detail: cellNode.innerText})
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params: { PersonalId: PersonalId }, detail: cellNode.innerText })
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
-  
+
     cellNode.replaceChildren(componentOutput.domElement)
-    
+
   }
 
   formatDate(dateString: string): string {
@@ -180,7 +180,11 @@ export class HabilitacionesComponent {
 
     return `${year}/${month}/${day}`;
   }
-  updHabilitacionNecesaria(): void { 
-    
+  async updHabilitacionNecesaria() {
+    const anio = this.periodo() ? this.periodo().getFullYear():0
+    const mes = this.periodo() ? this.periodo().getMonth() + 1 : 0
+    await firstValueFrom(this.searchService.updHabilitacionNecesaria(anio, mes))
   }
+
+  
 }
