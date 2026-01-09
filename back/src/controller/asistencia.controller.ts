@@ -754,7 +754,7 @@ export class AsistenciaController extends BaseController {
 
       switch (metodo) {
         case "S":
-          if (!SumaFija)
+          if (!SumaFija || SumaFija <= 0)
             throw new ClientException("Debe ingresar una monto");
 
           break;
@@ -764,12 +764,12 @@ export class AsistenciaController extends BaseController {
 
           break;
         case "H":
-          if (!Horas)
+          if (!Horas || Horas <= 0)
             throw new ClientException("Debe ingresar horas adicionales");
 
           break;
         case "A":
-          if (!AdicionalHora)
+          if (!AdicionalHora || AdicionalHora <= 0)
             throw new ClientException("Debe ingresar un monto adicional por hora");
 
           break;
