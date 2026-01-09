@@ -368,8 +368,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 				b2.PersonalHabilitacionId,
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
-					WHEN b2.PersonalHabilitacionHasta IS not NULL THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
-                    WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
+					WHEN b2.PersonalHabilitacionHasta>=@0 THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+                    --WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
 					--WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
 					ELSE 0
 				END AS DiasFaltantesVencimiento
