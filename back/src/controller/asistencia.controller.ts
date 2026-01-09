@@ -724,7 +724,7 @@ export class AsistenciaController extends BaseController {
       } = req.body;
 
       if (!periodo) throw new ClientException("Debe ingresar un período válido");
-      
+
       const AplicaEl: Date = periodo ? new Date(periodo) : null
       const persona_cuit = req.persona_cuit;
       const anio = AplicaEl.getFullYear();
@@ -779,7 +779,7 @@ export class AsistenciaController extends BaseController {
           break;
       }
 
-      if (metodologiaId != "F" && (!Motivo || Motivo.replace(/\s/g, '').length <= 5)) throw new ClientException("Debe ingresar un motivo valido.");
+      if (metodologiaId != "F" && (!Motivo || Motivo.replace(/\s/g, '').length <= 5)) throw new ClientException("Debe ingresar un motivo válido.");
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -858,7 +858,7 @@ export class AsistenciaController extends BaseController {
                 FROM PersonalArt14 art
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
                 --AND art.PersonalArt14FormaArt14 = @2 
-                AND art.PersonalArt14Autorizado is null
+                AND (art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P')
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
                 AND art.PersonalArt14Desde <= @3 AND (ISNULL(art.PersonalArt14Hasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
         [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
@@ -1157,7 +1157,7 @@ export class AsistenciaController extends BaseController {
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
                 AND art.PersonalArt14FormaArt14 = @2
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0) 
-                AND art.PersonalArt14Autorizado is null
+                AND (art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P')
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3) AND art.PersonalArt14Anulacion is null`,
         [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
@@ -1218,7 +1218,7 @@ export class AsistenciaController extends BaseController {
 
               WHERE obj.ObjetivoId = @0 
               -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
-              AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR (art.PersonalArt14Autorizado = 'P' AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1))) )
+              AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR ((art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P') AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1))) )
               AND art.PersonalArt14Anulacion is null
 
               `,
@@ -1934,7 +1934,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 WHERE art.PersonalId = @0 
                 -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
-                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1) )) )
+                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR ((art.PersonalArt14Autorizado is null or art.PersonalArt14Autorizado = 'P') AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1) )) )
                 AND art.PersonalArt14Anulacion is null
 
                 `,
