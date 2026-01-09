@@ -779,7 +779,7 @@ export class AsistenciaController extends BaseController {
           break;
       }
 
-      if (metodologiaId != "F" && (!Motivo || Motivo.replace(/\s/g, '').length <= 5)) throw new ClientException("Debe ingresar un motivo válido.");
+      if (!Motivo || Motivo.replace(/\s/g, '').length <= 5) throw new ClientException("Debe ingresar un motivo válido.");
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
