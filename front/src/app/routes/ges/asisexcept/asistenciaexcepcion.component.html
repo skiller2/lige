@@ -59,6 +59,7 @@
               <tr>
                 <th>Persona</th>
                 <th>Método</th>
+                <th>Motivo</th>
                 <th>Vigencia</th>
               </tr>
             </thead>
@@ -70,7 +71,7 @@
                     <td title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col>
                   {{data.PersonalCUITCUILCUIT}}</span> </td>
                   <td>
-                    <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
+                    <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}: </span>
                     @if (data.PersonalArt14FormaArt14=='S') {
                       <span>{{data.PersonalArt14SumaFija | I18NCurrency }}</span>
                     }
@@ -85,6 +86,7 @@
                       currency:'$'}}</span>
                     }
                   </td>
+                  <td>{{data.PersonalArt14DetalleMotivo}}</td>
                   <td>{{data.Desde | date}} <BR>{{data.Hasta | date}}</td>
                   <!-- td>
                   <a>Action 一 {{data.name}}</a>
@@ -128,7 +130,7 @@
             </nz-select>
           </nz-form-control>
         </nz-form-item>
-        @if (asistenciaexcepcion.controls['metodologia']?.value) {
+         @if (asistenciaexcepcion.controls['metodologia']?.value) {
           <nz-form-item>
             <input name="metodo" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.metodo" type="hidden">
             <input name="metodologiaId" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.id" type="hidden">
@@ -137,7 +139,7 @@
           @switch (asistenciaexcepcion.controls['metodologia'].value.metodo) {
             @case ('S') {
               <nz-form-control>
-                <nz-input-number name="SumaFija" ngModel [nzStep]="0" style="width:100%"></nz-input-number>
+                <input nz-input nzInputNumber name="SumaFija" ngModel step="0" style="width:100%">
               </nz-form-control>
             }
             @case ('E') {
@@ -156,16 +158,25 @@
             }
             @case ('A') {
               <nz-form-control>
-                <nz-input-number name="AdicionalHora" ngModel [nzStep]="1" style="width:100%"></nz-input-number>
+                <input nz-input nzInputNumber name="AdicionalHora" ngModel step="1" style="width:100%">
               </nz-form-control>
             }
             @case ('H') {
               <nz-form-control>
-                <nz-input-number name="Horas" ngModel [nzStep]="1"></nz-input-number>
+                <input nz-input nzInputNumber name="Horas" ngModel step="1" style="width:100%">
               </nz-form-control>
             }
           }
         </nz-form-item>
+
+        @if (asistenciaexcepcion.controls['metodologia']?.value && asistenciaexcepcion.controls['metodologia'].value.id!='F') {
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Motivo</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input name="Motivo" ngModel placeholder="Describa el motivo de la excepción." ></textarea>
+          </nz-form-control>
+        </nz-form-item>
+       }
       }
     }
     <nz-button-group nz-button nzButtonGroup nz-row nzJustify="space-between">
