@@ -17,8 +17,10 @@
         <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}" (click)="openDrawerforConsultHistory()">
           <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true" ><span nz-icon nzType="menu-unfold" nzTheme="outline"></span></button>
         </a>
-        <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" nzTheme="outline"></span></button> -->
+        <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.condiciones-venta-link' | i18n }}"  (click)="openCondVentaLink()"  >
+          <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true" ><span nz-icon nzType="link" nzTheme="outline"></span></button>
+        </a>
+      
       </nz-button-group>
 
     </div>
