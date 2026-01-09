@@ -26,7 +26,7 @@ const grupoActividadController = new GrupoActividadController()
 const cargaLicenciaController = new CargaLicenciaController()
 const asistenciaController = new AsistenciaController()
 
-scheduleJob('1 0 * * *', async function (fireDate) {
+scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() - 1);
   const anio = currentDate.getFullYear();
@@ -36,32 +36,32 @@ scheduleJob('1 0 * * *', async function (fireDate) {
   segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {
+scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
   //TODO Se debería instanciar Response correctamente
 
   const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
-
-scheduleJob('1 0 * * *', async function (fireDate) {
+ 
+scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
   //TODO Se debería instanciar Response correctamente
 
   const ret = await grupoActividadController.objetivosGrupos(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {
+scheduleJob('1 0 * * *', async function (fireDate) {//At 12:01 AM
   const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('0 0 1 * *', async function (fireDate) {
+scheduleJob('0 0 1 * *', async function (fireDate) { //At 12:00 AM, on day 1 of the month
 
   const ret = await grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {
+scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
   //TODO Se debería instanciar Response correctamente
   const actual = new Date()
   const anio = actual.getFullYear()
