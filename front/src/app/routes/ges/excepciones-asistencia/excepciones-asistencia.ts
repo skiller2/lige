@@ -169,8 +169,8 @@ export class ExcepcionesAsistenciaComponent {
           PersonalArt14Id: obj.PersonalArt14Id,
           PersonalId: obj.PersonalId,
           ObjetivoId: obj.ObjetivoId,
-          Art14ConceptoId: obj.PersonalArt14ConceptoId,
-          Art14FormaArt14: obj.PersonalArt14FormaArt14
+          PersonalArt14ConceptoId: obj.PersonalArt14ConceptoId,
+          PersonalArt14FormaArt14: obj.PersonalArt14FormaArt14
         }
       })
     try {
