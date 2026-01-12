@@ -76,8 +76,7 @@ const listaColumnas: any[] = [
         fieldName: "cli.ClienteDenominacion",
         searchType: "string",
         sortable: true,
-
-        searchHidden: false,
+        searchHidden: true,
         hidden: false,
     },
     {
