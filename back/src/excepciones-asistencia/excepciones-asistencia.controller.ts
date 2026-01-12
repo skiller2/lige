@@ -405,7 +405,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       WHERE PersonalId = @0 AND PersonalArt14Desde = @1 AND PersonalArt14Hasta = @2 AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S' and ${conceptoId}
       `, [personalId, PersonalPrestamo[0]?.PersonalArt14Desde, PersonalPrestamo[0]?.PersonalArt14Hasta, PersonalPrestamo[0]?.PersonalArt14FormaArt14, PersonalPrestamo[0]?.PersonalArt14ConceptoId, PersonalPrestamo[0]?.PersonalArt14ObjetivoId])
 
-    if (duplicadoAprobado[0]?.Cantidad > 0) return new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado.`)
+    if (duplicadoAprobado[0]?.Cantidad > 0) return new ClientException(`Ya existe una excepción aprobada con el mismo tipo, personal, objetivo y período. No se puede aprobar esta excepción.`)
 
     if (PersonalPrestamo[0]?.PersonalArt14Autorizado == 'P' || PersonalPrestamo[0]?.PersonalArt14Autorizado == null) {
       const now: Date = new Date()
