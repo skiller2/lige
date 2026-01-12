@@ -315,7 +315,7 @@ export class HabilitacionesController extends BaseController {
     }
 
     async habilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
-        periodo.setHours(0,0,0,0)
+        periodo.setHours(0, 0, 0, 0)
         return await queryRunner.query(`
         
        
@@ -391,7 +391,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const periodo = new Date()
         try {
             const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
-            
+
             this.jsonRes(
                 {
                     total: habilitaciones.length,
@@ -458,12 +458,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const queryRunner = dataSource.createQueryRunner();
         try {
             const habilitaciones = await this.listDocQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
-            
-            let list = habilitaciones.map(obj =>{
+
+            let list = habilitaciones.map(obj => {
                 obj.TipoArchivo = obj.NombreArchivo.split('.').pop()?.toLowerCase()
                 return obj
             })
-            
+
             this.jsonRes(
                 {
                     total: list.length,
@@ -512,7 +512,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             , perhab.PersonalHabilitacionDesde, perhab.PersonalHabilitacionHasta, perhab.PersonalHabilitacionClase , perhab.NroTramite
             FROM PersonalHabilitacion perhab 
             WHERE perhab.PersonalHabilitacionId = @0 AND perhab.PersonalId = @1
-            `, [ PersonalHabilitacionId, PersonalId ])
+            `, [PersonalHabilitacionId, PersonalId])
 
             this.jsonRes(PersonalHabilitacion[0], res);
 
@@ -560,8 +560,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         // const AudFechaIng = req.body.AudFechaIng
         const documentos: any[] = req.body.documentos
 
-        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
-        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
+        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
+        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
 
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -626,15 +626,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const docs of documentos) {
                 if (docs.files?.length > 0) {
                     for (const file of docs.files) {
-                        const DocumentoFecha = file.DocumentoFecha? new Date(file.DocumentoFecha) : null
-                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+                        const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
-                        if (DocumentoFecha) DocumentoFecha.setHours(0,0,0,0)
-                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0,0,0,0)
-                        
+                        if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+
                         // CUIT- Tipo Documento - Lugar habilitación
                         const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
-                        
+
                         const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
                         const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
                         await queryRunner.query(`
@@ -676,8 +676,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         // const AudFechaIng = req.body.AudFechaIng
         // const file: any[] = req.body.archivo
 
-        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
-        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
+        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
+        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
 
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -737,8 +737,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
           FROM LugarHabilitacion
           WHERE LugarHabilitacionInactivo IS NULL
         `)
-      }
-    
+    }
+
     async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -766,14 +766,14 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    private async getHabilitacionCategoriaQuery(queryRunner: any, LugarHabilitacionId:any) {
+    private async getHabilitacionCategoriaQuery(queryRunner: any, LugarHabilitacionId: any) {
         return await queryRunner.query(`
           SELECT HabilitacionCategoriaCodigo value, TRIM(Detalle) label
           FROM HabilitacionCategoria
           WHERE LugarHabilitacionId IN (@0)
         `, [LugarHabilitacionId])
-      }
-    
+    }
+
     async getHabilitacionCategoria(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const LugarHabilitacionId = req.params.LugarHabilitacionId
@@ -786,7 +786,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     }
 
     async addHabilitacion(req: any, res: Response, next: NextFunction) {
-        
+
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -803,8 +803,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         // const AudFechaIng = req.body.AudFechaIng
         const documentos: any[] = req.body.documentos
 
-        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
-        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
+        if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
+        if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
 
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -834,8 +834,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
                 --AND PersonalHabilitacionNecesariaDesde <= @2
                 --AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
-            `, [ PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta ])
-            
+            `, [PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta])
+
             if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
                 // throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
                 throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
@@ -846,8 +846,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 SELECT MAX(PersonalHabilitacionId) PersonalHabilitacionId
                 FROM PersonalHabilitacion
                 WHERE PersonalId = @0
-            `, [ PersonalId ])
-            const newPersonalHabilitacionId = (result && result.length)? (result[0].PersonalHabilitacionId+1) : 1
+            `, [PersonalId])
+            const newPersonalHabilitacionId = (result && result.length) ? (result[0].PersonalHabilitacionId + 1) : 1
             const newCodigoUlt = 1
 
             await queryRunner.query(`
@@ -897,15 +897,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const docs of documentos) {
                 if (docs.files?.length > 0) {
                     for (const file of docs.files) {
-                        const DocumentoFecha = file.DocumentoFecha? new Date(file.DocumentoFecha) : null
-                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+                        const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
-                        if (DocumentoFecha) DocumentoFecha.setHours(0,0,0,0)
-                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0,0,0,0)
-                        
+                        if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+
                         // CUIT- Tipo Documento - Lugar habilitación
                         const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
-                        
+
                         const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
                         const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
                         await queryRunner.query(`
@@ -917,7 +917,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                     }
                 }
             }
-            
+
             // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
@@ -933,13 +933,13 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const usuario = res.locals.userName
 
         const PersonalId = req.body.PersonalId
-        const LugarHabilitacionIds:number[] = req.body.LugarHabilitacionIds? req.body.LugarHabilitacionIds : []
+        const LugarHabilitacionIds: number[] = req.body.LugarHabilitacionIds ? req.body.LugarHabilitacionIds : []
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-            
+
             await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
 
             await queryRunner.commitTransaction()
@@ -971,8 +971,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         //Actualizo
         const now = new Date()
         const desde = new Date()
-        desde.setHours(0,0,0,0)
-        let PersonalHabilitacionNecesariaId:number = 0
+        desde.setHours(0, 0, 0, 0)
+        let PersonalHabilitacionNecesariaId: number = 0
 
         await queryRunner.query(`
             DELETE FROM PersonalHabilitacionNecesaria
@@ -995,7 +995,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         `, [personalId, PersonalHabilitacionNecesariaId])
     }
 
-    private async queryHabilitacionNecesariaByPersonalId(queryRunner: any, PersonalId:any){
+    private async queryHabilitacionNecesariaByPersonalId(queryRunner: any, PersonalId: any) {
         return await queryRunner.query(`
             SELECT PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId
             FROM PersonalHabilitacionNecesaria
@@ -1004,7 +1004,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     }
 
     async getHabilitacionNecesariaByPersonalId(req: any, res: Response, next: NextFunction) {
-        
+
         const PersonalId = req.params.PersonalId
 
         const queryRunner = dataSource.createQueryRunner();
@@ -1016,7 +1016,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             const obj = {
                 PersonalId,
-                LugarHabilitacionIds : habs
+                LugarHabilitacionIds: habs
             }
 
             this.jsonRes(obj, res);
@@ -1027,7 +1027,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
     // funcion encargada de crear o eliminar el registro de habilutacion necesaria, en base a la asistencia que posee la persona
     async backgroundProcessHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-        
+
         // si la persona esta de baja, eliminar la habilitacion necesaria
 
         // ver si tuvo asistencia en el periodo pasado, pero esta activo, no elimino la habilitacion necesaria
@@ -1036,73 +1036,120 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
         // si no tuvo asistencia, chequear si tiene habilitacion necesaria, si la tiene, eliminarla
 
-/*      otros casos: 
-                - esta activa pero no tuvo asistencia, que se hace?
-                - estuvo de baja en el periodo, que se hace? se elimina la habilitacion necesaria
-                - estuvo de baja en el periodo pero ahora esta activa, que se hace? se crea la habilitacion necesaria si tuvo asistencia
-                - 
-
-
-*/
-
+        /*      otros casos: 
+                        - esta activa pero no tuvo asistencia, que se hace?
+                        - estuvo de baja en el periodo, que se hace? se elimina la habilitacion necesaria
+                        - estuvo de baja en el periodo pero ahora esta activa, que se hace? se crea la habilitacion necesaria si tuvo asistencia
+                        - 
         
+        
+        */
+
+
 
     }
-
-  async updateHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-
-    const usuario = res?.locals.userName || 'server'
-    const ip = this.getRemoteAddress(req)
-    let registrosActualizados = 0
-
-    const anio = req.params.anio
-    const mes = req.params.mes
-
-    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-      queryRunner,
-      `Habilitación Necesaria ${mes}/${anio}`,
-      { anio, mes, usuario, ip },
-      usuario,
-      ip
-    );
-
-      try {
-      await queryRunner.startTransaction();
-      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
-      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
-        
-          
-      await queryRunner.commitTransaction();
-
-      await this.procesoAutomaticoLogFin(
-        queryRunner,
-        ProcesoAutomaticoLogCodigo,
-        'COM',
-        {
-          res: `Procesado correctamente`,
-          'Registros Actualizados': registrosActualizados
-        },
-        usuario,
-        ip
-      );
-
-
-      this.jsonRes({ registrosActualizados }, res,'Registros actualizados');
-
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner,
-        ProcesoAutomaticoLogCodigo,
-        'ERR',
-        { res: error },
-        usuario,
-        ip
-      );
-      return next(error)
-    } finally {
-      await queryRunner.release()
+    
+    getPreviousMonthYear(year: number, month: number): { year: number, month: number } {
+        if (month === 1) {
+            return { year: year - 1, month: 12 };
+        } else {
+            return { year: year, month: month - 1  };
+        }
     }
-  }
+
+    async updateHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+
+        const usuario = res?.locals.userName || 'server'
+        const ip = this.getRemoteAddress(req)
+        let registrosActualizados = 0
+
+        const { year: anio, month: mes } = this.getPreviousMonthYear(req.body.anio, req.body.mes);
+
+        const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            queryRunner,
+            `Habilitación Necesaria ${mes}/${anio}`,
+            { anio, mes, usuario, ip },
+            usuario,
+            ip
+        );
+
+        try {
+            await queryRunner.startTransaction();
+            const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
+            const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
+
+
+            const resPersHabActuales = await queryRunner.query(`SELECT DISTINCT n.PersonalId, n.PersonalHabilitacionNecesariaLugarHabilitacionId FROM PersonalHabilitacionNecesaria n`)
+
+
+            const map = new Map<number, { set: Set<number>; list: number[] }>();
+
+            for (const asisObj of resAsisObjetiv) {
+                const PersonalId = asisObj.PersonalId
+                const LugarHabilitacionIdList = asisObj.LugarHabilitacionIdList ? asisObj.LugarHabilitacionIdList.split(',') : []
+                for (const LugarHabilitacionId of LugarHabilitacionIdList) {
+
+
+                    if (!map.has(PersonalId)) {
+                        map.set(PersonalId, { set: new Set(), list: [] });
+                    }
+
+                    const entry = map.get(PersonalId)!;
+                    if (!entry.set.has(LugarHabilitacionId)) {
+                        entry.set.add(LugarHabilitacionId);
+                        entry.list.push(LugarHabilitacionId);
+                    }
+                }
+            }
+
+            const PersonalLugar = Array.from(map.entries()).map(([PersonalId, { list }]) => ({
+                PersonalId,
+                LugarHabilitacionId: list,
+            }));
+
+            //TODO:  Buscar las diferencias entre lo que esta en la base y lo que deberia estar segun las asistencias
+            for (const perlug of PersonalLugar) {
+                const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === perlug.PersonalId && perlug.LugarHabilitacionId.includes(h.PersonalHabilitacionNecesariaLugarHabilitacionId))
+
+                //TODO: Actualizar la base de datos con las diferencias encontradas
+                // await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, , usuario, ip)
+                // registrosActualizados += 1;
+
+            }
+
+
+            await queryRunner.commitTransaction();
+
+            await this.procesoAutomaticoLogFin(
+                queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'COM',
+                {
+                    res: `Procesado correctamente`,
+                    'Registros Actualizados': registrosActualizados
+                },
+                usuario,
+                ip
+            );
+
+
+            this.jsonRes({ registrosActualizados }, res, 'Registros actualizados');
+
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            await this.procesoAutomaticoLogFin(queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'ERR',
+                { res: error },
+                usuario,
+                ip
+            );
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
 
 }
