@@ -397,6 +397,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
 
     if (PersonalPrestamo[0]?.PersonalArt14Autorizado == 'A' || PersonalPrestamo[0]?.PersonalArt14Autorizado == 'AC' || PersonalPrestamo[0]?.PersonalArt14Autorizado == 'N') return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
+    if (PersonalPrestamo[0]?.PersonalArt14Autorizado == 'S') return 0
 
     let conceptoId = PersonalPrestamo[0]?.PersonalArt14ConceptoId ? `PersonalArt14ConceptoId = ${PersonalPrestamo[0]?.PersonalArt14ConceptoId}` : `PersonalArt14ConceptoId IS NULL`
     
@@ -404,7 +405,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       WHERE PersonalId = @0 AND PersonalArt14Desde = @1 AND PersonalArt14Hasta = @2 AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S' and ${conceptoId}
       `, [personalId, PersonalPrestamo[0]?.PersonalArt14Desde, PersonalPrestamo[0]?.PersonalArt14Hasta, PersonalPrestamo[0]?.PersonalArt14FormaArt14, PersonalPrestamo[0]?.PersonalArt14ConceptoId, PersonalPrestamo[0]?.PersonalArt14ObjetivoId])
 
-    if (duplicadoAprobado[0]?.Cantidad > 0) return new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado`)
+    if (duplicadoAprobado[0]?.Cantidad > 0) return new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado.`)
 
     if (PersonalPrestamo[0]?.PersonalArt14Autorizado == 'P' || PersonalPrestamo[0]?.PersonalArt14Autorizado == null) {
       const now: Date = new Date()
@@ -487,8 +488,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
       }
 
       let msj: string = ''
-      if (cantAprobados == ids.length) msj = 'Carga Exitosa'
-      else msj = `Carga Exitosa. ${cantAprobados} registros se modificaron. ${ids.length - cantAprobados} ya estaban en estado Aprobado`
+      if (cantAprobados == ids.length) msj = 'Carga Exitosa. Cantidad de registros aprobados: ' + cantAprobados
+      else msj = `Carga Exitosa. Cantidad de registros aprobados: ${cantAprobados}. \n Registros sin modificación por estar aprobados: ${ids.length - cantAprobados}.`
 
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, msj);
