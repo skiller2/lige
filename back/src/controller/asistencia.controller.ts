@@ -1968,7 +1968,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       
       objd.ObjetivoAsistenciaTipoAsociadoId,
       objd.ObjetivoAsistenciaCategoriaPersonalId,
-      
+      oan.LugarHabilitacionIdList,
       
       (
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
@@ -2116,6 +2116,13 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       
       LEFT JOIN CategoriaPersonal art14cat ON art14cat.TipoAsociadoId = art14E.PersonalArt14TipoAsociadoId AND art14cat.CategoriaPersonalId  = art14E.PersonalArt14CategoriaId 
 --                LEFT JOIN ObjetivoHabilitacion objhab ON objhab.ObjetivoHabilitacionObjetivoId = obj.ObjetivoId
+      
+      LEFT JOIN (
+		SELECT an.ObjetivoId, STRING_AGG(an.ObjetivoHabilitacionNecesariaLugarHabilitacionId,',') LugarHabilitacionIdList FROM ObjetivoHabilitacionNecesaria an
+    WHERE an.ObjetivoHabilitacionNecesariaInactivo IS NULL OR an.ObjetivoHabilitacionNecesariaInactivo=0
+    GROUP BY  an.ObjetivoId
+		) oan ON oan.ObjetivoId = obj.ObjetivoId
+      
       
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
