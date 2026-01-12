@@ -288,7 +288,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
     try {
       const list = await queryRunner.query(`
-        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId,'-',art.PersonalArt14FormaArt14,'-',ISNULL(art.PersonalArt14ConceptoId,0), '-', ISNULL(art.PersonalArt14ObjetivoId,0)) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
               art.PersonalArt14Id, art.PersonalArt14Autorizado,
               art.PersonalArt14FormaArt14,
               CONCAT(ISNULL(art.PersonalArt14FormaArt14,''),'/',ISNULL(art.PersonalArt14ConceptoId,0)) AS PersonalArt14FormaCompuesto,
@@ -425,7 +425,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
   async personalArt14AprovarLista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const ids: string[] = req.body.ids
+    const ids: Array<{PersonalArt14Id: number, PersonalId: number, ObjetivoId: number, PersonalArt14ConceptoId: number, PersonalArt14FormaArt14: string}> = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
     let numRowsError: number[] = []
@@ -436,22 +436,21 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const usuario = res.locals.userName
       const ip = this.getRemoteAddress(req)
 
-      // Validar duplicados: misma persona con mismo tipo de excepción
+      // Validar duplicados: misma persona con mismo tipo de excepción en mismo objetivo
       let duplicados: string[] = []
+   
       if (ids.length > 0) {
-        const personalId_Forma_ConceptoId = ids.map(id => id.split('-')[1] + '-' + id.split('-')[2] + '-' + id.split('-')[3] + '-' + id.split('-')[4]);
+        const personalId_Forma_ConceptoId = ids.map(id => `${id.PersonalId}-${id.PersonalArt14FormaArt14}-${id.PersonalArt14ConceptoId}-${id.ObjetivoId}`);
         // Buscar duplicados
         duplicados = personalId_Forma_ConceptoId.filter((item, index) => personalId_Forma_ConceptoId.indexOf(item) !== index)
-
       }
 
       for (const [index, id] of ids.entries()) {
-        const arrayIds = id.split('-')
-        const personalArt14Id: number = Number.parseInt(arrayIds[0])
-        const personalId: number = Number.parseInt(arrayIds[1])
-        const Art14Forma: number = Number.parseInt(arrayIds[2])
-        const Art14ConceptoId: number = Number.parseInt(arrayIds[3])
-        const Art14ObjetivoId: number = Number.parseInt(arrayIds[4])
+        const personalArt14Id: number = id.PersonalArt14Id
+        const personalId: number = id.PersonalId
+        const Art14Forma: string = id.PersonalArt14FormaArt14
+        const Art14ConceptoId: number = id.PersonalArt14ConceptoId
+        const Art14ObjetivoId: number = id.ObjetivoId
 
         const excepcion = `${personalId}-${Art14Forma}-${Art14ConceptoId}-${Art14ObjetivoId}`
 
