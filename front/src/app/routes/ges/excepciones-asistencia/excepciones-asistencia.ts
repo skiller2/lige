@@ -163,10 +163,18 @@ export class ExcepcionesAsistenciaComponent {
   async aprobarReg() {
     this.loadingApr.set(true)
     this.rowsError.set([])
-    const ids = this.angularGrid.dataView.getAllSelectedIds()
-    // console.log(ids,this.rows());
+    // const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+    const reg = this.angularGrid.dataView.getAllSelectedItems().map((obj:any) => {
+        return {
+          PersonalArt14Id: obj.PersonalArt14Id,
+          PersonalId: obj.PersonalId,
+          ObjetivoId: obj.ObjetivoId,
+          PersonalArt14ConceptoId: obj.PersonalArt14ConceptoId,
+          PersonalArt14FormaArt14: obj.PersonalArt14FormaArt14
+        }
+      })
     try {
-      const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaAprobar({ ids: ids, rows: this.rows() }))
+      const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaAprobar({ ids: reg, rows: this.rows() }))
       this.listExcepcionesAsistencia$.next('')
     } catch (error: any) {
       let rows: any[] = error.error.data

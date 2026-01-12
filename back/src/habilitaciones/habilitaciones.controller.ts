@@ -6,6 +6,7 @@ import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
 import { AsistenciaController } from "src/controller/asistencia.controller";
 import { CustodiaController } from "src/controller/custodia.controller";
+import { PersonalController } from "src/controller/personal.controller"
 
 const getHabNecesariaOptions: any[] = [
     { label: 'Si', value: '1' },
@@ -557,7 +558,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
-        const file: any[] = req.body.file
+        const documentos: any[] = req.body.documentos
 
         if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0,0,0,0)
         if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0,0,0,0)
@@ -586,18 +587,18 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
-            SELECT ISNULL(GestionHabilitacionCodigoUlt, 0) CodigoUlt
-            FROM PersonalHabilitacion
-            WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
+                SELECT ISNULL(GestionHabilitacionCodigoUlt, 0) CodigoUlt
+                FROM PersonalHabilitacion
+                WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
             `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId])
             const newCodigoUlt = result[0].CodigoUlt + 1
 
             //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
-            UPDATE PersonalHabilitacion
-            SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, GestionHabilitacionCodigoUlt = @6, NroTramite = @7
-            , AudFechaMod = @8, AudIpMod = @9, AusUsuarioMod = @10
-            WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
+                UPDATE PersonalHabilitacion
+                SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, GestionHabilitacionCodigoUlt = @6, NroTramite = @7
+                , AudFechaMod = @8, AudIpMod = @9, AusUsuarioMod = @10
+                WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
             `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
                 PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, newCodigoUlt, NroTramite,
                 fechaActual, ip, usuario
@@ -605,22 +606,48 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             //Inserta el Codigo registrado
             await queryRunner.query(`
-            INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
-            , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+                INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
+                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
             `, [newCodigoUlt, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
-            //Registra el nuevo documento
-            if (file?.length > 0) {
-                const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, PersonalHabilitacionDesde, PersonalHabilitacionHasta, NroTramite, null, null, file[0], usuario, ip, queryRunner)
-                const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                await queryRunner.query(`
-                INSERT INTO DocumentoRelaciones (
-                    DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                    , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+
+            //Datos para la denominacion del documento
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
+            result = await queryRunner.query(`
+                SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
+                FROM LugarHabilitacion
+                WHERE LugarHabilitacionId = @0
+            `, [PersonalHabilitacionLugarHabilitacionId])
+            const lugarHabilitacionDescripcion = result[0].Descripcion
+
+            //Registra documentos
+            for (const docs of documentos) {
+                if (docs.files?.length > 0) {
+                    for (const file of docs.files) {
+                        const DocumentoFecha = file.DocumentoFecha? new Date(file.DocumentoFecha) : null
+                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+
+                        if (DocumentoFecha) DocumentoFecha.setHours(0,0,0,0)
+                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0,0,0,0)
+                        
+                        // CUIT- Tipo Documento - Lugar habilitación
+                        const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+                        
+                        const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
+                        const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+                        await queryRunner.query(`
+                        INSERT INTO DocumentoRelaciones (
+                            DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
+                            , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                        ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
+                        `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+                    }
+                }
             }
+
+            // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
             this.jsonRes({ GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual }, res, 'Carga exitosa');
@@ -856,6 +883,16 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
             `, [newCodigoUlt, PersonalId, LugarHabilitacionId, newPersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
+            //Datos para la denominacion del documento
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
+            result = await queryRunner.query(`
+                SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
+                FROM LugarHabilitacion
+                WHERE LugarHabilitacionId = @0
+            `, [LugarHabilitacionId])
+            const lugarHabilitacionDescripcion = result[0].Descripcion
+
             //Registra documentos
             for (const docs of documentos) {
                 if (docs.files?.length > 0) {
@@ -865,8 +902,11 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
                         if (DocumentoFecha) DocumentoFecha.setHours(0,0,0,0)
                         if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0,0,0,0)
-                            
-                        const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, NroTramite, null, null, file[0], usuario, ip, queryRunner)
+                        
+                        // CUIT- Tipo Documento - Lugar habilitación
+                        const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+                        
+                        const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
                         const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
                         await queryRunner.query(`
                         INSERT INTO DocumentoRelaciones (

@@ -35,7 +35,9 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione estado" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+          <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione estado" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+          (nzBlur)="formHabilitacion.patchValue({NroTramite:'',PersonalHabilitacionDesde:'',PersonalHabilitacionHasta:''})">
             @for (option of $optionsEstadoCodigo | async; track option) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }

@@ -755,7 +755,7 @@ export class AsistenciaController extends BaseController {
       switch (metodo) {
         case "S":
           if (!SumaFija || SumaFija <= 0)
-            throw new ClientException("Debe ingresar una monto");
+            throw new ClientException("Debe ingresar un monto mayor a cero");
 
           break;
         case "E":

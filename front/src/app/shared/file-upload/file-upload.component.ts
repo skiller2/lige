@@ -48,7 +48,7 @@ export class FileUploadComponent implements ControlValueAccessor {
       const hasta = this.hastaSelected()
       if (!this.showDesdeHasta()) return this.disabledByDesdeHasta.set(false)
 
-      if ((!desde || desde == '') || (!hasta || hasta == '')) {
+      if (!desde || desde == '') {
         return this.disabledByDesdeHasta.set(true)
       }
       return this.disabledByDesdeHasta.set(false)
@@ -128,21 +128,18 @@ export class FileUploadComponent implements ControlValueAccessor {
     }
 
     if (idForSearh && this.tipoSelected() != "" && this.tableForSearch() != "" && !this.searchById()) {
-      console.log('1');
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
 
     } else if (idForSearh && this.searchById()) {
-      console.log('2');
       const result = await firstValueFrom(this.apiService.getArchivoAnterior(idForSearh))
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
       
     } else {
-      console.log('3');
       this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)
       this.files.set([])
@@ -209,8 +206,8 @@ export class FileUploadComponent implements ControlValueAccessor {
           Response.data[0].objetivo_id = 0
           Response.data[0].cliente_id = 0
           Response.data[0].nombre_archivo = ""
-          console.log('Response.data[0]', Response.data[0])
-          console.log('this.files()', this.files())
+          // console.log('Response.data[0]', Response.data[0])
+          // console.log('this.files()', this.files())
           this.files.set([...this.files(), Response.data[0]])
 
         }
