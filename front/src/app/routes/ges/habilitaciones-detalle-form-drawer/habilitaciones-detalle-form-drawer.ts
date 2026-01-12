@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap } from 'rxjs';
 import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
@@ -34,6 +34,9 @@ export class HabilitacionesFormDrawerComponent {
   randNum = signal<number>(0);
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
+  periodo = signal<Date>(new Date())
+  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
 
   isLoading = signal(false);
   
@@ -81,6 +84,17 @@ export class HabilitacionesFormDrawerComponent {
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
+  $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
+      debounceTime(500),
+      switchMap(() =>
+          this.apiService
+              .getPersonaSitRevista(
+                  Number(this.formHabilitacion.get('PersonalId')?.value),
+                  this.anio(),
+                  this.mes()
+              )
+      )
+  )
 
   fileUploadComponent = viewChild.required(FileUploadComponent);
 

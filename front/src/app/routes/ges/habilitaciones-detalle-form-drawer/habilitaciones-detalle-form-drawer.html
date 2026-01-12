@@ -16,7 +16,22 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <app-personal-search formControlName="PersonalId"/>
+          <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Situación Revista</nz-form-label>
+        <nz-form-control>
+          @for (sitrevista of $sitrevista | async; track sitrevista) {
+            <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
+              {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
+              @if (sitrevista.PersonalSituacionRevistaHasta) {
+                <span>hasta {{ sitrevista.PersonalSituacionRevistaHasta
+                | date}}</span>
+              }
+            </p>
+          }
         </nz-form-control>
       </nz-form-item>
 
