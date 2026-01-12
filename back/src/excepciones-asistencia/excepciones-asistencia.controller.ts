@@ -385,8 +385,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   async personalArt14Aprobar(queryRunner: any, personalArt14Id: number, personalId: number, usuario: string, ip: string) {
 
     let PersonalPrestamo = await this.getPersonalArt14ByIdsQuery(queryRunner, personalArt14Id, personalId)
-    if (!PersonalPrestamo.length)
-      return new ClientException('No se encuentra el registro.')
+    if (!PersonalPrestamo.length) return new ClientException('No se encuentra el registro.')
     const PersonalArt14Desde = new Date(PersonalPrestamo[0].PersonalArt14Desde)
     const PersonalArt14Hasta = new Date(PersonalPrestamo[0].PersonalArt14Hasta)
     const anio: number = PersonalArt14Desde.getFullYear()
@@ -396,24 +395,19 @@ export class ExcepcionesAsistenciaController extends BaseController {
     if (res[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
 
-    res = await queryRunner.query(`SELECT PersonalArt14Desde, PersonalArt14Hasta, PersonalArt14Autorizado, 
-      PersonalArt14ConceptoId, PersonalArt14FormaArt14, PersonalArt14ObjetivoId  
+    res = await queryRunner.query(`SELECT PersonalArt14Desde, PersonalArt14Hasta, PersonalArt14Autorizado, PersonalArt14ConceptoId, PersonalArt14FormaArt14, PersonalArt14ObjetivoId  
       FROM PersonalArt14 
       WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
     `, [personalArt14Id, personalId])
 
     if (res[0]?.PersonalArt14Autorizado == 'A' || res[0]?.PersonalArt14Autorizado == 'AC' || res[0]?.PersonalArt14Autorizado == 'N') return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
 
-    const duplicadoAprobado = await queryRunner.query(`
-      SELECT COUNT(PersonalArt14Id) AS Cantidad
-      FROM PersonalArt14
-      WHERE PersonalId = @0 AND PersonalArt14Desde <= @1 AND PersonalArt14Hasta >= @2
-      AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ConceptoId = @4 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S'
+    const duplicadoAprobado = await queryRunner.query(` SELECT COUNT(PersonalArt14Id) AS Cantidad FROM PersonalArt14
+      WHERE PersonalId = @0 AND PersonalArt14Desde = @1 AND PersonalArt14Hasta = @2 AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ConceptoId = @4 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S'
       `, [personalId, res[0]?.PersonalArt14Desde, res[0]?.PersonalArt14Hasta, res[0]?.PersonalArt14FormaArt14, res[0]?.PersonalArt14ConceptoId, res[0]?.PersonalArt14ObjetivoId])
-    if (duplicadoAprobado[0]?.Cantidad > 1) throw new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado`)
 
+    if (duplicadoAprobado[0]?.Cantidad > 0) return new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado`)
 
-    throw new ClientException('Prueba de error')
     if (res[0]?.PersonalArt14Autorizado == 'P' || res[0]?.PersonalArt14Autorizado == null) {
       const now: Date = new Date()
       await queryRunner.query(`
