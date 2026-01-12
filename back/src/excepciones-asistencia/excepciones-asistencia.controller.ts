@@ -566,7 +566,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
-      SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14Autorizado = null, PersonalArt14Anulacion = null, AnulacionUsuario = null, AutorizadoPor = null, AutorizadoFecha = null,
+      SET PersonalArt14AutorizadoDesde = null, PersonalArt14AutorizadoHasta = null, PersonalArt14Autorizado = 'P', PersonalArt14Anulacion = null, AnulacionUsuario = null, AutorizadoPor = null, AutorizadoFecha = null,
       PersonalArt14AudFechaMod = @2, PersonalArt14AudIpMod = @3, PersonalArt14AudUsuarioMod = @4
       WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId, now, ip, usuario])
