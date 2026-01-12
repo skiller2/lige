@@ -84,6 +84,17 @@ export class HabilitacionesFormDrawerComponent {
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
+  $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService
+      .getPersonaSitRevista(
+        Number(this.formHabilitacion.get('PersonalId')?.value),
+        this.anio(),
+        this.mes()
+      )
+    )
+    )
 
   optionsHabilitacionCategoria = signal<any[]>([])
   optionsLugarHabilitacion = signal<any[]>([])
