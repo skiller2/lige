@@ -115,8 +115,8 @@ const columnsExcepcionesAsistencia: any[] = [
     type: 'string',
     fieldName: 'art.PersonalArt14Autorizado',
     formatter: 'collectionFormatter',
-    params: { collection: getOptionsExcepcionAsistenciaAprobado},
-    searchComponent: 'inputForExcepcionAsistenciaAprobadoSearch',    
+    params: { collection: getOptionsExcepcionAsistenciaAprobado },
+    searchComponent: 'inputForExcepcionAsistenciaAprobadoSearch',
     searchType: 'string',
     sortable: true,
     searchHidden: false
@@ -267,10 +267,10 @@ const columnsExcepcionesAsistencia: any[] = [
 
 export class ExcepcionesAsistenciaController extends BaseController {
 
-    getEstadoExcepcionAsistencia(req: any, res: Response, next: NextFunction) {
-      return this.jsonRes(getOptionsExcepcionAsistenciaAprobado, res)
-    }
-  
+  getEstadoExcepcionAsistencia(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(getOptionsExcepcionAsistenciaAprobado, res)
+  }
+
 
   async getGridColums(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsExcepcionesAsistencia, res)
@@ -288,8 +288,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
     try {
       const list = await queryRunner.query(`
-        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-              , art.PersonalArt14Autorizado,
+        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId,'-',art.PersonalArt14FormaArt14,'-',ISNULL(art.PersonalArt14ConceptoId,0), '-', ISNULL(art.PersonalArt14ObjetivoId,0)) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+              art.PersonalArt14Id, art.PersonalArt14Autorizado,
               art.PersonalArt14FormaArt14,
               CONCAT(ISNULL(art.PersonalArt14FormaArt14,''),'/',ISNULL(art.PersonalArt14ConceptoId,0)) AS PersonalArt14FormaCompuesto,
               art.PersonalArt14CategoriaId
@@ -396,11 +396,24 @@ export class ExcepcionesAsistenciaController extends BaseController {
     if (res[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
 
-    res = await queryRunner.query(`
-      SELECT PersonalArt14Autorizado FROM PersonalArt14 WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
+    res = await queryRunner.query(`SELECT PersonalArt14Desde, PersonalArt14Hasta, PersonalArt14Autorizado, 
+      PersonalArt14ConceptoId, PersonalArt14FormaArt14, PersonalArt14ObjetivoId  
+      FROM PersonalArt14 
+      WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
     `, [personalArt14Id, personalId])
 
-    if (res[0]?.PersonalArt14Autorizado == 'A' || res[0]?.PersonalArt14Autorizado == 'AC' || res[0]?.PersonalArt14Autorizado == 'N' ) return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
+    if (res[0]?.PersonalArt14Autorizado == 'A' || res[0]?.PersonalArt14Autorizado == 'AC' || res[0]?.PersonalArt14Autorizado == 'N') return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
+
+    const duplicadoAprobado = await queryRunner.query(`
+      SELECT COUNT(PersonalArt14Id) AS Cantidad
+      FROM PersonalArt14
+      WHERE PersonalId = @0 AND PersonalArt14Desde <= @1 AND PersonalArt14Hasta >= @2
+      AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ConceptoId = @4 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S'
+      `, [personalId, res[0]?.PersonalArt14Desde, res[0]?.PersonalArt14Hasta, res[0]?.PersonalArt14FormaArt14, res[0]?.PersonalArt14ConceptoId, res[0]?.PersonalArt14ObjetivoId])
+    if (duplicadoAprobado[0]?.Cantidad > 1) throw new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado`)
+
+
+    throw new ClientException('Prueba de error')
     if (res[0]?.PersonalArt14Autorizado == 'P' || res[0]?.PersonalArt14Autorizado == null) {
       const now: Date = new Date()
       await queryRunner.query(`
@@ -429,13 +442,42 @@ export class ExcepcionesAsistenciaController extends BaseController {
       const usuario = res.locals.userName
       const ip = this.getRemoteAddress(req)
 
+      // Validar duplicados: misma persona con mismo tipo de excepción
+      let duplicados: string[] = []
+      if (ids.length > 0) {
+        const personalId_Forma_ConceptoId = ids.map(id => id.split('-')[1] + '-' + id.split('-')[2] + '-' + id.split('-')[3] + '-' + id.split('-')[4]);
+        // Buscar duplicados
+        duplicados = personalId_Forma_ConceptoId.filter((item, index) => personalId_Forma_ConceptoId.indexOf(item) !== index)
+
+      }
+
       for (const [index, id] of ids.entries()) {
         const arrayIds = id.split('-')
-        let personalArt14Id: number = Number.parseInt(arrayIds[0])
-        let personalId: number = Number.parseInt(arrayIds[1])
+        const personalArt14Id: number = Number.parseInt(arrayIds[0])
+        const personalId: number = Number.parseInt(arrayIds[1])
+        const Art14Forma: number = Number.parseInt(arrayIds[2])
+        const Art14ConceptoId: number = Number.parseInt(arrayIds[3])
+        const Art14ObjetivoId: number = Number.parseInt(arrayIds[4])
+
+        const excepcion = `${personalId}-${Art14Forma}-${Art14ConceptoId}-${Art14ObjetivoId}`
+
+        // Validar si esta excepción está en los duplicados
+        if (duplicados.includes(excepcion)) {
+          const name = await queryRunner.query(`
+            SELECT CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+            FROM Personal per
+            WHERE per.PersonalId = @0`,
+            [personalId]
+          )
+          numRowsError.push(numRows[index])
+          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: No se puede aprobar más de un mismo tipo de excepción a una persona en un período.`)
+          continue
+        }
+
+        // me falta mandar el periodo
         let res = await this.personalArt14Aprobar(queryRunner, personalArt14Id, personalId, usuario, ip)
         if (res instanceof ClientException) {
-          let name = await queryRunner.query(`
+          const name = await queryRunner.query(`
             SELECT CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
             FROM Personal per
             WHERE per.PersonalId = @0`,
