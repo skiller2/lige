@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "../controller/baseController";
+import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
@@ -376,7 +376,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
   async getPersonalArt14ByIdsQuery(queryRunner: any, personalArt14Id: number, personalId: number) {
     return await queryRunner.query(`
-      SELECT PersonalArt14Autorizado, PersonalArt14Desde, PersonalArt14Hasta
+      SELECT PersonalArt14Autorizado, PersonalArt14Desde, PersonalArt14Hasta, PersonalArt14ConceptoId, PersonalArt14FormaArt14, PersonalArt14ObjetivoId
       FROM PersonalArt14
       WHERE PersonalArt14Id = @0 AND PersonalId = @1
       `, [personalArt14Id, personalId])
@@ -386,29 +386,27 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
     let PersonalPrestamo = await this.getPersonalArt14ByIdsQuery(queryRunner, personalArt14Id, personalId)
     if (!PersonalPrestamo.length) return new ClientException('No se encuentra el registro.')
+
     const PersonalArt14Desde = new Date(PersonalPrestamo[0].PersonalArt14Desde)
-    const PersonalArt14Hasta = new Date(PersonalPrestamo[0].PersonalArt14Hasta)
+    // const PersonalArt14Hasta = new Date(PersonalPrestamo[0].PersonalArt14Hasta)
     const anio: number = PersonalArt14Desde.getFullYear()
     const mes: number = PersonalArt14Desde.getMonth() + 1
 
-    let res = await this.getPeriodoQuery(queryRunner, anio, mes)
-    if (res[0]?.ind_recibos_generados == 1)
+    const periodo = await this.getPeriodoQuery(queryRunner, anio, mes)
+    if (periodo[0]?.ind_recibos_generados == 1)
       return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}`)
 
-    res = await queryRunner.query(`SELECT PersonalArt14Desde, PersonalArt14Hasta, PersonalArt14Autorizado, PersonalArt14ConceptoId, PersonalArt14FormaArt14, PersonalArt14ObjetivoId  
-      FROM PersonalArt14 
-      WHERE PersonalArt14Id IN (@0) AND PersonalId IN (@1)
-    `, [personalArt14Id, personalId])
+    if (PersonalPrestamo[0]?.PersonalArt14Autorizado == 'A' || PersonalPrestamo[0]?.PersonalArt14Autorizado == 'AC' || PersonalPrestamo[0]?.PersonalArt14Autorizado == 'N') return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
 
-    if (res[0]?.PersonalArt14Autorizado == 'A' || res[0]?.PersonalArt14Autorizado == 'AC' || res[0]?.PersonalArt14Autorizado == 'N') return new ClientException(`La excepción se encuentra anulada y no puede ser aprobada.`)
-
+    let conceptoId = PersonalPrestamo[0]?.PersonalArt14ConceptoId ? `PersonalArt14ConceptoId = ${PersonalPrestamo[0]?.PersonalArt14ConceptoId}` : `PersonalArt14ConceptoId IS NULL`
+    
     const duplicadoAprobado = await queryRunner.query(` SELECT COUNT(PersonalArt14Id) AS Cantidad FROM PersonalArt14
-      WHERE PersonalId = @0 AND PersonalArt14Desde = @1 AND PersonalArt14Hasta = @2 AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ConceptoId = @4 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S'
-      `, [personalId, res[0]?.PersonalArt14Desde, res[0]?.PersonalArt14Hasta, res[0]?.PersonalArt14FormaArt14, res[0]?.PersonalArt14ConceptoId, res[0]?.PersonalArt14ObjetivoId])
+      WHERE PersonalId = @0 AND PersonalArt14Desde = @1 AND PersonalArt14Hasta = @2 AND PersonalArt14FormaArt14 = @3 AND PersonalArt14ObjetivoId = @5 and PersonalArt14Autorizado='S' and ${conceptoId}
+      `, [personalId, PersonalPrestamo[0]?.PersonalArt14Desde, PersonalPrestamo[0]?.PersonalArt14Hasta, PersonalPrestamo[0]?.PersonalArt14FormaArt14, PersonalPrestamo[0]?.PersonalArt14ConceptoId, PersonalPrestamo[0]?.PersonalArt14ObjetivoId])
 
     if (duplicadoAprobado[0]?.Cantidad > 0) return new ClientException(`Ya existe una excepción aprobada del mismo tipo para la persona en el período indicado`)
 
-    if (res[0]?.PersonalArt14Autorizado == 'P' || res[0]?.PersonalArt14Autorizado == null) {
+    if (PersonalPrestamo[0]?.PersonalArt14Autorizado == 'P' || PersonalPrestamo[0]?.PersonalArt14Autorizado == null) {
       const now: Date = new Date()
       await queryRunner.query(`
       UPDATE PersonalArt14
@@ -425,7 +423,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
   async personalArt14AprovarLista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const ids: Array<{PersonalArt14Id: number, PersonalId: number, ObjetivoId: number, PersonalArt14ConceptoId: number, PersonalArt14FormaArt14: string}> = req.body.ids
+    const ids: Array<{ PersonalArt14Id: number, PersonalId: number, ObjetivoId: number, PersonalArt14ConceptoId: number, PersonalArt14FormaArt14: string }> = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
     let numRowsError: number[] = []
@@ -438,21 +436,23 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
       // Validar duplicados: misma persona con mismo tipo de excepción en mismo objetivo
       let duplicados: string[] = []
-   
+
       if (ids.length > 0) {
-        const personalId_Forma_ConceptoId = ids.map(id => `${id.PersonalId}-${id.PersonalArt14FormaArt14}-${id.PersonalArt14ConceptoId}-${id.ObjetivoId}`);
+        const excepciones = ids.map(id => `${id.PersonalId}-${id.PersonalArt14FormaArt14}-${id.PersonalArt14ConceptoId}-${id.ObjetivoId}`);
         // Buscar duplicados
-        duplicados = personalId_Forma_ConceptoId.filter((item, index) => personalId_Forma_ConceptoId.indexOf(item) !== index)
+        duplicados = excepciones.filter((item, index) => excepciones.indexOf(item) !== index)
+      } else {
+        throw new ClientWarning('No se recibieron registros para procesar.')
       }
 
       for (const [index, id] of ids.entries()) {
         const personalArt14Id: number = id.PersonalArt14Id
         const personalId: number = id.PersonalId
-        const Art14Forma: string = id.PersonalArt14FormaArt14
-        const Art14ConceptoId: number = id.PersonalArt14ConceptoId
-        const Art14ObjetivoId: number = id.ObjetivoId
+        const PersonalArt14Forma: string = id.PersonalArt14FormaArt14
+        const PersonalArt14ConceptoId: number = id.PersonalArt14ConceptoId
+        const PersonalArt14ObjetivoId: number = id.ObjetivoId
 
-        const excepcion = `${personalId}-${Art14Forma}-${Art14ConceptoId}-${Art14ObjetivoId}`
+        const excepcion = `${personalId}-${PersonalArt14Forma}-${PersonalArt14ConceptoId}-${PersonalArt14ObjetivoId}`
 
         // Validar si esta excepción está en los duplicados
         if (duplicados.includes(excepcion)) {
@@ -463,11 +463,10 @@ export class ExcepcionesAsistenciaController extends BaseController {
             [personalId]
           )
           numRowsError.push(numRows[index])
-          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: No se puede aprobar más de un mismo tipo de excepción a una persona en un período.`)
+          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: No se pueden aprobar múltiples excepciones del mismo tipo para el mismo objetivo y período..`)
           continue
         }
 
-        // me falta mandar el periodo
         let res = await this.personalArt14Aprobar(queryRunner, personalArt14Id, personalId, usuario, ip)
         if (res instanceof ClientException) {
           const name = await queryRunner.query(`
