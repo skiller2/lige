@@ -1,7 +1,7 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ViewEncapsulation, model, input, computed, inject, signal, output, effect, viewChild } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormArray,  } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -40,6 +40,8 @@ export class HabilitacionesFormDrawerComponent {
   onRefreshInstituciones = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
 
+  objDoc = {files:[]}
+
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
     PersonalHabilitacionId:0,
@@ -55,7 +57,7 @@ export class HabilitacionesFormDrawerComponent {
     PersonalHabilitacionClase:'',
     AudFechaIng:'',
     // DocumentoId: 0,
-    file: []
+    documentos: this.fb.array([this.fb.group({...this.objDoc})]),
   })
 
   GestionHabilitacionEstadoCodigo():string {
@@ -70,6 +72,10 @@ export class HabilitacionesFormDrawerComponent {
     if (value)
       return value
     return 0
+  }
+
+  documentos():FormArray {
+    return this.formHabilitacion.get("documentos") as FormArray
   }
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
@@ -160,6 +166,19 @@ export class HabilitacionesFormDrawerComponent {
     const day = String(date.getDate()).padStart(2, '0');
 
     return `${year}/${month}/${day}`;
+  }
+
+  addDoc(e?: MouseEvent): void {
+    e?.preventDefault();
+    this.documentos().push(this.fb.group({...this.objDoc}))
+  }
+
+  removeDoc(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    if (this.documentos().controls.length > 1 ) {
+      this.documentos().removeAt(index)
+      this.formHabilitacion.markAsDirty()
+    }
   }
 
 }

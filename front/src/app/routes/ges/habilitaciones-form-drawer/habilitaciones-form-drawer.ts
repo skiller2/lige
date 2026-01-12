@@ -138,9 +138,8 @@ export class HabilitacionesFormDrawerComponent {
     let vals:any = this.formHabilitacion.value
 
     try {
-      console.log('vals: ', vals);
-      
-      // await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
+      // console.log('vals: ', vals);
+      await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
       
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()
