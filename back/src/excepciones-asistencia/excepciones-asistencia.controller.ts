@@ -288,7 +288,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
     try {
       const list = await queryRunner.query(`
-        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId,'-',art.PersonalArt14FormaArt14,'-',ISNULL(art.PersonalArt14ConceptoId,0), '-', ISNULL(art.PersonalArt14ObjetivoId,0)) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+        SELECT CONCAT(art.PersonalArt14Id,'-',per.PersonalId,'-',art.PersonalArt14FormaArt14,'-',ISNULL(art.PersonalArt14ConceptoId,0), '-', ISNULL(art.PersonalArt14ObjetivoId,0)) AS id, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
               art.PersonalArt14Id, art.PersonalArt14Autorizado,
               art.PersonalArt14FormaArt14,
               CONCAT(ISNULL(art.PersonalArt14FormaArt14,''),'/',ISNULL(art.PersonalArt14ConceptoId,0)) AS PersonalArt14FormaCompuesto,
