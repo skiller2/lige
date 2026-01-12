@@ -217,6 +217,7 @@
                         <th>CUIT</th>
                         <th>Apellido y Nombre</th>
                         <th>Autorizado</th>
+                        <th>Motivo</th>
                         <th>Detalle</th>
                         <th>Desde</th>
                         <th>Hasta</th>
@@ -233,6 +234,7 @@
                             [textContent]="data.ApellidoNombre"></a>
                           </td>
                           <td>{{ data.PersonalArt14Autorizado }}</td>
+                          <td>{{ data.PersonalArt14DetalleMotivo }}</td>
                           <td>
                             <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
                             @if (data.PersonalArt14FormaArt14=='S') {
