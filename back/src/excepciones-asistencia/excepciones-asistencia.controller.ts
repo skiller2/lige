@@ -464,7 +464,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
             [personalId]
           )
           numRowsError.push(numRows[index])
-          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: No se pueden aprobar múltiples excepciones del mismo tipo para el mismo objetivo y período..`)
+          errors.push(`[FILA ${numRows[index] + 1}]${name[0].ApellidoNombre}: Se encontraron múltiples excepciones seleccionadas con el mismo tipo, personal, objetivo y período. Solo se puede aprobar una.`)
           continue
         }
 
