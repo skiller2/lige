@@ -6,7 +6,7 @@
     <div nz-row >
           <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
           <nz-form-control [nzSpan]="14">
-            <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
+            <nz-date-picker nzMode="month" [ngModel]="periodo()" (ngModelChange)="periodo.set($event)" nzFormat="MM/yyyy" style="width: 100%;"/>
           </nz-form-control>
      
     </div>
