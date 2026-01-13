@@ -471,10 +471,11 @@ export class AuthMiddleware {
     const GrupoActividad = res.locals.GrupoActividad
     const ObjetivoId = req.params.ObjetivoId || req.body.ObjetivoId || req.query.ObjetivoId
 
-    if (PersonalId < 1) return res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
+    if (PersonalId < 1) return next()
+    // res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
 
-    if (!ObjetivoId) return res.status(400).json({ msg: "No se especificó ObjetivoId" })
-
+    if (!ObjetivoId) return next()
+    // res.status(400).json({ msg: "No se especificó ObjetivoId" })
 
     // Extraer los IDs de grupos de actividad del usuario
     if (!GrupoActividad || GrupoActividad.length === 0) return next()
