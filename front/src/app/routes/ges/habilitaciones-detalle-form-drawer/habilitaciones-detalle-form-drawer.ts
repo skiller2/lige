@@ -176,10 +176,10 @@ export class HabilitacionesFormDrawerComponent {
         let result:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
         let data = result.data
         data.AudFechaIng = this.formatDate(data.AudFechaIng);
-        
+
+        this.personalHabilitacionId.set(data.PersonalHabilitacionId)
+        this.codigo.set(data.GestionHabilitacionCodigo)
         this.formHabilitacion.patchValue(data)
-        this.personalHabilitacionId.set(result.PersonalHabilitacionId)
-        this.codigo.set(result.GestionHabilitacionCodigo)
       } 
 
       this.formHabilitacion.markAsUntouched()
