@@ -10,7 +10,7 @@
         <nz-button-group nz-button nzButtonGroup>
           @if (selectedObjetivoId()) {
           <button nz-button nzType="default"
-            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId }]">Asistencia diaria</button>
+            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId() }]">Asistencia diaria</button>
           }
         </nz-button-group>
       </nz-form-control>
@@ -33,12 +33,12 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:selectedObjetivoId }]">Objetivo</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:selectedObjetivoId() }]">Objetivo</a>
     </li>
 
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:selectedPersonalId }]">Persona</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:selectedPersonalId() }]">Persona</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
