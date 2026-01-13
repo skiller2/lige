@@ -290,6 +290,7 @@
                   <th>Situación Revista</th>
                   <th>Categoría</th>
                   <th>Horas</th>
+                  <th>Forma</th>
                   <th>Valor Hora</th>
                   <th>Art17</th>
                   <th>Importe Total</th>
@@ -308,6 +309,7 @@
                   <td> N/A</td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
                   <td>{{ data.totalhorascalc }}</td>
+                  <td>{{ data.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras }}</td>
                   <td class="text-right">
                     @if (data.ValorHoraArt14Categoria < 1) { <span>{{
                       data.ValorHoraNorm | I18NCurrency
