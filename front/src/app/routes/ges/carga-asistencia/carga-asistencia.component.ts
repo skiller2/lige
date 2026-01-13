@@ -500,6 +500,9 @@ export class CargaAsistenciaComponent {
                 editor: { model: CustomFloatEditor, decimal: 1, params: {} },
                 excelExportOptions: {
                     width: 5,
+                    style: {
+                        alignment: { horizontal: 'right' }
+                    },
                 },
                 groupTotalsFormatter: this.sumTotalsFormatterCustom,
                 groupTotalsExcelExportOptions: {
