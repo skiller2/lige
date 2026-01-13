@@ -510,8 +510,7 @@
           <nz-form-control>
             <nz-list nzBordered nzSize="small">
               @let personaMonotributo = $personaMonotributo | async;
-              {{personaMonotributo | json}}
-              {{personaMonotributo.length}}
+         
               @if (selectedPersonalId() > 0 && personaMonotributo.length > 0) {
               @for (monotributo of personaMonotributo; track monotributo) {
               <nz-list-item>
