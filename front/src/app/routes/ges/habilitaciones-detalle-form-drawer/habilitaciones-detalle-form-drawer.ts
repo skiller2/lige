@@ -6,9 +6,10 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, firstValueFrom, debounceTime, switchMap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, map } from 'rxjs';
 import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-habilitaciones-detalle-form-drawer',
@@ -81,6 +82,11 @@ export class HabilitacionesFormDrawerComponent {
     return this.formHabilitacion.get("documentos") as FormArray
   }
 
+  signalDocumento = toSignal(
+    this.documentos().valueChanges,
+    { initialValue: this.documentos().value }
+  )
+
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
@@ -125,6 +131,15 @@ export class HabilitacionesFormDrawerComponent {
         this.formHabilitacion.reset()
         this.formHabilitacion.enable()
       }
+    })
+
+    effect(async() => {
+      const documentos = this.signalDocumento()
+      const docs = this.documentos().value
+      if (documentos[documentos.length-1].files?.length) {
+        this.addDoc()
+      }
+      
     })
   }
 

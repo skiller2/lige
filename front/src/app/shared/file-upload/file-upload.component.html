@@ -70,8 +70,27 @@
 
 </nz-form-item>
 
-@if(isDisabled() == false && cantFiles()){
-  <nz-form-control class="BtnUploadFile">
+
+<nz-form-item style="display: flex; justify-content: space-around;">
+
+  @if(showTipoDocs()){
+    <nz-form-control class="inputsConteiner" [nzMd]="12" [nzSm]="24">
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
+        [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onTipoSelectedChange($event)">
+        <!-- Filtrar en funcion de docTiposValidos()-->
+        @for (option of textForSearchSelected(); track option.doctipo_id) {
+          <ng-container>
+            @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
+              <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
+            }
+          </ng-container>
+        }
+      </nz-select>
+    </nz-form-control>
+  }
+
+  @if(isDisabled() == false && cantFiles()){
+  <nz-form-control class="BtnUploadFile" [nzMd]="12">
     <!-- image/* .pdf.pdf,image/* -->
     <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
       [nzShowUploadList]="false" (nzChange)="uploadChange($event,null)">
@@ -81,45 +100,35 @@
       </button>
     </nz-upload>
   </nz-form-control>
-}
+  } 
+  
+</nz-form-item>
+
 
 <nz-form-item style="display: flex; justify-content: space-around;">
-@if(showTipoDocs()){
-  <nz-form-control class="inputsConteiner" [nzMd]="13" [nzSm]="24">
-    <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
-      [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onTipoSelectedChange($event)">
-      <!-- Filtrar en funcion de docTiposValidos()-->
-      @for (option of textForSearchSelected(); track option.doctipo_id) {
-        <ng-container>
-          @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
-            <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
-          }
-        </ng-container>
-      }
-    </nz-select>
-  </nz-form-control>
-}
-@if(showDesdeHasta()){
-  <nz-form-control class="inputsConteiner" [nzMd]="12">
-    <nz-date-picker
-      [(ngModel)]="desdeSelected"
-      nzPlaceHolder="Desde"
-      nzFormat="yyyy-MM-dd"
-      nzMode="date"
-      style="width: 100%;">
-    </nz-date-picker>
-  </nz-form-control>
 
-  <nz-form-control class="inputsConteiner" [nzMd]="12">
-    <nz-date-picker
-      [(ngModel)]="hastaSelected"
-      nzPlaceHolder="Hasta"
-      nzFormat="yyyy-MM-dd"
-      nzMode="date"
-      style="width: 100%;">
-    </nz-date-picker>
-  </nz-form-control>
-}
+  @if(showDesdeHasta()){
+    <nz-form-control class="inputsConteiner" [nzMd]="12">
+      <nz-date-picker
+        [(ngModel)]="desdeSelected"
+        nzPlaceHolder="Desde"
+        nzFormat="yyyy-MM-dd"
+        nzMode="date"
+        style="width: 100%;">
+      </nz-date-picker>
+    </nz-form-control>
+
+    <nz-form-control class="inputsConteiner" [nzMd]="12">
+      <nz-date-picker
+        [(ngModel)]="hastaSelected"
+        nzPlaceHolder="Hasta"
+        nzFormat="yyyy-MM-dd"
+        nzMode="date"
+        style="width: 100%;">
+      </nz-date-picker>
+    </nz-form-control>
+  }
+
 </nz-form-item>
 
 <nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true"

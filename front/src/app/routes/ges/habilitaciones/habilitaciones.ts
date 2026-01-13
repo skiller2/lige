@@ -112,7 +112,9 @@ export class HabilitacionesComponent {
     console.log('row: ', row);
 
     if (row?.id) {
-      this.detalleSelected.set(`${row.ApellidoNombre} - ${row.LugarHabilitacionDescripcion} - ${this.formatDate(row.PersonalHabilitacionDesde)} - ${this.formatDate(row.PersonalHabilitacionHasta)} - ${row.SituacionRevistaDescripcion} - ${this.formatDate(row.FechaEstado)} - ${row.NroTramite}`)
+      this.detalleSelected.set(`Apellido Nombre: ${row.ApellidoNombre} - Lugar Habilitación: ${row.LugarHabilitacionDescripcion}\n
+        Habilitacion Desde: ${this.formatDate(row.PersonalHabilitacionDesde)} - Habilitacion Hasta: ${this.formatDate(row.PersonalHabilitacionHasta)}\n
+        Estado: ${row.Estado? row.Estado : ''} - NroTramite: ${row.NroTramite? row.NroTramite: ''}`)
       this.apellidoNombreSelected.set(row.ApellidoNombre)
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)
