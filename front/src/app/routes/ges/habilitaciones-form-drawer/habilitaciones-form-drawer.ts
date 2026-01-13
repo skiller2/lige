@@ -163,7 +163,7 @@ export class HabilitacionesFormDrawerComponent {
 
   async save() {
     this.isLoading.set(true)
-    let vals:any = this.formHabilitacion.value
+    let vals:any = this.formHabilitacion.getRawValue()
 
     try {
       // console.log('vals: ', vals);

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, Injector, effect } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -50,7 +50,7 @@ export class HabilitacionesComponent {
   apellidoNombreSelected = signal<string>('')
   detalleSelected = signal<string>('')
   personalId = signal<number>(0)
-  personalHabilitacionId = signal<number>(0)
+  personalHabilitacionId = model<number>(0)
   lugarHabilitacionId = signal<number>(0)
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)
@@ -134,9 +134,9 @@ export class HabilitacionesComponent {
   }
 
   goToDetail() {
-    if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
+    // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
       this.selectedIndex.set(2)
-    }
+    // }
   }
 
   goToCredentials() {

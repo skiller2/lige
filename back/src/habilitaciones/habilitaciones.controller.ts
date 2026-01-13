@@ -546,6 +546,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalId = req.body.personalId
         const PersonalHabilitacionId = req.body.personalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        if (!PersonalHabilitacionId) {
+            return this.addHabilitacion(req, res, next)
+        }
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -921,7 +924,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
-            this.jsonRes({ PersonalHabilitacionId: newPersonalHabilitacionId }, res, 'Carga exitosa');
+            this.jsonRes({ PersonalHabilitacionId: newPersonalHabilitacionId, GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual }, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
