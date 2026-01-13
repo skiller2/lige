@@ -58,8 +58,8 @@ export class DetalleAsistenciaComponent {
   selectedPeriod = signal({ year: 0, month: 0 });
 
   //  selectedSucursalId = '';
-  selectedObjetivoId = 0;
-  selectedPersonalId = 0;
+  selectedObjetivoId = signal(0);
+  selectedPersonalId = signal(0);
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
   listaDescuentosPerTotalC = 0
@@ -78,7 +78,6 @@ export class DetalleAsistenciaComponent {
   listaDescuentosObjTotal = 0
 
   personalIdlist = signal([])
-
 
   selectedReciboDocumentoId = signal(0)
   selectedReciboNro = signal(0)
@@ -108,12 +107,12 @@ export class DetalleAsistenciaComponent {
         )
         .pipe(
           doOnSubscribe(() => {
-            this.selectedObjetivoId = parseInt(objetivoId)
+            this.selectedObjetivoId.set(parseInt(objetivoId))
             this.objetivoResponsablesLoading$.next(true)
           }),
           tap({
             complete: () => {
-              this.selectedObjetivoId = parseInt(objetivoId)
+              this.selectedObjetivoId.set(parseInt(objetivoId))
               this.objetivoResponsablesLoading$.next(false)
             },
           })
@@ -125,72 +124,72 @@ export class DetalleAsistenciaComponent {
   $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
     switchMap(objetivoId => {
-        return this.getObjetivoDetalle(Number(objetivoId), this.selectedPeriod().year, this.selectedPeriod().month)
-            .pipe(
-                //                  switchMap((data:any) => { return data}),
-                doOnSubscribe(() => this.$objetivoDetalleLoading.next(true)),
-                tap({
-                    complete: () => { this.$objetivoDetalleLoading.next(false) },
-                })
-            );
+      return this.getObjetivoDetalle(Number(objetivoId), this.selectedPeriod().year, this.selectedPeriod().month)
+        .pipe(
+          //                  switchMap((data:any) => { return data}),
+          doOnSubscribe(() => this.$objetivoDetalleLoading.next(true)),
+          tap({
+            complete: () => { this.$objetivoDetalleLoading.next(false) },
+          })
+        );
     })
-);
+  );
 
-    $telefonosLoading = new BehaviorSubject<boolean | null>(null);
-    $telefonos = this.$selectedObjetivoIdChange.pipe(
-      debounceTime(50),
-      switchMap(objetivoId => {
-          return this.searchService.getTelefonosPersona(Number(objetivoId))
-              .pipe(
-                  doOnSubscribe(() => this.$telefonosLoading.next(true)),
-                  tap({
-                      complete: () => { this.$telefonosLoading.next(false) },
-                  })
-              );
-      })
-    );
+  $telefonosLoading = new BehaviorSubject<boolean | null>(null);
+  $telefonos = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId => {
+      return this.searchService.getTelefonosPersona(Number(objetivoId))
+        .pipe(
+          doOnSubscribe(() => this.$telefonosLoading.next(true)),
+          tap({
+            complete: () => { this.$telefonosLoading.next(false) },
+          })
+        );
+    })
+  );
 
-    $contactoOperativoLoading = new BehaviorSubject<boolean | null>(null);
-    $contactoOperativo = this.$selectedObjetivoIdChange.pipe(
-      debounceTime(50),
-      switchMap(objetivoId => {
-          return this.searchService.getContactoOperativo(Number(objetivoId))
-              .pipe(
-                  doOnSubscribe(() => this.$contactoOperativoLoading.next(true)),
-                  tap({
-                      complete: () => { this.$contactoOperativoLoading.next(false) },
-                  })
-              );
-      })
-    );
+  $contactoOperativoLoading = new BehaviorSubject<boolean | null>(null);
+  $contactoOperativo = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId => {
+      return this.searchService.getContactoOperativo(Number(objetivoId))
+        .pipe(
+          doOnSubscribe(() => this.$contactoOperativoLoading.next(true)),
+          tap({
+            complete: () => { this.$contactoOperativoLoading.next(false) },
+          })
+        );
+    })
+  );
 
-    $domicilioLoading = new BehaviorSubject<boolean | null>(null);
-    $domicilio = this.$selectedObjetivoIdChange.pipe(
-      debounceTime(50),
-      switchMap(objetivoId => {
-          return this.searchService.getDomicilio(Number(objetivoId))
-              .pipe(
-                  doOnSubscribe(() => this.$domicilioLoading.next(true)),
-                  tap({
-                      complete: () => { this.$domicilioLoading.next(false) },
-                  })
-              );
-      })
-    );
+  $domicilioLoading = new BehaviorSubject<boolean | null>(null);
+  $domicilio = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId => {
+      return this.searchService.getDomicilio(Number(objetivoId))
+        .pipe(
+          doOnSubscribe(() => this.$domicilioLoading.next(true)),
+          tap({
+            complete: () => { this.$domicilioLoading.next(false) },
+          })
+        );
+    })
+  );
 
-    $coberturaServicioLoading = new BehaviorSubject<boolean | null>(null);
-    $coberturaServicio = this.$selectedObjetivoIdChange.pipe(
-      debounceTime(50),
-      switchMap(objetivoId => {
-          return this.searchService.getCoberturaServicio(Number(objetivoId))
-              .pipe(
-                  doOnSubscribe(() => this.$coberturaServicioLoading.next(true)),
-                  tap({
-                      complete: () => { this.$coberturaServicioLoading.next(false) },
-                  })
-              );
-      })
-    );
+  $coberturaServicioLoading = new BehaviorSubject<boolean | null>(null);
+  $coberturaServicio = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId => {
+      return this.searchService.getCoberturaServicio(Number(objetivoId))
+        .pipe(
+          doOnSubscribe(() => this.$coberturaServicioLoading.next(true)),
+          tap({
+            complete: () => { this.$coberturaServicioLoading.next(false) },
+          })
+        );
+    })
+  );
 
   $listaAsistencia = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
@@ -206,7 +205,7 @@ export class DetalleAsistenciaComponent {
   $listaEfectoObj = this.$selectedObjetivoIdChange.pipe(
     debounceTime(500), switchMap(objetivoId =>
       this.searchService.getEfectoByObjetivoId(Number(objetivoId))
-      .pipe(tap(data => { return data }))
+        .pipe(tap(data => { return data }))
     )
   )
 
@@ -377,24 +376,17 @@ export class DetalleAsistenciaComponent {
 
 
         )))
-  
+
   $listaEfectoPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500), switchMap(PersonalId =>
       this.searchService.getEfectoByPersonalId(Number(PersonalId))
-      .pipe(tap(data => { return data }))
+        .pipe(tap(data => { return data }))
     )
   )
 
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
-    switchMap(() =>
-      this.apiService
-        .getPersonaMonotributo(
-          this.selectedPeriod().year,
-          this.selectedPeriod().month,
-          Number(this.asistenciaPer.controls['PersonalId'].value)
-        )
-        .pipe
+    switchMap(() => this.apiService.getPersonaMonotributo(this.selectedPeriod().year,this.selectedPeriod().month,Number(this.asistenciaPer.controls['PersonalId'].value)).pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         //          tap({ complete: () => this.tableLoading$.next(false) })
         ()
@@ -451,16 +443,16 @@ export class DetalleAsistenciaComponent {
   $isPersonalDataLoading = new BehaviorSubject(false);
 
 
-    getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
-      return forkJoin([
-          this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
-          this.searchService.getObjetivoContratos(objetivoId, anio, mes),
-          this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
-      ]).pipe(
-          map((data: any[]) => {
-              return { responsable: data[0], contratos: data[1], periodo: data[2] };
-          })
-      );
+  getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
+    return forkJoin([
+      this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
+      this.searchService.getObjetivoContratos(objetivoId, anio, mes),
+      this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
+    ]).pipe(
+      map((data: any[]) => {
+        return { responsable: data[0], contratos: data[1], periodo: data[2] };
+      })
+    );
   }
 
   ngAfterContentInit(): void {
