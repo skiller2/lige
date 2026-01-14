@@ -86,7 +86,7 @@ export class TableCondicionVentaComponent implements OnInit {
     private apiService: ApiService,
     public angularUtilService: AngularUtilService,
     public searchService: SearchService
-  ) {}
+  ) { }
 
   // Effect que escucha el refresh desde el padre
   // Cuando RefreshCondVenta pasa a true, limpia filtros y recarga la grilla
@@ -94,7 +94,12 @@ export class TableCondicionVentaComponent implements OnInit {
     if (this.RefreshCondVenta()) {
       console.log(' Recargando grilla');
       this.listOptions.filtros = [];
-      
+
+      this.formChange$.next('refresh');
+    }
+
+    if (this.periodo()) {
+      this.listOptions.filtros = [];
       this.formChange$.next('refresh');
     }
   });
