@@ -57,7 +57,6 @@ import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-
 import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excepciones-asistencia.controller";
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller";
 import { EfectoController } from "../efecto/efecto.controller";
-import { TipoAsociadoCategoriaController } from "../tipo-asociado-categoria/tipo-asociado-categoria.controller";
 import { DomicilioController } from "src/domicilio/domicilio.controller";
 import { HabilitacionesController } from "src/habilitaciones/habilitaciones.controller";
 import { CondicionesVentaController } from "../condiciones-venta/condiciones-venta.controller";
@@ -116,12 +115,11 @@ export const institucionesController = new InstitucionesController();
 export const actasController = new ActasController()
 export const administradoresController = new AdministradoresController()
 export const importeVentaVigilanciaController = new ImporteVentaVigilanciaController()
-export const facturacionController = new FacturacionController() 
+export const facturacionController = new FacturacionController()
 export const novedadesController = new NovedadesController()
 export const procesosAutomaticosController = new ProcesosAutomaticosController()
 export const excepcionesAsistenciaController = new ExcepcionesAsistenciaController()
 export const compensaGeneralACordinadorController = new CompensaGeneralACordinadorController()
 export const efectoController = new EfectoController()
-export const tipoAsociadoCategoriaController = new TipoAsociadoCategoriaController()
 export const habilitacionesController = new HabilitacionesController()
 export const condicionesVentaController = new CondicionesVentaController()

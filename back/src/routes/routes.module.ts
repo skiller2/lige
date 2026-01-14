@@ -42,7 +42,7 @@ import { gestionDescuentosRouter } from "../gestion-descuentos/gestion-descuento
 import { cursoRouter } from "../routes/curso.routes";
 import { centroCapacitacionRouter } from "../routes/centro-capacitacion.routes";
 import { actasRouter } from "../actas/actas.routes";
-import { institucionesRouter } from "./instituciones.routes"; 
+import { institucionesRouter } from "./instituciones.routes";
 import { AdministradoresRouter } from "../administradores/administradores.routes";
 import { importeVentaVigilanciaRouter } from "../importe-venta-vigilancia/importe-venta-vigilancia.routes";
 import { facturacionRouter } from "../facturacion/facturacion.routes";
@@ -50,7 +50,6 @@ import { novedadesRouter } from "../novedades/novedades.routes";
 import { procesosAutomaticosRouter } from "../procesos-automaticos/procesos-automaticos.routes";
 import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepciones-asistencia.routes";
 import { efectoRouter } from "../efecto/efecto.router";
-import { tipoAsociadoCategoriaRouter } from "../tipo-asociado-categoria/tipo-asociado-categoria.router";
 import { habilitacionesRouter } from "src/habilitaciones/habilitaciones.routes";
 import { condicionesVentaRouter } from "src/condiciones-venta/condiciones-venta.routes";
 export function makeRoutes(server: WebServer) {
@@ -80,32 +79,31 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/inasistencia", inasistenciaRouter);
   server.setRoute("/api/ayuda-asistencial", ayudaAsistencialRouter)
   server.setRoute("/api/clientes", clientesRouter)
-  server.setRoute("/api/file-upload",FileUploadRouter)
-  server.setRoute("/api/objetivos",objetivosRouter)
-  server.setRoute("/api/administrador",administradorRouter)
-  server.setRoute("/api/rubro",rubroRouter)
-  server.setRoute("/api/acceso-bot",accesoBotRouter)
-  server.setRoute("/api/situacion-revista",situacionrevistaRouter)
+  server.setRoute("/api/file-upload", FileUploadRouter)
+  server.setRoute("/api/objetivos", objetivosRouter)
+  server.setRoute("/api/administrador", administradorRouter)
+  server.setRoute("/api/rubro", rubroRouter)
+  server.setRoute("/api/acceso-bot", accesoBotRouter)
+  server.setRoute("/api/situacion-revista", situacionrevistaRouter)
   server.setRoute("/api/domicilio", domicilioRouter)
-  server.setRoute("/api/estudio",estudioRouter)
-  server.setRoute("/api/precios-productos",preciosProductosRouter)
-  server.setRoute("/api/descripcion-productos",descripcionProductoControllerRouter)
-  server.setRoute("/api/grupo-actividad",grupoActividadRouter)
-  server.setRoute("/api/seguros",segurosRouter)
-  server.setRoute("/api/reportes",reportesRouter)
-  server.setRoute("/api/gestion-descuentos",gestionDescuentosRouter)
-  server.setRoute("/api/curso",cursoRouter)
-  server.setRoute("/api/centro-capacitacion",centroCapacitacionRouter)
-  server.setRoute("/api/instituciones",institucionesRouter)
-  server.setRoute("/api/actas",actasRouter)
-  server.setRoute("/api/administradores",AdministradoresRouter)
-  server.setRoute("/api/importe-venta-vigilancia",importeVentaVigilanciaRouter)
-  server.setRoute("/api/facturacion",facturacionRouter)
-  server.setRoute("/api/novedades",novedadesRouter)
-  server.setRoute("/api/procesos-automaticos",procesosAutomaticosRouter)
-  server.setRoute("/api/excepciones-asistencia",excepcionesAsistenciaRouter)
-  server.setRoute("/api/efecto",efectoRouter)
-  server.setRoute("/api/tipo-asociado-categoria",tipoAsociadoCategoriaRouter)
-  server.setRoute("/api/habilitaciones",habilitacionesRouter)
-  server.setRoute("/api/condiciones-venta",condicionesVentaRouter)
+  server.setRoute("/api/estudio", estudioRouter)
+  server.setRoute("/api/precios-productos", preciosProductosRouter)
+  server.setRoute("/api/descripcion-productos", descripcionProductoControllerRouter)
+  server.setRoute("/api/grupo-actividad", grupoActividadRouter)
+  server.setRoute("/api/seguros", segurosRouter)
+  server.setRoute("/api/reportes", reportesRouter)
+  server.setRoute("/api/gestion-descuentos", gestionDescuentosRouter)
+  server.setRoute("/api/curso", cursoRouter)
+  server.setRoute("/api/centro-capacitacion", centroCapacitacionRouter)
+  server.setRoute("/api/instituciones", institucionesRouter)
+  server.setRoute("/api/actas", actasRouter)
+  server.setRoute("/api/administradores", AdministradoresRouter)
+  server.setRoute("/api/importe-venta-vigilancia", importeVentaVigilanciaRouter)
+  server.setRoute("/api/facturacion", facturacionRouter)
+  server.setRoute("/api/novedades", novedadesRouter)
+  server.setRoute("/api/procesos-automaticos", procesosAutomaticosRouter)
+  server.setRoute("/api/excepciones-asistencia", excepcionesAsistenciaRouter)
+  server.setRoute("/api/efecto", efectoRouter)
+  server.setRoute("/api/habilitaciones", habilitacionesRouter)
+  server.setRoute("/api/condiciones-venta", condicionesVentaRouter)
 }
