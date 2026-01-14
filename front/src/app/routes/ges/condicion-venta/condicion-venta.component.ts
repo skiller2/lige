@@ -12,28 +12,28 @@ import { ApiService } from 'src/app/services/api.service';
   selector: 'app-condicion-venta',
   standalone: true,
   providers: [AngularUtilService],
-  imports: [ SHARED_IMPORTS,
+  imports: [SHARED_IMPORTS,
     CommonModule,
     I18nPipe,
-   TableCondicionVentaComponent,
+    TableCondicionVentaComponent,
     CondicionVentaFormComponent,
   ],
-  templateUrl: './condicion-venta.component.html', 
+  templateUrl: './condicion-venta.component.html',
   styleUrl: './condicion-venta.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CondicionVentaComponent implements OnInit {
 
   periodo = signal<Date>(new Date())
-  codobj = model<string>(''); 
+  codobj = model<string>('');
   childIsPristine = signal(true)
   viewListado = model<boolean>(true)
   childAlta = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormAlta')
   childDetalle = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormDetalle')
   childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')
   childTableCondicionVenta = viewChild<TableCondicionVentaComponent>('tableCondicionVenta')
-PeriodoDesdeAplica = model<string>('');
-RefreshCondVenta = model<boolean>(false)
+  PeriodoDesdeAplica = model<string>('');
+  RefreshCondVenta = model<boolean>(false)
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
   }
@@ -46,9 +46,9 @@ RefreshCondVenta = model<boolean>(false)
     this.PeriodoDesdeAplica.set('')
   }
 
-  
 
-  async handleAddOrUpdate(){
+
+  async handleAddOrUpdate() {
     //this.childTableCondicionVenta().RefreshCondVenta.set(true)
   }
 
@@ -56,7 +56,7 @@ RefreshCondVenta = model<boolean>(false)
     console.log("_event.index ", _event.index)
     switch (_event.index) {
       case 4: //INSERT
-       this.childAlta().newRecord()
+        this.childAlta().newRecord()
         break
       case 3: //DETAIL
         this.childDetalle().viewRecord(true)
@@ -64,20 +64,24 @@ RefreshCondVenta = model<boolean>(false)
       case 2: //EDIT
         this.childEditar().viewRecord(false)
         break;
-        default:
+      default:
         break;
     }
 
   }
 
   async autorizarCondicionVenta() {
-    await firstValueFrom(this.apiService.autorizarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
+    var result = await firstValueFrom(this.apiService.autorizarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
+    
+    if (result.status === 'ok') 
+         this.RefreshCondVenta.set(true);
+    
   }
 
   async rechazarCondicionVenta() {
     await firstValueFrom(this.apiService.rechazarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
     this.RefreshCondVenta.set(true)
-    
+
   }
 
 }

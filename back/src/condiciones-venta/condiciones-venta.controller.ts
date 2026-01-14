@@ -282,20 +282,20 @@ export class CondicionesVentaController extends BaseController {
 
             const PeriodoDesdeAplica = new Date(CondicionVenta.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
-                let FechaActual = new Date()
+            let FechaActual = new Date()
 
-                //validacion si existe
-                
-                const existeCondicionVenta = 
+            //validacion si existe
+
+            const existeCondicionVenta =
                 await queryRunner.query(`SELECT ClienteId FROM CondicionVenta 
-                    WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`, 
+                    WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                     [objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, PeriodoDesdeAplica]);
-                
-                if (existeCondicionVenta.length > 0) {
-                    throw new ClientException(`Ya existe una condición de venta para el objetivo seleccionado.`)
-                }
 
-                await queryRunner.query(`INSERT INTO CondicionVenta (
+            if (existeCondicionVenta.length > 0) {
+                throw new ClientException(`Ya existe una condición de venta para el objetivo seleccionado.`)
+            }
+
+            await queryRunner.query(`INSERT INTO CondicionVenta (
                     ClienteId,
                     ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
@@ -312,16 +312,16 @@ export class CondicionesVentaController extends BaseController {
                     AudFechaMod,
                     AudUsuarioMod,
                     AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`,
-                    [objetivoInfo.clienteId,
-                        objetivoInfo.ClienteElementoDependienteId,
-                        PeriodoDesdeAplica,
-                        null,
-                        null,
-                        null,
-                        CondicionVenta.PeriodoFacturacion,
-                        CondicionVenta.GeneracionFacturaDia,
-                        CondicionVenta.GeneracionFacturaDiaComplemento,
-                        CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
+                [objetivoInfo.clienteId,
+                objetivoInfo.ClienteElementoDependienteId,
+                    PeriodoDesdeAplica,
+                    null,
+                    null,
+                    null,
+                CondicionVenta.PeriodoFacturacion,
+                CondicionVenta.GeneracionFacturaDia,
+                CondicionVenta.GeneracionFacturaDiaComplemento,
+                CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
             for (const producto of CondicionVenta.infoProductos) {
                 if (producto.ProductoCodigo) {
@@ -521,7 +521,8 @@ export class CondicionesVentaController extends BaseController {
             }
             //throw new ClientException('test')
             await queryRunner.commitTransaction();
-            return this.jsonRes({}, res, 'Autorización exitosa');
+            // Modify the response to include a status field
+            return this.jsonRes({ status: 'ok' }, res, 'Autorización exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -609,9 +610,13 @@ export class CondicionesVentaController extends BaseController {
                 PeriodoFacturacion = @0,
                 GeneracionFacturaDia = @1,
                 GeneracionFacturaDiaComplemento = @2,
-                Observaciones = @3
+                Observaciones = @3,
+                AutorizacionFecha = @7,
+                AutorizacionPersonalId = @7,
+                AutorizacionEstado = @7
+
             WHERE ClienteId = @4 AND ClienteElementoDependienteId = @5 AND PeriodoDesdeAplica = @6`,
-                [condicionVenta.PeriodoFacturacion, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.Observaciones, condicionVenta.ClienteId, condicionVenta.ClienteElementoDependienteId, condicionVenta.PeriodoDesdeAplica]);
+                [condicionVenta.PeriodoFacturacion, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.Observaciones, condicionVenta.ClienteId, condicionVenta.ClienteElementoDependienteId, condicionVenta.PeriodoDesdeAplica, null]);
 
             //actualiza CondicionVentaDetalle
             await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
