@@ -1091,9 +1091,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         try {
             await queryRunner.startTransaction();
             const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
-            console.log('resAsisObjetiv', resAsisObjetiv)
             const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
-
+            const now = new Date()
+            const desde = new Date(anio, mes - 1, 1);
 
             const resPersHabActuales = await queryRunner.query(`SELECT DISTINCT n.PersonalId, n.PersonalHabilitacionNecesariaLugarHabilitacionId FROM PersonalHabilitacionNecesaria n`)
 
@@ -1129,20 +1129,37 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const perlug of PersonalLugar) {
                 const PersonalId = perlug.PersonalId
                 const LugarHabilitacionIds = perlug.LugarHabilitacionId
-                let lugarIdList: number[] = [];
                 for (const lugarId of LugarHabilitacionIds) {
 
                     const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === PersonalId && lugarId==h.PersonalHabilitacionNecesariaLugarHabilitacionId)
                     if (!habNecesariaActual) {
-                        lugarIdList.push(lugarId)
+                        const res = await queryRunner.query(`
+                                    SELECT PersonalHabilitacionNecesariaUltNro FROM  Personal WHERE PersonalId =@0
+                                `, [PersonalId])
+                        
+                        const PersonalHabilitacionNecesariaId = (res && res.length) ? (res[0].PersonalHabilitacionNecesariaUltNro + 1) : 1
+
+
+                        await queryRunner.query(`
+                            INSERT INTO PersonalHabilitacionNecesaria (
+                                PersonalHabilitacionNecesariaId, PersonalId, PersonalHabilitacionNecesariaLugarHabilitacionId, PersonalHabilitacionNecesariaDesde, 
+                                PersonalHabilitacionNecesariaAudFechaIng, PersonalHabilitacionNecesariaAudIpIng, PersonalHabilitacionNecesariaAudUsuarioIng,
+                                PersonalHabilitacionNecesariaAudFechaMod, PersonalHabilitacionNecesariaAudIpMod, PersonalHabilitacionNecesariaAudUsuarioMod)
+                            VALUES(@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+                        `, [PersonalHabilitacionNecesariaId, PersonalId, lugarId, desde, now, ip, usuario])
+
+
+
+                        await queryRunner.query(`
+                                    UPDATE Personal SET PersonalHabilitacionNecesariaUltNro = @1
+                                    WHERE PersonalId =@0
+                                `, [PersonalId, PersonalHabilitacionNecesariaId])
+                        
+                        registrosActualizados += 1;
+
+   //                     lugarIdList.push(lugarId)
                     }
                 }
-                if (lugarIdList.length) {
-                    console.log(`Agregar Habilitacion Necesaria - PersonalId: ${perlug.PersonalId} - LugarHabilitacionId:`, lugarIdList)
-                    await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
-                    registrosActualizados += 1;
-                }
-
             }
 
 
