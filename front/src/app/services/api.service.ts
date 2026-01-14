@@ -1921,6 +1921,13 @@ export class ApiService {
     )
   }
 
+  deleteGestionHabilitacion(PersonalId:any, PersonalHabilitacionId:any, LugarHabilitacionId:any, Codigo:any) {
+    const params = {PersonalId, PersonalHabilitacionId, LugarHabilitacionId, Codigo}
+    return this.http.delete<ResponseJSON<any>>(`/api/habilitaciones/gestion/delete`, params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   updateHabilitacionNecesaria(params:any){
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/necesaria/update', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res.data)),

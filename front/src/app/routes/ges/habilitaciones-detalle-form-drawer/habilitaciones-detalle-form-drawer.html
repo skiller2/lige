@@ -47,6 +47,15 @@
         </nz-form-control>
       </nz-form-item>
 
+      @if (GestionHabilitacionCodigo()) {
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <input nz-input placeholder="" formControlName="AudFechaIng" type="text" readonly/>
+        </nz-form-control>
+      </nz-form-item>
+      }
+
       <nz-divider nzText="Gestión"></nz-divider> <br />
 
       <nz-form-item class="marginElement">
@@ -96,15 +105,6 @@
             nzMode="date"
             style="width: 100%;">
           </nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-      }
-
-      @if (GestionHabilitacionCodigo()) {
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <input nz-input placeholder="" formControlName="AudFechaIng" type="text" readonly/>
         </nz-form-control>
       </nz-form-item>
       }

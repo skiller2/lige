@@ -112,18 +112,26 @@ export class HabilitacionesFormDrawerComponent {
       else  this.tituloDrawer.set('Nueva Habilitación Detalle')
 
       if (visible) {
+        console.log(this.personalHabilitacionId(), this.lugarHabilitacionId(), this.personalId());
+        
         this.formHabilitacion.get('PersonalId')?.disable();
         this.formHabilitacion.get('LugarHabilitacionId')?.disable();
 
-        // let lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
-        let lastConfig = {
-          PersonalHabilitacionId: this.personalHabilitacionId(),
-          LugarHabilitacionId: this.lugarHabilitacionId(),
-          PersonalId: this.personalId()
+        let lastConfig = {}
+        if (this.personalHabilitacionId()) {
+          lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
+        } else {
+          lastConfig = {
+            PersonalHabilitacionId: this.personalHabilitacionId(),
+            LugarHabilitacionId: this.lugarHabilitacionId(),
+            PersonalId: this.personalId()
+          }
         }
 
         if (this.codigo()) {
           let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
+          console.log('gestionHabi: ', gestionHabi);
+          
           gestionHabi.AudFechaIng = this.formatDate(gestionHabi.AudFechaIng);
           lastConfig = {...lastConfig, ...gestionHabi}
         }
@@ -162,11 +170,12 @@ export class HabilitacionesFormDrawerComponent {
         vals.codigo = this.codigo()
         await firstValueFrom(this.apiService.updateGestionHabilitacion(vals))
       } else {
-        let result:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
-        let data = result.data
+        let res:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
+        console.log('result: ', res);
+        let data = res.data
         data.AudFechaIng = this.formatDate(data.AudFechaIng);
 
-        this.personalHabilitacionId.set(data.PersonalHabilitacionId)
+        if(data.PersonalHabilitacionId) this.personalHabilitacionId.set(data.PersonalHabilitacionId)
         this.codigo.set(data.GestionHabilitacionCodigo)
         this.formHabilitacion.patchValue(data)
       } 

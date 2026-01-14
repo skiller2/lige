@@ -44,7 +44,8 @@ export class HabilitacionesDetalleComponent {
   lugarHabilitacionId = input<number>(0)
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)
-  loadingDelete = signal<boolean>(false)
+  loadingDeleteDoc = signal<boolean>(false)
+  loadingDeleteDetalle = signal<boolean>(false)
 
   modalViewerVisiable1 = signal<boolean>(false)
   modalViewerVisiable2 = signal<boolean>(false)
@@ -132,12 +133,12 @@ export class HabilitacionesDetalleComponent {
     this.habilitacionesChange$.next('');
   }
 
-  cambios = computed(async () => {
-    this.personalId()
-    this.personalHabilitacionId()
-    this.lugarHabilitacionId()
-    this.refreshGrid('')
-  });
+  // cambios = computed(async () => {
+  //   this.personalId()
+  //   this.personalHabilitacionId()
+  //   this.lugarHabilitacionId()
+  //   this.refreshGrid('')
+  // });
 
   openDrawerforForm(): void{
     this.visibleForm.set(true) 
@@ -145,6 +146,17 @@ export class HabilitacionesDetalleComponent {
 
   openDrawerforFormEdit(): void{
     this.visibleFormEdit.set(true) 
+  }
+
+  async deleteGestionHabilitacion(){
+    this.loadingDeleteDetalle.set(true)
+    try {
+      await firstValueFrom(this.apiService.deleteGestionHabilitacion(this.personalId(),this.personalHabilitacionId(),this.lugarHabilitacionId(),this.codigo()));
+      this.refreshGrid('')
+    } catch (error) {
+      
+    }
+    this.loadingDeleteDetalle.set(false) 
   }
 
   async LoadArchivo(url: string, filename: string) {
@@ -179,7 +191,7 @@ export class HabilitacionesDetalleComponent {
 
   async deleteDocumento(docId:number) {
     if (!docId) return
-    this.loadingDelete.set(true);
+    this.loadingDeleteDoc.set(true);
     try {
       const id = docId;
       if (id != null) {
@@ -191,7 +203,7 @@ export class HabilitacionesDetalleComponent {
       // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
       console.error('Error borrando documento', error);
     } finally {
-      this.loadingDelete.set(false);
+      this.loadingDeleteDoc.set(false);
     }
   }
 
