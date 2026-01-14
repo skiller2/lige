@@ -13,6 +13,11 @@ const getHabNecesariaOptions: any[] = [
     { label: 'No', value: '0' },
 ]
 
+const getHabilitacionesClasesOptions: any[] = [
+    { label: 'Habilitación', value: 'H' },
+    { label: 'Renovación', value: 'R' },
+]
+
 const GridColums: any[] = [
     {
         id: "id",
@@ -110,7 +115,6 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchComponent: "inputForActivo",
-
     },
     {
         name: "Lugar Habilitación",
@@ -155,6 +159,20 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false
+    },
+    {
+        name: "Clase",
+        type: "string",
+        id: "PersonalHabilitacionClase",
+        field: "PersonalHabilitacionClase",
+        fieldName: "b.PersonalHabilitacionClase",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        formatter: 'collectionFormatter',
+        params: { collection: getHabilitacionesClasesOptions },
+        // searchComponent: "inputForHabilitacionClaseSearch", // falta crear componente de busqueda en filtro builder
+
     },
     {
         name: "Estado",
@@ -323,7 +341,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
-            est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite,
+            est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
             b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
