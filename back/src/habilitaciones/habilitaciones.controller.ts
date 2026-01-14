@@ -1215,14 +1215,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         `, [habilitacion.PersonalId, habilitacion.LugarHabilitacionId])
 
         if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
-            // throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
-            throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
+            return new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
         }
 
         //Habilitacion en CABA, Provincia de Bs.As y Provincia de Formosa
-        const arrayFilter = [{LugarHabilitacionId: 1, tipoDocHabilitacion: 'HARPERCABA'},{LugarHabilitacionId: 5, tipoDocHabilitacion: 'HABPERPRO'},{LugarHabilitacionId: 8, tipoDocHabilitacion: 'HABPERFOR'}]
+        const arrayFilter:any[] = [{LugarHabilitacionId: 1, tipoDocHabilitacion: 'HABPERCABA'},{LugarHabilitacionId: 5, tipoDocHabilitacion: 'HABPERPRO'},{LugarHabilitacionId: 8, tipoDocHabilitacion: 'HABPERFOR'}]
         if (habilitacion.GestionHabilitacionEstadoCodigo == 'HABORG') {
             if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
+            if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Desde (Gestión)`)
+            if (!habilitacion.PersonalHabilitacionHasta) error.push(`- Hasta (Gestión)`)
 
             // let desdeHastaDocHabilitacion = false
             let desdeDocHabilitacion = false
@@ -1232,7 +1233,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const docs of habilitacion.documentos) {
                 if (docs.file?.[0]) {
                     const doc = docs.file[0]
-                    const find = arrayFilter.find((obj:any)=>{ obj.tipoDocHabilitacion == doc.doctipo_id })
+                    
+                    const find = arrayFilter.find((obj:any) => obj.tipoDocHabilitacion == doc.doctipo_id)
+                    
                     if (find) {
                         if (!doc.DocumentoFecha) desdeDocHabilitacion = true
                         if (!doc.DocumentoFechaDocumentoVencimiento) hastaDocHabilitacion = true
@@ -1250,8 +1253,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 // }
             }
 
-            if (desdeDocHabilitacion) error.push(`- Desde`)
-            if (hastaDocHabilitacion) error.push(`- Hasta`)
+            if (desdeDocHabilitacion) error.push(`- Desde (Documentos)`)
+            if (hastaDocHabilitacion) error.push(`- Hasta (Documentos)`)
             if (error.length) error.unshift('Deben completar los siguientes campos:')
 
             if (!cantDoc || tipoDocHabilitacion) error.push(`Ingrese un documento relacionado al Lugar Habilitacion`)
@@ -1263,6 +1266,32 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         
     }
 
-    
+    async deleteGestionHabilitacion(req: any, res: Response, next: NextFunction){
+
+        const { PersonalId, PersonalHabilitacionId, LugarHabilitacionId, Codigo } = req.query
+        // const ip = this.getRemoteAddress(req)
+        // const usuario = res.locals.userName
+        // const fechaActual = new Date()
+        // fechaActual.setHours(0, 0, 0, 0)
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            await queryRunner.query(`
+                DELETE GestionHabilitacion
+                WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2 AND GestionHabilitacionCodigo = @3
+            `, [ PersonalHabilitacionId, PersonalId, LugarHabilitacionId, Codigo ])
+            
+            // throw new ClientException(`DEBUG`)
+
+            await queryRunner.commitTransaction()
+            this.jsonRes({}, res, 'Borrado Exitoso');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+    }
 
 }
