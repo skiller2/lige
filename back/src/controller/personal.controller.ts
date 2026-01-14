@@ -3280,7 +3280,7 @@ export class PersonalController extends BaseController {
         CONCAT(cat.TipoAsociadoId,'/', cat.CategoriaPersonalId) id
         FROM CategoriaPersonal cat 
         JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
-        WHERE `;
+        WHERE (CategoriaPersonalInactivo=0 or CategoriaPersonalInactivo IS NULL) and `;
     switch (fieldName) {
       case "Label":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
