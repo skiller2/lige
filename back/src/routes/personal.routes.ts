@@ -200,3 +200,8 @@ personalRouter.post(`${base}/acta/add/:personalId`, [authMiddleware.verifyToken,
 personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
   personalController.getSitRevistaAsoByPersonalId(req, res, next);
 });
+
+
+personalRouter.post("/searchTipoAsociadoCategoria", authMiddleware.verifyToken, (req, res, next) => {
+  personalController.searchTipoAsociadoCategoria(req, res, next);
+});

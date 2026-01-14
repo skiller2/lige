@@ -1321,7 +1321,7 @@ export class SearchService {
       );
   }
 
-  
+
 
 
   getEstadoCustodia(): Observable<any> {
@@ -1344,7 +1344,7 @@ export class SearchService {
     );
   }
 
-   getEstadoExcepcionAsistencia(): Observable<any> {
+  getEstadoExcepcionAsistencia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/excepciones-asistencia/estados`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1794,7 +1794,7 @@ export class SearchService {
     );
   }
 
-  getLugarHabilitacionByPersonlaId(id:number): Observable<any> {
+  getLugarHabilitacionByPersonlaId(id: number): Observable<any> {
     if (!id) return of([])
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/lugar/options/personal/${id}`).pipe(
       map(res => res.data),
@@ -1805,8 +1805,8 @@ export class SearchService {
     );
   }
 
-  getHabilitacionCategoriaOptions(LugarHabilitacionId:number): Observable<any> {
-    if (!LugarHabilitacionId)  return of([]);
+  getHabilitacionCategoriaOptions(LugarHabilitacionId: number): Observable<any> {
+    if (!LugarHabilitacionId) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/categoria/options/${LugarHabilitacionId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -2210,16 +2210,16 @@ export class SearchService {
     );
   }
 
-  
+
   getEfectoFromName(fieldName: string, values: string): Observable<SearchEfecto[]> {
     if (!values || values == '') {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', {fieldName: fieldName,value: values,}).pipe(map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
+      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { fieldName: fieldName, value: values, }).pipe(map(res => {
+        if (res.data.recordsArray) return res.data.recordsArray;
+        else return [];
+      }),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);
@@ -2232,10 +2232,10 @@ export class SearchService {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchEfectoIndividual>>('api/efecto/searchEfectoIndividual', {fieldName: fieldName,value: values,}).pipe(map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
+      .post<ResponseJSON<ResponseBySearchEfectoIndividual>>('api/efecto/searchEfectoIndividual', { fieldName: fieldName, value: values, }).pipe(map(res => {
+        if (res.data.recordsArray) return res.data.recordsArray;
+        else return [];
+      }),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);
@@ -2248,10 +2248,10 @@ export class SearchService {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchTipoAsociadoCategoria>>('api/tipo-asociado-categoria/searchTipoAsociadoCategoria', {fieldName: fieldName,value: values,}).pipe(map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
+      .post<ResponseJSON<ResponseBySearchTipoAsociadoCategoria>>('api/personal/searchTipoAsociadoCategoria', { fieldName: fieldName, value: values, }).pipe(map(res => {
+        if (res.data.recordsArray) return res.data.recordsArray;
+        else return [];
+      }),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);
