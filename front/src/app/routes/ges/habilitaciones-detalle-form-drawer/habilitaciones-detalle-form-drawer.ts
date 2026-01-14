@@ -31,10 +31,6 @@ export class HabilitacionesFormDrawerComponent {
   personalId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
   personalHabilitacionId = model<number>(0)
-  prevFiles = signal<any[]>([]);
-  randNum = signal<number>(0);
-  optionsLabels = signal<any[]>([]);
-  label = signal<string>('. . .');
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
@@ -44,7 +40,7 @@ export class HabilitacionesFormDrawerComponent {
   onRefreshInstituciones = output<void>();
   uploading$ = new BehaviorSubject({loading:false,event:null});
 
-  objDoc = {files:[]}
+  objDoc = {file:[]}
 
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
@@ -88,7 +84,7 @@ export class HabilitacionesFormDrawerComponent {
   )
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
-  $optionsTipos = this.searchService.getDocumentoTipoOptions();
+  // $optionsTipos = this.searchService.getDocumentoTipoOptions();
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
       debounceTime(500),
@@ -145,21 +141,14 @@ export class HabilitacionesFormDrawerComponent {
     effect(async() => {
       const documentos = this.signalDocumento()
       const docs = this.documentos().value
-      if (documentos[documentos.length-1].files?.length) {
+      if (documentos[documentos.length-1].file?.length) {
         this.addDoc()
       }
       
     })
   }
 
-  async ngOnInit() {
-    try {
-      const res = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
-      this.optionsLabels.set(res)
-    } catch (error) {
-      
-    }
-  }
+  async ngOnInit() {}
 
   async save() {
     this.isLoading.set(true)
@@ -188,13 +177,6 @@ export class HabilitacionesFormDrawerComponent {
     } catch (error) {
     }
     this.isLoading.set(false)
-  }
-
-  handlePrevFiles(event: any[]) {
-    // console.log('handle',event)
-    const copia = event.map(item => ({ ...item }))
-    this.prevFiles.set([...copia])
-    this.randNum.set(Math.random())
   }
 
   formatDate(dateString: string): string {
