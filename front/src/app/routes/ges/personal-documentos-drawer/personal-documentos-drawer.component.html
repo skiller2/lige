@@ -81,10 +81,11 @@
                   @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg') {
                     <a nz-icon nzType="search"
                     nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
-                  }
-                  @if (data.TipoArchivo == 'pdf') {
+                  } @else if (data.TipoArchivo == 'pdf') {
                     <a nz-icon nzType="search" nzTheme="outline"
                     (click)="LoadArchivo(data.url, data.NombreArchivo)"></a>
+                  } @else {
+                    <a nz-icon nzType="download" nzTheme="outline" app-down-file  httpUrl="/{{data.url}}"></a>
                   }
                   {{ data.NombreArchivo }}
                 </td>
