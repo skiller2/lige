@@ -1091,6 +1091,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         try {
             await queryRunner.startTransaction();
             const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
+            console.log('resAsisObjetiv', resAsisObjetiv)
             const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
 
 
@@ -1100,6 +1101,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             const map = new Map<number, { set: Set<number>; list: number[] }>();
 
             for (const asisObj of resAsisObjetiv) {
+                if (asisObj.ObjetivoAsistenciaTipoAsociadoId != 3) continue; 
+
                 const PersonalId = asisObj.PersonalId
                 const LugarHabilitacionIdList = asisObj.LugarHabilitacionIdList ? asisObj.LugarHabilitacionIdList.split(',') : []
                 for (const LugarHabilitacionId of LugarHabilitacionIdList) {
