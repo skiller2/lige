@@ -253,7 +253,7 @@ const columns: any[] = [
     searchHidden: false
   },
   {
-    name: "Categoría Cod",
+    name: "Categoría",
     type: "string",
     id: "CategoriaCod",
     field: "CategoriaCod",

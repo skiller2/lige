@@ -57,7 +57,7 @@
 
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
-    <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [personalHabilitacionId]="personalHabilitacionId()" [lugarHabilitacionId]="lugarHabilitacionId()"
+    <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
       [detalle]="detalleSelected()"></app-habilitaciones-detalle>
   </nz-tab>
 

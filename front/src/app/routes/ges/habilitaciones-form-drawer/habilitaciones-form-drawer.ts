@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, map } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, merge } from 'rxjs';
 import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
@@ -77,10 +77,14 @@ export class HabilitacionesFormDrawerComponent {
     return this.formHabilitacion.get("documentos") as FormArray
   }
 
-  
   signalPersonalId = toSignal(
     this.formHabilitacion.get("PersonalId")!.valueChanges,
     { initialValue: this.formHabilitacion.get('PersonalId')!.value }
+  )
+
+  signalDocumento = toSignal(
+    this.documentos().valueChanges,
+    { initialValue: this.documentos().value }
   )
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
@@ -134,10 +138,22 @@ export class HabilitacionesFormDrawerComponent {
         this.formHabilitacion.enable()
       }
     })
+    effect(async() => {
+      const documentos = this.signalDocumento()
+      if ( documentos[documentos.length-1]?.files?.length) {
+        this.addDoc()
+      }
+    })
   }
 
   async ngOnInit() {
     try {
+      // this.documentos().valueChanges.subscribe((values:any)=>{
+      //   console.log('values: ', values);
+      //   if (values[values.length-1]?.files?.length) {
+      //     this.addDoc()
+      //   }
+      // })
       const res = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
       this.optionsLabels.set(res)
     } catch (error) {
@@ -147,7 +163,7 @@ export class HabilitacionesFormDrawerComponent {
 
   async save() {
     this.isLoading.set(true)
-    let vals:any = this.formHabilitacion.value
+    let vals:any = this.formHabilitacion.getRawValue()
 
     try {
       // console.log('vals: ', vals);

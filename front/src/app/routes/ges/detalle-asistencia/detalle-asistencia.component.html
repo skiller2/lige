@@ -10,7 +10,7 @@
         <nz-button-group nz-button nzButtonGroup>
           @if (selectedObjetivoId()) {
           <button nz-button nzType="default"
-            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId }]">Asistencia diaria</button>
+            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId() }]">Asistencia diaria</button>
           }
         </nz-button-group>
       </nz-form-control>
@@ -33,12 +33,12 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:selectedObjetivoId }]">Objetivo</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:selectedObjetivoId() }]">Objetivo</a>
     </li>
 
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:selectedPersonalId }]">Persona</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:selectedPersonalId() }]">Persona</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -290,6 +290,7 @@
                   <th>Situación Revista</th>
                   <th>Categoría</th>
                   <th>Horas</th>
+                  <th>Forma</th>
                   <th>Valor Hora</th>
                   <th>Art17</th>
                   <th>Importe Total</th>
@@ -308,6 +309,7 @@
                   <td> N/A</td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
                   <td>{{ data.totalhorascalc }}</td>
+                  <td>{{ data.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras }}</td>
                   <td class="text-right">
                     @if (data.ValorHoraArt14Categoria < 1) { <span>{{
                       data.ValorHoraNorm | I18NCurrency
@@ -510,8 +512,7 @@
           <nz-form-control>
             <nz-list nzBordered nzSize="small">
               @let personaMonotributo = $personaMonotributo | async;
-              {{personaMonotributo | json}}
-              {{personaMonotributo.length}}
+         
               @if (selectedPersonalId() > 0 && personaMonotributo.length > 0) {
               @for (monotributo of personaMonotributo; track monotributo) {
               <nz-list-item>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, input } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, input, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -40,7 +40,7 @@ export class HabilitacionesDetalleComponent {
   // isLoading = signal<boolean>(false)
   codigo = signal<number>(0)
   personalId = input<number>(0)
-  personalHabilitacionId = input<number>(0)
+  personalHabilitacionId = model<number>(0)
   lugarHabilitacionId = input<number>(0)
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)

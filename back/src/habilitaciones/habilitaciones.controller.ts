@@ -345,7 +345,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 				) vishab on vishab.PersonalId=per.PersonalId
 
 	
-		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId --and b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null)
 		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
 		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
 
@@ -546,6 +546,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalId = req.body.personalId
         const PersonalHabilitacionId = req.body.personalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        if (!PersonalHabilitacionId) {
+            return this.addHabilitacion(req, res, next)
+        }
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -921,7 +924,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
-            this.jsonRes({ PersonalHabilitacionId: newPersonalHabilitacionId }, res, 'Carga exitosa');
+            this.jsonRes({ PersonalHabilitacionId: newPersonalHabilitacionId, GestionHabilitacionCodigo: newCodigoUlt, AudFechaIng: fechaActual }, res, 'Carga exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
