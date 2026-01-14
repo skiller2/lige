@@ -1233,17 +1233,14 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const docs of habilitacion.documentos) {
                 if (docs.file?.[0]) {
                     const doc = docs.file[0]
-                    console.log('doc: ', doc);
+                    
                     const find = arrayFilter.find((obj:any) => obj.tipoDocHabilitacion == doc.doctipo_id)
                     
-                    console.log('find: ', find);
                     if (find) {
                         if (!doc.DocumentoFecha) desdeDocHabilitacion = true
                         if (!doc.DocumentoFechaDocumentoVencimiento) hastaDocHabilitacion = true
                         if (find.LugarHabilitacionId != habilitacion.LugarHabilitacionId) tipoDocHabilitacion = true
                         cantDoc++
-                        console.log('desdeDocHabilitacion: ', desdeDocHabilitacion);
-                        console.log('hastaDocHabilitacion: ', hastaDocHabilitacion);
                     }
                 }
                 // if ((docs.file?.[0]?.doctipo_id == 'HARPERCABA') || (docs.file?.[0]?.doctipo_id == 'HABPERPRO') || (docs.file?.[0]?.doctipo_id == 'HABPERFOR')) {

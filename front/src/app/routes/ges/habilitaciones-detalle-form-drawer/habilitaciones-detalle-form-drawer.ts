@@ -112,7 +112,6 @@ export class HabilitacionesFormDrawerComponent {
       else  this.tituloDrawer.set('Nueva Habilitación Detalle')
 
       if (visible) {
-        console.log(this.personalHabilitacionId(), this.lugarHabilitacionId(), this.personalId());
         
         this.formHabilitacion.get('PersonalId')?.disable();
         this.formHabilitacion.get('LugarHabilitacionId')?.disable();
@@ -130,7 +129,6 @@ export class HabilitacionesFormDrawerComponent {
 
         if (this.codigo()) {
           let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
-          console.log('gestionHabi: ', gestionHabi);
           
           gestionHabi.AudFechaIng = this.formatDate(gestionHabi.AudFechaIng);
           lastConfig = {...lastConfig, ...gestionHabi}
@@ -171,7 +169,7 @@ export class HabilitacionesFormDrawerComponent {
         await firstValueFrom(this.apiService.updateGestionHabilitacion(vals))
       } else {
         let res:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
-        console.log('result: ', res);
+        
         let data = res.data
         data.AudFechaIng = this.formatDate(data.AudFechaIng);
 
