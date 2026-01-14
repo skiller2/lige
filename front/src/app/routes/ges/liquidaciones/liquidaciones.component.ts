@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model,signal } from '@angular/core';
+import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -47,25 +47,23 @@ import { LoadingService } from '@delon/abc/loading';
 import { ClienteSearchComponent } from 'src/app/shared/cliente-search/cliente-search.component';
 import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-
+import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
 @Component({
-    selector: 'app-liquidaciones',
-    templateUrl: './liquidaciones.component.html',
-    styleUrls: ['./liquidaciones.component.less'],
-    imports: [
-        NzSelectModule,
-        NzModalModule,
-        CommonModule,
-        SHARED_IMPORTS,
-        NzAffixModule,
-        FiltroBuilderComponent,
-        NzUploadModule,
-        ObjetivoSearchComponent,
-        ClienteSearchComponent,
-      PersonalSearchComponent,
-        
-    ],
-    providers: [AngularUtilService]
+  selector: 'app-liquidaciones',
+  templateUrl: './liquidaciones.component.html',
+  styleUrls: ['./liquidaciones.component.less'],
+  imports: [
+    NzSelectModule,
+    NzModalModule,
+    CommonModule,
+    SHARED_IMPORTS,
+    NzAffixModule,
+    FiltroBuilderComponent,
+    NzUploadModule,
+    RecibosModalComponent
+
+  ],
+  providers: [AngularUtilService]
 })
 
 export class LiquidacionesComponent {
@@ -90,8 +88,8 @@ export class LiquidacionesComponent {
   toggle = false;
   detailViewRowCount = 9;
   gridDataLen = 0
-  anio = 0
-  mes = 0
+  anio = signal(0)
+  mes = signal(0)
   fechaRecibo = model(new Date())
   saveLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
@@ -109,7 +107,7 @@ export class LiquidacionesComponent {
   PersonalIdUnique = [];
   PersonalNameForReceip = "";
 
-  isVisible = false;
+  isVisible = model<boolean>(false);
   isWithDuplicado = false;
   selectedOption = model("T");
   ObjetivoIdWithSearch = model(0);
@@ -231,8 +229,8 @@ export class LiquidacionesComponent {
 
     setTimeout(() => {
       if (PersonalId > 0) {
-        this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId),false)
-        this.sharedFiltroBuilder.addFilter('tipocuenta_id', 'AND', '=', tipocuenta_id,false)
+        this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId), false)
+        this.sharedFiltroBuilder.addFilter('tipocuenta_id', 'AND', '=', tipocuenta_id, false)
       }
     }, 1000)
   }
@@ -241,7 +239,7 @@ export class LiquidacionesComponent {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
     //console.log('this.angularGrid', this.angularGrid);
-    this.angularGrid.gridService.hideColumnByIds(['PersonalCUITCUILCUIT','horas','periodo','CategoriaPersonalDescripcion'])
+    this.angularGrid.gridService.hideColumnByIds(['PersonalCUITCUILCUIT', 'horas', 'periodo', 'CategoriaPersonalDescripcion'])
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
@@ -271,14 +269,15 @@ export class LiquidacionesComponent {
     debounceTime(500),
     switchMap(() => {
       const periodo = this.liquidacionesForm.form.get('periodo')?.value
+      this.anio.set(periodo.getFullYear())
+      this.mes.set(periodo.getMonth() + 1)
       return this.apiService
         .getLiquidaciones(
           { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
         )
         .pipe(
-          map((data:any) => {
-            this.anio = periodo.getFullYear();
-            this.mes = periodo.getMonth() + 1;
+          map((data: any) => {
+
             // this.gridDataLen = data?.list?.length
             // this.gridDataLen = data.list?.length
             // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
@@ -375,7 +374,7 @@ export class LiquidacionesComponent {
 
     return cols
   }));
-  
+
 
   async liquidacionesAcciones(value: string) {
     switch (value) {
@@ -711,12 +710,12 @@ export class LiquidacionesComponent {
     }
   }
 
-  confirmDeleteImportacion( id: any) {
+  confirmDeleteImportacion(id: any) {
     this.NotificationIdForDelete = parseInt(id);
     const periodo = this.liquidacionesForm.form.get('periodo')?.value
     if (this.NotificationIdForDelete > 0) {
       //(document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.apiService.setDeleteImportacion(this.NotificationIdForDelete, periodo.getFullYear(), periodo.getMonth() + 1).subscribe((_evt:any) => {
+      this.apiService.setDeleteImportacion(this.NotificationIdForDelete, periodo.getFullYear(), periodo.getMonth() + 1).subscribe((_evt: any) => {
         this.formChange$.next('')
       });
     }
@@ -787,7 +786,7 @@ export class LiquidacionesComponent {
   }
 
   showModal(): void {
-    this.isVisible = true;
+    this.isVisible.set(true);
   }
 
 }

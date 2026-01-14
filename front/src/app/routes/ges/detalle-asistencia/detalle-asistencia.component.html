@@ -10,7 +10,8 @@
         <nz-button-group nz-button nzButtonGroup>
           @if (selectedObjetivoId()) {
           <button nz-button nzType="default"
-            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId() }]">Asistencia diaria</button>
+            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:selectedObjetivoId() }]">Asistencia
+            diaria</button>
           }
         </nz-button-group>
       </nz-form-control>
@@ -55,6 +56,10 @@
           [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'Jerarquico':responsable()}}"
           httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
+        </li>
+
+        <li nz-menu-item (click)="isVisible.set(true)">
+          <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga de recibos</span>
         </li>
 
         @if (personalIdlist().length > 0) {
@@ -512,7 +517,7 @@
           <nz-form-control>
             <nz-list nzBordered nzSize="small">
               @let personaMonotributo = $personaMonotributo | async;
-         
+
               @if (selectedPersonalId() > 0 && personaMonotributo.length > 0) {
               @for (monotributo of personaMonotributo; track monotributo) {
               <nz-list-item>
@@ -989,3 +994,6 @@
     Loading Data...
   </nz-option>
 </ng-template>
+
+<app-recibos-modal [(isVisible)]='isVisible' [mes]="this.selectedPeriod().year"
+  [anio]="this.selectedPeriod().month"></app-recibos-modal>

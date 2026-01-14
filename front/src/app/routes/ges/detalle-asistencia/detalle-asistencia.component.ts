@@ -15,6 +15,7 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 import { DescuentosComponent } from '../descuentos/descuentos.component';
 import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
 import { LoadingService } from '@delon/abc/loading';
+import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
 
 enum Busqueda { Sucursal, Objetivo, Personal }
 
@@ -22,7 +23,7 @@ enum Busqueda { Sucursal, Objetivo, Personal }
   selector: 'app-detalle-asistencia',
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
-  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DescuentosComponent, PersonalGrupoComponent]
+  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DescuentosComponent, PersonalGrupoComponent, RecibosModalComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -52,7 +53,7 @@ export class DetalleAsistenciaComponent {
   private destroy$ = new Subject();
 
   responsable = signal(0)
-
+  isVisible = signal<boolean>(false)
 
   selectedDate = null;
   selectedPeriod = signal({ year: 0, month: 0 });
@@ -386,10 +387,10 @@ export class DetalleAsistenciaComponent {
 
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
-    switchMap(() => this.apiService.getPersonaMonotributo(this.selectedPeriod().year,this.selectedPeriod().month,Number(this.asistenciaPer.controls['PersonalId'].value)).pipe
-        //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        //          tap({ complete: () => this.tableLoading$.next(false) })
-        ()
+    switchMap(() => this.apiService.getPersonaMonotributo(this.selectedPeriod().year, this.selectedPeriod().month, Number(this.asistenciaPer.controls['PersonalId'].value)).pipe
+      //          doOnSubscribe(() => this.tableLoading$.next(true)),
+      //          tap({ complete: () => this.tableLoading$.next(false) })
+      ()
     )
   );
 

@@ -1,0 +1,40 @@
+<nz-modal [nzVisible]="isVisible()" (nzOnCancel)="isVisible.set(false)" nzTitle="Descarga Recibos">
+
+    <div *nzModalContent>
+        <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción"
+            [nzDropdownMatchSelectWidth]="false">
+            <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option>
+            <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option>
+            <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
+            <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
+            <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
+        </nz-select>
+        @switch (selectedOption()) {
+        @case ("O") {
+        <app-objetivo-search [(ngModel)]="ObjetivoIdWithSearch"></app-objetivo-search>
+        }
+        @case ("C") {
+        <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
+        }
+        @case ("P") {
+        <app-personal-search [(ngModel)]="PersonalIdWithSearch" [anio]="anio()" [mes]="mes()"></app-personal-search>
+        }
+        @case ("S") {
+        <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
+            [nzDropdownMatchSelectWidth]="false" [(ngModel)]="SucursalIdWithSearch">
+            @for (option of $optionsSucursales | async; track option) {
+            <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+            }
+        </nz-select>
+        }
+        }
+
+        <label nz-checkbox [(ngModel)]="isWithDuplicado">Duplicados</label>
+    </div>
+    <div *nzModalFooter style="text-align: right;">
+        <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
+            [httpBody]="{'Anio':anio(),'Mes':mes(),'isDuplicate': isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
+            httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado"
+            (click)="isVisible.set(false)">Aceptar</a>
+    </div>
+</nz-modal>
