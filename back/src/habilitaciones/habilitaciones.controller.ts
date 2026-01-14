@@ -1,6 +1,6 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { NextFunction, Request, Response } from "express";
+import { json, NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryRunner } from "typeorm";
@@ -1124,11 +1124,21 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             //TODO:  Buscar las diferencias entre lo que esta en la base y lo que deberia estar segun las asistencias
             for (const perlug of PersonalLugar) {
-                const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === perlug.PersonalId && perlug.LugarHabilitacionId.includes(h.PersonalHabilitacionNecesariaLugarHabilitacionId))
+                const PersonalId = perlug.PersonalId
+                const LugarHabilitacionIds = perlug.LugarHabilitacionId
+                let lugarIdList: number[] = [];
+                for (const lugarId of LugarHabilitacionIds) {
 
-                //TODO: Actualizar la base de datos con las diferencias encontradas
-                // await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, , usuario, ip)
-                // registrosActualizados += 1;
+                    const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === PersonalId && lugarId==h.PersonalHabilitacionNecesariaLugarHabilitacionId)
+                    if (!habNecesariaActual) {
+                        lugarIdList.push(lugarId)
+                    }
+                }
+                if (lugarIdList.length) {
+                    console.log(`Agregar Habilitacion Necesaria - PersonalId: ${perlug.PersonalId} - LugarHabilitacionId:`, lugarIdList)
+                    await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
+                    registrosActualizados += 1;
+                }
 
             }
 
@@ -1148,7 +1158,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             );
 
 
-            this.jsonRes({ registrosActualizados }, res, 'Registros actualizados');
+            this.jsonRes({ registrosActualizados }, res, `Registros actualizados ${registrosActualizados}`);
 
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
