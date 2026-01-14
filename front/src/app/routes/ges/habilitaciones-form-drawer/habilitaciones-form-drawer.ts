@@ -26,11 +26,6 @@ export class HabilitacionesFormDrawerComponent {
   visible = model<boolean>(false)
   onAddorUpdate = output()
   
-  prevFiles = signal<any[]>([]);
-  randNum = signal<number>(0);
-  optionsLabels = signal<any[]>([]);
-  label = signal<string>('. . .');
-
   isLoading = signal(false);
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
@@ -40,7 +35,7 @@ export class HabilitacionesFormDrawerComponent {
   uploading$ = new BehaviorSubject({loading:false,event:null});
   lugarHabilitacion$ = new BehaviorSubject('')
 
-  objDoc = {files:[]}
+  objDoc = {file:[]}
 
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
@@ -146,20 +141,7 @@ export class HabilitacionesFormDrawerComponent {
     })
   }
 
-  async ngOnInit() {
-    try {
-      // this.documentos().valueChanges.subscribe((values:any)=>{
-      //   console.log('values: ', values);
-      //   if (values[values.length-1]?.files?.length) {
-      //     this.addDoc()
-      //   }
-      // })
-      const res = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
-      this.optionsLabels.set(res)
-    } catch (error) {
-      
-    }
-  }
+  async ngOnInit() {}
 
   async save() {
     this.isLoading.set(true)
@@ -175,13 +157,6 @@ export class HabilitacionesFormDrawerComponent {
     } catch (error) {
     }
     this.isLoading.set(false)
-  }
-
-  handlePrevFiles(event: any[]) {
-    // console.log('handle',event)
-    const copia = event.map(item => ({ ...item }))
-    this.prevFiles.set([...copia])
-    this.randNum.set(Math.random())
   }
 
   async selectedLugarHabilitacionChange(event: any){

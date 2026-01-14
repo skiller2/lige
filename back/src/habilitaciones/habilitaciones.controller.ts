@@ -543,9 +543,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     }
 
     async addHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
-        const PersonalId = req.body.personalId
-        const PersonalHabilitacionId = req.body.personalHabilitacionId
-        const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        const PersonalId = req.body.PersonalId
+        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
         if (!PersonalHabilitacionId) {
             return this.addHabilitacion(req, res, next)
         }
@@ -572,21 +572,24 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validacion
-            let error: string[] = []
-            if (!GestionHabilitacionEstadoCodigo) {
-                error.push(` Estado`)
-            }
-            if (!Detalle) {
-                error.push(` Detalle`)
-            }
-            if (error.length) {
-                error.unshift('Deben completar los siguientes campos:')
-                throw new ClientException(error)
-            }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
-                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
-            }
+            // let error: string[] = []
+            // if (!GestionHabilitacionEstadoCodigo) {
+            //     error.push(` Estado`)
+            // }
+            // if (!Detalle) {
+            //     error.push(` Detalle`)
+            // }
+            // if (error.length) {
+            //     error.unshift('Deben completar los siguientes campos:')
+            //     throw new ClientException(error)
+            // }
+            // if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+            //     && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+            //     throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
+            // }
+            const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
+            if (valForm instanceof ClientException)
+                throw valForm
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
@@ -627,26 +630,27 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             //Registra documentos
             for (const docs of documentos) {
-                if (docs.files?.length > 0) {
-                    for (const file of docs.files) {
-                        const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
-                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+                if (docs.file?.[0]) {
+                    const file = docs.file[0]
+                    
+                    const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+                    const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
-                        if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
-                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+                    if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+                    if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
 
-                        // CUIT- Tipo Documento - Lugar habilitación
-                        const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+                    // CUIT- Tipo Documento - Lugar habilitación
+                    const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
 
-                        const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
-                        const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                        await queryRunner.query(`
-                        INSERT INTO DocumentoRelaciones (
-                            DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                            , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                        ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                        `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
-                    }
+                    const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
+                    const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+                    await queryRunner.query(`
+                    INSERT INTO DocumentoRelaciones (
+                        DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
+                        , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                    ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
+                    `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+                    
                 }
             }
 
@@ -661,9 +665,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     }
 
     async updateHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
-        const PersonalId = req.body.personalId
-        const PersonalHabilitacionId = req.body.personalHabilitacionId
-        const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
+        const PersonalId = req.body.PersonalId
+        const PersonalHabilitacionId = req.body.PersonalHabilitacionId
+        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
         const GestionHabilitacionCodigo = req.body.codigo
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
@@ -688,22 +692,25 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validacion
-            let error: string[] = []
+            // let error: string[] = []
 
-            if (!GestionHabilitacionEstadoCodigo) {
-                error.push(` Estado`)
-            }
-            if (!Detalle) {
-                error.push(` Detalle`)
-            }
-            if (error.length) {
-                error.unshift('Deben completar los siguientes campos:')
-                throw new ClientException(error)
-            }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
-                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
-            }
+            // if (!GestionHabilitacionEstadoCodigo) {
+            //     error.push(` Estado`)
+            // }
+            // if (!Detalle) {
+            //     error.push(` Detalle`)
+            // }
+            // if (error.length) {
+            //     error.unshift('Deben completar los siguientes campos:')
+            //     throw new ClientException(error)
+            // }
+            // if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+            //     && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+            //     throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
+            // }
+            const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
+            if (valForm instanceof ClientException)
+                throw valForm
 
             //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
@@ -815,34 +822,37 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validación
-            let error: string[] = []
-            if (!GestionHabilitacionEstadoCodigo) {
-                error.push(` Estado`)
-            }
-            if (!Detalle) {
-                error.push(` Detalle`)
-            }
-            if (error.length) {
-                error.unshift('Deben completar los siguientes campos:')
-                throw new ClientException(error)
-            }
-            if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
-                && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
-                throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
-            }
+            // let error: string[] = []
+            // if (!GestionHabilitacionEstadoCodigo) {
+            //     error.push(` Estado`)
+            // }
+            // if (!Detalle) {
+            //     error.push(` Detalle`)
+            // }
+            // if (error.length) {
+            //     error.unshift('Deben completar los siguientes campos:')
+            //     throw new ClientException(error)
+            // }
+            // if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
+            //     && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
+            //     throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
+            // }
 
-            const valHabilitacionNecesaria = await queryRunner.query(`
-                SELECT PersonalHabilitacionNecesariaId
-                FROM PersonalHabilitacionNecesaria
-                WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
-                --AND PersonalHabilitacionNecesariaDesde <= @2
-                --AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
-            `, [PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta])
+            // const valHabilitacionNecesaria = await queryRunner.query(`
+            //     SELECT PersonalHabilitacionNecesariaId
+            //     FROM PersonalHabilitacionNecesaria
+            //     WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
+            //     --AND PersonalHabilitacionNecesariaDesde <= @2
+            //     --AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
+            // `, [PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta])
 
-            if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
-                // throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
-                throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
-            }
+            // if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
+            //     // throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
+            //     throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
+            // }
+            const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
+            if (valForm instanceof ClientException)
+                throw valForm
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
@@ -897,27 +907,28 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             const lugarHabilitacionDescripcion = result[0].Descripcion
 
             //Registra documentos
-            for (const docs of documentos) {
-                if (docs.files?.length > 0) {
-                    for (const file of docs.files) {
-                        const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
-                        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+            for (const doc of documentos) {
+                if (doc.file?.[0]) {
+                    const file = doc.file[0]
 
-                        if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
-                        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+                    const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+                    const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
-                        // CUIT- Tipo Documento - Lugar habilitación
-                        const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+                    if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+                    if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
 
-                        const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
-                        const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                        await queryRunner.query(`
-                        INSERT INTO DocumentoRelaciones (
-                            DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                            , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                        ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                        `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
-                    }
+                    // CUIT- Tipo Documento - Lugar habilitación
+                    const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+
+                    const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
+                    const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+                    await queryRunner.query(`
+                    INSERT INTO DocumentoRelaciones (
+                        DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
+                        , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                    ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
+                    `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
+                    
                 }
             }
 
@@ -1154,5 +1165,74 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
+    async valHabilitacionesForm(queryRunner:any, habilitacion:any){
+        let error: string[] = []
+        if (!habilitacion.GestionHabilitacionEstadoCodigo) {
+            error.push(` Estado`)
+        }
+        if (!habilitacion.Detalle) {
+            error.push(` Detalle`)
+        }
+        if (error.length) {
+            error.unshift('Deben completar los siguientes campos:')
+            return new ClientException(error)
+        }
+
+        const valHabilitacionNecesaria = await queryRunner.query(`
+            SELECT PersonalHabilitacionNecesariaId
+            FROM PersonalHabilitacionNecesaria
+            WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
+        `, [habilitacion.PersonalId, habilitacion.LugarHabilitacionId])
+
+        if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
+            // throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
+            throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
+        }
+
+        //Habilitacion en CABA, Provincia de Bs.As y Provincia de Formosa
+        const arrayFilter = [{LugarHabilitacionId: 1, tipoDocHabilitacion: 'HARPERCABA'},{LugarHabilitacionId: 5, tipoDocHabilitacion: 'HABPERPRO'},{LugarHabilitacionId: 8, tipoDocHabilitacion: 'HABPERFOR'}]
+        if (habilitacion.GestionHabilitacionEstadoCodigo == 'HABORG') {
+            if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
+
+            // let desdeHastaDocHabilitacion = false
+            let desdeDocHabilitacion = false
+            let hastaDocHabilitacion = false
+            let tipoDocHabilitacion = false
+            let cantDoc = 0
+            for (const docs of habilitacion.documentos) {
+                if (docs.file?.[0]) {
+                    const doc = docs.file[0]
+                    const find = arrayFilter.find((obj:any)=>{ obj.tipoDocHabilitacion == doc.doctipo_id })
+                    if (find) {
+                        if (!doc.DocumentoFecha) desdeDocHabilitacion = true
+                        if (!doc.DocumentoFechaDocumentoVencimiento) hastaDocHabilitacion = true
+                        if (find.LugarHabilitacionId != habilitacion.LugarHabilitacionId) tipoDocHabilitacion = true
+                        cantDoc++
+                    }
+                }
+                // if ((docs.file?.[0]?.doctipo_id == 'HARPERCABA') || (docs.file?.[0]?.doctipo_id == 'HABPERPRO') || (docs.file?.[0]?.doctipo_id == 'HABPERFOR')) {
+                //     const doc = docs.file[0]
+                //     // if (!doc.DocumentoFecha || !doc.DocumentoFechaDocumentoVencimiento) desdeHastaDocHabilitacion = true
+                //     if (!doc.DocumentoFecha) desdeDocHabilitacion = true
+                //     if (!doc.DocumentoFechaDocumentoVencimiento) hastaDocHabilitacion = true
+                //     if(!arrayFilter.find((obj:any)=>{ obj.tipoDocHabilitacion == doc.doctipo_id && obj.LugarHabilitacionId == habilitacion.LugarHabilitacionId})) tipoDocHabilitacion = true
+                //     cantDoc++
+                // }
+            }
+
+            if (desdeDocHabilitacion) error.push(`- Desde`)
+            if (hastaDocHabilitacion) error.push(`- Hasta`)
+            if (error.length) error.unshift('Deben completar los siguientes campos:')
+
+            if (!cantDoc || tipoDocHabilitacion) error.push(`Ingrese un documento relacionado al Lugar Habilitacion`)
+
+            if (error.length) {
+                return new ClientException(error)
+            }
+        } 
+        
+    }
+
+    
 
 }

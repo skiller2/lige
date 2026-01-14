@@ -75,3 +75,7 @@ habilitacionesRouter.post('/update-hab-necesaria', [authMiddleware.verifyToken, 
 habilitacionesRouter.post('/gestion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.getGestionHabilitacion(req, res, next)
 })
+
+// habilitacionesRouter.delete('/gestion/delete', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+//   habilitacionesController.deleteGestionHabilitacion(req, res, next)
+// })
