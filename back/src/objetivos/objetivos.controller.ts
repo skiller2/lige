@@ -208,6 +208,26 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false
+    },
+    {
+        name: "Lugares Habilitación",
+        type: "string",
+        id: "LugarHabilitacionIdList",
+        field: "LugarHabilitacionIdList",
+        fieldName: "oan.LugarHabilitacionIdList",
+        sortable: true,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        name: "Lugares Habilitación",
+        type: "string",
+        id: "LugarHabilitacionDescripcionList",
+        field: "LugarHabilitacionDescripcionList",
+        fieldName: "oan.LugarHabilitacionDescripcionList",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
     }
 
 ];
@@ -406,6 +426,8 @@ export class ObjetivosController extends BaseController {
                     objdom.domCompleto,
 					objdom.domCalleNro,
 					 objdom.DomicilioCodigoPostal, objdom.DomicilioPaisId, objdom.DomicilioProvinciaId,objdom.DomicilioLocalidadId,objdom.DomicilioBarrioId,
+                    oan.LugarHabilitacionIdList,
+                    oan.LugarHabilitacionDescripcionList,
                     1
                     FROM Objetivo obj 
                     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -465,6 +487,12 @@ export class ObjetivosController extends BaseController {
                                 ROW_NUMBER() OVER (PARTITION BY ca.ClienteId ORDER BY ca.ClienteAdministradorAdministradorId DESC) AS RowNum
                                 FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
                                 adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
+                    LEFT JOIN (
+                        SELECT an.ObjetivoId, STRING_AGG(an.ObjetivoHabilitacionNecesariaLugarHabilitacionId,',') LugarHabilitacionIdList, STRING_AGG(lh.LugarHabilitacionDescripcion,',') LugarHabilitacionDescripcionList FROM ObjetivoHabilitacionNecesaria an
+                        JOIN LugarHabilitacion lh ON lh.LugarHabilitacionId = an.ObjetivoHabilitacionNecesariaLugarHabilitacionId
+                        WHERE an.ObjetivoHabilitacionNecesariaInactivo IS NULL OR an.ObjetivoHabilitacionNecesariaInactivo=0
+                    GROUP BY  an.ObjetivoId
+                        ) oan ON oan.ObjetivoId = obj.ObjetivoId
                 
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
