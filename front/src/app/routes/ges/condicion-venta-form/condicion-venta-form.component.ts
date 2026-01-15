@@ -45,10 +45,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
 
   fb = inject(FormBuilder)
-  formCondicionVenta = this.fb.group({ 
+  formCondicionVenta = this.fb.group({
     CondicionVentaId: 0,
     codobjId: '',
-    ObjetivoId: 0, 
+    ObjetivoId: 0,
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
     GeneracionFacturaDia: '',
@@ -56,17 +56,17 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     Observaciones: '',
     infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
     infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
-    }) 
+  })
 
 
   constructor() {
     effect(() => {
-   
-        this.formCondicionVenta.patchValue({
-          codobjId: this.codobjId(),
-        });
 
-      
+      this.formCondicionVenta.patchValue({
+        codobjId: this.codobjId(),
+      });
+
+
     });
   }
 
@@ -93,24 +93,33 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.formCondicionVenta.markAsDirty();
   }
 
-async newRecord() {
-  this.codobjId.set('')
-  this.PeriodoDesdeAplica.set('')
-  this.formCondicionVenta.enable()
-  this.formCondicionVenta.reset();
-  this.infoProductos().clear();
-  this.infoProductos().push(this.fb.group({ ...this.objProductos }));
-  this.formCondicionVenta.markAsPristine();
-}
+  async newRecord() {
 
-  
+    console.log("this.codobjId()", this.codobjId())
+    console.log("this.PeriodoDesdeAplica()", this.PeriodoDesdeAplica())
+
+    if (this.codobjId() && this.PeriodoDesdeAplica()) {
+      await this.load()
+    } else {
+      this.codobjId.set('')
+      this.PeriodoDesdeAplica.set('')
+      this.formCondicionVenta.enable()
+      this.formCondicionVenta.reset();
+      this.infoProductos().clear();
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+      this.formCondicionVenta.markAsPristine();
+    }
+
+  }
+
+
 
   async viewRecord(readonly: boolean) {
     if (this.codobjId() && this.PeriodoDesdeAplica())
       await this.load()
-    if (readonly){
+    if (readonly) {
       this.formCondicionVenta.disable()
-    }else{
+    } else {
       this.formCondicionVenta.enable()
     }
     this.formCondicionVenta.markAsPristine()
@@ -119,18 +128,18 @@ async newRecord() {
 
   async load() {
 
-    let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta( this.codobjId(), this.PeriodoDesdeAplica()))
+    let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta(this.codobjId(), this.PeriodoDesdeAplica()))
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
 
-   infoCliente.infoProductos.forEach((obj: any) => {
-     this.infoProductos().push(this.fb.group({ ...this.objProductos }))
-   });
-   this.formCondicionVenta.reset(infoCliente)
+    infoCliente.infoProductos.forEach((obj: any) => {
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+    });
+    this.formCondicionVenta.reset(infoCliente)
 
   }
 
-  
+
   ngOnInit(): void {
     this.formCondicionVenta.patchValue({
       codobjId: this.codobjId(),
@@ -172,21 +181,21 @@ async newRecord() {
     try {
       const formValue = this.formCondicionVenta.getRawValue();
 
-       if (this.codobjId()) {
+      if (this.codobjId()) {
         //console.log("voy a actualizar condicion de venta")
-       const result = await firstValueFrom(this.apiService.updateCondicionVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
-     
+        const result = await firstValueFrom(this.apiService.updateCondicionVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
+
       } else {
-       // console.log("voy a insertar condicion de venta")
+        // console.log("voy a insertar condicion de venta")
         const result = await firstValueFrom(this.apiService.addCondicionVenta(formValue));
         const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
         const clienteid = result.data.ClienteId;
         this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
         this.PeriodoDesdeAplica.set(result.data.PeriodoDesdeAplica);
-       
+
       }
-      
-     //await this.load();
+
+      //await this.load();
       this.onAddorUpdate.emit('save');
       this.formCondicionVenta.markAsUntouched();
       this.formCondicionVenta.markAsPristine();
