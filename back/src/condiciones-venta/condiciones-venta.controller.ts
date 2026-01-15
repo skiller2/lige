@@ -60,7 +60,7 @@ export class CondicionesVentaController extends BaseController {
             field: "ClienteElementoDependienteDescripcion",
             fieldName: "ClienteElementoDependienteDescripcion",
             searchType: "string",
-            sortable: false,
+            sortable: true,
             hidden: false,
             searchHidden: true
         },
@@ -282,7 +282,7 @@ export class CondicionesVentaController extends BaseController {
                             and cv.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1)
                     )
                 Left join Cliente cli on cli.ClienteId=ele.ClienteId
-                Left join Objetivo obj on obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and obj.ClienteId=ele.ClienteId
+                join Objetivo obj on obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and obj.ClienteId=ele.ClienteId
                 Left join Personal per on per.PersonalId=conven.AutorizacionPersonalId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
