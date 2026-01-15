@@ -100,6 +100,12 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     if (this.codobjId() && this.PeriodoDesdeAplica()) {
       await this.load()
+      this.codobjId.set('')
+      this.PeriodoDesdeAplica.set('')
+      this.formCondicionVenta.patchValue({
+        PeriodoDesdeAplica: '',
+      });
+
     } else {
       this.codobjId.set('')
       this.PeriodoDesdeAplica.set('')
