@@ -47,7 +47,7 @@ export class HabilitacionesFormDrawerComponent {
     PersonalHabilitacionId:0,
     PersonalId:0,
     LugarHabilitacionId:0,
-
+    HabilitacionCategoriaCodigos:[],
     GestionHabilitacionCodigo:0,
     GestionHabilitacionEstadoCodigo:'',
     Detalle:'',
@@ -84,17 +84,17 @@ export class HabilitacionesFormDrawerComponent {
   )
 
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
-  // $optionsTipos = this.searchService.getDocumentoTipoOptions();
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
       debounceTime(500),
       switchMap(() =>
-          this.apiService
-              .getPersonaSitRevista(
-                  Number(this.formHabilitacion.get('PersonalId')?.value),
-                  this.anio(),
-                  this.mes()
-              )
+          this.apiService.getPersonaSitRevista(Number(this.formHabilitacion.get('PersonalId')?.value), this.anio(), this.mes())
+      )
+  )
+  $optionsHabilitacionCategoria = this.formHabilitacion.get('LugarHabilitacionId')!.valueChanges.pipe(
+      debounceTime(500),
+      switchMap(() =>
+          this.searchService.getHabilitacionCategoriaOptions(Number(this.formHabilitacion.get('LugarHabilitacionId')?.value))
       )
   )
 

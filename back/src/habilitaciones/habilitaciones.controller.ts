@@ -564,6 +564,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalId = req.body.PersonalId
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const HabilitacionCategoriaCodigos = req.body.HabilitacionCategoriaCodigos
         if (!PersonalHabilitacionId) {
             return this.addHabilitacion(req, res, next)
         }
@@ -590,21 +591,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validacion
-            // let error: string[] = []
-            // if (!GestionHabilitacionEstadoCodigo) {
-            //     error.push(` Estado`)
-            // }
-            // if (!Detalle) {
-            //     error.push(` Detalle`)
-            // }
-            // if (error.length) {
-            //     error.unshift('Deben completar los siguientes campos:')
-            //     throw new ClientException(error)
-            // }
-            // if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
-            //     && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
-            //     throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
-            // }
             const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
@@ -686,6 +672,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalId = req.body.PersonalId
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const HabilitacionCategoriaCodigos = req.body.HabilitacionCategoriaCodigos
         const GestionHabilitacionCodigo = req.body.codigo
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
@@ -710,22 +697,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validacion
-            // let error: string[] = []
-
-            // if (!GestionHabilitacionEstadoCodigo) {
-            //     error.push(` Estado`)
-            // }
-            // if (!Detalle) {
-            //     error.push(` Detalle`)
-            // }
-            // if (error.length) {
-            //     error.unshift('Deben completar los siguientes campos:')
-            //     throw new ClientException(error)
-            // }
-            // if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
-            //     && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
-            //     throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
-            // }
             const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
@@ -822,7 +793,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalId = req.body.PersonalId
         const LugarHabilitacionId = req.body.LugarHabilitacionId
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
-        const HabilitacionCategoriaCodigo = req.body.HabilitacionCategoriaCodigo
+        const HabilitacionCategoriaCodigos = req.body.HabilitacionCategoriaCodigos
         const Detalle = req.body.Detalle
         const NroTramite = req.body.NroTramite
         const PersonalHabilitacionDesde: Date = req.body.PersonalHabilitacionDesde ? new Date(req.body.PersonalHabilitacionDesde) : null
@@ -840,34 +811,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validación
-            // let error: string[] = []
-            // if (!GestionHabilitacionEstadoCodigo) {
-            //     error.push(` Estado`)
-            // }
-            // if (!Detalle) {
-            //     error.push(` Detalle`)
-            // }
-            // if (error.length) {
-            //     error.unshift('Deben completar los siguientes campos:')
-            //     throw new ClientException(error)
-            // }
-            // if ((PersonalHabilitacionDesde || PersonalHabilitacionHasta || NroTramite)
-            //     && (!PersonalHabilitacionDesde || !PersonalHabilitacionHasta || !NroTramite)) {
-            //     throw new ClientException(`Los campos Desde, Hasta y Nro Tramite deben de completarse al mismo tiempo`)
-            // }
-
-            // const valHabilitacionNecesaria = await queryRunner.query(`
-            //     SELECT PersonalHabilitacionNecesariaId
-            //     FROM PersonalHabilitacionNecesaria
-            //     WHERE PersonalId = @0 AND PersonalHabilitacionNecesariaLugarHabilitacionId = @1
-            //     --AND PersonalHabilitacionNecesariaDesde <= @2
-            //     --AND (PersonalHabilitacionNecesariaHasta IS NULL OR PersonalHabilitacionNecesariaHasta >= @3)
-            // `, [PersonalId, LugarHabilitacionId, PersonalHabilitacionDesde, PersonalHabilitacionHasta])
-
-            // if (valHabilitacionNecesaria && !valHabilitacionNecesaria.length) {
-            //     // throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación en el periodo seleccionado (Desde - Hasta)`)
-            //     throw new ClientException(`La persona no posee la habilitación necesaria para el Lugar Habilitación`)
-            // }
             const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
@@ -894,15 +837,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 , fechaActual, ip, usuario
             ])
 
-            // for (const codigo of HabilitacionCategoriaCodigo) {
+            // for (const codigo of HabilitacionCategoriaCodigos) {
             //     await queryRunner.query(`
             //     INSERT INTO HabilitacionCategoriaPersonal (
-            //     PersonalId, HabilitacionCategoriaCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+            //     PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId, HabilitacionCategoriaCodigo
             //     , Desde, Hasta
             //     , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
             //     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
             //     `, [ 
-            //         PersonalId, codigo, newPersonalHabilitacionId, LugarHabilitacionId
+            //         PersonalId, newPersonalHabilitacionId, LugarHabilitacionId, codigo
             //         , PersonalHabilitacionDesde, PersonalHabilitacionHasta
             //         , fechaActual, usuario, ip
             //     ])

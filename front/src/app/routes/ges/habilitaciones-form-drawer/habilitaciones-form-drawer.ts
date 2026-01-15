@@ -42,7 +42,7 @@ export class HabilitacionesFormDrawerComponent {
     PersonalHabilitacionId:0,
     PersonalId:0,
     LugarHabilitacionId:0,
-    HabilitacionCategoriaCodigo:[],
+    HabilitacionCategoriaCodigos:[],
     // GestionHabilitacionCodigo:0,
     GestionHabilitacionEstadoCodigo:'',
     Detalle:'',
@@ -72,11 +72,6 @@ export class HabilitacionesFormDrawerComponent {
     return this.formHabilitacion.get("documentos") as FormArray
   }
 
-  signalPersonalId = toSignal(
-    this.formHabilitacion.get("PersonalId")!.valueChanges,
-    { initialValue: this.formHabilitacion.get('PersonalId')!.value }
-  )
-
   signalDocumento = toSignal(
     this.documentos().valueChanges,
     { initialValue: this.documentos().value }
@@ -94,10 +89,22 @@ export class HabilitacionesFormDrawerComponent {
         this.mes()
       )
     )
-    )
+  )
 
-  optionsHabilitacionCategoria = signal<any[]>([])
-  optionsLugarHabilitacion = signal<any[]>([])
+  $optionsHabilitacionCategoria = this.formHabilitacion.get('LugarHabilitacionId')!.valueChanges.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.searchService.getHabilitacionCategoriaOptions(
+        Number(this.formHabilitacion.get('LugarHabilitacionId')?.value)
+      )
+    )
+  )
+  $optionsLugarHabilitacion = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.searchService.getLugarHabilitacionByPersonlaId(Number(this.formHabilitacion.get('PersonalId')?.value))
+    )
+  )
 
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
@@ -106,16 +113,6 @@ export class HabilitacionesFormDrawerComponent {
     // private notification = NzNotificationService,
     private searchService: SearchService
   ) {
-    effect(async() => {
-      const PersonalId = this.signalPersonalId()
-      
-      if (PersonalId) {
-        const res = await firstValueFrom(this.searchService.getLugarHabilitacionByPersonlaId(PersonalId))
-        this.optionsLugarHabilitacion.set(res)
-      }else
-        this.optionsLugarHabilitacion.set([])
-      
-    })
     effect(async() => {
       const visible = this.visible()
       if (visible) {
@@ -157,11 +154,6 @@ export class HabilitacionesFormDrawerComponent {
     } catch (error) {
     }
     this.isLoading.set(false)
-  }
-
-  async selectedLugarHabilitacionChange(event: any){
-    const Categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(this.LugarHabilitacionId()))
-    this.optionsHabilitacionCategoria.set(Categorias)
   }
 
   addDoc(e?: MouseEvent): void {

@@ -47,6 +47,18 @@
         </nz-form-control>
       </nz-form-item>
 
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="7">Categoria de la Habilitacion</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+          <nz-select formControlName="HabilitacionCategoriaCodigos" nzPlaceHolder="Seleccione categoria" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzMode="multiple">
+            @for (option of $optionsHabilitacionCategoria | async; track option) {
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
       @if (GestionHabilitacionCodigo()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
