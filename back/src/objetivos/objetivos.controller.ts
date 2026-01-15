@@ -210,7 +210,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Lugares Habilitación",
+        name: "Lugares Habilitación ids",
         type: "string",
         id: "LugarHabilitacionIdList",
         field: "LugarHabilitacionIdList",
