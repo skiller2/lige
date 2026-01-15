@@ -3,20 +3,38 @@
     justify-content: center;
 }
 
-.dowload-color{
-    color: rgb(0, 89, 255);
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-
 .containerAnteriores{
-    display: inline-block;
+    display: flex;
+
     margin-left: 10px;
     margin-right: 10px;
     margin-top: 10px;
     border: #e3c4c4 1px solid;
-    padding: 5px;
+    padding: 10px;
+    // width: 150px;
+}
+
+.preview {
+  flex: 0 0 auto;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filename {
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.meta {
+  font-size: 12px;
+  color: #777;
+  display: flex;
+  gap: 10px;
 }
 
 .BtnUploadFile{
@@ -25,21 +43,29 @@
 }
 
 
-.swap-color{
-    color: #40a9ff;
+.download-color{
+    color: rgb(0, 89, 255);
     margin-left: 5px;
     margin-right: 5px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swap-color{
+    color: #40a9ff;
 }
 
 .swap-trash{
     color: #ff4d4f;
-    margin-left: 5px;
-    margin-right: 5px;
 }
 
 .cursor-pointer {
     cursor: pointer;
-  }
+}
 
 
 .image-content {
@@ -54,6 +80,13 @@
 
 .inputsConteiner {
     padding: 5px;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
 }
 // nz-select{
 //     width: 200px !important;
