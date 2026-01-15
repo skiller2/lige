@@ -10,6 +10,7 @@ import { AsistenciaController } from "./controller/asistencia.controller";
 import { SegurosController } from "./seguros/seguros.controller";
 import { Temporal } from "@js-temporal/polyfill";
 import { ClientesController } from "./clientes/clientes.controller";
+import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 //import { GlobalWorkerOptions } from "pdfjs-dist";
 
@@ -25,6 +26,7 @@ const categoriasController = new CategoriasController()
 const grupoActividadController = new GrupoActividadController()
 const cargaLicenciaController = new CargaLicenciaController()
 const asistenciaController = new AsistenciaController()
+const habilitacionesController = new HabilitacionesController()
 
 scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
   const currentDate = new Date();
@@ -67,6 +69,15 @@ scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
   const anio = actual.getFullYear()
   const mes = actual.getMonth() + 1
   const ret = await asistenciaController.getListaAsistenciaControAcceso({params:{anio,mes}}, null, (ret: any) => ret)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
+});
+
+scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
+  //TODO Se debería instanciar Response correctamente
+  const actual = new Date()
+  const anio = actual.getFullYear()
+  const mes = actual.getMonth() + 1
+  const ret = await habilitacionesController.jobHabilitacionNecesaria({params:{anio,mes}}, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 

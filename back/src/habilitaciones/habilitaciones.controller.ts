@@ -999,31 +999,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             return next(error)
         }
     }
-
-    // funcion encargada de crear o eliminar el registro de habilutacion necesaria, en base a la asistencia que posee la persona
-    async backgroundProcessHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-
-        // si la persona esta de baja, eliminar la habilitacion necesaria
-
-        // ver si tuvo asistencia en el periodo pasado, pero esta activo, no elimino la habilitacion necesaria
-
-        // si tuvo asistencia, chequear que tenga la habilitacion necesaria, si no la tiene, crearla
-
-        // si no tuvo asistencia, chequear si tiene habilitacion necesaria, si la tiene, eliminarla
-
-        /*      otros casos: 
-                        - esta activa pero no tuvo asistencia, que se hace?
-                        - estuvo de baja en el periodo, que se hace? se elimina la habilitacion necesaria
-                        - estuvo de baja en el periodo pero ahora esta activa, que se hace? se crea la habilitacion necesaria si tuvo asistencia
-                        - 
-        
-        
-        */
-
-
-
-    }
-    
+   
     getPreviousMonthYear(year: number, month: number): { year: number, month: number } {
         if (month === 1) {
             return { year: year - 1, month: 12 };
@@ -1032,7 +1008,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    async updateHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
+    async jobHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
 
         const usuario = res?.locals.userName || 'server'
@@ -1063,7 +1039,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             for (const asisObj of resAsisObjetiv) {
                 if (asisObj.ObjetivoAsistenciaTipoAsociadoId != 3) continue; 
-
+//                if (asisObj.LugarHabilitacionIdList== null || asisObj.LugarHabilitacionIdList.trim() === '') console.log(asisObj);
                 const PersonalId = asisObj.PersonalId
                 const LugarHabilitacionIdList = asisObj.LugarHabilitacionIdList ? asisObj.LugarHabilitacionIdList.split(',') : []
                 for (const LugarHabilitacionId of LugarHabilitacionIdList) {
@@ -1085,7 +1061,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 PersonalId,
                 LugarHabilitacionId: list,
             }));
-
+//console.log('PersonalLugar1', PersonalLugar);
+//console.log('PersonalLugar2', PersonalLugar.length);
             //TODO:  Buscar las diferencias entre lo que esta en la base y lo que deberia estar segun las asistencias
             for (const perlug of PersonalLugar) {
                 const PersonalId = perlug.PersonalId
@@ -1094,6 +1071,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
                     const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === PersonalId && lugarId==h.PersonalHabilitacionNecesariaLugarHabilitacionId)
                     if (!habNecesariaActual) {
+                        
                         const res = await queryRunner.query(`
                                     SELECT PersonalHabilitacionNecesariaUltNro FROM  Personal WHERE PersonalId =@0
                                 `, [PersonalId])
@@ -1118,7 +1096,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                         
                         registrosActualizados += 1;
 
-   //                     lugarIdList.push(lugarId)
                     }
                 }
             }
