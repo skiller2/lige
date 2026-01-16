@@ -77,6 +77,7 @@ export class HabilitacionesFormDrawerComponent {
     { initialValue: this.documentos().value }
   )
 
+  $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions()
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
@@ -130,11 +131,16 @@ export class HabilitacionesFormDrawerComponent {
         this.formHabilitacion.enable()
       }
     })
+
     effect(async() => {
       const documentos = this.signalDocumento()
-      if ( documentos[documentos.length-1]?.files?.length) {
-        this.addDoc()
-      }
+      const docs = this.documentos().value
+      
+      for (let index = 0; index < (docs.length-1); index++)
+        if(!docs[index].file?.length) this.removeDoc(index)
+      
+      if (documentos[documentos.length-1].file?.length) this.addDoc()
+      
     })
   }
 
@@ -161,8 +167,8 @@ export class HabilitacionesFormDrawerComponent {
     this.documentos().push(this.fb.group({...this.objDoc}))
   }
 
-  removeDoc(index: number, e: MouseEvent): void {
-    e.preventDefault();
+  removeDoc(index: number, e?: MouseEvent): void {
+    e?.preventDefault();
     if (this.documentos().controls.length > 1 ) {
       this.documentos().removeAt(index)
       this.formHabilitacion.markAsDirty()
