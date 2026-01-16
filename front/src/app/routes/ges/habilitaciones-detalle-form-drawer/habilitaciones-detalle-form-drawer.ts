@@ -147,9 +147,11 @@ export class HabilitacionesFormDrawerComponent {
     effect(async() => {
       const documentos = this.signalDocumento()
       const docs = this.documentos().value
-      if (documentos[documentos.length-1].file?.length) {
-        this.addDoc()
-      }
+      
+      for (let index = 0; index < (docs.length-1); index++)
+        if(!docs[index].file?.length) this.removeDoc(index)
+      
+      if (documentos[documentos.length-1].file?.length) this.addDoc()
       
     })
   }
@@ -198,8 +200,8 @@ export class HabilitacionesFormDrawerComponent {
     this.documentos().push(this.fb.group({...this.objDoc}))
   }
 
-  removeDoc(index: number, e: MouseEvent): void {
-    e.preventDefault();
+  removeDoc(index: number, e?: MouseEvent): void {
+    e?.preventDefault();
     if (this.documentos().controls.length > 1 ) {
       this.documentos().removeAt(index)
       this.formHabilitacion.markAsDirty()
