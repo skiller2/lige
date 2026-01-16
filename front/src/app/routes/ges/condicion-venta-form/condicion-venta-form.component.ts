@@ -30,18 +30,21 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   objetivoExtended = signal<any>(null);
   codobjId = model<string>('');
   PeriodoDesdeAplica = model('');
+  MetodologiaSelected = signal<string>('');
 
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
 
   objProductos = {
-    Cantidad: null,
-    ImporteFijo: null,
-    IndCantidadHorasVenta: null,
-    IndImporteAcuerdoConCliente: null,
-    IndImporteListaPrecio: null,
-    ProductoCodigo: null,
-    TextoFactura: null
-  }
+    CondicionVentaProductoId: 0,
+    ProductoCodigo: '',
+    Cantidad: '',
+    Metodologia: '',
+    ImporteUnitario: '',
+    ImporteTotal: '',
+    IndHorasAFacturar: null,
+    TextoFactura: '',
+
+  };
 
 
   fb = inject(FormBuilder)
@@ -210,6 +213,15 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     }
     this.loadingSrv.close();
 
+  }
+
+  calcularTotal(index: number) {
+    const cantidad = this.infoProductos().at(index)?.get('Cantidad')?.value;
+    const importeUnitario = this.infoProductos().at(index)?.get('ImporteUnitario')?.value;
+    const importeTotal = Number(cantidad) * Number(importeUnitario);
+    this.infoProductos().at(index)?.patchValue({
+      ImporteTotal: importeTotal
+    })
   }
 
 }
