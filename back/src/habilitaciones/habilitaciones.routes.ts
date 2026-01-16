@@ -24,6 +24,10 @@ habilitacionesRouter.get("/lugar/options", [authMiddleware.verifyToken], (req, r
   habilitacionesController.getLugarHabilitacion(req, res, next);
 });
 
+habilitacionesRouter.get("/clase/options", [authMiddleware.verifyToken], (req, res, next) => {
+  habilitacionesController.getHabilitacionesClasesOptions(req, res, next);
+});
+
 habilitacionesRouter.get("/lugar/options/personal/:PersonalId", [authMiddleware.verifyToken], (req, res, next) => {
   habilitacionesController.getLugarHabilitacionByPersonalId(req, res, next);
 });

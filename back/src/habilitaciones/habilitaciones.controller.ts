@@ -332,6 +332,10 @@ export class HabilitacionesController extends BaseController {
         this.jsonRes(GridDocColums, res);
     }
 
+    async getHabilitacionesClasesOptions(req, res, next) {
+        this.jsonRes(getHabilitacionesClasesOptions, res);
+    }
+
     async habilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
         periodo.setHours(0, 0, 0, 0)
         return await queryRunner.query(`
@@ -532,11 +536,31 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             WHERE perhab.PersonalHabilitacionId = @0 AND perhab.PersonalId = @1
             `, [PersonalHabilitacionId, PersonalId])
 
-            this.jsonRes(PersonalHabilitacion[0], res);
+            let HabilitacionCategoriaCodigos: string[] = []
+            const HabilitacionCategorias = await this.getHabilitacionCategoriaByPersonalHabilitacionIdQuery(queryRunner, PersonalId, PersonalHabilitacionId)
+            for (const obj of HabilitacionCategorias)
+                HabilitacionCategoriaCodigos.push(obj.HabilitacionCategoriaCodigo)
+
+            const obj = {
+                ...PersonalHabilitacion[0],
+                HabilitacionCategoriaCodigos 
+            }
+
+            this.jsonRes(obj, res);
 
         } catch (error) {
             return next(error)
         }
+    }
+
+    async getHabilitacionCategoriaByPersonalHabilitacionIdQuery(queryRunner: any, PersonalId:any, PersonalHabilitacionId:any) {
+        return await queryRunner.query(`
+            SELECT 
+                habcatper.PersonalId, habcatper.PersonalHabilitacionId, habcatper.PersonalHabilitacionLugarHabilitacionId AS LugarHabilitacionId
+                , habcatper.HabilitacionCategoriaCodigo, habcatper.Desde, habcatper.Hasta
+            FROM HabilitacionCategoriaPersonal habcatper 
+            WHERE habcatper.PersonalHabilitacionId = @0 AND habcatper.PersonalId = @1
+        `, [PersonalHabilitacionId, PersonalId])
     }
 
     async getGestionHabilitacion(req: any, res: Response, next: NextFunction) {
@@ -563,7 +587,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     async addHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
         const PersonalId = req.body.PersonalId
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
-        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const LugarHabilitacionId = req.body.LugarHabilitacionId
         const HabilitacionCategoriaCodigos = req.body.HabilitacionCategoriaCodigos
         if (!PersonalHabilitacionId) {
             return this.addHabilitacion(req, res, next)
@@ -595,12 +619,22 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             if (valForm instanceof ClientException)
                 throw valForm
 
+            //HabilitacionCategoriaPersonal
+            await this.setHabilitacionCategoriaPersonal(
+                queryRunner
+                , PersonalId
+                , PersonalHabilitacionId
+                , LugarHabilitacionId
+                , HabilitacionCategoriaCodigos
+                , usuario, ip
+            )
+
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
                 SELECT ISNULL(GestionHabilitacionCodigoUlt, 0) CodigoUlt
                 FROM PersonalHabilitacion
                 WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
-            `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId])
+            `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId])
             const newCodigoUlt = result[0].CodigoUlt + 1
 
             //Actualiza el Ultimo Codigo registrado
@@ -609,7 +643,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, GestionHabilitacionCodigoUlt = @6, NroTramite = @7
                 , AudFechaMod = @8, AudIpMod = @9, AusUsuarioMod = @10
                 WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
-            `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
+            `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId,
                 PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, newCodigoUlt, NroTramite,
                 fechaActual, ip, usuario
             ])
@@ -619,7 +653,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
                 , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
                 ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
-            `, [newCodigoUlt, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
+            `, [newCodigoUlt, PersonalId, LugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
 
             //Datos para la denominacion del documento
@@ -629,7 +663,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
                 FROM LugarHabilitacion
                 WHERE LugarHabilitacionId = @0
-            `, [PersonalHabilitacionLugarHabilitacionId])
+            `, [LugarHabilitacionId])
             const lugarHabilitacionDescripcion = result[0].Descripcion
 
             //Registra documentos
@@ -653,7 +687,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                         DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
                         , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
                     ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                    `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
+                    `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, LugarHabilitacionId])
                     
                 }
             }
@@ -671,7 +705,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     async updateHabilitacionDetalle(req: any, res: Response, next: NextFunction) {
         const PersonalId = req.body.PersonalId
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
-        const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
+        const LugarHabilitacionId = req.body.LugarHabilitacionId
         const HabilitacionCategoriaCodigos = req.body.HabilitacionCategoriaCodigos
         const GestionHabilitacionCodigo = req.body.codigo
         const ip = this.getRemoteAddress(req)
@@ -701,13 +735,23 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             if (valForm instanceof ClientException)
                 throw valForm
 
+            //HabilitacionCategoriaPersonal
+            await this.setHabilitacionCategoriaPersonal(
+                queryRunner
+                , PersonalId
+                , PersonalHabilitacionId
+                , LugarHabilitacionId
+                , HabilitacionCategoriaCodigos
+                , usuario, ip
+            )
+
             //Actualiza el Ultimo Codigo registrado
             await queryRunner.query(`
             UPDATE PersonalHabilitacion
             SET PersonalHabilitacionDesde = @3, PersonalHabilitacionHasta = @4,PersonalHabilitacionClase = @5, NroTramite = @6
             , AudFechaMod = @7, AudIpMod = @8, AusUsuarioMod = @9
             WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2
-            `, [PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
+            `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId,
                 PersonalHabilitacionDesde, PersonalHabilitacionHasta, PersonalHabilitacionClase, NroTramite,
                 fechaActual, ip, usuario
             ])
@@ -718,7 +762,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             SET GestionHabilitacionEstadoCodigo = @4, Detalle = @5,
                  AudFechaMod = @6, AudUsuarioMod = @7, AudIpMod = @8
             WHERE GestionHabilitacionCodigo = @0 AND PersonalHabilitacionId = @1 AND PersonalId = @2 AND PersonalHabilitacionLugarHabilitacionId = @3
-            `, [GestionHabilitacionCodigo, PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId,
+            `, [GestionHabilitacionCodigo, PersonalHabilitacionId, PersonalId, LugarHabilitacionId,
                 GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
 
@@ -837,19 +881,20 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 , fechaActual, ip, usuario
             ])
 
-            // for (const codigo of HabilitacionCategoriaCodigos) {
-            //     await queryRunner.query(`
-            //     INSERT INTO HabilitacionCategoriaPersonal (
-            //     PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId, HabilitacionCategoriaCodigo
-            //     , Desde, Hasta
-            //     , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-            //     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
-            //     `, [ 
-            //         PersonalId, newPersonalHabilitacionId, LugarHabilitacionId, codigo
-            //         , PersonalHabilitacionDesde, PersonalHabilitacionHasta
-            //         , fechaActual, usuario, ip
-            //     ])
-            // }
+            //HabilitacionCategoriaPersonal
+            for (const codigo of HabilitacionCategoriaCodigos) {
+                await queryRunner.query(`
+                INSERT INTO HabilitacionCategoriaPersonal (
+                PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId, HabilitacionCategoriaCodigo
+                , Desde, Hasta
+                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+                `, [ 
+                    PersonalId, newPersonalHabilitacionId, LugarHabilitacionId, codigo
+                    , null, null
+                    , fechaActual, usuario, ip
+                ])
+            }
 
             await queryRunner.query(`
             INSERT INTO GestionHabilitacion (GestionHabilitacionCodigo, PersonalId, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle
@@ -968,6 +1013,50 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             UPDATE Personal SET PersonalHabilitacionNecesariaUltNro = @1
             WHERE PersonalId IN (@0)
         `, [personalId, PersonalHabilitacionNecesariaId])
+    }
+
+    async setHabilitacionCategoriaPersonal(queryRunner: any, PersonalId: number, PersonalHabilitacionId:number, LugarHabilitacionId:number, categorias: string[], usuario: string, ip: string) {
+        //Compruebo si hubo cambios
+        let cambios: boolean = false
+
+        const catsOld: number[] = []
+        const list = await this.getHabilitacionCategoriaByPersonalHabilitacionIdQuery(queryRunner, PersonalId, PersonalHabilitacionId)
+        
+        for (const hab of list){
+            catsOld.push(hab.HabilitacionCategoriaCodigo)
+        }
+
+        if (categorias.length != catsOld.length)
+            cambios = true
+        else
+            catsOld.forEach((hab: any, index: number) => {
+                if (categorias.find(h => hab != h)) cambios = true
+            });
+        if (!cambios) return
+
+
+        //Actualizo
+        const fechaActual = new Date()
+        fechaActual.setHours(0,0,0,0)
+
+        await queryRunner.query(`
+            DELETE FROM HabilitacionCategoriaPersonal
+            WHERE PersonalId IN (@0) AND PersonalHabilitacionId IN (@1)
+        `, [PersonalId, PersonalHabilitacionId])
+
+        for (const codigo of categorias) {
+            await queryRunner.query(`
+                INSERT INTO HabilitacionCategoriaPersonal (
+                PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId, HabilitacionCategoriaCodigo
+                , Desde, Hasta
+                , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+            `, [ 
+                PersonalId, PersonalHabilitacionId, LugarHabilitacionId, codigo
+                , null, null
+                , fechaActual, usuario, ip
+            ])
+        }
     }
 
     private async queryHabilitacionNecesariaByPersonalId(queryRunner: any, PersonalId: any) {

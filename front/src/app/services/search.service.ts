@@ -1794,6 +1794,16 @@ export class SearchService {
     );
   }
 
+  getHabilitacionClaseOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/habilitaciones/clase/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getLugarHabilitacionByPersonlaId(id: number): Observable<any> {
     if (!id) return of([])
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/lugar/options/personal/${id}`).pipe(

@@ -83,6 +83,7 @@ export class HabilitacionesFormDrawerComponent {
     { initialValue: this.documentos().value }
   )
 
+  $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions()
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
@@ -137,8 +138,7 @@ export class HabilitacionesFormDrawerComponent {
         this.formHabilitacion.reset(lastConfig)
         this.formHabilitacion.markAsUntouched()
         this.formHabilitacion.markAsPristine()
-      }
-      else {
+      } else {
         this.formHabilitacion.reset()
         this.formHabilitacion.enable()
       }
@@ -159,13 +159,9 @@ export class HabilitacionesFormDrawerComponent {
   async save() {
     this.isLoading.set(true)
     let vals:any = this.formHabilitacion.getRawValue()
-    // vals.PersonalId = this.personalId()
-    // vals.LugarHabilitacionId = this.lugarHabilitacionId()
-    // vals.PersonalHabilitacionId = this.personalHabilitacionId()
     try {
 
-      if (this.codigo()) {
-        vals.codigo = this.codigo()
+      if (this.GestionHabilitacionCodigo()) {
         await firstValueFrom(this.apiService.updateGestionHabilitacion(vals))
       } else {
         let res:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
@@ -174,7 +170,7 @@ export class HabilitacionesFormDrawerComponent {
         data.AudFechaIng = this.formatDate(data.AudFechaIng);
 
         if(data.PersonalHabilitacionId) this.personalHabilitacionId.set(data.PersonalHabilitacionId)
-        this.codigo.set(data.GestionHabilitacionCodigo)
+        this.tituloDrawer.set('Editar Habilitación Detalle')
         this.formHabilitacion.patchValue(data)
       } 
 

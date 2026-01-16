@@ -8,8 +8,9 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-            <nz-option nzValue="H" nzLabel="Habilitación"></nz-option>
-            <nz-option nzValue="R" nzLabel="Renovación"></nz-option>
+            @for (option of $optionsHabilitacionClase | async; track option) {
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            }
           </nz-select>
         </nz-form-control>
       </nz-form-item>

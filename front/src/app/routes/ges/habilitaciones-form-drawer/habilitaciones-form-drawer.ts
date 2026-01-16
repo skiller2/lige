@@ -77,6 +77,7 @@ export class HabilitacionesFormDrawerComponent {
     { initialValue: this.documentos().value }
   )
 
+  $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions()
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsTipos = this.searchService.getDocumentoTipoOptions();
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
