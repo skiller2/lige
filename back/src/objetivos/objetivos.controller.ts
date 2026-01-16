@@ -51,7 +51,7 @@ const listaColumnas: any[] = [
         type: "string",
         id: "Descripcion",
         field: "Descripcion",
-        fieldName: "Descripcion",
+        fieldName: "ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion)",
         searchType: "string",
         searchHidden: false,
         sortable: true
