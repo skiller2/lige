@@ -1,0 +1,33 @@
+<ng-container>
+    <div ng-row style="display: flex; justify-content: space-between;">
+        <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+        <button nz-button nzType="default" (click)="previewFile()" [disabled]="!this.file()">
+            <span nz-icon nzType="search"
+          nzTheme="outline"></span></button>
+    </div>
+    @if ((columns$|async); as columnas) {
+    <div class="gridListContainer container-fluid" >
+        <angular-slickgrid gridId="gridDocsCliente" [columns]="columnas | colsFilter" [options]="gridOptions"
+        [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+        </angular-slickgrid>
+    </div>
+    }
+</ng-container>
+
+<nz-modal [(nzVisible)]="modalViewerVisiable1" nzTitle="" nzWidth="700" nzOkDisabled="true"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <ngx-extended-pdf-viewer [src]="src()" [height]="'auto'" [textLayer]="true" [showHandToolButton]="false"
+      [filenameForDownload]="fileName()">
+    </ngx-extended-pdf-viewer>
+
+  </ng-container>
+</nz-modal>
+
+<nz-modal [(nzVisible)]="modalViewerVisiable2" nzTitle="" nzWidth="700" nzOkDisabled="true"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <app-image-loader [src]="src()" />
+  </ng-container>
+</nz-modal>

@@ -100,13 +100,14 @@ export class ClientesComponent {
       this.gridOptions.enableRowDetailView = this.apiService.isMobile()
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
+      this.gridOptions.forceFitColumns = true
 
       this.startFilters.set( [
         {field:'activo', condition:'AND', operator:'=', value:'1', forced:false},
       ])
 
    
-   
+      this.settingService.setLayout('collapsed', true)
   }
 
   ngAfterViewInit(): void {
@@ -183,6 +184,11 @@ export class ClientesComponent {
         break;
       case 2: //EDIT
         this.childEdit().viewRecord(false)
+        this.childEdit().mostrarDocs.set(true)
+        break;
+      case 1:
+        this.childEdit().mostrarDocs.set(false)
+        this.childDeta().mostrarDocs.set(false)
         break;
         default:
         break;
