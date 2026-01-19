@@ -2,122 +2,126 @@
   <nz-form-item style="display: flex; justify-content: space-around;">
     <nz-form-control>
 
-    @if(files().length > 0 ){
+      @if(files().length > 0 ){
       @for (filesAdd of files() ; track filesAdd) {
 
-          @if(!filesAdd.delete ){
-            @if(filesAdd.id ){
-              <!-- <P>{{filesAdd | json}}</P>  -->
-              <nz-card class="containerAnteriores">
-                <div class="fila">
-                  @if(filesAdd.update){
-                  <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
-                    [nzShowUploadList]="false" (nzChange)="uploadChange($event,filesAdd)">
-                    <a nz-icon nzType="upload" nzTheme="outline" nz-tooltip nzTooltipTitle="Subir nuevo archivo"></a>
-                  </nz-upload>
-                  }
-                  @if (previewFile()){
-                    @if ((filesAdd.mimetype.includes('image') || forceImg()) ) {
-                    <div class="preview">
-                      <app-image-loader class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original')" />
-                      <!-- <img nz-image alt=""
+      @if(!filesAdd.delete ){
+      @if(filesAdd.id ){
+      <!-- <P>{{filesAdd | json}}</P>  -->
+      <nz-card class="containerAnteriores">
+        <div class="fila">
+          @if(filesAdd.update){
+          <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
+            [nzShowUploadList]="false" (nzChange)="uploadChange($event,filesAdd)">
+            <a nz-icon nzType="upload" nzTheme="outline" nz-tooltip nzTooltipTitle="Subir nuevo archivo"></a>
+          </nz-upload>
+          }
+          @if (previewFile()){
+          @if ((filesAdd.mimetype.includes('image') || forceImg()) ) {
+          <div class="preview">
+            <app-image-loader class="image-content"
+              [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original')" />
+            <!-- <img nz-image alt=""
                       [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original') | urlauth | async"
                       class="image-content" /> -->
-                    </div>
-                    }
-                    @if (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update) {
-                    <div class="preview">
-                      <app-image-loader class="image-content" [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb'" />
-                      <!-- <img nz-image alt=""  [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb' | urlauth | async"
-                      class="image-content" /> -->
-                    </div>
-                    }
-                  }
-
-                  <div class="info">
-                      <div class="filename">{{ filesAdd.nombre }}</div>
-                  </div>
-
-                  <div class="actions">
-                  @if(isDisabled()==false && !filesAdd.update){
-                    <a nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"
-                      (nzOnConfirm)="confirmUpdateArchivo(filesAdd)" nzPopconfirmPlacement="top" nzDanger nz-icon
-                    nzType="swap" nzTheme="outline" class="swap-color"></a>
-                  }
-                  @if(!filesAdd.update){
-                    <a nz-icon nzType="download" nzHref="filesAdd.path" target="_blank" nzTheme="outline" class="download-color"
-                      app-down-file [httpMethod]="'GET'"
-                    httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original">  </a>
-                  }
-                  @if (previewFile() && (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update)){
-                    <a nz-icon nzType="search" nzTheme="outline"
-                      (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.tempfilename)"></a>
-                  }
-                  </div>
-                </div>
-              </nz-card>
-            }@else{
-              <div class="containerAnteriores">
-                <div class="fila">
-                  @if(previewFile() && filesAdd.mimetype.includes('image')){
-                  <div class="preview">
-                    <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'"/>
-                  </div>
-                  }
-
-                  <div class="info">
-                    <div class="filename">{{ filesAdd.originalname }}</div>
-                    <div class="meta">
-                      <span>{{ tipoSelected() }}</span>
-                      @if ( desdeSelected() ) {
-                        <span>Desde: {{ formatDate(desdeSelected()) }}</span>
-                      }
-                      @if ( hastaSelected() ) {
-                        <span>Hasta: {{ formatDate(hastaSelected()) }}</span>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="actions">
-                    @if ( previewFile() && filesAdd.mimetype.includes('pdf') ) {
-                      <a nz-icon nzType="search" nzTheme="outline" class="cursor-pointer"
-                      (click)="LoadArchivo(filesAdd.tempfilename,'temp',filesAdd.originalname)"></a>
-                      }
-                    @if(isDisabled()==false){
-                      <a nz-icon nzType="delete" nzTheme="outline" class="swap-trash cursor-pointer"
-                      (click)="confirmUpdateArchivo(filesAdd)"></a>
-                    }
-                    <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline" class="download-color cursor-pointer"
-                      app-down-file [httpMethod]="'GET'" httpUrl="api/file-upload/downloadFile/{{filesAdd.tempfilename}}/temp/original"></a>
-                  </div>
-
-                </div>
-              </div>
-            }
+          </div>
           }
+          @if (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update) {
+          <div class="preview">
+            <app-image-loader class="image-content"
+              [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb'" />
+            <!-- <img nz-image alt=""  [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb' | urlauth | async"
+                      class="image-content" /> -->
+          </div>
+          }
+          }
+
+          <div class="info">
+            <div class="filename">{{ filesAdd.nombre }}</div>
+          </div>
+
+          <div class="actions">
+            @if(isDisabled()==false && !filesAdd.update){
+            <a nz-popconfirm nzPopconfirmTitle="Seguro que desea actualizar el archivo?"
+              (nzOnConfirm)="confirmUpdateArchivo(filesAdd)" nzPopconfirmPlacement="top" nzDanger nz-icon nzType="swap"
+              nzTheme="outline" class="swap-color"></a>
+            }
+            @if(!filesAdd.update){
+            <a nz-icon nzType="download" nzHref="filesAdd.path" target="_blank" nzTheme="outline" class="download-color"
+              app-down-file [httpMethod]="'GET'"
+              httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original"> </a>
+            }
+            @if (previewFile() && (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update)){
+            <a nz-icon nzType="search" nzTheme="outline"
+              (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.tempfilename)"></a>
+            }
+          </div>
+        </div>
+      </nz-card>
+      }@else{
+      <div class="containerAnteriores">
+        <div class="fila">
+          @if(previewFile() && filesAdd.mimetype.includes('image')){
+          <div class="preview">
+            <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'" />
+          </div>
+          }
+
+          <div class="info">
+            <div class="filename">{{ filesAdd.originalname }}</div>
+            <div class="meta">
+              <span>{{ getTipoDetalle()}}</span>
+              @if ( desdeSelected() ) {
+              <span>Desde: {{ formatDate(desdeSelected()) }}</span>
+              }
+              @if ( hastaSelected() ) {
+              <span>Hasta: {{ formatDate(hastaSelected()) }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="actions">
+            @if ( previewFile() && filesAdd.mimetype.includes('pdf') ) {
+            <a nz-icon nzType="search" nzTheme="outline" class="cursor-pointer"
+              (click)="LoadArchivo(filesAdd.tempfilename,'temp',filesAdd.originalname)"></a>
+            }
+            @if(isDisabled()==false){
+            <a nz-icon nzType="delete" nzTheme="outline" class="swap-trash cursor-pointer"
+              (click)="confirmUpdateArchivo(filesAdd)"></a>
+            }
+            <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
+              class="download-color cursor-pointer" app-down-file [httpMethod]="'GET'"
+              httpUrl="api/file-upload/downloadFile/{{filesAdd.tempfilename}}/temp/original"></a>
+          </div>
+
+        </div>
+      </div>
       }
-    }
+      }
+      }
+      }
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item style="display: flex; justify-content: space-around;">
-  @if(showTipoDocs()){
+    @if(showTipoDocs()){
     <nz-form-control class="inputsConteiner" [nzMd]="12" [nzSm]="24">
-      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected" [nzDisabled]="files().length > 0"
-        [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onTipoSelectedChange($event)">
+      <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
+        [nzDisabled]="files().length > 0" [nzDropdownMatchSelectWidth]="false"
+        (ngModelChange)="onTipoSelectedChange($event)">
         <!-- Filtrar en funcion de docTiposValidos()-->
         @for (option of textForSearchSelected(); track option.doctipo_id) {
-          <ng-container>
-            @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
-              <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
-            }
-          </ng-container>
+        <ng-container>
+          @if(docTiposValidos().includes(option.doctipo_id) || docTiposValidos()[0] === '') {
+          <nz-option [nzValue]="option.doctipo_id" [nzLabel]="option.detalle"></nz-option>
+          }
+        </ng-container>
         }
       </nz-select>
     </nz-form-control>
-  }
+    }
 
-  @if(isDisabled() == false && cantFiles()){
+    @if(isDisabled() == false && cantFiles()){
     <nz-form-control class="BtnUploadFile" [nzMd]="12">
       <!-- image/* .pdf.pdf,image/* -->
       <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
@@ -128,34 +132,24 @@
         </button>
       </nz-upload>
     </nz-form-control>
-  }
+    }
   </nz-form-item>
 
 
   <nz-form-item style="display: flex; justify-content: space-around;">
 
     @if(showDesdeHasta()){
-      <nz-form-control class="inputsConteiner" [nzMd]="12">
-        <nz-date-picker
-          [(ngModel)]="desdeSelected"
-          nzPlaceHolder="Desde"
-          nzFormat="yyyy-MM-dd"
-          nzMode="date"
-          style="width: 100%;"
-          [nzDisabled]="files().length > 0">
-        </nz-date-picker>
-      </nz-form-control>
+    <nz-form-control class="inputsConteiner" [nzMd]="12">
+      <nz-date-picker [(ngModel)]="desdeSelected" nzPlaceHolder="Desde" nzFormat="yyyy-MM-dd" nzMode="date"
+        style="width: 100%;" [nzDisabled]="files().length > 0">
+      </nz-date-picker>
+    </nz-form-control>
 
-      <nz-form-control class="inputsConteiner" [nzMd]="12">
-        <nz-date-picker
-          [(ngModel)]="hastaSelected"
-          nzPlaceHolder="Hasta"
-          nzFormat="yyyy-MM-dd"
-          nzMode="date"
-          style="width: 100%;"
-          [nzDisabled]="files().length > 0">
-        </nz-date-picker>
-      </nz-form-control>
+    <nz-form-control class="inputsConteiner" [nzMd]="12">
+      <nz-date-picker [(ngModel)]="hastaSelected" nzPlaceHolder="Hasta" nzFormat="yyyy-MM-dd" nzMode="date"
+        style="width: 100%;" [nzDisabled]="files().length > 0">
+      </nz-date-picker>
+    </nz-form-control>
     }
 
   </nz-form-item>

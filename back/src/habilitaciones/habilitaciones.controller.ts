@@ -275,7 +275,7 @@ const GridDocColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Tipo Codigo",
+        name: "Documento Tipo",
         type: "string",
         id: "DocumentoTipoDetalle",
         field: "DocumentoTipoDetalle",
@@ -437,7 +437,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         LEFT JOIN PersonalHabilitacion perhab ON perhab.PersonalId=geshab.PersonalId and perhab.PersonalHabilitacionLugarHabilitacionId=geshab.PersonalHabilitacionLugarHabilitacionId and perhab.PersonalHabilitacionId=geshab.PersonalHabilitacionId
         LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo=geshab.GestionHabilitacionEstadoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
-        order by geshab.AudFechaIng desc
+        ORDER BY geshab.AudFechaIng DESC
         `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
     }
 
@@ -1229,14 +1229,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
     async valHabilitacionesForm(queryRunner: any, habilitacion: any) {
         let error: string[] = []
         if (!habilitacion.GestionHabilitacionEstadoCodigo) {
-            error.push(` Estado`)
-        }
-        if (!habilitacion.Detalle) {
-            error.push(` Detalle`)
-        }
-        if (error.length) {
-            error.unshift('Deben completar los siguientes campos:')
-            return new ClientException(error)
+            error.push(`- Estado`)
         }
 
         const valHabilitacionNecesaria = await queryRunner.query(`
@@ -1253,8 +1246,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const arrayFilter: any[] = [{ LugarHabilitacionId: 1, tipoDocHabilitacion: 'HABPERCABA' }, { LugarHabilitacionId: 5, tipoDocHabilitacion: 'HABPERPRO' }, { LugarHabilitacionId: 8, tipoDocHabilitacion: 'HABPERFOR' }]
         if (habilitacion.GestionHabilitacionEstadoCodigo == 'HABORG') {
             if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
-            if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Desde (Gestión)`)
-            if (!habilitacion.PersonalHabilitacionHasta) error.push(`- Hasta (Gestión)`)
+            if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Habilitación Desde`)
+            if (!habilitacion.PersonalHabilitacionHasta) error.push(`- Habilitación Hasta`)
 
             // let desdeHastaDocHabilitacion = false
             let desdeDocHabilitacion = false
@@ -1284,17 +1277,20 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 // }
             }
 
-            if (desdeDocHabilitacion) error.push(`- Desde (Documentos)`)
-            if (hastaDocHabilitacion) error.push(`- Hasta (Documentos)`)
-            if (error.length) error.unshift('Deben completar los siguientes campos:')
+            if (desdeDocHabilitacion) error.push(`- Desde (Documento)`)
+            // if (hastaDocHabilitacion) error.push(`- Hasta (Documento)`)
 
-            if (!cantDoc || tipoDocHabilitacion) error.push(`Ingrese un documento relacionado al Lugar Habilitacion`)
+            // se comenta momentaneamente la validacion de tipo de documento por lugar de habilitacion
+            // if (!cantDoc || tipoDocHabilitacion) error.push(`Ingrese un documento relacionado al Lugar Habilitacion`)
 
-            if (error.length) {
-                return new ClientException(error)
-            }
         }
-
+        if (!habilitacion.Detalle) {
+            error.push(`- Detalle`)
+        }
+        if (error.length) {
+            error.unshift('Deben completar los siguientes campos:')
+            return new ClientException(error)
+        }
     }
 
     async deleteGestionHabilitacion(req: any, res: Response, next: NextFunction) {

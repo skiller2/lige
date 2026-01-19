@@ -300,4 +300,9 @@ export class FileUploadComponent implements ControlValueAccessor {
 
     return `${year}/${month}/${day}`;
   }
+
+  getTipoDetalle(): string {
+    const tipo = this.textForSearchSelected().find(t => t.doctipo_id === this.tipoSelected());
+    return tipo ? tipo.detalle : this.tipoSelected();
+  }
 }
