@@ -16,6 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TableClienteDocumentoComponent } from 'src/app/routes/ges/table-cliente-documentos/table-cliente-documentos';
 
 interface Provincia {
   ProvinciaId: number;
@@ -47,7 +48,8 @@ interface Barrio {
         AdministradorSearchComponent,
         NzAutocompleteModule,
         NzSelectModule,
-        FileUploadComponent
+        FileUploadComponent,
+        TableClienteDocumentoComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -61,6 +63,7 @@ export class ClientesFormComponent {
   isLoading = signal(false)
   onAddorUpdate = output()
   pristineChange = output<boolean>()
+  mostrarDocs = model<boolean>(false)
 
   //files = []
   textForSearch = "Cliente"
@@ -128,6 +131,8 @@ export class ClientesFormComponent {
   $optionTipoContacto = this.searchService.getTipoContacto();
   $optionJurImpositiva = this.searchService.getJurImpositiva();
 
+  // tableDocs = viewChild.required<TableClienteDocumentoComponent>('tableDocs')
+
   onChangePeriodo(result: Date): void {
     if (result) {
       const date = new Date(result)
@@ -136,8 +141,6 @@ export class ClientesFormComponent {
       this.periodo.set({ year, month })
     }
   }
-
-
 
   async ngOnInit() {
     this.tipoTelefono = await firstValueFrom(this.searchService.getTipoTelefono())
@@ -155,7 +158,6 @@ export class ClientesFormComponent {
     this.pristineChange.emit(this.formCli.pristine);
   }
 
-
   async newRecord() {
     if (this.formCli.pristine) {
       this.ClienteId.set(0)
@@ -171,8 +173,11 @@ export class ClientesFormComponent {
   }
 
   async viewRecord(readonly: boolean) {
-    if (this.ClienteId())
+    this.mostrarDocs.set(false)
+    if (this.ClienteId()){
       await this.load()
+      // this.tableDocs().initializeGridOptions()
+    }
     if (readonly)
       this.formCli.disable()
     else

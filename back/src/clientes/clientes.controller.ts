@@ -139,6 +139,61 @@ export class ClientesController extends BaseController {
         },
     ];
 
+    listDocsColumns: any[] = [
+        {
+            id: "id",
+            name: "DocumentoId",
+            field: "id",
+            fieldName: "doc.DocumentoId",
+            type: "number",
+            sortable: false,
+            hidden: true,
+            searchHidden: true
+        },
+        {
+            name: "Documento",
+            type: "string",
+            id: "NombreArchivo",
+            field: "NombreArchivo",
+            fieldName: "doc.DocumentoNombreArchivo",
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+        {
+            name: "Tipo",
+            type: "string",
+            id: "Descripcion",
+            field: "Descripcion",
+            fieldName: "param.DocumentoTipoDetalle",
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+        {
+            name: "Desde",
+            type: "date",
+            id: "Desde",
+            field: "doc.DocumentoFecha",
+            fieldName: "doc.DocumentoFecha",
+            searchComponent: "inputForFechaSearch",
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+        {
+            name: "Hasta",
+            type: "date",
+            id: "Hasta",
+            field: "Hasta",
+            fieldName: "doc.DocumentoFechaDocumentoVencimiento",
+            searchComponent: "inputForFechaSearch",
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+    ];
+
     optionsJurImpositiva: any[] = [
         {
             value: 'Arba',
@@ -157,6 +212,11 @@ export class ClientesController extends BaseController {
     async getGridCols(req, res) {
         this.jsonRes(this.listaColumnas, res);
     }
+
+    async getDocsGridCols(req, res) {
+        this.jsonRes(this.listDocsColumns, res);
+    }
+
 
     validarCUIT(cuit: string): boolean {
         const cleanCUIT = String(cuit).replace(/[-\s]/g, '');
@@ -269,6 +329,39 @@ ${orderBy}`, [fechaActual])
                 {
                     total: clientes.length,
                     list: clientes,
+                },
+                res
+            );
+
+        } catch (error) {
+            return next(error)
+        }
+
+    }
+
+    async listDocsCliente(req: any, res: Response, next: NextFunction) {
+
+        const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+        const orderBy = orderToSQL(req.body.options.sort);
+        const ClienteId = req.body.ClienteId;
+        const queryRunner = dataSource.createQueryRunner();
+
+        try {
+            const documentos = await queryRunner.query(
+            `SELECT doc.DocumentoId AS id, doc.DocumentoNombreArchivo NombreArchivo, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
+                param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
+                CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url,
+                RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1) TipoArchivo,
+                1
+            FROM Documento doc
+            LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+            WHERE doc.DocumentoClienteId = @0 AND doc.ObjetivoId IS NULL
+                AND ${filterSql}`, [ClienteId])
+
+            this.jsonRes(
+                {
+                    total: documentos.length,
+                    list: documentos,
                 },
                 res
             );

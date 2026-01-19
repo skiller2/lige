@@ -254,12 +254,25 @@
       </div>
 
       <nz-form-item>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Carga </nz-form-label>
 
-        <nz-form-control >
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10">
           <app-file-upload formControlName="files" [idForSearh]="formCli.value.id ?? 0" [textForSearch]="''"
           [columnForSearch]="'DocumentoClienteId'" [tableForSearch]="'Documento'" [showTipoDocs]="true" ></app-file-upload>
         </nz-form-control>
 
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="24">
+          <!-- @if (ClienteId()) { -->
+          @if ( mostrarDocs() ) {
+            <ng-container>
+            <app-table-cliente-documentos #tableDocs [ClienteId]="ClienteId()"></app-table-cliente-documentos>
+            </ng-container>
+          }
+          <!-- } -->
+          </nz-form-control>
       </nz-form-item>
 
       @if (formCli.enabled) {

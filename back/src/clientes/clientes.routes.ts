@@ -9,8 +9,16 @@ clientesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup
   clientesController.getGridCols(req, res);
 });
 
+clientesRouter.get("/docs-cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res) => {
+  clientesController.getDocsGridCols(req, res);
+});
+
 clientesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
   clientesController.listClientes(req, res, next)
+})
+
+clientesRouter.post('/docs-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+  clientesController.listDocsCliente(req, res, next)
 })
 
 clientesRouter.get('/infoCliente/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {

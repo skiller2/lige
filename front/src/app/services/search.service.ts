@@ -1175,6 +1175,16 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+  
+  getDocsByCliente(params: any) {
+    if (!params.ClienteId) return of([]);
+    return this.http
+      .post<ResponseJSON<any>>(`api/clientes/docs-list`, params)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
 
   getListaPrecioProductos(filters: any) {
     return this.http
