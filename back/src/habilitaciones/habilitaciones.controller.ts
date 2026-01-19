@@ -277,9 +277,9 @@ const GridDocColums: any[] = [
     {
         name: "Tipo Codigo",
         type: "string",
-        id: "DocumentoTipoCodigo",
-        field: "DocumentoTipoCodigo",
-        fieldName: "doctip.DocumentoTipoCodigo",
+        id: "DocumentoTipoDetalle",
+        field: "DocumentoTipoDetalle",
+        fieldName: "doctip.DocumentoTipoDetalle",
         sortable: true,
         hidden: false,
         searchHidden: true,
@@ -296,7 +296,7 @@ const GridDocColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Fecha",
+        name: "Desde",
         type: "date",
         id: "DocumentoFecha",
         field: "DocumentoFecha",
@@ -307,7 +307,7 @@ const GridDocColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Fecha Vencimiento",
+        name: "Hasta",
         type: "date",
         id: "DocumentoFechaDocumentoVencimiento",
         field: "DocumentoFechaDocumentoVencimiento",
@@ -465,7 +465,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
     async listDocQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
         return await queryRunner.query(`
-        SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
         , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo
         FROM PersonalHabilitacion perhab 
         JOIN DocumentoRelaciones docrel ON docrel.PersonalId = perhab.PersonalId AND docrel.PersonalHabilitacionId = perhab.PersonalHabilitacionId AND docrel.PersonalHabilitacionLugarHabilitacionId = perhab.PersonalHabilitacionLugarHabilitacionId
@@ -545,7 +545,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
             const obj = {
                 ...PersonalHabilitacion[0],
-                HabilitacionCategoriaCodigos 
+                HabilitacionCategoriaCodigos
             }
 
             this.jsonRes(obj, res);
@@ -555,7 +555,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    async getHabilitacionCategoriaByPersonalHabilitacionIdQuery(queryRunner: any, PersonalId:any, PersonalHabilitacionId:any) {
+    async getHabilitacionCategoriaByPersonalHabilitacionIdQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any) {
         return await queryRunner.query(`
             SELECT 
                 habcatper.PersonalId, habcatper.PersonalHabilitacionId, habcatper.PersonalHabilitacionLugarHabilitacionId AS LugarHabilitacionId
@@ -617,7 +617,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validacion
-            const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
+            const valForm: any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
 
@@ -672,7 +672,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const docs of documentos) {
                 if (docs.file?.[0]) {
                     const file = docs.file[0]
-                    
+
                     const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
                     const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
@@ -690,7 +690,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                         , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
                     ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
                     `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, LugarHabilitacionId])
-                    
+
                 }
             }
 
@@ -733,7 +733,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validacion
-            const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
+            const valForm: any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
 
@@ -857,7 +857,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.startTransaction();
 
             //Validación
-            const  valForm:any = await this.valHabilitacionesForm(queryRunner, req.body)
+            const valForm: any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
 
@@ -884,18 +884,20 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             ])
 
             //HabilitacionCategoriaPersonal
-            for (const codigo of HabilitacionCategoriaCodigos) {
-                await queryRunner.query(`
+            if (HabilitacionCategoriaCodigos != null && HabilitacionCategoriaCodigos.length > 0) {
+                for (const codigo of HabilitacionCategoriaCodigos) {
+                    await queryRunner.query(`
                 INSERT INTO HabilitacionCategoriaPersonal (
                 PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId, HabilitacionCategoriaCodigo
                 , Desde, Hasta
                 , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
                 ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
-                `, [ 
-                    PersonalId, newPersonalHabilitacionId, LugarHabilitacionId, codigo
-                    , null, null
-                    , fechaActual, usuario, ip
-                ])
+                `, [
+                        PersonalId, newPersonalHabilitacionId, LugarHabilitacionId, codigo
+                        , null, null
+                        , fechaActual, usuario, ip
+                    ])
+                }
             }
 
             await queryRunner.query(`
@@ -936,7 +938,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                         , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
                     ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
                     `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
-                    
+
                 }
             }
 
@@ -1017,14 +1019,14 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         `, [personalId, PersonalHabilitacionNecesariaId])
     }
 
-    async setHabilitacionCategoriaPersonal(queryRunner: any, PersonalId: number, PersonalHabilitacionId:number, LugarHabilitacionId:number, categorias: string[], usuario: string, ip: string) {
+    async setHabilitacionCategoriaPersonal(queryRunner: any, PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId: number, categorias: string[], usuario: string, ip: string) {
         //Compruebo si hubo cambios
         let cambios: boolean = false
 
         const catsOld: number[] = []
         const list = await this.getHabilitacionCategoriaByPersonalHabilitacionIdQuery(queryRunner, PersonalId, PersonalHabilitacionId)
-        
-        for (const hab of list){
+
+        for (const hab of list) {
             catsOld.push(hab.HabilitacionCategoriaCodigo)
         }
 
@@ -1039,7 +1041,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
         //Actualizo
         const fechaActual = new Date()
-        fechaActual.setHours(0,0,0,0)
+        fechaActual.setHours(0, 0, 0, 0)
 
         await queryRunner.query(`
             DELETE FROM HabilitacionCategoriaPersonal
@@ -1053,7 +1055,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 , Desde, Hasta
                 , AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
                 ) VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
-            `, [ 
+            `, [
                 PersonalId, PersonalHabilitacionId, LugarHabilitacionId, codigo
                 , null, null
                 , fechaActual, usuario, ip
@@ -1090,12 +1092,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             return next(error)
         }
     }
-   
+
     getPreviousMonthYear(year: number, month: number): { year: number, month: number } {
         if (month === 1) {
             return { year: year - 1, month: 12 };
         } else {
-            return { year: year, month: month - 1  };
+            return { year: year, month: month - 1 };
         }
     }
 
@@ -1129,8 +1131,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             const map = new Map<number, { set: Set<number>; list: number[] }>();
 
             for (const asisObj of resAsisObjetiv) {
-                if (asisObj.ObjetivoAsistenciaTipoAsociadoId != 3) continue; 
-//                if (asisObj.LugarHabilitacionIdList== null || asisObj.LugarHabilitacionIdList.trim() === '') console.log(asisObj);
+                if (asisObj.ObjetivoAsistenciaTipoAsociadoId != 3) continue;
+                //                if (asisObj.LugarHabilitacionIdList== null || asisObj.LugarHabilitacionIdList.trim() === '') console.log(asisObj);
                 const PersonalId = asisObj.PersonalId
                 const LugarHabilitacionIdList = asisObj.LugarHabilitacionIdList ? asisObj.LugarHabilitacionIdList.split(',') : []
                 for (const LugarHabilitacionId of LugarHabilitacionIdList) {
@@ -1152,21 +1154,21 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 PersonalId,
                 LugarHabilitacionId: list,
             }));
-//console.log('PersonalLugar1', PersonalLugar);
-//console.log('PersonalLugar2', PersonalLugar.length);
+            //console.log('PersonalLugar1', PersonalLugar);
+            //console.log('PersonalLugar2', PersonalLugar.length);
             //TODO:  Buscar las diferencias entre lo que esta en la base y lo que deberia estar segun las asistencias
             for (const perlug of PersonalLugar) {
                 const PersonalId = perlug.PersonalId
                 const LugarHabilitacionIds = perlug.LugarHabilitacionId
                 for (const lugarId of LugarHabilitacionIds) {
 
-                    const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === PersonalId && lugarId==h.PersonalHabilitacionNecesariaLugarHabilitacionId)
+                    const habNecesariaActual = resPersHabActuales.find((h: any) => h.PersonalId === PersonalId && lugarId == h.PersonalHabilitacionNecesariaLugarHabilitacionId)
                     if (!habNecesariaActual) {
-                        
+
                         const res = await queryRunner.query(`
                                     SELECT PersonalHabilitacionNecesariaUltNro FROM  Personal WHERE PersonalId =@0
                                 `, [PersonalId])
-                        
+
                         const PersonalHabilitacionNecesariaId = (res && res.length) ? (res[0].PersonalHabilitacionNecesariaUltNro + 1) : 1
 
 
@@ -1184,7 +1186,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                                     UPDATE Personal SET PersonalHabilitacionNecesariaUltNro = @1
                                     WHERE PersonalId =@0
                                 `, [PersonalId, PersonalHabilitacionNecesariaId])
-                        
+
                         registrosActualizados += 1;
 
                     }
@@ -1224,7 +1226,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
     }
 
-    async valHabilitacionesForm(queryRunner:any, habilitacion:any){
+    async valHabilitacionesForm(queryRunner: any, habilitacion: any) {
         let error: string[] = []
         if (!habilitacion.GestionHabilitacionEstadoCodigo) {
             error.push(` Estado`)
@@ -1248,7 +1250,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         }
 
         //Habilitacion en CABA, Provincia de Bs.As y Provincia de Formosa
-        const arrayFilter:any[] = [{LugarHabilitacionId: 1, tipoDocHabilitacion: 'HABPERCABA'},{LugarHabilitacionId: 5, tipoDocHabilitacion: 'HABPERPRO'},{LugarHabilitacionId: 8, tipoDocHabilitacion: 'HABPERFOR'}]
+        const arrayFilter: any[] = [{ LugarHabilitacionId: 1, tipoDocHabilitacion: 'HABPERCABA' }, { LugarHabilitacionId: 5, tipoDocHabilitacion: 'HABPERPRO' }, { LugarHabilitacionId: 8, tipoDocHabilitacion: 'HABPERFOR' }]
         if (habilitacion.GestionHabilitacionEstadoCodigo == 'HABORG') {
             if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
             if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Desde (Gestión)`)
@@ -1262,9 +1264,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             for (const docs of habilitacion.documentos) {
                 if (docs.file?.[0]) {
                     const doc = docs.file[0]
-                    
-                    const find = arrayFilter.find((obj:any) => obj.tipoDocHabilitacion == doc.doctipo_id)
-                    
+
+                    const find = arrayFilter.find((obj: any) => obj.tipoDocHabilitacion == doc.doctipo_id)
+
                     if (find) {
                         if (!doc.DocumentoFecha) desdeDocHabilitacion = true
                         if (!doc.DocumentoFechaDocumentoVencimiento) hastaDocHabilitacion = true
@@ -1291,11 +1293,11 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             if (error.length) {
                 return new ClientException(error)
             }
-        } 
-        
+        }
+
     }
 
-    async deleteGestionHabilitacion(req: any, res: Response, next: NextFunction){
+    async deleteGestionHabilitacion(req: any, res: Response, next: NextFunction) {
 
         const { PersonalId, PersonalHabilitacionId, LugarHabilitacionId, Codigo } = req.query
         // const ip = this.getRemoteAddress(req)
@@ -1311,8 +1313,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             await queryRunner.query(`
                 DELETE GestionHabilitacion
                 WHERE PersonalHabilitacionId = @0 AND PersonalId = @1 AND PersonalHabilitacionLugarHabilitacionId = @2 AND GestionHabilitacionCodigo = @3
-            `, [ PersonalHabilitacionId, PersonalId, LugarHabilitacionId, Codigo ])
-            
+            `, [PersonalHabilitacionId, PersonalId, LugarHabilitacionId, Codigo])
+
             // throw new ClientException(`DEBUG`)
 
             await queryRunner.commitTransaction()
