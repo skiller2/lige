@@ -16,6 +16,7 @@ const getHabNecesariaOptions: any[] = [
 const getHabilitacionesClasesOptions: any[] = [
     { label: 'Habilitación', value: 'H' },
     { label: 'Renovación', value: 'R' },
+    { label: 'C', value: 'C' },
 ]
 
 const GridColums: any[] = [
@@ -177,9 +178,9 @@ const GridColums: any[] = [
     {
         name: "Estado",
         type: "string",
-        id: "Estado",
-        field: "Estado",
-        fieldName: "est.Detalle",
+        id: "GestionHabilitacionEstado",
+        field: "GestionHabilitacionEstado",
+        fieldName: "IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle)",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -349,7 +350,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
-			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria
+			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
+            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado
 
 
         FROM Personal per
