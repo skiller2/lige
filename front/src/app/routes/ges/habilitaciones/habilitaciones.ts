@@ -84,6 +84,7 @@ export class HabilitacionesComponent {
       // { field: 'PersonalHabilitacionDesde', condition: 'AND', operator: '<=', value: this.periodo(), forced: false },
       // { field: 'PersonalHabilitacionHasta', condition: 'AND', operator: '>=', value: this.periodo(), forced: false },
       { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: '30', forced: false },
+      { field: 'GestionHabilitacionEstado', condition: 'AND', operator: 'LIKE', value: 'Habilitado', forced: false },
     ])
   }
 
