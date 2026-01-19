@@ -81,10 +81,8 @@ export class HabilitacionesComponent {
 
     this.startFilters.set([
       { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
-      // { field: 'PersonalHabilitacionDesde', condition: 'AND', operator: '<=', value: this.periodo(), forced: false },
-      // { field: 'PersonalHabilitacionHasta', condition: 'AND', operator: '>=', value: this.periodo(), forced: false },
       { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: '30', forced: false },
-      { field: 'GestionHabilitacionEstado', condition: 'AND', operator: 'LIKE', value: 'Habilitado', forced: false },
+      { field: 'GestionHabilitacionEstado', condition: 'AND', operator: 'LIKE', value: 'Habilitado', forced: false }
     ])
   }
 
