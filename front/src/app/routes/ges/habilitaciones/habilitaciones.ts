@@ -110,12 +110,10 @@ export class HabilitacionesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    console.log('row: ', row);
+    // console.log('row: ', row);
 
     if (row?.id) {
-      this.detalleSelected.set(`Apellido Nombre: ${row.ApellidoNombre} - Lugar Habilitación: ${row.LugarHabilitacionDescripcion}\n
-        Habilitacion Desde: ${this.formatDate(row.PersonalHabilitacionDesde)} - Habilitacion Hasta: ${this.formatDate(row.PersonalHabilitacionHasta)}\n
-        Estado: ${row.Estado? row.Estado : ''} - NroTramite: ${row.NroTramite? row.NroTramite: ''}`)
+      this.detalleSelected.set(`${row.ApellidoNombre} | <b>Lugar:</b> ${row.LugarHabilitacionDescripcion} | <b>Desde:</b> ${this.formatDate(row.PersonalHabilitacionDesde)} | <b>Hasta:</b> ${this.formatDate(row.PersonalHabilitacionHasta)} | <b>Estado:</b> ${row.Estado? row.Estado : ''} | <b>NroTramite:</b> ${row.NroTramite? row.NroTramite: ''}`)
       this.apellidoNombreSelected.set(row.ApellidoNombre)
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)

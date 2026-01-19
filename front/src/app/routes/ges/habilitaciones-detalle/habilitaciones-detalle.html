@@ -1,7 +1,7 @@
 <nz-card class="small-margin">
   <div class="fila">
     <div class="izquierda">
-      <p>{{ detalle() }}</p>
+      <p [innerHTML]="detalle()"></p>
     </div>
     <nz-button-group nz-button nzButtonGroup class="derecha">
       <button nz-button nzType="default" [disabled]="(!personalId() && !personalHabilitacionId() && !lugarHabilitacionId())"
