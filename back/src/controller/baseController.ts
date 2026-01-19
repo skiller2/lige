@@ -360,6 +360,8 @@ export class BaseController {
 
   // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
   async procesoAutomaticoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string) {
+    if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar procesoAutomaticoLogInicio dentro de una transacción activa')
+
     await queryRunner.startTransaction();
     const fechaActual = new Date()
     const ProcesoAutomaticoLogCodigo = await this.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
@@ -399,8 +401,9 @@ export class BaseController {
     return { ProcesoAutomaticoLogCodigo }
   }
 
-  async procesoAutomaticoLogFin(queryRunner: QueryRunner, ProcesoAutomaticoLogCodigo:number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
+  async procesoAutomaticoLogFin(queryRunner: QueryRunner, ProcesoAutomaticoLogCodigo: number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
     const fechaActual = new Date()
+    if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar procesoAutomaticoLogFin dentro de una transacción activa')
     await queryRunner.startTransaction();
 
     await queryRunner.query(
