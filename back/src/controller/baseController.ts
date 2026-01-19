@@ -360,6 +360,7 @@ export class BaseController {
 
   // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
   async procesoAutomaticoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string) {
+    await queryRunner.startTransaction();
     const fechaActual = new Date()
     const ProcesoAutomaticoLogCodigo = await this.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
     const EstadoCod = 'EJE'
@@ -394,11 +395,13 @@ export class BaseController {
         ip
       ]
     );
+    await queryRunner.commitTransaction();
     return { ProcesoAutomaticoLogCodigo }
   }
 
   async procesoAutomaticoLogFin(queryRunner: QueryRunner, ProcesoAutomaticoLogCodigo:number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
     const fechaActual = new Date()
+    await queryRunner.startTransaction();
 
     await queryRunner.query(
       `UPDATE ProcesoAutomaticoLog SET FechaFin=@1,
@@ -418,6 +421,7 @@ export class BaseController {
         ip
       ]
     );
+    await queryRunner.commitTransaction();
     return { ProcesoAutomaticoLogCodigo }
   }
 
