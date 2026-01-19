@@ -6,9 +6,10 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+          <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%">
             @for (option of $optionsHabilitacionClase | async; track option) {
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
         </nz-form-control>
@@ -17,7 +18,7 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
+          <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()" />
         </nz-form-control>
       </nz-form-item>
 
@@ -25,13 +26,13 @@
         <nz-form-label [nzXs]="5">Situación Revista</nz-form-label>
         <nz-form-control>
           @for (sitrevista of $sitrevista | async; track sitrevista) {
-            <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
-              {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
-              @if (sitrevista.PersonalSituacionRevistaHasta) {
-                <span>hasta {{ sitrevista.PersonalSituacionRevistaHasta
-                | date}}</span>
-              }
-            </p>
+          <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
+            {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
+            @if (sitrevista.PersonalSituacionRevistaHasta) {
+            <span>hasta {{ sitrevista.PersonalSituacionRevistaHasta
+              | date}}</span>
+            }
+          </p>
           }
         </nz-form-control>
       </nz-form-item>
@@ -39,10 +40,10 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Lugar Habilitación</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18">
-          <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione lugar" nzAllowClear 
-           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+          <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione lugar" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%">
             @for (option of $optionsLugarHabilitacion | async; track option) {
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
         </nz-form-control>
@@ -54,7 +55,7 @@
           <nz-select formControlName="HabilitacionCategoriaCodigos" nzPlaceHolder="Seleccione categoria" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzMode="multiple">
             @for (option of $optionsHabilitacionCategoria | async; track option) {
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
         </nz-form-control>
@@ -64,7 +65,7 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha Ingreso</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <input nz-input placeholder="" formControlName="AudFechaIng" type="text" readonly/>
+          <input nz-input placeholder="" formControlName="AudFechaIng" type="text" readonly />
         </nz-form-control>
       </nz-form-item>
       }
@@ -75,40 +76,36 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione estado" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%"
-          (nzBlur)="formHabilitacion.patchValue({NroTramite:'',PersonalHabilitacionDesde:'',PersonalHabilitacionHasta:''})">
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+            (nzBlur)="formHabilitacion.patchValue({NroTramite:'',PersonalHabilitacionDesde:'',PersonalHabilitacionHasta:''})">
             @for (option of $optionsEstadoCodigo | async; track option) {
-              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
         </nz-form-control>
       </nz-form-item>
 
-       @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
+      @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <input nz-input placeholder="" formControlName="NroTramite" type="text"/>
+          <input nz-input placeholder="" formControlName="NroTramite" type="text" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Habilitación Desde</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-          <nz-date-picker
-            formControlName="PersonalHabilitacionDesde"
-            nzFormat="yyyy-MM-dd"
-            nzMode="date"
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Habilitación Desde</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15">
+          <nz-date-picker formControlName="PersonalHabilitacionDesde" nzFormat="yyyy-MM-dd" nzMode="date"
             style="width: 100%;">
           </nz-date-picker>
         </nz-form-control>
+      </nz-form-item>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">HabilitaciónHasta</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-          <nz-date-picker
-            formControlName="PersonalHabilitacionHasta"
-            nzFormat="yyyy-MM-dd"
-            nzMode="date"
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Habilitación Hasta</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15">
+          <nz-date-picker formControlName="PersonalHabilitacionHasta" nzFormat="yyyy-MM-dd" nzMode="date"
             style="width: 100%;">
           </nz-date-picker>
         </nz-form-control>
@@ -118,19 +115,20 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Detalle</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <textarea  nz-input formControlName="Detalle" ></textarea>
+          <textarea nz-input formControlName="Detalle"></textarea>
         </nz-form-control>
       </nz-form-item>
 
       @if (!GestionHabilitacionCodigo()) {
       <div formArrayName="documentos">
         <div *ngFor="let control of documentos().controls; let i = index" [formGroupName]="i">
-          
+
           <nz-form-item class="marginElement">
             <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
             <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
               <app-file-upload formControlName="file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="''"
-                [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="true" [showDesdeHasta]="true"></app-file-upload>
+                [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="true"
+                [showDesdeHasta]="true"></app-file-upload>
             </nz-form-control>
           </nz-form-item>
 
@@ -141,10 +139,10 @@
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           @if (formHabilitacion.enabled) {
-            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
-              [disabled]="formHabilitacion.pristine">
-              {{ 'app.btn.save' | i18n }}
-            </button>
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
+            [disabled]="formHabilitacion.pristine">
+            {{ 'app.btn.save' | i18n }}
+          </button>
           }
         </nz-form-control>
       </nz-form-item>
