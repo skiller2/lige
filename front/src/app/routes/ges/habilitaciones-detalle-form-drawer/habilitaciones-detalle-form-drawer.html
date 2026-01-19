@@ -84,14 +84,7 @@
         </nz-form-control>
       </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Detalle</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <textarea  nz-input formControlName="Detalle" ></textarea>
-        </nz-form-control>
-      </nz-form-item>
-
-      @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
+       @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
@@ -100,7 +93,7 @@
       </nz-form-item>
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Desde</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Habilitación Desde</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
           <nz-date-picker
             formControlName="PersonalHabilitacionDesde"
@@ -110,7 +103,7 @@
           </nz-date-picker>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Hasta</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">HabilitaciónHasta</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
           <nz-date-picker
             formControlName="PersonalHabilitacionHasta"
@@ -121,6 +114,13 @@
         </nz-form-control>
       </nz-form-item>
       }
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Detalle</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <textarea  nz-input formControlName="Detalle" ></textarea>
+        </nz-form-control>
+      </nz-form-item>
 
       @if (!GestionHabilitacionCodigo()) {
       <div formArrayName="documentos">
