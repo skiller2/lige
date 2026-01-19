@@ -16,10 +16,11 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         const anio = actual.getFullYear()
         const mes = actual.getMonth() + 1
         const maxImporte = 100000
+        const minImporte = 10000
         const fechaLimite = new Date(actual.getFullYear(), actual.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
 
         const adelanto = await PersonalController.getPersonalAdelanto(personalId, anio, mes)
-        await state.update({ adelanto: { anio, mes, maxImporte } })
+        await state.update({ adelanto: { anio, mes, maxImporte, minImporte } })
 
         if (actual > fechaLimite) {
             await flowDynamic([{ body: `⏳ No es posible solicitar, ni modificar adelantos. Dicha solicitud se puede hacer hasta las ${fechaLimite.getHours()}:${fechaLimite.getMinutes()} hs del día ${fechaLimite.getDate()} del mes actual.`, delay }])
@@ -30,7 +31,7 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         await flowDynamic([{ body: `⏱️ Verificando estado y montos`, delay }])
 
         if (adelanto.length == 0) {
-            await state.update({ adelanto: { anio, mes, maxImporte } })
+            await state.update({ adelanto: { anio, mes, maxImporte, minImporte } })
             await flowDynamic([{ body: `Aun no se ha solicitado un adelanto.`, delay }])
             return gotoFlow(flowFormAdelanto)
         } else {
@@ -49,7 +50,7 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
                     return gotoFlow(flowMenu)
                     break;
                 default:
-                    await state.update({ adelanto: { anio, mes, maxImporte, ...adelanto[0] } })
+                    await state.update({ adelanto: { anio, mes, maxImporte, minImporte, ...adelanto[0] } })
                     await flowDynamic([{ body: `No ha sido confirmado aún. ¿Desea modificarlo? (Si/No)`, delay }])
                     break;
             }
@@ -83,7 +84,7 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
         let msg = `Ingrese el importe del adelanto`
         if (myState.adelanto.PersonalPrestamoMonto) msg += ` o 0 para anularlo`
 
-        await flowDynamic([{ body: `${msg} (importe maximo: ${maxImporte})\n\nM - Volver al menú`, delay }])
+        await flowDynamic([{ body: `${msg} (importe maximo: $${maxImporte.toLocaleString('es-AR')})\n\nM - Volver al menú`, delay }])
     })
     .addAnswer('', { capture: true, delay },
         async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
@@ -107,12 +108,14 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             const anio: number = myState.adelanto.anio
             const mes: number = myState.adelanto.mes
             const personalId = myState.personalId
+            const minImporte = myState.adelanto.minImporte
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
             if (isNaN(importe)) return fallBack('El valor ingresado no es válido, reintente.')
 
-            if (importe > maxImporte || importe < 0) return fallBack(`El importe debe ser menor o igual a ${maxImporte}, reintente.`)
+            if (importe > maxImporte || importe < 0) return fallBack(`El importe debe ser menor o igual a $${maxImporte.toLocaleString('es-AR')}, reintente.`)
+            if (importe < minImporte) return fallBack(`El importe mínimo es de $${minImporte.toLocaleString('es-AR')}, reintente.`)
 
             try {
                 if (importe == 0) {
