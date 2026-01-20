@@ -171,7 +171,6 @@ export class ClientesFormComponent {
   }
 
   async viewRecord(readonly: boolean) {
-    this.mostrarDocs.set(false)
     if (this.ClienteId()){
       await this.load()
     }
@@ -181,7 +180,6 @@ export class ClientesFormComponent {
       this.formCli.enable()
     this.formCli.get('codigo')?.disable()
     this.formCli.markAsPristine()
-
   }
 
   async load() {

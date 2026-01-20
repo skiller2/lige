@@ -84,7 +84,7 @@ export class ObjetivosFormComponent {
 
 
   fb = inject(FormBuilder)
-  formCli = this.fb.group({
+  formObj = this.fb.group({
     id: 0,
     ClienteId: 0,
     clienteOld: 0,
@@ -139,29 +139,29 @@ export class ObjetivosFormComponent {
 
   async ngOnInit() {
 
-    this.formCli.statusChanges.subscribe(() => {
+    this.formObj.statusChanges.subscribe(() => {
       this.checkPristine();
    });
 
   }
 
   checkPristine() {
-    this.pristineChange.emit(this.formCli.pristine);
+    this.pristineChange.emit(this.formObj.pristine);
   }
 
   async newRecord() {
-    if (this.formCli.pristine) {
+    if (this.formObj.pristine) {
 
       this.ObjetivoId.set(0)
       this.ClienteId.set(0)
       this.ClienteElementoDependienteId.set(0)
     
-      this.formCli.enable()
-      this.formCli.get('codigo')?.disable()
-      this.formCli.reset()
+      this.formObj.enable()
+      this.formObj.get('codigo')?.disable()
+      this.formObj.reset()
       this.infoCoordinadorCuenta().clear()
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-      this.formCli.markAsPristine()
+      this.formObj.markAsPristine()
     }
   }
 
@@ -169,15 +169,15 @@ export class ObjetivosFormComponent {
       if (this.ObjetivoId()) 
         await this.load()
       if (readonly){
-        this.formCli.disable()
-        this.formCli.get('GrupoActividadId')?.disable()
-        this.formCli.get('DocumentoTipoCodigo')?.disable()
+        this.formObj.disable()
+        this.formObj.get('GrupoActividadId')?.disable()
+        this.formObj.get('DocumentoTipoCodigo')?.disable()
       }else{
-        this.formCli.enable()
+        this.formObj.enable()
       }
         
-      this.formCli.get('codigo')?.disable()
-      this.formCli.markAsPristine()        
+      this.formObj.get('codigo')?.disable()
+      this.formObj.markAsPristine()        
 
    }
 
@@ -208,7 +208,7 @@ export class ObjetivosFormComponent {
       this.infoActividad().push(this.fb.group({ ...this.objActividad }))
     }
     
-    if (this.formCli.disabled){
+    if (this.formObj.disabled){
       this.infoCoordinadorCuenta().disable()
       this.infoActividad().disable()
     }else {
@@ -216,8 +216,8 @@ export class ObjetivosFormComponent {
       this.infoActividad().disable()
     }
 
-    this.formCli.reset(infoObjetivo)
-    this.formCli.patchValue({
+    this.formObj.reset(infoObjetivo)
+    this.formObj.patchValue({
       DireccionModificada:false,
       FechaModificada:false,
       ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
@@ -229,11 +229,11 @@ export class ObjetivosFormComponent {
     });
 
 
-    this.formCli.get('codigo')?.disable()
-    //this.formCli.get('ClienteId')?.disable();
-    this.formCli.get('GrupoActividadId')?.disable()
-    this.formCli.get('DocumentoTipoCodigo')?.disable()
-    //this.formCli.reset(infoObjetivo)
+    this.formObj.get('codigo')?.disable()
+    //this.formObj.get('ClienteId')?.disable();
+    this.formObj.get('GrupoActividadId')?.disable()
+    this.formObj.get('DocumentoTipoCodigo')?.disable()
+    //this.formObj.reset(infoObjetivo)
   }
 
 
@@ -241,7 +241,7 @@ export class ObjetivosFormComponent {
 
   async save() {
     this.isLoading.set(true)
-    let form = this.formCli.getRawValue();
+    let form = this.formObj.getRawValue();
     try {
         if (this.ObjetivoId()) {
           let CordinadorCuenta = form.infoCoordinadorCuenta
@@ -252,9 +252,9 @@ export class ObjetivosFormComponent {
           
 
           let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.ObjetivoId()))
-          //this.formCli.reset(result.data)
+          //this.formObj.reset(result.data)
           //console.log("result ", result)
-          this.formCli.patchValue({
+          this.formObj.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
             infoActividad: result.data.infoActividad,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
@@ -269,11 +269,11 @@ export class ObjetivosFormComponent {
           // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addObjetivo(form))
-          this.formCli.get('ClienteId')?.disable();
+          this.formObj.get('ClienteId')?.disable();
           this.ObjetivoId.set(result.data.ObjetivoNewId)
           this.ClienteId.set(result.data.ClienteId)
           this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
-          this.formCli.patchValue({
+          this.formObj.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
             infoActividad: result.data.infoActividad,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
@@ -284,8 +284,8 @@ export class ObjetivosFormComponent {
           
         }
         this.onAddorUpdate.emit()
-        this.formCli.markAsUntouched()
-        this.formCli.markAsPristine()
+        this.formObj.markAsUntouched()
+        this.formObj.markAsPristine()
     } catch (e) {
         
     }
@@ -293,11 +293,11 @@ export class ObjetivosFormComponent {
 }
 
   infoCoordinadorCuenta(): FormArray {
-    return this.formCli.get("infoCoordinadorCuenta") as FormArray
+    return this.formObj.get("infoCoordinadorCuenta") as FormArray
   }
 
   infoActividad(): FormArray {
-    return this.formCli.get("infoActividad") as FormArray
+    return this.formObj.get("infoActividad") as FormArray
   }
 
   addCoordinadorCuenta(e?: MouseEvent): void {
@@ -313,11 +313,11 @@ export class ObjetivosFormComponent {
     if (this.infoCoordinadorCuenta().length > 1 ) {
       this.infoCoordinadorCuenta().removeAt(index)
     }
-    this.formCli.markAsDirty();
+    this.formObj.markAsDirty();
   }
 
   async deleteObjetivo() {
-    const form = this.formCli.value
+    const form = this.formObj.value
     try {
       await firstValueFrom(this.apiService.deleteObjetivos(form));
       this.onAddorUpdate.emit();
