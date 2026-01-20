@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, computed, input, signal, effect, model,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -14,6 +14,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
 
 interface ListOptions {
   filtros: any[];
@@ -59,14 +60,18 @@ export class TableObjetivoDocumentoComponent {
   file = signal<any>(null)
   modalViewerVisiable1 = signal<boolean>(false)
   modalViewerVisiable2 = signal<boolean>(false)
-  src = signal<any>({})
-  fileName = signal<any>({})
+  public src = signal<Blob>(new Blob())
+  url = signal<string>('')
+  fileName = signal<string>('')
   canPreviewFile = computed(() => {
-    if (this.file()?.TipoArchivo && (this.file().TipoArchivo == 'pdf' || this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'))
+    if (this.file()?.TipoArchivo && (this.file().TipoArchivo == 'pdf' || this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg' || this.file().TipoArchivo == 'jpeg'))
       return true;
       
     return false
   });
+
+  private destroy$ = new Subject();
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
   
   constructor(
     private apiService: ApiService,
@@ -132,7 +137,7 @@ export class TableObjetivoDocumentoComponent {
       if (row?.id){
         this.file.set(row)
         this.fileName.set(row.NombreArchivo)
-        this.src.set(row.url)
+        this.url.set(row.url)
       }
   
     }
@@ -142,11 +147,12 @@ export class TableObjetivoDocumentoComponent {
       this.listDocsObjetivo$.next('')
     }
   
-    previewFile(){
+    async previewFile(){
       this.fileName.set(this.file().NombreArchivo)
       if (this.file().TipoArchivo == 'pdf') {
+        this.src.set(await fetch(`${this.url()}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
         this.modalViewerVisiable1.set(true)
-      }else if(this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'){
+      }else if(this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg' || this.file().TipoArchivo == 'jpeg'){
         this.modalViewerVisiable2.set(true)
       }
     }
@@ -154,6 +160,11 @@ export class TableObjetivoDocumentoComponent {
     handleCancel(): void {
       this.modalViewerVisiable1.set(false)
       this.modalViewerVisiable2.set(false)
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next('');
+        this.destroy$.complete();
     }
 
 }

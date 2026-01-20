@@ -6,9 +6,9 @@
           nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
             <span nz-icon nzType="search"
             nzTheme="outline"></span></button>
-          <button nz-button nzType="default" [disabled]="!src().length"
+          <button nz-button nzType="default" [disabled]="!url().length"
           nz-tooltip nzTooltipTitle="{{ 'app.btn.export' | i18n }}"
-          app-down-file [httpMethod]="'POST'" [httpUrl]="src()">
+          app-down-file [httpMethod]="'POST'" [httpUrl]="url()">
             <span nz-icon nzType="download"
             nzTheme="outline"></span></button>
         </nz-space-compact>
@@ -36,6 +36,6 @@
 <nz-modal [(nzVisible)]="modalViewerVisiable2" nzTitle="" nzWidth="700" nzOkDisabled="true"
   (nzOnCancel)="handleCancel()">
   <ng-container *nzModalContent>
-    <app-image-loader [src]="src()" />
+    <app-image-loader [src]="url()"/>
   </ng-container>
 </nz-modal>
