@@ -107,7 +107,7 @@
     @if(showTipoDocs()){
     <nz-form-control class="inputsConteiner" [nzMd]="12" [nzSm]="24">
       <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
-        [nzDisabled]="files().length > 0" [nzDropdownMatchSelectWidth]="false"
+        [nzDropdownMatchSelectWidth]="false"
         (ngModelChange)="onTipoSelectedChange($event)">
         <!-- Filtrar en funcion de docTiposValidos()-->
         @for (option of textForSearchSelected(); track option.doctipo_id) {
