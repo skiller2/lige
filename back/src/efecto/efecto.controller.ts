@@ -1,7 +1,7 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
@@ -62,6 +62,37 @@ const listaColumnasPersonal: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    name: "Sucursal Persona",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inputForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
   },
   {
     id: "SituacionRevistaId",
@@ -278,6 +309,26 @@ const listaColumnasObjetivos: any[] = [
     hidden: false,
     searchHidden: false,
     maxWidth: 150,
+  },
+  {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: " ga.GrupoActividadDetalle",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: " ga.GrupoActividadId",
+    searchComponent: "inputForGrupoActividadSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
   },
   {
     name: "Objetivo",
@@ -574,11 +625,14 @@ export class EfectoController extends BaseController {
   private getEfectoQuery(queryRunner: any, listOptions: any) {
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasPersonal)
     return queryRunner.query(`
-    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
+     SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
 		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
 		, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
 		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, 
     CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )') EfectoDescripcionCompleto, 
+
+	ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta, 
+	 suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
       1
     FROM Stock stk
     JOIN Personal per ON per.PersonalId = stk.PersonalId
@@ -587,7 +641,14 @@ export class EfectoController extends BaseController {
     LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=GETDATE() 
     left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND ${filterSql} `)
+	
+	LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+	LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+	
+	LEFT JOIN GrupoActividadPersonal gaper on gaper.GrupoActividadPersonalPersonalId=per.PersonalId and (select max(GrupoActividadPersonalId) from GrupoActividadPersonal where GrupoActividadPersonalPersonalId=per.PersonalId) = gaper.GrupoActividadPersonalId
+	LEFT JOIN GrupoActividad ga on ga.GrupoActividadId = gaper.GrupoActividadId
+    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) 
+    AND ${filterSql} `)
   }
 
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
@@ -666,13 +727,14 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
              stk.StockId,
           obj.ClienteId,
           cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
-          CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion,
+          CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion, obj.ObjetivoId,
           stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, eledepcon.ClienteElementoDependienteContratoId,eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
           suc.SucursalDescripcion, ISNULL(eledepcon.Activo,0) AS Activo,
+		  ga.GrupoActividadDetalle, ga.GrupoActividadId,
 		
-    1
+	1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
     LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
@@ -699,6 +761,11 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
                                     
     --LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>@0
     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+	
+    LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND (SELECT MAX(GrupoActividadObjetivoId) FROM GrupoActividadObjetivo where GrupoActividadObjetivoObjetivoId=obj.ObjetivoId) = gap.GrupoActividadObjetivoId
+    LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+	
+
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
 	  
       AND ${filterSql} `)
