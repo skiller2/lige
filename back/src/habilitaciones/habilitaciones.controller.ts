@@ -17,6 +17,7 @@ const getHabilitacionesClasesOptions: any[] = [
     { label: 'Habilitación', value: 'H' },
     { label: 'Renovación', value: 'R' },
     { label: 'C', value: 'C' },
+    { label: 'Revalidación', value: 'E' },
 ]
 
 const GridColums: any[] = [
@@ -363,7 +364,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
             IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
-            suc.SucursalId, suc.SucursalDescripcion,
+            suc.SucursalId, suc.SucursalDescripcion
 
 
 
