@@ -64,6 +64,38 @@ const listaColumnasPersonal: any[] = [
     searchHidden: true
   },
   {
+    name: "Sucursal Persona",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
+    searchComponent: "inputForGrupoActividadSearch",
+    sortable: true,
+    searchHidden: false
+  },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inputForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  },
+  {
     id: "SituacionRevistaId",
     name: "Situacion Revista",
     field: "SituacionRevistaId",
@@ -594,11 +626,14 @@ export class EfectoController extends BaseController {
   private getEfectoQuery(queryRunner: any, listOptions: any) {
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasPersonal)
     return queryRunner.query(`
-    SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
+     SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
 		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
 		, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
 		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, 
     CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )') EfectoDescripcionCompleto, 
+
+	ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta, 
+	 suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
       1
     FROM Stock stk
     JOIN Personal per ON per.PersonalId = stk.PersonalId
@@ -607,7 +642,14 @@ export class EfectoController extends BaseController {
     LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=GETDATE() 
     left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND ${filterSql} `)
+	
+	LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+	LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+	
+	LEFT JOIN GrupoActividadPersonal gaper on gaper.GrupoActividadPersonalPersonalId=per.PersonalId and (select max(GrupoActividadPersonalId) from GrupoActividadPersonal where GrupoActividadPersonalPersonalId=per.PersonalId) = gaper.GrupoActividadPersonalId
+	LEFT JOIN GrupoActividad ga on ga.GrupoActividadId = gaper.GrupoActividadId
+    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) 
+    AND ${filterSql} `)
   }
 
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
