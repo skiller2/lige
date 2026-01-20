@@ -19,7 +19,7 @@ const getOptionsPersonalPrestamoAprobado: any[] = [
   { label: 'Aprobado', value: 'S' },
   { label: 'Rechazado', value: 'N' },
   { label: 'Anulado', value: 'A' },
-  { label: 'Pendiente', value: null }
+  { label: 'Pendiente', value: 'P' }
 ]
 
 const columnsAyudaAsistencial: any[] = [
@@ -177,7 +177,7 @@ const columnsAyudaAsistencial: any[] = [
     name: "Estado",
     type: "string",
     field: "PersonalPrestamoAprobado",
-    fieldName: "pres.PersonalPrestamoAprobado",
+    fieldName: "ISNULL(pres.PersonalPrestamoAprobado, 'P')",
     formatter: 'collectionFormatter',
     params: { collection: getOptionsPersonalPrestamoAprobado, },
     searchComponent: "inputForPrestamoAprobadoSearch",
@@ -575,7 +575,7 @@ export class AyudaAsistencialController extends BaseController {
               pres.PersonalPrestamoAplicaEl, FORMAT(DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1), 'yyyy/MM') AS periodoDisplay,
               pre1.periodo, pres.PersonalPrestamoMotivo,
               form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
-              pres.PersonalPrestamoAprobado,
+              ISNULL(pres.PersonalPrestamoAprobado, 'P') AS PersonalPrestamoAprobado,
               sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
               CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
             gaper.GrupoActividadId,
