@@ -281,6 +281,18 @@
             </nz-form-control>
 
           </nz-form-item>
+          <nz-form-item>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="24">
+              
+              @if ( ObjetivoId() && mostrarDocs() ) {
+              <div class="container-fluid">
+                <app-table-objetivo-documentos [ObjetivoId]="ObjetivoId()" [ClienteId]="ClienteId()"></app-table-objetivo-documentos>
+              </div>
+              }
+              
+              </nz-form-control>
+          </nz-form-item>
+
           @if (formCli.enabled) {
             <nz-form-item>
               <nz-form-control style="display: flex; justify-content: center; align-items: center;">

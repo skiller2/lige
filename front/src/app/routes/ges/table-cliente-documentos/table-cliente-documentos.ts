@@ -13,7 +13,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { LoadingService } from '@delon/abc/loading';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
-
+import { NzSpaceModule } from 'ng-zorro-antd/space';
 
 interface ListOptions {
   filtros: any[];
@@ -28,7 +28,8 @@ interface ListOptions {
     NzAffixModule,
     FiltroBuilderComponent,
     NgxExtendedPdfViewerModule,
-    ImageLoaderComponent
+    ImageLoaderComponent,
+    NzSpaceModule
   ],
   providers: [AngularUtilService],
   templateUrl: './table-cliente-documentos.html',
@@ -36,10 +37,8 @@ interface ListOptions {
   standalone: true
 })
 export class TableClienteDocumentoComponent {
-  // @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
-
   private readonly loadingSrv = inject(LoadingService);
-
+  
   angularGrid!: AngularGridInstance
   gridOptions!: GridOption
   gridDataInsert: any[] = []
@@ -61,6 +60,12 @@ export class TableClienteDocumentoComponent {
   modalViewerVisiable2 = signal<boolean>(false)
   src = signal<any>({})
   fileName = signal<any>({})
+  canPreviewFile = computed(() => {
+    if (this.file()?.TipoArchivo && (this.file().TipoArchivo == 'pdf' || this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'))
+      return true;
+      
+    return false
+  });
   
   constructor(
     private apiService: ApiService,
@@ -75,25 +80,13 @@ export class TableClienteDocumentoComponent {
     });
   }
 
-  // private refreshEffect = effect(() => {
-  //   if (this.RefreshCliente()) {
-  //     console.log(' Recargando grilla');
-  //     this.listOptions.filtros = [];
-
-  //     this.listDocsCliente$.next('refresh');
-  //   }
-  // });
-
-
   columns$ = this.apiService.getCols('/api/clientes/docs-cols');
   gridData$ = this.listDocsCliente$.pipe(
       debounceTime(500),
       switchMap(() => {
         this.loadingSrv.open({ type: 'spin', text: '' })
-        return this.searchService.getDocsByCliente({ options: this.listOptions, ClienteId: this.ClienteId() })
+        return this.searchService.getDocsByCliente(this.ClienteId(), this.listOptions )
           .pipe(map(data => {
-            console.log('data.list:', data.list);
-            
             return data.list
           }),
           doOnSubscribe(() => { }),
@@ -111,12 +104,12 @@ export class TableClienteDocumentoComponent {
   }
 
   initializeGridOptions(): void {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-    // this.gridOptions.forceFitColumns = true
+    this.gridOptions.forceFitColumns = true
   }
 
   async angularGridReady(angularGrid: any) {
@@ -132,12 +125,13 @@ export class TableClienteDocumentoComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     
-    console.log('row: ', row);
+    // console.log('row: ', row);
     
     if (row?.id){
       this.file.set(row)
+      this.fileName.set(row.NombreArchivo)
+      this.src.set(row.url)
     }
-      // this.editClienteId.set(row.id)
 
   }
 
@@ -147,15 +141,11 @@ export class TableClienteDocumentoComponent {
   }
 
   previewFile(){
-    this.src.set(this.file().url)
     this.fileName.set(this.file().NombreArchivo)
     if (this.file().TipoArchivo == 'pdf') {
       this.modalViewerVisiable1.set(true)
     }else if(this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'){
       this.modalViewerVisiable2.set(true)
-    } else {
-      
-
     }
   }
 

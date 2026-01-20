@@ -1176,8 +1176,10 @@ export class SearchService {
       );
   }
   
-  getDocsByCliente(params: any) {
-    if (!params.ClienteId) return of([]);
+  getDocsByCliente(ClienteId:number, options: any) {
+    if (!ClienteId) return of([]);
+    // if (!ClienteId || !options.filtros.length) return of([]);
+    const params = { options, ClienteId }
     return this.http
       .post<ResponseJSON<any>>(`api/clientes/docs-list`, params)
       .pipe(
@@ -1290,6 +1292,18 @@ export class SearchService {
   getInfoObj(objetivo: number, ClienteId: any, ClienteElementoDependienteId: any) {
     return this.http
       .get<ResponseJSON<any>>(`api/objetivos/infObjetivo/${objetivo}/${ClienteId}/${ClienteElementoDependienteId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
+  getDocsByObjetivo(ObjetivoId:number, ClienteId:number, options: any) {
+    if (!ObjetivoId || !ClienteId) return of([]);
+    // if (!ObjetivoId || !ClienteId || !options.filtros.length) return of([]);
+    const params = { options, ObjetivoId, ClienteId }
+    return this.http
+      .post<ResponseJSON<any>>(`api/objetivos/docs-list`, params)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

@@ -158,7 +158,8 @@ export class ClientesController extends BaseController {
             fieldName: "doc.DocumentoNombreArchivo",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            // maxWidth: 500,
         },
         {
             name: "Tipo",
@@ -168,7 +169,8 @@ export class ClientesController extends BaseController {
             fieldName: "param.DocumentoTipoDetalle",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            // maxWidth: 200,
         },
         {
             name: "Desde",
@@ -341,7 +343,7 @@ ${orderBy}`, [fechaActual])
 
     async listDocsCliente(req: any, res: Response, next: NextFunction) {
 
-        const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+        const filterSql = filtrosToSql(req.body.options.filtros, this.listDocsColumns);
         const orderBy = orderToSQL(req.body.options.sort);
         const ClienteId = req.body.ClienteId;
         const queryRunner = dataSource.createQueryRunner();

@@ -18,6 +18,7 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputGroupComponent } from 'ng-zorro-antd/input'
+import { TableObjetivoDocumentoComponent } from 'src/app/routes/ges/table-objetivo-documentos/table-objetivo-documentos';
 
 @Component({
     selector: 'app-objetivos-form',
@@ -36,7 +37,8 @@ import { NzInputGroupComponent } from 'ng-zorro-antd/input'
         GrupoActividadSearchComponent,
         NzCheckboxModule,
         DetallePersonaComponent,
-        NzInputGroupComponent
+        NzInputGroupComponent,
+        TableObjetivoDocumentoComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -73,6 +75,7 @@ export class ObjetivosFormComponent {
   onAddorUpdate = output()
   files = []
   pristineChange = output<boolean>()
+  mostrarDocs = model<boolean>(false)
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -183,7 +186,7 @@ export class ObjetivosFormComponent {
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-    console.log('infoObjetivo: ', infoObjetivo);
+    // console.log('infoObjetivo: ', infoObjetivo);
     
     this.infoCoordinadorCuenta().clear()
     this.infoActividad().clear()

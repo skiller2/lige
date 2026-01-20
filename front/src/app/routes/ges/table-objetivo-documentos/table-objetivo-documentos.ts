@@ -11,7 +11,9 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { LoadingService } from '@delon/abc/loading';
-
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
 
 interface ListOptions {
   filtros: any[];
@@ -25,6 +27,9 @@ interface ListOptions {
     CommonModule,
     NzAffixModule,
     FiltroBuilderComponent,
+    NgxExtendedPdfViewerModule,
+    ImageLoaderComponent,
+    NzSpaceModule
   ],
   providers: [AngularUtilService],
   templateUrl: './table-objetivo-documentos.html',
@@ -32,10 +37,8 @@ interface ListOptions {
   standalone: true
 })
 export class TableObjetivoDocumentoComponent {
-  // @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
-
   private readonly loadingSrv = inject(LoadingService);
-
+    
   angularGrid!: AngularGridInstance
   gridOptions!: GridOption
   gridDataInsert: any[] = []
@@ -49,82 +52,108 @@ export class TableObjetivoDocumentoComponent {
   tableLoading$ = new BehaviorSubject<boolean>(false);
   listDocsObjetivo$ = new BehaviorSubject('');
   startFilters = signal<any[]>([])
+  ClienteId = input<number>(0);
   ObjetivoId = input<number>(0);
-  RefreshObjetivo = model<boolean>(false);
+  // RefreshCliente = model<boolean>(false);
+
+  file = signal<any>(null)
+  modalViewerVisiable1 = signal<boolean>(false)
+  modalViewerVisiable2 = signal<boolean>(false)
+  src = signal<any>({})
+  fileName = signal<any>({})
+  canPreviewFile = computed(() => {
+    if (this.file()?.TipoArchivo && (this.file().TipoArchivo == 'pdf' || this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'))
+      return true;
+      
+    return false
+  });
   
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
     public searchService: SearchService
   ) {
-    // effect(() => {
-    //   const ObjetivoId = this.ObjetivoId()
-    //   if (ObjetivoId) {
-    //     this.listDocsObjetivo$.next('');
-    //   }
-    // });
+    effect(() => {
+      const ClienteId = this.ClienteId()
+      const ObjetivoId = this.ObjetivoId()
+      if (ClienteId && ObjetivoId) {
+        this.listDocsObjetivo$.next('');
+      }
+    });
   }
-
-  private refreshEffect = effect(() => {
-    if (this.RefreshObjetivo()) {
-      console.log(' Recargando grilla');
-      this.listOptions.filtros = [];
-
-      this.listDocsObjetivo$.next('refresh');
-    }
-  });
-
-
-  columns$ = this.apiService.getCols('/api/Objetivos/docs-cols');
+  
+  columns$ = this.apiService.getCols('/api/objetivos/docs-cols');
   gridData$ = this.listDocsObjetivo$.pipe(
       debounceTime(500),
       switchMap(() => {
         this.loadingSrv.open({ type: 'spin', text: '' })
-        return this.searchService.getDocsByObjetivo({ options: this.listOptions, ObjetivoId: this.ObjetivoId() })
+        return this.searchService.getDocsByObjetivo(this.ObjetivoId(), this.ClienteId(), this.listOptions)
           .pipe(map(data => {
-            console.log('data.list:', data.list);
-            
             return data.list
           }),
           doOnSubscribe(() => { }),
           tap({ complete: () => { this.loadingSrv.close() } })
         )
       })
-  ) 
-
-  ngOnInit(): void {
-    this.initializeGridOptions();
-  }
-
-  initializeGridOptions(): void {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    
-    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-    this.gridOptions.showFooterRow = true
-    this.gridOptions.createFooterRow = true
-    // this.gridOptions.forceFitColumns = true
-  }
-
-  async angularGridReady(angularGrid: any) {
-    this.angularGrid = angularGrid.detail
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-      totalRecords(this.angularGrid)
-    })
-    if (this.apiService.isMobile())
-      this.angularGrid.gridService.hideColumnByIds([])
-  }
-
-  handleSelectedRowsChanged(e: any): void {
-    const selrow = e.detail.args.rows[0]
-    const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    if (row?.id){}
-      // this.editObjetivoId.set(row.id)
-
-  }
-
-  listOptionsChange(options: any) {
+  )
+  
+    ngOnInit(): void {
+      // this.initializeGridOptions();
+    }
+  
+    ngAfterViewInit() {
+      this.initializeGridOptions();
+    }
+  
+    initializeGridOptions(): void {
+      this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+      
+      this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+      this.gridOptions.showFooterRow = true
+      this.gridOptions.createFooterRow = true
+      this.gridOptions.forceFitColumns = true
+    }
+  
+    async angularGridReady(angularGrid: any) {
+      this.angularGrid = angularGrid.detail
+      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+        totalRecords(this.angularGrid)
+      })
+      if (this.apiService.isMobile())
+        this.angularGrid.gridService.hideColumnByIds([])
+    }
+  
+    handleSelectedRowsChanged(e: any): void {
+      const selrow = e.detail.args.rows[0]
+      const row = this.angularGrid.slickGrid.getDataItem(selrow)
+      
+      // console.log('row: ', row);
+      
+      if (row?.id){
+        this.file.set(row)
+        this.fileName.set(row.NombreArchivo)
+        this.src.set(row.url)
+      }
+  
+    }
+  
+    listOptionsChange(options: any) {
       this.listOptions = options
       this.listDocsObjetivo$.next('')
-  }
+    }
+  
+    previewFile(){
+      this.fileName.set(this.file().NombreArchivo)
+      if (this.file().TipoArchivo == 'pdf') {
+        this.modalViewerVisiable1.set(true)
+      }else if(this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'){
+        this.modalViewerVisiable2.set(true)
+      }
+    }
+  
+    handleCancel(): void {
+      this.modalViewerVisiable1.set(false)
+      this.modalViewerVisiable2.set(false)
+    }
 
 }

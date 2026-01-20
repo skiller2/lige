@@ -1,12 +1,20 @@
 <ng-container>
     <div ng-row style="display: flex; justify-content: space-between;">
         <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
-        <button nz-button nzType="default" (click)="previewFile()" [disabled]="!this.file()">
+        <nz-space-compact>
+          <button nz-button nzType="default" (click)="previewFile()" [disabled]="!canPreviewFile()"
+          nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
             <span nz-icon nzType="search"
-          nzTheme="outline"></span></button>
+            nzTheme="outline"></span></button>
+          <button nz-button nzType="default" [disabled]="!src().length"
+          nz-tooltip nzTooltipTitle="{{ 'app.btn.export' | i18n }}"
+          app-down-file [httpMethod]="'POST'" [httpUrl]="src()">
+            <span nz-icon nzType="download"
+            nzTheme="outline"></span></button>
+        </nz-space-compact>
     </div>
     @if ((columns$|async); as columnas) {
-    <div class="gridListContainer container-fluid" >
+    <div class="gridContainer container-fluid">
         <angular-slickgrid gridId="gridDocsCliente" [columns]="columnas | colsFilter" [options]="gridOptions"
         [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">

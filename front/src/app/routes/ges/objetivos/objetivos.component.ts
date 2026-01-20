@@ -196,9 +196,15 @@ export class ObjetivosComponent {
         break
       case 3: //DETAIL
         this.childDeta().viewRecord(true)
+        this.childDeta().mostrarDocs.set(true)
         break;
       case 2: //EDIT
         this.childEdit().viewRecord(false)
+        this.childEdit().mostrarDocs.set(true)
+        break;
+      case 1:
+        this.childEdit().mostrarDocs.set(false)
+        this.childDeta().mostrarDocs.set(false)
         break;
         default:
         break;
