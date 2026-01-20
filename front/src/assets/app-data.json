@@ -269,6 +269,12 @@
               "link": "/config/novedad",
               "icon": "anticon-profile"
             }
+            ,
+            {
+              "text": "Sueldo Mínimo Vital Móvil",
+              "link": "/config/sueldo-minimo-vital-movil",
+              "icon": "anticon-profile"
+            }
           ]
         }
       ]

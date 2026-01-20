@@ -13,5 +13,9 @@ export const ConfigRoutes: Routes = [
     path: 'novedad',
     loadComponent: () => import('./novedad/novedad').then(c => c.NovedadComponent),
   },
+  {
+    path: 'sueldo-minimo-vital-movil',
+    loadComponent: () => import('./sueldo-minimo-vital-movil/sueldo-minimo-vital-movil').then(c => c.SueldoMinimoVitalMovil),
+  },
  
 ];
