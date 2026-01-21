@@ -274,7 +274,7 @@
   @if(formObj.enabled){
   <nz-form-item>
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Carga </nz-form-label>
-    <nz-form-control>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
       <app-file-upload formControlName="files" [idForSearh]="formObj.value.id ?? 0" [textForSearch]="''"
         columnForSearch="ObjetivoId" [tableForSearch]="'Documento'" [showTipoDocs]="true"></app-file-upload>
     </nz-form-control>
@@ -285,12 +285,12 @@
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1">
     </nz-form-control>
 
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="22">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15" [nzLg]="8">
 
-      @if ( ObjetivoId() && mostrarDocs() ) {
+      @if ( idForm() && mostrarDocs() ) {
       <div class="container-fluid">
-        <app-table-objetivo-documentos #docsGrid [ObjetivoId]="ObjetivoId()"
-          [ClienteId]="ClienteId()"></app-table-objetivo-documentos>
+        <app-table-objetivo-documentos #docsGrid [ObjetivoId]="idForm()"
+          [ClienteId]="clienteIdForm()"></app-table-objetivo-documentos>
       </div>
       }
 
@@ -308,6 +308,11 @@
         nzPopconfirmPlacement="top" [nzLoading]="isLoading()" [disabled]="!ObjetivoId()">
         {{ 'app.btn.delete' | i18n }}
       </button>
+      @if(!ObjetivoId() && !ClienteId() && !ClienteElementoDependienteId()){
+      <button [disabled]="!(idForm() && clienteIdForm() && clienteElementoDependienteIdForm())" nzType="primary" nz-button (click)="resetForm()">
+        {{ 'app.btn.clear.form' | i18n }}
+      </button>
+      }
     </nz-form-control>
   </nz-form-item>
   }

@@ -265,11 +265,11 @@
   <nz-form-item>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1">
     </nz-form-control>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="22">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15" [nzLg]="8">
 
-      @if ( id() && mostrarDocs() ) {
+      @if ( idForm() && mostrarDocs() ) {
       <div class="container-fluid">
-        <app-table-cliente-documentos #docsGrid [ClienteId]="id()"></app-table-cliente-documentos>
+        <app-table-cliente-documentos #docsGrid [ClienteId]="idForm()"></app-table-cliente-documentos>
       </div>
       }
 
@@ -288,6 +288,11 @@
         nzPopconfirmPlacement="top" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)">
         {{ 'app.btn.delete' | i18n }}
       </button>
+      }
+      @if (!ClienteId()) {
+        <button [disabled]="!idForm()" nzType="primary" nz-button (click)="resetForm()">
+          {{ 'app.btn.clear.form' | i18n }}
+        </button>
       }
     </nz-form-control>
   </nz-form-item>

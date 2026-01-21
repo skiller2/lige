@@ -124,7 +124,7 @@ export class ClientesFormComponent {
     codigo: ""
   })
 
-  id():number {
+  idForm():number {
     const value = this.formCli.get("id")?.value
     if (value) {
       return value
@@ -165,6 +165,14 @@ export class ClientesFormComponent {
 
   checkPristine() {
     this.pristineChange.emit(this.formCli.pristine);
+  }
+
+  resetForm() {
+    this.formCli.reset()
+    this.infoClienteContacto().clear()
+    this.infoDomicilio().clear()
+    this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+    this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
   }
 
   async newRecord() {
@@ -235,7 +243,7 @@ export class ClientesFormComponent {
     this.isLoading.set(true)
     let form = this.formCli.value
     try {
-      if (this.ClienteId()) {
+      if (this.idForm()) {
         let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
         this.formCli.patchValue({
           infoClienteContacto: result.data.infoClienteContacto,

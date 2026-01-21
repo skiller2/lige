@@ -592,7 +592,7 @@ ${orderBy}`, [fechaActual])
         }
     }
 
-    async getQueryCliente(queryRunner: any, clienteId: any) {
+    async infoClienteQuerys(queryRunner: any, clienteId: any) {
         let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
         let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
         let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
@@ -915,7 +915,7 @@ ${orderBy}`, [fechaActual])
                 }
             }
 
-            let ObjClienteNewQuery = await this.getQueryCliente(queryRunner, ClienteId)
+            let ObjClienteNewQuery = await this.infoClienteQuerys(queryRunner, ClienteId)
 
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNewQuery, res, 'Carga  de nuevo registro exitoso');

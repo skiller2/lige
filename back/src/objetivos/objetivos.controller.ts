@@ -661,6 +661,34 @@ SELECT
         this.jsonRes(getOptions, res);
     }
 
+    async infObjetivoQuerys(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId:any) {
+        
+        let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+        const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+        const rubrosCliente = await this.getRubroQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
+        const docsRequerido = await this.getDocRequeridoQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
+        const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+        const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
+        const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+        const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
+        const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
+
+        if (!facturacion) {
+            infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
+        } else {
+            infObjetivo = { ...infObjetivo[0], ...domiclio[0], ...facturacion[0] };
+        }
+
+        infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
+        infObjetivo.docsRequerido = docsRequerido
+        infObjetivo.infoActividad = [grupoactividad?.[0]]
+        infObjetivo.infoActividadJerarquico = grupoactividadjerarquico
+        infObjetivo.rubrosCliente = rubrosCliente
+        infObjetivo.habilitacion = habilitacion
+
+        return infObjetivo
+    }
+
     async infObjetivo(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         try {
@@ -1746,7 +1774,7 @@ SELECT
         const queryRunner = dataSource.createQueryRunner();
         const Obj = { ...req.body };
         const infoActividad = { ...Obj.infoActividad }
-        let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoCoordinadorCuenta: {}, infoActividad: [] }
+        let ObjObjetivoNew = { ClienteId: 0, id: 0, ClienteElementoDependienteId: 0, infoCoordinadorCuenta: {}, infoActividad: [] }
         try {
 
             const usuario = res.locals.userName
@@ -1778,7 +1806,7 @@ SELECT
             ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 : ClienteElementoDependienteUltNro + 1
 
             //Agrego los valores al objeto original para retornar
-            ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
+            ObjObjetivoNew.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
             Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
 
 
@@ -1795,7 +1823,7 @@ SELECT
 
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
 
-            ObjObjetivoNew.ObjetivoNewId = ObjetivoId
+            ObjObjetivoNew.id = ObjetivoId
 
 
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
@@ -1822,8 +1850,10 @@ SELECT
                 }
             }
 
+            let ObjObjetivoNewQuery = await this.infObjetivoQuerys(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
+
             await queryRunner.commitTransaction()
-            return this.jsonRes(ObjObjetivoNew, res, 'Carga  de nuevo registro exitoso');
+            return this.jsonRes(ObjObjetivoNewQuery, res, 'Carga  de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
