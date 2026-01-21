@@ -66,9 +66,9 @@ export class ObjetivosFormComponent {
     GrupoActividadObjetivoDesde:new Date(),
     GrupoActividadObjetivoDesdeOriginal: ''
   }
-  ObjetivoId = model(0)
-  ClienteId = model(0)
-  ClienteElementoDependienteId = model(0)
+  ObjetivoId = input(0)
+  ClienteId = input(0)
+  ClienteElementoDependienteId = input(0)
   selectedValueProvincia = null
   isLoading = signal(false)
   addNew = model()
@@ -118,6 +118,31 @@ export class ObjetivosFormComponent {
     GrupoActividadJerarquicoPersonalId:0,
   })
 
+  clienteIdForm():number {
+    const value = this.formObj.get("ClienteId")?.value
+    if (value) {
+      return value
+    }
+    return 0
+  }
+
+  clienteElementoDependienteIdForm():number {
+    const value = this.formObj.get("ClienteElementoDependienteId")?.value
+    if (value) {
+      return value
+    }
+    return 0
+  }
+
+  idForm():number {
+    const value = this.formObj.get("id")?.value
+    if (value) {
+      return value
+    }
+    return 0
+  }
+
+  childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
  
   $optionsProvincia = this.searchService.getProvincia();
   $optionsLocalidad = this.searchService.getLocalidad();
@@ -149,12 +174,15 @@ export class ObjetivosFormComponent {
     this.pristineChange.emit(this.formObj.pristine);
   }
 
+  resetForm() {
+    this.formObj.reset()
+    this.infoCoordinadorCuenta().clear()
+    this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    this.formObj.markAsPristine()
+  }
+
   async newRecord() {
     if (this.formObj.pristine) {
-
-      this.ObjetivoId.set(0)
-      this.ClienteId.set(0)
-      this.ClienteElementoDependienteId.set(0)
     
       this.formObj.enable()
       this.formObj.get('codigo')?.disable()
@@ -243,7 +271,7 @@ export class ObjetivosFormComponent {
     this.isLoading.set(true)
     let form = this.formObj.getRawValue();
     try {
-        if (this.ObjetivoId()) {
+        if (this.idForm()) {
           let CordinadorCuenta = form.infoCoordinadorCuenta
           // este es para cuando es update
 
@@ -251,7 +279,7 @@ export class ObjetivosFormComponent {
             form.infoCoordinadorCuenta = []   
           
 
-          let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.ObjetivoId()))
+          let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.idForm()))
           //this.formObj.reset(result.data)
           //console.log("result ", result)
           this.formObj.patchValue({
@@ -269,20 +297,29 @@ export class ObjetivosFormComponent {
           // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addObjetivo(form))
+          const infoObjetivo = result.data
           this.formObj.get('ClienteId')?.disable();
-          this.ObjetivoId.set(result.data.ObjetivoNewId)
-          this.ClienteId.set(result.data.ClienteId)
-          this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
+
+          this.formObj.reset(infoObjetivo)
           this.formObj.patchValue({
-            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            infoActividad: result.data.infoActividad,
-            codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-            clienteOld: result.data.ClienteId,
-            DomicilioId: result.data.DomicilioId
+            DireccionModificada:false,
+            FechaModificada:false,
+            ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+            ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+            codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+            GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+            clienteOld: infoObjetivo.ClienteId,
+            GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
           });
-          //this.addNew.set(true)
           
+          //this.addNew.set(true)
+          this.mostrarDocs.set(true)
         }
+
+        if (this.mostrarDocs()) {
+          this.childDocsGrid().refreshGrid()
+        }
+
         this.onAddorUpdate.emit()
         this.formObj.markAsUntouched()
         this.formObj.markAsPristine()

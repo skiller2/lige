@@ -107,6 +107,7 @@ export class HabilitacionesFormDrawerComponent {
     private searchService: SearchService
   ) {
     effect(async() => {
+      this.formHabilitacion.get('AudFechaIng')?.disable()
       const visible = this.visible()
       const codigo = this.codigo()
       if (codigo) this.tituloDrawer.set('Editar Habilitación Detalle')

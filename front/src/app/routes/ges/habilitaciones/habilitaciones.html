@@ -33,10 +33,11 @@
             <button nz-button nzType="default" (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus" nzTheme="outline"></span>
             </button>
-            <button nz-button nzType="default" (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.edit.habilicion.necesaria' | i18n }}"
+            <!-- se comenta funcion de edit de habilitacion necesaria de momento -->
+            <!-- <button nz-button nzType="default" (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.edit.habilicion.necesaria' | i18n }}"
               [disabled]="personalId()? false : true">
               <span nz-icon nzType="edit" nzTheme="outline"></span>
-            </button>
+            </button> -->
             <button nz-button nzType="default" nz-popconfirm 
               nzPopconfirmTitle="Actualizo habilitación necesaria?" (nzOnConfirm)="updHabilitacionNecesaria()"
               nz-tooltip nzTooltipTitle="{{'app.btn.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"

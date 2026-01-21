@@ -142,22 +142,36 @@ export class ClientesController extends BaseController {
     listDocsColumns: any[] = [
         {
             id: "id",
-            name: "DocumentoId",
+            name: "Id",
             field: "id",
             fieldName: "doc.DocumentoId",
             type: "number",
             sortable: false,
-            hidden: true,
-            searchHidden: true
+            hidden: false,
+            searchHidden: false,
+            maxWidth: 150,
+
         },
         {
-            name: "Documento",
+            name: "Denominación",
             type: "string",
-            id: "NombreArchivo",
-            field: "NombreArchivo",
-            fieldName: "doc.DocumentoNombreArchivo",
+            id: "DocumentoDenominadorDocumento",
+            field: "DocumentoDenominadorDocumento",
+            fieldName: "doc.DocumentoDenominadorDocumento",
             sortable: true,
             hidden: false,
+            searchHidden: false,
+            // maxWidth: 500,
+        },
+        {
+            name: "Tipo",
+            type: "string",
+            id: "DocumentoTipoCodigo",
+            field: "DocumentoTipoCodigo",
+            fieldName: "doc.DocumentoTipoCodigo",
+            searchComponent: "inputForTipoDocumentoSearch",
+            sortable: true,
+            hidden: true,
             searchHidden: false,
             // maxWidth: 500,
         },
@@ -169,7 +183,7 @@ export class ClientesController extends BaseController {
             fieldName: "param.DocumentoTipoDetalle",
             sortable: true,
             hidden: false,
-            searchHidden: false,
+            searchHidden: true,
             // maxWidth: 200,
         },
         {
@@ -350,7 +364,7 @@ ${orderBy}`, [fechaActual])
 
         try {
             const documentos = await queryRunner.query(
-            `SELECT doc.DocumentoId AS id, doc.DocumentoNombreArchivo NombreArchivo, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
+            `SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
                 param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
                 CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url,
                 RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1) TipoArchivo,
@@ -580,7 +594,7 @@ ${orderBy}`, [fechaActual])
         }
     }
 
-    async getQueryCliente(queryRunner: any, clienteId: any) {
+    async infoClienteQuerys(queryRunner: any, clienteId: any) {
         let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
         let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
         let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
@@ -903,7 +917,7 @@ ${orderBy}`, [fechaActual])
                 }
             }
 
-            let ObjClienteNewQuery = await this.getQueryCliente(queryRunner, ClienteId)
+            let ObjClienteNewQuery = await this.infoClienteQuerys(queryRunner, ClienteId)
 
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNewQuery, res, 'Carga  de nuevo registro exitoso');

@@ -145,6 +145,10 @@ export class TableClienteDocumentoComponent {
     this.listDocsCliente$.next('')
   }
 
+  refreshGrid() {
+    this.listDocsCliente$.next('')
+  }
+
   async previewFile(){
     this.fileName.set(this.file().NombreArchivo)
     if (this.file().TipoArchivo == 'pdf') {
@@ -161,8 +165,8 @@ export class TableClienteDocumentoComponent {
   }
 
   ngOnDestroy(): void {
-        this.destroy$.next('');
-        this.destroy$.complete();
-    }
+    this.destroy$.next('');
+    this.destroy$.complete();
+  }
 
 }
