@@ -10,7 +10,7 @@
             nzTheme="outline"></span></button>
           <button nz-button nzType="default" [disabled]="!url().length"
           nz-tooltip nzTooltipTitle="{{ 'app.btn.export' | i18n }}"
-          app-down-file [httpMethod]="'POST'" [httpUrl]="url()">
+          app-down-file [httpMethod]="'GET'" [httpUrl]="url()">
             <span nz-icon nzType="download"
             nzTheme="outline"></span></button>
         </nz-space-compact>
