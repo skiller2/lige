@@ -28,21 +28,38 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
         if (Object.keys(novedad).length === 0) {
             return gotoFlow(flowNovedadFecha)
         }
-        await flowDynamic([
-            `Novedad:\n` +
+
+        // Construir el mensaje de resumen
+        const descripcionTexto = novedad.Descripcion ? (novedad.Descripcion.length > 100 ? novedad.Descripcion.substring(0, 100) + '...' : novedad.Descripcion) : 's/d'
+        const accionTexto = novedad.Accion ? (novedad.Accion.length > 100 ? novedad.Accion.substring(0, 100) + '...' : novedad.Accion) : 's/d'
+
+        let mensaje = `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
-            `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.Descripcion ?? ''}\n` +
+            `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
             `4 - Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-            `5 - Descripción: ${novedad.Descripcion ?? 's/d'}\n` +
-            `6 - Acción: ${novedad.Accion ?? 's/d'}`,
+            `5 - Descripción: "${descripcionTexto}"\n` +
+            `6 - Acción: "${accionTexto}"`
 
-            `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\n` +
-            `C - Limpiar campos\n` +
-            `E - Enviar al responsable\n` +
-            `M - Menú`
-        ]
-            , { delay: delay })
+        await flowDynamic([mensaje], { delay: delay })
+
+        // Construir opciones del menú
+        let opcionesMenu = `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\n`
+        opcionesMenu += `C - Limpiar campos\n`
+
+        // Agregar opciones para ver completo si superan 100 caracteres
+        if (novedad.Descripcion && novedad.Descripcion.length > 100) {
+            opcionesMenu += `D - Ver descripción completa\n`
+        }
+        if (novedad.Accion && novedad.Accion.length > 100) {
+            opcionesMenu += `T - Ver acción completa\n`
+        }
+
+        opcionesMenu += `E - Enviar al responsable\n`
+        opcionesMenu += `M - Menú`
+
+        // Enviar opciones del menú
+        await flowDynamic([opcionesMenu], { delay: delay })
     })
     .addAnswer([],
         { capture: true, delay },
@@ -78,6 +95,106 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
                     await novedadController.saveNovedad(personalId, {})
                     await flowDynamic(`Limpieza exitosa`, { delay: delay })
                     return gotoFlow(flowNovedad)
+                    break;
+                case 'd':
+                    if (novedad.Descripcion && novedad.Descripcion.length > 100) {
+                        await flowDynamic([`Descripción completa:\n${novedad.Descripcion}`], { delay: delay })
+                    }
+                    return gotoFlow(flowNovedadMenu)
+                    break;
+                case 't':
+                    if (novedad.Accion && novedad.Accion.length > 100) {
+                        await flowDynamic([`Acción completa:\n${novedad.Accion}`], { delay: delay })
+                    }
+                    return gotoFlow(flowNovedadMenu)
+                    break;
+                case 'e':
+                    if (!novedad.Fecha || !novedad.Hora || !(novedad.ClienteId && novedad.ClienteElementoDependienteId) || !novedad.Tipo || !novedad.Descripcion || !novedad.Accion) {
+                        await flowDynamic(`Se debe completar todos los campos para realizar esta acción`, { delay: delay })
+                        return gotoFlow(flowNovedad)
+                    }
+                    return gotoFlow(flowNovedadEnvio)
+                    break;
+                case 'm':
+                    return gotoFlow(flowMenu)
+                    break;
+                default:
+                    return fallBack()
+                    break;
+            }
+        })
+
+export const flowNovedadMenu = addKeyword(EVENTS.ACTION)
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+        console.log('entre al menu novedad')
+        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+        const personalId = state.get('personalId')
+        const novedad = await novedadController.getBackupNovedad(personalId)
+
+        // Construir opciones del menú
+        let opcionesMenu = `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\n`
+        opcionesMenu += `C - Limpiar campos\n`
+
+        // Agregar opciones para ver completo si superan 100 caracteres
+        if (novedad.Descripcion && novedad.Descripcion.length > 100) {
+            opcionesMenu += `D - Ver descripción completa\n`
+        }
+        if (novedad.Accion && novedad.Accion.length > 100) {
+            opcionesMenu += `T - Ver acción completa\n`
+        }
+
+        opcionesMenu += `E - Enviar al responsable\n`
+        opcionesMenu += `M - Menú`
+
+        // Enviar opciones del menú
+        await flowDynamic([opcionesMenu], { delay: delay })
+    })
+    .addAnswer([],
+        { capture: true, delay },
+        async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
+            if (ctx?.type == 'dispatch')
+                return fallBack()
+
+            const personalId = state.get('personalId')
+            const novedad = await novedadController.getBackupNovedad(personalId)
+            switch (String(ctx.body).toLowerCase()) {
+                case '1':
+                    return gotoFlow(flowNovedadFecha)
+                    break;
+                case '2':
+                    return gotoFlow(flowNovedadHora)
+                    break;
+                case '3':
+                    return gotoFlow(flowNovedadCodObjetivo)
+                    break;
+                case '4':
+                    return gotoFlow(flowNovedadTipo)
+                    break;
+                case '5':
+                    return gotoFlow(flowNovedadDescrip)
+                    break;
+                case '6':
+                    return gotoFlow(flowNovedadAccion)
+                    break;
+                case 'a':
+                    return gotoFlow(flowNovedadRecibirDocs)
+                    break;
+                case 'c':
+                    await novedadController.saveNovedad(personalId, {})
+                    await flowDynamic(`Limpieza exitosa`, { delay: delay })
+                    return gotoFlow(flowNovedad)
+                    break;
+                case 'd':
+                    if (novedad.Descripcion && novedad.Descripcion.length > 100) {
+                        await flowDynamic([`Descripción completa:\n${novedad.Descripcion}`], { delay: delay })
+                    }
+                    return gotoFlow(flowNovedadMenu)
+                    break;
+                case 't':
+                    if (novedad.Accion && novedad.Accion.length > 100) {
+                        await flowDynamic([`Acción completa:\n${novedad.Accion}`], { delay: delay })
+                    }
+                    return gotoFlow(flowNovedadMenu)
                     break;
                 case 'e':
                     if (!novedad.Fecha || !novedad.Hora || !(novedad.ClienteId && novedad.ClienteElementoDependienteId) || !novedad.Tipo || !novedad.Descripcion || !novedad.Accion) {
