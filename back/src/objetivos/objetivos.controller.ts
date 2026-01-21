@@ -415,20 +415,21 @@ const columnasGrillaHistoryGrupoActividad: any[] = [
 const listDocsColumns: any[] = [
     {
         id: "id",
-        name: "DocumentoId",
+        name: "Id",
         field: "id",
         fieldName: "doc.DocumentoId",
         type: "number",
         sortable: false,
-        hidden: true,
-        searchHidden: true
+        hidden: false,
+        searchHidden: false,
+        maxWidth: 150,
     },
     {
-        name: "Documento",
+        name: "Denominación",
         type: "string",
-        id: "NombreArchivo",
-        field: "NombreArchivo",
-        fieldName: "doc.DocumentoNombreArchivo",
+        id: "DocumentoDenominadorDocumento",
+        field: "DocumentoDenominadorDocumento",
+        fieldName: "doc.DocumentoDenominadorDocumento",
         sortable: true,
         hidden: false,
         searchHidden: false,
@@ -621,7 +622,7 @@ SELECT
 
         try {
             const documentos = await queryRunner.query(
-                `SELECT doc.DocumentoId AS id, doc.DocumentoNombreArchivo NombreArchivo, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
+                `SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
                 param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
                 CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url,
                 RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1) TipoArchivo,
