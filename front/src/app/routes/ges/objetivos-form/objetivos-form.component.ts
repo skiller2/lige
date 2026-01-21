@@ -279,7 +279,7 @@ export class ObjetivosFormComponent {
             form.infoCoordinadorCuenta = []   
           
 
-          let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.ObjetivoId()))
+          let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.idForm()))
           //this.formObj.reset(result.data)
           //console.log("result ", result)
           this.formObj.patchValue({

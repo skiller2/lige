@@ -244,7 +244,7 @@ export class ClientesFormComponent {
     let form = this.formCli.value
     try {
       if (this.idForm()) {
-        let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+        let result = await firstValueFrom(this.apiService.updateCliente(form, this.idForm()))
         this.formCli.patchValue({
           infoClienteContacto: result.data.infoClienteContacto,
           infoDomicilio: result.data.infoDomicilio,
