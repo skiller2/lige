@@ -60,6 +60,7 @@ import { EfectoController } from "../efecto/efecto.controller";
 import { DomicilioController } from "src/domicilio/domicilio.controller";
 import { HabilitacionesController } from "src/habilitaciones/habilitaciones.controller";
 import { CondicionesVentaController } from "../condiciones-venta/condiciones-venta.controller";
+import { SueldoMinimoVitalMovilController } from "../sueldo-minimo-vital-movil/sueldo-minimo-vital-movil.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -123,3 +124,4 @@ export const compensaGeneralACordinadorController = new CompensaGeneralACordinad
 export const efectoController = new EfectoController()
 export const habilitacionesController = new HabilitacionesController()
 export const condicionesVentaController = new CondicionesVentaController()
+export const sueldoMinimoVitalMovilController = new SueldoMinimoVitalMovilController()

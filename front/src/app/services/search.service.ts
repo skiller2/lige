@@ -1207,6 +1207,14 @@ export class SearchService {
 
   }
 
+  getListSMVM(filters: any) {
+    const parameter = { options: filters }
+    return this.http.post<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ total: 0, list: [] }))
+    );
+  }
+
   getListGrupoActividadResponsables(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listResponsables', parameter).pipe(
