@@ -101,10 +101,21 @@ export class SueldoMinimoVitalMovilController extends BaseController {
 
       await queryRunner.query(`
         INSERT INTO SalarioMinimoVitalMovil (
+          SalarioMinimoVitalMovilSMVM,
+          SalarioMinimoVitalMovilCuotas,
+          SalarioMinimoVitalMovilSuscripcionInicial,
+          SalarioMinimoVitalMovilSuscripcionRestoCuotas,
           SalarioMinimoVitalMovilDesde,
-          SalarioMinimoVitalMovilSMVM
-        ) VALUES (@0, @1)
-      `, [SalarioMinimoVitalMovilDesde, SalarioMinimoVitalMovilSMVM]);
+          SalarioMinimoVitalMovilHasta
+        ) VALUES (@0, @1, @2, @3, @4, @5)
+      `, [
+        SalarioMinimoVitalMovilSMVM,
+        null, // SalarioMinimoVitalMovilCuotas
+        null, // SalarioMinimoVitalMovilSuscripcionInicial
+        null, // SalarioMinimoVitalMovilSuscripcionRestoCuotas
+        SalarioMinimoVitalMovilDesde,
+        null  // SalarioMinimoVitalMovilHasta
+      ]);
 
       const SMVM = await queryRunner.query(`
         SELECT TOP 1 SalarioMinimoVitalMovilId 
@@ -171,10 +182,21 @@ export class SueldoMinimoVitalMovilController extends BaseController {
 
         await queryRunner.query(`
           INSERT INTO SalarioMinimoVitalMovil (
+            SalarioMinimoVitalMovilSMVM,
+            SalarioMinimoVitalMovilCuotas,
+            SalarioMinimoVitalMovilSuscripcionInicial,
+            SalarioMinimoVitalMovilSuscripcionRestoCuotas,
             SalarioMinimoVitalMovilDesde,
-            SalarioMinimoVitalMovilSMVM
-          ) VALUES (@0, @1)
-        `, [SalarioMinimoVitalMovilDesde, SalarioMinimoVitalMovilSMVM]);
+            SalarioMinimoVitalMovilHasta
+          ) VALUES (@0, @1, @2, @3, @4, @5)
+        `, [
+          SalarioMinimoVitalMovilSMVM,
+          null, // SalarioMinimoVitalMovilCuotas
+          null, // SalarioMinimoVitalMovilSuscripcionInicial
+          null, // SalarioMinimoVitalMovilSuscripcionRestoCuotas
+          SalarioMinimoVitalMovilDesde,
+          null  // SalarioMinimoVitalMovilHasta
+        ]);
 
         const SMVM = await queryRunner.query(`
           SELECT TOP 1 SalarioMinimoVitalMovilId 

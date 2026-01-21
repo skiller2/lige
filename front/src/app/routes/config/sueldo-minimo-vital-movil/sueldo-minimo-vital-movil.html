@@ -2,16 +2,20 @@
     <div nz-row>
         <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-date-picker nzMode="month" name="periodo" [ngModel]="periodo()" (ngModelChange)="dateChange($event)" />
-
-      <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
-        <nz-button-group nz-button nzButtonGroup style="text-align: right;">
-        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-        </a>
-      </nz-button-group>
+        <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; gap: 8px;">
+          <nz-button-group nz-button nzButtonGroup style="text-align: right;">
+            <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+              <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+            </a>
+          </nz-button-group>
+          @if (hasNewItems()) {
+          <button nz-popconfirm nzType="primary" class="btn-add" nzPopconfirmTitle="Confirmar nuevo registro?"
+            (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft" nz-button>
+            Confirmar nuevo registro
+          </button>
+          }
+        </div>
     </div>
-  
-  </div>
   
   @if ((columns$|async); as columnas) {
 
