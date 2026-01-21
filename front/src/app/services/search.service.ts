@@ -1175,9 +1175,10 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
-  
-  getDocsByCliente(ClienteId:number, options: any) {
-    if (!ClienteId || !options.filtros.length) return of([]);
+
+  getDocsByCliente(ClienteId: number, options: any) {
+    // if (!ClienteId || !options.filtros.length) return of([]);
+    if (!ClienteId) return of([]);
     const params = { options, ClienteId }
     return this.http
       .post<ResponseJSON<any>>(`api/clientes/docs-list`, params)
@@ -1305,8 +1306,9 @@ export class SearchService {
       );
   }
 
-  getDocsByObjetivo(ObjetivoId:number, ClienteId:number, options: any) {
-    if (!ObjetivoId || !ClienteId || !options.filtros.length) return of([]);
+  getDocsByObjetivo(ObjetivoId: number, ClienteId: number, options: any) {
+    // if (!ObjetivoId || !ClienteId || !options.filtros.length) return of([]);
+    if (!ObjetivoId || !ClienteId) return of([]);
     const params = { options, ObjetivoId, ClienteId }
     return this.http
       .post<ResponseJSON<any>>(`api/objetivos/docs-list`, params)
