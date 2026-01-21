@@ -289,7 +289,7 @@
 
       @if ( ObjetivoId() && mostrarDocs() ) {
       <div class="container-fluid">
-        <app-table-objetivo-documentos [ObjetivoId]="ObjetivoId()"
+        <app-table-objetivo-documentos #docsGrid [ObjetivoId]="ObjetivoId()"
           [ClienteId]="ClienteId()"></app-table-objetivo-documentos>
       </div>
       }

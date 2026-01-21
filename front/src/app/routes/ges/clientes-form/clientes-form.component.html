@@ -1,6 +1,5 @@
 <form [formGroup]="formCli">
   <br>
-
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Código</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
@@ -268,9 +267,9 @@
     </nz-form-control>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="22">
 
-      @if ( ClienteId() && mostrarDocs() ) {
+      @if ( id() && mostrarDocs() ) {
       <div class="container-fluid">
-        <app-table-cliente-documentos [ClienteId]="ClienteId()"></app-table-cliente-documentos>
+        <app-table-cliente-documentos #docsGrid [ClienteId]="id()"></app-table-cliente-documentos>
       </div>
       }
 

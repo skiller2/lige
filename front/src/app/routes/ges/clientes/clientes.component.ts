@@ -25,11 +25,11 @@ import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.com
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
     imports: [
-        SHARED_IMPORTS,
-        CommonModule,
+      SHARED_IMPORTS,
+      CommonModule,
       FiltroBuilderComponent,
       ClientesFormComponent,
-        I18nPipe
+      I18nPipe
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -55,22 +55,22 @@ export class ClientesComponent {
   formChange$ = new BehaviorSubject('');
   startFilters= signal<any[]>([])
 
-    private angularUtilService = inject(AngularUtilService)
-    private searchService = inject(SearchService)
-    private apiService = inject(ApiService)
-    private settingService = inject(SettingsService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private settingService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/clientes/cols').pipe(
-      map((cols) => {
-        if (cols[8]) {
-          cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
-        }
-        if (cols[9]) {
-          cols[9].asyncPostRender = this.renderCustodiasComponent.bind(this)
-        }
-        return cols
-      })
-    )
+  columns$ = this.apiService.getCols('/api/clientes/cols').pipe(
+    map((cols) => {
+      if (cols[8]) {
+        cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
+      }
+      if (cols[9]) {
+        cols[9].asyncPostRender = this.renderCustodiasComponent.bind(this)
+      }
+      return cols
+    })
+  )
 
 
 //  child = viewChild.required(ClientesFormComponent)
@@ -78,36 +78,36 @@ export class ClientesComponent {
   childDeta = viewChild.required<ClientesFormComponent>('clienteFormDeta')
   childEdit = viewChild.required<ClientesFormComponent>('clienteFormEdit')
 
-    gridData$ = this.listCliente$.pipe(
-        debounceTime(500),
-        switchMap(() => {
-          return this.searchService.getListaClientes({ options: this.listOptions })
-            .pipe(map(data => {
-              return data.list
-            })
-          )
+  gridData$ = this.listCliente$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      return this.searchService.getListaClientes({ options: this.listOptions })
+        .pipe(map(data => {
+          return data.list
         })
-    ) 
+      )
+    })
+  ) 
 
-    async handleAddOrUpdate(){
-      this.listCliente$.next('')
-    }
+  async handleAddOrUpdate(){
+    this.listCliente$.next('')
+  }
 
-    async ngOnInit(){
+  async ngOnInit(){
 
-      this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
-      this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-      this.gridOptions.showFooterRow = true
-      this.gridOptions.createFooterRow = true
-      this.gridOptions.forceFitColumns = true
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
+    this.gridOptions.forceFitColumns = true
 
-      this.startFilters.set( [
-        {field:'activo', condition:'AND', operator:'=', value:'1', forced:false},
-      ])
+    this.startFilters.set( [
+      {field:'activo', condition:'AND', operator:'=', value:'1', forced:false},
+    ])
 
-   
-      this.settingService.setLayout('collapsed', true)
+  
+    this.settingService.setLayout('collapsed', true)
   }
 
   ngAfterViewInit(): void {
@@ -178,6 +178,7 @@ export class ClientesComponent {
     switch (_event.index) {
       case 4: //INSERT
         this.childAlta().newRecord()
+        this.childAlta().mostrarDocs.set(false)
         break
       case 3: //DETAIL
         this.childDeta().viewRecord(true)

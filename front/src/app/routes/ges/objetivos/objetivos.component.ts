@@ -193,6 +193,7 @@ export class ObjetivosComponent {
     switch (_event.index) {
       case 4: //INSERT
        this.childAlta().newRecord()
+       this.childAlta().mostrarDocs.set(false)
         break
       case 3: //DETAIL
         this.childDeta().viewRecord(true)

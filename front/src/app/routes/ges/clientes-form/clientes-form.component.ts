@@ -59,7 +59,7 @@ export class ClientesFormComponent {
   public router = inject(Router);
   isLoadSelect = signal(false)
   periodo = signal({ year: 0, month: 0 })
-  ClienteId = model(0)
+  ClienteId = input(0)
   isLoading = signal(false)
   onAddorUpdate = output()
   pristineChange = output<boolean>()
@@ -123,6 +123,15 @@ export class ClientesFormComponent {
     files: [],
     codigo: ""
   })
+
+  id():number {
+    const value = this.formCli.get("id")?.value
+    if (value) {
+      return value
+    }
+    return 0
+  }
+
   tipoTelefono: any;
   optionsProvincia: any;
   optionsLocalidad: any;
@@ -130,6 +139,8 @@ export class ClientesFormComponent {
   optionsCondicionAnteIva: any;
   $optionTipoContacto = this.searchService.getTipoContacto();
   $optionJurImpositiva = this.searchService.getJurImpositiva();
+
+  childDocsGrid = viewChild.required<TableClienteDocumentoComponent>('docsGrid')
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -158,7 +169,6 @@ export class ClientesFormComponent {
 
   async newRecord() {
     if (this.formCli.pristine) {
-      this.ClienteId.set(0)
       this.formCli.enable()
       this.formCli.get('codigo')?.disable()
       this.formCli.reset()
@@ -236,9 +246,12 @@ export class ClientesFormComponent {
         //este es para cuando es un nuevo registro
         let result = await firstValueFrom(this.apiService.addCliente(form))
         this.formCli.patchValue(result.data);
-        this.ClienteId.set(result.data.ClienteId)
 
+        this.mostrarDocs.set(true)
+      }
 
+      if (this.mostrarDocs()) {
+        this.childDocsGrid().refreshGrid()
       }
 
       this.formCli.markAsUntouched()

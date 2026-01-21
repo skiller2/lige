@@ -118,6 +118,7 @@ export class ObjetivosFormComponent {
     GrupoActividadJerarquicoPersonalId:0,
   })
 
+  childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
  
   $optionsProvincia = this.searchService.getProvincia();
   $optionsLocalidad = this.searchService.getLocalidad();
@@ -281,8 +282,13 @@ export class ObjetivosFormComponent {
             DomicilioId: result.data.DomicilioId
           });
           //this.addNew.set(true)
-          
+          this.mostrarDocs.set(true)
         }
+
+        if (this.mostrarDocs()) {
+          this.childDocsGrid().refreshGrid()
+        }
+
         this.onAddorUpdate.emit()
         this.formObj.markAsUntouched()
         this.formObj.markAsPristine()

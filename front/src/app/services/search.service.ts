@@ -1177,8 +1177,7 @@ export class SearchService {
   }
   
   getDocsByCliente(ClienteId:number, options: any) {
-    if (!ClienteId) return of([]);
-    // if (!ClienteId || !options.filtros.length) return of([]);
+    if (!ClienteId || !options.filtros.length) return of([]);
     const params = { options, ClienteId }
     return this.http
       .post<ResponseJSON<any>>(`api/clientes/docs-list`, params)
@@ -1307,8 +1306,7 @@ export class SearchService {
   }
 
   getDocsByObjetivo(ObjetivoId:number, ClienteId:number, options: any) {
-    if (!ObjetivoId || !ClienteId) return of([]);
-    // if (!ObjetivoId || !ClienteId || !options.filtros.length) return of([]);
+    if (!ObjetivoId || !ClienteId || !options.filtros.length) return of([]);
     const params = { options, ObjetivoId, ClienteId }
     return this.http
       .post<ResponseJSON<any>>(`api/objetivos/docs-list`, params)

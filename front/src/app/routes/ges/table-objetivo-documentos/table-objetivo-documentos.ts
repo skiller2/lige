@@ -146,6 +146,10 @@ export class TableObjetivoDocumentoComponent {
       this.listOptions = options
       this.listDocsObjetivo$.next('')
     }
+
+    refreshGrid() {
+      this.listDocsObjetivo$.next('')
+    }
   
     async previewFile(){
       this.fileName.set(this.file().NombreArchivo)
@@ -163,8 +167,8 @@ export class TableObjetivoDocumentoComponent {
     }
 
     ngOnDestroy(): void {
-        this.destroy$.next('');
-        this.destroy$.complete();
+      this.destroy$.next('');
+      this.destroy$.complete();
     }
 
 }
