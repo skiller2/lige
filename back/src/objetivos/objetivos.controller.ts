@@ -12,6 +12,12 @@ const getOptions: any[] = [
     { label: 'Indeterminado', value: null }
 ]
 
+const getOptionsSINO: any[] = [
+    { label: 'No', value: '0' },
+    { label: 'Si', value: '1' },
+]
+
+
 const listaColumnas: any[] = [
     {
         id: "id",
@@ -228,7 +234,26 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false
-    }
+    },
+    {
+        name: "Objetivo Habilitado",
+        id: "ObjetivoHabilitado",
+        field: "ObjetivoHabilitado",
+        fieldName: "ISNULL(docHabilitacion.ObjetivoHabilitado,'0')",
+        type: 'string',
+
+        searchComponent: "inputForActivo",
+        sortable: true,
+        formatter: 'collectionFormatter',
+        params: { collection: getOptionsSINO },
+        exportWithFormatter: true,
+        
+        hidden: false,
+        searchHidden: false,
+        minWidth: 80,
+        maxWidth: 80,
+        cssClass: 'text-center'
+    },
 
 ];
 
@@ -465,7 +490,8 @@ export class ObjetivosController extends BaseController {
 
         try {
             const objetivos = await queryRunner.query(
-                `SELECT 
+                `
+SELECT 
                     -- DISTINCT
                     ROW_NUMBER() OVER (ORDER BY obj.ObjetivoId) AS id,
                     obj.ObjetivoId,
@@ -487,6 +513,7 @@ export class ObjetivosController extends BaseController {
 					 objdom.DomicilioCodigoPostal, objdom.DomicilioPaisId, objdom.DomicilioProvinciaId,objdom.DomicilioLocalidadId,objdom.DomicilioBarrioId,
                     oan.LugarHabilitacionIdList,
                     oan.LugarHabilitacionDescripcionList,
+					ISNULL(docHabilitacion.ObjetivoHabilitado,'0') AS ObjetivoHabilitado,
                     1
                     FROM Objetivo obj 
                     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -552,6 +579,21 @@ export class ObjetivosController extends BaseController {
                         WHERE an.ObjetivoHabilitacionNecesariaInactivo IS NULL OR an.ObjetivoHabilitacionNecesariaInactivo=0
                     GROUP BY  an.ObjetivoId
                         ) oan ON oan.ObjetivoId = obj.ObjetivoId
+					LEFT JOIN (
+							SELECT 
+								obj.ObjetivoId, 
+								CASE 
+									WHEN COUNT(*) > 0 THEN '1'
+									ELSE '0'
+								END AS ObjetivoHabilitado
+							FROM Documento doc
+							JOIN Objetivo obj ON doc.ObjetivoId = obj.ObjetivoId
+							WHERE doc.DocumentoFecha <= @2 
+								AND ISNULL(doc.DocumentoFechaDocumentoVencimiento, '9999-12-31') >= @2 
+								AND doc.DocumentoTipoCodigo IN ('HABOBJPBA', 'HABOBJCABA', 'HABOBJPRE')
+							GROUP BY obj.ObjetivoId
+						) docHabilitacion ON docHabilitacion.ObjetivoId = obj.ObjetivoId
+
                 
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
@@ -579,7 +621,7 @@ export class ObjetivosController extends BaseController {
 
         try {
             const documentos = await queryRunner.query(
-            `SELECT doc.DocumentoId AS id, doc.DocumentoNombreArchivo NombreArchivo, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
+                `SELECT doc.DocumentoId AS id, doc.DocumentoNombreArchivo NombreArchivo, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
                 param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
                 CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url,
                 RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1) TipoArchivo,
@@ -588,7 +630,7 @@ export class ObjetivosController extends BaseController {
             LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
             WHERE doc.ObjetivoId = @1
                 AND ${filterSql}`, [ClienteId, ObjetivoId])
-            
+
             this.jsonRes(
                 {
                     total: documentos.length,
@@ -636,7 +678,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.infoActividadJerarquico = grupoactividadjerarquico
             infObjetivo.rubrosCliente = rubrosCliente
             infObjetivo.habilitacion = habilitacion
-            
+
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
         } catch (error) {
@@ -823,14 +865,14 @@ export class ObjetivosController extends BaseController {
             [ObjetivoId, new Date()])
     }
 
-    async getRubroQuery(queryRunner:any, ClienteId:any, ClienteElementoDependienteId:any) {
+    async getRubroQuery(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any) {
         const rubros = []
         const ClienteEleDepRubro = await queryRunner.query(`
             SELECT ClienteElementoDependienteRubroClienteId AS RubroId 
             FROM ClienteEleDepRubro 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [ ClienteId, ClienteElementoDependienteId])
-           
+            [ClienteId, ClienteElementoDependienteId])
+
         for (const rubro of ClienteEleDepRubro)
             rubros.push(rubro.RubroId)
         return rubros
@@ -842,7 +884,7 @@ export class ObjetivosController extends BaseController {
             SELECT DocumentoTipoCodigo FROM ClienteElementoDependienteDocRequerido 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
             [ClienteId, ClienteElementoDependienteId])
-        
+
         for (const obj of ClienteElementoDependienteDocRequerido)
             docsRequerido.push(obj.DocumentoTipoCodigo)
         return docsRequerido
@@ -1372,21 +1414,21 @@ export class ObjetivosController extends BaseController {
             RubroUltNro++
             await queryRunner.query(`
             INSERT INTO ClienteEleDepRubro (ClienteElementoDependienteRubroId,ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteRubroClienteId )
-            VALUES (@0, @1, @2, @3)`, 
-            [RubroUltNro, ClienteId, ClienteElementoDependienteId, RubroId])
+            VALUES (@0, @1, @2, @3)`,
+                [RubroUltNro, ClienteId, ClienteElementoDependienteId, RubroId])
         }
         if (ClienteElementoDependienteId != null && ClienteElementoDependienteId != "null") {
             await queryRunner.query(`
             UPDATE ClienteElementoDependiente
             SET ClienteElementoDependienteRubroUltNro = @2
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [ClienteId, ClienteElementoDependienteId, RubroUltNro])
+                [ClienteId, ClienteElementoDependienteId, RubroUltNro])
         } else {
             await queryRunner.query(`
             UPDATE Cliente
             SET ClienteRubroUltNro = @1
-            WHERE ClienteId = @0`, 
-            [ClienteId, RubroUltNro])
+            WHERE ClienteId = @0`,
+                [ClienteId, RubroUltNro])
 
         }
     }
@@ -1534,7 +1576,7 @@ export class ObjetivosController extends BaseController {
         }
 
         // Documentos requeridos a presentar
-        if (!form.docsRequerido || !form.docsRequerido.length){
+        if (!form.docsRequerido || !form.docsRequerido.length) {
             throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
         }
 
