@@ -167,6 +167,7 @@ export class ClientesController extends BaseController {
             id: "DocumentoTipoCodigo",
             field: "DocumentoTipoCodigo",
             fieldName: "doc.DocumentoTipoCodigo",
+            searchComponent: "inputForTipoDocumentoSearch",
             sortable: true,
             hidden: true,
             searchHidden: false,
