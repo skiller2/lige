@@ -1011,6 +1011,19 @@ export class ApiService {
 
   }
 
+  onchangecellSMVM(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/onchangecell', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
+  getUltimoPeriodoSMVM() {
+    return this.http.get<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/ultimo-periodo').pipe(
+      map((res: ResponseJSON<any>) => res.data ? new Date(res.data) : null),
+      catchError(() => of(null))
+    );
+  }
+
 
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
