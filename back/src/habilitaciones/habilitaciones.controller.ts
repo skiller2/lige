@@ -17,6 +17,7 @@ const getHabilitacionesClasesOptions: any[] = [
     { label: 'Habilitación', value: 'H' },
     { label: 'Renovación', value: 'R' },
     { label: 'C', value: 'C' },
+    { label: 'Revalidación', value: 'E' },
 ]
 
 const GridColums: any[] = [
@@ -70,6 +71,17 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
+    },
+    {
+        name: "Sucursal Persona",
+        type: "string",
+        id: "SucursalDescripcion",
+        field: "SucursalDescripcion",
+        fieldName: "suc.SucursalId",
+        searchComponent: "inputForSucursalSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
     },
     {
         name: "Situacion Revista",
@@ -351,7 +363,9 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
-            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado
+            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
+            suc.SucursalId, suc.SucursalDescripcion
+
 
 
         FROM Personal per
@@ -403,6 +417,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 			FROM PersonalHabilitacion b2
 		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId
 
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+        LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
         WHERE (${filterSql})
         ${orderBy}
         `, [periodo])

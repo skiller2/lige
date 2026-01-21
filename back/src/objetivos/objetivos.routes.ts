@@ -9,8 +9,16 @@ objetivosRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGrou
   objetivosController.getGridCols(req, res);
 });
 
+objetivosRouter.get("/docs-cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res) => {
+  objetivosController.getDocsGridCols(req, res);
+});
+
 objetivosRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
   objetivosController.list(req, res, next)
+})
+
+objetivosRouter.post('/docs-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
+  objetivosController.listDocsObjetivo(req, res, next)
 })
 
 objetivosRouter.get('/getDescuento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {

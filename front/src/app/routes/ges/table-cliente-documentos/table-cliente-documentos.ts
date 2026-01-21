@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, computed, input, signal, effect, model,inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -13,7 +13,8 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { LoadingService } from '@delon/abc/loading';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
-
+import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
 
 interface ListOptions {
   filtros: any[];
@@ -28,7 +29,8 @@ interface ListOptions {
     NzAffixModule,
     FiltroBuilderComponent,
     NgxExtendedPdfViewerModule,
-    ImageLoaderComponent
+    ImageLoaderComponent,
+    NzSpaceModule
   ],
   providers: [AngularUtilService],
   templateUrl: './table-cliente-documentos.html',
@@ -36,10 +38,8 @@ interface ListOptions {
   standalone: true
 })
 export class TableClienteDocumentoComponent {
-  // @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
-
   private readonly loadingSrv = inject(LoadingService);
-
+  
   angularGrid!: AngularGridInstance
   gridOptions!: GridOption
   gridDataInsert: any[] = []
@@ -59,8 +59,18 @@ export class TableClienteDocumentoComponent {
   file = signal<any>(null)
   modalViewerVisiable1 = signal<boolean>(false)
   modalViewerVisiable2 = signal<boolean>(false)
-  src = signal<any>({})
-  fileName = signal<any>({})
+  public src = signal<Blob>(new Blob())
+  url = signal<any>('')
+  fileName = signal<any>('')
+  canPreviewFile = computed(() => {
+    if (this.file()?.TipoArchivo && (this.file().TipoArchivo == 'pdf' || this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg' || this.file().TipoArchivo == 'jpeg'))
+      return true;
+      
+    return false
+  });
+
+  private destroy$ = new Subject();
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
   
   constructor(
     private apiService: ApiService,
@@ -75,25 +85,13 @@ export class TableClienteDocumentoComponent {
     });
   }
 
-  // private refreshEffect = effect(() => {
-  //   if (this.RefreshCliente()) {
-  //     console.log(' Recargando grilla');
-  //     this.listOptions.filtros = [];
-
-  //     this.listDocsCliente$.next('refresh');
-  //   }
-  // });
-
-
   columns$ = this.apiService.getCols('/api/clientes/docs-cols');
   gridData$ = this.listDocsCliente$.pipe(
       debounceTime(500),
       switchMap(() => {
         this.loadingSrv.open({ type: 'spin', text: '' })
-        return this.searchService.getDocsByCliente({ options: this.listOptions, ClienteId: this.ClienteId() })
+        return this.searchService.getDocsByCliente(this.ClienteId(), this.listOptions )
           .pipe(map(data => {
-            console.log('data.list:', data.list);
-            
             return data.list
           }),
           doOnSubscribe(() => { }),
@@ -111,12 +109,12 @@ export class TableClienteDocumentoComponent {
   }
 
   initializeGridOptions(): void {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-    // this.gridOptions.forceFitColumns = true
+    this.gridOptions.forceFitColumns = true
   }
 
   async angularGridReady(angularGrid: any) {
@@ -132,12 +130,13 @@ export class TableClienteDocumentoComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     
-    console.log('row: ', row);
+    // console.log('row: ', row);
     
     if (row?.id){
       this.file.set(row)
+      this.fileName.set(row.NombreArchivo)
+      this.url.set(row.url)
     }
-      // this.editClienteId.set(row.id)
 
   }
 
@@ -146,16 +145,13 @@ export class TableClienteDocumentoComponent {
     this.listDocsCliente$.next('')
   }
 
-  previewFile(){
-    this.src.set(this.file().url)
+  async previewFile(){
     this.fileName.set(this.file().NombreArchivo)
     if (this.file().TipoArchivo == 'pdf') {
+      this.src.set(await fetch(`${this.url()}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
       this.modalViewerVisiable1.set(true)
-    }else if(this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg'){
+    }else if(this.file().TipoArchivo == 'png' || this.file().TipoArchivo == 'jpg' || this.file().TipoArchivo == 'jpeg'){
       this.modalViewerVisiable2.set(true)
-    } else {
-      
-
     }
   }
 
@@ -163,5 +159,10 @@ export class TableClienteDocumentoComponent {
     this.modalViewerVisiable1.set(false)
     this.modalViewerVisiable2.set(false)
   }
+
+  ngOnDestroy(): void {
+        this.destroy$.next('');
+        this.destroy$.complete();
+    }
 
 }

@@ -2683,7 +2683,7 @@ export class PersonalController extends BaseController {
         FROM PersonalBanco perb
         LEFT JOIN Banco ban ON ban.BancoId = perb.PersonalBancoBancoId
         WHERE perb.PersonalId IN (@0)
-        ORDER BY perb.PersonalBancoId DESC
+        ORDER BY perb.PersonalBancoDesde DESC
         `, [personalId])
 
       this.jsonRes(listSitRevista, res);

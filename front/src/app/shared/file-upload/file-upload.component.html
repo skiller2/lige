@@ -1,6 +1,6 @@
 <ng-container>
   <nz-form-item style="display: flex; justify-content: space-around;">
-    <nz-form-control>
+    <nz-form-control [nzMd]="24">
 
       @if(files().length > 0 ){
       @for (filesAdd of files() ; track filesAdd) {
@@ -8,7 +8,7 @@
       @if(!filesAdd.delete ){
       @if(filesAdd.id ){
       <!-- <P>{{filesAdd | json}}</P>  -->
-      <nz-card class="containerAnteriores">
+      <div class="containerAnteriores">
         <div class="fila">
           @if(filesAdd.update){
           <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
@@ -57,7 +57,7 @@
             }
           </div>
         </div>
-      </nz-card>
+      </div>
       }@else{
       <div class="containerAnteriores">
         <div class="fila">
@@ -101,13 +101,13 @@
       }
       }
     </nz-form-control>
-  </nz-form-item>
+  <!-- </nz-form-item> -->
 
-  <nz-form-item style="display: flex; justify-content: space-around;">
+  <!-- <nz-form-item style="display: flex; justify-content: space-around;"> -->
     @if(showTipoDocs()){
     <nz-form-control class="inputsConteiner" [nzMd]="12" [nzSm]="24">
       <nz-select nzShowSearch nzPlaceHolder="Seleccione un tipo" [(ngModel)]="tipoSelected"
-        [nzDisabled]="files().length > 0" [nzDropdownMatchSelectWidth]="false"
+        [nzDropdownMatchSelectWidth]="false"
         (ngModelChange)="onTipoSelectedChange($event)">
         <!-- Filtrar en funcion de docTiposValidos()-->
         @for (option of textForSearchSelected(); track option.doctipo_id) {
@@ -122,7 +122,7 @@
     }
 
     @if(isDisabled() == false && cantFiles()){
-    <nz-form-control class="BtnUploadFile" [nzMd]="12">
+    <nz-form-control class="BtnUploadFile btnCenter" [nzMd]="12">
       <!-- image/* .pdf.pdf,image/* -->
       <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
         [nzShowUploadList]="false" (nzChange)="uploadChange($event,null)">

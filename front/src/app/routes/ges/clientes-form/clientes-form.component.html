@@ -253,6 +253,7 @@
         <div class="input-label">Documentos</div>
       </div>
 
+      @if(formCli.enabled){
       <nz-form-item>
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Carga </nz-form-label>
 
@@ -262,16 +263,17 @@
         </nz-form-control>
 
       </nz-form-item>
+      }
 
       <nz-form-item>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="24">
-          <!-- @if (ClienteId()) { -->
-          @if ( mostrarDocs() ) {
-            <ng-container>
-            <app-table-cliente-documentos #tableDocs [ClienteId]="ClienteId()"></app-table-cliente-documentos>
-            </ng-container>
+          
+          @if ( ClienteId() && mostrarDocs() ) {
+            <div class="container-fluid">
+            <app-table-cliente-documentos [ClienteId]="ClienteId()"></app-table-cliente-documentos>
+            </div>
           }
-          <!-- } -->
+          
           </nz-form-control>
       </nz-form-item>
 

@@ -131,8 +131,6 @@ export class ClientesFormComponent {
   $optionTipoContacto = this.searchService.getTipoContacto();
   $optionJurImpositiva = this.searchService.getJurImpositiva();
 
-  // tableDocs = viewChild.required<TableClienteDocumentoComponent>('tableDocs')
-
   onChangePeriodo(result: Date): void {
     if (result) {
       const date = new Date(result)
@@ -173,10 +171,8 @@ export class ClientesFormComponent {
   }
 
   async viewRecord(readonly: boolean) {
-    this.mostrarDocs.set(false)
     if (this.ClienteId()){
       await this.load()
-      // this.tableDocs().initializeGridOptions()
     }
     if (readonly)
       this.formCli.disable()
@@ -184,7 +180,6 @@ export class ClientesFormComponent {
       this.formCli.enable()
     this.formCli.get('codigo')?.disable()
     this.formCli.markAsPristine()
-
   }
 
   async load() {
