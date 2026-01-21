@@ -17,7 +17,7 @@ const getHabilitacionesClasesOptions: any[] = [
     { label: 'Habilitación', value: 'H' },
     { label: 'Renovación', value: 'R' },
     { label: 'C', value: 'C' },
-    { label: 'Revalidación', value: 'E' },
+    { label: 'Revalidación', value: 'V' },
 ]
 
 const GridColums: any[] = [
