@@ -297,13 +297,21 @@ export class ObjetivosFormComponent {
           // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addObjetivo(form))
+          const infoObjetivo = result.data
           this.formObj.get('ClienteId')?.disable();
-          
+
+          this.formObj.reset(infoObjetivo)
           this.formObj.patchValue({
-            ...result.data, 
-            codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-            clienteOld: result.data.ClienteId,
+            DireccionModificada:false,
+            FechaModificada:false,
+            ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+            ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+            codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+            GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+            clienteOld: infoObjetivo.ClienteId,
+            GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
           });
+          
           //this.addNew.set(true)
           this.mostrarDocs.set(true)
         }
