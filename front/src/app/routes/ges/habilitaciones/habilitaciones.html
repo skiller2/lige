@@ -21,15 +21,16 @@
   </div>
   <!--selectedIndex: {{selectedIndex()}}-->
   <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()">
-  <nz-tab>
-    <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-    @if ((columns$|async); as columnas) {
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
+      @if ((columns$|async); as columnas) {
       <ng-template nz-tab>
         <div class="fila">
           <div class="izquierda">
             <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
           </div>
           <nz-button-group nz-button nzButtonGroup class="derecha">
+            <!-- btn  add -->
             <button nz-button nzType="default" (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus" nzTheme="outline"></span>
             </button>
@@ -38,10 +39,15 @@
               [disabled]="personalId()? false : true">
               <span nz-icon nzType="edit" nzTheme="outline"></span>
             </button> -->
+            <!-- btn  habilitación-detalle -->
             <button nz-button nzType="default" nz-popconfirm 
               nzPopconfirmTitle="Actualizo habilitación necesaria?" (nzOnConfirm)="updHabilitacionNecesaria()"
               nz-tooltip nzTooltipTitle="{{'app.btn.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"
                 nzTheme="outline"></span></button>
+            <!-- btn  personal-detalle -->
+            <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0"
+              nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
+            nzTheme="outline"></span></button>
 
           </nz-button-group>
         </div>
@@ -53,7 +59,7 @@
           </angular-slickgrid>
         </div>
       </ng-template>
-    }
+      }
   </nz-tab>
 
   <nz-tab>
@@ -72,4 +78,7 @@
 
 <app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Alta de Habilitación'"
 ></app-habilitaciones-form-drawer>
-<app-habilitacion-necesaria-form-modal [(visible)]="visibleFormEdit" [apellidoNombre]="apellidoNombreSelected()" [personalId]="personalId()" (onAddorUpdate)="refreshGrid($event)"></app-habilitacion-necesaria-form-modal>
+<app-habilitacion-necesaria-form-modal [(visible)]="visibleFormEdit" [apellidoNombre]="apellidoNombreSelected()" 
+[personalId]="personalId()" (onAddorUpdate)="refreshGrid($event)"></app-habilitacion-necesaria-form-modal>
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
+(onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

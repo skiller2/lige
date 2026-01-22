@@ -1017,6 +1017,13 @@ export class ApiService {
     )
   }
 
+  deleteSMVM(SalarioMinimoVitalMovilId: any) {
+    const parameter = { SalarioMinimoVitalMovilId: SalarioMinimoVitalMovilId }
+    return this.http.delete<ResponseJSON<any>>(`/api/sueldo-minimo-vital-movil/delete/${SalarioMinimoVitalMovilId}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
   getUltimoPeriodoSMVM() {
     return this.http.get<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/ultimo-periodo').pipe(
       map((res: ResponseJSON<any>) => res.data ? new Date(res.data) : null),

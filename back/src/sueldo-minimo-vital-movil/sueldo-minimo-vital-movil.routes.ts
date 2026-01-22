@@ -19,3 +19,7 @@ sueldoMinimoVitalMovilRouter.post(`/onchangecell`, [authMiddleware.verifyToken],
 sueldoMinimoVitalMovilRouter.get(`/ultimo-periodo`, [authMiddleware.verifyToken], (req, res, next) => {
     sueldoMinimoVitalMovilController.getUltimoPeriodo(req, res, next);
 });
+
+sueldoMinimoVitalMovilRouter.delete(`/delete/:SalarioMinimoVitalMovilId`, [authMiddleware.verifyToken], (req, res, next) => {
+    sueldoMinimoVitalMovilController.deleteSMVM(req, res, next);
+});
