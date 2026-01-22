@@ -614,7 +614,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
-        fechaActual.setHours(0, 0, 0, 0)
 
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
@@ -730,7 +729,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
-        fechaActual.setHours(0, 0, 0, 0)
 
         const GestionHabilitacionEstadoCodigo = req.body.GestionHabilitacionEstadoCodigo
         const Detalle = req.body.Detalle
@@ -1058,7 +1056,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
         //Actualizo
         const fechaActual = new Date()
-        fechaActual.setHours(0, 0, 0, 0)
 
         await queryRunner.query(`
             DELETE FROM HabilitacionCategoriaPersonal
@@ -1324,7 +1321,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         // const ip = this.getRemoteAddress(req)
         // const usuario = res.locals.userName
         // const fechaActual = new Date()
-        // fechaActual.setHours(0, 0, 0, 0)
 
         const queryRunner = dataSource.createQueryRunner();
         try {
