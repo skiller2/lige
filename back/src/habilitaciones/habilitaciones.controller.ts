@@ -7,6 +7,7 @@ import { QueryRunner } from "typeorm";
 import { AsistenciaController } from "src/controller/asistencia.controller";
 import { CustodiaController } from "src/controller/custodia.controller";
 import { PersonalController } from "src/controller/personal.controller"
+import { max } from "moment";
 
 const getHabNecesariaOptions: any[] = [
     { label: 'Si', value: '1' },
@@ -270,7 +271,8 @@ const GridDetalleColums: any[] = [
         fieldName: "est.Detalle",
         sortable: false,
         hidden: false,
-        searchHidden: false
+        searchHidden: false,
+        maxWidth: 250
     },
 ]
 

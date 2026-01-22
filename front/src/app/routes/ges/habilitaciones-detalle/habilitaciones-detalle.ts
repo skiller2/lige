@@ -16,7 +16,7 @@ import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.
 
 @Component({
   selector: 'app-habilitaciones-detalle',
-  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent, NgxExtendedPdfViewerModule, ImageLoaderComponent  ],
+  imports: [SHARED_IMPORTS, CommonModule, HabilitacionesFormDrawerComponent, NgxExtendedPdfViewerModule, ImageLoaderComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones-detalle.html',
   styleUrl: './habilitaciones-detalle.less',
@@ -34,7 +34,7 @@ export class HabilitacionesDetalleComponent {
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   habilitacionesChange$ = new BehaviorSubject('')
-  
+
   detalle = input<string>('')
   selectedIndex = signal(0)
   // isLoading = signal<boolean>(false)
@@ -69,6 +69,8 @@ export class HabilitacionesDetalleComponent {
     this.gridDetalleOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridDetalleOptions.showFooterRow = true
     this.gridDetalleOptions.createFooterRow = true
+    this.gridDetalleOptions.forceFitColumns = true
+
 
     this.gridDocOptions = this.apiService.getDefaultGridOptions('.gridDocContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridDocOptions.enableRowDetailView = this.apiService.isMobile()
@@ -82,8 +84,8 @@ export class HabilitacionesDetalleComponent {
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getDetalleGestionesByHabilitacion(this.personalId(), this.personalHabilitacionId(), this.lugarHabilitacionId())
-        .pipe(map(data => { 
-          return data.list 
+        .pipe(map(data => {
+          return data.list
         }))
     })
   )
@@ -92,8 +94,8 @@ export class HabilitacionesDetalleComponent {
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getDocsByHabilitacion(this.personalId(), this.personalHabilitacionId(), this.lugarHabilitacionId())
-        .pipe(map(data => { 
-          return data.list 
+        .pipe(map(data => {
+          return data.list
         }))
     })
   )
@@ -120,16 +122,16 @@ export class HabilitacionesDetalleComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridDetalle.slickGrid.getDataItem(selrow)
     // console.log('row: ', row);
-    
+
     if (row?.id) {
       this.codigo.set(row.GestionHabilitacionCodigo)
-    }else{
+    } else {
       this.codigo.set(0)
     }
 
   }
 
-  refreshGrid(_e: any){
+  refreshGrid(_e: any) {
     this.habilitacionesChange$.next('');
   }
 
@@ -140,31 +142,31 @@ export class HabilitacionesDetalleComponent {
   //   this.refreshGrid('')
   // });
 
-  openDrawerforForm(): void{
-    this.visibleForm.set(true) 
+  openDrawerforForm(): void {
+    this.visibleForm.set(true)
   }
 
-  openDrawerforFormEdit(): void{
-    this.visibleFormEdit.set(true) 
+  openDrawerforFormEdit(): void {
+    this.visibleFormEdit.set(true)
   }
 
-  async deleteGestionHabilitacion(){
+  async deleteGestionHabilitacion() {
     this.loadingDeleteDetalle.set(true)
     try {
-      await firstValueFrom(this.apiService.deleteGestionHabilitacion(this.personalId(),this.personalHabilitacionId(),this.lugarHabilitacionId(),this.codigo()));
+      await firstValueFrom(this.apiService.deleteGestionHabilitacion(this.personalId(), this.personalHabilitacionId(), this.lugarHabilitacionId(), this.codigo()));
       this.refreshGrid('')
     } catch (error) {
-      
+
     }
-    this.loadingDeleteDetalle.set(false) 
+    this.loadingDeleteDetalle.set(false)
   }
 
   async LoadArchivo(url: string, filename: string) {
-      this.modalViewerVisiable1.set(false)
-      this.src.set(await fetch(`${url}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
-      this.fileName.set(filename)
-      this.modalViewerVisiable1.set(true)
-    }
+    this.modalViewerVisiable1.set(false)
+    this.src.set(await fetch(`${url}`, { headers: { token: this.tokenService.get()?.token ?? '' } }).then(res => res.blob()))
+    this.fileName.set(filename)
+    this.modalViewerVisiable1.set(true)
+  }
 
   async LoadImage(url: string, filename: string) {
     this.modalViewerVisiable2.set(false)
@@ -189,7 +191,7 @@ export class HabilitacionesDetalleComponent {
     return `${year}/${month}/${day}`;
   }
 
-  async deleteDocumento(docId:number) {
+  async deleteDocumento(docId: number) {
     if (!docId) return
     this.loadingDeleteDoc.set(true);
     try {
