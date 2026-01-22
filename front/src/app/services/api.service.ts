@@ -1937,7 +1937,7 @@ export class ApiService {
 
   updateGestionHabilitacion(params:any){
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/gestion/update', params).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res.data)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 

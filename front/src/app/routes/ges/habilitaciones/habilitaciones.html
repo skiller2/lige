@@ -60,17 +60,17 @@
         </div>
       </ng-template>
       }
-  </nz-tab>
+    </nz-tab>
 
-  <nz-tab>
-    <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
-    <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
-      [detalle]="detalleSelected()"></app-habilitaciones-detalle>
-  </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
+      <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
+        [detalle]="detalleSelected()"></app-habilitaciones-detalle>
+    </nz-tab>
 
-  <!-- <nz-tab>
-    <a nz-tab-link routerLink="/ges/habilitaciones/credenciales" >{{ 'app.detail' | i18n }}</a>
-  </nz-tab> -->
+    <!-- <nz-tab>
+      <a nz-tab-link routerLink="/ges/habilitaciones/credenciales" >{{ 'app.detail' | i18n }}</a>
+    </nz-tab> -->
 
   </nz-tabs>
 

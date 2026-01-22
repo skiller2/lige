@@ -117,7 +117,7 @@ export class HabilitacionesFormDrawerComponent {
       if (visible) {
         
         this.formHabilitacion.get('PersonalId')?.disable();
-        // this.formHabilitacion.get('LugarHabilitacionId')?.disable();
+        this.formHabilitacion.get('LugarHabilitacionId')?.disable();
 
         let lastConfig = {}
         if (this.personalHabilitacionId()) {

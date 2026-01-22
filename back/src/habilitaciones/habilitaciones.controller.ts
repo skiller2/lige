@@ -724,7 +724,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
         const LugarHabilitacionId = req.body.LugarHabilitacionId
         const HabilitacionCategoriaCodigos = req.body.HabilitacionCategoriaCodigos
-        const GestionHabilitacionCodigo = req.body.codigo
+        const GestionHabilitacionCodigo = req.body.GestionHabilitacionCodigo
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -773,7 +773,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 fechaActual, ip, usuario
             ])
 
-            //Inserta el Codigo registrado
+            //Actualiza el Codigo registrado
             await queryRunner.query(`
             UPDATE GestionHabilitacion
             SET GestionHabilitacionEstadoCodigo = @4, Detalle = @5,
