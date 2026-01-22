@@ -586,7 +586,7 @@ SELECT
                                 FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
                                 adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
                     LEFT JOIN (
-                        SELECT an.ObjetivoId, STRING_AGG(an.ObjetivoHabilitacionNecesariaLugarHabilitacionId,',') LugarHabilitacionIdList, STRING_AGG(TRIM(lh.LugarHabilitacionDescripcion),',') LugarHabilitacionDescripcionList FROM ObjetivoHabilitacionNecesaria an
+                        SELECT an.ObjetivoId, STRING_AGG(an.ObjetivoHabilitacionNecesariaLugarHabilitacionId,',') LugarHabilitacionIdList, STRING_AGG(TRIM(lh.LugarHabilitacionDescripcion),' , ') LugarHabilitacionDescripcionList FROM ObjetivoHabilitacionNecesaria an
                         JOIN LugarHabilitacion lh ON lh.LugarHabilitacionId = an.ObjetivoHabilitacionNecesariaLugarHabilitacionId
                         WHERE an.ObjetivoHabilitacionNecesariaInactivo IS NULL OR an.ObjetivoHabilitacionNecesariaInactivo=0
                     GROUP BY  an.ObjetivoId
