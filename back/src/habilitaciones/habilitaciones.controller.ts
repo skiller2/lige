@@ -1265,6 +1265,14 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
             if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Habilitación Desde`)
             if (!habilitacion.PersonalHabilitacionHasta) error.push(`- Habilitación Hasta`)
+            else{
+                //Verifica que sea un periodo valido
+                const desde = new Date(habilitacion.PersonalHabilitacionDesde)
+                const hasta = new Date(habilitacion.PersonalHabilitacionHasta)
+                desde.setHours(0, 0, 0, 0)
+                hasta.setHours(0, 0, 0, 0)
+                if (desde > hasta) return new ClientException(`La fecha de Habilitación Desde no puede ser mayor a la fecha de Habilitación Hasta`)
+            }
 
             // let desdeHastaDocHabilitacion = false
             let desdeDocHabilitacion = false
