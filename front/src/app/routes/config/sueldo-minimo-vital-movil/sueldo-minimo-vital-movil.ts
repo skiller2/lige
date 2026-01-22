@@ -26,7 +26,7 @@ export class SueldoMinimoVitalMovil {
   private angularUtilService = inject(AngularUtilService)
   columnDefinitions: Column[] = []
   listSalarioMinimoVitalMovil$ = new BehaviorSubject('')
-  editSalarioMinimoVitalMovilId = signal<{ codigo: string }[]>([])
+  editSalarioMinimoVitalMovilId = signal<number>(0)
   angularGridEdit!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
   periodo = signal(new Date())
@@ -48,13 +48,9 @@ export class SueldoMinimoVitalMovil {
   }
 
   dateChange(val: Date) {
-        console.log("cambio de periodo 2", val)
 
     this.anio.set(val.getFullYear())
     this.mes.set(val.getMonth() + 1)
-    console.log("anio", this.anio())
-    console.log("mes", this.mes())
-    console.log("periodo", this.periodo())
     this.listSalarioMinimoVitalMovil$.next('')
   }
 
@@ -171,6 +167,7 @@ export class SueldoMinimoVitalMovil {
       return this.searchService.getListSMVM({ options: this.listOptions, anio: this.anio(), mes: this.mes() } )
         .pipe(map(data => {
           this.cleanerVariables();
+          this.editSalarioMinimoVitalMovilId.set(0)
           const list = (data.list || []).map((item: any) => {
             // Los registros existentes tienen ID y están completos
             if (item.SalarioMinimoVitalMovilId) {
@@ -264,8 +261,9 @@ export class SueldoMinimoVitalMovil {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.SalarioMinimoVitalMovilId) {
-      this.editSalarioMinimoVitalMovilId.set([row.SalarioMinimoVitalMovilId]) 
+    console.log("row", row)
+    if (row?.id) {
+      this.editSalarioMinimoVitalMovilId.set(row.id) 
     }
   }
 
@@ -307,6 +305,15 @@ export class SueldoMinimoVitalMovil {
         this.listSalarioMinimoVitalMovil$.next('')
         this.cleanTable()
       });
+    }
+  }
+
+  async deleteItem() {
+    try {
+      await firstValueFrom(this.apiService.deleteSMVM(this.editSalarioMinimoVitalMovilId()))
+      this.listSalarioMinimoVitalMovil$.next('')
+    } catch (error) {
+      console.error('Error al eliminar registro:', error);
     }
   }
 

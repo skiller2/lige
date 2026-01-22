@@ -339,4 +339,28 @@ export class SueldoMinimoVitalMovilController extends BaseController {
       await queryRunner.rollbackTransaction();
     }
   }
+
+  async deleteSMVM(req: any, res: Response, next: NextFunction) {
+
+
+  const SalarioMinimoVitalMovilId = req.params.SalarioMinimoVitalMovilId;
+
+  if (!SalarioMinimoVitalMovilId) {
+    throw new ClientException('El ID del registro es requerido');
+  }
+
+//throw new ClientException('test');
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction();
+      await queryRunner.query(`DELETE FROM SalarioMinimoVitalMovil WHERE SalarioMinimoVitalMovilId = @0`, [req.params.SalarioMinimoVitalMovilId]);
+      await queryRunner.commitTransaction();
+      this.jsonRes({}, res, 'Registro eliminado exitoso');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }
