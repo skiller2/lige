@@ -92,12 +92,13 @@ export class HabilitacionesFormDrawerComponent {
           this.apiService.getPersonaSitRevista(Number(this.formHabilitacion.get('PersonalId')?.value), this.anio(), this.mes())
       )
   )
-  $optionsHabilitacionCategoria = this.formHabilitacion.get('LugarHabilitacionId')!.valueChanges.pipe(
-      debounceTime(500),
-      switchMap(() =>
-          this.searchService.getHabilitacionCategoriaOptions(Number(this.formHabilitacion.get('LugarHabilitacionId')?.value))
-      )
-  )
+  optionsHabilitacionCategoria = signal<any[]>([])
+  // $optionsHabilitacionCategoria = this.formHabilitacion.get('LugarHabilitacionId')!.valueChanges.pipe(
+  //     debounceTime(500),
+  //     switchMap(() =>
+  //         this.searchService.getHabilitacionCategoriaOptions(Number(this.formHabilitacion.get('LugarHabilitacionId')?.value))
+  //     )
+  // )
 
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
@@ -116,7 +117,7 @@ export class HabilitacionesFormDrawerComponent {
       if (visible) {
         
         this.formHabilitacion.get('PersonalId')?.disable();
-        this.formHabilitacion.get('LugarHabilitacionId')?.disable();
+        // this.formHabilitacion.get('LugarHabilitacionId')?.disable();
 
         let lastConfig = {}
         if (this.personalHabilitacionId()) {
@@ -136,7 +137,12 @@ export class HabilitacionesFormDrawerComponent {
           lastConfig = {...lastConfig, ...gestionHabi}
         }
 
+        
         this.formHabilitacion.reset(lastConfig)
+
+        const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(this.lugarHabilitacionId()))
+        this.optionsHabilitacionCategoria.set(categorias)
+
         this.formHabilitacion.markAsUntouched()
         this.formHabilitacion.markAsPristine()
       } else {
@@ -158,6 +164,11 @@ export class HabilitacionesFormDrawerComponent {
   }
 
   async ngOnInit() {}
+
+  async selectedLugarHabilitacionChange(event: any){
+    const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(event))
+    this.optionsHabilitacionCategoria.set(categorias)
+  }
 
   async save() {
     this.isLoading.set(true)

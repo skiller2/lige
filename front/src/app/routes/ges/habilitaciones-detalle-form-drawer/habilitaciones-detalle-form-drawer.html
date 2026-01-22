@@ -41,7 +41,8 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Lugar Habilitación</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18">
           <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione lugar" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+            (ngModelChange)="selectedLugarHabilitacionChange($event)">
             @for (option of $optionsLugarHabilitacion | async; track option) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
@@ -54,7 +55,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
           <nz-select formControlName="HabilitacionCategoriaCodigos" nzPlaceHolder="Seleccione categoria" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzMode="multiple">
-            @for (option of $optionsHabilitacionCategoria | async; track option) {
+            @for (option of optionsHabilitacionCategoria(); track option) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
