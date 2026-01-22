@@ -216,7 +216,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Lugares Habilitación ids",
+        name: "Lugares Habilitación Necesaria ids",
         type: "string",
         id: "LugarHabilitacionIdList",
         field: "LugarHabilitacionIdList",
@@ -226,7 +226,7 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
-        name: "Lugares Habilitación",
+        name: "Lugares Habilitación Necesaria",
         type: "string",
         id: "LugarHabilitacionDescripcionList",
         field: "LugarHabilitacionDescripcionList",
@@ -235,25 +235,25 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: false
     },
-    {
-        name: "Objetivo Habilitado",
-        id: "ObjetivoHabilitado",
-        field: "ObjetivoHabilitado",
-        fieldName: "ISNULL(docHabilitacion.ObjetivoHabilitado,'0')",
-        type: 'string',
+    // {
+    //     name: "Objetivo Habilitado",
+    //     id: "ObjetivoHabilitado",
+    //     field: "ObjetivoHabilitado",
+    //     fieldName: "ISNULL(docHabilitacion.ObjetivoHabilitado,'0')",
+    //     type: 'string',
 
-        searchComponent: "inputForActivo",
-        sortable: true,
-        formatter: 'collectionFormatter',
-        params: { collection: getOptionsSINO },
-        exportWithFormatter: true,
+    //     searchComponent: "inputForActivo",
+    //     sortable: true,
+    //     formatter: 'collectionFormatter',
+    //     params: { collection: getOptionsSINO },
+    //     exportWithFormatter: true,
         
-        hidden: false,
-        searchHidden: false,
-        minWidth: 80,
-        maxWidth: 80,
-        cssClass: 'text-center'
-    },
+    //     hidden: false,
+    //     searchHidden: false,
+    //     minWidth: 80,
+    //     maxWidth: 80,
+    //     cssClass: 'text-center'
+    // },
 
 ];
 
@@ -526,7 +526,6 @@ SELECT
 					 objdom.DomicilioCodigoPostal, objdom.DomicilioPaisId, objdom.DomicilioProvinciaId,objdom.DomicilioLocalidadId,objdom.DomicilioBarrioId,
                     oan.LugarHabilitacionIdList,
                     oan.LugarHabilitacionDescripcionList,
-					ISNULL(docHabilitacion.ObjetivoHabilitado,'0') AS ObjetivoHabilitado,
                     1
                     FROM Objetivo obj 
                     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -587,27 +586,11 @@ SELECT
                                 FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
                                 adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
                     LEFT JOIN (
-                        SELECT an.ObjetivoId, STRING_AGG(an.ObjetivoHabilitacionNecesariaLugarHabilitacionId,',') LugarHabilitacionIdList, STRING_AGG(lh.LugarHabilitacionDescripcion,',') LugarHabilitacionDescripcionList FROM ObjetivoHabilitacionNecesaria an
+                        SELECT an.ObjetivoId, STRING_AGG(an.ObjetivoHabilitacionNecesariaLugarHabilitacionId,',') LugarHabilitacionIdList, STRING_AGG(TRIM(lh.LugarHabilitacionDescripcion),' , ') LugarHabilitacionDescripcionList FROM ObjetivoHabilitacionNecesaria an
                         JOIN LugarHabilitacion lh ON lh.LugarHabilitacionId = an.ObjetivoHabilitacionNecesariaLugarHabilitacionId
                         WHERE an.ObjetivoHabilitacionNecesariaInactivo IS NULL OR an.ObjetivoHabilitacionNecesariaInactivo=0
                     GROUP BY  an.ObjetivoId
-                        ) oan ON oan.ObjetivoId = obj.ObjetivoId
-					LEFT JOIN (
-							SELECT 
-								obj.ObjetivoId, 
-								CASE 
-									WHEN COUNT(*) > 0 THEN '1'
-									ELSE '0'
-								END AS ObjetivoHabilitado
-							FROM Documento doc
-							JOIN Objetivo obj ON doc.ObjetivoId = obj.ObjetivoId
-							WHERE doc.DocumentoFecha <= @2 
-								AND ISNULL(doc.DocumentoFechaDocumentoVencimiento, '9999-12-31') >= @2 
-								AND doc.DocumentoTipoCodigo IN ('HABOBJPBA', 'HABOBJCABA', 'HABOBJPRE')
-							GROUP BY obj.ObjetivoId
-						) docHabilitacion ON docHabilitacion.ObjetivoId = obj.ObjetivoId
-
-                
+                        ) oan ON oan.ObjetivoId = obj.ObjetivoId                
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
             this.jsonRes(
