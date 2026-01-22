@@ -420,6 +420,16 @@
           }
         </nz-select>
       }
+      @if (selections.field.searchComponent=='inputForHabilitacionClaseSearch') {
+        <nz-select ngModel nzAllowClear style="width:100%"
+          nzPlaceHolder="Habilitacion Clase" nzShowSearch
+          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+          (keydown.enter)="handleInputConfirm()">
+          @for (option of $optionsHabilitacionClase | async; track option) {
+            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      }
     </div>
   }
   <button nz-button (click)="handleInputConfirm()" >+</button>

@@ -179,13 +179,12 @@ const GridColums: any[] = [
         id: "PersonalHabilitacionClase",
         field: "PersonalHabilitacionClase",
         fieldName: "b.PersonalHabilitacionClase",
+        searchComponent: "inputForHabilitacionClaseSearch",
+        formatter: 'collectionFormatter',
+        params: { collection: getHabilitacionesClasesOptions },
         sortable: true,
         hidden: false,
         searchHidden: false,
-        formatter: 'collectionFormatter',
-        params: { collection: getHabilitacionesClasesOptions },
-        // searchComponent: "inputForHabilitacionClaseSearch", // falta crear componente de busqueda en filtro builder
-
     },
     {
         name: "Estado",
