@@ -16,12 +16,13 @@ import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaci
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HabilitacionNecesariaFormModalComponent } from 'src/app/routes/ges/habilitacion-necesaria-form-modal/habilitacion-necesaria-form-modal';
+import { DetallePersonaComponent } from "src/app/routes/ges/detalle-persona/detalle-persona.component";
 
 @Component({
   selector: 'app-habilitaciones',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
     HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent,
-    HabilitacionNecesariaFormModalComponent],
+    HabilitacionNecesariaFormModalComponent, DetallePersonaComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
   styleUrl: './habilitaciones.less',
@@ -44,8 +45,8 @@ export class HabilitacionesComponent {
   };
   selectedIndex = signal(1)
   periodo = signal<Date>(new Date())
-  // anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
-  // mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
+  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
   isLoading = signal<boolean>(false)
   apellidoNombreSelected = signal<string>('')
   detalleSelected = signal<string>('')
@@ -54,6 +55,7 @@ export class HabilitacionesComponent {
   lugarHabilitacionId = signal<number>(0)
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)
+  visibleDetalle = signal<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -180,9 +182,15 @@ export class HabilitacionesComponent {
     return `${year}/${month}/${day}`;
   }
   async updHabilitacionNecesaria() {
-    const anio = this.periodo() ? this.periodo().getFullYear():0
-    const mes = this.periodo() ? this.periodo().getMonth() + 1 : 0
-    await firstValueFrom(this.apiService.updHabilitacionNecesaria(anio, mes))
+    await firstValueFrom(this.apiService.updHabilitacionNecesaria(this.anio(), this.mes()))
+  }
+
+  openDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set(true)
+  }
+
+  closeDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set(false)
   }
 
   
