@@ -27,10 +27,10 @@ export class HabilitacionesFormDrawerComponent {
   visible = model<boolean>(false)
   onAddorUpdate = output()
   
-  codigo = model<number>(0)
   personalId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
   personalHabilitacionId = model<number>(0)
+  codigo = model<number>(0)
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
@@ -108,43 +108,21 @@ export class HabilitacionesFormDrawerComponent {
     private searchService: SearchService
   ) {
     effect(async() => {
-      this.formHabilitacion.get('AudFechaIng')?.disable()
       const visible = this.visible()
       const codigo = this.codigo()
       if (codigo) this.tituloDrawer.set('Editar Habilitación Detalle')
       else  this.tituloDrawer.set('Nueva Habilitación Detalle')
 
       if (visible) {
-        
+        this.formHabilitacion.get('AudFechaIng')?.disable()
         this.formHabilitacion.get('PersonalId')?.disable();
         this.formHabilitacion.get('LugarHabilitacionId')?.disable();
-
-        let lastConfig = {}
-        if (this.personalHabilitacionId()) {
-          lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
-        } else {
-          lastConfig = {
-            PersonalHabilitacionId: this.personalHabilitacionId(),
-            LugarHabilitacionId: this.lugarHabilitacionId(),
-            PersonalId: this.personalId()
-          }
-        }
-
-        if (this.codigo()) {
-          let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
-          
-          gestionHabi.AudFechaIng = this.formatDate(gestionHabi.AudFechaIng);
-          lastConfig = {...lastConfig, ...gestionHabi}
-        }
-
-        
-        this.formHabilitacion.reset(lastConfig)
 
         const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(this.lugarHabilitacionId()))
         this.optionsHabilitacionCategoria.set(categorias)
 
-        this.formHabilitacion.markAsUntouched()
-        this.formHabilitacion.markAsPristine()
+        await this.loadForm()
+
       } else {
         this.formHabilitacion.reset()
         this.formHabilitacion.enable()
@@ -164,6 +142,31 @@ export class HabilitacionesFormDrawerComponent {
   }
 
   async ngOnInit() {}
+
+  async loadForm() {
+    let lastConfig = {}
+    if (this.personalHabilitacionId()) {
+      lastConfig = await firstValueFrom(this.searchService.getPersonalHabilitacionById(this.personalHabilitacionId(), this.personalId()))
+    } else {
+      lastConfig = {
+        PersonalHabilitacionId: this.personalHabilitacionId(),
+        LugarHabilitacionId: this.lugarHabilitacionId(),
+        PersonalId: this.personalId()
+      }
+    }
+
+    if (this.codigo()) {
+      let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
+      
+      gestionHabi.AudFechaIng = this.formatDate(gestionHabi.AudFechaIng);
+      lastConfig = {...lastConfig, ...gestionHabi}
+    }
+    
+    this.formHabilitacion.reset(lastConfig)
+
+    this.formHabilitacion.markAsUntouched()
+    this.formHabilitacion.markAsPristine()
+  }
 
   async selectedLugarHabilitacionChange(event: any){
     const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(event))
@@ -186,8 +189,10 @@ export class HabilitacionesFormDrawerComponent {
         if(data.PersonalHabilitacionId) this.personalHabilitacionId.set(data.PersonalHabilitacionId)
         this.tituloDrawer.set('Editar Habilitación Detalle')
         this.formHabilitacion.patchValue(data)
+        
       } 
 
+      this.documentos().reset()
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()
       this.onAddorUpdate.emit()
