@@ -113,6 +113,9 @@ export class InitV1Component implements OnInit {
   
   statsRecibosPendientes$ = this.http.get( `/api/init/stats/recibos` ).pipe(share());
   
+  personasActivasSinHabilitaciones$ = this.http.get('/api/init/stats/personasactivassinhabilitacion');
+  objetivosActivosSinHabilitaciones$ = this.http.get('/api/init/stats/objetivosactivossinhabilitacion');
+  habilitacionesProximaVencer$ = this.http.get('/api/init/stats/habilitacionesproximavencer');
 
   horasTrabajadas$ = this.statshorastrabajadas();
   objetivosSinAsistencia$ = this.statssinAsistencia();

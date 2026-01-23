@@ -48,3 +48,16 @@ initRouter.get(`${base}/stats/custodiaspendientes/:anio/:mes`, authMiddleware.ve
 initRouter.get(`${base}/stats/recibos`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getRecibosPendDescarga(req, res, next)
 })
+
+initRouter.get(`${base}/stats/habilitacionesproximavencer`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getHabilitacionesProximaVencer(req, res, next)
+})
+
+initRouter.get(`${base}/stats/personasactivassinhabilitacion`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getPersonasActivasSinHabilitaciones(req, res, next)
+})
+
+
+initRouter.get(`${base}/stats/objetivosactivossinhabilitacion`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getObjetivosActivosSinHabilitaciones(req, res, next)
+})
