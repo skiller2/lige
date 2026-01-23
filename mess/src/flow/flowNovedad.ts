@@ -29,122 +29,56 @@ export const flowNovedad = addKeyword(utils.setEvent('EVENT_NOVEDAD'))
             return gotoFlow(flowNovedadFecha)
         }
 
-        // Construir el mensaje de resumen
-        const descripcionTexto = novedad.Descripcion ? (novedad.Descripcion.length > 100 ? novedad.Descripcion.substring(0, 100) + '...' : novedad.Descripcion) : 's/d'
-        const accionTexto = novedad.Accion ? (novedad.Accion.length > 100 ? novedad.Accion.substring(0, 100) + '...' : novedad.Accion) : 's/d'
+        const maxMsgLength = 3900
 
+        // Construir el mensaje de resumen
         let mensaje = `Novedad:\n` +
             `1 - Fecha: ${novedad.Fecha ? parseFecha(novedad.Fecha) : 's/d'}\n` +
             `2 - Hora: ${novedad.Hora ?? 's/d'}\n` +
             `3 - Objetivo: ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}\n` +
-            `4 - Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n` +
-            `5 - Descripción: "${descripcionTexto}"\n` +
-            `6 - Acción: "${accionTexto}"`
+            `4 - Tipo: ${novedad.Tipo?.Descripcion ?? 's/d'}\n`
 
         await flowDynamic([mensaje], { delay: delay })
 
-        // Construir opciones del menú
-        let opcionesMenu = `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\n`
-        opcionesMenu += `C - Limpiar campos\n`
+        // Manejar Descripción
+        if (!novedad.Descripcion) {
+            await flowDynamic([`5 - Descripción: s/d\n`], { delay: delay })
 
-        // Agregar opciones para ver completo si superan 100 caracteres
-        if (novedad.Descripcion && novedad.Descripcion.length > 100) {
-            opcionesMenu += `D - Ver descripción completa\n`
-        }
-        if (novedad.Accion && novedad.Accion.length > 100) {
-            opcionesMenu += `T - Ver acción completa\n`
-        }
+        } else if (novedad.Descripcion.length < 4000) {
+            await flowDynamic([`5 - Descripción: "${novedad.Descripcion}"\n`], { delay: delay })
 
-        opcionesMenu += `E - Enviar al responsable\n`
-        opcionesMenu += `M - Menú`
+        } else if (novedad.Descripcion.length >= 4000) {
+            const MsgCompleto = `5 - Descripción completa:\n${novedad.Descripcion}`
 
-        // Enviar opciones del menú
-        await flowDynamic([opcionesMenu], { delay: delay })
-    })
-    .addAnswer([],
-        { capture: true, delay },
-        async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
-            if (ctx?.type == 'dispatch')
-                return fallBack()
-
-            const personalId = state.get('personalId')
-            const novedad = await novedadController.getBackupNovedad(personalId)
-            switch (String(ctx.body).toLowerCase()) {
-                case '1':
-                    return gotoFlow(flowNovedadFecha)
-                    break;
-                case '2':
-                    return gotoFlow(flowNovedadHora)
-                    break;
-                case '3':
-                    return gotoFlow(flowNovedadCodObjetivo)
-                    break;
-                case '4':
-                    return gotoFlow(flowNovedadTipo)
-                    break;
-                case '5':
-                    return gotoFlow(flowNovedadDescrip)
-                    break;
-                case '6':
-                    return gotoFlow(flowNovedadAccion)
-                    break;
-                case 'a':
-                    return gotoFlow(flowNovedadRecibirDocs)
-                    break;
-                case 'c':
-                    await novedadController.saveNovedad(personalId, {})
-                    await flowDynamic(`Limpieza exitosa`, { delay: delay })
-                    return gotoFlow(flowNovedad)
-                    break;
-                case 'd':
-                    if (novedad.Descripcion && novedad.Descripcion.length > 100) {
-                        await flowDynamic([`Descripción completa:\n${novedad.Descripcion}`], { delay: delay })
-                    }
-                    return gotoFlow(flowNovedadMenu)
-                    break;
-                case 't':
-                    if (novedad.Accion && novedad.Accion.length > 100) {
-                        await flowDynamic([`Acción completa:\n${novedad.Accion}`], { delay: delay })
-                    }
-                    return gotoFlow(flowNovedadMenu)
-                    break;
-                case 'e':
-                    if (!novedad.Fecha || !novedad.Hora || !(novedad.ClienteId && novedad.ClienteElementoDependienteId) || !novedad.Tipo || !novedad.Descripcion || !novedad.Accion) {
-                        await flowDynamic(`Se debe completar todos los campos para realizar esta acción`, { delay: delay })
-                        return gotoFlow(flowNovedad)
-                    }
-                    return gotoFlow(flowNovedadEnvio)
-                    break;
-                case 'm':
-                    return gotoFlow(flowMenu)
-                    break;
-                default:
-                    return fallBack()
-                    break;
+            for (let i = 0; i < MsgCompleto.length; i += maxMsgLength) {
+                const parte = MsgCompleto.substring(i, i + maxMsgLength)
+                await flowDynamic([`${parte}`], { delay: delay })
             }
-        })
+        } else {
+            await flowDynamic([`5 - Descripción: "${novedad.Descripcion.substring(0, 200)}..."\n`], { delay: delay })
+        }
 
-export const flowNovedadMenu = addKeyword(EVENTS.ACTION)
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
-        console.log('entre al menu novedad')
-        reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-        const personalId = state.get('personalId')
-        const novedad = await novedadController.getBackupNovedad(personalId)
+        // Manejar Acción
+        if (!novedad.Accion) {
+            await flowDynamic([`6 - Acción: s/d\n`], { delay: delay })
+
+        } else if (novedad.Accion.length < 4000) {
+            await flowDynamic([`6 - Acción: "${novedad.Accion}"\n`], { delay: delay })
+
+        } else if (novedad.Accion.length >= 4000) {
+            const MsgCompleto = `6 - Acción completa:\n${novedad.Accion}`
+
+            for (let i = 0; i < MsgCompleto.length; i += maxMsgLength) {
+                const parte = MsgCompleto.substring(i, i + maxMsgLength)
+                await flowDynamic([`${parte}`], { delay: delay })
+            }
+        } else {
+            await flowDynamic([`6 - Acción: "${novedad.Accion.substring(0, 200)}..."\n`], { delay: delay })
+        }
+
 
         // Construir opciones del menú
-        let opcionesMenu = `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\n`
-        opcionesMenu += `C - Limpiar campos\n`
-
-        // Agregar opciones para ver completo si superan 100 caracteres
-        if (novedad.Descripcion && novedad.Descripcion.length > 100) {
-            opcionesMenu += `D - Ver descripción completa\n`
-        }
-        if (novedad.Accion && novedad.Accion.length > 100) {
-            opcionesMenu += `T - Ver acción completa\n`
-        }
-
-        opcionesMenu += `E - Enviar al responsable\n`
-        opcionesMenu += `M - Menú`
+        let opcionesMenu = `A - Adjuntar documento/foto/video (cargados: ${novedad.files.length})\nC - Limpiar campos\nE - Enviar al responsable\nM - Menú`
 
         // Enviar opciones del menú
         await flowDynamic([opcionesMenu], { delay: delay })
@@ -183,18 +117,6 @@ export const flowNovedadMenu = addKeyword(EVENTS.ACTION)
                     await novedadController.saveNovedad(personalId, {})
                     await flowDynamic(`Limpieza exitosa`, { delay: delay })
                     return gotoFlow(flowNovedad)
-                    break;
-                case 'd':
-                    if (novedad.Descripcion && novedad.Descripcion.length > 100) {
-                        await flowDynamic([`Descripción completa:\n${novedad.Descripcion}`], { delay: delay })
-                    }
-                    return gotoFlow(flowNovedadMenu)
-                    break;
-                case 't':
-                    if (novedad.Accion && novedad.Accion.length > 100) {
-                        await flowDynamic([`Acción completa:\n${novedad.Accion}`], { delay: delay })
-                    }
-                    return gotoFlow(flowNovedadMenu)
                     break;
                 case 'e':
                     if (!novedad.Fecha || !novedad.Hora || !(novedad.ClienteId && novedad.ClienteElementoDependienteId) || !novedad.Tipo || !novedad.Descripcion || !novedad.Accion) {
@@ -364,19 +286,21 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
             }
 
             const Hora = ctx.body
+            const novedad = await novedadController.getBackupNovedad(personalId)
 
-            if (!esHoraValida(Hora)) {
+            const res = esHoraValida(Hora, novedad.Fecha)
+            if (!res.valida) {
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
-                    await flowDynamic(`Demasiados reintentos`, { delay: delay })
+                    await flowDynamic(`Demasiados reintentos.`, { delay: delay })
                     return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
-                return fallBack('El formato de hora ingresado es incorrecto, reintente')
+                const mensajeError = res.futura ? 'No es posible ingresar un día y hora mayor al actual, reintente.' : 'El formato de hora ingresado es incorrecto, reintente.'
+                return fallBack(mensajeError)
             }
 
-            const novedad = await novedadController.getBackupNovedad(personalId)
             const [horas, minutos] = Hora.split(':').map(Number);
             const NovedadFecha = novedad.Fecha ? new Date(novedad.Fecha) : new Date()
             NovedadFecha.setHours(horas, minutos, 0, 0);
@@ -416,15 +340,17 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
             }
 
             const Fecha = ctx.body
-            if (!esFechaValida(Fecha)) {
+            const res = esFechaValida(Fecha)
+            if (!res.valida) {
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
-                    await flowDynamic(`Demasiados reintentos`, { delay: delay })
+                    await flowDynamic(`Demasiados reintentos.`, { delay: delay })
                     return stop(ctx, gotoFlow, state)
                 }
 
                 await state.update({ reintento: reintento + 1 })
-                return fallBack('El formato de fecha ingresada es incorrecta, reintente')
+                const mensajeError = res.futura ? 'La fecha ingresada no puede ser mayor a la fecha actual, reintente.' : 'El formato de fecha ingresada es incorrecta, reintente.'
+                return fallBack(mensajeError)
             }
             const novedad = await novedadController.getBackupNovedad(personalId)
             const [dia, mes, anio] = Fecha.split('/').map(Number);
@@ -565,28 +491,41 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
             return gotoFlow(flowNovedad)
         })
 
-function esHoraValida(hora: string): boolean {
+function esHoraValida(hora: string, fecha: Date): { valida: boolean, futura?: boolean } {
     const partes = hora.split(':')
-    if (partes.length != 2) return false
+    if (partes.length != 2) return { valida: false }
     const hh = parseInt(partes[0])
     const mm = parseInt(partes[1])
-    if (isNaN(hh) || hh < 0 || hh > 24) return false
-    if (isNaN(mm) || mm < 0 || mm > 59) return false
-    return true
+    if (isNaN(hh) || hh < 0 || hh > 24) return { valida: false }
+    if (isNaN(mm) || mm < 0 || mm > 59) return { valida: false }
+
+    if (fecha) {
+        const inputDate = new Date(fecha)
+        inputDate.setHours(hh, mm, 0, 0)
+        const currentDate = new Date()
+        if (inputDate > currentDate) return { valida: false, futura: true }
+    }
+
+    return { valida: true }
 }
 
-function esFechaValida(fecha: string): boolean {
+function esFechaValida(fecha: string): { valida: boolean, futura?: boolean } {
     const partes = fecha.split('/')
-    if (partes.length != 3) return false
-    if (partes[2].length != 4) return false
+    if (partes.length != 3) return { valida: false }
+    if (partes[2].length != 4) return { valida: false }
     const dd = parseInt(partes[0])
     const mm = parseInt(partes[1])
     const aaaa = parseInt(partes[2])
-    if (isNaN(mm) || mm < 0 || mm > 12) return false
-    if (isNaN(aaaa)) return false
+    if (isNaN(mm) || mm < 0 || mm > 12) return { valida: false }
+    if (isNaN(aaaa)) return { valida: false }
     const daysInMonth = new Date(aaaa, mm, 0).getDate()
-    if (isNaN(dd) || dd < 0 || dd > daysInMonth) return false
-    return true
+    if (isNaN(dd) || dd < 0 || dd > daysInMonth) return { valida: false }
+
+    const inputDate = new Date(aaaa, mm - 1, dd);
+    const currentDate = new Date();
+    if (inputDate > currentDate) return { valida: false, futura: true }
+
+    return { valida: true }
 }
 
 function parseFecha(fecha: string): string {
