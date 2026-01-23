@@ -737,7 +737,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalHabilitacionHasta: Date = req.body.PersonalHabilitacionHasta ? new Date(req.body.PersonalHabilitacionHasta) : null
         const PersonalHabilitacionClase = req.body.PersonalHabilitacionClase
         // const AudFechaIng = req.body.AudFechaIng
-        // const file: any[] = req.body.archivo
+        const documentos: any[] = req.body.documentos
 
         if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
         if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
@@ -781,6 +781,42 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             WHERE GestionHabilitacionCodigo = @0 AND PersonalHabilitacionId = @1 AND PersonalId = @2 AND PersonalHabilitacionLugarHabilitacionId = @3
             `, [GestionHabilitacionCodigo, PersonalHabilitacionId, PersonalId, LugarHabilitacionId,
                 GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
+
+            //Datos para la denominacion del documento
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
+            let result = await queryRunner.query(`
+                SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
+                FROM LugarHabilitacion
+                WHERE LugarHabilitacionId = @0
+            `, [LugarHabilitacionId])
+            const lugarHabilitacionDescripcion = result[0].Descripcion
+            
+            //Registra documentos
+            for (const docs of documentos) {
+                if (docs.file?.[0]) {
+                    const file = docs.file[0]
+
+                    const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+                    const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+
+                    if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+                    if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+
+                    // CUIT- Tipo Documento - Lugar habilitación
+                    const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+
+                    const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
+                    const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+                    await queryRunner.query(`
+                    INSERT INTO DocumentoRelaciones (
+                        DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
+                        , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
+                    ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
+                    `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, LugarHabilitacionId])
+
+                }
+            }
 
 
             await queryRunner.commitTransaction()
@@ -889,12 +925,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                 INSERT INTO PersonalHabilitacion (
                 PersonalHabilitacionId, PersonalId, PersonalHabilitacionLugarHabilitacionId
                 , PersonalHabilitacionRechazado, PersonalHabilitacionDesde, PersonalHabilitacionHasta
-                , PersonalHabilitacionClase, GestionHabilitacionCodigoUlt
+                , PersonalHabilitacionClase, GestionHabilitacionCodigoUlt, NroTramite
                 , AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AusUsuarioMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @8, @9, @9, @10, @10)
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @9, @10, @10, @11, @11)
             `, [newPersonalHabilitacionId, PersonalId, LugarHabilitacionId
                 , 'N', PersonalHabilitacionDesde, PersonalHabilitacionHasta
-                , PersonalHabilitacionClase, newCodigoUlt
+                , PersonalHabilitacionClase, newCodigoUlt, NroTramite
                 , fechaActual, ip, usuario
             ])
 
