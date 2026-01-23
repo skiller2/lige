@@ -341,7 +341,7 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
 
             const Fecha = ctx.body
             const res = esFechaValida(Fecha)
-            if (!res.valida) {
+            if (!res.formatoValido || !res.rangoValido) {
                 const reintento = state.get('reintento') ?? 0
                 if (reintento > 3) {
                     await flowDynamic(`Demasiados reintentos.`, { delay: delay })
@@ -349,7 +349,8 @@ export const flowNovedadFecha = addKeyword(EVENTS.ACTION)
                 }
 
                 await state.update({ reintento: reintento + 1 })
-                const mensajeError = res.futura ? 'La fecha ingresada no puede ser mayor a la fecha actual, reintente.' : 'El formato de fecha ingresada es incorrecta, reintente.'
+                const mensajeError = !res.rangoValido ? 'La fecha ingresada no puede ser mayor que la actual, ni menor a 3 meses respecto a la actual. Reintente.' : 'El formato de fecha ingresado es incorrecto, reintente.'
+                
                 return fallBack(mensajeError)
             }
             const novedad = await novedadController.getBackupNovedad(personalId)
@@ -509,23 +510,26 @@ function esHoraValida(hora: string, fecha: Date): { valida: boolean, futura?: bo
     return { valida: true }
 }
 
-function esFechaValida(fecha: string): { valida: boolean, futura?: boolean } {
+function esFechaValida(fecha: string): { formatoValido: boolean, rangoValido?: boolean} {
     const partes = fecha.split('/')
-    if (partes.length != 3) return { valida: false }
-    if (partes[2].length != 4) return { valida: false }
+    if (partes.length != 3) return { formatoValido: false }
+    if (partes[2].length != 4) return { formatoValido: false }
     const dd = parseInt(partes[0])
     const mm = parseInt(partes[1])
     const aaaa = parseInt(partes[2])
-    if (isNaN(mm) || mm < 0 || mm > 12) return { valida: false }
-    if (isNaN(aaaa)) return { valida: false }
+    if (isNaN(mm) || mm < 0 || mm > 12) return { formatoValido: false }
+    if (isNaN(aaaa)) return { formatoValido: false }
     const daysInMonth = new Date(aaaa, mm, 0).getDate()
-    if (isNaN(dd) || dd < 0 || dd > daysInMonth) return { valida: false }
+    if (isNaN(dd) || dd < 0 || dd > daysInMonth) return { formatoValido: false }
 
     const inputDate = new Date(aaaa, mm - 1, dd);
     const currentDate = new Date();
-    if (inputDate > currentDate) return { valida: false, futura: true }
+    const minDate = new Date();
+    minDate.setMonth(currentDate.getMonth() - 3);
+    
+    if (inputDate > currentDate ||  inputDate <= minDate) return { formatoValido: false, rangoValido: false }
 
-    return { valida: true }
+    return { formatoValido: true, rangoValido: true }
 }
 
 function parseFecha(fecha: string): string {
