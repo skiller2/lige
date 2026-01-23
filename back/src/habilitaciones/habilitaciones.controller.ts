@@ -16,9 +16,9 @@ const getHabNecesariaOptions: any[] = [
 
 const getHabilitacionesClasesOptions: any[] = [
     { label: 'Habilitación', value: 'H' },
-    { label: 'Renovación', value: 'R' },
-    { label: 'C', value: 'C' },
-    { label: 'Revalidación', value: 'V' },
+    { label: 'Revalidación', value: 'R' },
+    // { label: 'Habilitación (C)', value: 'C' },
+    { label: 'Renovación', value: 'N' },
 ]
 
 const GridColums: any[] = [
@@ -384,7 +384,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 				) vishab on vishab.PersonalId=per.PersonalId
 
 	
-		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null)
+		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null) 
+                and b.PersonalHabilitacionClase != 'C'
 		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
 		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
 
@@ -911,6 +912,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             const valForm: any = await this.valHabilitacionesForm(queryRunner, req.body)
             if (valForm instanceof ClientException)
                 throw valForm
+
+            // validar que no exista un registro con estado != a habilitado o rechazado
+
+            let exist = await queryRunner.query(`SELECT ph.PersonalHabilitacionId
+                FROM PersonalHabilitacion ph
+                LEFT JOIN GestionHabilitacion gh on gh.PersonalHabilitacionId=ph.PersonalHabilitacionId and gh.PersonalId=ph.PersonalId and gh.PersonalHabilitacionLugarHabilitacionId=ph.PersonalHabilitacionLugarHabilitacionId and gh.GestionHabilitacionCodigo=ph.GestionHabilitacionCodigoUlt
+                WHERE gh.GestionHabilitacionEstadoCodigo not in ('HABORG','RECORG') and ph.PersonalId=@0 and ph.PersonalHabilitacionLugarHabilitacionId=@1 `, [PersonalId, LugarHabilitacionId])
+            
+                if (exist && exist.length > 0) throw new ClientException(`Ya existe una habilitación en trámite para el lugar de habilitación seleccionado.`)
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
