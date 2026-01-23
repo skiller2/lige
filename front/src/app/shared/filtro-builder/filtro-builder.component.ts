@@ -99,6 +99,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsBarrios = this.apiService.getBarriosOptions();
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
   $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions();
+  $optionsHabilitacionEstado = this.searchService.getEstadosHabilitaciones();
 
   private _options: Options = {
     filtros: [],

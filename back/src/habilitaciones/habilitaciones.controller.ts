@@ -190,12 +190,23 @@ const GridColums: any[] = [
     {
         name: "Estado",
         type: "string",
+        id: "GestionHabilitacionEstadoCodigo",
+        field: "GestionHabilitacionEstadoCodigo",
+        fieldName: "e.GestionHabilitacionEstadoCodigo",
+        searchComponent: "inputForHabilitacionEstadoSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Estado",
+        type: "string",
         id: "GestionHabilitacionEstado",
         field: "GestionHabilitacionEstado",
         fieldName: "IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle)",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Fecha Estado",
