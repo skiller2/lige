@@ -26,13 +26,13 @@
         <nz-form-label [nzXs]="5">Situación Revista</nz-form-label>
         <nz-form-control>
           @for (sitrevista of $sitrevista | async; track sitrevista) {
-          <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
-            {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
-            @if (sitrevista.PersonalSituacionRevistaHasta) {
-            <span>hasta {{ sitrevista.PersonalSituacionRevistaHasta
-              | date}}</span>
-            }
-          </p>
+            <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
+              {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
+              @if (sitrevista.PersonalSituacionRevistaHasta) {
+                <span>hasta {{ sitrevista.PersonalSituacionRevistaHasta
+                | date}}</span>
+              }
+            </p>
           }
         </nz-form-control>
       </nz-form-item>
@@ -70,37 +70,37 @@
             [nzDropdownMatchSelectWidth]="false" style="width: 100%"
             (nzBlur)="formHabilitacion.patchValue({NroTramite:'',PersonalHabilitacionDesde:'',PersonalHabilitacionHasta:''})">
             @for (option of $optionsEstadoCodigo | async; track option) {
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
         </nz-form-control>
       </nz-form-item>
 
       @if (GestionHabilitacionEstadoCodigo() == 'HABORG'){
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-          <input nz-input placeholder="" formControlName="NroTramite" type="text" />
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro tramite</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+            <input nz-input placeholder="" formControlName="NroTramite" type="text" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Habilitación Desde</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15">
-          <nz-date-picker formControlName="PersonalHabilitacionDesde" nzFormat="yyyy-MM-dd" nzMode="date"
-            style="width: 100%;">
-          </nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Habilitación Desde</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15">
+            <nz-date-picker formControlName="PersonalHabilitacionDesde" nzFormat="yyyy-MM-dd" nzMode="date"
+              style="width: 100%;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Habilitación Hasta</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15">
-          <nz-date-picker formControlName="PersonalHabilitacionHasta" nzFormat="yyyy-MM-dd" nzMode="date"
-            style="width: 100%;">
-          </nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Habilitación Hasta</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15">
+            <nz-date-picker formControlName="PersonalHabilitacionHasta" nzFormat="yyyy-MM-dd" nzMode="date"
+              style="width: 100%;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
       }
 
       <nz-form-item class="marginElement">
@@ -111,26 +111,26 @@
       </nz-form-item>
 
       <div formArrayName="documentos">
-        <div *ngFor="let control of documentos().controls; let i = index" [formGroupName]="i">
-
-          <nz-form-item class="marginElement">
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-              <app-file-upload formControlName="file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="''"
+        @for (control of documentos().controls; track control; let i = $index) {
+          <div [formGroupName]="i">
+            <nz-form-item class="marginElement">
+              <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Documentos</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+                <app-file-upload formControlName="file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="''"
                 [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'" [showTipoDocs]="true" [showDesdeHasta]="true"></app-file-upload>
-            </nz-form-control>
-          </nz-form-item>
-
-        </div>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        }
       </div>
 
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           @if (formHabilitacion.enabled) {
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
-            [disabled]="formHabilitacion.pristine">
-            {{ 'app.btn.save' | i18n }}
-          </button>
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
+              [disabled]="formHabilitacion.pristine">
+              {{ 'app.btn.save' | i18n }}
+            </button>
           }
         </nz-form-control>
       </nz-form-item>

@@ -12,15 +12,15 @@
           <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
         </li>
         <!-- <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']" (click)="goToCredentials()">{{ 'app.credenciales' | i18n }} </a>
-        </li> -->
-      </ul>
-    </div>
-
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']" (click)="goToCredentials()">{{ 'app.credenciales' | i18n }} </a>
+      </li> -->
+    </ul>
   </div>
-  <!--selectedIndex: {{selectedIndex()}}-->
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()">
+
+</div>
+<!--selectedIndex: {{selectedIndex()}}-->
+<nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()">
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
     @if ((columns$|async); as columnas) {
@@ -35,38 +35,40 @@
             </button>
             <!-- se comenta funcion de edit de habilitacion necesaria de momento -->
             <!-- <button nz-button nzType="default" (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.edit.habilicion.necesaria' | i18n }}"
-              [disabled]="personalId()? false : true">
-              <span nz-icon nzType="edit" nzTheme="outline"></span>
-            </button> -->
-            <button nz-button nzType="default" nz-popconfirm 
-              nzPopconfirmTitle="Actualizo habilitación necesaria?" (nzOnConfirm)="updHabilitacionNecesaria()"
-              nz-tooltip nzTooltipTitle="{{'app.btn.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"
-                nzTheme="outline"></span></button>
+            [disabled]="personalId()? false : true">
+            <span nz-icon nzType="edit" nzTheme="outline"></span>
+          </button> -->
+          <button nz-button nzType="default" nz-popconfirm
+            nzPopconfirmTitle="Actualizo habilitación necesaria?" (nzOnConfirm)="updHabilitacionNecesaria()"
+            nz-tooltip nzTooltipTitle="{{'app.btn.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"
+          nzTheme="outline"></span></button>
 
-          </nz-button-group>
-        </div>
-        
-        <div class="gridListContainer container-fluid" >
-          <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
-            [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-          </angular-slickgrid>
-        </div>
-      </ng-template>
-    }
-  </nz-tab>
+        </nz-button-group>
+      </div>
 
-  <nz-tab>
-    <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
-    <app-habilitaciones-detalle *ngIf="selectedIndex() === 2" [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
-      [detalle]="detalleSelected()"></app-habilitaciones-detalle>
-  </nz-tab>
+      <div class="gridListContainer container-fluid" >
+        <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
+          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+        </angular-slickgrid>
+      </div>
+    </ng-template>
+  }
+</nz-tab>
 
-  <!-- <nz-tab>
-    <a nz-tab-link routerLink="/ges/habilitaciones/credenciales" >{{ 'app.detail' | i18n }}</a>
-  </nz-tab> -->
+<nz-tab>
+  <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
+  @if (selectedIndex() === 2) {
+    <app-habilitaciones-detalle [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
+    [detalle]="detalleSelected()"></app-habilitaciones-detalle>
+  }
+</nz-tab>
 
-  </nz-tabs>
+<!-- <nz-tab>
+<a nz-tab-link routerLink="/ges/habilitaciones/credenciales" >{{ 'app.detail' | i18n }}</a>
+</nz-tab> -->
+
+</nz-tabs>
 
 </nz-card>
 

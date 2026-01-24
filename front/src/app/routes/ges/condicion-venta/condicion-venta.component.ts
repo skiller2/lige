@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, model, OnInit, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
-import { CommonModule } from '@angular/common';
+
 import { I18nPipe, SettingsService } from '@delon/theme';
 import { TableCondicionVentaComponent } from '../table-condicion-venta/table-condicion-venta.component';
 import { AngularUtilService } from 'angular-slickgrid';
@@ -12,12 +12,7 @@ import { ApiService } from 'src/app/services/api.service';
   selector: 'app-condicion-venta',
   standalone: true,
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    I18nPipe,
-    TableCondicionVentaComponent,
-    CondicionVentaFormComponent,
-  ],
+  imports: [SHARED_IMPORTS, I18nPipe, TableCondicionVentaComponent, CondicionVentaFormComponent],
   templateUrl: './condicion-venta.component.html',
   styleUrl: './condicion-venta.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
