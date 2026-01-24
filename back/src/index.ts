@@ -77,7 +77,7 @@ scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
   const actual = new Date()
   const anio = actual.getFullYear()
   const mes = actual.getMonth() + 1
-  const ret = await habilitacionesController.jobHabilitacionNecesaria({params:{anio,mes}}, null, (ret: any) => ret)
+  const ret = await habilitacionesController.jobHabilitacionNecesaria({body:{anio,mes}}, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 

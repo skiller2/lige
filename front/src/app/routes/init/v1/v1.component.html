@@ -151,6 +151,51 @@
     }
   </ng-container>
   }
+  @if (habilitacionesProximaVencer$ | async; as habsProximaVencer) {
+  <ng-container>
+    @if (habsProximaVencer.data.HabilitacionesProxVencimiento >0) {
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+      <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+        <div nz-col nzSpan="12" class="p-md text-white">
+          <div class="h2 mt0">{{ habsProximaVencer.data.HabilitacionesProxVencimiento }}</div>
+          <p class="text-nowrap mb0">Habilitaciones próximas a vencer</p>
+        </div>
+
+      </div>
+    </div>
+    }
+  </ng-container>
+  }
+  @if (personasActivasSinHabilitaciones$ | async; as perActivasSinHabilitaciones) {
+  <ng-container>
+    @if (perActivasSinHabilitaciones.data.PersonalSinHabilitacion >0) {
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+      <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+        <div nz-col nzSpan="12" class="p-md text-white">
+          <div class="h2 mt0">{{ perActivasSinHabilitaciones.data.PersonalSinHabilitacion }}</div>
+          <p class="text-nowrap mb0">Personas Activas sin habilitación</p>
+        </div>
+
+      </div>
+    </div>
+    }
+  </ng-container>
+  }
+  @if (objetivosActivosSinHabilitaciones$ | async; as objActivosSinHabilitaciones) {
+  <ng-container>
+    @if (objActivosSinHabilitaciones.data.ObjetivosSinHabilitacion >0) {
+    <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+      <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+        <div nz-col nzSpan="12" class="p-md text-white">
+          <div class="h2 mt0">{{ objActivosSinHabilitaciones.data.ObjetivosSinHabilitacion }}</div>
+          <p class="text-nowrap mb0">Objetivos Activos sin habilitación</p>
+        </div>
+
+      </div>
+    </div>
+    }
+  </ng-container>
+  }
   @if (objetivosActivos$ | async; as objetivosActivos) {
   <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">

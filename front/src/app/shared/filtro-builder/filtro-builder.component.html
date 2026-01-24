@@ -411,9 +411,9 @@
         </nz-select>
       }
       @if (selections.field.searchComponent=='inputForLugarHabilitacionSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
+        <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
           nzPlaceHolder="Lugar Habilitacion" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
           (keydown.enter)="handleInputConfirm()">
           @for (option of $optionsLugarHabilitacion | async; track option) {
             <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
@@ -421,11 +421,21 @@
         </nz-select>
       }
       @if (selections.field.searchComponent=='inputForHabilitacionClaseSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
+        <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
           nzPlaceHolder="Habilitacion Clase" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
           (keydown.enter)="handleInputConfirm()">
           @for (option of $optionsHabilitacionClase | async; track option) {
+            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      }
+      @if (selections.field.searchComponent=='inputForHabilitacionEstadoSearch') {
+        <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
+          nzPlaceHolder="Habilitacion Estado" nzShowSearch
+          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+          (keydown.enter)="handleInputConfirm()">
+          @for (option of $optionsHabilitacionEstado | async; track option) {
             <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
           }
         </nz-select>

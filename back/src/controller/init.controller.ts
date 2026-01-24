@@ -535,4 +535,212 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         */
     // ... do something with the result
   }
+
+  async getHabilitacionesProximaVencer(req: Request, res: Response, next: NextFunction){
+    const fecha = new Date()
+    try {
+      const con = await getConnection()
+      const rec = await con.query(`
+        WITH HabilitacionesProxVencimiento as (
+          SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+            per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre,
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
+            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
+            est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
+            IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
+            IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
+            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
+            suc.SucursalId, suc.SucursalDescripcion
+          FROM Personal per
+          JOIN (
+            SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
+            FROM  PersonalHabilitacion b       
+            WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0   
+
+            UNION
+
+            SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria c
+          ) vishab on vishab.PersonalId=per.PersonalId
+
+          LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null)  
+          LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
+          LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
+
+          LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+
+          LEFT JOIN (
+            SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+            FROM PersonalSituacionRevista sitrev2
+            WHERE @0 >=  sitrev2.PersonalSituacionRevistaDesde AND  @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+            GROUP BY sitrev2.PersonalId
+          ) sitrev3  ON sitrev3.PersonalId = per.PersonalId      
+          LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+
+          LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId =  sitrev.PersonalSituacionRevistaSituacionId
+
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+
+          LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo = e.GestionHabilitacionEstadoCodigo
+          LEFT JOIN (
+            SELECT
+              b2.PersonalId,
+              b2.PersonalHabilitacionId,
+              b2.PersonalHabilitacionLugarHabilitacionId,
+              CASE
+                WHEN b2.PersonalHabilitacionHasta>=@0 THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)    
+                --WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
+                --WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
+                ELSE 0
+                END AS DiasFaltantesVencimiento    
+            FROM PersonalHabilitacion b2
+          ) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId   
+
+          LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId 
+            AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+          LEFT JOIN Sucursal suc ON suc.SucursalId = sucper.PersonalSucursalPrincipalSucursalId
+          WHERE ( ( IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) <= '30')  AND  (IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) LIKE '%Habilitado%')  AND  (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) )
+        )
+        Select COUNT(*) HabilitacionesProxVencimiento
+        FROM HabilitacionesProxVencimiento
+      `, [fecha])
+      this.jsonRes(rec[0], res);
+
+    } catch (error){ 
+      return next(error);
+
+    }
+  }
+
+  async getPersonasActivasSinHabilitaciones(req: Request, res: Response, next: NextFunction){
+    // const anio = Number(req.params.anio)
+    // const mes = Number(req.params.mes)
+    const fecha = new Date()
+    
+    try {
+      const con = await getConnection()
+      const rec = await con.query(`
+        WITH PersonalSinHabilitacion AS (
+          SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+            per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde,
+            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
+            est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,  
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
+            IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
+            IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
+            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado
+
+          FROM Personal per
+          JOIN (
+            SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
+            FROM  PersonalHabilitacion b
+            WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+
+            UNION
+
+            SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria c
+
+          ) vishab on vishab.PersonalId=per.PersonalId
+
+          LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null)
+          LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
+          LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId       
+
+          LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+
+          LEFT JOIN (
+            SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+            FROM PersonalSituacionRevista sitrev2
+            WHERE @0 >=  sitrev2.PersonalSituacionRevistaDesde AND  @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+            GROUP BY sitrev2.PersonalId
+          ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+          LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+
+          LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId 
+            AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
+          LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo = e.GestionHabilitacionEstadoCodigo
+          LEFT JOIN (
+            SELECT
+              b2.PersonalId,
+              b2.PersonalHabilitacionId,
+              b2.PersonalHabilitacionLugarHabilitacionId,
+              CASE
+                WHEN b2.PersonalHabilitacionHasta>=@0 THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+              --WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
+              --WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
+                ELSE 0
+                END AS DiasFaltantesVencimiento
+            FROM PersonalHabilitacion b2
+          ) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId
+
+          WHERE ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))  AND  ( IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) IN ('0')) ))
+
+        SELECT COUNT(*) PersonalSinHabilitacion
+        FROM Personal per
+        JOIN PersonalSinHabilitacion psh on psh.PersonalId=per.PersonalId
+      `, [fecha])
+      this.jsonRes(rec[0], res);
+
+    } catch (error){ 
+      return next(error);
+
+    }
+
+  }
+
+  async getObjetivosActivosSinHabilitaciones(req: Request, res: Response, next: NextFunction){
+    // const anio = Number(req.params.anio)
+    // const mes = Number(req.params.mes)
+    const fecha = new Date()
+    
+    try {
+      const con = await getConnection()
+      const rec = await con.query(`
+        WITH ObjetivosSinHabilitacion AS (
+          SELECT 
+              obj.ObjetivoId, 
+              CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId, 0)) AS codobj,
+              docHabilitacion.ObjetivoHabilitado,
+              docHabilitacion.LugarHabilitacionIdList,
+              docHabilitacion.ObjetivoHabilitadoCant,
+              eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta
+
+          FROM Objetivo obj
+          JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+            AND eledepcon.ClienteElementoDependienteContratoFechaDesde<=@0 and isnull(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >=@0
+          LEFT JOIN (
+            SELECT ohn.ObjetivoId,
+              STRING_AGG(TRIM(lh.LugarHabilitacionDescripcion),' , ') ObjetivoHabilitado,
+              STRING_AGG(lh.LugarHabilitacionId,',') LugarHabilitacionIdList,
+              count (*) ObjetivoHabilitadoCant
+
+            FROM ObjetivoHabilitacionNecesaria ohn
+            JOIN LugarHabilitacion lh ON lh.LugarHabilitacionId = ohn.ObjetivoHabilitacionNecesariaLugarHabilitacionId
+            LEFT JOIN DocumentoTipo dt on dt.DocumentoTipoCodigo=lh.DocumentoTipoCodigoAsoc
+            JOIN Documento doc on doc.ObjetivoId=ohn.ObjetivoId and doc.DocumentoTipoCodigo=dt.DocumentoTipoCodigo and doc.DocumentoFecha<=@0 and ISNULL(doc.DocumentoFechaDocumentoVencimiento,'9999-12-31')>=@0
+            GROUP BY ohn.ObjetivoId
+            --HAVING COUNT(*) > 1
+          ) docHabilitacion ON docHabilitacion.ObjetivoId = obj.ObjetivoId
+          WHERE  docHabilitacion.ObjetivoHabilitado is null 
+
+        )
+
+        SELECT COUNT(*) ObjetivosSinHabilitacion
+        FROM ObjetivosSinHabilitacion
+      `, [fecha])
+      this.jsonRes(rec[0], res);
+
+    } catch (error){ 
+      return next(error);
+
+    }
+
+  }
+
 }

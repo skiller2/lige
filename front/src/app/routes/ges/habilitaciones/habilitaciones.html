@@ -30,6 +30,7 @@
             <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
           </div>
           <nz-button-group nz-button nzButtonGroup class="derecha">
+            <!-- btn  add -->
             <button nz-button nzType="default" (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus" nzTheme="outline"></span>
             </button>
@@ -74,4 +75,7 @@
 
 <app-habilitaciones-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)" [tituloDrawer]="'Alta de Habilitación'"
 ></app-habilitaciones-form-drawer>
-<app-habilitacion-necesaria-form-modal [(visible)]="visibleFormEdit" [apellidoNombre]="apellidoNombreSelected()" [personalId]="personalId()" (onAddorUpdate)="refreshGrid($event)"></app-habilitacion-necesaria-form-modal>
+<app-habilitacion-necesaria-form-modal [(visible)]="visibleFormEdit" [apellidoNombre]="apellidoNombreSelected()" 
+[personalId]="personalId()" (onAddorUpdate)="refreshGrid($event)"></app-habilitacion-necesaria-form-modal>
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
+(onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
