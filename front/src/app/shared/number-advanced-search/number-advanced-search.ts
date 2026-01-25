@@ -12,7 +12,6 @@ import { Search } from '../schemas/personal.schemas'
 import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
-import { NzInputNumberLegacyComponent } from 'ng-zorro-antd/input-number-legacy'
 import { log } from '@delon/util'
 import { SHARED_IMPORTS } from '@shared'
 
@@ -36,7 +35,6 @@ export class NumberAdvancedSearchComponent implements ControlValueAccessor {
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("fsc") fsc!: NzInputNumberLegacyComponent
 
 
   // $searchChange = new BehaviorSubject('');
@@ -72,7 +70,6 @@ export class NumberAdvancedSearchComponent implements ControlValueAccessor {
   }
 
   ngOnDestroy() { 
-    // this.fsc.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {

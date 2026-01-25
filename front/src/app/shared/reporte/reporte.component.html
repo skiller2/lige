@@ -39,9 +39,6 @@
             <!-- Si es Integer, mostrar un input numérico entero -->
             @if (param.ParameterType === 'Integer') {
               <nz-input-number
-                [nzMin]="-999999"
-                [nzMax]="999999"
-                [nzStep]="1"
                 [(ngModel)]="param.Value"
                 style="width: 50%">
               </nz-input-number>
@@ -49,9 +46,6 @@
             <!-- Si es Float, mostrar un input numérico decimal -->
             @if (param.ParameterType === 'Float') {
               <nz-input-number
-                [nzMin]="-999999"
-                [nzMax]="999999"
-                [nzStep]="0.01"
                 [(ngModel)]="param.Value"
                 style="width: 50%">
               </nz-input-number>

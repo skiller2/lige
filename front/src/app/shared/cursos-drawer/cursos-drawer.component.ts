@@ -22,7 +22,7 @@ export interface Option {
 
 @Component({
     selector: 'app-cursos-drawer',
-    imports: [SHARED_IMPORTS, 
+    imports: [...SHARED_IMPORTS, 
       NzAutocompleteModule,
       CommonModule,
     ],
