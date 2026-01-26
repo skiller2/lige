@@ -34,6 +34,7 @@ import { G2PieModule } from '@delon/chart/pie';
 import { G2MiniBarModule } from '@delon/chart/mini-bar';
 import { G2TimelineModule } from '@delon/chart/timeline';
 import { G2CustomModule } from '@delon/chart/custom';
+import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 
 @Component({
     selector: 'app-init-v1',
