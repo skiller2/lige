@@ -692,6 +692,315 @@ export class FileUploadController extends BaseController {
     }
   }
 
+  static async handleDOCUploadV2(
+    doc_id: number,
+    fecha: Date,
+    fec_doc_ven: Date,
+    den_documento: string,
+    anio: number,
+    mes: number,
+    file: any,
+    usuario: any,
+    ip: any,
+    queryRunner: QueryRunner,
+    IdsRel?: any
+  ) {
+
+    let periodo_id = 0
+    let fechaActual = new Date();
+    if (anio && mes) {
+      periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+    } else {
+      anio = fecha.getFullYear()
+      mes = fecha.getMonth() + 1
+      periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+    }
+
+    const objetivo_id: number | null = IdsRel?.ObjetivoId === '' || Number(IdsRel?.ObjetivoId) === 0 ? null : Number(IdsRel?.ObjetivoId);
+    const cliente_id: number | null = IdsRel?.ClienteId === '' || Number(IdsRel?.ClienteId) === 0 ? null : Number(IdsRel?.ClienteId);
+    const personal_id: number | null = IdsRel?.PersonalId === '' || Number(IdsRel?.PersonalId) === 0 ? null : Number(IdsRel?.PersonalId);
+
+    const PersonalLicenciaId: number | null = IdsRel?.PersonalLicenciaId === '' || Number(IdsRel?.PersonalLicenciaId) === 0 ? null : Number(IdsRel?.PersonalLicenciaId);
+    const NovedadCodigo: number | null = IdsRel?.NovedadCodigo === '' || Number(IdsRel?.NovedadCodigo) === 0 ? null : Number(IdsRel?.NovedadCodigo);
+    const PersonalHabilitacionId: number | null = IdsRel?.PersonalHabilitacionId === '' || Number(IdsRel?.PersonalHabilitacionId) === 0 ? null : Number(IdsRel?.PersonalHabilitacionId);
+    const PersonalHabilitacionLugarHabilitacionId: number | null = IdsRel?.PersonalHabilitacionLugarHabilitacionId === '' || Number(IdsRel?.PersonalHabilitacionLugarHabilitacionId) === 0 ? null : Number(IdsRel?.PersonalHabilitacionLugarHabilitacionId);
+
+    // const PersonalEstudioId: number | null = IdsRel?.PersonalEstudioId === '' || Number(IdsRel?.PersonalEstudioId) === 0 ? null : Number(IdsRel?.PersonalEstudioId)
+
+
+    const FechaMes = fecha.getMonth() + 1;
+    const FechaAnio = fecha.getFullYear();
+
+
+
+    let detalle_documento = ''
+    const doctipo_id = file.doctipo_id
+    const tableForSearch = file.tableForSearch
+    const ind_descarga_bot: number = file.ind_descarga_bot ? 1 : 0
+    let ArchivosAnteriores = []
+
+    if (!tableForSearch)
+      throw new ClientException(`No se especificó destino -tableForSearch-`)
+    if (!doctipo_id)
+      throw new ClientException(`No se especificó destino -doctipo_id-`)
+
+    const doctipo = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo value, tipo.DocumentoTipoDetalle label, tipo.DocumentoTipoDescripcionDenominadorDocumento, tipo.DocumentoTipoPathOrigen FROM DocumentoTipo tipo 
+          WHERE tipo.DocumentoTipoCodigo = @0
+    `, [doctipo_id])
+    if (!doctipo.length)
+      throw new ClientException(`Tipo de documento no existe`)
+
+    const folder = fecha.getFullYear() + doctipo[0]['DocumentoTipoPathOrigen']
+    if (!folder)
+      throw new ClientException(`Error subiendo archivo`)
+
+    let newFilePath = ''
+    //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
+
+    switch (file.tableForSearch) {
+
+      case "documento":
+      case "Documento":
+
+        if (!doc_id) {
+          // INSERT DOCUMENTO
+          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
+          let type = file.mimetype.split('/')[1]
+
+          if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
+
+          if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') type = 'xlsx'
+
+          if (type == 'vnd.ms-excel') type = 'xls'
+
+          newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
+          //console.log("newFilePath", newFilePath)
+          //console.log("file.tempfilename", file.tempfilename)
+          try {
+            this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
+
+          } catch (error) {
+            console.log("error", error)
+            throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
+          }
+
+          const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
+          console.log("doc_id", doc_id)
+          console.log("doctipo_id", doctipo_id)
+          console.log("den_documento", den_documento)
+          console.log("type", type)
+
+          console.log("file", file)
+
+          await queryRunner.query(`INSERT INTO Documento (
+          DocumentoId,
+          DocumentoTipoCodigo, 
+          PersonalId, 
+          ObjetivoId, 
+          DocumentoDenominadorDocumento,
+          DocumentoNombreArchivo,
+          DocumentoFecha,
+          DocumentoFechaDocumentoVencimiento, 
+          DocumentoPath,
+          DocumentoDetalleDocumento, 
+          DocumentoIndividuoDescargaBot, 
+          DocumentoAudFechaIng,
+          DocumentoAudUsuarioIng, 
+          DocumentoAudIpIng, 
+          DocumentoAudFechaMod, 
+          DocumentoAudUsuarioMod,
+          DocumentoAudIpMod,
+          DocumentoClienteId, 
+          DocumentoAnio,
+          DocumentoMes,
+
+          PersonalLicenciaId,
+          NovedadCodigo,
+          PersonalHabilitacionId,
+          PersonalHabilitacionLugarHabilitacionId
+        ) VALUES (
+          @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15,@16,@17,@18,@19
+          , @20, @21, @22, @23)`,
+            [
+              doc_id,
+              doctipo_id,
+              personal_id,
+              objetivo_id,
+              den_documento,
+              namefile,
+              fecha,
+              fec_doc_ven,
+              newFilePath,
+              detalle_documento,
+              ind_descarga_bot,
+              fechaActual,
+              usuario,
+              ip,
+              fechaActual,
+              usuario,
+              ip,
+              cliente_id,
+              anio,
+              mes,
+
+              PersonalLicenciaId,
+              NovedadCodigo,
+              PersonalHabilitacionId,
+              PersonalHabilitacionLugarHabilitacionId              
+            ])
+
+        } else {
+          // UPDATE DOCUMENTO
+          console.log("file update", file)
+          // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
+          if (file?.tempfilename != '' && file?.tempfilename != null) {
+            const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
+
+            const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].DocumentoPath}`;
+            let type = file.mimetype.split('/')[1]
+            const newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
+
+            // Copia el nuevo archivo
+            if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
+            if (type == 'vnd.openxmlformats-officedocument.spreadsheetml.sheet') type = 'xlsx'
+            if (type == 'vnd.ms-excel') type = 'xls'
+
+            try {
+              // Borra el archivo si existe
+              if (existsSync(filePath)) {
+                await unlink(filePath);
+              }
+              // 
+              this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
+
+            } catch (error) {
+              console.log("error", error)
+              throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
+            }
+
+            const NewNamefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
+
+
+            await queryRunner.query(`
+            UPDATE Documento
+            SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
+            DocumentoPath = @3, DocumentoNombreArchivo = @4, DocumentoDetalleDocumento = @14,
+            DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
+            DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
+            DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13,
+            PersonalLicenciaId = @18, NovedadCodigo = @19, PersonalHabilitacionId = @20, PersonalHabilitacionLugarHabilitacionId = @21
+            WHERE DocumentoId = @0`, [doc_id, periodo_id, fecha, newFilePath, NewNamefile, doctipo_id, personal_id, objetivo_id,
+              den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio,
+              PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId])
+
+
+
+          } else {
+            console.log("no hay archivo para actualizar")
+            await queryRunner.query(`
+            UPDATE Documento
+            SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
+            DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, 
+            DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
+            DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13,
+            PersonalLicenciaId = @18, NovedadCodigo = @19, PersonalHabilitacionId = @20, PersonalHabilitacionLugarHabilitacionId = @21
+            WHERE DocumentoId = @0`, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
+              den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio,
+              PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId])
+
+          }
+
+          // Actualiza el registro
+
+          ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'DocumentoId', doctipo_id, doc_id)
+
+        }
+        return { doc_id, newFilePath, ArchivosAnteriores }
+
+      default:
+        throw new ClientException(`Tipo de tabla no especificada`)
+        if (!doc_id) {
+          // INSERT DOCUMENTO
+          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
+
+          const type = file.mimetype.split('/')[1]
+
+          // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
+          if (type == 'pdf') {
+            console.log("leo", file.tempfilename)
+
+            detalle_documento = await FileUploadController.FileData(file.tempfilename)
+          }
+
+          newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
+          console.log("newFilePath", newFilePath)
+          console.log("file.tempfilename", file.tempfilename)
+          this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
+
+          const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
+
+          await queryRunner.query(`INSERT INTO Documento (DocumentoId, DocumentoFecha, DocumentoFechaDocumentoVencimiento,PersonalId,
+            ObjetivoId, DocumentoClienteId, DocumentoPath, DocumentoNombreArchivo, DocumentoTipoCodigo, 
+            DocumentoDenominadorDocumento, DocumentoDetalleDocumento,DocumentoIndividuoDescargaBot,
+
+            DocumentoAudUsuarioIng, DocumentoAudIpIng, DocumentoAudFechaIng, DocumentoAudUsuarioMod, DocumentoAudIpMod, DocumentoAudFechaMod, DocumentoMes, DocumentoAnio, DocumentoVersion,
+            PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId
+            )
+            VALUES
+          (@0, @2, @3, @4, 
+          @5, @6, @7, @8, @9, 
+          @10, @11, @12, 
+          @13, @14,@15,@16,@17,@18, @19, @20, @21, 
+          @22, @23, @24, @25)`,
+            [
+              doc_id, periodo_id, fecha, fec_doc_ven, personal_id,
+              objetivo_id, cliente_id, newFilePath, namefile, doctipo_id,
+              den_documento, detalle_documento, ind_descarga_bot,
+              usuario, ip, fechaActual, usuario, ip, fechaActual, FechaMes, FechaAnio, 0,
+              PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId
+            ])
+
+        } else {
+          // UPDATE DOCUMENTO
+          console.log("file update", file)
+          // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
+          if (file?.tempfilename != '' && file?.tempfilename != null) {
+
+            const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
+
+            const filePath = `${process.env.PATH_DOCUMENTS}/${path[0].path}`;
+            const tempFilePath = `${process.env.PATH_DOCUMENTS}/temp/${file.tempfilename}`;
+
+            // Borra el archivo si existe
+            if (existsSync(filePath)) {
+              await unlink(filePath);
+            }
+
+            // Copia el nuevo archivo
+            copyFileSync(tempFilePath, filePath);
+
+          }
+
+          // Actualiza el registro
+          await queryRunner.query(`
+            UPDATE Documento
+            SET DocumentoFecha = @2, DocumentoMes=@16, DocumentoAnio=@17,
+            --DocumentoPath = @3, DocumentoNombreArchivo = @4, DocumentoDetalleDocumento = @14,
+            DocumentoTipoCodigo = @5, PersonalId = @6, ObjetivoId = @7, DocumentoDenominadorDocumento = @8, DocumentoClienteId = @9, DocumentoFechaDocumentoVencimiento = @10, DocumentoIndividuoDescargaBot = @15,
+            DocumentoAudUsuarioMod = @11, DocumentoAudIpMod = @12, DocumentoAudFechaMod = @13 
+            WHERE DocumentoId = @0
+          `, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
+            den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio])
+
+
+          ArchivosAnteriores = await FileUploadController.getArchivosAnterioresBydocumento(queryRunner, 'Documento', doctipo_id, doc_id)
+
+        }
+        return { doc_id, newFilePath, ArchivosAnteriores }
+        break;
+    }
+  }
+
 
   static copyTmpFile(filename: any, newFilePath: any) {
     const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
