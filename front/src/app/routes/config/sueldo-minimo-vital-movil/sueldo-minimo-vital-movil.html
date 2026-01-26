@@ -22,7 +22,7 @@
         </div>
     </div>
   
-  @if ((columns$|async); as columnas) {
+  @if (columnsData(); as columnas) {
     <div class="gridContainer2 container-fluid">
       <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter"
         [options]="gridOptionsEdit" [dataset]="data()"

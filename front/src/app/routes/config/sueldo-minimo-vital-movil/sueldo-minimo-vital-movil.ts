@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { AngularGridInstance, AngularUtilService, Column, Editors, GridOption, EditCommand } from 'angular-slickgrid';
-import { BehaviorSubject, debounceTime, map, switchMap, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -58,11 +58,12 @@ export class SueldoMinimoVitalMovil {
 
   }
 
-  columns$ = this.apiService.getCols('/api/sueldo-minimo-vital-movil/cols').pipe(
-    switchMap(async (cols) => {return { cols}
-    }),
-    map((data) => {
-      let mapped = data.cols.map((col: Column) => {
+  columns = resource({
+    params: () => ({}),
+    loader: async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await firstValueFrom(this.apiService.getCols('/api/sueldo-minimo-vital-movil/cols'));
+      const list = (response || []).map((col: Column) => {
         switch (col.id) {
           case 'id':
             col.editor = {
@@ -88,10 +89,13 @@ export class SueldoMinimoVitalMovil {
             }
             break;
         }
-        return col
+        return col;
       });
-      return mapped
-    }));
+      return list;
+    }
+  })
+
+  columnsData = computed(() => this.columns.value())
 
   async addNewItem(insertPosition?: 'bottom') {
     const newItem1 = this.createNewItem(1);
