@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, merge } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, merge, map } from 'rxjs';
 import { FileUploadComponent } from "src/app/shared/file-upload/file-upload.component";
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
@@ -104,6 +104,10 @@ export class HabilitacionesFormDrawerComponent {
     debounceTime(500),
     switchMap(() =>
       this.searchService.getLugarHabilitacionByPersonlaId(Number(this.formHabilitacion.get('PersonalId')?.value))
+      .pipe(map((data: any) => {
+        const result = data.filter((hab:any) => { return hab.value != 9 })
+        return result
+      }))
     )
   )
 
