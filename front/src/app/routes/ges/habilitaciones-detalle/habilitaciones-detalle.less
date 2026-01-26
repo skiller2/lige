@@ -1,6 +1,23 @@
 .grillas-wrapper {
   display: flex;
   gap: 16px;
+  flex-direction: column
+}
+
+.gridDetalleContainer,
+.gridDocContainer {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .grillas-wrapper {
+    display: flex;
+    gap: 16px;
+    flex-direction: row
+  }
+
 }
 
 .gridDetalleContainer,

@@ -83,7 +83,7 @@ export class HabilitacionesComponent {
 
     this.startFilters.set([
       { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
-      { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: '30', forced: false },
+      { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: '60', forced: false },
     ])
   }
 
@@ -93,7 +93,7 @@ export class HabilitacionesComponent {
       if (params['DiasFaltantesVencimiento']) {
         this.startFilters.set([
           { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
-          { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: params['DiasFaltantesVencimiento'], forced: false },
+          { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '=', value: params['DiasFaltantesVencimiento'], forced: false },
         ])
       }
     })

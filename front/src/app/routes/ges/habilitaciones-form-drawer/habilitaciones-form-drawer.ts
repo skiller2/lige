@@ -157,9 +157,11 @@ export class HabilitacionesFormDrawerComponent {
       this.formHabilitacion.markAsUntouched()
       this.formHabilitacion.markAsPristine()
       this.onAddorUpdate.emit()
+      this.visible.set(false)
     } catch (error) {
+    } finally {
+      this.isLoading.set(false)
     }
-    this.isLoading.set(false)
   }
 
   addDoc(e?: MouseEvent): void {
