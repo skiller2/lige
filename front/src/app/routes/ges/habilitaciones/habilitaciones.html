@@ -43,6 +43,10 @@
             nzPopconfirmTitle="Actualizo habilitación necesaria?" (nzOnConfirm)="updHabilitacionNecesaria()"
             nz-tooltip nzTooltipTitle="{{'app.btn.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"
           nzTheme="outline"></span></button>
+          <!-- btn  detalle -->
+          <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0"
+            nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
+          nzTheme="outline"></span></button>
 
         </nz-button-group>
       </div>
