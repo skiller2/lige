@@ -85,7 +85,11 @@ export class HabilitacionesFormDrawerComponent {
 
   $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions()
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
-  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions()
+  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions().pipe(
+    map((data: any) => {
+      const result = data.filter((hab:any) => { return hab.value != 9 })
+      return result
+    }))
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
       debounceTime(500),
       switchMap(() =>
