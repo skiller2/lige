@@ -25,6 +25,14 @@ export class FileUploadController extends BaseController {
   pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'   //Los archivos de Genexus
   static tempFolderPath = path.join(FileUploadController.pathDocuments, 'temp');
 
+  private static parseIdOrNull(value: any): number | null {
+    if (value === undefined || value === null || value === '') {
+      return null;
+    }
+    const numValue = Number(value);
+    return numValue === 0 || isNaN(numValue) ? null : numValue;
+  }
+
   static getTempPath() {
     return this.tempFolderPath
   }
@@ -398,10 +406,9 @@ export class FileUploadController extends BaseController {
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
     }
 
-    const objetivo_id: number | null = objetivo_id_raw === '' || Number(objetivo_id_raw) === 0 ? null : Number(objetivo_id_raw);
-    const cliente_id: number | null = cliente_id_raw === '' || Number(cliente_id_raw) === 0 ? null : Number(cliente_id_raw);
-    const personal_id: number | null = personal_id_raw === '' || Number(personal_id_raw) === 0 ? null : Number(personal_id_raw);
-
+    const objetivo_id = FileUploadController.parseIdOrNull(objetivo_id_raw);
+    const cliente_id = FileUploadController.parseIdOrNull(cliente_id_raw);
+    const personal_id = FileUploadController.parseIdOrNull(personal_id_raw);
 
     const FechaMes = fecha.getMonth() + 1;
     const FechaAnio = fecha.getFullYear();
@@ -716,16 +723,16 @@ export class FileUploadController extends BaseController {
       periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
     }
 
-    const objetivo_id: number | null = IdsRel?.ObjetivoId === '' || Number(IdsRel?.ObjetivoId) === 0 ? null : Number(IdsRel?.ObjetivoId);
-    const cliente_id: number | null = IdsRel?.ClienteId === '' || Number(IdsRel?.ClienteId) === 0 ? null : Number(IdsRel?.ClienteId);
-    const personal_id: number | null = IdsRel?.PersonalId === '' || Number(IdsRel?.PersonalId) === 0 ? null : Number(IdsRel?.PersonalId);
+    const objetivo_id = this.parseIdOrNull(IdsRel?.ObjetivoId);
+    const cliente_id = this.parseIdOrNull(IdsRel?.ClienteId);
+    const personal_id = this.parseIdOrNull(IdsRel?.PersonalId);
 
-    const PersonalLicenciaId: number | null = IdsRel?.PersonalLicenciaId === '' || Number(IdsRel?.PersonalLicenciaId) === 0 ? null : Number(IdsRel?.PersonalLicenciaId);
-    const NovedadCodigo: number | null = IdsRel?.NovedadCodigo === '' || Number(IdsRel?.NovedadCodigo) === 0 ? null : Number(IdsRel?.NovedadCodigo);
-    const PersonalHabilitacionId: number | null = IdsRel?.PersonalHabilitacionId === '' || Number(IdsRel?.PersonalHabilitacionId) === 0 ? null : Number(IdsRel?.PersonalHabilitacionId);
-    const PersonalHabilitacionLugarHabilitacionId: number | null = IdsRel?.PersonalHabilitacionLugarHabilitacionId === '' || Number(IdsRel?.PersonalHabilitacionLugarHabilitacionId) === 0 ? null : Number(IdsRel?.PersonalHabilitacionLugarHabilitacionId);
+    const PersonalLicenciaId = this.parseIdOrNull(IdsRel?.PersonalLicenciaId);
+    const NovedadCodigo = this.parseIdOrNull(IdsRel?.NovedadCodigo);
+    const PersonalHabilitacionId = this.parseIdOrNull(IdsRel?.PersonalHabilitacionId);
+    const PersonalHabilitacionLugarHabilitacionId = this.parseIdOrNull(IdsRel?.PersonalHabilitacionLugarHabilitacionId);
 
-    // const PersonalEstudioId: number | null = IdsRel?.PersonalEstudioId === '' || Number(IdsRel?.PersonalEstudioId) === 0 ? null : Number(IdsRel?.PersonalEstudioId)
+    // const PersonalEstudioId = this.parseIdOrNull(IdsRel?.PersonalEstudioId);
 
 
     const FechaMes = fecha.getMonth() + 1;
