@@ -173,7 +173,10 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ perActivasSinHabilitaciones.data.PersonalSinHabilitacion }}</div>
-          <p class="text-nowrap mb0">Personas Activas sin habilitación</p>
+          <a [routerLink]="['/ges/habilitaciones/listado']"
+          [queryParams]="{ DiasFaltantesVencimiento: 0 }">
+            <p class="text-nowrap mb0">Personas Activas sin habilitación</p>
+          </a>
         </div>
 
       </div>

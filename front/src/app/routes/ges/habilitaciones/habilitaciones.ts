@@ -87,6 +87,18 @@ export class HabilitacionesComponent {
     ])
   }
 
+  ngAfterViewInit(): void {
+    
+    this.route.queryParams.subscribe(params => {
+      if (params['DiasFaltantesVencimiento']) {
+        this.startFilters.set([
+          { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
+          { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: params['DiasFaltantesVencimiento'], forced: false },
+        ])
+      }
+    })
+  }
+
   gridData$ = this.listHabilitaciones$.pipe(
     debounceTime(500),
     switchMap(() => {

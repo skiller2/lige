@@ -20,7 +20,7 @@
 
 </div>
 <!--selectedIndex: {{selectedIndex()}}-->
-<nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()">
+<nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()" [nzLinkExact]="false">
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
     @if ((columns$|async); as columnas) {

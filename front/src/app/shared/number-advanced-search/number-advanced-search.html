@@ -15,10 +15,12 @@ nzFormat="dd/MM/yyyy"
 style="width:70%"
 /> -->
 
-<nz-input-number
+<input
+  nz-input
   #fsc
   name="numeroBusqueda"
   [(ngModel)]="_selected"
   (ngModelChange)="onChange($event)"
   style="width:70%"
-></nz-input-number>
+  type="number"
+/>

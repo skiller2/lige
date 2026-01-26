@@ -398,7 +398,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null) 
                 and b.PersonalHabilitacionClase != 'C'
 		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
-		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
+		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId 
 
 		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
@@ -432,7 +432,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE (${filterSql})
+        WHERE d.LugarHabilitacionId != 9
+        and (${filterSql})
         ${orderBy}
         `, [periodo])
     }
