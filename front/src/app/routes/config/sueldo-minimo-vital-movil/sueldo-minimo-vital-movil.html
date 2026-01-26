@@ -23,18 +23,13 @@
     </div>
   
   @if ((columns$|async); as columnas) {
-
-   
-    
     <div class="gridContainer2 container-fluid">
       <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter"
-        [options]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
+        [options]="gridOptionsEdit" [dataset]="data()"
         (onAngularGridCreated)="angularGridReadyEdit($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
         (onCellChange)="onCellChanged($event)">
       </angular-slickgrid>
     </div>
   }
-  </nz-card>
-  
-  
+</nz-card>

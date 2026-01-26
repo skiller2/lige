@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, resource, signal } from '@angular/core';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
@@ -25,7 +25,10 @@ export class SueldoMinimoVitalMovil {
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
   columnDefinitions: Column[] = []
-  listSalarioMinimoVitalMovil$ = new BehaviorSubject('')
+
+  //listSalarioMinimoVitalMovil$ = new BehaviorSubject('')
+  refreshSMVM = signal(0)
+
   editSalarioMinimoVitalMovilId = signal<number>(0)
   angularGridEdit!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
@@ -44,14 +47,15 @@ export class SueldoMinimoVitalMovil {
 
   listOptionsChange(options: any) {
     this.listOptions = options
-    this.listSalarioMinimoVitalMovil$.next('')
+    this.refreshSMVM.update(v => v + 1);
   }
 
   dateChange(val: Date) {
 
     this.anio.set(val.getFullYear())
     this.mes.set(val.getMonth() + 1)
-    this.listSalarioMinimoVitalMovil$.next('')
+    this.refreshSMVM.update(v => v + 1);
+
   }
 
   columns$ = this.apiService.getCols('/api/sueldo-minimo-vital-movil/cols').pipe(
@@ -59,7 +63,6 @@ export class SueldoMinimoVitalMovil {
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
-        console.log(col)
         switch (col.id) {
           case 'id':
             col.editor = {
@@ -118,7 +121,7 @@ export class SueldoMinimoVitalMovil {
       if (row.SalarioMinimoVitalMovilId && row.isfull === 1) {
         try {
           await firstValueFrom(this.apiService.onchangecellSMVM(row));
-          this.listSalarioMinimoVitalMovil$.next('')
+          this.refreshSMVM.update(v => v + 1);
         } catch (error) {
           editCommand.undo()
           console.error('Error al actualizar:', error)
@@ -161,29 +164,34 @@ export class SueldoMinimoVitalMovil {
   async onCellChanged(e: any) {
   }
 
-  gridData$ = this.listSalarioMinimoVitalMovil$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListSMVM({ options: this.listOptions, anio: this.anio(), mes: this.mes() } )
-        .pipe(map(data => {
-          this.cleanerVariables();
-          this.editSalarioMinimoVitalMovilId.set(0)
-          const list = (data.list || []).map((item: any) => {
-            // Los registros existentes tienen ID y están completos
-            if (item.SalarioMinimoVitalMovilId) {
-              item.isfull = 1;
-              item.codigoOld = item.SalarioMinimoVitalMovilId;
-            }
-            return item;
-          });
-          this.gridDataInsert = list;
-          const newItems = list.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1);
-          this.hasNewItems.set(newItems.length > 0);
-          return list;
-        })
-        )
-    })
-  )
+  grid = resource({
+    params: () => ({ anio: this.anio(), mes: this.mes(), options: this.listOptions, refresh: this.refreshSMVM() }),
+    loader: async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await firstValueFrom(this.searchService.getListSMVM({ options: this.listOptions, anio: this.anio(), mes: this.mes() } ))
+      if (response.list.length > 0){
+        this.cleanerVariables();
+            this.editSalarioMinimoVitalMovilId.set(0)
+            const list = (response.list || []).map((item: any) => {
+              // Los registros existentes tienen ID y están completos
+              if (item.SalarioMinimoVitalMovilId) {
+                item.isfull = 1;
+                item.codigoOld = item.SalarioMinimoVitalMovilId;
+              }
+              return item;
+            });
+            this.gridDataInsert = list;
+            const newItems = list.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1);
+            this.hasNewItems.set(newItems.length > 0);
+            return list;
+      }else{
+        return [];
+      }
+    }
+  })
+
+  data = computed(() => this.grid.value())
+
 
   cleanerVariables() {
     // Limpiar variables si es necesario
@@ -261,7 +269,6 @@ export class SueldoMinimoVitalMovil {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    console.log("row", row)
     if (row?.id) {
       this.editSalarioMinimoVitalMovilId.set(row.id) 
     }
@@ -302,7 +309,7 @@ export class SueldoMinimoVitalMovil {
 
       Promise.all(promises).then(() => {
         this.hasNewItems.set(false);
-        this.listSalarioMinimoVitalMovil$.next('')
+        this.refreshSMVM.update(v => v + 1);
         this.cleanTable()
       });
     }
@@ -311,7 +318,7 @@ export class SueldoMinimoVitalMovil {
   async deleteItem() {
     try {
       await firstValueFrom(this.apiService.deleteSMVM(this.editSalarioMinimoVitalMovilId()))
-      this.listSalarioMinimoVitalMovil$.next('')
+      this.refreshSMVM.update(v => v + 1);
     } catch (error) {
       console.error('Error al eliminar registro:', error);
     }
