@@ -2163,6 +2163,26 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
 
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+  }
+
+  async getPersonalAsistencia(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      var desde = new Date(anio, mes - 1, 1);
+
+      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId])
+
+      const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
+
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
     } catch (error) {
@@ -2917,7 +2937,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
-        !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner))
+        !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner) && !await this.hasGroup(req, 'gOperaciones') && !await this.hasGroup(req, 'gOperacionesCon'))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)

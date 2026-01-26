@@ -48,7 +48,7 @@ export class PersonalObjetivoDrawerComponent {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
-            return this.searchService.getAsistenciaPersona(
+            return this.searchService.getPersonalAsistencia(
                 Number(this.PersonalId()),
                 this.anio(),
                 this.mes()
