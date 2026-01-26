@@ -498,8 +498,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
         , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo
         FROM PersonalHabilitacion perhab 
-        JOIN DocumentoRelaciones docrel ON docrel.PersonalId = perhab.PersonalId AND docrel.PersonalHabilitacionId = perhab.PersonalHabilitacionId AND docrel.PersonalHabilitacionLugarHabilitacionId = perhab.PersonalHabilitacionLugarHabilitacionId
-        LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
+        JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
         LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @1 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
         `, [PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
@@ -711,14 +710,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                     // CUIT- Tipo Documento - Lugar habilitación
                     const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
 
-                    const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
-                    const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                    await queryRunner.query(`
-                    INSERT INTO DocumentoRelaciones (
-                        DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                        , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                    ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                    `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, LugarHabilitacionId])
+                    const IdsRelacionados = {
+                        PersonalId: PersonalId,
+                        PersonalHabilitacionId: PersonalHabilitacionId,
+                        PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
+                    }
+                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner,IdsRelacionados)
 
                 }
             }
@@ -819,14 +816,13 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
                     // CUIT- Tipo Documento - Lugar habilitación
                     const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
 
-                    const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
-                    const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                    await queryRunner.query(`
-                    INSERT INTO DocumentoRelaciones (
-                        DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                        , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                    ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                    `, [doc_id, PersonalId, fechaActual, usuario, ip, PersonalHabilitacionId, LugarHabilitacionId])
+                    const IdsRelacionados = {
+                        PersonalId: PersonalId,
+                        PersonalHabilitacionId: PersonalHabilitacionId,
+                        PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
+                    }
+                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+                   
 
                 }
             }
@@ -1002,16 +998,14 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
                     // CUIT- Tipo Documento - Lugar habilitación
                     const den_documento = `${cuit}-${file.doctipo_id}-${lugarHabilitacionDescripcion}`
+                    const IdsRelacionados = {
+                        PersonalId: PersonalId,
+                        PersonalHabilitacionId: newPersonalHabilitacionId,
+                        PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
+                    }
 
-                    const uploadResult = await FileUploadController.handleDOCUpload(PersonalId, null, null, null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner)
-                    const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
-                    await queryRunner.query(`
-                    INSERT INTO DocumentoRelaciones (
-                        DocumentoId, PersonalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod
-                        , AudIpIng, AudIpMod, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
-                    ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5, @6)
-                    `, [doc_id, PersonalId, fechaActual, usuario, ip, newPersonalHabilitacionId, LugarHabilitacionId])
-
+                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+                    
                 }
             }
 
