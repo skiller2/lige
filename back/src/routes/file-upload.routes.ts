@@ -75,6 +75,7 @@ const uploadPdf = multer({
 
 export const FileUploadRouter = Router();
 
+// todo: agregar middlewares de auth de doc tipo 'rec'
 FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId()], async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });

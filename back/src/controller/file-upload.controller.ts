@@ -81,7 +81,7 @@ export class FileUploadController extends BaseController {
     const filename = req.params.filename;
     const tableForSearch = req.params.tableForSearch;
     let finalurl = '', docname = ''
-    let document = ''
+    let document: any = ''
     let deleteFile = false
 
 
@@ -118,6 +118,9 @@ export class FileUploadController extends BaseController {
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=docgen.doctipo_id
                 WHERE docgen.doc_id = @0`, [documentId]);
 
+          // crear funcion en el middleware para verificar permisos segun tiop de doc 'rec'
+          // if (document.length && document[0]?.doctipo_id == 'REC' && !await this.hasGroup(req, 'DescargaRecibos'))
+          //   throw new ClientException(`No tiene los permisos correspondientes para descargar el documento. Requiere ser miembro del grupo DescargaRecibos.`)
 
 
           finalurl = path.join(FileUploadController.pathDocuments, document[0]["path"])
@@ -129,6 +132,10 @@ export class FileUploadController extends BaseController {
                 FROM Documento doc
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
                 WHERE doc.DocumentoId = @0`, [documentId]);
+
+          // crear funcion en el middleware para verificar permisos segun tiop de doc 'rec'
+          // if (document.length && document[0]?.doctipo_id == 'REC' && !await this.hasGroup(req, 'DescargaRecibos')) 
+          //   throw new ClientException(`No tiene los permisos correspondientes para descargar el documento. Requiere ser miembro del grupo DescargaRecibos.`)
 
           finalurl = path.join(FileUploadController.pathDocuments, document[0]["path"])
           docname = document[0]["name"]
@@ -853,7 +860,7 @@ export class FileUploadController extends BaseController {
               PersonalLicenciaId,
               NovedadCodigo,
               PersonalHabilitacionId,
-              PersonalHabilitacionLugarHabilitacionId              
+              PersonalHabilitacionLugarHabilitacionId
             ])
 
         } else {
@@ -898,7 +905,7 @@ export class FileUploadController extends BaseController {
             PersonalLicenciaId = @18, NovedadCodigo = @19, PersonalHabilitacionId = @20, PersonalHabilitacionLugarHabilitacionId = @21
             WHERE DocumentoId = @0`, [doc_id, periodo_id, fecha, newFilePath, NewNamefile, doctipo_id, personal_id, objetivo_id,
               den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio,
-              PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId])
+              PersonalLicenciaId, NovedadCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
 
 
 
@@ -913,7 +920,7 @@ export class FileUploadController extends BaseController {
             PersonalLicenciaId = @18, NovedadCodigo = @19, PersonalHabilitacionId = @20, PersonalHabilitacionLugarHabilitacionId = @21
             WHERE DocumentoId = @0`, [doc_id, periodo_id, fecha, null, null, doctipo_id, personal_id, objetivo_id,
               den_documento, cliente_id, fec_doc_ven, usuario, ip, fechaActual, detalle_documento, ind_descarga_bot, FechaMes, FechaAnio,
-              PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId])
+              PersonalLicenciaId, NovedadCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId])
 
           }
 
@@ -964,7 +971,7 @@ export class FileUploadController extends BaseController {
               objetivo_id, cliente_id, newFilePath, namefile, doctipo_id,
               den_documento, detalle_documento, ind_descarga_bot,
               usuario, ip, fechaActual, usuario, ip, fechaActual, FechaMes, FechaAnio, 0,
-              PersonalLicenciaId,NovedadCodigo,PersonalHabilitacionId,PersonalHabilitacionLugarHabilitacionId
+              PersonalLicenciaId, NovedadCodigo, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId
             ])
 
         } else {

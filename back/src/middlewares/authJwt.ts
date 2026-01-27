@@ -77,8 +77,10 @@ export class AuthMiddleware {
       }
 
       // se agregan las excepciones si cuenta con los sigueintes permisos
-      if (res.locals?.verifyGrupoActividad) return next()
-      if (res.locals?.hasAuthObjetivo) return next()
+      if (res.locals?.verifyGrupoActividad 
+          || res.locals?.hasAuthObjetivo 
+          || res.locals?.authResp) return next()
+      
 
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
@@ -155,6 +157,7 @@ export class AuthMiddleware {
           [PersonalId_auth, anio, mes])
         if (resPers.length > 0) {
           res.locals.skipMiddleware = skipNextonPass
+          res.locals.authResp = true
           return next()
         }
       }
