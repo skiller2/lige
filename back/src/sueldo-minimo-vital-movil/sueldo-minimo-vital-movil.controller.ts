@@ -70,8 +70,7 @@ export class SueldoMinimoVitalMovilController extends BaseController {
      const lista: any[] = await queryRunner.query(`
       select smvm.SalarioMinimoVitalMovilId as id, smvm.SalarioMinimoVitalMovilDesde, smvm.SalarioMinimoVitalMovilSMVM
       from SalarioMinimoVitalMovil smvm
-      where smvm.SalarioMinimoVitalMovilDesde = @0
-      AND ${filterSql}
+      where ${filterSql}
       ${orderBy}
       `, [fecha]);
 

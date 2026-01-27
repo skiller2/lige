@@ -110,6 +110,7 @@ export class SueldoMinimoVitalMovil {
     this.gridOptionsEdit.createFooterRow = true
     this.gridOptionsEdit.editable = true
     this.gridOptionsEdit.autoEdit = true
+    this.gridOptionsEdit.forceFitColumns = true
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       editCommand.execute()
