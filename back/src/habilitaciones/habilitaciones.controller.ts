@@ -510,10 +510,44 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
         const queryRunner = dataSource.createQueryRunner();
+
+        const fechaActual = new Date()
+        fechaActual.setHours(0,0,0,0)
         try {
             const habilitaciones = await this.listDocQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
 
-            let list = habilitaciones.map(obj => {
+            const docs = await queryRunner.query(`
+            SELECT doc.DocumentoId AS id, doctip.DocumentoTipoDetalle, doc.DocumentoAudFechaIng, doc.DocumentoFecha, doc.DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 0 AS canDelete
+            FROM Documento doc
+            LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+            WHERE doc.PersonalId = @0 AND doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'EST')
+            UNION ALL
+            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,'-', TRIM(curhab.CursoHabilitacionDescripcion)) DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo, 0 AS canDelete
+            FROM PersonalCurso perc
+            JOIN CursoHabilitacion curhab ON curhab.CursoHabilitacionId = perc.PersonalCursoHabilitacionId
+            JOIN DocumentoImagenCurso curso  ON curso.PersonalId = perc.PersonalId AND curso.DocumentoImagenCursoId = perc.PersonalCursoDocumentoImagenId
+            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
+            WHERE perc.PersonalId IN (@0) AND perc.PersonalCursoDesaprobado = 'N' AND perc.PersonalCursoDesde <= @1 AND ISNULL(perc.PersonalCursoHasta, '9999-12-31') >= @1
+                AND perc.PersonalCursoHabilitacionId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16)
+            UNION ALL
+            SELECT doc.DocumentoImagenDocumentoId id, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo, 0 AS canDelete
+            FROM DocumentoImagenDocumento doc
+            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            WHERE doc.PersonalId IN (@0)
+            UNION ALL
+            SELECT doc.DocumentoImagenEstudioId id, CONCAT('ESTUDIO-',TRIM(TipoEstudioDescripcion)) DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete
+            FROM PersonalEstudio pere
+            INNER JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
+            INNER JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
+            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            WHERE pere.PersonalId IN (@0) AND pere.TipoEstudioId IN (2) AND pere.EstadoEstudioId IN (2)
+            `, [PersonalId, fechaActual])
+
+            let list = [...habilitaciones, ...docs].map(obj => {
                 obj.TipoArchivo = obj.NombreArchivo.split('.').pop()?.toLowerCase()
                 return obj
             })
