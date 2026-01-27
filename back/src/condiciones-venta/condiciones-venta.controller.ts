@@ -564,7 +564,7 @@ export class CondicionesVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT ProductoCodigo,TextoFactura,Cantidad,IndCantidadHorasVenta,ImporteFijo,IndImporteListaPrecio,IndImporteAcuerdoConCliente
+            SELECT ProductoCodigo,TextoFactura,Cantidad,IndCantidadHorasVenta,ImporteUnitario,IndImporteListaPrecio,IndHorasAFacturar
             FROM CondicionVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
