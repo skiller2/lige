@@ -81,8 +81,8 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
           <nz-select formControlName="IndHorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" (ngModelChange)="MetodologiaSelected.set($event)">
-            <nz-option [nzValue]="'A'" nzLabel="A"></nz-option>
-            <nz-option [nzValue]="'B'" nzLabel="B"></nz-option>
+            <nz-option [nzValue]="'A'" nzLabel="Importe y horas fijo"></nz-option>
+            <nz-option [nzValue]="'B'" nzLabel="Importe fijo + horas asistencia"></nz-option>
           </nz-select>
         </nz-form-control>
 
