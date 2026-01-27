@@ -181,7 +181,7 @@ export class HabilitacionesDetalleComponent {
   }
 
   formatDate(dateString: string): string {
-    if (!dateString) return ''
+    if (!dateString || !dateString.length) return ''
     const date = new Date(dateString);
 
     const year = date.getFullYear();

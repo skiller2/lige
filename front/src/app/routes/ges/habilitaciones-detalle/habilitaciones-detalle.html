@@ -69,10 +69,12 @@
                   <span nz-icon nzType="search" nzTheme="outline"></span>
                 </button>
               }
+              @if (data.canDelete) {
                 <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
                 (nzOnConfirm)="deleteDocumento(data.id)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
                   <span nz-icon nzType="delete" nzTheme="outline"></span>
                 </button>
+              }
               </td>
             </tr>
             }
