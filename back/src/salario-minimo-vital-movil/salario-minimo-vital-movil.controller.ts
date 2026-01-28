@@ -17,18 +17,15 @@ const listaColumnas: any[] = [
   },
   {
     id: 'SalarioMinimoVitalMovilDesde',
-    name: 'AÑO/MES',
+    name: 'Periodo',
     field: 'SalarioMinimoVitalMovilDesde',
     fieldName: 'SalarioMinimoVitalMovilDesde',
+    searchComponent: 'inputForPeriodoSearch',
     type: 'date',
-    searchType: 'periodo',
+    searchType: 'date',
     sortable: true,
     hidden: false,
     searchHidden: false,
-    params: {
-      dateFormat: 'YYYY-MM',
-      outputFormat: 'YYYY-MM'
-    }
   },
   {
     id: 'SalarioMinimoVitalMovilSMVM',
@@ -39,10 +36,7 @@ const listaColumnas: any[] = [
     searchType: 'number',
     sortable: true,
     hidden: false,
-    searchHidden: false,
-    editor: {
-      model: 'float'
-    }
+    searchHidden: true,
   }
 ];
 
@@ -56,17 +50,14 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   async getGridList(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction();
-
-      const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+      await queryRunner.startTransaction()
+      console.log("...........req.body.options", req.body.options);
+      const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas)
       const orderBy = orderToSQL(req.body.options.sort)
-
-
      const lista: any[] = await queryRunner.query(`
       select smvm.SalarioMinimoVitalMovilId as id, smvm.SalarioMinimoVitalMovilDesde, smvm.SalarioMinimoVitalMovilSMVM
       from SalarioMinimoVitalMovil smvm
-      where ${filterSql}
-        ${orderBy}
+      where ${filterSql} order by smvm.SalarioMinimoVitalMovilDesde desc
       `);
 
       await queryRunner.commitTransaction();

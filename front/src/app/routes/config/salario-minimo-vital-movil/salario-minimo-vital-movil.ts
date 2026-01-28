@@ -8,12 +8,14 @@ import { firstValueFrom } from 'rxjs';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 
 @Component({
   selector: 'app-sueldo-minimo-vital-movil',
   imports: [
     ...SHARED_IMPORTS,
-    CommonModule
+    CommonModule,
+    FiltroBuilderComponent
   ],
   templateUrl: './salario-minimo-vital-movil.html',
   styleUrl: './salario-minimo-vital-movil.scss',
@@ -43,15 +45,15 @@ export class SalarioMinimoVitalMovil {
   startFilters: any[] = []
 
   listOptionsChange(options: any) {
+    console.log("...........options", options)
     this.listOptions = options
-    this.refreshSMVM.update(v => v + 1);
+    this.refreshSMVM.update(v => v + 1)
   }
 
+  lastPeriod = signal<Date>(new Date())
+
   dateChange(val: Date) {
-
-
-    this.refreshSMVM.update(v => v + 1);
-
+    this.refreshSMVM.update(v => v + 1)
   }
 
   columns = resource({
@@ -66,23 +68,23 @@ export class SalarioMinimoVitalMovil {
               model: Editors['float']
             }
             break;
-          case 'SalarioMinimoVitalMovilDesde':
-            col.editor = {
-              model: Editors['date'],
-              params: {
-                datePickerOptions: {
-                  format: 'YYYY-MM', 
-                  viewMode: 'months',
-                  minViewMode: 'months',
-                  locale: 'es',
-                }
-              }
-            }
-            break;
           case 'SalarioMinimoVitalMovilSMVM':
             col.editor = {
               model: Editors['float']
             }
+            break;
+          case 'SalarioMinimoVitalMovilDesde':
+            // Deshabilitar edición del periodo
+            col.editor = undefined;
+            // Mostrar solo mes y año (MM/yyyy)
+            col.formatter = (_row: number, _cell: number, value: unknown) => {
+              if (value == null || value === '') return '';
+              const d = new Date(value as string | Date);
+              if (isNaN(d.getTime())) return '';
+              const m = String(d.getMonth() + 1).padStart(2, '0');
+              const y = d.getFullYear();
+              return `${m}/${y}`;
+            };
             break;
         }
         return col;
@@ -94,7 +96,7 @@ export class SalarioMinimoVitalMovil {
   columnsData = computed(() => this.columns.value())
 
   async addNewItem(insertPosition?: 'bottom') {
-    const newItem1 = this.createNewItem(1);
+    const newItem1 = this.createNewItem(1)
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
 
@@ -113,19 +115,39 @@ export class SalarioMinimoVitalMovil {
       
       // Marcar si el registro está completo
       if (row.SalarioMinimoVitalMovilDesde && row.SalarioMinimoVitalMovilSMVM) {
-        row.isfull = 1;
+        row.isfull = 1
       } else {
-        row.isfull = 2;
+        row.isfull = 2
       }
 
       // Si es un registro existente (tiene ID) y está completo, actualizarlo inmediatamente
       if (row.SalarioMinimoVitalMovilId && row.isfull === 1) {
         try {
-          await firstValueFrom(this.apiService.onchangecellSMVM(row));
-          this.refreshSMVM.update(v => v + 1);
+          await firstValueFrom(this.apiService.onchangecellSMVM(row))
+          this.refreshSMVM.update(v => v + 1)
         } catch (error) {
           editCommand.undo()
           console.error('Error al actualizar:', error)
+          return
+        }
+      }
+
+      // Nuevo registro completo: guardar al hacer Tab en Importe (sin botón Confirmar)
+      const isNewComplete = !row.SalarioMinimoVitalMovilId && row.isfull === 1
+      const editedImporte = column?.id === 'SalarioMinimoVitalMovilSMVM'
+      if (isNewComplete && editedImporte) {
+        try {
+          console.log("...........row", row);
+          const response = await firstValueFrom(this.apiService.onchangecellSMVM(row))
+          const id = response?.data?.SalarioMinimoVitalMovilId
+          if (id) {
+            row.SalarioMinimoVitalMovilId = id
+            row.codigoOld = id
+          }
+          this.refreshSMVM.update(v => v + 1)
+        } catch (error) {
+          editCommand.undo()
+          console.error('Error al guardar nuevo registro:', error)
           return
         }
       }
@@ -138,20 +160,17 @@ export class SalarioMinimoVitalMovil {
       }
 
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-      this.angularGridEdit.slickGrid.invalidate();
-      this.angularGridEdit.slickGrid.render();
+      this.angularGridEdit.slickGrid.invalidate()
+      this.angularGridEdit.slickGrid.render()
 
-      // Actualizar gridDataInsert con los datos actuales de la grilla
-      const allItems = this.angularGridEdit.dataView.getItems();
-      this.gridDataInsert = allItems;
-      const newItems = allItems.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1);
-      this.hasNewItems.set(newItems.length > 0);
+      const allItems = this.angularGridEdit.dataView.getItems()
+      this.gridDataInsert = allItems
+      const newItems = allItems.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1)
+      this.hasNewItems.set(newItems.length > 0)
 
-      // Agregar nueva fila si la última está completa y es nueva
-      const dataset = this.angularGridEdit.dataView.getItems();
-      const lastrow: any = dataset[dataset.length - 1];
-      if (lastrow && (lastrow.SalarioMinimoVitalMovilDesde || lastrow.SalarioMinimoVitalMovilSMVM) && !lastrow.SalarioMinimoVitalMovilId) {
-        this.addNewItem("bottom")
+      // Tras guardar nuevo desde Importe, agregar fila vacía para seguir cargando
+      if (isNewComplete && editedImporte) {
+        this.addNewItem('bottom')
       }
     }
 
@@ -164,9 +183,11 @@ export class SalarioMinimoVitalMovil {
   grid = resource({
     params: () => ({options: this.listOptions, refresh: this.refreshSMVM() }),
     loader: async () => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const response = await firstValueFrom(this.searchService.getListSMVM({ options: this.listOptions} ))
+      await new Promise(resolve => setTimeout(resolve, 500))
+      const response = await firstValueFrom(this.searchService.getListSMVM(this.listOptions ))
       if (response.list.length > 0){
+        // Guardar la fecha de período mayor
+        this.lastPeriod.set(response.list[0].SalarioMinimoVitalMovilDesde)
         this.cleanerVariables();
             this.editSalarioMinimoVitalMovilId.set(0)
             const list = (response.list || []).map((item: any) => {
@@ -204,11 +225,23 @@ export class SalarioMinimoVitalMovil {
     });
     const newId = highestId + incrementIdByHowMany;
 
+
+    const last = new Date(this.lastPeriod());
+
+    const newDate = new Date(
+      Date.UTC(
+        last.getUTCFullYear(),
+        last.getUTCMonth() + 1,
+        1,
+        12 // ⬅️ MEDIODÍA UTC
+      )
+    );
+
     return {
       id: newId,
       isfull: 0,
       SalarioMinimoVitalMovilId: null,
-      SalarioMinimoVitalMovilDesde: null,
+      SalarioMinimoVitalMovilDesde: newDate,
       SalarioMinimoVitalMovilSMVM: null
     };
   }
@@ -256,7 +289,7 @@ export class SalarioMinimoVitalMovil {
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
-      columnTotal('SalarioMinimoVitalMovilSMVM', this.angularGridEdit)
+      //columnTotal('SalarioMinimoVitalMovilSMVM', this.angularGridEdit)
     })
 
     if (this.apiService.isMobile())

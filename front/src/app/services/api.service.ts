@@ -1012,20 +1012,21 @@ export class ApiService {
   }
 
   onchangecellSMVM(params: any) {
-    return this.http.post<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/onchangecell', params).pipe(
+    console.log("...........params", params);
+    return this.http.post<ResponseJSON<any>>('/api/salario-minimo-vital-movil/onchangecell', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
 
   deleteSMVM(SalarioMinimoVitalMovilId: any) {
     const parameter = { SalarioMinimoVitalMovilId: SalarioMinimoVitalMovilId }
-    return this.http.delete<ResponseJSON<any>>(`/api/sueldo-minimo-vital-movil/delete/${SalarioMinimoVitalMovilId}`).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/salario-minimo-vital-movil/delete/${SalarioMinimoVitalMovilId}`).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
 
   getUltimoPeriodoSMVM() {
-    return this.http.get<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/ultimo-periodo').pipe(
+    return this.http.get<ResponseJSON<any>>('/api/salario-minimo-vital-movil/ultimo-periodo').pipe(
       map((res: ResponseJSON<any>) => res.data ? new Date(res.data) : null),
       catchError(() => of(null))
     );

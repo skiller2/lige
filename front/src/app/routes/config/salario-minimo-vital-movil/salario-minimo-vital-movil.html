@@ -1,25 +1,22 @@
 <nz-card class="small-margin">
-    <div nz-row>
- 
-        <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; gap: 8px;">
-          <nz-button-group nz-button nzButtonGroup style="text-align: right;">
-            <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-              <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-            </a>
-            <button nz-button nzType="default" [disabled]="!this.editSalarioMinimoVitalMovilId()"
-            nz-popconfirm nzPopconfirmTitle="¿Confirmar eliminación de registro?" (nzOnConfirm)="deleteItem()" 
-            nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-              <span nz-icon nzType="delete" nzTheme="outline"></span>
-            </button>
-          </nz-button-group>
-          @if (hasNewItems()) {
-          <button nz-popconfirm nzType="primary" class="btn-add" nzPopconfirmTitle="Confirmar registro?"
-            (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft" nz-button>
-            Confirmar nuevo registro
-          </button>
-          }
-        </div>
+  <div nz-row nzAlign="middle" nzJustify="space-between">
+    <div nz-col>
+      <shared-filtro-builder #thd [fieldsToSelect]="columnsData() || []" [startFilters]="startFilters"
+        (optionsChange)="listOptionsChange($event)"/>
     </div>
+    <div nz-col style="display: flex; gap: 8px;">
+      <nz-button-group nz-button nzButtonGroup>
+        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        </a>
+        <button nz-button nzType="default" [disabled]="!this.editSalarioMinimoVitalMovilId()"
+          nz-popconfirm nzPopconfirmTitle="¿Confirmar eliminación de registro?" (nzOnConfirm)="deleteItem()" 
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
+      </nz-button-group>
+    </div>
+  </div>
   
   @if (columnsData(); as columnas) {
     <div class="gridContainer2 container-fluid">
