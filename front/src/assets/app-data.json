@@ -271,8 +271,8 @@
             }
             ,
             {
-              "text": "Sueldo Mínimo Vital Móvil",
-              "link": "/config/sueldo-minimo-vital-movil",
+              "text": "Salario Mínimo Vital Móvil",
+              "link": "/config/salario-minimo-vital-movil",
               "icon": "anticon-profile"
             }
           ]

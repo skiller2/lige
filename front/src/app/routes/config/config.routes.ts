@@ -15,7 +15,7 @@ export const ConfigRoutes: Routes = [
   },
   {
     path: 'sueldo-minimo-vital-movil',
-    loadComponent: () => import('./sueldo-minimo-vital-movil/sueldo-minimo-vital-movil').then(c => c.SueldoMinimoVitalMovil),
+    loadComponent: () => import('./salario-minimo-vital-movil/salario-minimo-vital-movil').then(c => c.SalarioMinimoVitalMovil),
   },
  
 ];

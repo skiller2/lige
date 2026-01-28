@@ -15,11 +15,11 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
     ...SHARED_IMPORTS,
     CommonModule
   ],
-  templateUrl: './sueldo-minimo-vital-movil.html',
-  styleUrl: './sueldo-minimo-vital-movil.scss',
+  templateUrl: './salario-minimo-vital-movil.html',
+  styleUrl: './salario-minimo-vital-movil.scss',
   providers: [AngularUtilService]
 })
-export class SueldoMinimoVitalMovil {
+export class SalarioMinimoVitalMovil {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -32,7 +32,6 @@ export class SueldoMinimoVitalMovil {
   editSalarioMinimoVitalMovilId = signal<number>(0)
   angularGridEdit!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
-  periodo = signal(new Date())
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
   gridDataInsert: any[] = []
@@ -42,8 +41,6 @@ export class SueldoMinimoVitalMovil {
     sort: null,
   };
   startFilters: any[] = []
-  anio = signal(0)
-  mes = signal(0)
 
   listOptionsChange(options: any) {
     this.listOptions = options
@@ -52,8 +49,7 @@ export class SueldoMinimoVitalMovil {
 
   dateChange(val: Date) {
 
-    this.anio.set(val.getFullYear())
-    this.mes.set(val.getMonth() + 1)
+
     this.refreshSMVM.update(v => v + 1);
 
   }
@@ -62,7 +58,7 @@ export class SueldoMinimoVitalMovil {
     params: () => ({}),
     loader: async () => {
       await new Promise(resolve => setTimeout(resolve, 500));
-      const response = await firstValueFrom(this.apiService.getCols('/api/sueldo-minimo-vital-movil/cols'));
+      const response = await firstValueFrom(this.apiService.getCols('/api/salario-minimo-vital-movil/cols'));
       const list = (response || []).map((col: Column) => {
         switch (col.id) {
           case 'id':
@@ -159,21 +155,17 @@ export class SueldoMinimoVitalMovil {
       }
     }
 
-    const now = new Date()
-    this.anio.set(Number(localStorage.getItem('anio')) > 0 ? Number(localStorage.getItem('anio')) : now.getFullYear());
-    this.mes.set(Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1);
-    this.periodo.set(new Date(this.anio(), this.mes() - 1, 1))
-    this.dateChange(this.periodo())
+
   }
 
   async onCellChanged(e: any) {
   }
 
   grid = resource({
-    params: () => ({ anio: this.anio(), mes: this.mes(), options: this.listOptions, refresh: this.refreshSMVM() }),
+    params: () => ({options: this.listOptions, refresh: this.refreshSMVM() }),
     loader: async () => {
       await new Promise(resolve => setTimeout(resolve, 500));
-      const response = await firstValueFrom(this.searchService.getListSMVM({ options: this.listOptions, anio: this.anio(), mes: this.mes() } ))
+      const response = await firstValueFrom(this.searchService.getListSMVM({ options: this.listOptions} ))
       if (response.list.length > 0){
         this.cleanerVariables();
             this.editSalarioMinimoVitalMovilId.set(0)

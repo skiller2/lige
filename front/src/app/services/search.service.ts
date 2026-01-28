@@ -1230,7 +1230,7 @@ export class SearchService {
 
   getListSMVM(filters: any) {
     const parameter = { options: filters }
-    return this.http.post<ResponseJSON<any>>('/api/sueldo-minimo-vital-movil/list', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/salario-minimo-vital-movil/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({ total: 0, list: [] }))
     );

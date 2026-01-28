@@ -52,7 +52,7 @@ import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepcion
 import { efectoRouter } from "../efecto/efecto.router";
 import { habilitacionesRouter } from "src/habilitaciones/habilitaciones.routes";
 import { condicionesVentaRouter } from "src/condiciones-venta/condiciones-venta.routes";
-import { sueldoMinimoVitalMovilRouter } from "../sueldo-minimo-vital-movil/sueldo-minimo-vital-movil.routes";
+import { salarioMinimoVitalMovilRouter } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.routes";
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
   server.setRoute("/api/auth", authRouter);
@@ -107,5 +107,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/efecto", efectoRouter)
   server.setRoute("/api/habilitaciones", habilitacionesRouter)
   server.setRoute("/api/condiciones-venta", condicionesVentaRouter)
-  server.setRoute("/api/sueldo-minimo-vital-movil", sueldoMinimoVitalMovilRouter)
+  server.setRoute("/api/salario-minimo-vital-movil", salarioMinimoVitalMovilRouter)
 }

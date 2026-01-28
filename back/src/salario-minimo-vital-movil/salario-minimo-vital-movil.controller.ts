@@ -47,7 +47,7 @@ const listaColumnas: any[] = [
 ];
 
 
-export class SueldoMinimoVitalMovilController extends BaseController {
+export class SalarioMinimoVitalMovilController extends BaseController {
 
   async getGridCols(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(listaColumnas, res);
@@ -60,19 +60,14 @@ export class SueldoMinimoVitalMovilController extends BaseController {
 
       const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
       const orderBy = orderToSQL(req.body.options.sort)
-      const anio = req.body.options.anio
-      const mes = req.body.options.mes
 
-      const fecha = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
-      console.log("anio", anio)
-      console.log("mes", mes)
 
      const lista: any[] = await queryRunner.query(`
       select smvm.SalarioMinimoVitalMovilId as id, smvm.SalarioMinimoVitalMovilDesde, smvm.SalarioMinimoVitalMovilSMVM
       from SalarioMinimoVitalMovil smvm
       where ${filterSql}
-      ${orderBy}
-      `, [fecha]);
+        ${orderBy}
+      `);
 
       await queryRunner.commitTransaction();
       this.jsonRes({
