@@ -173,7 +173,7 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ perActivasSinHabilitaciones.data.PersonalSinHabilitacion }}</div>
-          <a [routerLink]="['/ges/habilitaciones/listado']"
+          <a class="link-reset" [routerLink]="['/ges/habilitaciones/listado']"
           [queryParams]="{ DiasFaltantesVencimiento: 0, GestionHabilitacionEstadoCodigo: ['PROINT','PREORG','PEN','HABORG'] }">
             <p class="text-nowrap mb0">Personas Activas sin habilitación</p>
           </a>
@@ -191,7 +191,10 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ objActivosSinHabilitaciones.data.ObjetivosSinHabilitacion }}</div>
-          <p class="text-nowrap mb0">Objetivos Activos sin habilitación</p>
+          <a class="link-reset" [routerLink]="['/ges/objetivos/listado']"
+          [queryParams]="{ LugarHabilitacionDescripcionList: ''}">
+            <p class="text-nowrap mb0">Objetivos Activos sin habilitación necesaria</p>
+          </a>
         </div>
 
       </div>
@@ -205,7 +208,9 @@
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ objetivosActivos.data.objetivosActivosTotal }}</div>
-          <p class="text-nowrap mb0">Objetivos Activos</p>
+          <a class="link-reset" [routerLink]="['/ges/objetivos/listado']">
+            <p class="text-nowrap mb0">Objetivos Activos</p>
+          </a>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
@@ -221,7 +226,9 @@
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ clientesActivos.data.clientesActivosTotal }}</div>
-          <p class="text-nowrap mb0">Clientes Activos</p>
+          <a class="link-reset" [routerLink]="['/ges/clientes/listado']">
+            <p class="text-nowrap mb0">Clientes Activos</p>
+          </a>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
@@ -237,8 +244,11 @@
       <div nz-row nzType="flex" nzAlign="middle" class="app-ant-btn-warning rounded-md">
         <div nz-col nzSpan="12" class="p-md text-black ">
           <div class="h2 mt0">{{ objetivosSinAsistencia.data.objetivosSinAsistenciaTotal }}</div>
-          <p class="text-nowrap mb0">{{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
+          <a class="link-reset" [routerLink]="['/ges/objetivos_pendasis/pendientes']"
+          [queryParams]="{ GrupoActividadId: 0 , anio: objetivosSinAsistencia.data.anio, mes: objetivosSinAsistencia.data.mes }">
+            <p class="text-nowrap mb0">{{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
             Objetivos sin asistencia</p>
+          </a>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
