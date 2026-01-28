@@ -35,53 +35,51 @@
     }
 
 
-    @if (gridDocData$ | async; as listaDocumentos ) {
-      <div class="gridDocContainer">
-        <nz-table #asistPer [nzData]="listaDocumentos" nzSize="small" [nzPageSize]="100000"
-          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-          <thead>
-            <tr>
-            @for(column of columnsDoc$ | async; track column){
-              @if(!column.hidden){
-                <th>{{column.name}}</th>
-              }
+    <div class="gridDocContainer">
+      <nz-table #asistPer [nzData]="(gridDocData$ | async) || []" nzSize="small" [nzPageSize]="100000"
+        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+        <thead>
+          <tr>
+          @for(column of columnsDoc$ | async; track column){
+            @if(!column.hidden){
+              <th>{{column.name}}</th>
             }
-            <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-          @for (data of asistPer.data; track data) {
-            <tr class="">
-              <td>{{ data.DocumentoTipoDetalle }}</td>
-              <td class="periodoStyle">{{ formatDate(data.DocumentoAudFechaIng) }}</td>
-              <td class="periodoStyle">{{ formatDate(data.DocumentoFecha) }}</td>
-              <td class="periodoStyle">{{ formatDate(data.DocumentoFechaDocumentoVencimiento) }}</td>
-              <td>
-              @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
-                <button nz-button nzType="default"
-                (click)="LoadImage(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
-                  <span nz-icon nzType="search" nzTheme="outline"></span>
-                </button>
-              }
-              @if (data.TipoArchivo == 'pdf') {
-                <button nz-button nzType="default"
-                (click)="LoadArchivo(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
-                  <span nz-icon nzType="search" nzTheme="outline"></span>
-                </button>
-              }
-              @if (data.canDelete) {
-                <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
-                (nzOnConfirm)="deleteDocumento(data.id)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-                  <span nz-icon nzType="delete" nzTheme="outline"></span>
-                </button>
-              }
-              </td>
-            </tr>
+          }
+          <th class="btns">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+        @for (data of asistPer.data; track data) {
+          <tr class="">
+            <td>{{ data.DocumentoTipoDetalle }}</td>
+            <td>{{ data.Descripcion }}</td>
+            <td class="periodoStyle">{{ formatDate(data.DocumentoFecha) }}</td>
+            <td class="periodoStyle">{{ formatDate(data.DocumentoFechaDocumentoVencimiento) }}</td>
+            <td class="btns">
+            <!-- @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
+              <button nz-button nzType="default"
+              (click)="LoadImage(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
+                <span nz-icon nzType="search" nzTheme="outline"></span>
+              </button>
+            } -->
+            
+              <button nz-button nzType="default"
+              (click)="LoadArchivo(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
+                <span nz-icon nzType="search" nzTheme="outline"></span>
+              </button>
+            
+            @if (data.canDelete) {
+              <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
+              (nzOnConfirm)="deleteDocumento(data.id)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                <span nz-icon nzType="delete" nzTheme="outline"></span>
+              </button>
             }
-          </tbody>
-        </nz-table>
-      </div>
-    }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </nz-table>
+    </div>
 
     <!-- @if(columnsDoc$ | async; as columnasDoc) {
       <div class="gridDocContainer">

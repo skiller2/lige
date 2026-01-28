@@ -288,17 +288,6 @@ const GridDetalleColums: any[] = [
 ]
 
 const GridDocColums: any[] = [
-    
-    {
-        name: "Descripción",
-        type: "string",
-        id: "Descripcion",
-        field: "Descripcion",
-        fieldName: "doc.Descripcion",
-        sortable: false,
-        hidden: false,
-        searchHidden: false
-    },
     {
         name: "DocumentoId",
         type: "number",
@@ -310,7 +299,7 @@ const GridDocColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Documento Tipo",
+        name: "Tipo",
         type: "string",
         id: "DocumentoTipoDetalle",
         field: "DocumentoTipoDetalle",
@@ -320,16 +309,26 @@ const GridDocColums: any[] = [
         searchHidden: true,
     },
     {
-        name: "Fecha Ingreso",
-        type: "date",
-        id: "DocumentoAudFechaIng",
-        field: "DocumentoAudFechaIng",
-        fieldName: "doc.DocumentoAudFechaIng",
-        // searchComponent: "inputForFechaSearch",
-        sortable: true,
+        name: "Descripción",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "Descripcion",
+        sortable: false,
         hidden: false,
-        searchHidden: true
+        searchHidden: false
     },
+    // {
+    //     name: "Fecha Ingreso",
+    //     type: "date",
+    //     id: "DocumentoAudFechaIng",
+    //     field: "DocumentoAudFechaIng",
+    //     fieldName: "doc.DocumentoAudFechaIng",
+    //     // searchComponent: "inputForFechaSearch",
+    //     sortable: true,
+    //     hidden: false,
+    //     searchHidden: true
+    // },
     {
         name: "Desde",
         type: "date",
@@ -523,12 +522,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const queryRunner = dataSource.createQueryRunner();
 
         const fechaActual = new Date()
-        fechaActual.setHours(0,0,0,0)
+        fechaActual.setHours(0, 0, 0, 0)
         try {
 
             const docs = await queryRunner.query(`
 
- SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+ SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
         , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 1 AS canDelete
         FROM PersonalHabilitacion perhab 
         JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
@@ -540,7 +539,7 @@ UNION ALL
                 , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 0 AS canDelete
             FROM Documento doc
             LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'EST', 'FOTO')
+            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'FOTO', 'CLU')
 
 UNION ALL
             SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,' - ', TRIM(curhab.CursoHabilitacionDescripcion)) Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
@@ -565,7 +564,7 @@ UNION ALL
 				WHEN pere.PersonalEstudioCursoId is null then CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
 				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
 				else pere.PersonalEstudioTitulo
-				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
+				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, pere.PersonalEstudioOtorgado AS DocumentoFecha, pere.PersonalEstudioHasta AS DocumentoFechaDocumentoVencimiento
                 , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete
             FROM PersonalEstudio pere
             JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
@@ -573,9 +572,9 @@ UNION ALL
 			Left join  CursoHabilitacion ch on ch.CursoHabilitacionId=pere.PersonalEstudioCursoId
             LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE pere.PersonalId IN (@0)
-            `, [PersonalId, fechaActual, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId]);
+                        `, [PersonalId, fechaActual, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId]);
 
-            
+
 
             this.jsonRes(
                 {
@@ -775,7 +774,7 @@ UNION ALL
                         PersonalHabilitacionId: PersonalHabilitacionId,
                         PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
                     }
-                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner,IdsRelacionados)
+                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
 
                 }
             }
@@ -861,7 +860,7 @@ UNION ALL
                 WHERE LugarHabilitacionId = @0
             `, [LugarHabilitacionId])
             const lugarHabilitacionDescripcion = result[0].Descripcion
-            
+
             //Registra documentos
             for (const docs of documentos) {
                 if (docs.file?.[0]) {
@@ -882,7 +881,7 @@ UNION ALL
                         PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
                     }
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-                   
+
 
                 }
             }
@@ -987,8 +986,8 @@ UNION ALL
                 FROM PersonalHabilitacion ph
                 LEFT JOIN GestionHabilitacion gh on gh.PersonalHabilitacionId=ph.PersonalHabilitacionId and gh.PersonalId=ph.PersonalId and gh.PersonalHabilitacionLugarHabilitacionId=ph.PersonalHabilitacionLugarHabilitacionId and gh.GestionHabilitacionCodigo=ph.GestionHabilitacionCodigoUlt
                 WHERE gh.GestionHabilitacionEstadoCodigo not in ('HABORG','RECORG') and ph.PersonalId=@0 and ph.PersonalHabilitacionLugarHabilitacionId=@1 `, [PersonalId, LugarHabilitacionId])
-            
-                if (exist && exist.length > 0) throw new ClientException(`Ya existe una habilitación en trámite para el lugar de habilitación seleccionado.`)
+
+            if (exist && exist.length > 0) throw new ClientException(`Ya existe una habilitación en trámite para el lugar de habilitación seleccionado.`)
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
@@ -1065,7 +1064,7 @@ UNION ALL
                     }
 
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-                    
+
                 }
             }
 
@@ -1374,7 +1373,7 @@ UNION ALL
             if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
             if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Habilitación Desde`)
             if (!habilitacion.PersonalHabilitacionHasta) error.push(`- Habilitación Hasta`)
-            else{
+            else {
                 //Verifica que sea un periodo valido
                 const desde = new Date(habilitacion.PersonalHabilitacionDesde)
                 const hasta = new Date(habilitacion.PersonalHabilitacionHasta)
