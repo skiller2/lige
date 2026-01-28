@@ -288,6 +288,17 @@ const GridDetalleColums: any[] = [
 ]
 
 const GridDocColums: any[] = [
+    
+    {
+        name: "Descripción",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "doc.Descripcion",
+        sortable: false,
+        hidden: false,
+        searchHidden: false
+    },
     {
         name: "DocumentoId",
         type: "number",
@@ -496,7 +507,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
     async listDocQuery(queryRunner: any, PersonalId: any, PersonalHabilitacionId: any, PersonalHabilitacionLugarHabilitacionId: any) {
         return await queryRunner.query(`
-        SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
         , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 1 AS canDelete
         FROM PersonalHabilitacion perhab 
         JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
@@ -514,16 +525,25 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const fechaActual = new Date()
         fechaActual.setHours(0,0,0,0)
         try {
-            const habilitaciones = await this.listDocQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
 
             const docs = await queryRunner.query(`
-            SELECT doc.DocumentoId AS id, doctip.DocumentoTipoDetalle, doc.DocumentoAudFechaIng, doc.DocumentoFecha, doc.DocumentoFechaDocumentoVencimiento
+
+ SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 1 AS canDelete
+        FROM PersonalHabilitacion perhab 
+        JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
+        LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
+        WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @3 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+
+UNION ALL
+           SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion,doctip.DocumentoTipoDetalle, doc.DocumentoAudFechaIng, doc.DocumentoFecha, doc.DocumentoFechaDocumentoVencimiento
                 , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 0 AS canDelete
             FROM Documento doc
             LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-            WHERE doc.PersonalId = @0 AND doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'EST')
-            UNION ALL
-            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,'-', TRIM(curhab.CursoHabilitacionDescripcion)) DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
+            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'EST', 'FOTO')
+
+UNION ALL
+            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,' - ', TRIM(curhab.CursoHabilitacionDescripcion)) Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
                 , CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo, 0 AS canDelete
             FROM PersonalCurso perc
             JOIN CursoHabilitacion curhab ON curhab.CursoHabilitacionId = perc.PersonalCursoHabilitacionId
@@ -531,31 +551,36 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
             WHERE perc.PersonalId IN (@0) AND perc.PersonalCursoDesaprobado = 'N' AND perc.PersonalCursoDesde <= @1 AND ISNULL(perc.PersonalCursoHasta, '9999-12-31') >= @1
                 AND perc.PersonalCursoHabilitacionId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16)
-            UNION ALL
-            SELECT doc.DocumentoImagenDocumentoId id, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
+         
+UNION ALL
+            SELECT doc.DocumentoImagenDocumentoId id, '' Descripcion, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
                 , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo, 0 AS canDelete
             FROM DocumentoImagenDocumento doc
             LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE doc.PersonalId IN (@0)
-            UNION ALL
-            SELECT doc.DocumentoImagenEstudioId id, CONCAT('ESTUDIO-',TRIM(TipoEstudioDescripcion)) DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
+
+UNION ALL
+            SELECT doc.DocumentoImagenEstudioId id, 
+			 CASE
+				WHEN pere.PersonalEstudioCursoId is null then CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
+				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
+				else pere.PersonalEstudioTitulo
+				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
                 , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete
             FROM PersonalEstudio pere
-            INNER JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
-            INNER JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
+            JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
+            left JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
+			Left join  CursoHabilitacion ch on ch.CursoHabilitacionId=pere.PersonalEstudioCursoId
             LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-            WHERE pere.PersonalId IN (@0) AND pere.TipoEstudioId IN (2) AND pere.EstadoEstudioId IN (2)
-            `, [PersonalId, fechaActual])
+            WHERE pere.PersonalId IN (@0)
+            `, [PersonalId, fechaActual, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId]);
 
-            let list = [...habilitaciones, ...docs].map(obj => {
-                obj.TipoArchivo = obj.NombreArchivo.split('.').pop()?.toLowerCase()
-                return obj
-            })
+            
 
             this.jsonRes(
                 {
-                    total: list.length,
-                    list,
+                    total: docs.length,
+                    docs,
                 },
                 res
             );
