@@ -621,7 +621,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     try {
       const con = await getConnection()
       const rec = await con.query(`
-        WITH PersonalSinHabilitacion AS (
+      WITH PersonalSinHabilitacion AS (
           SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre,
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
@@ -693,8 +693,11 @@ sitrev.PersonalSituacionRevistaSituacionId
 FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
         WHERE d.LugarHabilitacionId != 9
-        and ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))  AND  ( IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) IN ('0')) ))
+        and ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))  AND  ( IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) IN ('0')))
+				 AND  iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) not LIKE '%RECORG%' 
 
+)
+        
         SELECT COUNT(*) PersonalSinHabilitacion
         FROM PersonalSinHabilitacion
         

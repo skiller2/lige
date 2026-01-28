@@ -174,7 +174,7 @@
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ perActivasSinHabilitaciones.data.PersonalSinHabilitacion }}</div>
           <a [routerLink]="['/ges/habilitaciones/listado']"
-          [queryParams]="{ DiasFaltantesVencimiento: 0 }">
+          [queryParams]="{ DiasFaltantesVencimiento: 0, GestionHabilitacionEstadoCodigo: ['PROINT','PREORG','PEN','HABORG'] }">
             <p class="text-nowrap mb0">Personas Activas sin habilitación</p>
           </a>
         </div>
