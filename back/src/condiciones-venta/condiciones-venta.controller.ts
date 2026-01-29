@@ -520,10 +520,6 @@ export class CondicionesVentaController extends BaseController {
                     throw new ClientException(`Debe completar el campo Importe Unitario.`)
                 }
 
-                if (!producto.ImporteTotal) {
-                    throw new ClientException(`Debe completar el campo Importe Total.`)
-                }
-
                 if (producto.Metodologia === 'B') {
                     if (!producto.IndHorasAFacturar) {
                         throw new ClientException(`Debe completar el campo Horas a Facturar.`)

@@ -98,8 +98,8 @@
             style="width: 100%;" placeholder="Cantidad" (ngModelChange)="calcularTotal(i)">
         </nz-form-control>
         } @else if (control?.value.Metodologia === 'B') {
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Horas a facturar</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Horas a facturar</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
           <nz-select formControlName="IndHorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false">
             <nz-option [nzValue]="'A'" nzLabel="Horas A"></nz-option>
