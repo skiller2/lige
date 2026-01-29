@@ -6,7 +6,6 @@ import { SettingDrawerModule } from '@delon/theme/setting-drawer';
 import { ThemeBtnComponent } from '@delon/theme/theme-btn';
 import { environment } from '@env/environment';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 
@@ -21,12 +20,12 @@ import { HeaderTaskComponent } from './widgets/task.component';
 import { HeaderUserComponent } from './widgets/user.component';
 import { HeaderTitleComponent } from './widgets/title.component';
 import { HeaderSearchModuleComponent } from './widgets/search-module.component';
-
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 @Component({
-    selector: 'layout-basic',
-    styleUrls: ['./basic.component.scss'],
-    template: `
+  selector: 'layout-basic',
+  styleUrls: ['./basic.component.scss'],
+  template: `
     <header-title class="alain-default__title"></header-title>
 
     <layout-default [options]="options" [content]="contentTpl" [customError]="null" >
@@ -107,24 +106,24 @@ import { HeaderSearchModuleComponent } from './widgets/search-module.component';
     <!-- <setting-drawer *ngIf="showSettingDrawer"></setting-drawer> -->
     <theme-btn></theme-btn>
   `,
-    imports: [
-        RouterOutlet,
-        RouterLink,
-        I18nPipe,
-        LayoutDefaultModule,
-        NzIconModule,
-        NzMenuModule,
-        NzDropDownModule,
-        NzAvatarModule,
-        SettingDrawerModule,
-        ThemeBtnComponent,
-        HeaderI18nComponent,
-        HeaderClearStorageComponent,
-        HeaderFullScreenComponent,
-        HeaderUserComponent,
-        HeaderTitleComponent,
-        HeaderSearchModuleComponent
-    ]
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    I18nPipe,
+    LayoutDefaultModule,
+    NzIconModule,
+    NzMenuModule,
+    NzAvatarModule,
+    SettingDrawerModule,
+    ThemeBtnComponent,
+    HeaderI18nComponent,
+    HeaderClearStorageComponent,
+    HeaderFullScreenComponent,
+    HeaderUserComponent,
+    HeaderTitleComponent,
+    HeaderSearchModuleComponent,
+    NzDropdownModule
+  ]
 })
 export class LayoutBasicComponent {
   private readonly settings = inject(SettingsService);
