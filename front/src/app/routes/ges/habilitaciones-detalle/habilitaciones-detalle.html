@@ -4,17 +4,18 @@
       <p [innerHTML]="detalle()"></p>
     </div>
     <nz-button-group nz-button nzButtonGroup class="derecha">
-      <button nz-button nzType="default" [disabled]="(!personalId() && !personalHabilitacionId() && !lugarHabilitacionId())"
-      (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+      <button nz-button nzType="default"
+        [disabled]="(!personalId() && !personalHabilitacionId() && !lugarHabilitacionId())"
+        (click)="openDrawerforForm()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
         <span nz-icon nzType="plus" nzTheme="outline"></span>
       </button>
-      <button nz-button nzType="default" [disabled]="!codigo()"
-      (click)="openDrawerforFormEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+      <button nz-button nzType="default" [disabled]="!codigo()" (click)="openDrawerforFormEdit()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
         <span nz-icon nzType="edit" nzTheme="outline"></span>
       </button>
-      <button nz-button nzType="default" [disabled]="!codigo()" [nzLoading]="loadingDeleteDetalle()" 
-      nz-popconfirm nzPopconfirmTitle="¿Eliminar registro?" (nzOnConfirm)="deleteGestionHabilitacion()" 
-      nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+      <button nz-button nzType="default" [disabled]="!codigo()" [nzLoading]="loadingDeleteDetalle()" nz-popconfirm
+        nzPopconfirmTitle="¿Eliminar registro?" (nzOnConfirm)="deleteGestionHabilitacion()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
         <span nz-icon nzType="delete" nzTheme="outline"></span>
       </button>
     </nz-button-group>
@@ -22,16 +23,12 @@
   <div class="grillas-wrapper">
 
     @if(columnsDetalle$ | async; as columnasDet) {
-      <div class="gridDetalleContainer">
-        <angular-slickgrid 
-          gridId="gridDetalle" 
-          [columns]="columnasDet"
-          [options]="gridDetalleOptions" 
-          [dataset]="(gridDetalleData$ | async) || []"
-          (onAngularGridCreated)="angularGridDetalleReady($event)"
-          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-        </angular-slickgrid>
-      </div>
+    <div class="gridDetalleContainer">
+      <angular-slickgrid gridId="gridDetalle" [columns]="columnasDet" [options]="gridDetalleOptions"
+        [dataset]="(gridDetalleData$ | async) || []" (onAngularGridCreated)="angularGridDetalleReady($event)"
+        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+      </angular-slickgrid>
+    </div>
     }
 
 
@@ -40,40 +37,41 @@
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
         <thead>
           <tr>
-          @for(column of columnsDoc$ | async; track column){
+            @for(column of columnsDoc$ | async; track column){
             @if(!column.hidden){
-              <th>{{column.name}}</th>
+            <th>{{column.name}}</th>
             }
-          }
-          <th class="btns">Acciones</th>
+            }
+            <th class="btns">Acciones</th>
           </tr>
         </thead>
         <tbody>
-        @for (data of asistPer.data; track data) {
+          @for (data of asistPer.data; track data) {
           <tr class="">
             <td>{{ data.DocumentoTipoDetalle }}</td>
             <td>{{ data.Descripcion }}</td>
             <td class="periodoStyle">{{ formatDate(data.DocumentoFecha) }}</td>
             <td class="periodoStyle">{{ formatDate(data.DocumentoFechaDocumentoVencimiento) }}</td>
             <td class="btns">
-            <!-- @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
-              <button nz-button nzType="default"
-              (click)="LoadImage(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
+
+              @if (data.TipoArchivo == 'pdf') {
+              <button nz-button nzType="default" (click)="LoadArchivo(data.url, data.NombreArchivo)" nz-tooltip
+                nzTooltipTitle="{{ 'app.preview' | i18n }}">
                 <span nz-icon nzType="search" nzTheme="outline"></span>
               </button>
-            } -->
-            
-              <button nz-button nzType="default"
-              (click)="LoadArchivo(data.url, data.NombreArchivo)" nz-tooltip nzTooltipTitle="{{ 'app.preview' | i18n }}">
+              } @else {
+              <button nz-button nzType="default" (click)="LoadImage(data.url, data.NombreArchivo)" nz-tooltip
+                nzTooltipTitle="{{ 'app.preview' | i18n }}">
                 <span nz-icon nzType="search" nzTheme="outline"></span>
               </button>
-            
-            @if (data.canDelete) {
-              <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
-              (nzOnConfirm)="deleteDocumento(data.id)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+              }
+              @if (data.canDelete) {
+              <button nz-button nzType="default" nz-popconfirm
+                nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
+                (nzOnConfirm)="deleteDocumento(data.id)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
                 <span nz-icon nzType="delete" nzTheme="outline"></span>
               </button>
-            }
+              }
             </td>
           </tr>
           }
@@ -97,10 +95,12 @@
 </nz-card>
 
 <app-habilitaciones-detalle-form-drawer [(visible)]="visibleForm" (onAddorUpdate)="refreshGrid($event)"
-[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [(personalHabilitacionId)]="personalHabilitacionId"></app-habilitaciones-detalle-form-drawer>
+  [personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()"
+  [(personalHabilitacionId)]="personalHabilitacionId"></app-habilitaciones-detalle-form-drawer>
 
-<app-habilitaciones-detalle-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)" [codigo]="codigo()"
-[personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()" [(personalHabilitacionId)]="personalHabilitacionId"></app-habilitaciones-detalle-form-drawer>
+<app-habilitaciones-detalle-form-drawer [(visible)]="visibleFormEdit" (onAddorUpdate)="refreshGrid($event)"
+  [codigo]="codigo()" [personalId]="personalId()" [lugarHabilitacionId]="lugarHabilitacionId()"
+  [(personalHabilitacionId)]="personalHabilitacionId"></app-habilitaciones-detalle-form-drawer>
 
 <nz-modal [(nzVisible)]="modalViewerVisiable1" nzTitle="" nzWidth="700" nzOkDisabled="true"
   (nzOnCancel)="handleCancel()">
