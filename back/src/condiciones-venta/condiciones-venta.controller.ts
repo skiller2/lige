@@ -73,15 +73,16 @@ export class CondicionesVentaController extends BaseController {
         },
         {
             name: "Periodo Aplica Desde",
-            type: "date",
-            id: "PeriodoDesdeAplica",
-            field: "PeriodoDesdeAplica",
-            fieldName: "conven.PeriodoDesdeAplica",
-            searchComponent: "inputForFechaSearch",
+            type: "string",
+            id: "FormatPeriodoDesdeAplica",
+            field: "FormatPeriodoDesdeAplica",
+            fieldName: "FormatPeriodoDesdeAplica",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: true,
+            searchType: "date",
         },
+
         {
             name: "Período Facturación",
             type: "string",
@@ -251,7 +252,7 @@ export class CondicionesVentaController extends BaseController {
                 Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
                 cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId, 
                     CONCAT(ele.ClienteId,'/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
-                    conven.PeriodoDesdeAplica, FORMAT(conven.PeriodoDesdeAplica,'yyyy-MM') FormatPeriodoDesdeAplica,conven.AutorizacionFecha,per.PersonalId,conven.AutorizacionEstado,
+                    conven.PeriodoDesdeAplica, FORMAT(conven.PeriodoDesdeAplica,'yyyy/MM') FormatPeriodoDesdeAplica,conven.AutorizacionFecha,per.PersonalId,conven.AutorizacionEstado,
                     case when per.PersonalId is null then null
                         else CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) end as AutorizacionApellidoNombre,
                     conven.PeriodoFacturacion,conven.GeneracionFacturaDia,conven.GeneracionFacturaDiaComplemento,conven.Observaciones,
