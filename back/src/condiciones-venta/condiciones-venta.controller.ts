@@ -398,8 +398,9 @@ export class CondicionesVentaController extends BaseController {
                             AudUsuarioIng,
                             AudUsuarioMod,
                             AudIpIng,
-                            AudIpMod
-                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                            AudIpMod,
+                            Metodologia
+                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
                                 [
 
                                     objetivoInfo.clienteId, // ClienteId
@@ -417,7 +418,8 @@ export class CondicionesVentaController extends BaseController {
                                     usuario, // AudUsuarioIng
                                     usuario, // AudUsuarioMod
                                     ip, // AudIpIng
-                                    ip  // AudIpMod
+                                    ip,  // AudIpMod
+                                    producto.Metodologia // Metodologia
                                 ]
                             )
                             break;
@@ -439,8 +441,9 @@ export class CondicionesVentaController extends BaseController {
                             AudUsuarioIng,
                             AudUsuarioMod,
                             AudIpIng,
-                            AudIpMod
-                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                            AudIpMod,
+                            Metodologia
+                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
                                 [
 
                                     objetivoInfo.clienteId, // ClienteId
@@ -458,7 +461,8 @@ export class CondicionesVentaController extends BaseController {
                                     usuario, // AudUsuarioIng
                                     usuario, // AudUsuarioMod
                                     ip, // AudIpIng
-                                    ip  // AudIpMod
+                                    ip,  // AudIpMod
+                                    producto.Metodologia // Metodologia
                                 ]
                             )
                             break;
@@ -612,7 +616,7 @@ export class CondicionesVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT ProductoCodigo,TextoFactura,Cantidad,IndCantidadHorasVenta,ImporteUnitario,IndImporteListaPrecio,IndHorasAFacturar
+            SELECT ProductoCodigo,TextoFactura,Cantidad,IndCantidadHorasVenta,ImporteUnitario,IndImporteListaPrecio,IndHorasAFacturar, Metodologia
             FROM CondicionVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
@@ -801,8 +805,9 @@ export class CondicionesVentaController extends BaseController {
                             AudUsuarioIng,
                             AudUsuarioMod,
                             AudIpIng,
-                            AudIpMod
-                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                            AudIpMod,
+                            Metodologia
+                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
                             [
                                 ClienteId, // ClienteId
                                 ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -819,7 +824,8 @@ export class CondicionesVentaController extends BaseController {
                                 usuario, // AudUsuarioIng
                                 usuario, // AudUsuarioMod
                                 ip, // AudIpIng
-                                ip  // AudIpMod
+                                ip,  // AudIpMod
+                                producto.Metodologia // Metodologia
                             ]
                         )
                         break;
@@ -842,8 +848,9 @@ export class CondicionesVentaController extends BaseController {
                             AudUsuarioIng,
                             AudUsuarioMod,
                             AudIpIng,
-                            AudIpMod
-                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                            AudIpMod,
+                            Metodologia
+                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
                             [
 
                                 ClienteId, // ClienteId
@@ -861,7 +868,8 @@ export class CondicionesVentaController extends BaseController {
                                 usuario, // AudUsuarioIng
                                 usuario, // AudUsuarioMod
                                 ip, // AudIpIng
-                                ip  // AudIpMod
+                                ip,  // AudIpMod
+                                producto.Metodologia // Metodologia
                             ]
                         )
                         break;
