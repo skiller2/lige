@@ -79,7 +79,7 @@
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Metodología</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
-          <nz-select formControlName="IndHorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
+          <nz-select formControlName="Metodologia" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" (ngModelChange)="MetodologiaSelected.set($event)">
             <nz-option [nzValue]="'A'" nzLabel="Importe y horas fijo"></nz-option>
             <nz-option [nzValue]="'B'" nzLabel="Importe fijo + horas asistencia"></nz-option>
@@ -92,11 +92,29 @@
 
       <nz-form-item class="marginElement">
 
+        @if (MetodologiaSelected() === 'A') {
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
           <input appDotToComma mask="separator.2" nz-input nzInputNumber formControlName="Cantidad" type="text"
             style="width: 100%;" placeholder="Cantidad" (ngModelChange)="calcularTotal(i)">
         </nz-form-control>
+        } @else if (MetodologiaSelected() === 'B') {
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Horas a facturar</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+          <nz-select formControlName="HorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false">
+            <nz-option [nzValue]="'A'" nzLabel="Horas A"></nz-option>
+            <nz-option [nzValue]="'B'" nzLabel="Horas B"></nz-option>
+          </nz-select>
+        </nz-form-control>
+        } @else {
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">...</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
+          <input appDotToComma mask="separator.2" nz-input nzInputNumber formControlName="default" type="text"
+            style="width: 100%;" placeholder="...">
+        </nz-form-control>
+        }
+
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe Unitario</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
@@ -112,16 +130,7 @@
             class="text-right" />
         </nz-form-control>
 
-        @if (MetodologiaSelected() === 'B') {
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Horas a facturar</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
-          <nz-select formControlName="HorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false">
-            <nz-option [nzValue]="'A'" nzLabel="Horas A"></nz-option>
-            <nz-option [nzValue]="'B'" nzLabel="Horas B"></nz-option>
-          </nz-select>
-        </nz-form-control>
-        }
+     
 
       </nz-form-item>
 
