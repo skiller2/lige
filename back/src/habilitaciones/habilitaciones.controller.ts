@@ -550,22 +550,8 @@ UNION ALL
             WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'FOTO', 'CLU')
 
 UNION ALL
-            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,' - ', TRIM(curhab.CursoHabilitacionDescripcion)) Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
-                , CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo, 0 AS canDelete,
-				CASE 
-                   WHEN CHARINDEX('.', curso.DocumentoImagenCursoBlobNombreArchivo) > 0 
-                   THEN LOWER(RIGHT(curso.DocumentoImagenCursoBlobNombreArchivo, CHARINDEX('.', REVERSE(curso.DocumentoImagenCursoBlobNombreArchivo)) - 1))
-                   ELSE ''
-                END as TipoArchivo
-            FROM PersonalCurso perc
-            JOIN CursoHabilitacion curhab ON curhab.CursoHabilitacionId = perc.PersonalCursoHabilitacionId
-            JOIN DocumentoImagenCurso curso  ON curso.PersonalId = perc.PersonalId AND curso.DocumentoImagenCursoId = perc.PersonalCursoDocumentoImagenId
-            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
-            WHERE perc.PersonalId IN (@0) AND perc.PersonalCursoDesaprobado = 'N' AND perc.PersonalCursoDesde <= @1 AND ISNULL(perc.PersonalCursoHasta, '9999-12-31') >= @1
-                AND perc.PersonalCursoHabilitacionId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16) and perc.PersonalCursoDesde<=@1 and ISNULL(perc.PersonalCursoHasta, '9999-12-31')>=@1
-         
-UNION ALL
-            SELECT doc.DocumentoImagenEstudioId id, 
+
+SELECT doc.DocumentoImagenEstudioId id, 
 			 CASE
 				WHEN pere.PersonalEstudioCursoId is null then CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
 				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
@@ -585,7 +571,22 @@ UNION ALL
             WHERE pere.PersonalId IN (@0) and (pere.PersonalEstudioCursoId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16) or pere.PersonalEstudioCursoId is null)
 
 UNION ALL
-
+            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,' - ', TRIM(curhab.CursoHabilitacionDescripcion)) Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo, 0 AS canDelete,
+				CASE 
+                   WHEN CHARINDEX('.', curso.DocumentoImagenCursoBlobNombreArchivo) > 0 
+                   THEN LOWER(RIGHT(curso.DocumentoImagenCursoBlobNombreArchivo, CHARINDEX('.', REVERSE(curso.DocumentoImagenCursoBlobNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
+            FROM PersonalCurso perc
+            JOIN CursoHabilitacion curhab ON curhab.CursoHabilitacionId = perc.PersonalCursoHabilitacionId
+            JOIN DocumentoImagenCurso curso  ON curso.PersonalId = perc.PersonalId AND curso.DocumentoImagenCursoId = perc.PersonalCursoDocumentoImagenId
+            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
+            WHERE perc.PersonalId IN (@0) AND perc.PersonalCursoDesaprobado = 'N' AND perc.PersonalCursoDesde <= @1 AND ISNULL(perc.PersonalCursoHasta, '9999-12-31') >= @1
+                AND perc.PersonalCursoHabilitacionId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16) and perc.PersonalCursoDesde<=@1 and ISNULL(perc.PersonalCursoHasta, '9999-12-31')>=@1
+         
+UNION ALL
+            
  SELECT rein.DocumentoImagenCertificadoReincidenciaId id,'' Descripcion, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle,  null DocumentoAudFechaIng, pr.PersonalCertificadoReincidenciaVigenciaDesde DocumentoFecha,pr.PersonalCertificadoReincidenciaVencimiento DocumentoFechaDocumentoVencimiento,
         CONCAT('api/file-upload/downloadFile/', rein.DocumentoImagenCertificadoReincidenciaId, '/DocumentoImagenCertificadoReincidencia/0') url, rein.DocumentoImagenCertificadoReincidenciaBlobNombreArchivo NombreArchivo,  0 AS canDelete,
         DocumentoImagenCertificadoReincidenciaBlobTipoArchivo TipoArchivo
