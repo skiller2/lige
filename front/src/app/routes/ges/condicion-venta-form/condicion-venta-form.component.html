@@ -18,7 +18,7 @@
 
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Aplica Desde</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       <nz-date-picker formControlName="PeriodoDesdeAplica" nzMode="month" nzFormat="MM/yyyy" style="width: 100%;">
       </nz-date-picker>
@@ -81,8 +81,10 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
           <nz-select formControlName="Metodologia" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" (ngModelChange)="MetodologiaSelected.set($event)">
-            <nz-option [nzValue]="'A'" nzLabel="Importe y horas fijo"></nz-option>
-            <nz-option [nzValue]="'B'" nzLabel="Importe fijo + horas asistencia"></nz-option>
+            <nz-option [nzValue]="'A'" nzLabel="Importe fijo"></nz-option>
+            <nz-option [nzValue]="'B'" nzLabel="Horas asistencia"></nz-option>
+            <nz-option [nzValue]="'C'" nzLabel="Lista de Precios"></nz-option>
+
           </nz-select>
         </nz-form-control>
 
@@ -97,7 +99,7 @@
           <input appDotToComma mask="separator.2" nz-input nzInputNumber formControlName="Cantidad" type="text"
             style="width: 100%;" placeholder="Cantidad" (ngModelChange)="calcularTotal(i)">
         </nz-form-control>
-        } @else if (control?.value.Metodologia === 'B') {
+        } @else if (control?.value.Metodologia === 'B' || control?.value.Metodologia === 'C') {
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Horas a facturar</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
           <nz-select formControlName="IndHorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
@@ -114,7 +116,7 @@
         </nz-form-control>
         }
 
-
+        @if (control?.value.Metodologia === 'A'){
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe Unitario</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
           <input appDotToComma mask="separator.2" nz-input nzInputNumber style="width: 100%"
@@ -122,15 +124,21 @@
             (ngModelChange)="calcularTotal(i)">
         </nz-form-control>
 
-
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe Total</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
           <input appDotToComma mask="separator.2" nz-input placeholder="" formControlName="ImporteTotal" type="text"
             class="text-right" />
         </nz-form-control>
 
-     
+      }@else if (control?.value.Metodologia === 'B'){
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe Unitario</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+          <input appDotToComma mask="separator.2" nz-input nzInputNumber style="width: 100%"
+            formControlName="ImporteUnitario" type="text" min="0" step="0.01" placeholder="Importe Unitario"
+            (ngModelChange)="calcularTotal(i)">
+        </nz-form-control>
 
+      }
       </nz-form-item>
 
       <nz-form-item class="marginElement">
