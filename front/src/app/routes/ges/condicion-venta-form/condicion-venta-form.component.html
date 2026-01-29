@@ -91,14 +91,14 @@
 
 
       <nz-form-item class="marginElement">
-
-        @if (MetodologiaSelected() === 'A') {
+        {{control?.value.Metodologia | json}}
+        @if (control?.value.Metodologia === 'A') {
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
           <input appDotToComma mask="separator.2" nz-input nzInputNumber formControlName="Cantidad" type="text"
             style="width: 100%;" placeholder="Cantidad" (ngModelChange)="calcularTotal(i)">
         </nz-form-control>
-        } @else if (MetodologiaSelected() === 'B') {
+        } @else if (control?.value.Metodologia === 'B') {
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Horas a facturar</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
           <nz-select formControlName="IndHorasAFacturar" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
