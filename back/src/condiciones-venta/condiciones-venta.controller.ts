@@ -240,7 +240,6 @@ export class CondicionesVentaController extends BaseController {
         const filterSql = filtrosToSql(req.body.filters.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.filters.sort)
         const queryRunner = dataSource.createQueryRunner();
-        console.log("req.body.periodo...", req.body.periodo)
         const periodoDate = new Date(req.body.periodo)
         const anio = periodoDate.getFullYear()
         const mes = periodoDate.getMonth() + 1
@@ -787,7 +786,6 @@ export class CondicionesVentaController extends BaseController {
             if (producto.ProductoCodigo) {
                 switch (producto.Metodologia) {
                     case 'A': // IMPORTE Y HORAS FIJO
-                    console.log('INSERTANDO PRODUCTO DE TIPO A - IMPORTE Y HORAS FIJO - idx:', idx, 'producto:', producto);
                         await queryRunner.query(
                             `INSERT INTO CondicionVentaDetalle (
                             ClienteId,
@@ -830,7 +828,6 @@ export class CondicionesVentaController extends BaseController {
                         )
                         break;
                     case 'B': // IMPORTE FIJO + HORAS ASISTENCIA
-                    console.log('INSERTANDO PRODUCTO DE TIPO B - IMPORTE FIJO + HORAS ASISTENCIA - idx:', idx, 'producto:', producto);
                         await queryRunner.query(
                             `INSERT INTO CondicionVentaDetalle (
                             ClienteId,
