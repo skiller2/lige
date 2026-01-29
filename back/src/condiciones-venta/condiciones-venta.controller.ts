@@ -342,11 +342,11 @@ export class CondicionesVentaController extends BaseController {
             //validacion si existe
 
             const existeCondicionVenta =
-                await queryRunner.query(`SELECT ClienteId FROM CondicionVenta 
+                await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM CondicionVenta 
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                     [objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, PeriodoDesdeAplica]);
 
-            if (existeCondicionVenta.length > 0) throw new ClientException(`Ya existe una condición de venta para el objetivo seleccionado.`)
+            if (existeCondicionVenta.length > 0) throw new ClientException(`Ya existe una condición de venta para el objetivo ${existeCondicionVenta[0].ClienteId}/${existeCondicionVenta[0].ClienteElementoDependienteId} en el periodo ${mes}/${anio}.`)
 
 
             await queryRunner.query(`INSERT INTO CondicionVenta (
@@ -452,7 +452,7 @@ export class CondicionesVentaController extends BaseController {
                                     1, // IndCantidadHorasVenta
                                     Number(producto.ImporteUnitario), // ImporteUnitario
                                     0, // IndImporteListaPrecio
-                                    producto.HorasAFacturar, // IndHorasAFacturar
+                                    producto.IndHorasAFacturar, // IndHorasAFacturar
                                     FechaActual, // AudFechaIng
                                     FechaActual, // AudFechaMod
                                     usuario, // AudUsuarioIng
@@ -509,10 +509,6 @@ export class CondicionesVentaController extends BaseController {
         for (const producto of CondicionVenta.infoProductos) {
             if (producto.ProductoCodigo) {
 
-                if (!producto.Cantidad) {
-                    throw new ClientException(`Debe completar el campo Cantidad.`)
-                }
-
                 if (!producto.Metodologia) {
                     throw new ClientException(`Debe completar el campo Metodologia.`)
                 }
@@ -530,9 +526,8 @@ export class CondicionesVentaController extends BaseController {
                         throw new ClientException(`Debe completar el campo Horas a Facturar.`)
                     }
                 }
-
-                if (!producto.TextoFactura) {
-                    throw new ClientException(`Debe completar el campo Texto Factura.`)
+                if (producto.Metodologia === 'A' && !producto.Cantidad) {
+                    throw new ClientException(`Debe completar el campo Cantidad.`)
                 }
             }
         }
@@ -787,9 +782,10 @@ export class CondicionesVentaController extends BaseController {
         for (const [idx, producto] of infoProductos.entries()) {
             if (producto.ProductoCodigo) {
                 switch (producto.Metodologia) {
-                        case 'A': // IMPORTE Y HORAS FIJO
-                            await queryRunner.query(
-                                `INSERT INTO CondicionVentaDetalle (
+                    case 'A': // IMPORTE Y HORAS FIJO
+                    console.log('INSERTANDO PRODUCTO DE TIPO A - IMPORTE Y HORAS FIJO - idx:', idx, 'producto:', producto);
+                        await queryRunner.query(
+                            `INSERT INTO CondicionVentaDetalle (
                             ClienteId,
                             ClienteElementoDependienteId,
                             PeriodoDesdeAplica,
@@ -807,29 +803,30 @@ export class CondicionesVentaController extends BaseController {
                             AudIpIng,
                             AudIpMod
                         ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
-                                [
-                                    ClienteId, // ClienteId
-                                    ClienteElementoDependienteId, // ClienteElementoDependienteId
-                                    PeriodoDesdeAplica, // PeriodoDesdeAplica
-                                    producto.ProductoCodigo, // ProductoCodigo
-                                    producto.TextoFactura, // TextoFactura
-                                    Number(producto.Cantidad), // Cantidad
-                                    0, // IndCantidadHorasVenta
-                                    Number(producto.ImporteUnitario), // ImporteUnitario
-                                    0, // IndImporteListaPrecio
-                                    null, // IndHorasAFacturar
-                                    FechaActual, // AudFechaIng
-                                    FechaActual, // AudFechaMod
-                                    usuario, // AudUsuarioIng
-                                    usuario, // AudUsuarioMod
-                                    ip, // AudIpIng
-                                    ip  // AudIpMod
-                                ]
-                            )
-                            break;
-                        case 'B': // IMPORTE FIJO + HORAS ASISTENCIA
-                            await queryRunner.query(
-                                `INSERT INTO CondicionVentaDetalle (
+                            [
+                                ClienteId, // ClienteId
+                                ClienteElementoDependienteId, // ClienteElementoDependienteId
+                                PeriodoDesdeAplica, // PeriodoDesdeAplica
+                                producto.ProductoCodigo, // ProductoCodigo
+                                producto.TextoFactura, // TextoFactura
+                                Number(producto.Cantidad), // Cantidad
+                                0, // IndCantidadHorasVenta
+                                Number(producto.ImporteUnitario), // ImporteUnitario
+                                0, // IndImporteListaPrecio
+                                null, // IndHorasAFacturar
+                                FechaActual, // AudFechaIng
+                                FechaActual, // AudFechaMod
+                                usuario, // AudUsuarioIng
+                                usuario, // AudUsuarioMod
+                                ip, // AudIpIng
+                                ip  // AudIpMod
+                            ]
+                        )
+                        break;
+                    case 'B': // IMPORTE FIJO + HORAS ASISTENCIA
+                    console.log('INSERTANDO PRODUCTO DE TIPO B - IMPORTE FIJO + HORAS ASISTENCIA - idx:', idx, 'producto:', producto);
+                        await queryRunner.query(
+                            `INSERT INTO CondicionVentaDetalle (
                             ClienteId,
                             ClienteElementoDependienteId,
                             PeriodoDesdeAplica,
@@ -847,30 +844,30 @@ export class CondicionesVentaController extends BaseController {
                             AudIpIng,
                             AudIpMod
                         ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
-                                [
+                            [
 
-                                    ClienteId, // ClienteId
-                                    ClienteElementoDependienteId, // ClienteElementoDependienteId
-                                    PeriodoDesdeAplica, // PeriodoDesdeAplica
-                                    producto.ProductoCodigo, // ProductoCodigo
-                                    producto.TextoFactura, // TextoFactura
-                                    null, // Cantidad
-                                    1, // IndCantidadHorasVenta
-                                    Number(producto.ImporteUnitario), // ImporteUnitario
-                                    0, // IndImporteListaPrecio
-                                    producto.HorasAFacturar, // IndHorasAFacturar
-                                    FechaActual, // AudFechaIng
-                                    FechaActual, // AudFechaMod
-                                    usuario, // AudUsuarioIng
-                                    usuario, // AudUsuarioMod
-                                    ip, // AudIpIng
-                                    ip  // AudIpMod
-                                ]
-                            )
-                            break;
-                        default:
-                            throw new ClientException(`Error en la selección de la metodología en el producto ${producto.ProductoCodigo}.`)
-                    }
+                                ClienteId, // ClienteId
+                                ClienteElementoDependienteId, // ClienteElementoDependienteId
+                                PeriodoDesdeAplica, // PeriodoDesdeAplica
+                                producto.ProductoCodigo, // ProductoCodigo
+                                producto.TextoFactura, // TextoFactura
+                                null, // Cantidad
+                                1, // IndCantidadHorasVenta
+                                Number(producto.ImporteUnitario), // ImporteUnitario
+                                0, // IndImporteListaPrecio
+                                producto.IndHorasAFacturar, // IndHorasAFacturar
+                                FechaActual, // AudFechaIng
+                                FechaActual, // AudFechaMod
+                                usuario, // AudUsuarioIng
+                                usuario, // AudUsuarioMod
+                                ip, // AudIpIng
+                                ip  // AudIpMod
+                            ]
+                        )
+                        break;
+                    default:
+                        throw new ClientException(`Error en la selección de la metodología en el producto ${producto.ProductoCodigo}.`)
+                }
             }
         }
     }
