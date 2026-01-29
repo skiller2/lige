@@ -80,6 +80,7 @@ export class AdelantosController extends BaseController {
       field: "PersonalPrestamoMonto",
       fieldName: "pre.PersonalPrestamoMonto",
       searchComponent: "inputForNumberAdvancedSearch",
+      searchType: "numberAdvanced",
       sortable: true,
       searchHidden: false,
       hidden: false,
