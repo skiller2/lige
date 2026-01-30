@@ -29,7 +29,7 @@ import { NzInputGroupComponent } from 'ng-zorro-antd/input'
             multi: true,
         },
     ],
-    imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent, NzInputGroupComponent]
+    imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent]
 })
 
 export class PersonalSearchComponent implements ControlValueAccessor {

@@ -1,41 +1,39 @@
-<ng-template #suffixReloadTpl>
-  <button nz-button (click)="openDrawer()">
-    <span nz-icon nzType="user" nzTheme="outline"  nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span>
-  </button>
-</ng-template>
-
 <ng-template #selectTpl>
   <nz-select #psc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
     (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT" nzShowSearch
     nzServerSearch (nzOnSearch)="search($event)">
     @for (option of $optionsArray | async; track option) {
-      @if (($isOptionsLoading | async) == false) {
-        <nz-option [nzValue]="option.PersonalId"
-          [nzLabel]="option.fullName +' '+ '(' + option.PersonalId + ')'" />
-      }
+    @if (($isOptionsLoading | async) == false) {
+    <nz-option [nzValue]="option.PersonalId" [nzLabel]="option.fullName +' '+ '(' + option.PersonalId + ')'" />
+    }
     }
     @if (extendedOption.PersonalId >0 ) {
-      <nz-option [nzValue]="extendedOption.PersonalId"
-        [nzLabel]="extendedOption.fullName" />
+    <nz-option [nzValue]="extendedOption.PersonalId" [nzLabel]="extendedOption.fullName" />
     }
 
     @if ($isOptionsLoading | async) {
-      <nz-option nzDisabled nzCustomContent>
-        <span nz-icon nzType="loading" class="loading-icon"></span>
-        Cargando datos...
-      </nz-option>
+    <nz-option nzDisabled nzCustomContent>
+      <span nz-icon nzType="loading" class="loading-icon"></span>
+      Cargando datos...
+    </nz-option>
     }
   </nz-select>
 
 </ng-template>
 
 @if (anio()>0 && mes()>0){
-  <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%;">
-    <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
-  </nz-input-group>
-  <app-detalle-persona [anio]="anio()" [mes]="mes()" [SucursalId]="sucursalId()" [PersonalId]="selectedIdNum"
+<nz-space-compact style="width: 100%;">
+  <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
+  <button nz-button (click)="openDrawer()">
+    <span nz-icon nzType="user" nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span>
+  </button>
+</nz-space-compact>
+
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [SucursalId]="sucursalId()" [PersonalId]="selectedIdNum"
   [visible]="visibleDrawer()" (onClose)="closeDrawer()"></app-detalle-persona>
 
+
+
 } @else {
-  <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
+<ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
 }

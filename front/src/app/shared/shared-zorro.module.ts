@@ -8,7 +8,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -30,10 +30,11 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 
 export const SHARED_ZORRO_MODULES = [
   NzButtonModule,
-  NzDropDownModule,
+  NzSpaceModule,
   NzGridModule,
   NzCheckboxModule,
   NzTooltipModule,
@@ -63,5 +64,6 @@ export const SHARED_ZORRO_MODULES = [
   NzPopconfirmModule,
   NzImageModule,
   NzPipesModule,
-  NzCollapseModule
+  NzCollapseModule,
+  NzDropdownModule,
 ];
