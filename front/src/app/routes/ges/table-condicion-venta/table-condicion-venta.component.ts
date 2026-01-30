@@ -94,10 +94,11 @@ export class TableCondicionVentaComponent implements OnInit {
   // Effect que escucha el refresh desde el padre
   // Cuando RefreshCondVenta pasa a true, limpia filtros y recarga la grilla
   private refreshEffect = effect(() => {
+    
     if (this.RefreshCondVenta()) {
       console.log(' Recargando grilla');
       this.listOptions.filtros = [];
-
+      this.RefreshCondVenta.set(false);
       this.formChange$.next('refresh');
     }
 
