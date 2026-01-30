@@ -234,6 +234,11 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   clearForm(): void {
     this.formCondicionVenta.reset();
     this.codobjId.set('');
+    this.formCondicionVenta.patchValue({
+      codobjId: '',
+      ObjetivoId : 0,
+    });
+
     this.PeriodoDesdeAplica.set('');
     this.infoProductos().clear();
     this.infoProductos().push(this.fb.group({ ...this.objProductos }));

@@ -10,7 +10,7 @@ import { dangerouslyDisableDefaultSrc } from "helmet/dist/middlewares/content-se
 
 const MetodologiaOptions: any[] = [
     { label: 'Importe y horas fijo', value: 'A' },
-    { label: 'Importe fijo + horas asistencia', value: 'B' },
+    { label: 'Horas asistencia', value: 'B' },
     { label: 'Lista de Precios', value: 'C' }
 ]
 
@@ -467,6 +467,48 @@ export class CondicionesVentaController extends BaseController {
                                 ]
                             )
                             break;
+                         case 'C': // IMPORTE Y HORAS FIJO
+                            await queryRunner.query(
+                                `INSERT INTO CondicionVentaDetalle (
+                            ClienteId,
+                            ClienteElementoDependienteId,
+                            PeriodoDesdeAplica,
+                            ProductoCodigo,
+                            TextoFactura,
+                            Cantidad,
+                            IndCantidadHorasVenta,
+                            ImporteUnitario,
+                            IndImporteListaPrecio,
+                            IndHorasAFacturar,
+                            AudFechaIng,
+                            AudFechaMod,
+                            AudUsuarioIng,
+                            AudUsuarioMod,
+                            AudIpIng,
+                            AudIpMod,
+                            Metodologia
+                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
+                                [
+
+                                    objetivoInfo.clienteId, // ClienteId
+                                    objetivoInfo.ClienteElementoDependienteId, // ClienteElementoDependienteId
+                                    PeriodoDesdeAplica, // PeriodoDesdeAplica
+                                    producto.ProductoCodigo, // ProductoCodigo
+                                    producto.TextoFactura, // TextoFactura
+                                    null, // Cantidad
+                                    0, // IndCantidadHorasVenta
+                                    null, // ImporteUnitario
+                                    1, // IndImporteListaPrecio
+                                    producto.IndHorasAFacturar, // IndHorasAFacturar
+                                    FechaActual, // AudFechaIng
+                                    FechaActual, // AudFechaMod
+                                    usuario, // AudUsuarioIng
+                                    usuario, // AudUsuarioMod
+                                    ip, // AudIpIng
+                                    ip,  // AudIpMod
+                                    producto.Metodologia // Metodologia
+                                ]
+                            )
                         default:
                             throw new ClientException(`Error en la selección de la metodología en el producto ${producto.ProductoCodigo}.`)
                     }
@@ -872,6 +914,48 @@ export class CondicionesVentaController extends BaseController {
                             ]
                         )
                         break;
+                      case 'C': // IMPORTE Y HORAS FIJO
+                            await queryRunner.query(
+                                `INSERT INTO CondicionVentaDetalle (
+                            ClienteId,
+                            ClienteElementoDependienteId,
+                            PeriodoDesdeAplica,
+                            ProductoCodigo,
+                            TextoFactura,
+                            Cantidad,
+                            IndCantidadHorasVenta,
+                            ImporteUnitario,
+                            IndImporteListaPrecio,
+                            IndHorasAFacturar,
+                            AudFechaIng,
+                            AudFechaMod,
+                            AudUsuarioIng,
+                            AudUsuarioMod,
+                            AudIpIng,
+                            AudIpMod,
+                            Metodologia
+                        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
+                                [
+
+                                    ClienteId, // ClienteId
+                                    ClienteElementoDependienteId, // ClienteElementoDependienteId
+                                    PeriodoDesdeAplica, // PeriodoDesdeAplica
+                                    producto.ProductoCodigo, // ProductoCodigo
+                                    producto.TextoFactura, // TextoFactura
+                                    null, // Cantidad
+                                    0, // IndCantidadHorasVenta
+                                    null, // ImporteUnitario
+                                    1, // IndImporteListaPrecio
+                                    producto.IndHorasAFacturar, // IndHorasAFacturar
+                                    FechaActual, // AudFechaIng
+                                    FechaActual, // AudFechaMod
+                                    usuario, // AudUsuarioIng
+                                    usuario, // AudUsuarioMod
+                                    ip, // AudIpIng
+                                    ip,  // AudIpMod
+                                    producto.Metodologia // Metodologia
+                                ]
+                            )
                     default:
                         throw new ClientException(`Error en la selección de la metodología en el producto ${producto.ProductoCodigo}.`)
                 }
