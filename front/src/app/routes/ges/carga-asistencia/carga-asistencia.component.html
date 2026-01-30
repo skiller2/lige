@@ -2,7 +2,7 @@
 
   <form nz-form #carasistForm="ngForm">
     <div nz-row>
-      <div nz-col [nzSpan]="3">
+      <div nz-col [nzXs]="6" [nzSm]="6" [nzMd]="12" [nzLg]="3" [nzXl]="3">
 
         <nz-form-item>
           <nz-form-label>Periodo</nz-form-label>
@@ -13,7 +13,7 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-      <div nz-col [nzSpan]="9">
+      <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="8" [nzXl]="8">
 
         <nz-form-item>
           <nz-form-label>Objetivo</nz-form-label>
@@ -29,7 +29,7 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-      <div nz-col [nzSpan]="5">
+      <div nz-col [nzXs]="7" [nzSm]="7" [nzMd]="7" [nzLg]="5" [nzXl]="5">
         <nz-form-item>
           <nz-form-label>Contrato</nz-form-label>
           <nz-form-control>
@@ -50,29 +50,45 @@
         </nz-form-item>
 
       </div>
-      <div nz-col [nzSpan]="7" style="text-align:right;">
+      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="3" style="text-align:right;">
         @if (selectedObjetivoId>0) {
-        <nz-button-group nz-button nzButtonGroup>
-          <button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
+        <nz-space-compact>
+          <div><button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
             nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck()"><span nz-icon
               [nzType]="isLoadingCheck() ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
-              nzTooltipTitle="{{ 'app.icon.eliminargrilla' | i18n }}"></span></button>
+              nzTooltipTitle="{{ 'app.icon.eliminargrilla' | i18n }}"></span></button></div>
           @if (gridDataInsert.length > 1 ) {
-          <button nz-button nzType="default" (click)="exportGrid()"><span nz-icon nzType="download"></span>{{
-            'app.btn.name.xls' | i18n }}</button>
+          <div><button nz-button nzType="default" (click)="exportGrid()"><span nz-icon nzType="download"></span>{{
+            'app.btn.name.xls' | i18n }}</button></div>
           }
-          <button nz-button nzType="default"
+          <div><button nz-button nzType="default"
             [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}]"><span nz-icon
-              nzType="right" nzTheme="outline"></span>{{ 'app.btn.exception' | i18n }}</button>
-          @if (gridDataInsert.length <= 1 && gridOptionsEdit.editable) { <button nz-button nzType="default"
+              nzType="right" nzTheme="outline"></span>{{ 'app.btn.exception' | i18n }}</button></div>
+          @if (gridDataInsert.length <= 1 && gridOptionsEdit.editable) { 
+            <div><button nz-button nzType="default"
             nz-popconfirm nzPopconfirmTitle="Cargo vigiladores del mes anterior?" (nzOnConfirm)="autocomplete()"><span
-              nz-icon nzType="copy" nzTheme="outline"></span>{{'app.btn.copi.previous.month' | i18n }}</button>
+              nz-icon nzType="copy" nzTheme="outline"></span>{{'app.btn.copi.previous.month' | i18n }}</button></div>
+            }
+            @if ((periodos && (periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null ||
+            periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null))) {
+            <div><button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Habilita carga asistencia?"
+              [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()"><span nz-icon
+                nzType="plus" nzTheme="outline"></span>{{
+              'app.btn.starloading' | i18n }}</button></div>
+            }
+            @if (periodos && periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null &&
+            periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null) {
+            <div><button nz-button nzType="primary" nz-popconfirm
+              nzPopconfirmTitle="{{ (diffHoras()<0)?'Existe diferencia negativa entre horas a facturar y trabajadas, desea continuar con el cierre?':'Cierra carga asistencia?' }} "
+              [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"
+              [disabled]="isLoadingCheck()"><span nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading'
+              | i18n }} </button></div>
             }
             @if (selectedObjetivoId == 1102 && gridOptionsEdit.editable) {
-            <button nz-button nzType="default" nz-popconfirm [disabled]="controlAccesoDisabled()"
+            <div><button nz-button nzType="default" nz-popconfirm [disabled]="controlAccesoDisabled()"
               nzPopconfirmTitle="Leo registros desde el reloj de asistencia?" (nzOnConfirm)="leerControlAcceso()"
               nz-tooltip nzTooltipTitle="{{'app.btn.control.acceso' | i18n }}"><span nz-icon nzType="copy"
-                nzTheme="outline"></span></button>
+                nzTheme="outline"></span></button></div>
             }
             <!-- <span app-reporte="Listado Asistencia Control Acceso" [isTitleVisible]="false">
                 <button nz-button nzType="default" *ngIf="selectedObjetivoId == 1102" nz-tooltip
@@ -81,30 +97,16 @@
                 </button>
               </span> -->
             @if (selectedObjetivoId == 1102) {
-            <button nz-tooltip nzTooltipTitle="Exportar Asis. Bio." nz-button nzType="default" app-down-file
+            <div><button nz-tooltip nzTooltipTitle="Exportar Asis. Bio." nz-button nzType="default" app-down-file
               [httpMethod]="'POST'"
               [httpBody]="{'Reporte':'Listado Asistencia Control Acceso','Formato':'EXCEL', 'Filtros': {'Ano':this.selectedPeriod.year,'Mes':selectedPeriod.month}}"
               httpUrl="api/informes/descarga"
               notificationMsg="Generando Informe Asistencia Biométrico {{this.selectedPeriod.month}}/{{this.selectedPeriod.year}}">
               <span nz-icon nzType="download"></span>
-            </button>
+            </button></div>
             }
-            @if ((periodos && (periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null ||
-            periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null))) {
-            <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Habilita carga asistencia?"
-              [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()"><span nz-icon
-                nzType="plus" nzTheme="outline"></span>{{
-              'app.btn.starloading' | i18n }}</button>
-            }
-            @if (periodos && periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null &&
-            periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null) {
-            <button nz-button nzType="primary" nz-popconfirm
-              nzPopconfirmTitle="{{ (diffHoras()<0)?'Existe diferencia negativa entre horas a facturar y trabajadas, desea continuar con el cierre?':'Cierra carga asistencia?' }} "
-              [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"
-              [disabled]="isLoadingCheck()"><span nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading'
-              | i18n }} </button>
-            }
-        </nz-button-group>
+
+        </nz-space-compact>
         }
       </div>
     </div>
@@ -266,23 +268,27 @@
 
 
         <!-- En angosto: nz-space con wrap; en ancho: nz-space-compact -->
-          <nz-space-compact nzBlock>
+        <nz-space-compact>
+          <div>
             <button nz-button nzType="default" (click)="openDrawer()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
               <span nz-icon nzType="user" nzTheme="outline"></span>
             </button>
-
+          </div>
+          <div>
             <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.validar' | i18n }}">
               <span nz-icon [nzType]="isLoadingCheck() ? 'loading' : 'check'" nzTheme="outline"></span>
             </button>
-
+          </div>
+          <div>
             <button nz-button nzType="default" nz-popconfirm (nzOnConfirm)="eliminaPersona()"
               [nzPopconfirmTitle]="'Elimino ' + getPersonalIdFromGrid().ApellidoNombre + '?'"
               [disabled]="isLoadingCheck()" nz-tooltip nzTooltipTitle="{{ 'app.icon.eliminarpersona' | i18n }}">
               <span nz-icon [nzType]="isLoadingCheck() ? 'loading' : 'delete'" nzTheme="outline"></span>
             </button>
-          </nz-space-compact>
+          </div>
+        </nz-space-compact>
 
       </div>
 
