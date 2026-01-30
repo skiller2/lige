@@ -145,6 +145,11 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     infoCliente.infoProductos.forEach((obj: any) => {
       this.infoProductos().push(this.fb.group({ ...this.objProductos }))
     });
+
+      // Asegurar que siempre haya al menos un producto
+    if (this.infoProductos().length === 0 && this.formCondicionVenta.enabled) {
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+    }
     this.formCondicionVenta.reset(infoCliente)
 
   }
@@ -205,7 +210,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
       }
 
-      //await this.load();
+      await this.load();
       this.onAddorUpdate.emit('save');
       this.formCondicionVenta.markAsUntouched();
       this.formCondicionVenta.markAsPristine();
