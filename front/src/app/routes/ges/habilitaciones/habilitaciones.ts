@@ -43,6 +43,7 @@ export class HabilitacionesComponent {
     filtros: [],
     sort: null,
   };
+  hiddenColumnIds: string[] = [];
   selectedIndex = signal(1)
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
@@ -66,6 +67,9 @@ export class HabilitacionesComponent {
 
   columns$ = this.apiService.getCols('/api/habilitaciones/cols').pipe(
     map((cols: Column<any>[]) => {
+      this.hiddenColumnIds = cols
+        .filter((col: any) => col.showGridColumn === false)
+        .map((col: Column) => col.id as string);
       return cols.map(col =>
         col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
       )
@@ -110,11 +114,20 @@ export class HabilitacionesComponent {
     })
   )
 
+  // Evento cuando la grilla está lista
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
+
+    // Actualiza el total de registros
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
     })
+
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
+    }
+
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
   }
