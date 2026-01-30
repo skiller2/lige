@@ -22,6 +22,10 @@ condicionesVentaRouter.get('/options', [authMiddleware.verifyToken, authMiddlewa
   condicionesVentaController.getTipoProductoSearchOptions(req, res, next)
 })
 
+condicionesVentaRouter.get('/metodologia_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getMetodologiaSearchOptions(req, res, next)
+})
+
 
 condicionesVentaRouter.get('/infCondicionVenta/:codobjId/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
   condicionesVentaController.infCondicionVenta(req, res, next)

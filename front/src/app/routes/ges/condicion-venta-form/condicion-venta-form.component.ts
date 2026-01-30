@@ -33,7 +33,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   MetodologiaSelected = signal<string>('');
 
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
-
+  $optionsMetodologia = this.searchService.getMetodologiaSearch();
+  
   objProductos = {
     CondicionVentaProductoId: 0,
     ProductoCodigo: '',

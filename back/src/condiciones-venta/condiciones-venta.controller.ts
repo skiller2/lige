@@ -539,6 +539,10 @@ export class CondicionesVentaController extends BaseController {
         this.jsonRes(result, res);
     }
 
+    async getMetodologiaSearchOptions(req: any, res: any, next: any) {
+        this.jsonRes(MetodologiaOptions, res);
+    } 
+
 
     async ObjetivoInfoFromId(objetivoId: string) {
         try {

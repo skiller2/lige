@@ -81,9 +81,9 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
           <nz-select formControlName="Metodologia" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" (ngModelChange)="MetodologiaSelected.set($event)">
-            <nz-option [nzValue]="'A'" nzLabel="Importe fijo"></nz-option>
-            <nz-option [nzValue]="'B'" nzLabel="Horas asistencia"></nz-option>
-            <nz-option [nzValue]="'C'" nzLabel="Lista de Precios"></nz-option>
+            @for (option of $optionsMetodologia | async; track option) {
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            }
 
           </nz-select>
         </nz-form-control>
