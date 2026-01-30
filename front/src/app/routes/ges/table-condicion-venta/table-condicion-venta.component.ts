@@ -73,6 +73,9 @@ export class TableCondicionVentaComponent implements OnInit {
   // Fecha desde aplica
   PeriodoDesdeAplica = model<string>('');
 
+  // Filtros iniciales
+  startFilters: { field: string; condition: string; operator: string; value: any; forced:boolean}[]=[]
+
   // Filtros y orden de la grilla
   listOptions: listOptionsT = {
     filtros: [],
@@ -100,6 +103,7 @@ export class TableCondicionVentaComponent implements OnInit {
 
     if (this.periodo()) {
       this.listOptions.filtros = [];
+      this.updateStartFiltersFromPeriodo(this.periodo()!);
       this.formChange$.next('refresh');
     }
   });
@@ -154,6 +158,19 @@ export class TableCondicionVentaComponent implements OnInit {
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
+
+    // Filtros iniciales: desde <= último día del periodo, hasta >= primer día del periodo
+    this.updateStartFiltersFromPeriodo(this.periodo());
+  }
+
+
+  private updateStartFiltersFromPeriodo(periodo: any) {
+    const firstDay = new Date(periodo.getFullYear(), periodo.getMonth(), 1)
+    const lastDay = new Date(periodo.getFullYear(), periodo.getMonth() + 1, 0)
+    this.startFilters = [
+      { field: 'ClienteElementoDependienteContratoFechaDesde', condition: 'AND', operator: '<=', value: lastDay, forced: false },
+      { field: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: new Date(), forced: false }
+    ]
   }
 
   // Cambio de filtros desde el componente de filtros
