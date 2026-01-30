@@ -148,9 +148,10 @@ export class PreciosProductosController extends BaseController {
                     vent.importe_hasta AS hasta,
                     suc.SucursalId, 
                     suc.SucursalDescripcion
-                FROM lige.dbo.lpv_productos prod
-                LEFT JOIN lige.dbo.lpv_tipo_producto tip ON prod.cod_tipo_producto = tip.cod_tipo_producto
-                LEFT JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
+                FROM ProductoPrecio pp
+                LEFT JOIN Producto p ON prod.cod_producto = vent.cod_producto
+                LEFT JOIN ProductoTipo pt ON prod.cod_tipo_producto = tip.cod_tipo_producto
+                LEFT JOIN Cliente c on pp.ClienteId = c.ClienteId
                 LEFT JOIN Sucursal suc ON vent.SucursalId = suc.SucursalId  WHERE  prod.cod_producto=@0`, [codigoId])
 
             this.jsonRes(
@@ -175,25 +176,38 @@ export class PreciosProductosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
 
+        // todo: Cambiar para recibir como parametro el año y mes
+
         try {
 
             const precios = await queryRunner.query(
-                `SELECT 
-                    CONCAT(prod.cod_producto, '-', vent.precio_venta_id) AS id,
-                    prod.cod_producto AS codigo, 
-                    prod.cod_producto AS codigoOld,
-                    prod.des_producto AS descripcion,
-                    prod.nom_producto AS nombre, 
-                    prod.cod_tipo_producto AS TipoProductoId,
-                    vent.importe AS importe,
-                    vent.precio_venta_id AS precioVentaId,
-                    vent.importe_desde AS desde,
-                    IIF(vent.importe_hasta >= '9999-1-1', NULL, vent.importe_hasta) AS hasta,
-                    vent.SucursalId
-                FROM lige.dbo.lpv_productos prod
-                INNER JOIN lige.dbo.lpv_precio_venta vent 
-                    ON prod.cod_producto = vent.cod_producto
-              WHERE ${filterSql} ;`, [fechaActual])
+                `
+                SELECT 
+                    ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica,pp.ProductoCodigo,pp.ClienteId) AS id,
+                    pp.ProductoCodigo,
+                    pp.ClienteId,
+                    pp.PeriodoDesdeAplica,
+                    pp.Importe,
+                    pp.ImportDocumentoId,
+                    pp.AudFechaIng,
+                    pp.AudUsuarioIng,
+                    pp.AudFechaMod,
+                    pp.AudUsuarioMod,
+
+                    p.Descripcion,
+                    p.ProductoTipoCodigo,
+                    pt.Descripcion
+
+                FROM Producto p
+                LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
+
+                LEFT JOIN ProductoPrecio pp ON p.ProductoCodigo=pp.ProductoCodigo AND pp.PeriodoDesdeAplica=(
+                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1))
+
+                JOIN Cliente c on pp.ClienteId = c.ClienteId
+
+
+              WHERE ${filterSql} and pp.PeriodoDesdeAplica`, [fechaActual])
 
             this.jsonRes(
                 {
