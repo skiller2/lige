@@ -129,6 +129,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       await this.load()
     if (readonly) {
       this.formCondicionVenta.disable()
+      this.infoProductos().disable()
     } else {
       this.formCondicionVenta.enable()
     }
@@ -228,6 +229,15 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().at(index)?.patchValue({
       ImporteTotal: importeTotal
     })
+  }
+
+  clearForm(): void {
+    this.formCondicionVenta.reset();
+    this.codobjId.set('');
+    this.PeriodoDesdeAplica.set('');
+    this.infoProductos().clear();
+    this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+    this.formCondicionVenta.markAsPristine();
   }
 
 }
