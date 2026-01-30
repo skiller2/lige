@@ -241,6 +241,54 @@ const GridColums: any[] = [
         searchType: "numberAdvanced",
         searchComponent: "inputForNumberAdvancedSearch",
     },
+    {
+        name: "Fecha Ingreso",
+        type: "date",
+        id: "AudFechaIng",
+        field: "AudFechaIng",
+        fieldName: "b.AudFechaIng",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+        showGridColumn: false
+
+    },
+    {
+        name: "Usuario Ingreso",
+        type: "string",
+        id: "AudUsuarioIng",
+        field: "AudUsuarioIng",
+        fieldName: "b.AudUsuarioIng",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+        showGridColumn: false
+
+    },
+    {
+        name: "Fecha Modificación",
+        type: "date",
+        id: "AudFechaMod",
+        field: "AudFechaMod",
+        fieldName: "b.AudFechaMod",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+        showGridColumn: false
+
+    },
+    {
+        name: "Usuario Modificación",
+        type: "string",
+        id: "AudUsuarioMod",
+        field: "AudUsuarioMod",
+        fieldName: "b.AudUsuarioMod",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+        showGridColumn: false
+
+    }
 ];
 const GridDetalleColums: any[] = [
     {
@@ -374,9 +422,7 @@ export class HabilitacionesController extends BaseController {
     async habilitacionesListQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
         periodo.setHours(0, 0, 0, 0)
         return await queryRunner.query(`
-        
-       
-SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+        SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, 
@@ -387,24 +433,22 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
             IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
-            suc.SucursalId, suc.SucursalDescripcion
-
-
+            suc.SucursalId, suc.SucursalDescripcion,
+            b.AudFechaIng, b.AudFechaMod, b.AudUsuarioIng, b.AusUsuarioMod
 
         FROM Personal per
    
 		JOIN (
-				SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
-				FROM  PersonalHabilitacion b 
-				WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
+            SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
+            FROM  PersonalHabilitacion b 
+            WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0
 
-				UNION
+            UNION
 
-				SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
-				FROM PersonalHabilitacionNecesaria c 
-				
-				) vishab on vishab.PersonalId=per.PersonalId
-
+            SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria c 
+            
+        ) vishab on vishab.PersonalId=per.PersonalId
 	
 		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null) 
                 and b.PersonalHabilitacionClase != 'C'
@@ -413,13 +457,12 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
 
 		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
-        LEFT JOIN 
-                (
-                SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-                FROM PersonalSituacionRevista sitrev2 
-                WHERE @0 >=  sitrev2.PersonalSituacionRevistaDesde AND  @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
-                GROUP BY sitrev2.PersonalId
-            ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+        LEFT JOIN (
+            SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+            FROM PersonalSituacionRevista sitrev2 
+            WHERE @0 >=  sitrev2.PersonalSituacionRevistaDesde AND  @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+            GROUP BY sitrev2.PersonalId
+        ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
         LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
 
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
