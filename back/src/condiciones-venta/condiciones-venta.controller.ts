@@ -11,6 +11,7 @@ import { dangerouslyDisableDefaultSrc } from "helmet/dist/middlewares/content-se
 const MetodologiaOptions: any[] = [
     { label: 'Importe y horas fijo', value: 'A' },
     { label: 'Importe fijo + horas asistencia', value: 'B' },
+    { label: 'Lista de Precios', value: 'C' }
 ]
 
 export class CondicionesVentaController extends BaseController {
