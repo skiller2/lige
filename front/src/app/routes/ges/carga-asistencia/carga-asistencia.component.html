@@ -260,9 +260,13 @@
       <!-- BOTONES -->
       <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3" style="text-align:right;">
         <!-- Evitá nested rows con gutter horizontal aquí -->
+
+
+
+
+
         <!-- En angosto: nz-space con wrap; en ancho: nz-space-compact -->
-        <ng-container>
-          <nz-space-compact>
+          <nz-space-compact nzBlock>
             <button nz-button nzType="default" (click)="openDrawer()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
               <span nz-icon nzType="user" nzTheme="outline"></span>
@@ -279,7 +283,6 @@
               <span nz-icon [nzType]="isLoadingCheck() ? 'loading' : 'delete'" nzTheme="outline"></span>
             </button>
           </nz-space-compact>
-        </ng-container>
 
       </div>
 

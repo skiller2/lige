@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inje
 import { FormArray, FormBuilder, FormControl, FormGroup, NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { NzPopconfirmComponent } from 'ng-zorro-antd/popconfirm';
 import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
 
 import { ApiService } from 'src/app/services/api.service';
@@ -42,7 +41,6 @@ export class TestComponent {
   objetivoId!: number
   valueExtendedObjetivo: any
   valueExtended: any
-  confirmation!: NzPopconfirmComponent
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly dir = inject(Directionality);
   private el = inject(ElementRef);
@@ -124,14 +122,14 @@ export class TestComponent {
 
 
   click2(): void {
-    this.confirmation.hide()
-    this.confirmation.show()
+//    this.confirmation.hide()
+//    this.confirmation.show()
 
   }
 
 
   clickTest(): void {
-    console.log('curr this.confirmation', this.confirmation)
+//    console.log('curr this.confirmation', this.confirmation)
   }
 
 
