@@ -209,6 +209,18 @@ const GridColums: any[] = [
         searchHidden: true
     },
     {
+        name: "Detalle",
+        type: "string",
+        id: "Detalle",
+        field: "Detalle",
+        fieldName: "e.Detalle",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+        showGridColumn: false
+
+    },
+    {
         name: "Fecha Estado",
         type: "date",
         id: "FechaEstado",
@@ -426,7 +438,7 @@ export class HabilitacionesController extends BaseController {
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, 
-            iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) GestionHabilitacionEstadoCodigo,
+            iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) GestionHabilitacionEstadoCodigo, e.Detalle,
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
             b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
