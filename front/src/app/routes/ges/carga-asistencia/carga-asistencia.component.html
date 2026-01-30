@@ -54,8 +54,8 @@
         @if (selectedObjetivoId>0) {
         <nz-button-group nz-button nzButtonGroup>
           <button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
-            nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck"><span nz-icon
-              [nzType]="isLoadingCheck ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
+            nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck()"><span nz-icon
+              [nzType]="isLoadingCheck() ? 'loading' : 'delete'" nzTheme="outline" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.eliminargrilla' | i18n }}"></span></button>
           @if (gridDataInsert.length > 1 ) {
           <button nz-button nzType="default" (click)="exportGrid()"><span nz-icon nzType="download"></span>{{
@@ -101,7 +101,7 @@
             <button nz-button nzType="primary" nz-popconfirm
               nzPopconfirmTitle="{{ (diffHoras()<0)?'Existe diferencia negativa entre horas a facturar y trabajadas, desea continuar con el cierre?':'Cierra carga asistencia?' }} "
               [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"
-              [disabled]="isLoadingCheck"><span nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading'
+              [disabled]="isLoadingCheck()"><span nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading'
               | i18n }} </button>
             }
         </nz-button-group>
@@ -198,7 +198,7 @@
       <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="6" [nzXl]="6">
         <nz-form-item>
           <!-- En horizontal: label 8 / control 16; en vertical: ambos 24 -->
-          <nz-form-label nzFor="responsable" nzLabelWrap>
+          <nz-form-label nzLabelWrap>
             Responsable
           </nz-form-label>
 
@@ -268,15 +268,15 @@
               <span nz-icon nzType="user" nzTheme="outline"></span>
             </button>
 
-            <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck" nz-tooltip
+            <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.validar' | i18n }}">
-              <span nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" nzTheme="outline"></span>
+              <span nz-icon [nzType]="isLoadingCheck() ? 'loading' : 'check'" nzTheme="outline"></span>
             </button>
 
             <button nz-button nzType="default" nz-popconfirm (nzOnConfirm)="eliminaPersona()"
               [nzPopconfirmTitle]="'Elimino ' + getPersonalIdFromGrid().ApellidoNombre + '?'"
-              [disabled]="isLoadingCheck" nz-tooltip nzTooltipTitle="{{ 'app.icon.eliminarpersona' | i18n }}">
-              <span nz-icon [nzType]="isLoadingCheck ? 'loading' : 'delete'" nzTheme="outline"></span>
+              [disabled]="isLoadingCheck()" nz-tooltip nzTooltipTitle="{{ 'app.icon.eliminarpersona' | i18n }}">
+              <span nz-icon [nzType]="isLoadingCheck() ? 'loading' : 'delete'" nzTheme="outline"></span>
             </button>
           </nz-space-compact>
         </ng-container>

@@ -228,6 +228,17 @@ export class ObjetivosComponent {
         this.startFilters.set([ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}]);
       }
     }, 1000)
+
+    this.route.queryParams.subscribe(params => {
+      const filter = this.startFilters()
+      if (params['LugarHabilitacionDescripcionList'] == '') {
+        filter.push({field: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, forced: false})
+      }
+
+      this.startFilters.set(filter)
+      
+    })
+    
   }
 
 

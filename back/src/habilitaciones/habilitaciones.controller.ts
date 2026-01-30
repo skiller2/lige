@@ -288,17 +288,6 @@ const GridDetalleColums: any[] = [
 ]
 
 const GridDocColums: any[] = [
-    
-    {
-        name: "Descripción",
-        type: "string",
-        id: "Descripcion",
-        field: "Descripcion",
-        fieldName: "doc.Descripcion",
-        sortable: false,
-        hidden: false,
-        searchHidden: false
-    },
     {
         name: "DocumentoId",
         type: "number",
@@ -310,7 +299,7 @@ const GridDocColums: any[] = [
         searchHidden: true
     },
     {
-        name: "Documento Tipo",
+        name: "Tipo",
         type: "string",
         id: "DocumentoTipoDetalle",
         field: "DocumentoTipoDetalle",
@@ -320,16 +309,26 @@ const GridDocColums: any[] = [
         searchHidden: true,
     },
     {
-        name: "Fecha Ingreso",
-        type: "date",
-        id: "DocumentoAudFechaIng",
-        field: "DocumentoAudFechaIng",
-        fieldName: "doc.DocumentoAudFechaIng",
-        // searchComponent: "inputForFechaSearch",
-        sortable: true,
+        name: "Descripción",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "Descripcion",
+        sortable: false,
         hidden: false,
-        searchHidden: true
+        searchHidden: false
     },
+    // {
+    //     name: "Fecha Ingreso",
+    //     type: "date",
+    //     id: "DocumentoAudFechaIng",
+    //     field: "DocumentoAudFechaIng",
+    //     fieldName: "doc.DocumentoAudFechaIng",
+    //     // searchComponent: "inputForFechaSearch",
+    //     sortable: true,
+    //     hidden: false,
+    //     searchHidden: true
+    // },
     {
         name: "Desde",
         type: "date",
@@ -523,59 +522,109 @@ SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         const queryRunner = dataSource.createQueryRunner();
 
         const fechaActual = new Date()
-        fechaActual.setHours(0,0,0,0)
+        fechaActual.setHours(0, 0, 0, 0)
         try {
 
             const docs = await queryRunner.query(`
-
- SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion, doctip.DocumentoTipoCodigo, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
-        , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 1 AS canDelete
-        FROM PersonalHabilitacion perhab 
-        JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
-        LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
-        WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @3 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
-
-UNION ALL
-           SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion,doctip.DocumentoTipoDetalle, doc.DocumentoAudFechaIng, doc.DocumentoFecha, doc.DocumentoFechaDocumentoVencimiento
-                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 0 AS canDelete
-            FROM Documento doc
-            LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'EST', 'FOTO')
-
-UNION ALL
-            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,' - ', TRIM(curhab.CursoHabilitacionDescripcion)) Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
-                , CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo, 0 AS canDelete
-            FROM PersonalCurso perc
-            JOIN CursoHabilitacion curhab ON curhab.CursoHabilitacionId = perc.PersonalCursoHabilitacionId
-            JOIN DocumentoImagenCurso curso  ON curso.PersonalId = perc.PersonalId AND curso.DocumentoImagenCursoId = perc.PersonalCursoDocumentoImagenId
-            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
-            WHERE perc.PersonalId IN (@0) AND perc.PersonalCursoDesaprobado = 'N' AND perc.PersonalCursoDesde <= @1 AND ISNULL(perc.PersonalCursoHasta, '9999-12-31') >= @1
-                AND perc.PersonalCursoHabilitacionId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16)
-         
-UNION ALL
-            SELECT doc.DocumentoImagenDocumentoId id, '' Descripcion, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
-                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo, 0 AS canDelete
+  SELECT doc.DocumentoImagenDocumentoId id, '' Descripcion, param.DocumentoImagenParametroDescripcion as DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo, 0 AS canDelete,
+				CASE 
+                   WHEN CHARINDEX('.', doc.DocumentoImagenDocumentoBlobNombreArchivo) > 0 
+                   THEN LOWER(RIGHT(doc.DocumentoImagenDocumentoBlobNombreArchivo,CHARINDEX('.', REVERSE(doc.DocumentoImagenDocumentoBlobNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
             FROM DocumentoImagenDocumento doc
             LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE doc.PersonalId IN (@0)
 
 UNION ALL
-            SELECT doc.DocumentoImagenEstudioId id, 
+           SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion,doctip.DocumentoTipoDetalle, doc.DocumentoAudFechaIng, doc.DocumentoFecha, doc.DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 0 AS canDelete,
+				CASE 
+                   WHEN CHARINDEX('.', doc.DocumentoNombreArchivo) > 0 
+                   THEN LOWER(RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
+            FROM Documento doc
+            LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'FOTO', 'CLU')
+
+UNION ALL
+
+SELECT doc.DocumentoImagenEstudioId id, 
 			 CASE
 				WHEN pere.PersonalEstudioCursoId is null then CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
 				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
 				else pere.PersonalEstudioTitulo
-				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, null AS DocumentoFecha, null AS DocumentoFechaDocumentoVencimiento
-                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete
+				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, pere.PersonalEstudioOtorgado AS DocumentoFecha, pere.PersonalEstudioHasta AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete,
+				CASE 
+                   WHEN CHARINDEX('.', doc.DocumentoImagenEstudioBlobNombreArchivo) > 0 
+                   THEN LOWER(RIGHT(doc.DocumentoImagenEstudioBlobNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoImagenEstudioBlobNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
             FROM PersonalEstudio pere
             JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
             left JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
 			Left join  CursoHabilitacion ch on ch.CursoHabilitacionId=pere.PersonalEstudioCursoId
             LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-            WHERE pere.PersonalId IN (@0)
-            `, [PersonalId, fechaActual, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId]);
+            WHERE pere.PersonalId IN (@0) and (pere.PersonalEstudioCursoId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16) or pere.PersonalEstudioCursoId is null)
 
+UNION ALL
+            SELECT curso.DocumentoImagenCursoId id, CONCAT(param.DocumentoImagenParametroDescripcion,' - ', TRIM(curhab.CursoHabilitacionDescripcion)) Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, perc.PersonalCursoDesde AS DocumentoFecha, perc.PersonalCursoHasta AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo, 0 AS canDelete,
+				CASE 
+                   WHEN CHARINDEX('.', curso.DocumentoImagenCursoBlobNombreArchivo) > 0 
+                   THEN LOWER(RIGHT(curso.DocumentoImagenCursoBlobNombreArchivo, CHARINDEX('.', REVERSE(curso.DocumentoImagenCursoBlobNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
+            FROM PersonalCurso perc
+            JOIN CursoHabilitacion curhab ON curhab.CursoHabilitacionId = perc.PersonalCursoHabilitacionId
+            JOIN DocumentoImagenCurso curso  ON curso.PersonalId = perc.PersonalId AND curso.DocumentoImagenCursoId = perc.PersonalCursoDocumentoImagenId
+            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
+            WHERE perc.PersonalId IN (@0) AND perc.PersonalCursoDesaprobado = 'N' AND perc.PersonalCursoDesde <= @1 AND ISNULL(perc.PersonalCursoHasta, '9999-12-31') >= @1
+                AND perc.PersonalCursoHabilitacionId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16) and perc.PersonalCursoDesde<=@1 and ISNULL(perc.PersonalCursoHasta, '9999-12-31')>=@1
+         
+UNION ALL
             
+ SELECT rein.DocumentoImagenCertificadoReincidenciaId id,'' Descripcion, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle,  null DocumentoAudFechaIng, pr.PersonalCertificadoReincidenciaVigenciaDesde DocumentoFecha,pr.PersonalCertificadoReincidenciaVencimiento DocumentoFechaDocumentoVencimiento,
+        CONCAT('api/file-upload/downloadFile/', rein.DocumentoImagenCertificadoReincidenciaId, '/DocumentoImagenCertificadoReincidencia/0') url, rein.DocumentoImagenCertificadoReincidenciaBlobNombreArchivo NombreArchivo,  0 AS canDelete,
+        DocumentoImagenCertificadoReincidenciaBlobTipoArchivo TipoArchivo
+        FROM DocumentoImagenCertificadoReincidencia rein
+		JOIN PersonalCertificadoReincidencia pr on pr.PersonalId=rein.PersonalId and  rein.DocumentoImagenCertificadoReincidenciaId=pr.PersonalCertificadoReincidenciaCertificadoId
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = rein.DocumentoImagenParametroId
+        WHERE rein.PersonalId IN (@0) and pr.PersonalCertificadoReincidenciaVigenciaDesde<=@1 and isnull(pr.PersonalCertificadoReincidenciaVencimiento, '9999-12-31')>=@1
+
+UNION ALL 
+
+SELECT ren.DocumentoImagenRenarId id, '' Descripcion, param.DocumentoImagenParametroDescripcion DocumentoTipoDetalle, null DocumentoAudFechaIng, pr.PersonalRenarDesde, pr.PersonalRenarHasta,
+        CONCAT('api/file-upload/downloadFile/', ren.DocumentoImagenRenarId, '/DocumentoImagenRenar/0') url,  ren.DocumentoImagenRenarBlobNombreArchivo NombreArchivo, 0 AS canDelete,
+        DocumentoImagenRenarBlobTipoArchivo TipoArchivo
+		FROM DocumentoImagenRenar ren
+		LEFT JOIN PersonalRenar pr on pr.PersonalId=ren.PersonalId and pr.PersonalRenarDocumentoImagenId=ren.DocumentoImagenRenarId
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = ren.DocumentoImagenParametroId
+        WHERE ren.PersonalId IN (@0)
+
+UNION ALL
+
+
+ SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento Descripcion, doctip.DocumentoTipoDetalle,doc.DocumentoAudFechaIng, doc.DocumentoFecha,doc.DocumentoFechaDocumentoVencimiento
+        , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 1 AS canDelete,
+		CASE 
+                   WHEN CHARINDEX('.', doc.DocumentoNombreArchivo) > 0 
+                   THEN lower(RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
+        FROM PersonalHabilitacion perhab 
+        JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
+        LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
+        WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @3 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+
+
+
+                        `, [PersonalId, fechaActual, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId]);
+
+
 
             this.jsonRes(
                 {
@@ -775,7 +824,7 @@ UNION ALL
                         PersonalHabilitacionId: PersonalHabilitacionId,
                         PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
                     }
-                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner,IdsRelacionados)
+                    const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
 
                 }
             }
@@ -861,7 +910,7 @@ UNION ALL
                 WHERE LugarHabilitacionId = @0
             `, [LugarHabilitacionId])
             const lugarHabilitacionDescripcion = result[0].Descripcion
-            
+
             //Registra documentos
             for (const docs of documentos) {
                 if (docs.file?.[0]) {
@@ -882,7 +931,7 @@ UNION ALL
                         PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
                     }
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-                   
+
 
                 }
             }
@@ -987,8 +1036,8 @@ UNION ALL
                 FROM PersonalHabilitacion ph
                 LEFT JOIN GestionHabilitacion gh on gh.PersonalHabilitacionId=ph.PersonalHabilitacionId and gh.PersonalId=ph.PersonalId and gh.PersonalHabilitacionLugarHabilitacionId=ph.PersonalHabilitacionLugarHabilitacionId and gh.GestionHabilitacionCodigo=ph.GestionHabilitacionCodigoUlt
                 WHERE gh.GestionHabilitacionEstadoCodigo not in ('HABORG','RECORG') and ph.PersonalId=@0 and ph.PersonalHabilitacionLugarHabilitacionId=@1 `, [PersonalId, LugarHabilitacionId])
-            
-                if (exist && exist.length > 0) throw new ClientException(`Ya existe una habilitación en trámite para el lugar de habilitación seleccionado.`)
+
+            if (exist && exist.length > 0) throw new ClientException(`Ya existe una habilitación en trámite para el lugar de habilitación seleccionado.`)
 
             //Obtiene el Ultimo Codigo registrado
             let result = await queryRunner.query(`
@@ -1065,7 +1114,7 @@ UNION ALL
                     }
 
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-                    
+
                 }
             }
 
@@ -1374,7 +1423,7 @@ UNION ALL
             if (!habilitacion.NroTramite) error.push(`- Nro Tramite`)
             if (!habilitacion.PersonalHabilitacionDesde) error.push(`- Habilitación Desde`)
             if (!habilitacion.PersonalHabilitacionHasta) error.push(`- Habilitación Hasta`)
-            else{
+            else {
                 //Verifica que sea un periodo valido
                 const desde = new Date(habilitacion.PersonalHabilitacionDesde)
                 const hasta = new Date(habilitacion.PersonalHabilitacionHasta)

@@ -91,12 +91,12 @@ const columnasGrilla: any[] = [
     type: "number",
     id: "AsistenciaHoras",
     field: "AsistenciaHoras",
-    fieldName: "AsistenciaHoras",
+    fieldName: "objasissub.sumtotalhorascalc",
     sortable: true,
     hidden: false,
     maxWidth: 80,
-    searchComponent: "inputForNumberAdvancedSearch"
-
+    searchComponent: "inputForNumberAdvancedSearch",
+    searchType: "numberAdvanced",
   },
   /*
   {

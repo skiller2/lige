@@ -147,6 +147,22 @@ export class ObjetivosPendAsisComponent {
       value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'),
       forced: false
     }])
+
+    setTimeout(() => {
+      const now = new Date(); //date
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? localStorage.getItem('anio')
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? localStorage.getItem('mes')
+          : now.getMonth() + 1;
+      this.objpendForm.form
+        .get('periodo')
+        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
+
+    }, 1);
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
@@ -169,22 +185,19 @@ export class ObjetivosPendAsisComponent {
 
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      const now = new Date(); //date
-      const anio =
-        Number(localStorage.getItem('anio')) > 0
-          ? localStorage.getItem('anio')
-          : now.getFullYear();
-      const mes =
-        Number(localStorage.getItem('mes')) > 0
-          ? localStorage.getItem('mes')
-          : now.getMonth() + 1;
-      this.objpendForm.form
-        .get('periodo')
-        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
+    this.route.queryParams.subscribe(params => {
 
-    }, 1);
+      if (params['anio'] && params['mes']){
+        localStorage.setItem('mes', params['mes']);
+        localStorage.setItem('anio', params['anio']);
+      }
+
+      if (params['GrupoActividadId'] == 0) {
+        this.startfilters.set([])
+      }
+    })
   }
+
   onChange(result: Date): void {
     if (result) {
       this.anio = result.getFullYear();

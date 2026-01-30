@@ -78,6 +78,9 @@ export class HabilitacionesDetalleComponent {
     this.gridDocOptions.createFooterRow = true
 
     this.settingsService.setLayout('collapsed', true)
+    
+    // Inicializar la carga de datos
+    this.habilitacionesChange$.next('')
   }
 
   gridDetalleData$ = this.habilitacionesChange$.pipe(
@@ -94,9 +97,11 @@ export class HabilitacionesDetalleComponent {
     debounceTime(500),
     switchMap(() => {
       return this.searchService.getDocsByHabilitacion(this.personalId(), this.personalHabilitacionId(), this.lugarHabilitacionId())
-        .pipe(map(data => {
-          return data.list
-        }))
+        .pipe(
+          map(data => {
+            return data?.docs || []
+          })
+        )
     })
   )
 
@@ -188,7 +193,7 @@ export class HabilitacionesDetalleComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
 
-    return `${year}/${month}/${day}`;
+    return `${day}/${month}/${year}`;
   }
 
   async deleteDocumento(docId: number) {

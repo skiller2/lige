@@ -86,7 +86,7 @@ export class CargaAsistenciaComponent {
     $selectedObjetivoIdChange = new BehaviorSubject(0);
     $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
-    isLoadingCheck = false;
+    isLoadingCheck = signal(false);
     customHeaderExcel: any[] = []
 
     getHorasNormales(data: any) {
@@ -636,7 +636,7 @@ export class CargaAsistenciaComponent {
     }
 
     async endCargaAsistencia() {
-        this.isLoadingCheck = true
+        this.isLoadingCheck.set(true)
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
@@ -644,7 +644,7 @@ export class CargaAsistenciaComponent {
         try {
             await this.setValFact(null)
             const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-                finally(() => { this.isLoadingCheck = false })
+                finally(() => { this.isLoadingCheck.set(false) })
             this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
         } catch (error) {
 
@@ -655,7 +655,7 @@ export class CargaAsistenciaComponent {
     }
 
     async eliminaGrilla() {
-        this.isLoadingCheck = true
+        this.isLoadingCheck.set(true)
 
 
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
@@ -664,7 +664,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = await firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-                finally(() => { this.isLoadingCheck = false })
+                finally(() => { this.isLoadingCheck.set(false) })
 
             this.formChange('', Busqueda.Objetivo)
         } catch (error) {
@@ -675,7 +675,7 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.slickGrid.setOptions({ editable: true })
     }
     async eliminaPersona() {
-        this.isLoadingCheck = true
+        this.isLoadingCheck.set(true)
 
         this.addGridData.set(false);
 
@@ -687,7 +687,7 @@ export class CargaAsistenciaComponent {
             const persona = this.getPersonalIdFromGrid()
 
             const res = await firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, persona.PersonalId)).
-                finally(() => { this.isLoadingCheck = false })
+                finally(() => { this.isLoadingCheck.set(false) })
 
             this.formChange('', Busqueda.Objetivo)
 
@@ -703,7 +703,7 @@ export class CargaAsistenciaComponent {
 
 
     async validaGrilla() {
-        this.isLoadingCheck = true
+        this.isLoadingCheck.set(true)
 
 
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
@@ -712,7 +712,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-                finally(() => { this.isLoadingCheck = false })
+                finally(() => { this.isLoadingCheck.set(false) })
         } catch (error) {
 
         }
