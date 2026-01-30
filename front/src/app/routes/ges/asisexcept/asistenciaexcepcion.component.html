@@ -140,7 +140,7 @@
       @switch (asistenciaexcepcion.controls['metodologia'].value.metodo) {
       @case ('S') {
       <nz-form-control>
-        <input nz-input nzInputNumber name="SumaFija" ngModel step="0" style="width:100%">
+        <input nz-input nzInputNumber name="SumaFija" ngModel ngModel appDotToComma mask ="separator.2" style="width:100%">
       </nz-form-control>
       }
       @case ('E') {
@@ -158,12 +158,12 @@
       }
       @case ('A') {
       <nz-form-control>
-        <input nz-input nzInputNumber name="AdicionalHora" ngModel step="1" style="width:100%">
+        <input nz-input nzInputNumber name="AdicionalHora" ngModel appDotToComma mask ="separator.2" style="width:100%">
       </nz-form-control>
       }
       @case ('H') {
       <nz-form-control>
-        <input nz-input nzInputNumber name="Horas" ngModel step="1" style="width:100%">
+        <input nz-input nzInputNumber name="Horas" ngModel appDotToComma mask ="separator.1" style="width:100%">
       </nz-form-control>
       }
       }
