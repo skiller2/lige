@@ -153,7 +153,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2" class="button-group-direction">
           <div class="button-group" style="width: 100%">
             @if (infoProductos().controls.length == i+1) {
-            <button nz-button nzType="primary" class="add-button" nzType="primary" class="add-button"
+            <button nz-button class="add-button" nzType="primary" class="add-button"
               (click)="addProductos($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus"></span>
             </button>
