@@ -280,6 +280,6 @@ export class ExcepcionAsistenciaComponent {
   }
 
   infoObjetivo(val: any) {
-    this.selectedSucursalId.set(val.SucursalId)
+    this.selectedSucursalId.set(val?.SucursalId)
   }
 }

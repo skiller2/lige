@@ -6,6 +6,7 @@ import { SettingDrawerModule } from '@delon/theme/setting-drawer';
 import { ThemeBtnComponent } from '@delon/theme/theme-btn';
 import { environment } from '@env/environment';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 
@@ -18,73 +19,80 @@ import { HeaderRTLComponent } from './widgets/rtl.component';
 import { HeaderSearchComponent } from './widgets/search.component';
 import { HeaderTaskComponent } from './widgets/task.component';
 import { HeaderUserComponent } from './widgets/user.component';
+
 import { HeaderTitleComponent } from './widgets/title.component';
-import { HeaderSearchModuleComponent } from './widgets/search-module.component';
-import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
+
 
 @Component({
   selector: 'layout-basic',
-  styleUrls: ['./basic.component.scss'],
   template: `
-    <header-title class="alain-default__title"></header-title>
 
-    <layout-default [options]="options" [content]="contentTpl" [customError]="null" >
-      <layout-default-header-item direction="left"> 
-        <header-search-module class="alain-search"></header-search-module>
-      </layout-default-header-item>
-      <layout-default-header-item direction="right" hidden="mobile"> 
+     <!-- <layout-default [options]="options" [asideUser]="asideUserTpl" [content]="contentTpl" [customError]="null"> -->
+      <header-title class="alain-default__title"></header-title>
+
+     <layout-default [options]="options" [content]="contentTpl" [customError]="null">
+    <!--
+     <layout-default-header-item direction="left">
+        <a layout-default-header-item-trigger href="//github.com/ng-alain/ng-alain" target="_blank">
+          <nz-icon nzType="github" />
+        </a>
+      </layout-default-header-item> -->
+      
+      <layout-default-header-item direction="left" hidden="mobile">
         <a layout-default-header-item-trigger routerLink="/passport/lock">
-          <i nz-icon nzType="lock"></i>
+          <nz-icon nzType="lock" />
         </a>
       </layout-default-header-item>
-      <!-- <layout-default-header-item direction="left" hidden="pc">
+
+      <layout-default-header-item direction="left" hidden="pc">
         <div layout-default-header-item-trigger (click)="searchToggleStatus = !searchToggleStatus">
-          <i nz-icon nzType="search"></i>
+          <nz-icon nzType="search" />
         </div>
-      </layout-default-header-item> -->
+      </layout-default-header-item>
+      <layout-default-header-item direction="middle">
+        <header-search class="alain-default__search" [(toggleChange)]="searchToggleStatus" />
+      </layout-default-header-item>
 
-      
-      <layout-default-header-item direction="middle" hidden="mobile">
-      </layout-default-header-item> 
 
+      <!-- 
+      <layout-default-header-item direction="right">
+        <header-notify />
+      </layout-default-header-item>
+      <layout-default-header-item direction="right" hidden="mobile">
+        <header-task />
+      </layout-default-header-item>
 
-      <!-- <layout-default-header-item direction="right">
-        <header-notify></header-notify>
-      </layout-default-header-item> -->
-      <!-- <layout-default-header-item direction="right" hidden="mobile">
-        <header-task></header-task>
-      </layout-default-header-item> -->
-      <!-- <layout-default-header-item direction="right" hidden="mobile">
-        <header-icon></header-icon>
-      </layout-default-header-item> -->
+      <layout-default-header-item direction="right" hidden="mobile">
+        <header-icon />
+      </layout-default-header-item>
+      -->
       <layout-default-header-item direction="right" hidden="mobile">
         <div layout-default-header-item-trigger nz-dropdown [nzDropdownMenu]="settingsMenu" nzTrigger="click" nzPlacement="bottomRight">
-          <i nz-icon nzType="setting"></i>
+          <nz-icon nzType="setting" />
         </div>
         <nz-dropdown-menu #settingsMenu="nzDropdownMenu">
           <div nz-menu style="width: 200px;">
-            <!-- div nz-menu-item>
-              <header-rtl></header-rtl>
-            </div -->
             <div nz-menu-item>
-              <header-fullscreen></header-fullscreen>
+              <header-rtl />
             </div>
             <div nz-menu-item>
-              <header-clear-storage></header-clear-storage>
+              <header-fullscreen />
             </div>
             <div nz-menu-item>
-              <header-i18n></header-i18n>
+              <header-clear-storage />
+            </div>
+            <div nz-menu-item>
+              <header-i18n />
             </div>
           </div>
         </nz-dropdown-menu>
       </layout-default-header-item>
       <layout-default-header-item direction="right">
-        <header-user></header-user>
+        <header-user />
       </layout-default-header-item>
-
       <ng-template #asideUserTpl>
         <div nz-dropdown nzTrigger="click" [nzDropdownMenu]="userMenu" class="alain-default__aside-user">
-          <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar"></nz-avatar>
+          <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="user.avatar" />
           <div class="alain-default__aside-user-info">
             <strong>{{ user.name }}</strong>
             <p class="mb0">{{ user.email }}</p>
@@ -97,14 +105,14 @@ import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
           </ul>
         </nz-dropdown-menu>
       </ng-template>
-
       <ng-template #contentTpl>
-        <router-outlet></router-outlet>
+        <router-outlet />
       </ng-template>
-
     </layout-default>
-    <!-- <setting-drawer *ngIf="showSettingDrawer"></setting-drawer> -->
-    <theme-btn></theme-btn>
+    @if (showSettingDrawer) {
+      <setting-drawer />
+    }
+    <theme-btn />
   `,
   imports: [
     RouterOutlet,
@@ -113,16 +121,20 @@ import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
     LayoutDefaultModule,
     NzIconModule,
     NzMenuModule,
+    NzDropdownModule,
     NzAvatarModule,
     SettingDrawerModule,
     ThemeBtnComponent,
+    HeaderSearchComponent,
+    HeaderNotifyComponent,
+    HeaderTaskComponent,
+    HeaderIconComponent,
+    HeaderRTLComponent,
     HeaderI18nComponent,
     HeaderClearStorageComponent,
     HeaderFullScreenComponent,
     HeaderUserComponent,
-    HeaderTitleComponent,
-    HeaderSearchModuleComponent,
-    NzDropdownModule
+    HeaderTitleComponent
   ]
 })
 export class LayoutBasicComponent {
