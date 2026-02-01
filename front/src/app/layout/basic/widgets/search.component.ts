@@ -106,13 +106,46 @@ export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
   @Output() readonly toggleChangeChange = new EventEmitter<boolean>();
 
 
+  // Normaliza y saca diacríticos (ya tenías normalize, lo mantengo aquí para cohesión)
   normalize(text: string): string {
-    return text
+    return (text || '')
       .toLowerCase()
-      .normalize('NFD')               // split letters and diacritics
-      .replace(/\p{Diacritic}/gu, ''); // remove diacritics (á→a)
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
+  // Toma iniciales de palabras (p.ej., "Carga de Asistencia" -> "cda", "ca")
+  private makeInitials(s: string): string {
+    const parts = s.split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '';
+    // Iniciales de todas las palabras
+    const all = parts.map(p => p[0]).join('');
+    // Iniciales solo de palabras significativas (opcional: ignora preposiciones cortas)
+    const significant = parts
+      .filter(p => p.length > 2) // ignora "de", "la", etc. si miden <= 2
+      .map(p => p[0])
+      .join('');
+    return `${all}|${significant}`;
+  }
+
+  // ¿token es subsecuencia de target? (ca ⊆ "carga")
+  private isSubsequence(token: string, target: string): boolean {
+    let ti = 0, si = 0;
+    while (ti < token.length && si < target.length) {
+      if (token.charCodeAt(ti) === target.charCodeAt(si)) ti++;
+      si++;
+    }
+    return ti === token.length;
+  }
+
+  // ¿token coincide con comienzo de alguna palabra? (asi -> "asistencia")
+  private matchesWordStart(token: string, target: string): boolean {
+    // Busca límites de palabra y pruebalos
+    const words = target.split(/\s+/);
+    return words.some(w => w.startsWith(token));
+  }
 
   private filterTree<T extends { children?: T[] }>(
     nodes: T[],
@@ -133,74 +166,82 @@ export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
 
 
 
-  private searchInMenu(menuItems: Menu[], query: string): Menu[] {
-    const results: Menu[] = [];
 
-    for (const item of menuItems) {
-      //const currentPath = parentPath ? `${parentPath} > ${item.text}` : item.text;
+  private matchesQuery(textRaw: string, queryRaw: string): boolean {
+    const text = this.normalize(textRaw);
+    const q = this.normalize(queryRaw);
+    if (!q) return true;
 
-      // Buscar en el texto del item
-      if (item.text && this.normalize(item.text).includes(query)) {
-        if (item.link) {
-          results.push(item);
-        }
-      }
+    const tokens = q.split(' ').filter(Boolean);
+    if (tokens.length === 0) return true;
 
-      // Buscar recursivamente en los hijos
-      if (item.children && item.children.length > 0) {
-        const childResults = this.searchInMenu(item.children, query);
-        results.push(...childResults);
-      }
-    }
+    const initials = this.makeInitials(text); // ej: "cda|ca"
+    const [allInit, sigInit] = initials.split('|');
 
-    return results;
+    return tokens.every(tok => {
+      // 1) Coincidencia directa dentro del texto
+      if (text.includes(tok)) return true;
+
+      // 2) Comienzo de alguna palabra
+      if (this.matchesWordStart(tok, text)) return true;
+
+      // 3) Subsecuencia del texto (ca ⊆ carga)
+      if (this.isSubsequence(tok, text)) return true;
+
+      // 4) Coincidencia con iniciales (ca ⊆ c a)
+      if (allInit && (allInit.includes(tok) || this.isSubsequence(tok, allInit))) return true;
+      if (sigInit && (sigInit.includes(tok) || this.isSubsequence(tok, sigInit))) return true;
+
+      return false;
+    });
   }
 
-  
-nodeMatches(node: Menu, qNorm: string): boolean {
-  if (!qNorm) return true;
-  const fields = [
-    node.text ?? '',
-    node.i18n ?? '',
-    node.link ?? '',
-  ];
-  return fields.some(f => this.normalize(f).includes(qNorm));
-}
 
+  nodeMatches(node: Menu, qNorm: string): boolean {
+    if (!qNorm) return true;
+    const fields = [
+      node.text ?? '',
+      node.i18n ?? '',
+      node.link ?? '',
+    ];
+    return fields.some(f => this.matchesQuery(f, qNorm));
+  }
 
   filterMenuByQuery(groups: Menu[], query: string): Menu[] {
-    const qNorm = this.normalize(query.trim());
-    if (!qNorm) return groups.map(g => ({ ...g, children: g.children ? [...g.children] : [] })); // copia superficial
+    const qNorm = query; // ya no normalizamos aquí
+    if (!this.normalize(qNorm)) {
+      return groups.map(g => ({ ...g, children: g.children ? [...g.children] : [] }));
+    }
     return this.filterTree(groups, (n) => this.nodeMatches(n, qNorm));
   }
 
-  
-private toFlatResults(nodes: Menu[], parents: string[] = [], out: SearchResult[] = []): SearchResult[] {
-  for (const n of nodes) {
-    const label = n.text ?? n.i18n ?? '';
-    const path = [...parents, label].filter(Boolean);
 
-    if (n.link) {
-      out.push({
-        text: label,
-        link: n.link,
-        path,
-        // Si prefieres no repetir el último (el propio item), usa path.slice(0, -1)
-        pathLabel: path.join(' › '),
-        trackBy: `${n.link}|${path.join('/')}`,
-        icon: (n as any).icon
-      });
-    }
+  private toFlatResults(nodes: Menu[], parents: string[] = [], out: SearchResult[] = []): SearchResult[] {
+    for (const n of nodes) {
+      const label = n.text ?? n.i18n ?? '';
+      const path = [...parents, label].filter(Boolean);
 
-    if (n.children?.length) {
-      this.toFlatResults(n.children, path, out);
+      if (n.link) {
+        out.push({
+          text: label,
+          link: n.link,
+          path,
+          // Si prefieres no repetir el último (el propio item), usa path.slice(0, -1)
+          pathLabel: path.join(' › '),
+          trackBy: `${n.link}|${path.join('/')}`,
+          icon: (n as any).icon
+        });
+      }
+
+      if (n.children?.length) {
+        this.toFlatResults(n.children, path, out);
+      }
     }
+    return out;
   }
-  return out;
-}
 
 
-  
+
   ngAfterViewInit(): void {
     this.qIpt = this.el.querySelector('.ant-input') as HTMLInputElement;
 
