@@ -891,7 +891,7 @@ export class CargaAsistenciaComponent {
     }
     addCustomHeader() {
         let totalHeader: any[] = []
-        let totalHoras = ""
+        let totalHoras = 0
         const cantCeldas = 4
         const columnaInicial = 'E'
         const fila = 5
@@ -923,12 +923,12 @@ export class CargaAsistenciaComponent {
             let grupos: any[] = this.angularGridEdit.dataView.getGroups()
             grupos.forEach((obj, index, arr) => {
                 if (obj.value != "TOTALES") {
-                    totalHoras += Number(obj.totals.sum.total).toString()
-                    totalHeader = totalHeader.concat([{ value: `Horas ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: Number(obj.totals.sum.total).toString(), metadata: { style: totalId.id } }, { value: '' }])
+                    totalHoras += Number(obj.totals.sum.total)
+                    totalHeader = totalHeader.concat([{ value: `Horas ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: Number(obj.totals.sum.total), metadata: { style: totalId.id } }, { value: '' }])
                     delete arr[index].totals.sum.total
                 }
             })
-            totalHeader = totalHeader.concat([{ value: `Total de Horas:`, metadata: { style: titleId.id } }, ...arrayRango, { value: Number(totalHoras).toString(), metadata: { style: totalId.id } }])
+            totalHeader = totalHeader.concat([{ value: `Total Horas:`, metadata: { style: titleId.id } }, ...arrayRango, { value: totalHoras, metadata: { style: totalId.id } }])
             //Sumar a la fila del encabezado los totales de horas
             const rowNum = this.customHeaderExcel.length - 2
             let auxCustomHeaderExcel = [...this.customHeaderExcel]
@@ -940,8 +940,13 @@ export class CargaAsistenciaComponent {
             sheet.mergeCells('A3', 'B3');
             sheet.mergeCells('A4', 'B4');
             sheet.mergeCells('A5', 'B5');
+            sheet.mergeCells('A6', 'B6');
+ 
             sheet.mergeCells('J6', 'K6');
-
+            sheet.mergeCells('Q6', 'R6');
+            sheet.mergeCells('X6', 'Y6');
+            sheet.mergeCells('AE6', 'AF6');
+5
             let colA = columnaInicial
             let colB = columnaInicial
             for (let index = 0; index < grupos.length; index++) {
