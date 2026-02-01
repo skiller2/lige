@@ -42,7 +42,7 @@ interface PageHeaderPath {
       <ng-template [ngTemplateOutlet]="breadcrumb!"></ng-template>
     }
     `,
-    styles: [`
+    styles: [`.fnt-size-sm { font-size: 0.8em; }
   `],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NzBreadCrumbModule, RouterModule]

@@ -767,6 +767,11 @@ export class AsistenciaController extends BaseController {
           if (!Horas || Horas <= 0)
             throw new ClientException("Debe ingresar horas adicionales");
 
+          Horas = Number(Horas);
+          if (!Number.isInteger(Horas)) {
+            throw new ClientException("Las horas debe ser un número entero");
+          }
+
           break;
         case "A":
           if (!AdicionalHora || AdicionalHora <= 0)
@@ -1011,8 +1016,8 @@ export class AsistenciaController extends BaseController {
 
 
         WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1  AND objd.ObjetivoAsistenciaMesPersonalId = @2 AND obja.ObjetivoId = @3`, [anio, mes, PersonalId, ObjetivoId])
-      if (resPersona.length == 0)
-        throw new ClientException('Antes de cargar la Excepción, debe cargarle al menos una hora en el objetivo a la persona')
+//      if (resPersona.length == 0)
+//        throw new ClientException('Antes de cargar la Excepción, debe cargarle al menos una hora en el objetivo a la persona')
 
 
       result = await queryRunner.query(

@@ -20,6 +20,20 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { BehaviorSubject, debounceTime, delay, distinctUntilChanged, tap } from 'rxjs';
 
+
+type SearchResult = {
+  text: string;
+  link?: string;
+  /** crumbs incluyendo el propio label, e.g., ['Ventas', 'Reportes', 'Por Mes'] */
+  path: string[];
+  /** string preformateado para mostrar la ruta */
+  pathLabel: string;
+  /** clave estable para trackBy */
+  trackBy: string;
+  icon?: string;
+};
+
+
 @Component({
   selector: 'header-search',
   template: `
@@ -53,6 +67,11 @@ import { BehaviorSubject, debounceTime, delay, distinctUntilChanged, tap } from 
       }
     </nz-autocomplete>
   `,
+  styles: [`
+    .result-path {
+      font-size: 0.8em;
+      opacity: 0.7;
+    }`],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, I18nPipe, NzInputModule, NzIconModule, NzAutocompleteModule, HotkeyDirective]
 })
@@ -87,15 +106,41 @@ export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
   @Output() readonly toggleChangeChange = new EventEmitter<boolean>();
 
 
+  normalize(text: string): string {
+    return text
+      .toLowerCase()
+      .normalize('NFD')               // split letters and diacritics
+      .replace(/\p{Diacritic}/gu, ''); // remove diacritics (á→a)
+  }
+
+
+  private filterTree<T extends { children?: T[] }>(
+    nodes: T[],
+    predicate: (n: T) => boolean
+  ): T[] {
+    const out: T[] = [];
+    for (const n of nodes) {
+      const kids = n.children || [];
+      const filteredKids = kids.length ? this.filterTree(kids, predicate) : [];
+      if (predicate(n) || filteredKids.length > 0) {
+        const clone = { ...n } as T;
+        if (n.children || filteredKids.length) clone.children = filteredKids;
+        out.push(clone);
+      }
+    }
+    return out;
+  }
+
+
 
   private searchInMenu(menuItems: Menu[], query: string): Menu[] {
     const results: Menu[] = [];
 
     for (const item of menuItems) {
       //const currentPath = parentPath ? `${parentPath} > ${item.text}` : item.text;
-      
+
       // Buscar en el texto del item
-      if (item.text && item.text.toLowerCase().includes(query)) {
+      if (item.text && this.normalize(item.text).includes(query)) {
         if (item.link) {
           results.push(item);
         }
@@ -111,6 +156,51 @@ export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
     return results;
   }
 
+  
+nodeMatches(node: Menu, qNorm: string): boolean {
+  if (!qNorm) return true;
+  const fields = [
+    node.text ?? '',
+    node.i18n ?? '',
+    node.link ?? '',
+  ];
+  return fields.some(f => this.normalize(f).includes(qNorm));
+}
+
+
+  filterMenuByQuery(groups: Menu[], query: string): Menu[] {
+    const qNorm = this.normalize(query.trim());
+    if (!qNorm) return groups.map(g => ({ ...g, children: g.children ? [...g.children] : [] })); // copia superficial
+    return this.filterTree(groups, (n) => this.nodeMatches(n, qNorm));
+  }
+
+  
+private toFlatResults(nodes: Menu[], parents: string[] = [], out: SearchResult[] = []): SearchResult[] {
+  for (const n of nodes) {
+    const label = n.text ?? n.i18n ?? '';
+    const path = [...parents, label].filter(Boolean);
+
+    if (n.link) {
+      out.push({
+        text: label,
+        link: n.link,
+        path,
+        // Si prefieres no repetir el último (el propio item), usa path.slice(0, -1)
+        pathLabel: path.join(' › '),
+        trackBy: `${n.link}|${path.join('/')}`,
+        icon: (n as any).icon
+      });
+    }
+
+    if (n.children?.length) {
+      this.toFlatResults(n.children, path, out);
+    }
+  }
+  return out;
+}
+
+
+  
   ngAfterViewInit(): void {
     this.qIpt = this.el.querySelector('.ant-input') as HTMLInputElement;
 
@@ -124,11 +214,10 @@ export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
         }),
         //delay(500) // Mock http
       )
-      .subscribe(value => {
-        const valuetmp = value.trim().toLowerCase()
-        if (valuetmp != '') {
-          const results = this.searchInMenu(this.menuItems, valuetmp)
-          this.options = results;
+      .subscribe((value: string) => {
+        if (value.trim().length >= 2) {
+          const filteredTree = this.filterMenuByQuery(this.menuItems, value);
+          this.options = this.toFlatResults(filteredTree);
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -156,12 +245,14 @@ export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  navigateToModule(link: string|undefined): void {
+  navigateToModule(link: string | undefined): void {
     if (link) {
       //this.closeSearch();
       // Navegar después de cerrar el modal
       setTimeout(() => {
         this.router.navigateByUrl(link);
+        this.options = []
+        this.qBlur();
       }, 200);
     }
   }
