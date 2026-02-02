@@ -36,7 +36,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   $optionsMetodologia = this.searchService.getMetodologiaSearch();
 
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
-  
+
   objProductos = {
     CondicionVentaProductoId: 0,
     ProductoCodigo: '',
@@ -46,7 +46,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ImporteTotal: '',
     IndHorasAFacturar: null,
     TextoFactura: '',
-    default : ''
+    default: ''
   };
 
 
@@ -105,9 +105,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
   async newRecord() {
 
-    console.log("this.codobjId()", this.codobjId())
-    console.log("this.PeriodoDesdeAplica()", this.PeriodoDesdeAplica())
-
     if (this.codobjId() && this.PeriodoDesdeAplica()) {
       await this.load()
       this.codobjId.set('')
@@ -160,13 +157,13 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     });
 
-      // Asegurar que siempre haya al menos un producto
+    // Asegurar que siempre haya al menos un producto
     if (this.infoProductos().length === 0 && this.formCondicionVenta.enabled) {
       this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
-    
+
     this.formCondicionVenta.reset(infoCliente)
-    
+
     // Calcular totales y deshabilitar ImporteTotal en un solo recorrido
     this.infoProductos().controls.forEach((control, index) => {
       const cantidad = control.get('Cantidad')?.value;
@@ -262,7 +259,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.codobjId.set('');
     this.formCondicionVenta.patchValue({
       codobjId: '',
-      ObjetivoId : 0,
+      ObjetivoId: 0,
     });
 
     this.PeriodoDesdeAplica.set('');
