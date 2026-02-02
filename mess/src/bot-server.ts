@@ -70,7 +70,7 @@ export class BotServer {
     switch (provider) {
       case "BAILEY":
         this.adapterProvider = createProvider(BaileysProvider, {
-          version: [2, 3000, 1025190524],
+          version: [2, 3000, 1030817285],
           browser: ["Windows", "Chrome", "Chrome 114.0.5735.198"],
           writeMyself: "both",
           experimentalStore: true,
