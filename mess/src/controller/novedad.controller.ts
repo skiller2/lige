@@ -80,7 +80,7 @@ export class NovedadController extends BaseController {
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
 
-    const Fecha = novedad.Fecha
+    const Fecha = new Date(novedad.Fecha)
 
     const Descripcion = novedad.Descripcion
     const Accion = novedad.Accion
