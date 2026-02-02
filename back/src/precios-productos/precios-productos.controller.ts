@@ -121,6 +121,8 @@ export class PreciosProductosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -176,6 +178,8 @@ export class PreciosProductosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -192,7 +196,6 @@ export class PreciosProductosController extends BaseController {
         fechaActual.setHours(0,0,0,0)
 
         try {
-            console.log("params ", params)
             await queryRunner.connect();
             await queryRunner.startTransaction();
    
@@ -267,6 +270,8 @@ export class PreciosProductosController extends BaseController {
         } catch (error) {
            await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
       
     }
@@ -347,11 +352,11 @@ export class PreciosProductosController extends BaseController {
         let cod_producto_venta = req.query[0]
 
         const queryRunner = dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
         try {
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
 
-        let result = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
+            let result = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
 
             if(result[0].importe_desde < new Date() && result[0].importe_hasta < new Date())
              throw new ClientException(`No se puede borrar registros con fechas anteriores a hoy`)
@@ -363,6 +368,8 @@ export class PreciosProductosController extends BaseController {
         } catch (error) {
            await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
