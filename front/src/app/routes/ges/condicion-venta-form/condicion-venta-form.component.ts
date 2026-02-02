@@ -46,7 +46,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ImporteTotal: '',
     IndHorasAFacturar: null,
     TextoFactura: '',
-
+    default : ''
   };
 
 
@@ -83,7 +83,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   addProductos(e?: MouseEvent): void {
 
     e?.preventDefault();
-    this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+    const newGroup = this.fb.group({ ...this.objProductos });
+    this.infoProductos().push(newGroup);
+    newGroup.get('ImporteTotal')?.disable();
 
   }
 
@@ -93,8 +95,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     if (this.infoProductos().length > 1) {
       this.infoProductos().removeAt(index)
     } else {
-      this.infoProductos().clear()
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+      this.infoProductos().clear();
+      const newGroup = this.fb.group({ ...this.objProductos });
+      this.infoProductos().push(newGroup);
+      newGroup.get('ImporteTotal')?.disable();
     }
     this.formCondicionVenta.markAsDirty();
   }
@@ -118,7 +122,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.formCondicionVenta.enable()
       this.formCondicionVenta.reset();
       this.infoProductos().clear();
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+      const newGroup = this.fb.group({ ...this.objProductos });
+      this.infoProductos().push(newGroup);
+      newGroup.get('ImporteTotal')?.disable();
       this.formCondicionVenta.markAsPristine();
     }
 
@@ -134,6 +140,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.infoProductos().disable()
     } else {
       this.formCondicionVenta.enable()
+      // Deshabilitar ImporteTotal después de habilitar el formulario
+      this.infoProductos().controls.forEach(control => {
+        control.get('ImporteTotal')?.disable();
+      });
     }
     this.formCondicionVenta.markAsPristine()
 
@@ -145,15 +155,28 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
 
-    infoCliente.infoProductos.forEach((obj: any) => {
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+    // Crear la cantidad correcta de grupos vacíos
+    infoCliente.infoProductos.forEach(() => {
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     });
 
       // Asegurar que siempre haya al menos un producto
     if (this.infoProductos().length === 0 && this.formCondicionVenta.enabled) {
       this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
+    
     this.formCondicionVenta.reset(infoCliente)
+    
+    // Calcular totales y deshabilitar ImporteTotal en un solo recorrido
+    this.infoProductos().controls.forEach((control, index) => {
+      const cantidad = control.get('Cantidad')?.value;
+      const importeUnitario = control.get('ImporteUnitario')?.value;
+      if (cantidad && importeUnitario) {
+        this.calcularTotal(index);
+      } else {
+        control.get('ImporteTotal')?.disable();
+      }
+    });
 
   }
 
@@ -244,7 +267,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.PeriodoDesdeAplica.set('');
     this.infoProductos().clear();
-    this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+    const newGroup = this.fb.group({ ...this.objProductos });
+    this.infoProductos().push(newGroup);
+    newGroup.get('ImporteTotal')?.disable();
     this.formCondicionVenta.markAsPristine();
   }
 
