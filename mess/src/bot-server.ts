@@ -58,19 +58,19 @@ export class BotServer {
   private tgConfig: any
   private botPort: number
   private ASSISTANT_ID: string
-  private instrucciones: string
-  private ollama
+  public instrucciones: string
+  public ollama: Ollama
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
 
-
+  public chatmess: any[]=[]
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
     switch (provider) {
       case "BAILEY":
         this.adapterProvider = createProvider(BaileysProvider, {
-          version: [2, 3000, 1025190524],
+          version: [2, 3000, 1030817285],
           browser: ["Windows", "Chrome", "Chrome 114.0.5735.198"],
           writeMyself: "both",
           experimentalStore: true,
@@ -99,7 +99,9 @@ export class BotServer {
           version: 'v22.0' // Version de la API Graph de Meta
         })
         break
-
+      case 'DUMMY':
+        this.adapterProvider = null as any
+        break
       default:
         throw new Error("Proveedor no reconocido, verifique en el .env parámetro PROVIDER")
         break;
@@ -335,6 +337,11 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
     const adapterDB = new Database(this.providerId)
     this.globalTimeOutMs = 60000 * 5
+
+
+
+    if (this.adapterProvider) {
+
     this.botHandle = await createBot({
       flow: adapterFlow,
       provider: this.adapterProvider,
@@ -342,26 +349,29 @@ Si el usuario hace una pregunta fuera de estas acciones, indicá que debe remiti
 
     })
 
-    this.adapterProvider.on('ready', () => {
-      this.statusMsg = 'ONLINE'
-      console.log('ready')
-    })
 
-    this.adapterProvider.on('require_action', (e) => {
-      this.statusMsg = 'REQ_ACTION'
-      console.log('event require_action', e)
-    })
+      this.adapterProvider.on('ready', () => {
+        this.statusMsg = 'ONLINE'
+        console.log('ready')
+      })
 
-    this.adapterProvider.on('auth_failure', () => {
-      this.statusMsg = 'AUTH_FAIL'
-      console.log('event auth_failure')
-    })
+      this.adapterProvider.on('require_action', (e) => {
+        this.statusMsg = 'REQ_ACTION'
+        console.log('event require_action', e)
+      })
 
-    // Listener global para ver todos los webhooks de status
-    this.adapterProvider.on('notice', (noticeData) => {
-      // console.log('NOTICE RECIBIDO:', JSON.stringify(noticeData, null, 2));
-    });
+      this.adapterProvider.on('auth_failure', () => {
+        this.statusMsg = 'AUTH_FAIL'
+        console.log('event auth_failure')
+      })
 
+      // Listener global para ver todos los webhooks de status
+      this.adapterProvider.on('notice', (noticeData) => {
+        // console.log('NOTICE RECIBIDO:', JSON.stringify(noticeData, null, 2));
+      });
+    }
+
+    if (this.adapterProvider) 
     this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
     //    console.log('adapterProvider', this.adapterProvider)

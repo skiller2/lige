@@ -174,7 +174,13 @@ export class PreciosProductosController extends BaseController {
         const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(options.sort)
         const queryRunner = dataSource.createQueryRunner();
+
+        
         const fechaActual = new Date()
+
+        // el mes y año debe venir del req.body
+        const anio = fechaActual.getFullYear()
+        const mes = fechaActual.getMonth() + 1
 
         // todo: Cambiar para recibir como parametro el año y mes
 
@@ -205,9 +211,7 @@ export class PreciosProductosController extends BaseController {
                         SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1))
 
                 JOIN Cliente c on pp.ClienteId = c.ClienteId
-
-
-              WHERE ${filterSql} and pp.PeriodoDesdeAplica`, [fechaActual])
+                WHERE ${filterSql}`, [anio, mes])
 
             this.jsonRes(
                 {

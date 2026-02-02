@@ -11,19 +11,19 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 
 @Component({
-    selector: 'app-mess',
-    imports: [NzModalModule,
-        CommonModule,
-        SHARED_IMPORTS,
-        NzAffixModule,
-        NzUploadModule
-    ],
-    templateUrl: './mess.component.html',
-    styleUrl: './mess.component.scss'
+  selector: 'app-mess',
+  imports: [NzModalModule,
+    CommonModule,
+    SHARED_IMPORTS,
+    NzAffixModule,
+    NzUploadModule
+  ],
+  templateUrl: './mess.component.html',
+  styleUrl: './mess.component.scss'
 })
 export class MessComponent {
-  messInfo = signal({'msg':'descansando'})
-  ultimoDeposito = signal({'msg':'descansando'})
+  messInfo = signal({ 'msg': 'descansando' })
+  ultimoDeposito = signal({ 'msg': 'descansando' })
   imagenUrl = signal('')
   ms = signal(0)
   mensaje = model('')
@@ -37,7 +37,7 @@ export class MessComponent {
       this.messInfo.set(await firstValueFrom(this.apiService.getMessInfo()))
     } catch (e) {
       console.log(e)
-      this.messInfo.set({'msg':'error'})
+      this.messInfo.set({ 'msg': 'error' })
     }
   }
 
@@ -45,19 +45,35 @@ export class MessComponent {
     this.ms.set(result)
   }
 
-  async setMs(){
+  async setMs() {
     try {
       await firstValueFrom(this.apiService.setChatBotDelay(this.ms()))
     } catch (e) {
       console.log(e)
-      this.ultimoDeposito.set({'msg':'error'})
+      this.ultimoDeposito.set({ 'msg': 'error' })
     }
   }
 
   async enviaMensaje() {
-    await firstValueFrom(this.apiService.sendMessage(this.destino(),this.mensaje()))
-    
+    await firstValueFrom(this.apiService.sendMessage(this.destino(), this.mensaje()))
+
   }
+
+  usermsg = signal('')
+  chat = signal([])
+  chatId=1  
+  async enviaChat() {
+    const resp = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(),this.chatId))
+    console.log('resp', resp)
+
+//    this.chat.set([...this.chat(), resp])
+
+  }
+
+  async reiniciaChat() {
+    const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId))
+  }
+
 
 
   async ngOnInit() {
@@ -65,7 +81,7 @@ export class MessComponent {
       this.ms.set(await firstValueFrom(this.apiService.getChatBotDelay()))
       let imagenCount = 0
       this.getMessInfo()
-      setInterval(() => {this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`)},3000)
+      setInterval(() => { this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`) }, 3000)
     } catch (error) {
       console.log(error)
     }

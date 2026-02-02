@@ -4,8 +4,37 @@ import { existsSync, readFileSync } from "fs";
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
+import type { ParsedQs } from "qs";
 
 export class ChatBotController extends BaseController {
+  
+  
+  async reinicia(req: Request, res: Response, next: NextFunction) {
+    botServer.chatmess = []
+    const ret = {}
+    return this.jsonRes(ret, res,'ok');
+  }
+
+  async chat(req: Request, res: Response, next: NextFunction) {
+    if (botServer.chatmess.length == 0) {
+      botServer.chatmess.push({ role: "system", content: botServer.instrucciones });
+    }
+
+    botServer.chatmess.push({ role: "user", content: req.body.message });
+    const response = await botServer.ollama.chat({
+            model: "gpt-oss:120b",
+            messages: botServer.chatmess,
+            stream: false,
+            
+          });
+    
+    console.log('chat',botServer.chatmess)
+    const ret = {'response': response.message.content}
+    return this.jsonRes(ret, res,'ok');
+
+  }
+
+
   async gotoFlow(req: Request, res: Response, next: NextFunction) {
     const telefono = req.body.telefono
     const flow = req.body.flow
