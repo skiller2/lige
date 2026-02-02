@@ -64,11 +64,11 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Cod Producto",
+        name: "Producto",
         type: "string",
-        id: "ProductoCodigo",
-        field: "ProductoCodigo",
-        fieldName: "fac.ProductoCodigo",
+        id: "Nombre",
+        field: "Nombre",
+        fieldName: "pro.Nombre",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -312,7 +312,7 @@ export class FacturacionController extends BaseController {
                     FROM Facturacion fac
                     Left JOIN ClienteElementoDependiente eledep ON eledep.ClienteId=fac.ClienteId and eledep.ClienteElementoDependienteId=fac.ClienteElementoDependienteId
                     LEFT JOIN Cliente cli ON cli.ClienteId=eledep.ClienteId
-                     LEFT JOIN Producto pro ON pro.ProductoCodigo = fac.ProductoCodigo
+                    LEFT JOIN Producto pro ON pro.ProductoCodigo = fac.ProductoCodigo
                     LEFT JOIN ComprobanteTipo ctp ON ctp.ComprobanteTipoCodigo = fac.ComprobanteTipoCodigo
                         LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = fac.ClienteId  
                                 AND clif.ClienteFacturacionDesde <= @0
