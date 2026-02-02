@@ -51,22 +51,21 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
 
   fb = inject(FormBuilder)
-  formCondicionVenta!: FormGroup;
+  formCondicionVenta = this.fb.group({
+    CondicionVentaId: 0,
+    codobjId: '',
+    ObjetivoId: 0,
+    PeriodoDesdeAplica: '',
+    PeriodoFacturacion: '',
+    GeneracionFacturaDia: '',
+    GeneracionFacturaDiaComplemento: '',
+    Observaciones: '',
+    infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
+    infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
+  })
+
 
   constructor() {
-    this.formCondicionVenta = this.fb.group({
-      CondicionVentaId: 0,
-      codobjId: '',
-      ObjetivoId: 0,
-      PeriodoDesdeAplica: '',
-      PeriodoFacturacion: '',
-      GeneracionFacturaDia: '',
-      GeneracionFacturaDiaComplemento: '',
-      Observaciones: '',
-      infoProductos: this.fb.array([this.createProductoGroup()]),
-      infoProductosOriginal: this.fb.array([this.createProductoGroup()]),
-    });
-
     effect(() => {
 
       this.formCondicionVenta.patchValue({
@@ -81,16 +80,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     return this.formCondicionVenta.get("infoProductos") as FormArray
   }
 
-  private createProductoGroup(): FormGroup {
-    const group = this.fb.group({ ...this.objProductos });
-    group.get('ImporteTotal')?.disable();
-    return group;
-  }
-
   addProductos(e?: MouseEvent): void {
 
     e?.preventDefault();
-    this.infoProductos().push(this.createProductoGroup())
+    this.infoProductos().push(this.fb.group({ ...this.objProductos }))
 
   }
 
@@ -101,7 +94,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.infoProductos().removeAt(index)
     } else {
       this.infoProductos().clear()
-      this.infoProductos().push(this.createProductoGroup())
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
     }
     this.formCondicionVenta.markAsDirty();
   }
@@ -125,7 +118,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.formCondicionVenta.enable()
       this.formCondicionVenta.reset();
       this.infoProductos().clear();
-      this.infoProductos().push(this.createProductoGroup());
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
       this.formCondicionVenta.markAsPristine();
     }
 
@@ -153,12 +146,12 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().clear();
 
     infoCliente.infoProductos.forEach((obj: any) => {
-      this.infoProductos().push(this.createProductoGroup())
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
     });
 
       // Asegurar que siempre haya al menos un producto
     if (this.infoProductos().length === 0 && this.formCondicionVenta.enabled) {
-      this.infoProductos().push(this.createProductoGroup());
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
     this.formCondicionVenta.reset(infoCliente)
 
@@ -238,6 +231,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().at(index)?.patchValue({
       ImporteTotal: importeTotal
     })
+    this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
   }
 
   clearForm(): void {
@@ -250,7 +244,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.PeriodoDesdeAplica.set('');
     this.infoProductos().clear();
-    this.infoProductos().push(this.createProductoGroup());
+    this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     this.formCondicionVenta.markAsPristine();
   }
 
