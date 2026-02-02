@@ -87,7 +87,7 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Apellido y Nombre",
+    name: "Apellido Nombre",
     type: "string",
     id: "NombreCompleto",
     field: "NombreCompleto",
