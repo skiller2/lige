@@ -13,7 +13,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-drawer/producto-historial-drawer.component'
-import { Component, model, signal, inject } from '@angular/core';
+import { Component, model, signal, inject, computed } from '@angular/core';
 
 
 @Component({
@@ -42,6 +42,9 @@ export class PreciosProductosComponent {
   listPrecios$ = new BehaviorSubject('')
   editProducto = signal<{ codigo: string }[]>([])
   precioVentaId = signal<{ codigo: string }[]>([])
+  periodo = signal(new Date())
+  anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -52,6 +55,7 @@ export class PreciosProductosComponent {
   angularGridEdit!: AngularGridInstance;
   // gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
+  hiddenColumnIds: string[] = [];
 
   tipoProducto = []
   detailViewRowCount = 1
@@ -73,6 +77,9 @@ export class PreciosProductosComponent {
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
+        if ((col as any).showGridColumn === false) {
+          this.hiddenColumnIds.push(col.id as string)
+        }
         switch (col.id) {
           case 'TipoProductoId':
             col.editor = {
@@ -120,6 +127,7 @@ export class PreciosProductosComponent {
     this.gridOptionsEdit.createFooterRow = true
     this.gridOptionsEdit.editable = true
     this.gridOptionsEdit.autoEdit = true
+    this.gridOptionsEdit.forceFitColumns = true
 
     const dateToday = new Date();
 
@@ -244,6 +252,11 @@ export class PreciosProductosComponent {
       columnTotal('CantidadProductos', this.angularGridEdit)
     })
 
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGridEdit.gridService.hideColumnByIds(this.hiddenColumnIds);
+    }
+
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])
 
@@ -269,7 +282,7 @@ export class PreciosProductosComponent {
   gridData$ = this.listPrecios$.pipe(
     debounceTime(500),
     switchMap(() => {
-      return this.searchService.getListaPrecioProductos({ options: this.listOptions })
+      return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
         .pipe(map(data => {
           return data.list
         })

@@ -69,7 +69,7 @@ export class PreciosProductosController extends BaseController {
             searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
         },
     ];
 
@@ -132,12 +132,8 @@ export class PreciosProductosController extends BaseController {
         const orderBy = orderToSQL(options.sort)
         const queryRunner = dataSource.createQueryRunner();
 
-        
-        const fechaActual = new Date()
-
-        // el mes y año debe venir del req.body
-        const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth() + 1
+        const anio:number = Number(req.body.anio)
+        const mes:number = Number(req.body.mes)
 
         // todo: Cambiar para recibir como parametro el año y mes
 
