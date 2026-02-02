@@ -149,9 +149,10 @@
       <nz-form-item class="marginElement">
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto Factura</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16" nz-popover [nzPopoverContent]="textFacturaTemplate">
           <textarea nz-input formControlName="TextoFactura" rows="3" style="width: 100%;"
             nzPlaceholder="Ingrese el texto de la factura"></textarea>
+            <p style="color:rgba(0, 0, 0, 0.347);">Vista previa: {{ formCondicionVenta.get('TextoFactura')?.value }}</p>
         </nz-form-control>
 
         @if (formCondicionVenta.enabled) {
