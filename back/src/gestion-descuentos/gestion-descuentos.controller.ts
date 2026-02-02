@@ -2134,9 +2134,11 @@ export class GestionDescuentosController extends BaseController {
     const anio = req.params.anio
     const mes = req.params.mes
     const queryRunner = dataSource.createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction()
+    
     try {
+      await queryRunner.connect()
+      await queryRunner.startTransaction()
+
       const importacionesDescuentosAnteriores = await queryRunner.query(
         `SELECT doc.DocumentoId,DocumentoTipoCodigo, doc.DocumentoAnio,doc.DocumentoMes, doc.DocumentoDenominadorDocumento, FORMAT(DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng
         FROM documento doc
@@ -2157,6 +2159,7 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.rollbackTransaction()
       return next(error)
     } finally {
+      await queryRunner.release()
     }
   }
 

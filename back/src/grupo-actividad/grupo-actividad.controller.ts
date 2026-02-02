@@ -1220,9 +1220,10 @@ export class GrupoActividadController extends BaseController {
         let cod_grupo_actividad = req.query[0]
         //throw new ClientException(`test`)
         const queryRunner = dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
+
         try {
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
 
             await queryRunner.query(`DELETE FROM GrupoActividad WHERE GrupoActividadId = @0`, [cod_grupo_actividad])
 
@@ -1240,9 +1241,10 @@ export class GrupoActividadController extends BaseController {
         let cod_grupo_actividad = req.query[1]
         let fecha_hasta = req.query[2]
         const queryRunner = dataSource.createQueryRunner()
-        await queryRunner.connect()
-        await queryRunner.startTransaction()
+        
         try {
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
 
             if (fecha_hasta && fecha_hasta !== 'null') {
                 throw new ClientException(`No se puede borrar un registro que tenga fecha Hasta.`)
