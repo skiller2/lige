@@ -1250,8 +1250,10 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       return this.jsonRes(result, res);
     } catch (error) {
-      //      await this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1505,11 +1507,11 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
 
   async getHabilitacionesPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      const queryRunner = dataSource.createQueryRunner();
 
       //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
       //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
@@ -1518,6 +1520,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ habilitaciones }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1540,13 +1544,13 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
   }
 
   async getCategoriasPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
       const SucursalId = Number(req.params.SucursalId);
       const ObjetivoId = Number(req.params.ObjetivoId);
-      const queryRunner = dataSource.createQueryRunner();
 
       //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
       //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
@@ -1558,16 +1562,18 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ categorias: categorias }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
 
   async getDescuentosPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
@@ -1580,14 +1586,16 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ descuentos: resultG, totalG }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
   async getDescuentosPorObjetivo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const ObjetivoId = req.params.objetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthObjetivo(anio, mes, res, ObjetivoId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
@@ -1597,16 +1605,17 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ descuentos: result, total }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getDescuentosPorPersonaCoord(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-
-      const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
@@ -1618,6 +1627,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ descuentos: resultC, totalC }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1631,6 +1642,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
   }
 
   async getPersonalxResponsable(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
@@ -1786,10 +1798,13 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ persxresp: personal, total: 0 }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
   async getPersonalxResponsableDesc(req: any, res: Response, next: NextFunction) {
     //ACA
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
@@ -1845,6 +1860,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ descuentos: resDescuentos, total: 0 }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1874,6 +1891,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ ingresos: result, total, totalHoras, DocumentoId, DocumentoDenominadorDocumento }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
   async getIngresosExtraPorPersona(req: any, res: Response, next: NextFunction) {
@@ -1902,6 +1921,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes({ ingresos: result, totalG, totalC, totalHoras }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1949,6 +1970,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2172,6 +2195,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2193,6 +2218,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
   async getCustodiasPorPersona(req: any, res: Response, next: NextFunction) {
@@ -2215,6 +2242,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2316,6 +2345,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3048,15 +3079,17 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
   }
 
   async getLicenciasPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      const queryRunner = dataSource.createQueryRunner();
       const licencias = await this.getLicenciasPorPersonaQuery(anio, mes, personalId, queryRunner)
       this.jsonRes({ licencias }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
