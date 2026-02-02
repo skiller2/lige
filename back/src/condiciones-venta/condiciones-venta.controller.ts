@@ -817,6 +817,170 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
+    // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
+    async autorizarCondicionVentaMultiple(req: any, res: any, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction();
+            const condiciones = req.body.condiciones;
+            const usuario = res.locals.userName;
+            const personalId = res.locals.PersonalId;
+            const ip = this.getRemoteAddress(req);
+
+            if (!condiciones || !Array.isArray(condiciones) || condiciones.length === 0) {
+                throw new ClientException('Debe proporcionar al menos una condición de venta para autorizar.');
+            }
+
+            let autorizadas = 0;
+            let yaAutorizadas = 0;
+            const errores: string[] = [];
+
+            for (const condicion of condiciones) {
+                try {
+                    const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
+                    PeriodoDesdeAplica.setHours(0, 0, 0, 0);
+
+                    const result = await queryRunner.query(`
+                        SELECT ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, AutorizacionFecha, AutorizacionPersonalId, AutorizacionEstado
+                        FROM CondicionVenta 
+                        WHERE ClienteId = @0
+                        AND ClienteElementoDependienteId = @1
+                        AND PeriodoDesdeAplica = @2`, 
+                        [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                    );
+
+                    if (result.length > 0) {
+                        if (result[0].AutorizacionFecha && result[0].AutorizacionPersonalId && result[0].AutorizacionEstado) {
+                            yaAutorizadas++;
+                        } else {
+                            await this.updateAutorizacionCondicionVenta(
+                                queryRunner, 
+                                condicion.ClienteId, 
+                                condicion.ClienteElementoDependienteId, 
+                                PeriodoDesdeAplica, 
+                                usuario, 
+                                personalId, 
+                                ip
+                            );
+                            autorizadas++;
+                        }
+                    } else {
+                        errores.push(`No existe condición para cliente ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}`);
+                    }
+                } catch (error: any) {
+                    errores.push(`Error en ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}: ${error.message}`);
+                }
+            }
+
+            // Si no se autorizó ninguna, es un error - validar ANTES del commit
+            if (autorizadas === 0) {
+                let mensajeError = 'No se pudo autorizar ninguna condición de venta.';
+                if (yaAutorizadas > 0) {
+                    mensajeError = `Todas las condiciones seleccionadas (${yaAutorizadas}) ya estaban autorizadas.`;
+                }
+                if (errores.length > 0) {
+                    if (yaAutorizadas > 0) {
+                        mensajeError += ` Además, ${errores.length} condición(es) tuvieron errores: ${errores.join('; ')}`;
+                    } else {
+                        mensajeError = `No se pudo autorizar ninguna condición. ${errores.join('; ')}`;
+                    }
+                }
+                throw new ClientException(mensajeError);
+            }
+
+            await queryRunner.commitTransaction();
+
+            let mensaje = `Proceso completado. Autorizadas: ${autorizadas}`;
+            if (yaAutorizadas > 0) {
+                mensaje += `, Ya autorizadas: ${yaAutorizadas}`;
+            }
+            if (errores.length > 0) {
+                mensaje += `. Errores: ${errores.length}`;
+            }
+
+            return this.jsonRes({ 
+                status: 'ok', 
+                autorizadas, 
+                yaAutorizadas, 
+                errores 
+            }, res, mensaje);
+
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner);
+            return next(error);
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async rechazarCondicionVentaMultiple(req: any, res: any, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction();
+            const condiciones = req.body.condiciones;
+
+            if (!condiciones || !Array.isArray(condiciones) || condiciones.length === 0) {
+                throw new ClientException('Debe proporcionar al menos una condición de venta para rechazar.');
+            }
+
+            let rechazadas = 0;
+            const errores: string[] = [];
+
+            for (const condicion of condiciones) {
+                try {
+                    const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
+                    PeriodoDesdeAplica.setHours(0, 0, 0, 0);
+
+                    // Delete CondicionVentaDetalle
+                    await queryRunner.query(
+                        `DELETE FROM CondicionVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                        [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                    );
+
+                    // Delete CondicionVenta
+                    const deleteResult = await queryRunner.query(
+                        `DELETE FROM CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                        [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                    );
+
+                    rechazadas++;
+                } catch (error: any) {
+                    errores.push(`Error en ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}: ${error.message}`);
+                }
+            }
+
+            // Si no se rechazó ninguna, es un error - validar ANTES del commit
+            if (rechazadas === 0) {
+                let mensajeError = 'No se pudo rechazar ninguna condición de venta.';
+                if (errores.length > 0) {
+                    mensajeError = `No se pudo rechazar ninguna condición. ${errores.join('; ')}`;
+                } else {
+                    mensajeError = 'No se encontraron condiciones de venta para rechazar.';
+                }
+                throw new ClientException(mensajeError);
+            }
+
+            await queryRunner.commitTransaction();
+
+            let mensaje = `Proceso completado. Rechazadas: ${rechazadas}`;
+            if (errores.length > 0) {
+                mensaje += `. Errores: ${errores.length}`;
+            }
+
+            return this.jsonRes({ 
+                status: 'ok', 
+                rechazadas, 
+                errores 
+            }, res, mensaje);
+
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner);
+            return next(error);
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
     async updateCondicionVentaDetalleQuery(queryRunner: any, infoProductos: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
         let FechaActual = new Date()
         const ProductoIds = infoProductos.map((row: { ProductoCodigo: any; }) => row.ProductoCodigo).filter((id) => id !== null && id !== undefined);

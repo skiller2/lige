@@ -43,3 +43,12 @@ condicionesVentaRouter.post('/update', [authMiddleware.verifyToken, authMiddlewa
   condicionesVentaController.updateCondicionVenta(req, res, next)
 })
 
+// Nuevas rutas para autorizar/rechazar múltiples condiciones de venta
+condicionesVentaRouter.post('/autorizar-multiple', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.autorizarCondicionVentaMultiple(req, res, next)
+})
+
+condicionesVentaRouter.post('/rechazar-multiple', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.rechazarCondicionVentaMultiple(req, res, next)
+})
+

@@ -67,11 +67,14 @@ export class TableCondicionVentaComponent implements OnInit {
   // Período seleccionado (input signal)
   periodo = input<Date>();
 
-  // Objetivo seleccionado
+  // Objetivo seleccionado (para compatibilidad con selección única)
   codobj = model<string>('');
 
-  // Fecha desde aplica
+  // Fecha desde aplica (para compatibilidad con selección única)
   PeriodoDesdeAplica = model<string>('');
+
+  // Condiciones seleccionadas (para selección múltiple)
+  condicionesSeleccionadas = model<any[]>([]);
 
   // Filtros iniciales
   startFilters: { field: string; condition: string; operator: string; value: any; forced:boolean}[]=[]
@@ -159,6 +162,10 @@ export class TableCondicionVentaComponent implements OnInit {
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
+    this.gridOptions.enableCheckboxSelector = true
+        this.gridOptions.rowSelectionOptions = {
+            selectActiveRow: false
+        }
 
     // Filtros iniciales: desde <= último día del periodo, hasta >= primer día del periodo
     this.updateStartFiltersFromPeriodo(this.periodo());
@@ -207,14 +214,35 @@ export class TableCondicionVentaComponent implements OnInit {
     });
   }
 
-  // Selección de filas en la grilla
+  // Selección de filas en la grilla (ahora soporta múltiples selecciones)
   async handleSelectedRowsChanged(e: any): Promise<void> {
-    const selrow = e.detail.args.rows[0];
-    const row = this.angularGrid.slickGrid.getDataItem(selrow);
+    const selectedRows = e.detail.args.rows;
+    const selectedData: any[] = [];
 
-    if (row?.id) {
-      this.codobj.set(row.codobj);
-      this.PeriodoDesdeAplica.set(row.PeriodoDesdeAplica);
+    // Obtener los datos de todas las filas seleccionadas
+    selectedRows.forEach((rowIndex: number) => {
+      const row = this.angularGrid.slickGrid.getDataItem(rowIndex);
+      if (row?.id) {
+        selectedData.push({
+          codobj: row.codobj,
+          PeriodoDesdeAplica: row.PeriodoDesdeAplica,
+          ClienteId: row.ClienteId,
+          ClienteElementoDependienteId: row.ClienteElementoDependienteDescripcion,
+          ObjetivoId: row.ObjetivoId
+        });
+      }
+    });
+
+    // Actualizar las condiciones seleccionadas
+    this.condicionesSeleccionadas.set(selectedData);
+
+    // Mantener compatibilidad con selección única (para edición)
+    if (selectedData.length === 1) {
+      this.codobj.set(selectedData[0].codobj);
+      this.PeriodoDesdeAplica.set(selectedData[0].PeriodoDesdeAplica);
+    } else {
+      this.codobj.set('');
+      this.PeriodoDesdeAplica.set('');
     }
   }
 }

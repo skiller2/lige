@@ -24,11 +24,11 @@
               nzType="edit" nzTheme="outline"></span></button>
         </a>
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())"
+          <button nz-button nzType="default" [disabled]="condicionesSeleccionadas()?.length === 0"
             (click)="autorizarCondicionVenta()"><span nz-icon nzType="check" nzTheme="outline"></span></button>
         </a>
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())"
+          <button nz-button nzType="default" [disabled]="condicionesSeleccionadas()?.length === 0"
             (click)="rechazarCondicionVenta()"><span nz-icon nzType="close" nzTheme="outline"></span></button>
         </a>
       </nz-button-group>
@@ -65,7 +65,8 @@
       <ng-template nz-tab>
         <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"
-          [(RefreshCondVenta)]="RefreshCondVenta"></app-table-condicion-venta>
+          [(RefreshCondVenta)]="RefreshCondVenta"
+          [(condicionesSeleccionadas)]="condicionesSeleccionadas"></app-table-condicion-venta>
       </ng-template>
     </nz-tab>
 

@@ -29,6 +29,7 @@ export class CondicionVentaComponent implements OnInit {
   childTableCondicionVenta = viewChild<TableCondicionVentaComponent>('tableCondicionVenta')
   PeriodoDesdeAplica = model<string>('');
   RefreshCondVenta = model<boolean>(false)
+  condicionesSeleccionadas = model<any[]>([])
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
   }
@@ -66,17 +67,35 @@ export class CondicionVentaComponent implements OnInit {
   }
 
   async autorizarCondicionVenta() {
-    var result = await firstValueFrom(this.apiService.autorizarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
+    const condiciones = this.condicionesSeleccionadas();
     
-    if (result.status === 'ok') 
-         this.RefreshCondVenta.set(true);
+    if (condiciones.length === 0) {
+      return;
+    }
+
+    var result = await firstValueFrom(
+      this.apiService.autorizarCondicionVentaMultiple(condiciones)
+    );
     
+    if (result.status === 'ok') {
+      this.RefreshCondVenta.set(true);
+      this.condicionesSeleccionadas.set([]);
+    }
   }
 
   async rechazarCondicionVenta() {
-    await firstValueFrom(this.apiService.rechazarCondicionVenta(this.codobj(), this.PeriodoDesdeAplica()))
-    this.RefreshCondVenta.set(true)
+    const condiciones = this.condicionesSeleccionadas();
+    
+    if (condiciones.length === 0) {
+      return;
+    }
 
+    await firstValueFrom(
+      this.apiService.rechazarCondicionVentaMultiple(condiciones)
+    );
+    
+    this.RefreshCondVenta.set(true);
+    this.condicionesSeleccionadas.set([]);
   }
 
 }

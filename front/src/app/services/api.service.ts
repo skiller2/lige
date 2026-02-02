@@ -1987,6 +1987,43 @@ export class ApiService {
     )
   }
 
+  // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
+  autorizarCondicionVentaMultiple(condiciones: any[]) {
+    const condicionesFormateadas = condiciones.map(c => {
+      const objetivo = c.codobj.split('/')[0];
+      const clienteelementodependienteid = c.codobj.split('/')[1];
+      return {
+        ClienteId: objetivo,
+        ClienteElementoDependienteId: clienteelementodependienteid,
+        PeriodoDesdeAplica: c.PeriodoDesdeAplica
+      };
+    });
+
+    return this.http.post<ResponseJSON<any>>(`api/condiciones-venta/autorizar-multiple`, { condiciones: condicionesFormateadas }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: ResponseJSON<any>) => res.data),
+      catchError(() => of({ status: 'error' }))
+    )
+  }
+
+  rechazarCondicionVentaMultiple(condiciones: any[]) {
+    const condicionesFormateadas = condiciones.map(c => {
+      const objetivo = c.codobj.split('/')[0];
+      const clienteelementodependienteid = c.codobj.split('/')[1];
+      return {
+        ClienteId: objetivo,
+        ClienteElementoDependienteId: clienteelementodependienteid,
+        PeriodoDesdeAplica: c.PeriodoDesdeAplica
+      };
+    });
+
+    return this.http.post<ResponseJSON<any>>(`api/condiciones-venta/rechazar-multiple`, { condiciones: condicionesFormateadas }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: ResponseJSON<any>) => res.data),
+      catchError(() => of({ status: 'error' }))
+    )
+  }
+
   updHabilitacionNecesaria(anio: number, mes: number) {
     return this.http
       .post<ResponseJSON<any>>(`api/habilitaciones/update-hab-necesaria`,{anio,mes})

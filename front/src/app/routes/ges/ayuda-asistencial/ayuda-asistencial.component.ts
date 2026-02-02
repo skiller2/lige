@@ -165,13 +165,14 @@ export class AyudaAsistencialComponent {
         this.gridOptions.editable = true
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
-        this.gridOptions.enableCheckboxSelector = true
+        this.gridOptions.enableCheckboxSelector = false
         this.gridOptions.rowSelectionOptions = {
             selectActiveRow: false
         }
         this.gridOptions.cellHighlightCssClass = 'changed'
         this.gridOptions.enableCellNavigation = true
         this.gridOptions.forceFitColumns = true
+
 
 
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
