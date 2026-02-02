@@ -8,4 +8,6 @@ chatBotRouter.get(`/delay`, (req, res, next) => {chatBotController.getChatBotDel
 chatBotRouter.post(`/delay`, (req, res, next) => {chatBotController.setChatBotDelay(req, res, next)});
 chatBotRouter.post(`/sendAlert`, (req, res, next) => { chatBotController.sendAlert(req, res, next) });
 chatBotRouter.post(`/gotoFlow`, (req, res, next) => { chatBotController.gotoFlow(req, res, next) });
+chatBotRouter.post(`/chat`, (req, res, next) => { chatBotController.chat(req, res, next) });
+chatBotRouter.post(`/reinicia`, (req, res, next) => { chatBotController.reinicia(req, res, next) });
         

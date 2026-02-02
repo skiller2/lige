@@ -1,28 +1,27 @@
 <nz-card class="small-margin">
-    <button nz-popconfirm nzType="primary" class="btn-add"
-    nz-button (click)="getMessInfo()">
+  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="getMessInfo()">
     Obtener estado mess
   </button>
   <p>{{ messInfo() | json }}</p>
- 
-<h3>Parametros ChatBot WhatsApp</h3>  
-<h4>Tiempo entre mensajes</h4>
-<input
-      #inputElement
-      style="width: 120px"
-      nz-input
-      nz-tooltip
-      nzOverlayClassName="numeric-input"
-      (ngModelChange)="msChange($event)"
-      [ngModel]="ms()"
-      placeholder="Input a number"
-  />
-<button nz-popconfirm nzType="primary" class="btn-add"
-  nz-button (click)="setMs()">
-  Cambiar
-</button>
-<br>
-<img [src]="imagenUrl()" alt="QR">
+
+  <h3>Parametros ChatBot WhatsApp</h3>
+  <h4>Tiempo entre mensajes</h4>
+  <input #inputElement style="width: 120px" nz-input nz-tooltip nzOverlayClassName="numeric-input"
+    (ngModelChange)="msChange($event)" [ngModel]="ms()" placeholder="Input a number" />
+  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="setMs()">
+    Cambiar
+  </button>
+  <br>
+  <img [src]="imagenUrl()" alt="QR">
+
+</nz-card>
+
+<nz-card>
+  <h4>Conversación</h4>
+  <textarea [(ngModel)]="chat"></textarea>
+  <input style="width: 120px" nz-input nz-tooltip [(ngModel)]="usermsg" />
+  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat()">Enviar</button>
+  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
 </nz-card>
 <!--
