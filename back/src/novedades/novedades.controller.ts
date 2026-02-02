@@ -346,6 +346,8 @@ export class NovedadesController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -359,7 +361,7 @@ export class NovedadesController extends BaseController {
         } catch (error) {
             return next(error)
         } finally {
-
+            await queryRunner.release()
         }
     }
 
@@ -927,6 +929,8 @@ export class NovedadesController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1066,6 +1070,7 @@ export class NovedadesController extends BaseController {
         );
 
         try {
+            
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
 
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
@@ -1190,6 +1195,8 @@ export class NovedadesController extends BaseController {
                 ip
             );
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }

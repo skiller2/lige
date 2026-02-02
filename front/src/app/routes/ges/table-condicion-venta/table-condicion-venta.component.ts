@@ -177,7 +177,7 @@ export class TableCondicionVentaComponent implements OnInit {
     const lastDay = new Date(periodo.getFullYear(), periodo.getMonth() + 1, 0)
     this.startFilters = [
       { field: 'ClienteElementoDependienteContratoFechaDesde', condition: 'AND', operator: '<=', value: lastDay, forced: false },
-      { field: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: new Date(), forced: false }
+      { field: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: firstDay, forced: false }
     ]
   }
 

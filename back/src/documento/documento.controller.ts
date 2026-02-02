@@ -50,7 +50,7 @@ export class DocumentoController extends BaseController {
       maxWidth: 150,
     },
     {
-      id: "ApellidoNombre", name: "Personal", field: "ApellidoNombre",
+      id: "ApellidoNombre", name: "Persona", field: "ApellidoNombre",
       type: "string",
       fieldName: "pers.PersonalId",
       searchComponent: "inputForPersonalSearch",

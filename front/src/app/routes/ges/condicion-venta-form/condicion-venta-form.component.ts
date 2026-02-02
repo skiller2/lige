@@ -34,7 +34,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
   $optionsMetodologia = this.searchService.getMetodologiaSearch();
-  
+
+  textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
+
   objProductos = {
     CondicionVentaProductoId: 0,
     ProductoCodigo: '',
@@ -44,7 +46,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ImporteTotal: '',
     IndHorasAFacturar: null,
     TextoFactura: '',
-
+    default: ''
   };
 
 
@@ -81,7 +83,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   addProductos(e?: MouseEvent): void {
 
     e?.preventDefault();
-    this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+    const newGroup = this.fb.group({ ...this.objProductos });
+    this.infoProductos().push(newGroup);
+    newGroup.get('ImporteTotal')?.disable();
 
   }
 
@@ -91,16 +95,15 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     if (this.infoProductos().length > 1) {
       this.infoProductos().removeAt(index)
     } else {
-      this.infoProductos().clear()
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+      this.infoProductos().clear();
+      const newGroup = this.fb.group({ ...this.objProductos });
+      this.infoProductos().push(newGroup);
+      newGroup.get('ImporteTotal')?.disable();
     }
     this.formCondicionVenta.markAsDirty();
   }
 
   async newRecord() {
-
-    console.log("this.codobjId()", this.codobjId())
-    console.log("this.PeriodoDesdeAplica()", this.PeriodoDesdeAplica())
 
     if (this.codobjId() && this.PeriodoDesdeAplica()) {
       await this.load()
@@ -116,7 +119,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.formCondicionVenta.enable()
       this.formCondicionVenta.reset();
       this.infoProductos().clear();
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+      const newGroup = this.fb.group({ ...this.objProductos });
+      this.infoProductos().push(newGroup);
+      newGroup.get('ImporteTotal')?.disable();
       this.formCondicionVenta.markAsPristine();
     }
 
@@ -132,6 +137,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.infoProductos().disable()
     } else {
       this.formCondicionVenta.enable()
+      // Deshabilitar ImporteTotal después de habilitar el formulario
+      this.infoProductos().controls.forEach(control => {
+        control.get('ImporteTotal')?.disable();
+      });
     }
     this.formCondicionVenta.markAsPristine()
 
@@ -143,15 +152,28 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
 
-    infoCliente.infoProductos.forEach((obj: any) => {
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }))
+    // Crear la cantidad correcta de grupos vacíos
+    infoCliente.infoProductos.forEach(() => {
+      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     });
 
-      // Asegurar que siempre haya al menos un producto
+    // Asegurar que siempre haya al menos un producto
     if (this.infoProductos().length === 0 && this.formCondicionVenta.enabled) {
       this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
+
     this.formCondicionVenta.reset(infoCliente)
+
+    // Calcular totales y deshabilitar ImporteTotal en un solo recorrido
+    this.infoProductos().controls.forEach((control, index) => {
+      const cantidad = control.get('Cantidad')?.value;
+      const importeUnitario = control.get('ImporteUnitario')?.value;
+      if (cantidad && importeUnitario) {
+        this.calcularTotal(index);
+      } else {
+        control.get('ImporteTotal')?.disable();
+      }
+    });
 
   }
 
@@ -229,6 +251,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().at(index)?.patchValue({
       ImporteTotal: importeTotal
     })
+    this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
   }
 
   clearForm(): void {
@@ -236,12 +259,14 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.codobjId.set('');
     this.formCondicionVenta.patchValue({
       codobjId: '',
-      ObjetivoId : 0,
+      ObjetivoId: 0,
     });
 
     this.PeriodoDesdeAplica.set('');
     this.infoProductos().clear();
-    this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+    const newGroup = this.fb.group({ ...this.objProductos });
+    this.infoProductos().push(newGroup);
+    newGroup.get('ImporteTotal')?.disable();
     this.formCondicionVenta.markAsPristine();
   }
 

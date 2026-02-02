@@ -1,8 +1,13 @@
 <nz-card class="small-margin">
 
-  <div nz-row>
+  <div nz-row class="fila">
+    <div class="izquierda">
+      <nz-form-control>
+        <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo"/>
+      </nz-form-control>
+    </div>
 
-    <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
+    <div class="derecha">
       <nz-button-group nz-button nzButtonGroup style="text-align: right;">
         <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
         <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>

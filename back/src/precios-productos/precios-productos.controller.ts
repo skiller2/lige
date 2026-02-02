@@ -20,100 +20,57 @@ export class PreciosProductosController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Sucursal Producto",
-            type: "string",
-            id: "SucursalId",
-            field: "SucursalId",
-            fieldName: "vent.SucursalId",
-            formatter: 'collectionFormatter',
-            searchComponent: "inputForSucursalSearch",
-            sortable: true,
-            searchHidden: false
-        },
-        {
-            id: "codigoOld",
-            name: "codigoOld",
-            field: "codigoOld",
-            fieldName: " prod.cod_producto",
+            name: "Cliente",
             type: "number",
-            sortable: false,
-            searchHidden: true,
-            hidden: true,
-
+            id: "ClienteId",
+            field: "ClienteId",
+            fieldName: "pp.ClienteId",
+            searchComponent: "inputForClienteSearch",
+            sortable: true,
+            searchHidden: false
         },
         {
-            id: "Codigo",
-            name: "Codigo",
-            field: "codigo",
-            fieldName: "prod.cod_producto",
+            id: "ProductoCodigo",
+            name: "ProductoCodigo",
+            field: "ProductoCodigo",
+            fieldName: "pp.ProductoCodigo",
             type: "string",
             sortable: true,
             searchHidden: false,
             hidden: false,
         },
         {
-            name: "Nombre",
+            name: "Producto",
             type: "string",
-            id: "nombre",
-            field: "nombre",
-            fieldName: "prod.nom_producto",
+            id: "Nombre",
+            field: "Nombre",
+            fieldName: "p.Nombre",
             searchType: "string",
             sortable: true,
             searchHidden: false,
             hidden: false,
         },
         {
-            name: "Tipo",
-            type: "string",
-            id: "TipoProductoId",
-            field: "TipoProductoId",
-            fieldName: "prod.cod_tipo_producto",
-            formatter: 'collectionFormatter',
-            searchComponent: "inputForProductoSearch",
-            searchType: "string",
-            searchHidden: false
-        },
-        {
-            name: "Descripcion",
-            type: "string",
-            id: "descripcion",
-            field: "descripcion",
-            fieldName: "prod.des_producto",
-            searchType: "string",
-            searchHidden: false
-        },
-        {
-            name: "Importe",
-            type: "currency",
-            id: "importe",
-            field: "importe",
-            fieldName: "vent.importe",
-            sortable: false,
+            name: "Importe Unitario",
+            type: "number",
+            id: "Importe",
+            field: "Importe",
+            fieldName: "pp.Importe",
+            sortable: true,
+            searchHidden: false,
             hidden: false,
-            searchHidden: false
         },
         {
-            name: "Desde",
+            name: "Aplica Desde",
             type: "date",
-            id: "desde",
-            field: "desde",
-            fieldName: "vent.importe_desde",
+            id: "PeriodoDesdeAplica",
+            field: "PeriodoDesdeAplica",
+            fieldName: "pp.PeriodoDesdeAplica",
             searchComponent: "inputForFechaSearch",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
         },
-        {
-            name: "Hasta",
-            type: "date",
-            id: "hasta",
-            field: "hasta",
-            fieldName: "vent.importe_hasta",
-            searchComponent: "inputForFechaSearch",
-            sortable: true,
-            hidden: false,
-            searchHidden: false
-        }
     ];
 
 
@@ -175,12 +132,8 @@ export class PreciosProductosController extends BaseController {
         const orderBy = orderToSQL(options.sort)
         const queryRunner = dataSource.createQueryRunner();
 
-        
-        const fechaActual = new Date()
-
-        // el mes y año debe venir del req.body
-        const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth() + 1
+        const anio:number = Number(req.body.anio)
+        const mes:number = Number(req.body.mes)
 
         // todo: Cambiar para recibir como parametro el año y mes
 
@@ -200,7 +153,7 @@ export class PreciosProductosController extends BaseController {
                     pp.AudFechaMod,
                     pp.AudUsuarioMod,
 
-                    p.Descripcion,
+                    p.Nombre,
                     p.ProductoTipoCodigo,
                     pt.Descripcion
 

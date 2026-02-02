@@ -189,8 +189,8 @@ export class FileUploadController extends BaseController {
     const columnSearch = req.params.columnForSearch
     const TipoSearch = req.params.TipoSearch
     const tableSearch = req.params.tableForSearch
+    const queryRunner = dataSource.createQueryRunner();
     try {
-      const queryRunner = dataSource.createQueryRunner();
       // let usuario = res.locals.userName
       // let ip = this.getRemoteAddress(req)
       // let fechaActual = new Date()
@@ -263,6 +263,8 @@ export class FileUploadController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -433,6 +435,11 @@ export class FileUploadController extends BaseController {
       throw new ClientException(`No se especificó destino -tableForSearch-`)
     if (!doctipo_id)
       throw new ClientException(`No se especificó destino -doctipo_id-`)
+
+    // Validar que existe archivo temporal cuando se va a crear un nuevo documento
+    if (!doc_id && (!file.tempfilename || file.tempfilename === 'undefined')) {
+      throw new ClientException(`No se especificó un archivo para subir`)
+    }
 
     //throw new ClientException(`test`)
     //if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
@@ -1017,7 +1024,16 @@ export class FileUploadController extends BaseController {
 
 
   static copyTmpFile(filename: any, newFilePath: any) {
+    if (!filename || filename === 'undefined') {
+      throw new ClientException(`No se especificó un archivo temporal válido para copiar: ${filename}`);
+    }
+
     const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
+    
+    if (!existsSync(originalFilePath)) {
+      throw new ClientException(`El archivo temporal no existe: ${filename}`);
+    }
+
     const filePath = path.dirname(newFilePath);
 
     if (!existsSync(filePath)) {
@@ -1028,6 +1044,7 @@ export class FileUploadController extends BaseController {
       copyFileSync(originalFilePath, newFilePath);
     } catch (error) {
       console.error('Error moviendo el archivo:', error);
+      throw error;
     }
 
   }

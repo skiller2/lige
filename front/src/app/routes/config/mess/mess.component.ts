@@ -60,18 +60,21 @@ export class MessComponent {
   }
 
   usermsg = signal('')
-  chat = signal([])
+  chat = signal('')
   chatId=1  
   async enviaChat() {
-    const resp = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(),this.chatId))
-    console.log('resp', resp)
+    this.chat.set(this.chat()+'\n'+ this.usermsg())
 
-//    this.chat.set([...this.chat(), resp])
+    const resp:any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(),this.chatId))
+
+    
+    this.chat.set(this.chat()+'\n'+ resp.response)
 
   }
 
   async reiniciaChat() {
     const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId))
+    this.chat.set('')
   }
 
 
@@ -81,7 +84,7 @@ export class MessComponent {
       this.ms.set(await firstValueFrom(this.apiService.getChatBotDelay()))
       let imagenCount = 0
       this.getMessInfo()
-      setInterval(() => { this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`) }, 3000)
+      //setInterval(() => { this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`) }, 3000)
     } catch (error) {
       console.log(error)
     }
