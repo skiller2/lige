@@ -99,6 +99,8 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (!this._selectedId && this._selectedId !== null) {
+        this._selected = ''
+        this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
         this.valueExtendedEmitter.emit(null)
         this.propagateChange(this._selectedId)
         return
