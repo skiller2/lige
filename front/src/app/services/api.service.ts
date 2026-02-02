@@ -501,7 +501,8 @@ export class ApiService {
 
   sendChatMessage(message: string, chatId: number): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chat`, { message,chatId }).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
+      //tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: any) => res.data)
     )
   }
 

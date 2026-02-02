@@ -7,30 +7,48 @@ import { botServer } from "../index.ts";
 import type { ParsedQs } from "qs";
 
 export class ChatBotController extends BaseController {
-  
-  
+
+
   async reinicia(req: Request, res: Response, next: NextFunction) {
+    const chatId = req.body.chatId
     botServer.chatmess = []
     const ret = {}
-    return this.jsonRes(ret, res,'ok');
+    return this.jsonRes(ret, res, 'ok');
   }
 
   async chat(req: Request, res: Response, next: NextFunction) {
-    if (botServer.chatmess.length == 0) {
+    if (botServer.chatmess.length == 0)
       botServer.chatmess.push({ role: "system", content: botServer.instrucciones });
-    }
+    const chatId = req.body.chatId
+    let response: any
 
     botServer.chatmess.push({ role: "user", content: req.body.message });
-    const response = await botServer.ollama.chat({
-            model: "gpt-oss:120b",
-            messages: botServer.chatmess,
-            stream: false,
-            
-          });
-    
-    console.log('chat',botServer.chatmess)
-    const ret = {'response': response.message.content}
-    return this.jsonRes(ret, res,'ok');
+    response = await botServer.ollama.chat({
+      model: "gpt-oss:120b",
+      messages: botServer.chatmess,
+      stream: false,
+
+    });
+    botServer.chatmess.push(response.message);
+
+
+    const rta = JSON.parse(response.message.content || '{}');
+    if (rta.accion) {
+
+      const actionResponse = "\"accion\": \"buscar_telefono\", \"resultado\": { \"Nombre\": \"Juan\", \"Apellido\": \"Frensa\"}"
+      botServer.chatmess.push({ role: "user", content: actionResponse });
+      response = await botServer.ollama.chat({
+        model: "gpt-oss:120b",
+        messages: botServer.chatmess,
+        stream: false,
+
+      });
+      botServer.chatmess.push(response.message);
+    }
+
+    console.log('chat', botServer.chatmess)
+    const ret = { 'response': response.message.content }
+    return this.jsonRes(ret, res, 'ok');
 
   }
 
@@ -79,17 +97,17 @@ export class ChatBotController extends BaseController {
 
     if (apiKey != "12345678")
       return this.jsonRes(ret, res);
-      
+
     try {
       //await botServer.sendMsg('5491144050522', `Nodo ${nodo} ${estado}`)
       //await botServer.sendMsg('5491131624773', `Nodo ${nodo} ${estado}`)
-      
+
     } catch (error) {
-//      console.log('Error enviando msg',error)    
+      //      console.log('Error enviando msg',error)    
     }
-    
+
     return this.jsonRes(ret, res);
-   
+
   }
 
   async getChatBotQR(req: any, res: Response, next: NextFunction) {
@@ -107,7 +125,7 @@ export class ChatBotController extends BaseController {
     }
   }
 
-  async addToDocLog(doc_id: number, telefono: string, PersonalId:number) {
+  async addToDocLog(doc_id: number, telefono: string, PersonalId: number) {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
@@ -147,7 +165,7 @@ export class ChatBotController extends BaseController {
   static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
-    
+
     if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');
 
     return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 , SentMethod=@5, SentProvider=@6
