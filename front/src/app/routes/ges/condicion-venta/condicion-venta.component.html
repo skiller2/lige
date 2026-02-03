@@ -23,12 +23,13 @@
           <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())"><span nz-icon
               nzType="edit" nzTheme="outline"></span></button>
         </a>
+
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="condicionesSeleccionadas()?.length === 0"
+          <button nz-button nzType="default" [disabled]="condicionesSeleccionadas().length === 0"
             (click)="autorizarCondicionVenta()"><span nz-icon nzType="check" nzTheme="outline"></span></button>
         </a>
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="condicionesSeleccionadas()?.length === 0"
+          <button nz-button nzType="default" [disabled]="condicionesSeleccionadas().length === 0"
             (click)="rechazarCondicionVenta()"><span nz-icon nzType="close" nzTheme="outline"></span></button>
         </a>
       </nz-button-group>
