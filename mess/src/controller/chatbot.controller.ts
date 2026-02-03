@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from "fs";
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
-import type { ParsedQs } from "qs";
 
 export class ChatBotController extends BaseController {
 
@@ -16,15 +15,28 @@ export class ChatBotController extends BaseController {
     return this.jsonRes(ret, res, 'ok');
   }
 
-  accionBuscarTelefonoTool = {
-    name: "buscar_telefono",
-    description: "Busca un teléfono en la base de datos",
-    type: "function", // Added required 'type' property
-    function: async (query: string) => {
-      // Simula la búsqueda de un teléfono en una base de datos
-      return {};
-    }
+  checkPhoneNumber = {
+    type: 'function',
+    function: {
+      name: 'checkPhoneNumber',
+      description: 'Check if a phone number exists in the database',
+      parameters: {
+        type: 'object',
+        required: ['phoneNumber'],
+        properties: {
+          phoneNumber: { type: 'string', description: 'The phone number to check' }
+        }
+      },
+    },
+
   }
+
+  checkPhoneNumberTool = async (args: any) => {
+    return { Nombre: "Juan", Apellido: "Frensa" }
+  }
+
+
+  //availableFunctions = [this.checkPhoneNumber];
 
 
   async chat(req: Request, res: Response, next: NextFunction) {
@@ -41,28 +53,45 @@ export class ChatBotController extends BaseController {
     botServer.chatmess.push({ role: "user", content: req.body.message })
 
     try {
+      let recall = false
       do {
+        recall = false
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
           messages: botServer.chatmess,
           stream: false,
-          //      tools:[ this.accionBuscarTelefonoTool ]
+          tools: [this.checkPhoneNumber]
 
         });
         console.log('responseIA', responseIA)
         botServer.chatmess.push(responseIA.message);
-        response.push(responseIA.message.content)
-        try {
-          rta = JSON.parse(responseIA.message.content);
-        } catch (e) { rta = {} }
-        if (rta.tool) {
-          const actionResponse = { tool: "buscar_telefono", resultado: { Nombre: "Juan", Apellido: "Frensa" } }
-          botServer.chatmess.push({ role: "tool", content: JSON.stringify(actionResponse) });
-          response.push(JSON.stringify(actionResponse))
+        response.push(responseIA.message.content || JSON.stringify(responseIA.message.tool_calls))
 
+        if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
+
+          for (const tool of responseIA.message.tool_calls) {
+            let functionToCall = null
+            switch (tool.function.name) {
+              case 'checkPhoneNumber':
+                functionToCall = this.checkPhoneNumberTool
+                break;
+              default:
+                throw new Error(`Función desconocida: ${tool.function.name}`);
+            }
+
+            //const output = functionToCall(tool.function.arguments);
+
+            const output = { tool: "buscar_telefono", resultado: { Nombre: "Juan", Apellido: "Frensa" } }
+            console.log('tool_calls', tool.function.name, output)
+
+            botServer.chatmess.push({
+              role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
+            });
+            response.push(JSON.stringify({ content: JSON.stringify(output), tool_name: tool.function.name }))
+          }
+          recall = true
         }
-
-      } while (rta.tool);
+      } while (recall);
 
     } catch (error) {
       throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
