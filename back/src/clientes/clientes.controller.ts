@@ -92,7 +92,7 @@ export class ClientesController extends BaseController {
             field: "ContactoEmailEmail",
             fieldName: "correonoti.ContactoEmailEmail",
             sortable: true,
-            searchHidden: true
+            searchHidden: false
         },
 
         {
