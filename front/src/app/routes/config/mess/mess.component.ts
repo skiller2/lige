@@ -68,7 +68,7 @@ export class MessComponent {
     const resp:any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(),this.chatId))
 
     
-    this.chat.set(this.chat()+'\n'+ resp.response)
+    this.chat.set(this.chat()+'\n'+ resp.response.join('\n')  )
 
   }
 

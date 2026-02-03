@@ -16,39 +16,59 @@ export class ChatBotController extends BaseController {
     return this.jsonRes(ret, res, 'ok');
   }
 
+  accionBuscarTelefonoTool = {
+    name: "buscar_telefono",
+    description: "Busca un teléfono en la base de datos",
+    type: "function", // Added required 'type' property
+    function: async (query: string) => {
+      // Simula la búsqueda de un teléfono en una base de datos
+      return {};
+    }
+  }
+
+
   async chat(req: Request, res: Response, next: NextFunction) {
+
+    if (req.body.message.trim() == '')
+      return this.jsonRes({ 'response': [] }, res, 'ok');
+
+    let response = []
     if (botServer.chatmess.length == 0)
       botServer.chatmess.push({ role: "system", content: botServer.instrucciones });
     const chatId = req.body.chatId
-    let response: any
+    let rta: any
 
-    botServer.chatmess.push({ role: "user", content: req.body.message });
-    response = await botServer.ollama.chat({
-      model: "gpt-oss:120b",
-      messages: botServer.chatmess,
-      stream: false,
+    botServer.chatmess.push({ role: "user", content: req.body.message })
 
-    });
-    botServer.chatmess.push(response.message);
+    try {
+      do {
+        const responseIA = await botServer.ollama.chat({
+          model: "gpt-oss:120b",
+          messages: botServer.chatmess,
+          stream: false,
+          //      tools:[ this.accionBuscarTelefonoTool ]
 
+        });
+        console.log('responseIA', responseIA)
+        botServer.chatmess.push(responseIA.message);
+        response.push(responseIA.message.content)
+        try {
+          rta = JSON.parse(responseIA.message.content);
+        } catch (e) { rta = {} }
+        if (rta.tool) {
+          const actionResponse = { tool: "buscar_telefono", resultado: { Nombre: "Juan", Apellido: "Frensa" } }
+          botServer.chatmess.push({ role: "tool", content: JSON.stringify(actionResponse) });
+          response.push(JSON.stringify(actionResponse))
 
-    const rta = JSON.parse(response.message.content || '{}');
-    if (rta.accion) {
+        }
 
-      const actionResponse = "\"accion\": \"buscar_telefono\", \"resultado\": { \"Nombre\": \"Juan\", \"Apellido\": \"Frensa\"}"
-      botServer.chatmess.push({ role: "user", content: actionResponse });
-      response = await botServer.ollama.chat({
-        model: "gpt-oss:120b",
-        messages: botServer.chatmess,
-        stream: false,
+      } while (rta.tool);
 
-      });
-      botServer.chatmess.push(response.message);
+    } catch (error) {
+      throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
     }
 
-    console.log('chat', botServer.chatmess)
-    const ret = { 'response': response.message.content }
-    return this.jsonRes(ret, res, 'ok');
+    return this.jsonRes({ 'response': response }, res, 'ok');
 
   }
 
