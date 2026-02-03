@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "fs";
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
+import { personalController } from "./controller.module.ts";
 
 export class ChatBotController extends BaseController {
 
@@ -15,42 +16,68 @@ export class ChatBotController extends BaseController {
     return this.jsonRes(ret, res, 'ok');
   }
 
-  checkPhoneNumber = {
+  getPersonaState = {
     type: 'function',
     function: {
-      name: 'checkPhoneNumber',
+      name: 'getPersonaState',
       description: 'Check if a phone number exists in the database',
       parameters: {
         type: 'object',
         required: ['phoneNumber'],
         properties: {
-          phoneNumber: { type: 'string', description: 'The phone number to check' }
+          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
         }
       },
     },
-
   }
+
+  genTelCode = {
+    type: 'function',
+    function: {
+      name: 'genTelCode',
+      description: 'create special code to register phone number',
+      parameters: {
+        type: 'object',
+        required: ['phoneNumber'],
+        properties: {
+          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+        }
+      },
+    },
+  }
+
+  delTelefonoPersona = {
+    type: 'function',
+    function: {
+      name: 'delTelefonoPersona',
+      description: 'delete a phone number from the database',
+      parameters: {
+        type: 'object',
+        required: ['phoneNumber'],
+        properties: {
+          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+        }
+      },
+    },
+  }
+
 
   checkPhoneNumberTool = async (args: any) => {
-    return { Nombre: "Juan", Apellido: "Frensa" }
+    const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(args.phoneNumber)
+    
+    return { firstName, activo, stateData, PersonalSituacionRevistaSituacionId, codigo }
   }
-
-
-  //availableFunctions = [this.checkPhoneNumber];
-
 
   async chat(req: Request, res: Response, next: NextFunction) {
 
     if (req.body.message.trim() == '')
       return this.jsonRes({ 'response': [] }, res, 'ok');
 
-    let response = []
     if (botServer.chatmess.length == 0)
-      botServer.chatmess.push({ role: "system", content: botServer.instrucciones });
-    const chatId = req.body.chatId
-    let rta: any
+      botServer.chatmess.push({ role: "system", content: botServer.instrucciones, sendIt:true  });
+    const chatId:string = req.body.chatId
 
-    botServer.chatmess.push({ role: "user", content: req.body.message })
+    botServer.chatmess.push({ role: "user", content: req.body.message})
 
     try {
       let recall = false
@@ -60,34 +87,42 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess,
           stream: false,
-          tools: [this.checkPhoneNumber]
+          tools: [this.getPersonaState,this.delTelefonoPersona,this.genTelCode ]
 
         });
         console.log('responseIA', responseIA)
         botServer.chatmess.push(responseIA.message);
-        response.push(responseIA.message.content || JSON.stringify(responseIA.message.tool_calls))
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
           for (const tool of responseIA.message.tool_calls) {
-            let functionToCall = null
+            let output={}
             switch (tool.function.name) {
-              case 'checkPhoneNumber':
-                functionToCall = this.checkPhoneNumberTool
+              case 'genTelCode':
+                const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
+                const ret = await personalController.genTelCode(chatId)
+                output = {url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro,linkVigenciaHs}
+//                Para continuar ingrese a {url},
+//                Recuerda el enlace tiene una vigencia de {linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo
                 break;
+              case 'getPersonaState':
+                output = await personalController.getPersonaState(chatId)
+                break;
+              case 'delTelefonoPersona': 
+                output = await personalController.delTelefonoPersona(chatId)
+                break;
+              
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }
 
-            //const output = functionToCall(tool.function.arguments);
+//            const output = await functionToCall(tool.function.arguments);
 
-            const output = { tool: "buscar_telefono", resultado: { Nombre: "Juan", Apellido: "Frensa" } }
             console.log('tool_calls', tool.function.name, output)
 
             botServer.chatmess.push({
               role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
             });
-            response.push(JSON.stringify({ content: JSON.stringify(output), tool_name: tool.function.name }))
           }
           recall = true
         }
@@ -96,6 +131,11 @@ export class ChatBotController extends BaseController {
     } catch (error) {
       throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
     }
+
+    const response = botServer.chatmess.filter(m => m?.sendIt != true).map(m => ({ content: m.content, role: m.role }))
+    
+    botServer.chatmess.forEach(m => m.sendIt = true)
+
 
     return this.jsonRes({ 'response': response }, res, 'ok');
 

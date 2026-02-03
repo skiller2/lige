@@ -499,14 +499,14 @@ export class ApiService {
     )
   }
 
-  sendChatMessage(message: string, chatId: number): Observable<unknown> {
+  sendChatMessage(message: string, chatId: string): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chat`, { message,chatId }).pipe(
       //tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: any) => res.data)
     )
   }
 
-  reiniciaChat(chatId: number): Observable<unknown> {
+  reiniciaChat(chatId: string): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/reinicia`, {chatId}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )

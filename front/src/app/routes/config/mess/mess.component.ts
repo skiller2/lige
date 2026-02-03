@@ -61,25 +61,36 @@ export class MessComponent {
 
   usermsg = signal('')
   chat = signal('')
-  chatId=1  
+  chatId = signal('');
   async enviaChat() {
-    this.chat.set(this.chat()+'\n'+ this.usermsg())
+    this.chat.set(this.chat() + '\n' + this.usermsg())
+    localStorage.setItem('chatId', this.chatId())
+    const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(), this.chatId()))
 
-    const resp:any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(),this.chatId))
-
-    
-    this.chat.set(this.chat()+'\n'+ resp.response.join('\n')  )
+    for (let r of resp.response) {
+      if (r.role == 'user'){
+        //this.chat.set(this.chat() + '\n' + r.content)
+    }  else if (r.role == 'assistant')
+        this.chat.set(this.chat() + '\n' + 'Bot: ' + r.content)
+      else if (r.role == 'tool')
+        this.chat.set(this.chat() + '\n' + 'Tool: ' + r.content)
+    }
 
   }
 
   async reiniciaChat() {
-    const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId))
+    const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId()))
     this.chat.set('')
   }
 
 
 
   async ngOnInit() {
+    const chatId = localStorage.getItem('chatId')
+    if (chatId) {
+      this.chatId.set(chatId)
+    }
+
     try {
       this.ms.set(await firstValueFrom(this.apiService.getChatBotDelay()))
       let imagenCount = 0
