@@ -1484,6 +1484,8 @@ UNION ALL
         if (!habilitacion.GestionHabilitacionEstadoCodigo) {
             error.push(`- Estado`)
         }
+        
+        if (habilitacion.GestionHabilitacionEstadoCodigo=='PEN') throw new ClientException(`El estado no puede ser pendiente.`)
 
         const valHabilitacionNecesaria = await queryRunner.query(`
             SELECT PersonalHabilitacionNecesariaId
