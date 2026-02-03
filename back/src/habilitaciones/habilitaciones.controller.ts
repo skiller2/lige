@@ -233,7 +233,7 @@ const GridColums: any[] = [
     },
     {
         name: "Nro Tramite",
-        type: "number",
+        type: "string",
         id: "NroTramite",
         field: "NroTramite",
         fieldName: "b.NroTramite",
