@@ -463,7 +463,8 @@ export class HabilitacionesController extends BaseController {
         ) vishab on vishab.PersonalId=per.PersonalId
 	
 		LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null) 
-                and b.PersonalHabilitacionClase != 'C'
+            and ISNULL(b.PersonalHabilitacionClase, '') != 'C'
+            
 		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
 		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId 
 
@@ -1478,6 +1479,8 @@ UNION ALL
 
     async valHabilitacionesForm(queryRunner: any, habilitacion: any) {
         let error: string[] = []
+
+        if (!habilitacion.PersonalHabilitacionClase)  error.push(`- Tipo Habilitación`)     
         if (!habilitacion.GestionHabilitacionEstadoCodigo) {
             error.push(`- Estado`)
         }
