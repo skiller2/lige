@@ -499,7 +499,7 @@ export class HabilitacionesController extends BaseController {
 
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE d.LugarHabilitacionId != 9
+        WHERE d.LugarHabilitacionId not in (9,4) -- Excluyo interno y comercial ezeiza
         and (${filterSql})
         ${orderBy}
         `, [periodo])
