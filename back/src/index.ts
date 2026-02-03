@@ -64,21 +64,47 @@ scheduleJob('0 0 1 * *', async function (fireDate) { //At 12:00 AM, on day 1 of 
 });
 
 scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
-  //TODO Se debería instanciar Response correctamente
   const actual = new Date()
   const anio = actual.getFullYear()
   const mes = actual.getMonth() + 1
-  const ret = await asistenciaController.getListaAsistenciaControAcceso({params:{anio,mes}}, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  
+  const mockReq: any = {
+    params: { anio, mes },
+    headers: {},
+    socket: { remoteAddress: '127.0.0.1' }
+  }
+  const mockRes: any = {
+    locals: { userName: 'server' }
+  }
+  
+  try {
+    await asistenciaController.getListaAsistenciaControAcceso(mockReq, mockRes, (ret: any) => ret)
+    console.log(`job run at ${fireDate} - Asistencia Control Acceso completado`);
+  } catch (error) {
+    console.error(`job error at ${fireDate} - Asistencia Control Acceso:`, error);
+  }
 });
 
 scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
-  //TODO Se debería instanciar Response correctamente
   const actual = new Date()
   const anio = actual.getFullYear()
   const mes = actual.getMonth() + 1
-  const ret = await habilitacionesController.jobHabilitacionNecesaria({body:{anio,mes}}, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  
+  const mockReq: any = {
+    body: { anio, mes },
+    headers: {},
+    socket: { remoteAddress: '127.0.0.1' }
+  }
+  const mockRes: any = {
+    locals: { userName: 'server' }
+  }
+  
+  try {
+    await habilitacionesController.jobHabilitacionNecesaria(mockReq, mockRes, (ret: any) => ret)
+    console.log(`job run at ${fireDate} - Habilitación Necesaria completado`);
+  } catch (error) {
+    console.error(`job error at ${fireDate} - Habilitación Necesaria:`, error);
+  }
 });
 
 

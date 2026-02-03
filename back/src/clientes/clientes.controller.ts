@@ -857,6 +857,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }

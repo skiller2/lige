@@ -400,9 +400,10 @@ export class FacturacionController extends BaseController {
 
         const queryRunner = dataSource.createQueryRunner()
         await queryRunner.connect();
-        await queryRunner.startTransaction();
+        
 
         try {
+            await queryRunner.startTransaction();
             console.log("req.body", req.body)
             //throw new ClientException("test")
             const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body[0]
@@ -442,6 +443,7 @@ export class FacturacionController extends BaseController {
             }
            
             //throw new ClientException("todo ok")
+            await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Actualización de registro exitoso');
         } catch (error) {
 

@@ -308,6 +308,8 @@ export class CondicionesVentaController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }

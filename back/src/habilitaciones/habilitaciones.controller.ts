@@ -522,6 +522,8 @@ export class HabilitacionesController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -555,6 +557,8 @@ export class HabilitacionesController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -691,6 +695,8 @@ UNION ALL
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -713,6 +719,8 @@ UNION ALL
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -745,6 +753,8 @@ UNION ALL
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -776,6 +786,8 @@ UNION ALL
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1015,6 +1027,8 @@ UNION ALL
             this.jsonRes(options, res);
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1032,6 +1046,8 @@ UNION ALL
             this.jsonRes(options, res);
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1051,6 +1067,8 @@ UNION ALL
             this.jsonRes(options, res);
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1320,6 +1338,8 @@ UNION ALL
             this.jsonRes(obj, res);
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
