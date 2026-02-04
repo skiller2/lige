@@ -38,21 +38,21 @@ scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
   segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
+scheduleJob('2 0 * * *', async function (fireDate) { //At 12:02 AM
   //TODO Se debería instanciar Response correctamente
 
   const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
  
-scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
+scheduleJob('3 0 * * *', async function (fireDate) { //At 12:03 AM
   //TODO Se debería instanciar Response correctamente
 
   const ret = await grupoActividadController.objetivosGrupos(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {//At 12:01 AM
+scheduleJob('4 0 * * *', async function (fireDate) {//At 12:04 AM
   const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
@@ -63,7 +63,7 @@ scheduleJob('0 0 1 * *', async function (fireDate) { //At 12:00 AM, on day 1 of 
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
+scheduleJob('5 0 * * *', async function (fireDate) {  //At 12:05 AM
   const actual = new Date()
   const anio = actual.getFullYear()
   const mes = actual.getMonth() + 1
@@ -85,7 +85,7 @@ scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
   }
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {  //At 12:01 AM
+scheduleJob('6 0 * * *', async function (fireDate) {  //At 12:06 AM
   const actual = new Date()
   const anio = actual.getFullYear()
   const mes = actual.getMonth() + 1
