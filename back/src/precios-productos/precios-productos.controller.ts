@@ -29,28 +29,18 @@ export class PreciosProductosController extends BaseController {
             searchHidden: false
         },
         {
-            name: "Cliente",
-            type: "number",
-            id: "ClienteId",
-            field: "ClienteId",
+            name: "Razón Social",
+            type: "string",
+            id: "Cliente",
+            field: "Cliente",
             fieldName: "c.ClienteId",
-            searchComponent: "inputForClienteSearch",
+            searchComponent: "inputForClientSearch",
+            searchType: "number",
             formatter: 'complexObject',
             sortable: true,
             hidden: false,
             searchHidden: false
         },
-        // {
-        //     name: "Razón Social",
-        //     type: "string",
-        //     id: "ClienteDenominacion",
-        //     field: "ClienteDenominacion",
-        //     fieldName: "c.ClienteDenominacion",
-        //     searchType: "string",
-        //     sortable: true,
-        //     searchHidden: false,
-        //     hidden: false,
-        // },
         {
             id: "ProductoCodigo",
             name: "Producto",
@@ -192,10 +182,18 @@ export class PreciosProductosController extends BaseController {
                  LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1) AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)
                 WHERE ${filterSql}`, [anio, mes])
 
+            const formattedData = precios.map((item: any) => ({
+                ...item,
+                Cliente: {
+                    id: item.ClienteId,
+                    fullName: item.ClienteDenominacion
+                }
+            }));
+
             this.jsonRes(
                 {
-                    total: precios.length,
-                    list: precios,
+                    total: formattedData.length,
+                    list: formattedData,
                 },
                 res
             );

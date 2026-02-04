@@ -67,8 +67,6 @@ export class PreciosProductosComponent {
     this.listPrecios$.next('')
   }
 
-
-
   columns$ = this.apiService.getCols('/api/productos/cols-precios').pipe(
     switchMap(async (cols) => {
       const productos = await firstValueFrom(this.searchService.getProductos());
@@ -95,10 +93,7 @@ export class PreciosProductosComponent {
             }
 
             break
-          case 'ClienteId':
-            col.params = {
-              complexFieldLabel: 'ClienteId.fullName',
-            },
+          case 'Cliente':
             col.editor = {
               model: CustomInputEditor,
               collection: [],
@@ -107,6 +102,9 @@ export class PreciosProductosComponent {
               },
               alwaysSaveOnEnterKey: true,
               required: true
+            }
+            col.params = {
+              complexFieldLabel: 'Cliente.fullName',
             }
 
             break
@@ -137,8 +135,6 @@ export class PreciosProductosComponent {
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //            let undoCommandArr:EditCommand[]=[]
-      editCommand.execute()
-      return
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
 
@@ -171,8 +167,8 @@ export class PreciosProductosComponent {
         if (!row.dbid)
           this.rowLocked = true
 
-        const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
-        this.listPrecios$.next('')
+        // const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
+        // this.listPrecios$.next('')
         this.rowLocked = false
       } catch (e: any) {
         //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
@@ -287,7 +283,6 @@ export class PreciosProductosComponent {
     switchMap(() => {
       return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
         .pipe(map(data => {
-          console.log('list: ', data.list);    
           return data.list
         })
         )
