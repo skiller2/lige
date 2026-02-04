@@ -21,10 +21,10 @@ export class PreciosProductosController extends BaseController {
         },
         {
             name: "CUIT",
-            type: "number",
-            id: "ClienteCUIT",
-            field: "ClienteCUIT",
-            fieldName: "",
+            type: "string",
+            id: "ClienteFacturacionCUIT",
+            field: "ClienteFacturacionCUIT",
+            fieldName: "fac.ClienteFacturacionCUIT",
             sortable: true,
             searchHidden: false
         },
@@ -179,7 +179,8 @@ export class PreciosProductosController extends BaseController {
 
                     p.Nombre,
                     p.ProductoTipoCodigo,
-                    pt.Descripcion
+                    pt.Descripcion,
+                    fac.ClienteFacturacionCUIT
 
                 FROM Producto p
                 LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
@@ -188,6 +189,7 @@ export class PreciosProductosController extends BaseController {
                         SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1))
 
                 JOIN Cliente c on pp.ClienteId = c.ClienteId
+                 LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1) AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)
                 WHERE ${filterSql}`, [anio, mes])
 
             this.jsonRes(
