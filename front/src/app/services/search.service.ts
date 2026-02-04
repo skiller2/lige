@@ -650,16 +650,6 @@ export class SearchService {
     );
   }
 
-  getMetodologiaSearch(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/metodologia_getOptions`).pipe(
-      map(res => res.data),
-      catchError((err, caught) => {
-        console.log('Something went wrong!');
-        return of([]);
-      })
-    );
-  }
-
   getCategorias(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`).pipe(
       map(res => res.data),
@@ -670,6 +660,25 @@ export class SearchService {
     );
   }
 
+  getTipoCantidadSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/tipoCantidad_getOptions`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  } 
+
+  getTipoImporteSearch(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/tipoImporte_getOptions`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
   getProcAutoEstadosOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/procesos-automaticos/estado/options`).pipe(
       map(res => res.data),

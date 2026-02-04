@@ -30,10 +30,11 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   objetivoExtended = signal<any>(null);
   codobjId = model<string>('');
   PeriodoDesdeAplica = model('');
-  MetodologiaSelected = signal<string>('');
-
+  periodo = input<Date>();
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
-  $optionsMetodologia = this.searchService.getMetodologiaSearch();
+
+  $optionsTipoCantidad = this.searchService.getTipoCantidadSearch();
+  $optionsTipoImporte = this.searchService.getTipoImporteSearch();
 
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
 
@@ -41,7 +42,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     CondicionVentaProductoId: 0,
     ProductoCodigo: '',
     Cantidad: '',
-    Metodologia: '',
+    TipoImporte: '',
+    TipoCantidad: '',
     ImporteUnitario: '',
     ImporteTotal: '',
     IndHorasAFacturar: null,
@@ -252,6 +254,71 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       ImporteTotal: importeTotal
     })
     this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
+  }
+
+  async onTipoImporteChange(tipoImporte: string, index: number): Promise<void> {
+    const importeUnitarioControl = this.infoProductos().at(index)?.get('ImporteUnitario');
+    
+    if (tipoImporte !== 'F') {
+      // Si no es 'F', deshabilitar y limpiar el campo
+      importeUnitarioControl?.setValue('');
+      importeUnitarioControl?.disable();
+    } else {
+      // Si es 'F', habilitar el campo
+      importeUnitarioControl?.enable();
+    }
+
+    // Actualizar el campo TextoFactura con el tipo de importe y el período
+    await this.actualizarTextoFactura(tipoImporte, index);
+  }
+
+  onTipoCantidadChange(tipoCantidad: string, index: number): void {
+    const cantidadControl = this.infoProductos().at(index)?.get('Cantidad');
+    
+    if (tipoCantidad !== 'F') {
+      // Si no es 'F', deshabilitar y limpiar el campo
+      cantidadControl?.setValue('');
+      cantidadControl?.disable();
+    } else {
+      // Si es 'F', habilitar el campo
+      cantidadControl?.enable();
+    }
+  }
+
+  async actualizarTextoFactura(tipoImporte: string, index: number): Promise<void> {
+    if (!tipoImporte) {
+      return;
+    }
+
+    // Obtener el label del tipo de importe seleccionado
+    const tiposImporte = await firstValueFrom(this.$optionsTipoImporte);
+    const tipoImporteSeleccionado = tiposImporte.find((option: any) => option.value === tipoImporte);
+    
+    if (!tipoImporteSeleccionado) {
+      return;
+    }
+
+    // Obtener el período seleccionado
+    let periodoFormateado = '';
+    
+    if (this.periodo()) {
+      const fecha = this.periodo();
+     if (fecha && !isNaN(fecha.getTime())) {
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fecha.getFullYear();
+        periodoFormateado = `${mes}/${anio}`;
+      }
+    }
+
+    // Construir el texto: "Tipo Importe - Período"
+    const textoFactura = periodoFormateado 
+      ? `${tipoImporteSeleccionado.label} - ${periodoFormateado}`
+      : tipoImporteSeleccionado.label;
+
+    // Actualizar el campo TextoFactura
+    this.infoProductos().at(index)?.patchValue({
+      TextoFactura: textoFactura
+    });
   }
 
   clearForm(): void {

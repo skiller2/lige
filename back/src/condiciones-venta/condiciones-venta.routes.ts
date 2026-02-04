@@ -22,11 +22,6 @@ condicionesVentaRouter.get('/options', [authMiddleware.verifyToken, authMiddlewa
   condicionesVentaController.getTipoProductoSearchOptions(req, res, next)
 })
 
-condicionesVentaRouter.get('/metodologia_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  condicionesVentaController.getMetodologiaSearchOptions(req, res, next)
-})
-
-
 condicionesVentaRouter.get('/infCondicionVenta/:codobjId/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res, next) => {
   condicionesVentaController.infCondicionVenta(req, res, next)
 })
@@ -49,4 +44,14 @@ condicionesVentaRouter.post('/autorizar-multiple', [authMiddleware.verifyToken, 
 
 condicionesVentaRouter.post('/rechazar-multiple', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   condicionesVentaController.rechazarCondicionVentaMultiple(req, res, next)
+})
+
+
+condicionesVentaRouter.get('/tipoCantidad_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getTipoCantidadSearchOptions(req, res, next)
+})
+
+
+condicionesVentaRouter.get('/tipoImporte_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getTipoImporteSearchOptions(req, res, next)
 })
