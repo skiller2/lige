@@ -11,7 +11,7 @@ export class ChatBotController extends BaseController {
 
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId
-    botServer.chatmess = []
+    botServer.chatmess[chatId] = []
     const ret = {}
     return this.jsonRes(ret, res, 'ok');
   }
@@ -61,23 +61,64 @@ export class ChatBotController extends BaseController {
     },
   }
 
+  removeCode = {
+    type: 'function',
+    function: {
+      name: 'removeCode',
+      description: 'Remove the verification code for a phone number',
+      parameters: {
+        type: 'object',
+        required: ['phoneNumber'],
+        properties: {
+          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+        }
+      },
+    },
+  }
 
-  checkPhoneNumberTool = async (args: any) => {
-    const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(args.phoneNumber)
-    
-    return { firstName, activo, stateData, PersonalSituacionRevistaSituacionId, codigo }
+  getInfoPersonal = {
+    type: 'function',
+    function: {
+      name: 'getInfoPersonal',
+      description: 'Get personal information for a phone number and personal',
+      parameters: {
+        type: 'object',
+        required: ['phoneNumber','personalId'],
+        properties: {
+          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+        }
+      },
+    },
+  }
+
+  getInfoEmpresa = {
+    type: 'function',
+    function: {
+      name: 'getInfoEmpresa',
+      description: 'Get empresa information',
+      parameters: {
+        type: 'object',
+        required: [],
+        properties: {}
+      },
+    },
   }
 
   async chat(req: Request, res: Response, next: NextFunction) {
 
     if (req.body.message.trim() == '')
       return this.jsonRes({ 'response': [] }, res, 'ok');
-
-    if (botServer.chatmess.length == 0)
-      botServer.chatmess.push({ role: "system", content: botServer.instrucciones, sendIt:true  });
     const chatId:string = req.body.chatId
+    if (!botServer.chatmess[chatId])
+      botServer.chatmess[chatId] = []
 
-    botServer.chatmess.push({ role: "user", content: req.body.message})
+
+
+    if (botServer.chatmess[chatId].length == 0)
+      botServer.chatmess[chatId].push({ role: "system", content: botServer.instrucciones, sendIt:true  });
+
+    botServer.chatmess[chatId].push({ role: "user", content: req.body.message})
 
     try {
       let recall = false
@@ -85,13 +126,12 @@ export class ChatBotController extends BaseController {
         recall = false
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
-          messages: botServer.chatmess,
+          messages: botServer.chatmess[chatId],
           stream: false,
           tools: [this.getPersonaState,this.delTelefonoPersona,this.genTelCode ]
 
         });
-        console.log('responseIA', responseIA)
-        botServer.chatmess.push(responseIA.message);
+        botServer.chatmess[chatId].push(responseIA.message);
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
@@ -102,14 +142,22 @@ export class ChatBotController extends BaseController {
                 const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
                 const ret = await personalController.genTelCode(chatId)
                 output = {url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro,linkVigenciaHs}
-//                Para continuar ingrese a {url},
-//                Recuerda el enlace tiene una vigencia de {linkVigenciaHs} horas, pasado este tiempo vuelve a saludarme para que te entrege uno nuevo
                 break;
               case 'getPersonaState':
                 output = await personalController.getPersonaState(chatId)
                 break;
               case 'delTelefonoPersona': 
                 output = await personalController.delTelefonoPersona(chatId)
+                break;
+              case 'removeCode': 
+                output = await personalController.removeCode(chatId)
+                break;
+              case 'getInfoPersonal': 
+                const personalId = tool.function.arguments.personalId
+                output = await personalController.getInfoPersonal(personalId, chatId)
+                break;
+              case 'getInfoEmpresa': 
+                output = await personalController.getInfoEmpresa()
                 break;
               
               default:
@@ -120,7 +168,7 @@ export class ChatBotController extends BaseController {
 
             console.log('tool_calls', tool.function.name, output)
 
-            botServer.chatmess.push({
+            botServer.chatmess[chatId].push({
               role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
             });
           }
@@ -132,9 +180,9 @@ export class ChatBotController extends BaseController {
       throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
     }
 
-    const response = botServer.chatmess.filter(m => m?.sendIt != true).map(m => ({ content: m.content, role: m.role }))
+    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ content: m.content, role: m.role, tool_calls:m.tool_calls }))
     
-    botServer.chatmess.forEach(m => m.sendIt = true)
+    botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 
 
     return this.jsonRes({ 'response': response }, res, 'ok');

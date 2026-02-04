@@ -60,27 +60,18 @@ export class MessComponent {
   }
 
   usermsg = signal('')
-  chat = signal('')
   chatId = signal('');
+  msgs = signal<any[]>([])
   async enviaChat() {
-    this.chat.set(this.chat() + '\n' + this.usermsg())
     localStorage.setItem('chatId', this.chatId())
     const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(), this.chatId()))
-
-    for (let r of resp.response) {
-      if (r.role == 'user'){
-        //this.chat.set(this.chat() + '\n' + r.content)
-    }  else if (r.role == 'assistant')
-        this.chat.set(this.chat() + '\n' + 'Bot: ' + r.content)
-      else if (r.role == 'tool')
-        this.chat.set(this.chat() + '\n' + 'Tool: ' + r.content)
-    }
-
+    console.log('resp', resp.response)
+    this.msgs.set([...this.msgs(), resp.response])
   }
 
   async reiniciaChat() {
     const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId()))
-    this.chat.set('')
+    this.msgs.set([])
   }
 
 

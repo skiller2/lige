@@ -422,6 +422,80 @@ export class PersonalController extends BaseController {
     return await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId IN (@0)`, [personalId])
   }
 
+  async getInfoEmpresa() {
+    return `🟢 Información de la Cooperativa 
+Razón Social: Cooperativa de Trabajo Lince Seguridad Limitada
+CUIT: 30-64344551-0
+📍 Ubicación 
+Sede central: Av. Federico Lacroze 4168, Chacarita, Cdad. Aut. de Bs. As.
+Formosa: Barrio Parque Urbano II Mz 215 Casa 4, Formosa
+Mar del Plata: Av. Colón 3083 3° Piso, Mar del Plata, Pcia. de Buenos Aires
+🌐 Página web: https://www.linceseguridad.com.ar/
+📲 Redes sociales 
+Instagram: https://www.instagram.com/linceseguridadoficial/
+LinkedIn: https://ar.linkedin.com/company/lince-seguridad-oficial
+Facebook: https://www.facebook.com/profile.php?id=100076266804842
+Consejo de Administración (mandato hasta el 30/04/2028) 🗓
+Ricardo Augusto Elicabe – Presidente
+Omar Alberto Muñoz– Secretario
+Julio Marcelo Ruiz– Tesorero
+José Manuel Cuenca – Síndico
+`
 
+
+  }
+
+  async getInfoPersonal(personalId: number, chatId: string) {
+    const fechaActual = new Date()
+    const anio = fechaActual.getFullYear()
+    const mes = fechaActual.getMonth() + 1
+    let response = []
+
+
+    const infoPersonal = this.getPersonalQuery(chatId, personalId)
+    const PersonalNroLegajo = infoPersonal[0].PersonalNroLegajo
+    const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso) ? new Date(infoPersonal[0].PersonalFechaIngreso) : null
+    response.push(`Su número de socio: ${PersonalNroLegajo}`)
+    response.push(`Su fecha de ingreso: ${this.dateOutputFormat(PersonalFechaIngreso)}`)
+    const sitrevs: any[] = await PersonalController.getPersonalSitRevista(personalId, anio, mes)
+    if (sitrevs.length > 0) {
+      const sitrev = sitrevs[sitrevs.length - 1]
+      //await flowDynamic([{ body: `Su situación de revista: ${sitrev.SituacionRevistaDescripcion.trim()} desde ${personalController.dateOutputFormat(sitrev.PersonalSituacionRevistaDesde)}`, delay }])
+      response.push(`Su situación de revista actual: ${sitrev.SituacionRevistaDescripcion.trim()}`)
+    } else {
+      response.push(`No posee situación de revista aún`)
+    }
+
+    const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
+    const catstring: string[] = categs.map(c => ' - ' + c.fullName)
+
+    //await provider.vendor.sendPresenceUpdate('composing', ctx.key.remoteJid)
+    //await provider.vendor.sendPresenceUpdate()
+
+    if (catstring.length == 1)
+      catstring.unshift('Su categoría actual es:')
+    else if (catstring.length > 1)
+      catstring.unshift('Sus categorías actuales son:')
+    else
+      catstring.unshift('No posee categorías asignadas aún')
+
+    response.push(catstring.join('\n'))
+
+    const coordinadorgeneralrec: any[] = await PersonalController.getResponsablesListByPersonal(personalId)
+
+    //        const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() + ' desde ' + personalController.dateOutputFormat(coordinadorgeneralrec[0].Desde) : 'No asignado aún'
+    const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() : 'No asignado aún'
+
+    response.push(`Su coordinador de zona es: ${coordinador}`)
+
+    if (coordinadorgeneralrec[0].PersonalId) {
+        const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
+        if (telrec[0])
+            response.push(`Contacto del coordinador 📞 ${telrec[0].Telefono}`)
+    }
+
+
+    return  response
+  }
 
 }

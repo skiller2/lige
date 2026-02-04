@@ -18,9 +18,22 @@
 
 <nz-card>
   <h4>Conversación</h4>
-  <input style="width: 120px" nz-input nz-tooltip [(ngModel)]="chatId"  />
+  <input style="width: 120px" nz-input nz-tooltip [(ngModel)]="chatId" />
 
-  <textarea [(ngModel)]="chat" style="width: 100%; height: 300px;" readonly></textarea>
+  <nz-card>
+
+    <div class="chat-messages">
+      <div *ngFor="let msg of msgs()" class="chat-line" [ngClass]="msg.role">
+        <nz-card nzSize="small">
+          {{ msg.content || msg.tool_calls |json }}
+        </nz-card>
+      </div>
+    </div>
+
+  </nz-card>
+
+
+
   <input style="width: 120px" nz-input nz-tooltip [(ngModel)]="usermsg" />
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat()">Enviar</button>
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
