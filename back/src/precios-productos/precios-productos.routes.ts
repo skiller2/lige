@@ -4,7 +4,7 @@ import { preciosProductosController } from "../controller/controller.module";
 
 export const preciosProductosRouter = Router();
 
-preciosProductosRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+preciosProductosRouter.get("/cols-precios", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
     preciosProductosController.getGridCols(req, res);
 });
 
@@ -12,12 +12,15 @@ preciosProductosRouter.get("/colsHistory", [authMiddleware.verifyToken,authMiddl
   preciosProductosController.colsHistory(req, res);
 });
 
+preciosProductosRouter.get("/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  preciosProductosController.getProductos(req, res, next);;
+});
+
 preciosProductosRouter.get("/:codigoHistory", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   preciosProductosController.listCodigoHistory(req.params.codigoHistory, res, next);;
 });
 
-
-  preciosProductosRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+preciosProductosRouter.post('/list-precios', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     preciosProductosController.listPrecios(req, res, next)
 })
 

@@ -975,9 +975,9 @@ export class ApiService {
     )
 
   }
-
+  //PRODUCTOS
   onchangecellPrecioProducto(params: any) {
-    return this.http.post<ResponseJSON<any>>('/api/precios-productos/changecell', params).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/productos/changecell', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
 
     )
@@ -1302,7 +1302,7 @@ export class ApiService {
 
 
   deleteProducto(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/precios-productos`, vals).pipe(
+    return this.http.delete<ResponseJSON<any>>(`/api/productos`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 

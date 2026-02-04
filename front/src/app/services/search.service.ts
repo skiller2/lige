@@ -1056,17 +1056,6 @@ export class SearchService {
     );
   }
 
-  getProductoById(codigoHistory: any): Observable<any> {
-    if (!codigoHistory) return of([]);
-    return this.http.get<ResponseJSON<PersonaObj>>(`api/precios-productos/${codigoHistory}`).pipe(
-      map(res => res.data),
-      catchError((err, caught) => {
-        console.log('Something went wrong!');
-        return of([]);
-      })
-    );
-  }
-
   getObjetivoById(id: number): Observable<any> {
     if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/${id}`).pipe(
@@ -1218,15 +1207,36 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+  // ---------------- Productos ----------------
+  getProductoById(codigoHistory: any): Observable<any> {
+    if (!codigoHistory) return of([]);
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/productos/${codigoHistory}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
   getListaPrecioProductos(filters: any) {
     return this.http
-      .post<ResponseJSON<any>>(`api/precios-productos/list`, filters)
+      .post<ResponseJSON<any>>(`api/productos/list-precios`, filters)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
+
+  getProductos(): Observable<any> {
+      return this.http.get<ResponseJSON<any>>(`api/productos/options`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+    }
 
   getListGrupoActividadGrupos(filters: any) {
     const parameter = filters

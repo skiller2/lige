@@ -14,7 +14,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-drawer/producto-historial-drawer.component'
 import { Component, model, signal, inject, computed } from '@angular/core';
-
+import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
 
 @Component({
     selector: 'app-precios-productos',
@@ -69,11 +69,10 @@ export class PreciosProductosComponent {
 
 
 
-  columns$ = this.apiService.getCols('/api/precios-productos/cols').pipe(
+  columns$ = this.apiService.getCols('/api/productos/cols-precios').pipe(
     switchMap(async (cols) => {
-      const tipoProducto = await firstValueFrom(this.searchService.getTipoProducto());  // [{value:'C',label:'Custodia'},{value:'V',label:'Vigilancia'}
-      const sucursales = await firstValueFrom(this.searchService.getSucursales());
-      return { cols, tipoProducto, sucursales }
+      const productos = await firstValueFrom(this.searchService.getProductos());
+      return { cols, productos:productos.list }
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
@@ -81,21 +80,7 @@ export class PreciosProductosComponent {
           this.hiddenColumnIds.push(col.id as string)
         }
         switch (col.id) {
-          case 'TipoProductoId':
-            col.editor = {
-              model: CustomInputEditor,
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.tipoProducto,
-            }
-
-            break
-          case 'SucursalId':
+          case 'ProductoCodigo':
             col.editor = {
               model: CustomInputEditor,
               collection: [],
@@ -106,10 +91,25 @@ export class PreciosProductosComponent {
               required: true
             }
             col.params = {
-              collection: data.sucursales,
+              collection: data.productos,
             }
 
-            break;
+            break
+          case 'ClienteId':
+            col.params = {
+              complexFieldLabel: 'ClienteId.fullName',
+            },
+            col.editor = {
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: EditorClienteComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+
+            break
           default:
             break;
         }
@@ -137,6 +137,8 @@ export class PreciosProductosComponent {
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //            let undoCommandArr:EditCommand[]=[]
+      editCommand.execute()
+      return
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
 
@@ -161,6 +163,9 @@ export class PreciosProductosComponent {
         row = this.angularGridEdit.dataView.getItemById(row.id)
         const producto = row
         console.log('producto', producto);
+        if (!producto.ProductoCodigo || !producto.fecha || !producto.ProductoCodigo) {
+          
+        }
 
 
         if (!row.dbid)
@@ -201,15 +206,13 @@ export class PreciosProductosComponent {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
     this.itemAddActive = true
+    console.log('regs: ',this.angularGridEdit.dataView.getItems());
+    
     // }else{
     //   this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
     // }
 
   }
-
-
-
-
 
   async deleteItem() {
 
@@ -228,15 +231,15 @@ export class PreciosProductosComponent {
     const newId = highestId + incrementIdByHowMany;
     let isfull = 0
 
-    const fechaActual = new Date();
-    const dia = fechaActual.getDate();
-    const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
-    const anio = fechaActual.getFullYear();
+    // const fechaActual = new Date();
+    // const dia = fechaActual.getDate();
+    // const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
+    // const anio = fechaActual.getFullYear();
 
     return {
       id: newId,
       isfull: 0,
-      fecha: new Date(),
+      fecha: "",
       detalle: ""
 
     };
@@ -284,6 +287,7 @@ export class PreciosProductosComponent {
     switchMap(() => {
       return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
         .pipe(map(data => {
+          console.log('list: ', data.list);    
           return data.list
         })
         )

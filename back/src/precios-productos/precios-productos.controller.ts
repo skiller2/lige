@@ -20,35 +20,57 @@ export class PreciosProductosController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Cliente",
+            name: "CUIT",
             type: "number",
-            id: "ClienteId",
-            field: "ClienteId",
-            fieldName: "pp.ClienteId",
-            searchComponent: "inputForClienteSearch",
+            id: "ClienteCUIT",
+            field: "ClienteCUIT",
+            fieldName: "",
             sortable: true,
             searchHidden: false
         },
         {
+            name: "Cliente",
+            type: "number",
+            id: "ClienteId",
+            field: "ClienteId",
+            fieldName: "c.ClienteId",
+            searchComponent: "inputForClienteSearch",
+            formatter: 'complexObject',
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+        // {
+        //     name: "Razón Social",
+        //     type: "string",
+        //     id: "ClienteDenominacion",
+        //     field: "ClienteDenominacion",
+        //     fieldName: "c.ClienteDenominacion",
+        //     searchType: "string",
+        //     sortable: true,
+        //     searchHidden: false,
+        //     hidden: false,
+        // },
+        {
             id: "ProductoCodigo",
-            name: "ProductoCodigo",
+            name: "Producto",
             field: "ProductoCodigo",
             fieldName: "pp.ProductoCodigo",
             type: "string",
+            formatter: 'collectionFormatter',
             sortable: true,
             searchHidden: false,
             hidden: false,
         },
         {
-            name: "Producto",
+            name: "Nombre",
             type: "string",
             id: "Nombre",
             field: "Nombre",
             fieldName: "p.Nombre",
-            searchType: "string",
             sortable: true,
-            searchHidden: false,
-            hidden: false,
+            searchHidden: true,
+            hidden: true,
         },
         {
             name: "Importe Unitario",
@@ -93,7 +115,7 @@ export class PreciosProductosController extends BaseController {
                 `SELECT 
                     ROW_NUMBER() OVER (ORDER BY prod.cod_producto) AS id,
                     prod.cod_producto AS codigo, 
-                     prod.cod_producto AS codigoOld,
+                    prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre,
                     tip.cod_tipo_producto AS TipoProductoId,
@@ -141,12 +163,12 @@ export class PreciosProductosController extends BaseController {
 
         try {
 
-            const precios = await queryRunner.query(
-                `
+            const precios = await queryRunner.query(`
                 SELECT 
                     ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica,pp.ProductoCodigo,pp.ClienteId) AS id,
                     pp.ProductoCodigo,
-                    pp.ClienteId,
+                    c.ClienteId,
+                    c.ClienteDenominacion,
                     pp.PeriodoDesdeAplica,
                     pp.Importe,
                     pp.ImportDocumentoId,
@@ -492,6 +514,28 @@ export class PreciosProductosController extends BaseController {
             }
         }
       }
+
+    async getProductos(req: any, res: Response, next: NextFunction) {
+ 
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const productos = await queryRunner.query(`
+                SELECT ProductoCodigo value, Nombre label
+                FROM Producto
+            `)
+
+            this.jsonRes({
+                total: productos.length,
+                list: productos,
+            }, res );
+
+        } catch (error) {
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+
+    }
 
 
  

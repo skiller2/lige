@@ -88,7 +88,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/situacion-revista", situacionrevistaRouter)
   server.setRoute("/api/domicilio", domicilioRouter)
   server.setRoute("/api/estudio", estudioRouter)
-  server.setRoute("/api/precios-productos", preciosProductosRouter)
+  server.setRoute("/api/productos", preciosProductosRouter)
   server.setRoute("/api/descripcion-productos", descripcionProductoControllerRouter)
   server.setRoute("/api/grupo-actividad", grupoActividadRouter)
   server.setRoute("/api/seguros", segurosRouter)
