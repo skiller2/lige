@@ -93,4 +93,9 @@ export class MessComponent {
       console.log(error)
     }
   }
+
+   trackByMsgId(index: number, msg: any): any {
+    return msg.id ?? index;
+  }
+
 }

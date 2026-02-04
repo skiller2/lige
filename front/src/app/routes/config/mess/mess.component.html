@@ -28,9 +28,9 @@
   <nz-card style="min-height: 300px;">
 
     <div class="chat-messages">
-      <div *ngFor="let msg of msgs()" class="chat-line" [ngClass]="msg.role">
+      <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line" [ngClass]="msg.role">
         <nz-card nzSize="small">
-          {{ msg.content || msg.tool_calls |json }}
+          {{ msg.content || (msg.tool_calls |json) }}
         </nz-card>
       </div>
     </div>

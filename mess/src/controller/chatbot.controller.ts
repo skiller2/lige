@@ -116,9 +116,9 @@ export class ChatBotController extends BaseController {
 
 
     if (botServer.chatmess[chatId].length == 0)
-      botServer.chatmess[chatId].push({ role: "system", content: botServer.instrucciones, sendIt: true });
+      botServer.chatmess[chatId].push({ id: 0, role: "system", content: botServer.instrucciones, sendIt: true });
 
-    botServer.chatmess[chatId].push({ role: "user", content: req.body.message })
+    botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: req.body.message })
 
     try {
       let recall = false
@@ -131,7 +131,8 @@ export class ChatBotController extends BaseController {
           tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa],
 
         });
-        botServer.chatmess[chatId].push(responseIA.message);
+
+        botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
@@ -169,7 +170,7 @@ export class ChatBotController extends BaseController {
             console.log('tool_calls', tool.function.name, output)
 
             botServer.chatmess[chatId].push({
-              role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
+              id: botServer.chatmess[chatId].length, role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
             });
           }
           recall = true
@@ -180,7 +181,7 @@ export class ChatBotController extends BaseController {
       throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
     }
 
-    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ content: m.content, role: m.role, tool_calls: m.tool_calls }))
+    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls }))
 
     botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 
@@ -308,4 +309,5 @@ export class ChatBotController extends BaseController {
     return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 , SentMethod=@5, SentProvider=@6
       WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1', method, provider]);
   }
-}
+
+ }
