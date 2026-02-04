@@ -30,7 +30,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Cuit Cliente",
+        name: "CUIT Cliente",
         type: "string",
         id: "CuitCliente",
         field: "ClienteFacturacionCUIT",
@@ -41,24 +41,22 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
-        name: "Cod Objetivo",
-        type: "number",
-        id: "ObjetivoCodigo",
-        field: "ObjetivoCodigo",
-        fieldName: "obj.ObjetivoCodigo",
-        searchComponent: "inputForObjetivoSearch",
-
-        sortable: true,
-        hidden: false,
-        searchHidden: false
-    },
-    
-    {
         name: "Razón Social",
         type: "string",
         id: "ClienteDenominacion",
         field: "ClienteDenominacion",
         fieldName: "cli.ClienteDenominacion",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Objetivo",
+        type: "number",
+        id: "ObjetivoCodigo",
+        field: "ObjetivoCodigo",
+        fieldName: "obj.ObjetivoCodigo",
+        searchComponent: "inputForObjetivoSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -74,7 +72,7 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
-        name: "Periodo (Mes/Año)",
+        name: "Periodo",
         type: "string",
         id: "Periodo",
         field: "Periodo",
@@ -84,18 +82,18 @@ const listaColumnas: any[] = [
         searchHidden: true
     },
     {
-        name: "Descripción",
+        name: "Texto Factura",
         type: "string",
-        id: "Descripcion",
-        field: "Descripcion",
-        fieldName: "fac.Descripcion",
+        id: "TextoFactura",
+        field: "TextoFactura",
+        fieldName: "fac.TextoFactura",
         searchType: "string",
         sortable: true,
         hidden: false,
         searchHidden: false
     },
     {
-        name: "Precio Unitario",
+        name: "Importe Unitario",
         type: "float",
         id: "PrecioUnitario",
         field: "PrecioUnitario",
@@ -182,7 +180,7 @@ const listaColumnasDetail: any[] = [
         searchHidden: false
     },
     {
-        name: "Cod Objetivo",
+        name: "Objetivo",
         type: "number",
         id: "ObjetivoCodigo",
         field: "ObjetivoCodigo",
@@ -192,7 +190,7 @@ const listaColumnasDetail: any[] = [
         searchHidden: false
     },
     {
-        name: "Cod Producto",
+        name: "Producto",
         type: "string",
         id: "ProductoCodigo",
         field: "ProductoCodigo",
@@ -212,18 +210,18 @@ const listaColumnasDetail: any[] = [
         searchHidden: true
     },
     {
-        name: "Descripción",
+        name: "Texto Factura",
         type: "string",
-        id: "Descripcion",
-        field: "Descripcion",
-        fieldName: "fac.Descripcion",
+        id: "TextoFactura",
+        field: "TextoFactura",
+        fieldName: "fac.TextoFactura",
         searchType: "string",
         sortable: true,
         hidden: false,
         searchHidden: false
     },
     {
-        name: "Precio Unitario",
+        name: "Importe Unitario",
         type: "float",
         id: "PrecioUnitario",
         field: "PrecioUnitario",
@@ -300,7 +298,7 @@ export class FacturacionController extends BaseController {
                     fac.Mes,
                     fac.Anio,
                     CONCAT(fac.Mes,'/',fac.Anio) AS Periodo,
-                    fac.Descripcion,
+                    fac.TextoFactura,
                     fac.PrecioUnitario,
                     fac.Cantidad,
                     fac.ImporteTotal,
