@@ -69,7 +69,7 @@ export class LiquidacionesController extends BaseController {
         const cbuOld = row[5]
         const cbu = row[7]
 
-        const personabanco = await dataSource.query(
+        const personabanco = await queryRunner.query(
           `SELECT cuit.PersonalCUITCUILCUIT, per.PersonalId, per.PersonalBancoUltNro, ban.PersonalBancoDesde, ban.PersonalBancoId, ban.PersonalBancoCBU FROM Personal per
           JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
           LEFT JOIN PersonalBanco ban ON ban.PersonalId = per.PersonalId AND ISNULL(ban.PersonalBancoHasta,'9999-12-31')>@2 AND ban.PersonalBancoBancoId = @0
@@ -85,26 +85,28 @@ export class LiquidacionesController extends BaseController {
         if (PersonalBancoCBU == cbu)
           continue
 
-        await dataSource.query(
+        await queryRunner.query(
           `UPDATE PersonalBanco SET PersonalBancoHasta=@0 WHERE PersonalId=@1 AND ISNULL(PersonalBancoHasta,'9999-12-31') > @0`, [fechaAyer, PersonalId])
 
-        await dataSource.query(`INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoBancoSucursalId, PersonalBancoCBU, PersonalBancoCC, PersonalBancoCA, PersonalBancoCuentaSueldo, PersonalBancoDesde, PersonalBancoHasta, PersonalBancoAlias)
+        await queryRunner.query(`INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoBancoSucursalId, PersonalBancoCBU, PersonalBancoCC, PersonalBancoCA, PersonalBancoCuentaSueldo, PersonalBancoDesde, PersonalBancoHasta, PersonalBancoAlias)
                       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)`,
           [PersonalId, PersonalBancoUltNro, banco_id, null, cbu, null, null, 1, fechaDesde, null, null])
 
-        await dataSource.query(
+        await queryRunner.query(
           `UPDATE Personal SET PersonalBancoUltNro=@0 WHERE PersonalId=@1`, [PersonalBancoUltNro, PersonalId]
         )
         cant++
       }
 
-
+      await queryRunner.commitTransaction();
       //      throw new ClientException(`Tengo banco_id ${banco_id}`);
       this.jsonRes({ list: [] }, res, `Se Procesaron ${cant} CBUs `);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
