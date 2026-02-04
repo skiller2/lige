@@ -18,9 +18,14 @@
 
 <nz-card>
   <h4>Conversación</h4>
-  <input style="width: 120px" nz-input nz-tooltip [(ngModel)]="chatId" />
 
-  <nz-card>
+    <nz-form-label [nzSpan]="6" nzFor="chatId">Teléfono</nz-form-label>
+    <nz-form-control [nzSpan]="14">
+      <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
+    </nz-form-control>
+
+
+  <nz-card style="min-height: 300px;">
 
     <div class="chat-messages">
       <div *ngFor="let msg of msgs()" class="chat-line" [ngClass]="msg.role">
@@ -34,7 +39,7 @@
 
 
 
-  <input style="width: 120px" nz-input nz-tooltip [(ngModel)]="usermsg" />
+  <input style="width: 300px" nz-input nz-tooltip [(ngModel)]="usermsg" />
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat()">Enviar</button>
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 

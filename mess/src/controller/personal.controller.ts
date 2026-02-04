@@ -452,7 +452,7 @@ José Manuel Cuenca – Síndico
     let response = []
 
 
-    const infoPersonal = this.getPersonalQuery(chatId, personalId)
+    const infoPersonal = await this.getPersonalQuery(chatId, personalId)
     const PersonalNroLegajo = infoPersonal[0].PersonalNroLegajo
     const PersonalFechaIngreso = (infoPersonal[0].PersonalFechaIngreso) ? new Date(infoPersonal[0].PersonalFechaIngreso) : null
     response.push(`Su número de socio: ${PersonalNroLegajo}`)

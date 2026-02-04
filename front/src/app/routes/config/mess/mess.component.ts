@@ -66,7 +66,9 @@ export class MessComponent {
     localStorage.setItem('chatId', this.chatId())
     const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(), this.chatId()))
     console.log('resp', resp.response)
-    this.msgs.set([...this.msgs(), resp.response])
+    const newmsgs = this.msgs()
+    newmsgs.push(...resp.response)
+    this.msgs.set(newmsgs)
   }
 
   async reiniciaChat() {

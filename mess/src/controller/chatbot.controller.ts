@@ -83,7 +83,7 @@ export class ChatBotController extends BaseController {
       description: 'Get personal information for a phone number and personal',
       parameters: {
         type: 'object',
-        required: ['phoneNumber','personalId'],
+        required: ['phoneNumber', 'personalId'],
         properties: {
           phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
           personalId: { type: 'number', description: 'The personal id to get info for' },
@@ -109,16 +109,16 @@ export class ChatBotController extends BaseController {
 
     if (req.body.message.trim() == '')
       return this.jsonRes({ 'response': [] }, res, 'ok');
-    const chatId:string = req.body.chatId
+    const chatId: string = req.body.chatId
     if (!botServer.chatmess[chatId])
       botServer.chatmess[chatId] = []
 
 
 
     if (botServer.chatmess[chatId].length == 0)
-      botServer.chatmess[chatId].push({ role: "system", content: botServer.instrucciones, sendIt:true  });
+      botServer.chatmess[chatId].push({ role: "system", content: botServer.instrucciones, sendIt: true });
 
-    botServer.chatmess[chatId].push({ role: "user", content: req.body.message})
+    botServer.chatmess[chatId].push({ role: "user", content: req.body.message })
 
     try {
       let recall = false
@@ -128,7 +128,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState,this.delTelefonoPersona,this.genTelCode ]
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa],
 
         });
         botServer.chatmess[chatId].push(responseIA.message);
@@ -136,35 +136,35 @@ export class ChatBotController extends BaseController {
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
           for (const tool of responseIA.message.tool_calls) {
-            let output={}
+            let output = {}
             switch (tool.function.name) {
               case 'genTelCode':
                 const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
                 const ret = await personalController.genTelCode(chatId)
-                output = {url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro,linkVigenciaHs}
+                output = { url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
                 break;
               case 'getPersonaState':
                 output = await personalController.getPersonaState(chatId)
                 break;
-              case 'delTelefonoPersona': 
+              case 'delTelefonoPersona':
                 output = await personalController.delTelefonoPersona(chatId)
                 break;
-              case 'removeCode': 
+              case 'removeCode':
                 output = await personalController.removeCode(chatId)
                 break;
-              case 'getInfoPersonal': 
+              case 'getInfoPersonal':
                 const personalId = tool.function.arguments.personalId
                 output = await personalController.getInfoPersonal(personalId, chatId)
                 break;
-              case 'getInfoEmpresa': 
+              case 'getInfoEmpresa':
                 output = await personalController.getInfoEmpresa()
                 break;
-              
+
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }
 
-//            const output = await functionToCall(tool.function.arguments);
+            //            const output = await functionToCall(tool.function.arguments);
 
             console.log('tool_calls', tool.function.name, output)
 
@@ -180,8 +180,8 @@ export class ChatBotController extends BaseController {
       throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
     }
 
-    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ content: m.content, role: m.role, tool_calls:m.tool_calls }))
-    
+    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ content: m.content, role: m.role, tool_calls: m.tool_calls }))
+
     botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 
 
