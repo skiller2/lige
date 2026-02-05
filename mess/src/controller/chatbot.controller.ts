@@ -120,6 +120,37 @@ export class ChatBotController extends BaseController {
       },
     },
   }
+
+  getLastPeriodoOfComprobantes = {
+    type: 'function',
+    function: {
+      name: 'getLastPeriodoOfComprobantes',
+      description: 'Get list of recibos in PDF of type RECIBO ',
+      parameters: {
+        type: 'object',
+        required: ['personalId','cant'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+          cant: { type: 'number', description: 'The number of period back' },
+        }
+      },
+    },
+  }
+  
+  getDocsPendDescarga = {
+    type: 'function',
+    function: {
+      name: 'getDocsPendDescarga',
+      description: 'Get list of documents pending download ',
+      parameters: {
+        type: 'object',
+        required: ['personalId'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+        }
+      },
+    },
+  }
   
   getURLDocumentoInfo = {
     type: 'function',
@@ -163,7 +194,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoInfo],
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes],
 
         });
 
@@ -189,20 +220,30 @@ export class ChatBotController extends BaseController {
                 output = await personalController.removeCode(chatId)
                 break;
               case 'getInfoPersonal':
-                const personalId = tool.function.arguments.personalId
-                output = await personalController.getInfoPersonal(personalId, chatId)
+                output = await personalController.getInfoPersonal(tool.function.arguments.personalId, chatId)
                 break;
               case 'getInfoEmpresa':
                 output = await personalController.getInfoEmpresa()
                 break;
-
               case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, tool.function.arguments.cant).then(array => { return array })
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(tool.function.arguments.personalId, tool.function.arguments.cant).then(array => { return array })
+                break;                
+              case 'getLastPeriodoOfComprobantes':
+                output = await documentosController.getLastPeriodoOfComprobantes(tool.function.arguments.personalId, tool.function.arguments.cant).then(array => { return array })
+                break;                
+              case 'getDocsPendDescarga':
+                output = await personalController.getDocsPendDescarga(tool.function.arguments.personalId)
+
+                //const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
+
                 break;                
               case 'getURLDocumento':
-                //'MONOT'
-                output = await this.getURLDocumento(personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.tipoDoc)
-                break;                
+                try {
+                  output = await this.getURLDocumento(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.tipoDoc)
+                } catch (e) {
+                  output = { Error: e }
+                }
+                  break;                
 
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
