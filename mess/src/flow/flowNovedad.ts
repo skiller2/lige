@@ -392,8 +392,6 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
 
                     await novedadController.sendMsgResponsable(novedad)
 
-                    if (!process.env.PERSONALID_TEST)
-                        await novedadController.saveNovedad(personalId, {})
 
                     await flowDynamic([`Enviado con éxito.`], { delay: delay })
                 } else {

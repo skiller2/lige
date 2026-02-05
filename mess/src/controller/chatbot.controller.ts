@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "fs";
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
-import { documentosController, personalController } from "./controller.module.ts";
+import { documentosController, personalController,novedadController,objetivoController } from "./controller.module.ts";
 import { PersonalController } from "./personal.controller.ts";
 
 export class ChatBotController extends BaseController {
@@ -235,6 +235,86 @@ export class ChatBotController extends BaseController {
     },
   }
 
+  getBackupNovedad = {
+    type: 'function',
+    function: {
+      name: 'getBackupNovedad',
+      description: 'Read news object in cache',
+      parameters: {
+        type: 'object',
+        required: ['personalId'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
+        }
+      },
+    },
+  }
+
+  saveNovedad = {
+    type: 'function',
+    function: {
+      name: 'saveNovedad',
+      description: 'Save news object to cache',
+      parameters: {
+        type: 'object',
+        required: ['personalId','novedad'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
+          novedad: { type: 'object', description: 'Object of news {}' },
+        }
+      },
+    },
+  }
+
+  getObjetivoByCodObjetivo = {
+    type: 'function',
+    function: {
+      name: 'getObjetivoByCodObjetivo',
+      description: 'get the name of target by his code',
+      parameters: {
+        type: 'object',
+        required: ['CodObjetivo'],
+        properties: {
+          CodObjetivo: { type: 'string', description: 'Target code like 231/1' },
+        }
+      },
+    },
+  }
+
+  addNovedad = {
+    type: 'function',
+    function: {
+      name: 'addNovedad',
+      description: 'save news to sistem and send to person',
+      parameters: {
+        type: 'object',
+        required: ['CodObjetivo'],
+        properties: {
+          novedad: { type: 'object', description: 'Object of news {}' },
+//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
+        }
+      },
+    },
+  }
+
+  getNovedadTipo = {
+    type: 'function',
+    function: {
+      name: 'getNovedadTipo',
+      description: 'get news type',
+      parameters: {
+        type: 'object',
+        required: [],
+        properties: {
+        }
+      },
+    },
+  }
+
+
+
+
   async chat(req: Request, res: Response, next: NextFunction) {
 
     if (req.body.message.trim() == '')
@@ -258,7 +338,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto],
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto, this.getBackupNovedad, this.saveNovedad, this.getObjetivoByCodObjetivo, this.getNovedadTipo, this.addNovedad],
 
         });
 
@@ -313,18 +393,29 @@ export class ChatBotController extends BaseController {
                 await personalController.setPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.importe)
                 output = {response:'OK'}
                 break;                
-               
               case 'getURLDocumentoNew':
                 try {
                   output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId)
                 } catch (e) {
                   output = { Error: e }
                 }
-                  break;                
+                break;
+              case 'getBackupNovedad':
+                output = await novedadController.getBackupNovedad(tool.function.arguments.personalId)
+                break;
+              case 'saveNovedad':
+                output = await novedadController.saveNovedad(tool.function.arguments.personalId, tool.function.arguments.novedad)
+                break;
+              case 'getObjetivoByCodObjetivo':
+                output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
+                break;
+              case 'getNovedadTipo':
+                output = await novedadController.getNovedadTipo()
+                break;
+              case 'addNovedad':
+                output = await novedadController.addNovedad(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
+                break;
 
-              
-              
-              
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }

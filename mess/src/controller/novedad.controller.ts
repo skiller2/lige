@@ -34,7 +34,7 @@ export class NovedadController extends BaseController {
     }
   }
 
-  async saveNovedad(personalId: string, novedad: any) {
+  async saveNovedad(personalId: number, novedad: any) {
     const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)
     const queryRunner = dbServer.dataSource.createQueryRunner();
 
@@ -49,7 +49,7 @@ export class NovedadController extends BaseController {
     return res
   }
 
-  async getBackupNovedad(personalId: string) {
+  async getBackupNovedad(personalId: number) {
     const result = await dbServer.dataSource.query(`
       SELECT JsonNovedad
       FROM BotRegTelefonoPersonal
@@ -95,6 +95,11 @@ export class NovedadController extends BaseController {
       ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@10,@11,@11,@12,@12)`, 
        [NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod, jsonNovedad, now, '::1', 'bot'])
 
+    
+    
+//    if (!process.env.PERSONALID_TEST)
+        await this.saveNovedad(PersonalId, {})
+    
     return NovedadCodigo
   }
 
