@@ -87,7 +87,7 @@ export class NovedadController extends BaseController {
     const NovedadTipoCod = novedad.Tipo.NovedadTipoCod
     const now: Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
-    const NovedadCodigo = await this.getProxNumero(dbServer.dataSource, `Novedad`, 'bot', '::1')
+    const NovedadCodigo = await BaseController.getProxNumero(dbServer.dataSource, `Novedad`, 'bot', '::1')
     await dbServer.dataSource.query(`
       INSERT INTO Novedad (
         NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,

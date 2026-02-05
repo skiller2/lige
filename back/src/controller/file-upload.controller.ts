@@ -466,7 +466,7 @@ export class FileUploadController extends BaseController {
 
         if (!doc_id) {
           // INSERT DOCUMENTO
-          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
+          doc_id = await BaseController.getProxNumero(queryRunner, 'Documento', usuario, ip);
           let type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
@@ -636,7 +636,7 @@ export class FileUploadController extends BaseController {
 
         if (!doc_id) {
           // INSERT DOCUMENTO
-          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
+          doc_id = await BaseController.getProxNumero(queryRunner, 'Documento', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
 
@@ -785,7 +785,7 @@ export class FileUploadController extends BaseController {
 
         if (!doc_id) {
           // INSERT DOCUMENTO
-          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
+          doc_id = await BaseController.getProxNumero(queryRunner, 'Documento', usuario, ip);
           let type = file.mimetype.split('/')[1]
 
           if (type == 'pdf') detalle_documento = await FileUploadController.FileData(file.tempfilename)
@@ -942,7 +942,7 @@ export class FileUploadController extends BaseController {
         throw new ClientException(`Tipo de tabla no especificada`)
         if (!doc_id) {
           // INSERT DOCUMENTO
-          doc_id = await this.getProxNumero(queryRunner, 'Documento', usuario, ip);
+          doc_id = await BaseController.getProxNumero(queryRunner, 'Documento', usuario, ip);
 
           const type = file.mimetype.split('/')[1]
 
@@ -1077,24 +1077,6 @@ export class FileUploadController extends BaseController {
       ]
     );
   }
-
-
-
-  static async getProxNumero(queryRunner: any, NumeradorCodigo: String, usuario: string, ip: string) {
-    const fechaActual = new Date()
-    let DenNumero = 1
-    const numerador = await queryRunner.query('SELECT DenNumero FROM GenNumerador WHERE NumeradorCodigo=@0', [NumeradorCodigo])
-    if (numerador.length == 0) {
-      await queryRunner.query(`INSERT INTO GenNumerador (NumeradorCodigo,DenNumero,AudUsuarioIng,AudIpIng,AudFechaIng,AudUsuarioMod,AudIpMod,AudFechaMod) 
-          VALUES(@0,@1,@2,@3,@4,@5,@6,@7)`, [NumeradorCodigo, DenNumero, usuario, ip, fechaActual, usuario, ip, fechaActual])
-    } else {
-      DenNumero = numerador[0]['DenNumero'] + 1
-      await queryRunner.query(`UPDATE GenNumerador SET DenNumero=@1, AudUsuarioMod=@2,AudIpMod=@3,AudFechaMod=@4 WHERE NumeradorCodigo=@0`,
-        [NumeradorCodigo, DenNumero, usuario, ip, fechaActual])
-    }
-    return DenNumero
-  }
-
 
   async deleleTemporalFiles(req, res, next) {
     try {

@@ -687,7 +687,7 @@ export class LiquidacionesBancoController extends BaseController {
         throw new ClientException('Existen movimientos pendientes de aplicar para el banco seleccionado')
 
 
-      const nro_envio = await this.getProxNumero(queryRunner, `banco_${BancoId}`, usuario, ip)
+      const nro_envio = await BaseController.getProxNumero(queryRunner, `banco_${BancoId}`, usuario, ip)
 
       const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-', '')
 

@@ -544,7 +544,7 @@ export class NovedadesController extends BaseController {
             await this.FormValidations(Obj)
 
 
-            const novedadId = await this.getProxNumero(queryRunner, `Novedad`, res.locals.PersonalId, ip)
+            const novedadId = await BaseController.getProxNumero(queryRunner, `Novedad`, res.locals.PersonalId, ip)
 
             const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
             Obj.ClienteId = objetivo[0].ClienteId

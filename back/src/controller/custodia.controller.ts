@@ -880,7 +880,7 @@ export class CustodiaController extends BaseController {
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
 
-            const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
+            const objetivoCustodiaId = await BaseController.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
 
             const fecha_liquidacion = (this.valByEstado(req.body.estado)) ? new Date() : null
 

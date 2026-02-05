@@ -320,7 +320,7 @@ export class BaseController {
   }
 
 
-  async getProxNumero(queryRunner: any, NumeradorCodigo: String, usuario: string, ip: string) {
+  static async getProxNumero(queryRunner: any, NumeradorCodigo: String, usuario: string, ip: string) {
     const fechaActual = new Date()
     let DenNumero = 1
     const numerador = await queryRunner.query('SELECT DenNumero FROM GenNumerador WHERE NumeradorCodigo=@0', [NumeradorCodigo])
@@ -364,7 +364,7 @@ export class BaseController {
 
     await queryRunner.startTransaction();
     const fechaActual = new Date()
-    const ProcesoAutomaticoLogCodigo = await this.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
+    const ProcesoAutomaticoLogCodigo = await BaseController.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
     const EstadoCod = 'EJE'
 
     await queryRunner.query(

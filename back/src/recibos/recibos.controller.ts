@@ -172,10 +172,10 @@ export class RecibosController extends BaseController {
         persona_id = movimiento.PersonalId
         const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        DocumentoId = await this.getProxNumero(queryRunner, `Documento`, usuario, ip)
+        DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
 
         if (!isUnique)
-          den_documento = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+          den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
 
         await this.setUsuariosLiquidacionDocumento(
           queryRunner,

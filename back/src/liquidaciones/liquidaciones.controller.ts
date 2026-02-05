@@ -634,7 +634,7 @@ export class LiquidacionesController extends BaseController {
       const sheet1 = workSheetsFromBuffer[0];
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
-      const convalorimpoexpo_id = await this.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
+      const convalorimpoexpo_id = await BaseController.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
 
       let contador = 0
 

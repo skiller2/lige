@@ -286,7 +286,7 @@ export class BaseController {
   }
 
 
-  async getProxNumero(queryRunner: any, NumeradorCodigo: String, usuario: string, ip: string) {
+  static async getProxNumero(queryRunner: any, NumeradorCodigo: String, usuario: string, ip: string) {
     const fechaActual = new Date()
     let DenNumero = 1
     const numerador = await queryRunner.query('SELECT DenNumero FROM GenNumerador WHERE NumeradorCodigo=@0', [NumeradorCodigo])
