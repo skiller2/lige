@@ -1909,13 +1909,13 @@ export class GestionDescuentosController extends BaseController {
       let campos_vacios: any[] = [];
 
 
-        ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-          queryRunner,
-          `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
-          { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
-          usuario,
-          ip
-        ))
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+        queryRunner,
+        `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
+        { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
+        usuario,
+        ip
+      ))
 
 
       if (!anioRequest || !mesRequest) campos_vacios.push(`- Periodo`);

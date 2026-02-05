@@ -1358,7 +1358,7 @@ UNION ALL
         const usuario = res?.locals.userName || 'server'
         const ip = this.getRemoteAddress(req)
         let registrosActualizados = 0
-        let ProcesoAutomaticoLogCodigo =0
+        let ProcesoAutomaticoLogCodigo = 0
         const { year: anio, month: mes } = this.getPreviousMonthYear(req.body.anio, req.body.mes);
 
 
