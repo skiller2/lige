@@ -1139,7 +1139,7 @@ export class NovedadesController extends BaseController {
                     SELECT dr.DocumentoId, dr.NovedadCodigo, doc.DocumentoNombreArchivo, doc.DocumentoPath
                     FROM DocumentoRelaciones dr
                     LEFT JOIN Documento doc ON doc.DocumentoId = dr.DocumentoId
-                    WHERE NovedadCodigo IN (@0)
+                    WHERE dr.NovedadCodigo IN (@0)
                 `, [novedad.NovedadCodigo])
 
                 //Filtra Documentos Relacionados por imagen
