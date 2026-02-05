@@ -161,13 +161,13 @@ export class PreciosProductosController extends BaseController {
             const precios = await queryRunner.query(`
                 SELECT 
                     ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica,pp.ProductoCodigo,pp.ClienteId) AS id,
-                    CONCAT(pp.ProductoCodigo, c.ClienteId) AS idTable,
+                    CONCAT(pp.ProductoCodigo, '-', c.ClienteId) AS idTable,
                     pp.ProductoCodigo,
                     pp.ProductoCodigo AS ProductoCodigoOLD,
-                    c.ClienteId AS c.ClienteIdOLD,
-                    --c.ClienteDenominacion,
+                    c.ClienteId AS ClienteIdOLD,
+                    c.ClienteDenominacion,
                     pp.PeriodoDesdeAplica,
-                    pp.PeriodoDesdeAplica AS c.PeriodoDesdeAplicaOLD,
+                    pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
                     pp.Importe,
                     --pp.ImportDocumentoId,
                     --pp.AudFechaIng,
@@ -264,7 +264,7 @@ export class PreciosProductosController extends BaseController {
                         ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
                     ])
                 }
-                
+
                 dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
               
