@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "fs";
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
-import { personalController } from "./controller.module.ts";
+import { documentosController, personalController } from "./controller.module.ts";
 
 export class ChatBotController extends BaseController {
 
@@ -105,6 +105,41 @@ export class ChatBotController extends BaseController {
     },
   }
 
+  getLastPeriodosOfComprobantesAFIP = {
+    type: 'function',
+    function: {
+      name: 'getLastPeriodosOfComprobantesAFIP',
+      description: 'Get list of periods of paid tickets in PDF of type MONOT ',
+      parameters: {
+        type: 'object',
+        required: ['personalId','cant'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+          cant: { type: 'number', description: 'The number of period back' },
+        }
+      },
+    },
+  }
+  
+  getURLDocumentoInfo = {
+    type: 'function',
+    function: {
+      name: 'getURLDocumento',
+      description: 'Get URL to download required document in PDF ',
+      parameters: {
+        type: 'object',
+        required: ['personalId','anio','mes'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+          anio: { type: 'number', description: 'The number of year' },
+          mes: { type: 'number', description: 'The number of month' },
+          tipoDoc: { type: 'string', description: 'Tipe of Document' },
+
+        }
+      },
+    },
+  }
+
   async chat(req: Request, res: Response, next: NextFunction) {
 
     if (req.body.message.trim() == '')
@@ -128,7 +163,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa],
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoInfo],
 
         });
 
@@ -160,6 +195,14 @@ export class ChatBotController extends BaseController {
               case 'getInfoEmpresa':
                 output = await personalController.getInfoEmpresa()
                 break;
+
+              case 'getLastPeriodosOfComprobantesAFIP':
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, tool.function.arguments.cant).then(array => { return array })
+                break;                
+              case 'getURLDocumento':
+                //'MONOT'
+                output = await this.getURLDocumento(personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.tipoDoc)
+                break;                
 
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);

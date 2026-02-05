@@ -62,13 +62,26 @@ export class MessComponent {
   usermsg = signal('')
   chatId = signal('');
   msgs = signal<any[]>([])
-  async enviaChat() {
+  async enviaChat($event: any) {
+    
+    const btn = $event.currentTarget as HTMLButtonElement;
+
+    btn.disabled = true;
+
     localStorage.setItem('chatId', this.chatId())
-    const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(), this.chatId()))
-    console.log('resp', resp.response)
-    const newmsgs = this.msgs()
-    newmsgs.push(...resp.response)
-    this.msgs.set(newmsgs)
+
+
+    try {
+      const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(), this.chatId()))
+
+      const newMsg: any[] = resp.response
+
+      this.msgs.update(list => [...list, ...resp.response]);
+
+      this.usermsg.set('')
+    } catch{}
+    btn.disabled = false
+
   }
 
   async reiniciaChat() {
@@ -94,7 +107,7 @@ export class MessComponent {
     }
   }
 
-   trackByMsgId(index: number, msg: any): any {
+  trackByMsgId(index: number, msg: any): any {
     return msg.id ?? index;
   }
 

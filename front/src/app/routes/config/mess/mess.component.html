@@ -28,7 +28,7 @@
   <nz-card style="min-height: 300px;">
 
     <div class="chat-messages">
-      <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line" [ngClass]="msg.role">
+      <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line" [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
         <nz-card nzSize="small">
           {{ msg.content || (msg.tool_calls |json) }}
         </nz-card>
@@ -40,7 +40,7 @@
 
 
   <input style="width: 300px" nz-input nz-tooltip [(ngModel)]="usermsg" />
-  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat()">Enviar</button>
+  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat($event)">Enviar</button>
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
 </nz-card>
