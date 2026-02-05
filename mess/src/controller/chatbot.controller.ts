@@ -152,20 +152,16 @@ export class ChatBotController extends BaseController {
     },
   }
   
-  getURLDocumentoInfo = {
+  getURLDocumentoNewInfo = {
     type: 'function',
     function: {
-      name: 'getURLDocumento',
+      name: 'getURLDocumentoNew',
       description: 'Get URL to download required document in PDF ',
       parameters: {
         type: 'object',
-        required: ['personalId','anio','mes'],
+        required: ['DocumentoId'],
         properties: {
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-          anio: { type: 'number', description: 'The number of year' },
-          mes: { type: 'number', description: 'The number of month' },
-          tipoDoc: { type: 'string', description: 'Tipe of Document' },
-
+          DocumentoId: { type: 'number', description: 'The id of the document' },
         }
       },
     },
@@ -194,7 +190,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes],
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes],
 
         });
 
@@ -237,9 +233,9 @@ export class ChatBotController extends BaseController {
                 //const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
 
                 break;                
-              case 'getURLDocumento':
+              case 'getURLDocumentoNew':
                 try {
-                  output = await this.getURLDocumento(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.tipoDoc)
+                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId)
                 } catch (e) {
                   output = { Error: e }
                 }

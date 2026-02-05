@@ -336,6 +336,25 @@ export class BaseController {
   pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
   apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
 
+  async getURLDocumentoNew(DocumentoId: number) {
+    const queryRunner = dbServer.dataSource.createQueryRunner();
+    const doc = await queryRunner.query(`
+        SELECT * from Documento doc
+        WHERE doc.DocumentoId=@0`,
+      [DocumentoId]
+    )
+    if (!doc[0])
+      throw new ClientException(`Documento no localizado en el sistema (${DocumentoId})`)
+    
+    if (existsSync(this.pathDocuments + '/' + doc[0].DocumentoPath)) {
+      const url = `${this.apiPath}/documentos/download/${DocumentoId}/${doc[0].DocumentoTipoCodigo}-${doc[0].DocumentoNombreArchivo}`;
+      return {url}
+    } else {
+      throw new ClientException(`Documento no localizado`, this.pathDocuments + '/' + doc[0].DocumentoPath)
+    }      
+  }
+
+
   async getURLDocumento(
     personalId: number,
     year: number,

@@ -20,7 +20,8 @@ export class DocumentosController extends BaseController {
     try {
       // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
-        SELECT TOP ${cant} per.anio, per.mes FROM lige.dbo.liqmaperiodo per
+        SELECT TOP ${cant} per.anio, per.mes, doc.DocumentoId, doc.DocumentoTipoCodigo, doc.DocumentoNombreArchivo
+        FROM lige.dbo.liqmaperiodo per
         JOIN documento doc ON per.anio = doc.Documentoanio AND per.mes = doc.Documentomes
         WHERE doc.personalid = @0 AND doc.DocumentoTipoCodigo = 'REC'      
         ORDER BY per.anio DESC,per.mes DESC`, 
@@ -38,10 +39,12 @@ export class DocumentosController extends BaseController {
     try {
       // await queryRunner.startTransaction()
       const respuesta = await queryRunner.query(`
-        SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio
+        SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio, doc.DocumentoId, doc.DocumentoTipoCodigo, doc.DocumentoNombreArchivo
         FROM PersonalComprobantePagoAFIP  des 
-        WHERE des.PersonalId = @0 
-        ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC`,
+        JOIN Documento doc ON doc.PersonalId = des.PersonalId AND doc.DocumentoMes = des.PersonalComprobantePagoAFIPMes AND doc.DocumentoAnio = des.PersonalComprobantePagoAFIPAno AND doc.DocumentoTipoCodigo = 'MONOT'
+        WHERE des.PersonalId = @0
+        ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC
+        `,
         [personalId])
       // await queryRunner.commitTransaction()
 
