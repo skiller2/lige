@@ -805,12 +805,14 @@ export class LiquidacionesBancoController extends BaseController {
 
       }
 
-      res.download(tmpfilename, fileName, async (msg) => {
 
         if (isTest)
           await this.rollbackTransaction(queryRunner)
         else
           await queryRunner.commitTransaction();
+
+      res.download(tmpfilename, fileName, async (msg) => {
+
 
       });
 

@@ -730,4 +730,3 @@ export class LiquidacionesController extends BaseController {
     }
   }
 }
-
