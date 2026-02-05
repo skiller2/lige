@@ -10,6 +10,16 @@ export class PersonalController extends BaseController {
     const FormaPrestamoId = 7 //Adelanto
     const usuario = 'bot'
 
+    const { maxImporte, minImporte, fechaLimite } = PersonalController.getAdelantoLimits(now)
+    
+    if (monto > maxImporte)
+      throw new ClientException("El monto informado supera el límite")
+    if (monto < minImporte)
+      throw new ClientException("El monto informado se encuentra por debajo del límite")
+    if (now > fechaLimite)
+      throw new ClientException("Fuera de vigencia para agregar o modificar un adelanto")
+
+
 
     await dbServer.dataSource.query(
       `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
@@ -66,6 +76,12 @@ export class PersonalController extends BaseController {
 
   async deletePersonalAdelanto(personalId: any, anio: any, mes: any) {
     const FormaPrestamoId = 7 //Adelanto
+    const now = new Date()
+    const { maxImporte, minImporte, fechaLimite } = PersonalController.getAdelantoLimits(now)
+    
+    if (now > fechaLimite)
+      throw new ClientException("Fuera de vigencia para eliminar un adelanto")
+
 
     const adelanto: any = await dbServer.dataSource.query(`
       SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
