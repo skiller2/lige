@@ -408,6 +408,14 @@ export class PersonalController extends BaseController {
 
   }
 
+
+  static getAdelantoLimits(fecha) {
+        const maxImporte = 100000
+        const minImporte = 10000
+        const fechaLimite = new Date(fecha.getFullYear(), fecha.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
+    return {maxImporte, minImporte, fechaLimite}
+  }
+
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
     return await dbServer.dataSource.query(`
       SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado FROM PersonalPrestamo ade

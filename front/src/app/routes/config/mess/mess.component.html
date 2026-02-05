@@ -29,9 +29,13 @@
 
     <div class="chat-messages">
       <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line" [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
+        
+        @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
+
         <nz-card nzSize="small">
           {{ msg.content || (msg.tool_calls |json) }}
         </nz-card>
+        }
       </div>
     </div>
 
@@ -43,7 +47,13 @@
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat($event)">Enviar</button>
   <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
+  <label style="display:inline-flex; gap:8px; align-items:center; margin-left: 12px;">
+    <input type="checkbox" [checked]="showTools()" (change)="toggleShowTools($event)" />
+    Mostrar uso de herramientas
+  </label>
+
 </nz-card>
+
 <!--
 <nz-card class="small-margin">
 

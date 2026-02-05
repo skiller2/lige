@@ -15,9 +15,9 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         const actual = new Date()
         const anio = actual.getFullYear()
         const mes = actual.getMonth() + 1
-        const maxImporte = 100000
-        const minImporte = 10000
-        const fechaLimite = new Date(actual.getFullYear(), actual.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
+
+        const {maxImporte, minImporte, fechaLimite }= PersonalController.getAdelantoLimits(actual)
+
 
         const adelanto = await PersonalController.getPersonalAdelanto(personalId, anio, mes)
         await state.update({ adelanto: { anio, mes, maxImporte, minImporte } })

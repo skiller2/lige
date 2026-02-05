@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "fs";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
 import { documentosController, personalController } from "./controller.module.ts";
+import { PersonalController } from "./personal.controller.ts";
 
 export class ChatBotController extends BaseController {
 
@@ -23,9 +24,9 @@ export class ChatBotController extends BaseController {
       description: 'Check if a phone number exists in the database',
       parameters: {
         type: 'object',
-        required: ['phoneNumber'],
+        required: [],
         properties: {
-          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
         }
       },
     },
@@ -38,9 +39,9 @@ export class ChatBotController extends BaseController {
       description: 'create special code to register phone number',
       parameters: {
         type: 'object',
-        required: ['phoneNumber'],
+        required: [],
         properties: {
-          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
         }
       },
     },
@@ -53,9 +54,9 @@ export class ChatBotController extends BaseController {
       description: 'delete a phone number from the database',
       parameters: {
         type: 'object',
-        required: ['phoneNumber'],
+        required: [],
         properties: {
-          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
         }
       },
     },
@@ -68,9 +69,9 @@ export class ChatBotController extends BaseController {
       description: 'Remove the verification code for a phone number',
       parameters: {
         type: 'object',
-        required: ['phoneNumber'],
+        required: [],
         properties: {
-          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+  //        phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
         }
       },
     },
@@ -83,9 +84,9 @@ export class ChatBotController extends BaseController {
       description: 'Get personal information for a phone number and personal',
       parameters: {
         type: 'object',
-        required: ['phoneNumber', 'personalId'],
+        required: ['personalId'],
         properties: {
-          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
+//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
           personalId: { type: 'number', description: 'The personal id to get info for' },
         }
       },
@@ -167,6 +168,73 @@ export class ChatBotController extends BaseController {
     },
   }
 
+  getAdelantoLimits = {
+    type: 'function',
+    function: {
+      name: 'getAdelantoLimits',
+      description: 'Get Limits for asking Salary advance',
+      parameters: {
+        type: 'object',
+        required: ['fecha'],
+        properties: {
+          fecha: { type: 'date', description: 'Current date' },
+        }
+      },
+    },
+  }
+
+  getPersonalAdelanto = {
+    type: 'function',
+    function: {
+      name: 'getPersonalAdelanto',
+      description: 'Get current Salary advance already asked',
+      parameters: {
+        type: 'object',
+        required: ['personalId','anio','mes'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+          anio: { type: 'number', description: 'The year to get info for' },
+          mes: { type: 'number', description: 'The month to get info for' },
+        }
+      },
+    },
+  }
+
+  deletePersonalAdelanto = {
+    type: 'function',
+    function: {
+      name: 'deletePersonalAdelanto',
+      description: 'Delete current Salary advance already asked',
+      parameters: {
+        type: 'object',
+        required: ['personalId','anio','mes'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to get info for' },
+          anio: { type: 'number', description: 'The year to get info for' },
+          mes: { type: 'number', description: 'The month to get info for' },
+        }
+      },
+    },
+  }
+  
+  setPersonalAdelanto = {
+    type: 'function',
+    function: {
+      name: 'setPersonalAdelanto',
+      description: 'Set Salary advance',
+      parameters: {
+        type: 'object',
+        required: ['personalId','anio','mes','importe'],
+        properties: {
+          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
+          anio: { type: 'number', description: 'The year to set salary advance for' },
+          mes: { type: 'number', description: 'The month to set salary advance for' },
+          importe: { type: 'currency', description: 'The amount to set salary advance for' },
+        }
+      },
+    },
+  }
+
   async chat(req: Request, res: Response, next: NextFunction) {
 
     if (req.body.message.trim() == '')
@@ -190,7 +258,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes],
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto],
 
         });
 
@@ -229,10 +297,23 @@ export class ChatBotController extends BaseController {
                 break;                
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(tool.function.arguments.personalId)
-
-                //const urlDoc = `${apiPath}/documentos/download/${documento.DocumentoId}/${documento.DocumentoTipoCodigo}-${documento.DocumentoNombreArchivo}`;
-
                 break;                
+              case 'getAdelantoLimits':
+                tool.function.arguments.fecha = new Date()
+                output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
+                break;                
+              case 'getPersonalAdelanto':
+                output = await PersonalController.getPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes)
+                break;
+              case 'deletePersonalAdelanto':
+                await personalController.deletePersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes)
+                output = {response:'OK'}
+                break;                
+              case 'setPersonalAdelanto':
+                await personalController.setPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.importe)
+                output = {response:'OK'}
+                break;                
+               
               case 'getURLDocumentoNew':
                 try {
                   output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId)
@@ -241,6 +322,9 @@ export class ChatBotController extends BaseController {
                 }
                   break;                
 
+              
+              
+              
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }

@@ -29,6 +29,13 @@ export class MessComponent {
   mensaje = model('')
   destino = model('')
 
+  showTools = signal<boolean>(false);
+
+
+  toggleShowTools(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    this.showTools.set(!!input.checked);
+  }
 
 
   private apiService = inject(ApiService)
