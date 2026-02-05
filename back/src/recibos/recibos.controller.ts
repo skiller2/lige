@@ -117,8 +117,11 @@ export class RecibosController extends BaseController {
     let den_documento: number
     let directorPathUnique = ""
     const fechaActual = new Date();
-    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner,"Recibos",req.body,usuario,ip)
+    let ProcesoAutomaticoLogCodigo = 0
+
     try {
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner,"Recibos",req.body,usuario,ip))
+
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 

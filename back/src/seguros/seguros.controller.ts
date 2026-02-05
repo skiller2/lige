@@ -153,7 +153,7 @@ const listaColumnasPoliza: any[] = [
     hidden: true,
     searchHidden: true
   },
-   {
+  {
     name: "Tipo seguro",
     type: "string",
     id: "TipoSeguroNombre",
@@ -509,19 +509,22 @@ UNION
 
     let segAltas = 0, segBajas = 0
     const queryRunner = dataSource.createQueryRunner();
+    let ProcesoAutomaticoLogCodigo = 0
 
 
-    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-      queryRunner,
-      `Actualización de Seguros ${mes}/${anio}`,
-      { anio, mes, usuario, ip },
-      usuario,
-      ip
-    );
 
     let seguro: any[] = []
     try {
       // Log de inicio
+
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+        queryRunner,
+        `Actualización de Seguros ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip
+      ))
+
 
 
       await queryRunner.startTransaction();
@@ -714,13 +717,13 @@ UNION
         queryRunner,
         ProcesoAutomaticoLogCodigo,
         'COM',
-        { res: `Procesado correctamente`,segAltas,segBajas },
+        { res: `Procesado correctamente`, segAltas, segBajas },
         usuario,
         ip
       );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin( queryRunner,
+      await this.procesoAutomaticoLogFin(queryRunner,
         ProcesoAutomaticoLogCodigo,
         'ERR',
         { res: error },

@@ -1060,17 +1060,19 @@ export class NovedadesController extends BaseController {
         let usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         let condition = (periodo) ? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
+        let ProcesoAutomaticoLogCodigo = 0
 
-        const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-            queryRunner,
-            `Proceso Exportación de informe de novedades.`,
-            { condition, filterSql, year, month, usuario, ip },
-            usuario,
-            ip
-        );
 
         try {
-            
+            ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+                queryRunner,
+                `Proceso Exportación de informe de novedades.`,
+                { condition, filterSql, year, month, usuario, ip },
+                usuario,
+                ip
+            ))
+
+
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
 
             const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
@@ -1159,7 +1161,7 @@ export class NovedadesController extends BaseController {
                 });
                 let pdfsPath = pdfsDoc.map((doc: any) => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
                 //Agrega los pdf relacionados al final del informe
-                
+
                 // comento temporalmente la union de pdfs relacionados
                 // if (pdfsPath.length) {
                 //     pdfsPath = [filePath, ...pdfsPath]
