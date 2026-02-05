@@ -138,17 +138,16 @@ export class PreciosProductosComponent {
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
 
-      const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.codigo))
+      //Verifico si hay filas vacias
+      // const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.codigo))
+      // if (emptyrows.length == 0) {
+      //   await this.addNewItem()
+      // } else if (emptyrows.length > 1) {
+      //   this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
+      // }
 
-      if (emptyrows.length == 0) {
-        await this.addNewItem()
-      } else if (emptyrows.length > 1) {
-        this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
-      }
       //Intento grabar si tiene error hago undo
-
       try {
-
         if (column.type == FieldType.number || column.type == FieldType.float)
           editCommand.serializedValue = Number(editCommand.serializedValue)
 
@@ -157,17 +156,18 @@ export class PreciosProductosComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
-        const producto = row
-        console.log('producto', producto);
-        if (!producto.ProductoCodigo || !producto.fecha || !producto.ProductoCodigo) {
-          
-        }
+        // const producto = row
+        console.log('row: ', row);
+        if (!row.Cliente.id || !row.ProductoCodigo.length || !row.PeriodoDesdeAplica || !row.Importe){
+          // console.log('CAMPOS INSUFICIENTES');
+          return
+        } 
 
 
         if (!row.dbid)
           this.rowLocked = true
 
-        // const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
+        const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
         // this.listPrecios$.next('')
         this.rowLocked = false
       } catch (e: any) {
@@ -216,7 +216,7 @@ export class PreciosProductosComponent {
     this.listPrecios$.next('')
   }
 
-  createNewItem(incrementIdByHowMany = 1) {
+  createNewItem(incrementIdByHowMany:number = 1) {
     const dataset = this.angularGridEdit.dataView.getItems();
     let highestId = 0;
     dataset.forEach((item: any) => {
@@ -224,7 +224,7 @@ export class PreciosProductosComponent {
         highestId = item.id;
       }
     });
-    const newId = highestId + incrementIdByHowMany;
+    const newId:number = Number(highestId) + incrementIdByHowMany;
     let isfull = 0
 
     // const fechaActual = new Date();
@@ -233,11 +233,12 @@ export class PreciosProductosComponent {
     // const anio = fechaActual.getFullYear();
 
     return {
-      id: newId,
-      isfull: 0,
-      fecha: "",
-      detalle: ""
-
+      id: newId.toString(),
+      ClienteFacturacionCUIT: null,
+      Cliente: {},
+      ProductoCodigo: '',
+      Importe: null,
+      PeriodoDesdeAplica: new Date(this.anio(),this.mes()-1,1,0,0,0,0),
     };
   }
 
@@ -283,6 +284,8 @@ export class PreciosProductosComponent {
     switchMap(() => {
       return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
         .pipe(map(data => {
+          console.log('list: ', data.list);
+          
           return data.list
         })
         )
@@ -319,8 +322,6 @@ export class PreciosProductosComponent {
 
 
   updateItemMetadata(previousItemMetadata: any) {
-
-
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
@@ -331,7 +332,7 @@ export class PreciosProductosComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (!item.codigoOld) {
+      if (!item.Cliente.id || !item.ProductoCodigo.length || !item.PeriodoDesdeAplica || !item.Importe) {
         meta.cssClasses = 'element-add-no-complete'
       }
       else
