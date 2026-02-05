@@ -1016,8 +1016,8 @@ export class AsistenciaController extends BaseController {
 
 
         WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1  AND objd.ObjetivoAsistenciaMesPersonalId = @2 AND obja.ObjetivoId = @3`, [anio, mes, PersonalId, ObjetivoId])
-//      if (resPersona.length == 0)
-//        throw new ClientException('Antes de cargar la Excepción, debe cargarle al menos una hora en el objetivo a la persona')
+      //      if (resPersona.length == 0)
+      //        throw new ClientException('Antes de cargar la Excepción, debe cargarle al menos una hora en el objetivo a la persona')
 
 
       result = await queryRunner.query(
@@ -3141,19 +3141,19 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
     let registrosActualizados = 0
-
+    let ProcesoAutomaticoLogCodigo = 0
     const anio = req.params.anio
     const mes = req.params.mes
 
-    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-      queryRunner,
-      `Proceso Asistencia Biométrico ${mes}/${anio}`,
-      { anio, mes, usuario, ip },
-      usuario,
-      ip
-    );
 
     try {
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+        queryRunner,
+        `Proceso Asistencia Biométrico ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip
+      ));
 
       let listado = [];
 

@@ -1902,17 +1902,21 @@ export class GestionDescuentosController extends BaseController {
     let altaDescuentos = 0
     let result: any
     let docFilePath: string | null = null
+    let ProcesoAutomaticoLogCodigo = 0
 
-    const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-      queryRunner,
-      `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
-      { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
-      usuario,
-      ip
-    );
 
     try {
-      let campos_vacios: any[] = []
+      let campos_vacios: any[] = [];
+
+
+        ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+          queryRunner,
+          `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
+          { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
+          usuario,
+          ip
+        ))
+
 
       if (!anioRequest || !mesRequest) campos_vacios.push(`- Periodo`);
       if (!tableNameRequest) campos_vacios.push(`- Tipo de carga`)
@@ -2134,7 +2138,7 @@ export class GestionDescuentosController extends BaseController {
     const anio = req.params.anio
     const mes = req.params.mes
     const queryRunner = dataSource.createQueryRunner()
-    
+
     try {
       await queryRunner.connect()
       await queryRunner.startTransaction()
