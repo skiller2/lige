@@ -1358,18 +1358,19 @@ UNION ALL
         const usuario = res?.locals.userName || 'server'
         const ip = this.getRemoteAddress(req)
         let registrosActualizados = 0
-
+        let ProcesoAutomaticoLogCodigo =0
         const { year: anio, month: mes } = this.getPreviousMonthYear(req.body.anio, req.body.mes);
 
-        const { ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
-            queryRunner,
-            `Habilitación Necesaria ${mes}/${anio}`,
-            { anio, mes, usuario, ip },
-            usuario,
-            ip
-        );
 
         try {
+            ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+                queryRunner,
+                `Habilitación Necesaria ${mes}/${anio}`,
+                { anio, mes, usuario, ip },
+                usuario,
+                ip
+            ));
+
             await queryRunner.startTransaction();
             const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
             const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
@@ -1480,12 +1481,12 @@ UNION ALL
     async valHabilitacionesForm(queryRunner: any, habilitacion: any) {
         let error: string[] = []
 
-        if (!habilitacion.PersonalHabilitacionClase)  error.push(`- Tipo Habilitación`)     
+        if (!habilitacion.PersonalHabilitacionClase) error.push(`- Tipo Habilitación`)
         if (!habilitacion.GestionHabilitacionEstadoCodigo) {
             error.push(`- Estado`)
         }
-        
-        if (habilitacion.GestionHabilitacionEstadoCodigo=='PEN') throw new ClientException(`El estado no puede ser pendiente.`)
+
+        if (habilitacion.GestionHabilitacionEstadoCodigo == 'PEN') throw new ClientException(`El estado no puede ser pendiente.`)
 
         const valHabilitacionNecesaria = await queryRunner.query(`
             SELECT PersonalHabilitacionNecesariaId
