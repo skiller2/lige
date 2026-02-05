@@ -396,29 +396,27 @@ export class CondicionesVentaController extends BaseController {
                         PeriodoDesdeAplica,
                         ProductoCodigo,
                         TextoFactura,
-                        Cantidad,
-                        ImporteUnitario,
-                        IndHorasAFacturar,
-                        TipoImporte,
                         TipoCantidad,
+                        Cantidad,
+                        TipoImporte,
+                        ImporteUnitario,
                         AudFechaIng,
                         AudFechaMod,
                         AudUsuarioIng,
                         AudUsuarioMod,
                         AudIpIng,
                         AudIpMod
-                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
                         [
                             objetivoInfo.clienteId, // ClienteId
                             objetivoInfo.ClienteElementoDependienteId, // ClienteElementoDependienteId
                             PeriodoDesdeAplica, // PeriodoDesdeAplica
                             producto.ProductoCodigo, // ProductoCodigo
                             producto.TextoFactura, // TextoFactura
-                            producto.Cantidad ? Number(producto.Cantidad) : null, // Cantidad
-                            producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
-                            producto.IndHorasAFacturar, // IndHorasAFacturar
-                            producto.TipoImporte, // TipoImporte
                             producto.TipoCantidad, // TipoCantidad
+                            producto.Cantidad ? Number(producto.Cantidad) : null, // Cantidad
+                            producto.TipoImporte, // TipoImporte
+                            producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
                             FechaActual, // AudFechaIng
                             FechaActual, // AudFechaMod
                             usuario, // AudUsuarioIng
@@ -576,7 +574,7 @@ export class CondicionesVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT ProductoCodigo,TextoFactura,Cantidad,ImporteUnitario,IndHorasAFacturar, TipoImporte, TipoCantidad
+            SELECT ProductoCodigo, TextoFactura, TipoCantidad, Cantidad, TipoImporte, ImporteUnitario
             FROM CondicionVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
@@ -921,29 +919,27 @@ export class CondicionesVentaController extends BaseController {
                     PeriodoDesdeAplica,
                     ProductoCodigo,
                     TextoFactura,
-                    Cantidad,
-                    ImporteUnitario,
-                    IndHorasAFacturar,
-                    TipoImporte,
                     TipoCantidad,
+                    Cantidad,
+                    TipoImporte,
+                    ImporteUnitario,
                     AudFechaIng,
                     AudFechaMod,
                     AudUsuarioIng,
                     AudUsuarioMod,
                     AudIpIng,
                     AudIpMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
                     [
                         ClienteId, // ClienteId
                         ClienteElementoDependienteId, // ClienteElementoDependienteId
                         PeriodoDesdeAplica, // PeriodoDesdeAplica
                         producto.ProductoCodigo, // ProductoCodigo
                         producto.TextoFactura, // TextoFactura
-                        producto.Cantidad ? Number(producto.Cantidad) : null, // Cantidad
-                        producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
-                        producto.IndHorasAFacturar, // IndHorasAFacturar
-                        producto.TipoImporte, // TipoImporte
                         producto.TipoCantidad, // TipoCantidad
+                        producto.Cantidad ? Number(producto.Cantidad) : null, // Cantidad
+                        producto.TipoImporte, // TipoImporte
+                        producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
                         FechaActual, // AudFechaIng
                         FechaActual, // AudFechaMod
                         usuario, // AudUsuarioIng
