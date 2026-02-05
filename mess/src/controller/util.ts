@@ -67,7 +67,7 @@ export class Utils {
 
     } catch (error) {
       const errMsg = `Error al eliminar archivos de sesión: ${error}`
-      console.log(errMsg)
+      //console.log(errMsg)
       //      throw new Error(errMsg)
     }
   }
