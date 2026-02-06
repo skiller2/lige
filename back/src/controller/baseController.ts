@@ -51,7 +51,8 @@ export class BaseController {
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
     res.locals.stopTime = performance.now()
-    res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
+    if (res.status)
+      res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
   }
 
   jsonResDirect(data: any, res: Response, msg = "ok") {

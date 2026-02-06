@@ -73,16 +73,8 @@ scheduleJob('5 0 * * *', async function (fireDate) {  //At 12:05 AM
     headers: {},
     socket: { remoteAddress: '127.0.0.1' }
   }
-  const mockRes: any = {
-    locals: { userName: 'server' }
-  }
   
-  try {
-    await asistenciaController.getListaAsistenciaControAcceso(mockReq, mockRes, (ret: any) => ret)
-    console.log(`job run at ${fireDate} - Asistencia Control Acceso completado`);
-  } catch (error) {
-    console.error(`job error at ${fireDate} - Asistencia Control Acceso:`, error);
-  }
+  await asistenciaController.getListaAsistenciaControAcceso(mockReq, null, (ret: any) => ret)
 });
 
 scheduleJob('6 0 * * *', async function (fireDate) {  //At 12:06 AM
@@ -95,16 +87,8 @@ scheduleJob('6 0 * * *', async function (fireDate) {  //At 12:06 AM
     headers: {},
     socket: { remoteAddress: '127.0.0.1' }
   }
-  const mockRes: any = {
-    locals: { userName: 'server' }
-  }
   
-  try {
-    await habilitacionesController.jobHabilitacionNecesaria(mockReq, mockRes, (ret: any) => ret)
-    console.log(`job run at ${fireDate} - Habilitación Necesaria completado`);
-  } catch (error) {
-    console.error(`job error at ${fireDate} - Habilitación Necesaria:`, error);
-  }
+  await habilitacionesController.jobHabilitacionNecesaria(mockReq, null, (ret: any) => ret)
 });
 
 
