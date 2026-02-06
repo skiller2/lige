@@ -50,6 +50,8 @@ export class PreciosProductosComponent {
     sort: null,
   };
   startFilters: any[] = []
+  selectedRows = signal<number[]>([])
+  loadingDel = signal(false)
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
@@ -114,7 +116,19 @@ export class PreciosProductosComponent {
         return col
       });
       return mapped
-    }));
+    })
+  );
+
+  gridData$ = this.listPrecios$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
+        .pipe(map(data => {
+          return data.list
+        })
+        )
+    })
+  );
 
   async ngOnInit() {
 
@@ -126,6 +140,7 @@ export class PreciosProductosComponent {
     this.gridOptionsEdit.editable = true
     this.gridOptionsEdit.autoEdit = true
     this.gridOptionsEdit.forceFitColumns = true
+    this.gridOptionsEdit.enableCheckboxSelector = true
 
     const dateToday = new Date();
 
@@ -168,14 +183,14 @@ export class PreciosProductosComponent {
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
-        // this.listPrecios$.next('')
+        this.listPrecios$.next('')
         this.rowLocked = false
       } catch (e: any) {
         //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
 
         console.log('error', e)
 
-        if (row.codigoOld) {
+        if (row.tableId) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)
           if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
             const fld = editCommand.editor.args.column.field
@@ -202,7 +217,7 @@ export class PreciosProductosComponent {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
     this.itemAddActive = true
-    console.log('regs: ',this.angularGridEdit.dataView.getItems());
+    // console.log('regs: ',this.angularGridEdit.dataView.getItems());
     
     // }else{
     //   this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
@@ -211,9 +226,29 @@ export class PreciosProductosComponent {
   }
 
   async deleteItem() {
-
-    await firstValueFrom(this.apiService.deleteProducto(this.precioVentaId()))
-    this.listPrecios$.next('')
+    this.loadingDel.set(true)
+    const registros = this.angularGridEdit.dataView.getAllSelectedItems().map((pro:any)=>{
+      return {
+        id: pro.id,
+        idTable: pro.idTable,
+        ProductoCodigo: pro.ProductoCodigo,
+        ProductoCodigoOLD: pro.ProductoCodigoOLD,
+        ClienteIdOLD: pro.ClienteIdOLD,
+        ClienteDenominacion: pro.ClienteDenominacion,
+        PeriodoDesdeAplica: pro.PeriodoDesdeAplica,
+        PeriodoDesdeAplicaOLD: pro.PeriodoDesdeAplicaOLD,
+        Importe: pro.Importe,
+        ImporteOLD: pro.ImporteOLD,
+        Cliente: pro.Cliente,
+        ClienteFacturacionCUIT: pro.Cliente.ClienteFacturacionCUIT,
+    }})
+    try {
+      await firstValueFrom(this.apiService.deleteProductos({list:registros, length:registros.length}))
+      this.listPrecios$.next('')
+    } catch (error) {
+      
+    }
+    this.loadingDel.set(false)
   }
 
   createNewItem(incrementIdByHowMany:number = 1) {
@@ -227,11 +262,6 @@ export class PreciosProductosComponent {
     const newId:number = Number(highestId) + incrementIdByHowMany;
     let isfull = 0
 
-    // const fechaActual = new Date();
-    // const dia = fechaActual.getDate();
-    // const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
-    // const anio = fechaActual.getFullYear();
-
     return {
       id: newId.toString(),
       ClienteFacturacionCUIT: null,
@@ -243,13 +273,9 @@ export class PreciosProductosComponent {
   }
 
   async angularGridReadyEdit(angularGrid: any) {
-    //this.cleanerVariables();
     this.angularGridEdit = angularGrid.detail
-    //this.gridObjEdit = angularGrid.detail.slickGrid;
-
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
-      columnTotal('CantidadProductos', this.angularGridEdit)
     })
 
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
@@ -262,65 +288,16 @@ export class PreciosProductosComponent {
 
   }
 
-  // async angularGridReadyEdit(angularGrid: any) {
-  //   this.angularGridEdit = angularGrid.detail
-  //   this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-  //     totalRecords(this.angularGridEdit)
-  //     columnTotal('CantidadProductos', this.angularGridEdit)
-  //   })
-
-  //   if (this.apiService.isMobile())
-  //       this.angularGridEdit.gridService.hideColumnByIds([])
-  // }
-
   openDrawerforConsultHistory(): void {
-
     this.visibleHistorial.set(true)
-
   }
-
-  gridData$ = this.listPrecios$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
-        .pipe(map(data => {
-          console.log('list: ', data.list);
-          
-          return data.list
-        })
-        )
-    })
-  )
 
   handleSelectedRowsChanged(e: any): void {
-    const selrow = e.detail.args.rows[0]
-    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.codigo) {
-      this.editProducto.set([row.codigo])
-      this.precioVentaId.set([row.precioVentaId])
-    }
-
-
+    const rows = e.detail.args.rows
+    this.selectedRows.set(rows)
   }
 
-  async onCellChanged(e: any) {
-    // await firstValueFrom(
-    //   this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
-    //     tap(res => {
-    //       if (res != "") {
-    //         this.listPrecios$.next('');
-    //       }
-    //     }),
-    //     catchError(err => {
-    //       //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
-    //       console.log('resultado',err)
-    //       return of(null);
-    //     })
-    //   )
-    // )
-  }
-
-
+  //Actualiza el CSS de las filas de la grilla
   updateItemMetadata(previousItemMetadata: any) {
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';

@@ -28,7 +28,7 @@ preciosProductosRouter.post('/changecell', [authMiddleware.verifyToken,authMiddl
   preciosProductosController.changecell(req, res, next)
 })
 
-preciosProductosRouter.delete('/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])],  (req, res, next) => {
-  preciosProductosController.deleteProducto(req, res, next)
+preciosProductosRouter.post('/delete', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])],  (req, res, next) => {
+  preciosProductosController.deleteProductos(req, res, next)
 })
 

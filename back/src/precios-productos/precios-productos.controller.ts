@@ -169,6 +169,7 @@ export class PreciosProductosController extends BaseController {
                     pp.PeriodoDesdeAplica,
                     pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
                     pp.Importe,
+                    pp.Importe AS ImporteOLD,
                     --pp.ImportDocumentoId,
                     --pp.AudFechaIng,
                     --pp.AudUsuarioIng,
@@ -223,11 +224,11 @@ export class PreciosProductosController extends BaseController {
 
         let dataResultado = {}
         let message = ""
-
+        
         const idTable = req.body.idTable
         const ClienteId = req.body.Cliente?.id
         const ProductoCodigo = req.body.ProductoCodigo
-        const Importe = req.body.Importe
+        const Importe = Number(req.body.Importe)
         const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica)
 
         const fechaActual = new Date()
@@ -236,20 +237,30 @@ export class PreciosProductosController extends BaseController {
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
+            
             if ( idTable?.length > 0) { //Entro en update
-                throw new ClientException('DEBUG')
+                // throw new ClientException('DEBUG')
                 const ProductoCodigoOLD = req.body.ProductoCodigoOLD
                 const ClienteIdOLD = req.body.ClienteIdOLD
                 const PeriodoDesdeAplicaOLD = new Date(req.body.PeriodoDesdeAplicaOLD)
-                const ProductoPrecio = await queryRunner.query(`
-                    SELECT Importe FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
-                `, [ProductoCodigoOLD, ClienteIdOLD, PeriodoDesdeAplicaOLD])
+                
+                //Validar que el precio del producto no fue facturado
+                const anio = PeriodoDesdeAplicaOLD.getFullYear()
+                const mes = PeriodoDesdeAplicaOLD.getMonth()+1
+                const checkComprobante = await queryRunner.query(`
+                    SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
+                `, [ProductoCodigoOLD, ClienteIdOLD, anio, mes])
+                if (checkComprobante[0]?.ComprobanteNro?.length) throw new ClientException('No se puede modificar registros ya facturados')
 
-                const ImporteOLD = ProductoPrecio[0].Importe
-                //Validar si cambio hubo cambios
-                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId || PeriodoDesdeAplicaOLD != PeriodoDesdeAplica || ImporteOLD != Importe) {
-                    await queryRunner.query(`
+                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId || PeriodoDesdeAplicaOLD.getTime() != PeriodoDesdeAplica.getTime()) {
+                    const checkNewCodigo = await queryRunner.query(`
+                        SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+                    `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+                    if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
+                    
+                } 
+
+                await queryRunner.query(`
                     UPDATE ProductoPrecio SET 
                         ProductoCodigo = @3, 
                         ClienteId = @4,
@@ -259,11 +270,10 @@ export class PreciosProductosController extends BaseController {
                         AudUsuarioMod = @8,
                         AudIpMod = @9
                     WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
-                    `, [
-                        ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
-                        ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
-                    ])
-                }
+                `, [
+                    ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
+                    ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
+                ])
 
                 dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
@@ -271,11 +281,9 @@ export class PreciosProductosController extends BaseController {
             } else {  //Es un nuevo registro de ProductoPrecio
                 const checkNewCodigo = await queryRunner.query(`
                     SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
-                    `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
                 if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
-                // await this.validateForm(false, params, queryRunner,null)
                 
-                console.log('El código no existe - es nuevo')
                 await queryRunner.query(`
                 INSERT INTO ProductoPrecio (
                     ProductoCodigo, 
@@ -375,22 +383,37 @@ export class PreciosProductosController extends BaseController {
              `, [params.importe, fechaDesdeNew, fechaHastaNew, fechaActual, usuario, ip, params.codigo, params.SucursalId])
     }
 
-    async deleteProducto(req: any, res: Response, next: NextFunction){
+    async deleteProductos(req: any, res: Response, next: NextFunction){
 
-        let cod_producto_venta = req.query[0]
-
+        const list = req.body.list
         const queryRunner = dataSource.createQueryRunner()
+        let messageError:string[] = []
         try {
+            
             await queryRunner.connect()
             await queryRunner.startTransaction()
 
-            let result = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
+            for (const producto of list) {
+                
+                const id = producto.id
+                // const CUIT = producto.ClienteFacturacionCUIT
+                const ClienteId = producto.Cliente?.id
+                const ProductoCodigo = producto.ProductoCodigo
+                const PeriodoDesdeAplica = new Date(producto.PeriodoDesdeAplica)
+                const anio = PeriodoDesdeAplica.getFullYear()
+                const mes = PeriodoDesdeAplica.getMonth()+1
 
-            if(result[0].importe_desde < new Date() && result[0].importe_hasta < new Date())
-             throw new ClientException(`No se puede borrar registros con fechas anteriores a hoy`)
+                const checkComprobante = await queryRunner.query(`
+                    SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
+                `, [ProductoCodigo, ClienteId, anio, mes])
+                if (checkComprobante[0]?.ComprobanteNro?.length) messageError.push(`FILA ${id}: El precio del producto ya fue facturados`)
 
-            await queryRunner.query( `DELETE FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
-          
+                await queryRunner.query( `
+                    DELETE FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+            }
+            throw new ClientException(`DEBUG`)
+            if (messageError.length) throw new ClientException(messageError)
             await queryRunner.commitTransaction()
             return this.jsonRes( "", res, "Borrado Exitoso")
         } catch (error) {

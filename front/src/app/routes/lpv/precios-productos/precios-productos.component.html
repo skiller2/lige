@@ -12,15 +12,17 @@
         <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
         <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a> -->
-      <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-        <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-      </a>
-      <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
-        <button nz-button nzType="default" [disabled]=" editProducto().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
-      </a>
-      <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]=" editProducto().length == 0"
+      <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+      </button>
+      <button nz-button nzType="default" [disabled]=" selectedRows().length == 0" [nzLoading]="loadingDel()"
+        nz-popconfirm nzPopconfirmTitle="Eliminar {{selectedRows().length}} registros?" (nzOnConfirm)="deleteItem()"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+        <span nz-icon nzType="delete" nzTheme="outline"></span>
+      </button>
+      <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]=" editProducto().length == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
-      nzTheme="outline"></span></button>
+      nzTheme="outline"></span></button> -->
     </nz-button-group>
 
   </div>
@@ -60,7 +62,7 @@
             [options]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReadyEdit($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
-            (onCellChange)="onCellChanged($event)">
+            >
             <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
           </angular-slickgrid>
         </div>

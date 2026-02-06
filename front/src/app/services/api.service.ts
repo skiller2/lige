@@ -982,6 +982,13 @@ export class ApiService {
     )
   }
 
+  deleteProductos(obj: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/productos/delete`, obj).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
   onchangecellGrupoActividadGrupo(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/changecellgrupo', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
@@ -1293,14 +1300,6 @@ export class ApiService {
 
   deleteObjetivos(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/objetivos`, vals).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-
-  }
-
-
-  deleteProducto(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/productos`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
