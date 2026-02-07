@@ -3077,6 +3077,7 @@ export class PersonalController extends BaseController {
 
       this.jsonRes(PersonaActaList, res);
     } catch (error) {
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -3113,8 +3114,8 @@ export class PersonalController extends BaseController {
 
       //Validadar que los campos no este vacios
       // if (!personalId) campos_vacios.push("- Persona");
-      // if (!ActaId) campos_vacios.push("- Nro Acta");
-      // if (!TipoActa) campos_vacios.push("- Tipo");
+      if (!ActaId) campos_vacios.push("- Nro Acta");
+      if (!TipoActa) campos_vacios.push("- Tipo");
       // if (!PersonalActaDescripcion) campos_vacios.push("- Descripcion");
       if (!PersonalSituacionRevistaId) campos_vacios.push("- Sit. Revista Asociada");
 
@@ -3143,6 +3144,7 @@ export class PersonalController extends BaseController {
 
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
