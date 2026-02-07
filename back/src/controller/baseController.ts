@@ -50,8 +50,9 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
-    res.locals.stopTime = performance.now()
-    if (res.status)
+    if (res && res.locals)
+      res.locals.stopTime = performance.now()
+    if (res?.status)
       res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
   }
 
