@@ -231,7 +231,9 @@ Interpretá la intención del usuario y ejecutá la acción correspondiente.
      }
 
 7️⃣ Novedades pendientes por ver
-   - ⚠️ Funcionalidad no implementada (informar al usuario)
+   - Informá qué novedades aún no fueron vistas
+   - Llamá al tool getNovedadesPendientesByResponsable
+   - Solicitá confirmación para listar cada una de ellas
 
 8️⃣ Solicitar Adelanto
    - Informá:

@@ -56,7 +56,7 @@ export class NovedadController extends BaseController {
       WHERE PersonalId = @0
       `, [personalId]
     )
-    
+
     if (result.length == 0 || !result[0].JsonNovedad) return {}
 
     try {
@@ -127,7 +127,7 @@ export class NovedadController extends BaseController {
       `, [novedadId, documentoId])
   }
 
-  async getNovedadesByResponsable(PersonalId: any) {
+  async getNovedadesPendientesByResponsable(PersonalId: any) {
     const date = new Date()
     const year = date.getFullYear()
     const month = date.getMonth() + 1

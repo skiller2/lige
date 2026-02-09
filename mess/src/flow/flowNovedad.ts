@@ -547,7 +547,7 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
-        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        const novedades = await novedadController.getNovedadesPendientesByResponsable(personalId)
         if (!novedades.length) {
             await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)
@@ -658,7 +658,7 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
-        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        const novedades = await novedadController.getNovedadesPendientesByResponsable(personalId)
         if (!novedades.length) {
             //await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)
