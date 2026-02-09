@@ -91,23 +91,28 @@
           </nz-select>
         </nz-form-control>
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Unitario</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
-          <input
-            appDotToComma
-            mask="separator.2"
-            nz-input
-            nzInputNumber
-            style="width: 100%"
-            formControlName="ImporteUnitario"
-            type="text"
-            min="0"
-            step="0.01"
-            placeholder="Importe Unitario"
-            (ngModelChange)="calcularTotal(i)"
-            [disabled]="control?.value?.TipoImporte !== 'F'"
-            nz-tooltip
-            [nzTooltipTitle]="control?.value?.TipoImporte === 'V' ? 'A cargar en el cierre de planilla por el responsable' : ''"
-          >
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+          @if (control?.value?.TipoImporte === 'V') {
+            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+              Cargar en el cierre de planilla por el responsable
+            </div>
+          } @else {
+            <input
+              appDotToComma
+              mask="separator.2"
+              nz-input
+              nzInputNumber
+              style="width: 100%"
+              formControlName="ImporteUnitario"
+              type="text"
+              min="0"
+              step="0.01"
+              placeholder="Importe Unitario"
+              (ngModelChange)="calcularTotal(i)"
+              [disabled]="control?.value?.TipoImporte !== 'F'"
+              nz-tooltip
+            >
+          }
         </nz-form-control>
 
 
@@ -128,8 +133,14 @@
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
-          <input
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+
+          @if (control?.value?.TipoCantidad === 'V') {
+            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+              Cargar en el cierre de planilla por el responsable
+            </div>
+          } @else {
+            <input
             appDotToComma
             mask="separator.2"
             nz-input
@@ -141,8 +152,10 @@
             (ngModelChange)="calcularTotal(i)"
             [disabled]="control?.value?.TipoCantidad !== 'F'"
             nz-tooltip
-            [nzTooltipTitle]="control?.value?.TipoCantidad === 'V' ? 'A cargar en el cierre de planilla por el responsable' : ''"
+            
           >
+          }
+         
         </nz-form-control>
 
       </nz-form-item>
@@ -209,7 +222,7 @@
           [nzPopoverContent]="textFacturaTemplate">
           <textarea nz-input formControlName="TextoFactura" rows="3" style="width: 100%;"
             nzPlaceholder="Ingrese el texto de la factura"></textarea>
-          <p style="color:rgba(0, 0, 0, 0.347);">Vista previa: {{ formCondicionVenta.get('TextoFactura')?.value }}</p>
+          <p style="color:rgba(0, 0, 0, 0.347); margin-top: 8px;">Vista previa: {{ getTextoFacturaPreview(i) }}</p>
         </nz-form-control>
 
         @if (formCondicionVenta.enabled) {

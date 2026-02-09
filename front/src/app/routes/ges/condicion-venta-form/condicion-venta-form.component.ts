@@ -189,6 +189,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       codobjId: this.codobjId(),
     });
 
+    this.$optionsTipoProducto.subscribe(productos => {
+      this.productosCache = productos;
+    });
+
     // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
     const periodoControl = this.formCondicionVenta.get('PeriodoDesdeAplica');
     if (periodoControl) {
@@ -273,7 +277,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     }
 
     // Actualizar el campo TextoFactura con el tipo de importe y el período
-    await this.actualizarTextoFactura(tipoImporte, index);
   }
 
   onTipoCantidadChange(tipoCantidad: string, index: number): void {
@@ -288,43 +291,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       cantidadControl?.enable();
     }
   }
-
-  async actualizarTextoFactura(tipoImporte: string, index: number): Promise<void> {
-    if (!tipoImporte) {
-      return;
-    }
-
-    // Obtener el label del tipo de importe seleccionado
-    const tiposImporte = await firstValueFrom(this.$optionsTipoImporte);
-    const tipoImporteSeleccionado = tiposImporte.find((option: any) => option.value === tipoImporte);
-    
-    if (!tipoImporteSeleccionado) {
-      return;
-    }
-
-    // Obtener el período seleccionado
-    let periodoFormateado = '';
-    
-    if (this.periodo()) {
-      const fecha = this.periodo();
-     if (fecha && !isNaN(fecha.getTime())) {
-        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-        const anio = fecha.getFullYear();
-        periodoFormateado = `${mes}/${anio}`;
-      }
-    }
-
-    // Construir el texto: "Tipo Importe - Período"
-    const textoFactura = periodoFormateado 
-      ? `${tipoImporteSeleccionado.label} - ${periodoFormateado}`
-      : tipoImporteSeleccionado.label;
-
-    // Actualizar el campo TextoFactura
-    this.infoProductos().at(index)?.patchValue({
-      TextoFactura: textoFactura
-    });
-  }
-
   clearForm(): void {
     this.formCondicionVenta.reset();
     this.codobjId.set('');
@@ -339,6 +305,47 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().push(newGroup);
     newGroup.get('ImporteTotal')?.disable();
     this.formCondicionVenta.markAsPristine();
+  }
+
+  private productosCache: any[] = [];
+
+  getTextoFacturaPreview(index: number): string {
+    const productoGroup = this.infoProductos().at(index);
+    if (!productoGroup) return '';
+
+    const textoFactura = productoGroup.get('TextoFactura')?.value || '';
+    const productoCodigo = productoGroup.get('ProductoCodigo')?.value || '';
+    const cantidad = productoGroup.get('Cantidad')?.value || '';
+    const importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
+    const importeTotal = productoGroup.get('ImporteTotal')?.value || '';
+
+    let productoNombre = productoCodigo;
+    if (this.productosCache && this.productosCache.length > 0) {
+      const producto = this.productosCache.find((p: any) => p.ProductoCodigo === productoCodigo);
+      productoNombre = producto?.Nombre || productoCodigo;
+    }
+
+    let periodoMes = '';
+    let periodoAnio = '';
+    
+    if (this.periodo()) {
+      const fecha = this.periodo();
+      if (fecha && !isNaN(fecha.getTime())) {
+        periodoMes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        periodoAnio = fecha.getFullYear().toString();
+      }
+    }
+
+    // Reemplazar variables
+    let preview = textoFactura
+      .replace(/{Producto}/g, productoNombre)
+      .replace(/{PeriodoMes}/g, periodoMes)
+      .replace(/{PeriodoAnio}/g, periodoAnio)
+      .replace(/{CantidadHoras}/g, cantidad)
+      .replace(/{ImporteUnitario}/g, importeUnitario)
+      .replace(/{ImporteTotal}/g, importeTotal);
+
+    return preview;
   }
 
 }
