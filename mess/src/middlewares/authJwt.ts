@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
-import { BaseController } from "src/controller/baseController";
-import { dataSource } from "src/data-source";
+import { table } from "node:console";
+import path from "node:path";
+import { BaseController} from "../controller/base.controller.ts";
+import { dataSource } from "../data-source.ts";
+import { performance } from "node:perf_hooks";
+
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
