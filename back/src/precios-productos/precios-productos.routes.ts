@@ -32,3 +32,6 @@ preciosProductosRouter.post('/delete', [authMiddleware.verifyToken,authMiddlewar
   preciosProductosController.deleteProductos(req, res, next)
 })
 
+preciosProductosRouter.post("/import-xls-precios", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
+    preciosProductosController.handleXLSUpload(req, res, next);
+});

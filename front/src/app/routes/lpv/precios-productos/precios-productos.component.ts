@@ -15,6 +15,7 @@ import { SelectSearchComponent } from "../../../shared/select-search/select-sear
 import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-drawer/producto-historial-drawer.component'
 import { Component, model, signal, inject, computed } from '@angular/core';
 import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
+import { ProductosImportacionMasivaComponent } from '../productos-importacion-masiva/productos-importacion-masiva';
 
 @Component({
     selector: 'app-precios-productos',
@@ -23,7 +24,8 @@ import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cl
         ...SHARED_IMPORTS,
         CommonModule,
         FiltroBuilderComponent,
-        ProductoHistorialDrawerComponent
+        ProductoHistorialDrawerComponent,
+        ProductosImportacionMasivaComponent
     ],
     templateUrl: './precios-productos.component.html',
     styleUrl: './precios-productos.component.less'
@@ -72,7 +74,7 @@ export class PreciosProductosComponent {
   columns$ = this.apiService.getCols('/api/productos/cols-precios').pipe(
     switchMap(async (cols) => {
       const productos = await firstValueFrom(this.searchService.getProductos());
-      return { cols, productos:productos.list }
+      return { cols, productos }
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {

@@ -36,11 +36,11 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'lpv', 'precios_productos', 'precios']" >{{ 'app.precios' | i18n }}</a>
       </li>
-      <!-- <li nz-menu-item nzMatchRouter>
-      <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'lpv', 'precios_productos', 'detalle']">{{ 'app.detail' | i18n }}</a>
-    </li>
-    <li nz-menu-item nzMatchRouter>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'lpv', 'precios_productos', 'importacion']">Importación</a>
+      </li>
+    <!-- <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'lpv', 'precios_productos', 'detalle_productos']">{{ 'app.productdetail' | i18n }}</a>
     </li> -->
@@ -68,6 +68,14 @@
         </div>
       </ng-template>
     }
+  </nz-tab>
+
+  <nz-tab>
+    <a nz-tab-link routerLink="/lpv/precios_productos/importacion" >Importación</a>
+    <ng-template nz-tab>
+      <app-productos-importacion-masiva [anio]="anio()" [mes]="mes()"></app-productos-importacion-masiva>
+    </ng-template>
+    
   </nz-tab>
 
 

@@ -547,19 +547,31 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
-        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        const novedades = await novedadController.getNovedadesPendientesByResponsable(personalId)
         if (!novedades.length) {
             await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)
         }
 
         let msg: string = 'Ingrese el número de la novedad a consultar:\n'
-        novedades.forEach((nov: any, i: any) => {
-            msg += `${nov.id} - Nov. #${nov.NovedadCodigo} - ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'} - ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjDescripcion ?? ''} \n`
-        })
-        msg += '\nM - Volver al menú'
 
-        await flowDynamic(msg, { delay: delay })
+
+        novedades.forEach(async (nov: any, i: any) => {
+            msg += `${nov.id} - Nov. #${nov.NovedadCodigo} - ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'} - ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjDescripcion ?? ''} \n`
+
+            if (msg.length > 1000) {
+                await flowDynamic(msg, { delay: delay })
+                msg = ''
+            }
+
+        })
+
+        if (msg.length > 0)
+            await flowDynamic(msg, { delay: delay })
+
+
+
+        await flowDynamic('M - Volver al menú', { delay: delay })
 
         state.update({ novedades })
     })
@@ -658,7 +670,7 @@ export const flowConsNovedadPendiente = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic, endFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const personalId = state.get('personalId')
-        const novedades = await novedadController.getNovedadesByResponsable(personalId)
+        const novedades = await novedadController.getNovedadesPendientesByResponsable(personalId)
         if (!novedades.length) {
             //await flowDynamic([`No tienes ninguna novedad pendiente por ver`], { delay: delay })
             return gotoFlow(flowMenu)

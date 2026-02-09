@@ -1239,7 +1239,7 @@ export class SearchService {
 
   getProductos(): Observable<any> {
       return this.http.get<ResponseJSON<any>>(`api/productos/options`).pipe(
-        map(res => res.data),
+        map(res => res.data.list),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);

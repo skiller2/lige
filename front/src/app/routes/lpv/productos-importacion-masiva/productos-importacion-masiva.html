@@ -1,0 +1,48 @@
+<nz-card class="small-margin">
+  <br>
+
+  <form [formGroup]="formAltaProd">
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="2">Producto</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <nz-select formControlName="ProductoCodigo" nzPlaceHolder="Producto" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          <ng-container *ngFor="let option of $optionsProducto | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="3" class="inputText">Archivo</nz-form-label>   
+        <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
+        [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
+     
+    </nz-form-item>
+
+    <!-- <nz-form-item>
+      <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
+      <nz-form-control>
+        <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
+          <div  class="containerAnterioresDescuentos" nz-tooltip nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
+             <ng-container>
+                <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
+                <span nz-icon nzType="download" ></span></a>
+              </ng-container>
+            <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
+          </div>
+        </ng-container>
+      </nz-form-control>
+    </nz-form-item> -->
+  </form>
+
+  <div nz-tab>
+    <div class="gridErrorPro container-fluid">
+      <angular-slickgrid
+        gridId="gridErrorPro" [columns]="columnsPro  | colsFilter" [options]="gridOptionsPro"
+        [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
+      </angular-slickgrid>
+    </div>
+  </div>
+    
+</nz-card>
