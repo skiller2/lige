@@ -39,7 +39,15 @@
         @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
 
         <nz-card nzSize="small">
-          {{ msg.content || (msg.tool_calls |json) }}
+
+          @if (msg.content) {
+          <markdown [data]="msg.content"></markdown>
+          } @else {
+          <div>{{ msg.tool_calls |json }}</div>
+          }
+
+
+
         </nz-card>
         }
       </div>
