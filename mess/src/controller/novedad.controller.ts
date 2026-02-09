@@ -56,7 +56,15 @@ export class NovedadController extends BaseController {
       WHERE PersonalId = @0
       `, [personalId]
     )
-    return JSON.parse(result[0].JsonNovedad) ?? {}
+    
+    if (result.length == 0 || !result[0].JsonNovedad) return {}
+
+    try {
+      return JSON.parse(result[0].JsonNovedad)  
+    } catch (error) {
+      return {}      
+    }
+
   }
 
 
