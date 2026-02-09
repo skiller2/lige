@@ -24,12 +24,18 @@
         </a>
 
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!condicionesSeleccionadas() || condicionesSeleccionadas().length === 0"
-            (click)="autorizarCondicionVenta()"><span nz-icon nzType="check" nzTheme="outline"></span></button>
+          <button nz-button nzType="default"
+            [disabled]="!PeriodoDesdeAplica() || !condicionesSeleccionadas() || condicionesSeleccionadas().length === 0"
+            (click)="autorizarCondicionVenta()">
+            <span nz-icon nzType="check" nzTheme="outline"></span>
+          </button>
         </a>
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!condicionesSeleccionadas() || condicionesSeleccionadas().length === 0"
-            (click)="rechazarCondicionVenta()"><span nz-icon nzType="close" nzTheme="outline"></span></button>
+          <button nz-button nzType="default"
+            [disabled]="!PeriodoDesdeAplica() || !condicionesSeleccionadas() || condicionesSeleccionadas().length === 0"
+            (click)="rechazarCondicionVenta()">
+            <span nz-icon nzType="close" nzTheme="outline"></span>
+          </button>
         </a>
       </nz-button-group>
     </div>
@@ -39,8 +45,7 @@
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'condiciones-venta', 'listado']"
-            (click)="viewListado.set(true); RefreshCondVenta.set(true)">{{ 'app.listado' | i18n }} </a>
+          <a [routerLink]="['/', 'ges', 'condiciones-venta', 'listado']">{{ 'app.listado' | i18n }} </a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
@@ -63,7 +68,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/condiciones-venta/listado">{{ 'app.icon.objectives' | i18n }} </a>
       <ng-template nz-tab>
-        <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj"
+        <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(objetivoId)]="objetivoId"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"
           [(RefreshCondVenta)]="RefreshCondVenta"
           [(condicionesSeleccionadas)]="condicionesSeleccionadas"></app-table-condicion-venta>
@@ -74,6 +79,7 @@
       <a nz-tab-link routerLink="/ges/condiciones-venta/modificar">{{ 'app.icon.edit' | i18n }}</a>
       <ng-template nz-tab>
         <app-condicion-venta-form #condicionVentaFormEditar [(codobjId)]="codobj"
+          [(objetivoId)]="objetivoId"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" ></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
@@ -82,6 +88,7 @@
       <a nz-tab-link routerLink="/ges/condiciones-venta/detalle">{{ 'app.icon.detail' | i18n }}</a>
       <ng-template nz-tab>
         <app-condicion-venta-form #condicionVentaFormDetalle [(codobjId)]="codobj"
+          [(objetivoId)]="objetivoId"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" ></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
@@ -90,6 +97,7 @@
       <a nz-tab-link routerLink="/ges/condiciones-venta/alta">{{ 'app.alta' | i18n }}</a>
       <ng-template nz-tab>
         <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj"
+          [(objetivoId)]="objetivoId"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" ></app-condicion-venta-form>
       </ng-template>
     </nz-tab>

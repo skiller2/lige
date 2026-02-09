@@ -69,7 +69,7 @@ export class TableCondicionVentaComponent implements OnInit {
 
   // Objetivo seleccionado (para compatibilidad con selección única)
   codobj = model<string>('');
-
+  objetivoId = model<number>(0);
   // Fecha desde aplica (para compatibilidad con selección única)
   PeriodoDesdeAplica = model<string>('');
 
@@ -238,9 +238,11 @@ export class TableCondicionVentaComponent implements OnInit {
 
     // Mantener compatibilidad con selección única (para edición)
     if (selectedData.length === 1) {
+      this.objetivoId.set(selectedData[0].ObjetivoId);
       this.codobj.set(selectedData[0].codobj);
       this.PeriodoDesdeAplica.set(selectedData[0].PeriodoDesdeAplica);
     } else {
+      this.objetivoId.set(0);
       this.codobj.set('');
       this.PeriodoDesdeAplica.set('');
     }

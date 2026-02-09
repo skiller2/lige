@@ -29,6 +29,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   objetivoExtended = signal<any>(null);
   codobjId = model<string>('');
+  objetivoId = model<number>(0);
   PeriodoDesdeAplica = model('');
   periodo = input<Date>();
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
@@ -109,14 +110,14 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     if (this.codobjId() && this.PeriodoDesdeAplica()) {
       await this.load()
-      this.codobjId.set('')
+      //this.codobjId.set('')
       this.PeriodoDesdeAplica.set('')
       this.formCondicionVenta.patchValue({
         PeriodoDesdeAplica: '',
       });
 
     } else {
-      this.codobjId.set('')
+      //this.codobjId.set('')
       this.PeriodoDesdeAplica.set('')
       this.formCondicionVenta.enable()
       this.formCondicionVenta.reset();
@@ -124,6 +125,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       const newGroup = this.fb.group({ ...this.objProductos });
       this.infoProductos().push(newGroup);
       newGroup.get('ImporteTotal')?.disable();
+      this.formCondicionVenta.patchValue({
+        ObjetivoId: this.objetivoId(),
+      });
       this.formCondicionVenta.markAsPristine();
     }
 
