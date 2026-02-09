@@ -1,9 +1,11 @@
+import { WritableSignal } from '@angular/core';
+
 export interface Filtro {
   index: string;
   operador: string;
   condition: string;
   valor: any[];
-  tagName: string;
+  tagName: WritableSignal<string>;
   closeable: boolean
 }
 

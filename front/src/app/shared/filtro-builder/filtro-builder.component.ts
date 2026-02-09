@@ -10,6 +10,7 @@ import {
   inject,
   input,
   model,
+  signal,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Filtro, Options, Selections } from '../schemas/filtro';
@@ -282,7 +283,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       operador: selections.operator,
       valor: valueToFilter,
       type: type,
-      tagName,
+      tagName: signal(tagName),
       closeable
 
     };
@@ -319,7 +320,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     // Extraer label de tagName
     let extractedLabel = '';
-    const tagName = filtro.tagName;
+    const tagName = filtro.tagName();
     if (filtro.operador) {
       const opPattern = new RegExp(`\\s+${filtro.operador}\\s+`);
       const split = tagName.split(opPattern);
@@ -406,12 +407,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
 
     // Actualizar selections
+    // Resetear label para campos simples (sin searchComponent) y numberAdvanced,
+    // para que se recalcule con el nuevo valor en handleInputConfirm()
+    const shouldResetLabel = shouldUseExtendedLabel || !fieldObj.searchComponent || fieldObj.searchType === 'numberAdvanced';
     this.selections = {
       field: fieldObj,
       condition: filtro.condition || 'AND',
       operator: filtro.operador,
       value,
-      label: shouldUseExtendedLabel ? '' : extractedLabel,
+      label: shouldResetLabel ? '' : extractedLabel,
       forced: !filtro.closeable,
     };
 
