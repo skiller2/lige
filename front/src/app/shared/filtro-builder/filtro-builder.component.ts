@@ -288,7 +288,14 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     };
 
-    this.localoptions.filtros.push(filtro);
+    // Buscar si ya existe un filtro con el mismo index
+    const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
+    
+    if (existingIndex !== -1) {
+      this.localoptions.filtros[existingIndex] = filtro;
+    } else {
+      this.localoptions.filtros.push(filtro);
+    }
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
@@ -381,16 +388,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
   selectedValueInactivo(val: any) {
-    if (val) {
+    if (val !== null && val !== undefined) {
       this.selections.value = val
-      //this.valueExtended = { fullName: val.label }
+      this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'
     }
   }
 
   selectedValueInactivoBoolean(val: any) {
-    if (val) {
+    if (val !== null && val !== undefined) {
       this.selections.value = val
-      //this.valueExtended = { fullName: val.label }
+      this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'
     }
   }
 
