@@ -9,6 +9,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 @Component({
   selector: 'app-mess',
@@ -16,7 +17,8 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
     CommonModule,
     SHARED_IMPORTS,
     NzAffixModule,
-    NzUploadModule
+    NzUploadModule,
+    PersonalSearchComponent
   ],
   templateUrl: './mess.component.html',
   styleUrl: './mess.component.scss'
@@ -117,5 +119,19 @@ export class MessComponent {
   trackByMsgId(index: number, msg: any): any {
     return msg.id ?? index;
   }
+
+  async changePersona(PersonalId: number) {
+    if (!PersonalId) return
+    const res = await firstValueFrom(this.apiService.getAccesoBot(PersonalId))
+
+    if (res?.Telefono) {
+      this.chatId.set(res.Telefono)
+      localStorage.setItem('chatId', this.chatId())
+    } else {
+      this.chatId.set('')
+    }
+
+  }
+
 
 }
