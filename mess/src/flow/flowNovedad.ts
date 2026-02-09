@@ -554,12 +554,24 @@ export const flowNovedadPendiente = addKeyword(EVENTS.ACTION)
         }
 
         let msg: string = 'Ingrese el número de la novedad a consultar:\n'
-        novedades.forEach((nov: any, i: any) => {
-            msg += `${nov.id} - Nov. #${nov.NovedadCodigo} - ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'} - ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjDescripcion ?? ''} \n`
-        })
-        msg += '\nM - Volver al menú'
 
-        await flowDynamic(msg, { delay: delay })
+
+        novedades.forEach(async (nov: any, i: any) => {
+            msg += `${nov.id} - Nov. #${nov.NovedadCodigo} - ${nov.Fecha ? parseFecha(nov.Fecha) : 's/d'} - ${(nov.ClienteId && nov.ClienteElementoDependienteId) ? (nov.ClienteId + '/' + nov.ClienteElementoDependienteId) : 's/d'} ${nov.ObjDescripcion ?? ''} \n`
+
+            if (msg.length > 1000) {
+                await flowDynamic(msg, { delay: delay })
+                msg = ''
+            }
+
+        })
+
+        if (msg.length > 0)
+            await flowDynamic(msg, { delay: delay })
+
+
+
+        await flowDynamic('M - Volver al menú', { delay: delay })
 
         state.update({ novedades })
     })
