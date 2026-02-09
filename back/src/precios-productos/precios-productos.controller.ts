@@ -3,8 +3,9 @@ import { dataSource } from "../data-source";
 import { NextFunction, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
-
-
+import xlsx from 'node-xlsx';
+import { FileUploadController } from "src/controller/file-upload.controller";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 
 export class PreciosProductosController extends BaseController {
 
@@ -215,7 +216,28 @@ export class PreciosProductosController extends BaseController {
 
     }
 
-
+    async addProductoPrecioQuery(
+        queryRunner:any,
+        ProductoCodigo:string,
+        ClienteId:number, 
+        PeriodoDesdeAplica:Date, 
+        Importe:number,
+        fecha:Date,
+        usuario:string,
+        ip:string,
+    ){
+        await queryRunner.query(`
+        INSERT INTO ProductoPrecio (
+            ProductoCodigo, 
+            ClienteId,
+            PeriodoDesdeAplica,
+            Importe,
+            AudFechaIng, AudFechaMod,
+            AudUsuarioIng, AudUsuarioMod,
+            AudIpIng, AudIpMod
+        ) VALUES ( @0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+        `, [ProductoCodigo, ClienteId,  PeriodoDesdeAplica , Importe, fecha, usuario, ip])
+    }
     
     async changecell(req: any, res: Response, next: NextFunction) {
         const usuario = res.locals.userName
@@ -239,7 +261,7 @@ export class PreciosProductosController extends BaseController {
             await queryRunner.startTransaction();
             
             if ( idTable?.length > 0) { //Entro en update
-                // throw new ClientException('DEBUG')
+
                 const ProductoCodigoOLD = req.body.ProductoCodigoOLD
                 const ClienteIdOLD = req.body.ClienteIdOLD
                 const PeriodoDesdeAplicaOLD = new Date(req.body.PeriodoDesdeAplicaOLD)
@@ -284,18 +306,7 @@ export class PreciosProductosController extends BaseController {
                 `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
                 if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
                 
-                await queryRunner.query(`
-                INSERT INTO ProductoPrecio (
-                    ProductoCodigo, 
-                    ClienteId,
-                    PeriodoDesdeAplica,
-                    Importe,
-                    AudFechaIng, AudFechaMod,
-                    AudUsuarioIng, AudUsuarioMod,
-                    AudIpIng, AudIpMod
-                ) VALUES ( @0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
-                `, [ProductoCodigo, ClienteId,  PeriodoDesdeAplica , Importe, fechaActual, usuario, ip]
-                )
+                await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
                 dataResultado = {action:'I'}
                 message = "Carga de nuevo Registro exitoso"
@@ -383,6 +394,17 @@ export class PreciosProductosController extends BaseController {
              `, [params.importe, fechaDesdeNew, fechaHastaNew, fechaActual, usuario, ip, params.codigo, params.SucursalId])
     }
 
+    async deleteProductoPrecioQuery(
+        queryRunner:any,
+        ProductoCodigo:string,
+        ClienteId:number, 
+        PeriodoDesdeAplica:Date,
+    ){
+        await queryRunner.query(`
+        DELETE FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
+        `, [ProductoCodigo, ClienteId,  PeriodoDesdeAplica])
+    }
+
     async deleteProductos(req: any, res: Response, next: NextFunction){
 
         const list = req.body.list
@@ -407,10 +429,9 @@ export class PreciosProductosController extends BaseController {
                     SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
                 `, [ProductoCodigo, ClienteId, anio, mes])
                 if (checkComprobante[0]?.ComprobanteNro?.length) messageError.push(`FILA ${id}: El precio del producto ya fue facturados`)
-
-                await queryRunner.query( `
-                    DELETE FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
-                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+                
+                this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
+                
             }
             throw new ClientException(`DEBUG`)
             if (messageError.length) throw new ClientException(messageError)
@@ -566,7 +587,180 @@ export class PreciosProductosController extends BaseController {
 
     }
 
+    async getPeriodoQuery(queryRunner: any, anio: number, mes: number) {
+        return await queryRunner.query(`
+        SELECT periodo_id, anio, mes, ind_recibos_generados
+        FROM lige.dbo.liqmaperiodo
+        WHERE anio = @1 AND mes = @2
+        `, [, anio, mes])
+    }
 
+    async handleXLSUpload(req: any, res: Response, next: NextFunction) {
+        const usuario = res.locals.userName
+        const ip = this.getRemoteAddress(req)
+
+        const anioRequest = Number(req.body.anio)
+        const mesRequest = Number(req.body.mes)
+        const PeriodoDesdeAplica = new Date(anioRequest, mesRequest-1, 1, 0, 0, 0, 0)
+        const productoCodigoRequest = req.body.ProductoCodigo
+        const file = req.body.files
+        
+        const tableNameRequest = 'ProductoPrecio'
+        let den_documento: string = ''
+        const fechaActual: Date = new Date()
+        let columnsnNotFound = []
+        let dataset: any = []
+        let idError: number = 0
+        let altaProductoPrecios = 0
+        let result: any
+        let docFilePath: string | null = null
+        let ProcesoAutomaticoLogCodigo = 0
+
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            let campos_vacios: any[] = [];
+
+
+            ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+                queryRunner,
+                `Importación xls Precios Producto Codigo ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
+                { anioRequest, mesRequest, productoCodigoRequest, tableNameRequest, usuario, ip },
+                usuario,
+                ip
+            ))
+
+
+            if (!anioRequest || !mesRequest) campos_vacios.push(`- Periodo`);
+            if (!productoCodigoRequest.length) campos_vacios.push(`- Producto`);
+
+            if (campos_vacios.length) {
+                campos_vacios.unshift('Debe completar los siguientes campos: ')
+                throw new ClientException(campos_vacios)
+            }
+
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            //Valida que el período no tenga el indicador de recibos generado
+            const checkrecibos = await this.getPeriodoQuery(queryRunner, anioRequest, mesRequest)
+            if (checkrecibos[0]?.ind_recibos_generados == 1)
+                throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+
+            const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
+            const sheet1 = workSheetsFromBuffer[0];
+            const columnsName: Array<string> = sheet1.data[0]
+
+            //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
+            const columnsXLS: any = columnsName.reduce((acc, column, index) => {
+                acc[column] = index;
+                return acc;
+            }, {} as Record<string, number>);
+
+            sheet1.data.splice(0, 1)
+
+            //Obtengo el nombre del producto
+            const Producto: any = await queryRunner.query(`
+                SELECT ProductoCodigo, TRIM(Nombre) AS Nombre FROM Producto WHERE ProductoCodigo IN (@0)
+            `, [productoCodigoRequest])
+            const ProductoNombre = Producto[0].Nombre
+
+            //Validar que esten las columnas nesesarias
+            if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
+            if (isNaN(columnsXLS['Importe'])) columnsnNotFound.push('- Importe')
+
+            if (columnsnNotFound.length) {
+                columnsnNotFound.unshift('Faltan las siguientes columnas:')
+                throw new ClientException(columnsnNotFound)
+            }
+
+            den_documento = `Producto-${ProductoNombre}-${mesRequest}-${anioRequest}`
+            // const docProductoPrecios = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+            // docFilePath = docProductoPrecios?.newFilePath
+            for (const row of sheet1.data) {
+                //Finaliza cuando la fila esta vacia
+                if (
+                !row[columnsXLS['CUIT']]
+                && !row[columnsXLS['Importe']]
+                ) break
+
+                const CUIT = row[columnsXLS['CUIT']]
+                const Importe = row[columnsXLS['Importe']]
+                
+                //Validaciones del CUIT del cliente
+                //Verifico que tenga 11 digitos
+                if (!/^\d{11}$/.test(CUIT)) {
+                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'El CUIT no tiene el formato correcto.' })
+                    continue
+                }
+                //Verifico que exista el CUIT del cliente
+                const cliente = await queryRunner.query(`
+                    SELECT cli.ClienteId FROM ClienteElementoDependiente cli 
+                    LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
+                        AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
+                    WHERE clif.ClienteFacturacionCUIT = @1
+                `, [fechaActual, CUIT])
+
+                if (cliente.length == 0) {
+                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El CUIT no existe en la base de datos.` })
+                    continue
+                }
+                const ClienteId = cliente[0].ClienteId
+
+                //Verifico si ya existe el registro
+                const checkNewCodigo = await queryRunner.query(`
+                    SELECT PeriodoDesdeAplica, Importe FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+                `, [productoCodigoRequest, ClienteId, PeriodoDesdeAplica])
+
+                if (checkNewCodigo.length){ //En caso de que exista
+                    //Compruebo si fue facturado
+                    const checkComprobante = await queryRunner.query(`
+                        SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
+                    `, [productoCodigoRequest, ClienteId, anioRequest, mesRequest])
+                    if (checkComprobante[0]?.ComprobanteNro?.length && checkNewCodigo[0].Importe != Importe){//Fue facturado y el Importe es diferente al de la base de datos
+                        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El precio del producto para ese periodo (${anioRequest}/${mesRequest}) existe y ya fue facturado al cliente` })
+                        continue
+                    } else if (!checkComprobante[0] && checkNewCodigo[0].Importe != Importe) {//No fue facturado y el Importe es diferente al de la base de datos
+                        await this.deleteProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica)
+                    }
+                }
+                
+                await this.addProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
+
+                altaProductoPrecios++
+            }
+
+            if (dataset.length > 0) {
+                throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
+            }
+            
+            await this.procesoAutomaticoLogFin(
+                queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'COM',
+                { res: `Procesado correctamente`, altaProductoPrecios },
+                usuario,
+                ip
+            );
+
+            await queryRunner.commitTransaction();
+            this.jsonRes([], res, "XLS Recibido y procesado!");
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+
+            if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
+
+            await this.procesoAutomaticoLogFin(queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'ERR',
+                { res: error.message || error, list: JSON.stringify(dataset) },
+                usuario,
+                ip
+            );
+            return next(error)
+        } finally {
+            await queryRunner.release();
+        }
+    }
  
 }
 

@@ -1666,6 +1666,15 @@ export class ApiService {
 
   }
 
+  importXLSImporteVentaProductoPrecios(files: any, anio: number, mes: number, ProductoCodigo: string) {
+    const parameter = { files, anio, mes, ProductoCodigo }
+    return this.http.post<ResponseJSON<any>>(`api/productos/import-xls-precios`, parameter)
+      .pipe(
+        tap((res: ResponseJSON<any>) => this.response(res)),
+      );
+
+  }
+
   getDescuentosPrepaga(options: any, anio: number, mes: number) {
     if (!anio && !mes) return of([]);
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, { options, anio, mes })
