@@ -951,4 +951,10 @@ export class CondicionesVentaController extends BaseController {
             }
         }
     }
+
+    async getMensajeHoras(req: any, res: any, next: any) {
+        const tipoHoras = req.params.tipoHoras;
+        const mensaje = "ej del mes.."
+        return this.jsonRes({ mensaje }, res, 'Mensaje de horas obtenido');
+    }
 }

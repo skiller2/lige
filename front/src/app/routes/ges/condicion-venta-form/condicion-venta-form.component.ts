@@ -36,6 +36,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
   $optionsTipoCantidad = this.searchService.getTipoCantidadSearch();
   $optionsTipoImporte = this.searchService.getTipoImporteSearch();
+  mensajesHoras = signal<string>('');
 
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
 
@@ -276,35 +277,57 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       importeUnitarioControl?.enable();
     }
 
-    // Actualizar el campo TextoFactura con el tipo de importe y el período
   }
 
-  onTipoCantidadChange(tipoCantidad: string, index: number): void {
-    const cantidadControl = this.infoProductos().at(index)?.get('Cantidad');
+  async onTipoCantidadChange(tipoCantidad: string, index: number): Promise<void> {
+    const cantidadControl = this.infoProductos().at(index)?.get('Cantidad')
     
-    if (tipoCantidad !== 'F') {
-      // Si no es 'F', deshabilitar y limpiar el campo
-      cantidadControl?.setValue('');
-      cantidadControl?.disable();
+    if (tipoCantidad === 'A' || tipoCantidad === 'B') {
+
+      cantidadControl?.setValue('')
+      cantidadControl?.disable()
+      await this.obtenerMensajeHoras(tipoCantidad, index)
+
+    } else if (tipoCantidad !== 'F') {
+      cantidadControl?.setValue('')
+      cantidadControl?.disable()
+      // Limpiar mensaje si existe
+      this.limpiarMensajeHoras(index)
     } else {
-      // Si es 'F', habilitar el campo
-      cantidadControl?.enable();
+      cantidadControl?.enable()
+      // Limpiar mensaje si existe
+      this.limpiarMensajeHoras(index)
     }
   }
+
+  async obtenerMensajeHoras(tipoHoras: string, index: number): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.apiService.getMensajeHoras(tipoHoras));
+      // Actualizar el signal con el mensaje de respuesta
+      this.mensajesHoras.set(response);
+    } catch (error) {
+      console.error('Error al obtener mensaje de horas:', error);
+      this.mensajesHoras.set('Error al cargar mensaje');
+    }
+  }
+
+  limpiarMensajeHoras(index: number): void {
+    this.mensajesHoras.set('');
+  }
   clearForm(): void {
-    this.formCondicionVenta.reset();
-    this.codobjId.set('');
+    this.formCondicionVenta.reset()
+    this.codobjId.set('')
     this.formCondicionVenta.patchValue({
       codobjId: '',
       ObjetivoId: 0,
     });
 
-    this.PeriodoDesdeAplica.set('');
-    this.infoProductos().clear();
-    const newGroup = this.fb.group({ ...this.objProductos });
-    this.infoProductos().push(newGroup);
-    newGroup.get('ImporteTotal')?.disable();
-    this.formCondicionVenta.markAsPristine();
+    this.PeriodoDesdeAplica.set('')
+    this.infoProductos().clear()
+    const newGroup = this.fb.group({ ...this.objProductos })
+    this.infoProductos().push(newGroup)
+    newGroup.get('ImporteTotal')?.disable()
+    this.formCondicionVenta.markAsPristine()
   }
 
   private productosCache: any[] = [];

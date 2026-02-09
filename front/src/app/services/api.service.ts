@@ -2041,6 +2041,16 @@ export class ApiService {
       );
   }
 
+  getMensajeHoras(tipoHoras: string): Observable<string> {
+    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/mensaje-horas/${tipoHoras}`).pipe(
+      map((res: ResponseJSON<any>) => res.data.mensaje),
+      catchError((err) => {
+        console.error('Error al obtener mensaje de horas:', err);
+        return of('Error al cargar el mensaje');
+      })
+    );
+  }
+
 
 
 }

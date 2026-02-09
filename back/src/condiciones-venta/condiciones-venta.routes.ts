@@ -55,3 +55,7 @@ condicionesVentaRouter.get('/tipoCantidad_getOptions', [authMiddleware.verifyTok
 condicionesVentaRouter.get('/tipoImporte_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   condicionesVentaController.getTipoImporteSearchOptions(req, res, next)
 })
+
+condicionesVentaRouter.get('/mensaje-horas/:tipoHoras', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getMensajeHoras(req, res, next)
+})
