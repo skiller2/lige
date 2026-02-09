@@ -235,16 +235,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         value = [this.selections.value]
 
 
-      if (this.selections.label == "" && this.valueExtended?.fullName)
-        this.selections.label = this.valueExtended.fullName
-      //      if (this.selections.label == "")
-      //        this.selections.label = this.selections.value == "" ? "Vacio" : String(this.selections.value)
-
+      // Establecer el label apropiado
       if (this.selections.label == "") {
-        if (this.selections.value == "" || ((this.selections.value instanceof Date) && isNaN(this.selections.value.getTime())))
-          this.selections.label = "Vacio"
-        else
-          this.selections.label = (this.selections.value instanceof Date) ? String(this.datePipe.transform(this.selections.value)) : String(this.selections.value)
+        if (this.valueExtended?.fullName) {
+          this.selections.label = this.valueExtended.fullName;
+        } else if (this.selections.value == "" || ((this.selections.value instanceof Date) && isNaN(this.selections.value.getTime()))) {
+          this.selections.label = "Vacio";
+        } else {
+          this.selections.label = (this.selections.value instanceof Date) ? String(this.datePipe.transform(this.selections.value)) : String(this.selections.value);
+        }
       }
 
       this.appendFiltro(
@@ -288,7 +287,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     };
 
-    // Buscar si ya existe un filtro con el mismo index
+    // NOTE: Codi por si no se quiere que se repita el filtro
     const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
     
     if (existingIndex !== -1) {
@@ -299,12 +298,129 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
+
   }
 
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
     this.optionsChange.emit(this.localoptions);
     //    this.options.set(this.localoptions);
+  }
+
+  async editFiltro(indexToEdit: number) {
+    const filtro = this.localoptions.filtros[indexToEdit];
+    if (!filtro) return;
+
+    const fieldObj = this.fieldsToSelect().find(f => f.field === filtro.index);
+    if (!fieldObj) return;
+
+    // Simplificar obtención de value
+    let value = Array.isArray(filtro.valor) && filtro.valor.length === 1 ? filtro.valor[0] : filtro.valor;
+
+    // Extraer label de tagName
+    let extractedLabel = '';
+    const tagName = filtro.tagName;
+    if (filtro.operador) {
+      const opPattern = new RegExp(`\\s+${filtro.operador}\\s+`);
+      const split = tagName.split(opPattern);
+      if (split.length > 1) {
+        extractedLabel = split[1];
+      } else if (split.length === 1) {
+        extractedLabel = split[0];
+      }
+    }
+
+    // Si no se pudo extraer, fallback sobre fieldName
+    if (!extractedLabel) {
+      const fieldName = fieldObj.name;
+      const afterField = tagName.slice(tagName.indexOf(fieldName) + fieldName.length).trim();
+      const operators = ['LIKE', '>=', '<=', '!=', '<>', '>', '<', '='];
+      for (const op of operators) {
+        if (afterField.startsWith(op + ' ')) {
+          extractedLabel = afterField.substring(op.length + 1).trim();
+          break;
+        }
+      }
+      if (!extractedLabel) extractedLabel = afterField.trim();
+    }
+
+    // Reset valueExtended
+    this.valueExtended = { fullName: '' };
+
+    // Ajustar valueExtended segun el componente de búsqueda
+    let shouldUseExtendedLabel = false;
+    switch (fieldObj.searchComponent) {
+      case 'inputForPersonalSearch':
+        shouldUseExtendedLabel = true;
+        try {
+          const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value));
+          if (person?.length > 0) {
+            this.valueExtended = { fullName: person[0].fullName };
+            extractedLabel = person[0].fullName;
+          }
+        } catch (e) {
+          console.error('Error loading person data:', e);
+        }
+        break;
+      case 'inputForClientSearch':
+        shouldUseExtendedLabel = true;
+        try {
+          const cliente = await firstValueFrom(this.searchService.getClientFromName('ClienteId', value));
+          if (cliente?.length > 0) {
+            this.valueExtended = { fullName: cliente[0].ClienteDenominacion };
+            extractedLabel = cliente[0].ClienteDenominacion;
+          }
+        } catch (e) {
+          console.error('Error loading client data:', e);
+        }
+        break;
+      case 'inputForEfectoSearch':
+      case 'inputForEfectoIndividualSearch':
+      case 'inputForGrupoActividadSearch':
+        shouldUseExtendedLabel = true;
+        break;
+      default:
+        if (extractedLabel) this.valueExtended = { fullName: extractedLabel };
+        break;
+    }
+
+    // Fecha y NumberAdvanced: ambos usan {operator, value}
+    if (
+      ((fieldObj.type === 'date' || fieldObj.type === 'dateTime') && fieldObj.searchComponent === 'inputForFechaSearch') ||
+      fieldObj.searchType === 'numberAdvanced'
+    ) {
+      value = { operator: filtro.operador, value };
+    }
+
+    // Selects múltiples
+    const multiSelects = [
+      'inputForSituacionRevistaSearch',
+      'inputForTipoDocumentoSearch',
+      'inputForLugarHabilitacionSearch',
+      'inputForHabilitacionClaseSearch',
+      'inputForHabilitacionEstadoSearch'
+    ];
+    if (multiSelects.includes(fieldObj.searchComponent)) {
+      const values = String(value).split(';');
+      this.listOfSelectedValue = values.map(v => ({ value: v, label: v })) as any;
+    }
+
+    // Actualizar selections
+    this.selections = {
+      field: fieldObj,
+      condition: filtro.condition || 'AND',
+      operator: filtro.operador,
+      value,
+      label: shouldUseExtendedLabel ? '' : extractedLabel,
+      forced: !filtro.closeable,
+    };
+
+    this.isFiltroBuilder = true;
+
+    setTimeout(() => {
+      const input = this.elRef.nativeElement.querySelector('input[nz-input]');
+      input?.focus();
+    }, 100);
   }
 
   resetSelections() {
