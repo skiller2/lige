@@ -132,7 +132,7 @@ export class NovedadController extends BaseController {
     const year = date.getFullYear()
     const month = date.getMonth() + 1
     const res = await dbServer.dataSource.query(`
-        SELECT obj.ClienteElementoDependienteId, obj.ClienteId, 'Supervisor' tipo,
+        SELECT obj.ClienteElementoDependienteId, obj.ClienteId, 'Responsable' tipo,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta
           
         FROM Objetivo obj 
@@ -200,9 +200,9 @@ export class NovedadController extends BaseController {
     await dbServer.dataSource.query(`
       UPDATE Novedad
       SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId = @3
-      WHERE NovedadCodigo = @0
+      WHERE NovedadCodigo = @0 AND VisualizacionFecha IS NULL
       `, [NovedadCodigo, now, telefono, personalId])
-    return
+    return {}
   }
 
 }

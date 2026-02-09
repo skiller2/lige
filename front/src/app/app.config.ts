@@ -25,6 +25,8 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { NgxMaskOptions, provideEnvironmentNgxMask } from 'ngx-mask';
 import { decimalMarkerFactory, DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR, thousandSeparatorFactory } from './app.config.defaults';
 import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
+import { provideMarkdown } from 'ngx-markdown';
+
 
 const defaultLang: AlainProvideLang = {
   abbr: 'es-AR',
@@ -80,7 +82,8 @@ const providers: Array<Provider | EnvironmentProviders> = [
   provideSFConfig({ widgets: SF_WIDGETS }),
   provideStartup(),
   provideZonelessChangeDetection(),
-  
+  provideMarkdown(),
+
 
   provideTranslateService({
     loader: {

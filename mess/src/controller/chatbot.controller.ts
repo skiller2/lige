@@ -266,6 +266,30 @@ export class ChatBotController extends BaseController {
     },
   }
 
+/*
+              case '':
+                output = await novedadController.setNovedadVisualizacion(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
+                break;
+
+*/
+  
+
+  setNovedadVisualizacion = {
+    type: 'function',
+    function: {
+      name: 'setNovedadVisualizacion',
+      description: 'Update date from last view news',
+      parameters: {
+        type: 'object',
+        required: ['NovedadCodigo','personalId'],
+        properties: {
+          NovedadCodigo: { type: 'number', description: 'Code of news' },
+          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
+        }
+      },
+    },
+  }
+
   getObjetivoByCodObjetivo = {
     type: 'function',
     function: {
@@ -354,7 +378,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto, this.getBackupNovedad, this.saveNovedad, this.getObjetivoByCodObjetivo, this.getNovedadTipo, this.addNovedad, this.getNovedadesPendientesByResponsable],
+          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto, this.getBackupNovedad, this.saveNovedad, this.getObjetivoByCodObjetivo, this.getNovedadTipo, this.addNovedad, this.getNovedadesPendientesByResponsable, this.setNovedadVisualizacion],
 
         });
 
@@ -431,9 +455,15 @@ export class ChatBotController extends BaseController {
               case 'addNovedad':
                 output = await novedadController.addNovedad(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
                 break;
+              case 'setNovedadVisualizacion':
+                output = await novedadController.setNovedadVisualizacion(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
+                break;
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(tool.function.arguments.personalId)
-
+                break;
+              case 'setNovedadVisualizacion':
+                //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
+                output = {}
                 break;
 
               default:

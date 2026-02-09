@@ -11,6 +11,8 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
+import { MarkdownComponent } from 'ngx-markdown';
+
 @Component({
   selector: 'app-mess',
   imports: [NzModalModule,
@@ -18,7 +20,8 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
     SHARED_IMPORTS,
     NzAffixModule,
     NzUploadModule,
-    PersonalSearchComponent
+    PersonalSearchComponent,
+    MarkdownComponent    
   ],
   templateUrl: './mess.component.html',
   styleUrl: './mess.component.scss'
