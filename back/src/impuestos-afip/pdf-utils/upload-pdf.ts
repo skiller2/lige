@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { ClientException } from "../../controller/baseController";
+import { ClientException } from "../../controller/basecontroller.ts";
 
 interface Params {
   file: Express.Multer.File;

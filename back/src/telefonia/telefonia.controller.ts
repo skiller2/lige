@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils";
-import { recibosController } from "src/controller/controller.module";
-import { FileUploadController } from "src/controller/file-upload.controller";
+import { recibosController } from "../controller/controller.module";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 
 export class TelefoniaController extends BaseController {
   directory = process.env.PATH_DOCUMENTS || "tmp";

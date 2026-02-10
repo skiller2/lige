@@ -1,6 +1,6 @@
-import { BaseController, ClientException } from "./baseController";
+import { BaseController, ClientException } from "./basecontroller.ts";
 import fetch, { Request } from "node-fetch";
-import { dataSource } from "../data-source";
+import { dataSource } from "../data-source.ts";
 import { Response } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import { NextFunction } from "express";

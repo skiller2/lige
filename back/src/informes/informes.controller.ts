@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
-import { BaseController, ClientException } from "../controller/baseController"
-import { dataSource } from "../data-source"
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros"
+import { BaseController, ClientException } from "../controller/basecontroller.ts"
+import { dataSource } from "../data-source.ts"
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts"
 import { mkdirSync, existsSync, readFileSync, unlinkSync, mkdir, createWriteStream, writeFile, writeFileSync } from "fs"
 import xlsx from 'node-xlsx'
 import { isNumberObject } from "util/types"

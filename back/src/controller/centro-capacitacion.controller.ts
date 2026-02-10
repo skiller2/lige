@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
-import { BaseController, ClientException } from "./baseController";
-import { dataSource } from "../data-source";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "./basecontroller.ts";
+import { dataSource } from "../data-source.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
 

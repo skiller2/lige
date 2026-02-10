@@ -1,5 +1,5 @@
-import { BaseController } from "./baseController";
-import { dataSource } from "../data-source";
+import { BaseController } from "./basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { Request, Response, NextFunction } from "express";
 
 export class InfoController extends BaseController {

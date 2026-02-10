@@ -16,7 +16,7 @@ import {
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
 import { tmpName } from "../server";
-import { ClientException } from "../controller/baseController";
+import { ClientException } from "../controller/basecontroller.ts";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 

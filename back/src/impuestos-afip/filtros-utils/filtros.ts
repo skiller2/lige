@@ -1,4 +1,4 @@
-import { ClientException } from "../../controller/baseController";
+import { ClientException } from "../../controller/basecontroller.ts";
 import { CustomSort, Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex } from "../comprobantes-utils/lista";
 import { Request } from "express";

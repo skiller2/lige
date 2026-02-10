@@ -1,7 +1,7 @@
 import { NextFunction, query, Response } from "express";
-import { BaseController, ClientException } from "./baseController";
-import { dataSource, getConnection } from "../data-source";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "./basecontroller.ts";
+import { dataSource, getConnection } from "../data-source.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 
 const optionsSelect: any[] = [

@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../../controller/baseController";
-import { dataSource } from "../../data-source";
+import { BaseController, ClientException } from "../../controller/basecontroller.ts";
+import { dataSource } from "../../data-source.ts";
 import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
-import { recibosController } from "src/controller/controller.module";
+import { recibosController } from "../controller/controller.module";
 
 
 //import path from "path";
@@ -39,7 +39,7 @@ import {
   getOptionsFromRequest,
   isOptions,
   orderToSQL,
-} from "../../impuestos-afip/filtros-utils/filtros";
+} from "../../impuestos-afip/filtros-utils/filtros.ts";
 import { tmpName } from "../../server";
 import { format, promisify } from "node:util";
 import { once } from "events";

@@ -1,4 +1,4 @@
-import { ClientException } from "src/controller/baseController";
+import { ClientException } from "../controller/basecontroller.ts";
 import { QueryFailedError, QueryRunner } from "typeorm";
 
 export class Utils {

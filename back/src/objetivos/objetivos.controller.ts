@@ -1,8 +1,8 @@
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { FileUploadController } from "../controller/file-upload.controller"
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts"
 import { QueryRunner } from "typeorm";
 import { ObjectId } from "typeorm/browser";
 

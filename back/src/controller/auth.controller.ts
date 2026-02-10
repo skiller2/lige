@@ -3,10 +3,10 @@ import bcryptjs from "bcryptjs";
 import { Attribute, Change, Client, Control, InvalidCredentialsError, SearchOptions } from 'ldapts';
 
 import jsonwebtoken, { } from "jsonwebtoken";
-import { dataSource } from "../data-source";
+import { dataSource } from "../data-source.ts";
 import { NextFunction, Request } from "express";
 
-import { BaseController, ClientException } from "./baseController";
+import { BaseController, ClientException } from "./basecontroller.ts";
 
 export class AuthController extends BaseController {
 

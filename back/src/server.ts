@@ -4,7 +4,7 @@ import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "http";
-import { ClientException, ClientWarning } from "./controller/baseController";
+import { ClientException, ClientWarning } from "./controller/basecontroller.ts";
 
 import dotenv from "dotenv"
 

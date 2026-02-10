@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
 import { condicionesVentaController, facturacionController } from "../controller/controller.module";
-import { facturacionRouter } from "src/facturacion/facturacion.routes";
+import { facturacionRouter } from "../facturacion/facturacion.routes.ts";
 
 export const condicionesVentaRouter = Router();
 

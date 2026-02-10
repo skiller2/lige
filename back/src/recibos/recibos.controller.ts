@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { promises as fsPromises } from 'fs';
@@ -15,9 +15,9 @@ import {
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
 
 import { QueryRunner } from "typeorm";
-import { CustodiaController } from "src/controller/custodia.controller";
-import { AsistenciaController } from "src/controller/asistencia.controller";
-import { FileUploadController } from "src/controller/file-upload.controller";
+import { CustodiaController } from "../controller/custodia.controller.ts";
+import { AsistenciaController } from "../controller/asistencia.controller.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { Filter } from "ldapts/filters/Filter";
 
 

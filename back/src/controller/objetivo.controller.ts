@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { BaseController } from "./baseController";
-import { dataSource } from "../data-source";
+import { BaseController } from "./basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { ObjetivoInfo } from "../schemas/ResponseJSON";
 import { NextFunction } from "express-serve-static-core";
 import { QueryRunner } from "typeorm";

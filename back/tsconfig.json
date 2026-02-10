@@ -27,6 +27,8 @@
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions":true,
+    "noEmit": true,
     "typeRoots": [
 //      "./src/types",
       "node_modules/@types"

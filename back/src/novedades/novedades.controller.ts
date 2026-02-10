@@ -1,14 +1,14 @@
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { FileUploadController } from "../controller/file-upload.controller"
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts"
 import { QueryRunner } from "typeorm";
-import { ObjetivoController } from "src/controller/objetivo.controller";
-import { ObjetivosController } from "src/objetivos/objetivos.controller";
+import { ObjetivoController } from "../controller/objetivo.controller.ts";
+import { ObjetivosController } from "../objetivos/objetivos.controller.ts";
 
-import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
-import { PersonalController } from "src/controller/personal.controller"
+import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
+import { PersonalController } from "../controller/personal.controller.ts"
 import * as fs from 'fs';
 import { mkdirSync, existsSync, writeFileSync } from "fs";
 import path from 'path';

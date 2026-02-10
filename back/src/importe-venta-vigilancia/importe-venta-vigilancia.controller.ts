@@ -1,13 +1,13 @@
 import { existsSync, mkdirSync, readFileSync } from "fs";
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
-import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
+import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 import { NextFunction, Request, Response } from "express";
-// import { ObjetivoController } from "src/controller/objetivo.controller";
+// import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import xlsx from 'node-xlsx';
-import { FileUploadController } from "src/controller/file-upload.controller";
-import { AsistenciaController } from "src/controller/asistencia.controller";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
+import { AsistenciaController } from "../controller/asistencia.controller.ts";
 
 const columnasGrilla: any[] = [
   {

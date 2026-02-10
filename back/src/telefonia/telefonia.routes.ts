@@ -4,7 +4,7 @@ import { telefoniaController } from "../controller/controller.module";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
 import { tmpName } from "../server";
-import { ClientException } from "../controller/baseController";
+import { ClientException } from "../controller/basecontroller.ts";
 
 const dirtmp = `${process.env.PATH_TELEFONIA}/temp`;
 if (!existsSync(dirtmp)) {

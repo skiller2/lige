@@ -1,15 +1,15 @@
-import { BaseController, ClientException } from "./baseController";
+import { BaseController, ClientException } from "./basecontroller.ts";
 import { PersonaObj } from "../schemas/personal.schemas";
-import { dataSource } from "../data-source";
+import { dataSource } from "../data-source.ts";
 import { Response } from "express-serve-static-core";
 import { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "fs";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 import { promisify } from 'util';
 import * as fs from 'fs';
-import { FileUploadController } from "../controller/file-upload.controller"
-import { habilitacionesController } from "src/controller/controller.module"
+import { FileUploadController } from "../controller/file-upload.controller.ts"
+import { habilitacionesController } from "../controller/controller.module"
 import { max } from "moment";
 
 const stat = promisify(fs.stat);

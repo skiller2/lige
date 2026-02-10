@@ -1,12 +1,12 @@
 import { NextFunction, Response } from "express";
-import { BaseController, ClientException } from "./baseController";
-import { dataSource } from "../data-source";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "./basecontroller.ts";
+import { dataSource } from "../data-source.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
-import { AsistenciaController } from "./asistencia.controller";
+import { AsistenciaController } from "./asistencia.controller.ts";
 import { error } from "pdf-lib";
-import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
+import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 
 const columnsObjCustodia: any[] = [
     {

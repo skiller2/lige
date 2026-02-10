@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Utils } from "./liquidaciones.utils";
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
-import { recibosController } from "src/controller/controller.module";
+import { recibosController } from "../controller/controller.module";
 import { QueryRunner } from "typeorm"
-import { FileUploadController } from "src/controller/file-upload.controller";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 
 
 

@@ -1,12 +1,12 @@
-import { BaseController, ClientException } from "../../controller/baseController";
-import { dataSource } from "../../data-source";
+import { BaseController, ClientException } from "../../controller/basecontroller.ts";
+import { dataSource } from "../../data-source.ts";
 import { QueryFailedError, QueryRunner } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Client } from "ldapts";
 import { Utils } from "../liquidaciones.utils";
-import { AsistenciaController } from "src/controller/asistencia.controller";
-import { recibosController } from "src/controller/controller.module";
+import { AsistenciaController } from "../controller/asistencia.controller.ts";
+import { recibosController } from "../controller/controller.module";
 
 
 export class IngresoPorAsistenciaController extends BaseController {

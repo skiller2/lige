@@ -1,10 +1,10 @@
-import { BaseController, ClientException, ClientWarning } from "../controller/baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException, ClientWarning } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { NextFunction, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Options } from "../schemas/filtro";
 import xlsx from 'node-xlsx';
-import { FileUploadController } from "src/controller/file-upload.controller";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 
 export class PreciosProductosController extends BaseController {

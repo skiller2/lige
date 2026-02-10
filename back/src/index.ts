@@ -1,16 +1,16 @@
-import { DBServer, WebServer } from "./server";
-import { makeRoutes } from "./routes/routes.module"
-import { dataSource } from "./data-source";
+import { DBServer, WebServer } from "./server.ts";
+import { makeRoutes } from "./routes/routes.module.ts"
+import { dataSource } from "./data-source.ts";
 import { scheduleJob } from "node-schedule"
-import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
-import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller";
+import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller.ts";
+import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller.ts";
 import dotenv from "dotenv"
-import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller";
-import { AsistenciaController } from "./controller/asistencia.controller";
-import { SegurosController } from "./seguros/seguros.controller";
+import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller.ts";
+import { AsistenciaController } from "./controller/asistencia.controller.ts";
+import { SegurosController } from "./seguros/seguros.controller.ts";
 import { Temporal } from "@js-temporal/polyfill";
-import { ClientesController } from "./clientes/clientes.controller";
-import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller";
+import { ClientesController } from "./clientes/clientes.controller.ts";
+import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller.ts";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 //import { GlobalWorkerOptions } from "pdfjs-dist";
 

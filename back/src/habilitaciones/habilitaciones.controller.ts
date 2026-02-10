@@ -1,12 +1,12 @@
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { json, NextFunction, Request, Response } from "express";
-import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { FileUploadController } from "../controller/file-upload.controller"
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts"
 import { QueryRunner } from "typeorm";
-import { AsistenciaController } from "src/controller/asistencia.controller";
-import { CustodiaController } from "src/controller/custodia.controller";
-import { PersonalController } from "src/controller/personal.controller"
+import { AsistenciaController } from "../controller/asistencia.controller.ts";
+import { CustodiaController } from "../controller/custodia.controller.ts";
+import { PersonalController } from "../controller/personal.controller.ts"
 import { max } from "moment";
 
 const getHabNecesariaOptions: any[] = [

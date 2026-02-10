@@ -1,5 +1,5 @@
-import { BaseController, ClientException } from "./baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException } from "./basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { NextFunction, Request, Response, query, text } from "express";
 import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils";

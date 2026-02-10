@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/baseController";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 //import { getDocument } from "pdfjs-dist";
@@ -15,7 +15,7 @@ import {
   writeFileSync,
 } from "fs";
 
-import { dataSource } from "../data-source";
+import { dataSource } from "../data-source.ts";
 import {
   PDFDocument,
   PDFEmbeddedPage,
@@ -36,12 +36,12 @@ import {
   getOptionsFromRequest,
   isOptions,
   orderToSQL,
-} from "./filtros-utils/filtros";
+} from "./filtros-utils/filtros.ts";
 import {
   getPeriodoFromRequest,
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
-import { FileUploadController } from "src/controller/file-upload.controller";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { basename, join } from "path";
 
 

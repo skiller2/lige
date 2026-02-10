@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { unlinkSync, writeFileSync } from "fs";
 import { tmpName } from "../server";
-import { ClientException } from "../controller/baseController";
+import { ClientException } from "../controller/basecontroller.ts";
 
 interface Periodo {
   year: number;

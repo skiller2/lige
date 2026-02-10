@@ -1,18 +1,18 @@
-import { BaseController, ClientException } from "../controller/baseController";
-import { dataSource } from "../data-source";
-import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros";
+import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { dataSource } from "../data-source.ts";
+import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { NextFunction, Request, Response, query } from "express";
-import { ObjetivoController } from "src/controller/objetivo.controller";
-import { AsistenciaController } from "../controller/asistencia.controller";
+import { ObjetivoController } from "../controller/objetivo.controller.ts";
+import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
-import { Utils } from "./../liquidaciones/liquidaciones.utils";
+import { Utils } from "./../liquidaciones/liquidaciones.utils.ts";
 import { Collection, IsNull } from "typeorm";
 import { QueryRunner } from "typeorm";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { FileUploadController } from "../controller/file-upload.controller"
-import { AccesoBotController } from "../acceso-bot/acceso-bot.controller";
+import { FileUploadController } from "../controller/file-upload.controller.ts"
+import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);

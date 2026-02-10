@@ -1,16 +1,16 @@
 import { NextFunction, Response, query } from "express";
-import { BaseController, ClientException } from "./baseController";
-import { dataSource } from "../data-source";
+import { BaseController, ClientException } from "./basecontroller.ts";
+import { dataSource } from "../data-source.ts";
 import { QueryRunner } from "typeorm";
-import { ObjetivoController } from "./objetivo.controller";
-import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
-import { CustodiaController } from "./custodia.controller";
+import { ObjetivoController } from "./objetivo.controller.ts";
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { CustodiaController } from "./custodia.controller.ts";
 import CryptoJS from "crypto-js";
 import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
-import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
-import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
-import { FileUploadController } from "./file-upload.controller";
+import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
+import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
+import { FileUploadController } from "./file-upload.controller.ts";
 import { fileUploadController } from "./controller.module";
 import { get } from "http";
 

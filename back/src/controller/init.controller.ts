@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { BaseController, ClientException } from "./baseController";
-import { getConnection } from "../data-source";
-import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
+import { BaseController, ClientException } from "./basecontroller.ts";
+import { getConnection } from "../data-source.ts";
+import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller.ts";
 import { objetivosPendasisController } from "./controller.module";
-import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
+import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { isNumberObject } from "util/types";
-import { AsistenciaController } from "./asistencia.controller";
-import { CustodiaController } from "./custodia.controller";
+import { AsistenciaController } from "./asistencia.controller.ts";
+import { CustodiaController } from "./custodia.controller.ts";
 
 export class InitController extends BaseController {
   getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
