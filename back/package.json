@@ -63,7 +63,8 @@
    },
    "scripts": {
       "dev": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts",
-      "devNew": "bun --watch run ./src/index.ts",
+      "devBun": "bun --watch run ./src/index.ts",
+      "devNew": "node --experimental-strip-types --experimental-transform-types --watch ./src/index.ts",
       "build": "node ./scripts/build.mjs",
       "start": "npm run dev"
    }
