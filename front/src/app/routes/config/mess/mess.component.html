@@ -18,24 +18,23 @@
 
 <nz-card>
   <h4>Conversación</h4>
-      <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+  <nz-form-label [nzSpan]="5">Persona</nz-form-label>
 
-      <nz-form-control [nzSpan]="19">
-        <app-personal-search 
-          (ngModelChange)="changePersona($event)" ngModel [anio]="0"
-          [mes]="0" />
-      </nz-form-control>
+  <nz-form-control [nzSpan]="19">
+    <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
+  </nz-form-control>
 
-    <nz-form-label [nzSpan]="6" nzFor="chatId">Teléfono</nz-form-label>
-    <nz-form-control [nzSpan]="14">
-      <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
-    </nz-form-control>
+  <nz-form-label [nzSpan]="6" nzFor="chatId">Teléfono</nz-form-label>
+  <nz-form-control [nzSpan]="14">
+    <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
+  </nz-form-control>
 
   <nz-card style="min-height: 300px;">
 
     <div class="chat-messages">
-      <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line" [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
-        
+      <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
+        [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
+
         @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
 
         <nz-card nzSize="small">

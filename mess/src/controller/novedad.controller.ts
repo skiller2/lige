@@ -146,7 +146,7 @@ export class NovedadController extends BaseController {
     if (!res.length) return []
 
 
-    let novPendientes = []
+    let novPendientes:any[] = []
     for (let index = 0; index < res.length; index++) {
       const ClienteElementoDependienteId = res[index].ClienteElementoDependienteId
       const ClienteId = res[index].ClienteId
@@ -167,7 +167,7 @@ export class NovedadController extends BaseController {
           LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
           LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
           LEFT JOIN (
-            	SELECT doc.NovedadCodigo, COUNT(doc.NovedadCodigo) AS Cantidad
+              SELECT doc.NovedadCodigo, COUNT(doc.NovedadCodigo) AS Cantidad
               FROM DocumentoRelaciones doc
               JOIN Novedad nov ON nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1)
               WHERE doc.NovedadCodigo = nov.NovedadCodigo
@@ -176,7 +176,7 @@ export class NovedadController extends BaseController {
           WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1) AND nov.VisualizacionFecha IS NULL
         `, [ClienteId, ClienteElementoDependienteId]
       )
-      novPendientes = novPendientes.concat(novedades)
+      novPendientes.push(novedades)
     }
 
     return novPendientes

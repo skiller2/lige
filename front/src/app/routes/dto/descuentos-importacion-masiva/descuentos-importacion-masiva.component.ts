@@ -47,8 +47,10 @@ export class DescuentosImportacionMasivaComponent {
     excelExportService = new ExcelExportService();
     fileUploadComponent = viewChild.required(FileUploadComponent);
     formAltaDesc = this.fb.group({
-        DescuentoId:0, tableName:'', files: [[]]
+        DescuentoId:0, CuentaTipoCodigo:'G', tableName:'', files: [[]]
     })
+    $optionsCuenta = this.apiService.getTipoCuenta();
+
 
     constructor(
         private apiService: ApiService,
@@ -156,9 +158,11 @@ export class DescuentosImportacionMasivaComponent {
  
 
             try {
-              let descuentoId = this.formAltaDesc.get('DescuentoId')?.value
-              let tableName = this.formAltaDesc.get('tableName')?.value
-              await firstValueFrom(this.apiService.importXLSImporteVentaDescuentos(filesValue, this.anio(), this.mes(),this.fecha, descuentoId, tableName))  
+              const descuentoId = this.formAltaDesc.get('DescuentoId')?.value
+              const tableName = this.formAltaDesc.get('tableName')?.value
+              const CuentaTipoCodigo = this.formAltaDesc.get('CuentaTipoCodigo')?.value || ''
+
+              await firstValueFrom(this.apiService.importXLSImporteVentaDescuentos(filesValue, this.anio(), this.mes(),this.fecha, descuentoId, tableName,CuentaTipoCodigo))  
             this.formChange$.next('changed');
             this.fileUploadComponent().DeleteFileByExporterror(filesValue)
             } catch (e: any) {

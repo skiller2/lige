@@ -317,12 +317,12 @@ export class ChatBotController extends BaseController {
     type: 'function',
     function: {
       name: 'getNovedadesPendientesByResponsable',
-      description: 'list pending news using PersonalId as lookup key',
+      description: 'list own pending news using PersonalId as lookup key',
       parameters: {
         type: 'object',
         required: ['personalId'],
         properties: {
-          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
+          personalId: { type: 'number', description: 'The personal id of responsable' },
         }
       },
     },
@@ -372,7 +372,7 @@ export class ChatBotController extends BaseController {
 
         });
 
-        console.log('responseIA',responseIA.message.content)
+        //console.log('responseIA',responseIA.message.content)
 
         botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
 
@@ -461,7 +461,7 @@ export class ChatBotController extends BaseController {
 
             //            const output = await functionToCall(tool.function.arguments);
 
-            console.log('tool_calls', tool.function.name, output)
+            //console.log('tool_calls', tool.function.name, output)
 
             botServer.chatmess[chatId].push({
               id: botServer.chatmess[chatId].length, role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,

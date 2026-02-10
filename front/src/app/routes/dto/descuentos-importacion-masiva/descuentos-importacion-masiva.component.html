@@ -6,16 +6,16 @@
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="2">Tipo de Carga</nz-form-label>
       <nz-form-control [nzMd]="5">
-        <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+        <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
+          nzShowSearch>
           <ng-container *ngFor="let option of $optionsTable | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
           </ng-container>
         </nz-select>
       </nz-form-control>
-
-      <nz-form-label *ngIf="tableName() === 'PersonalOtroDescuento'" [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
-      <nz-form-control *ngIf="tableName() === 'PersonalOtroDescuento'" [nzMd]="5">
+      @if (tableName() === 'PersonalOtroDescuento') {
+      <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
+      <nz-form-control [nzMd]="5">
         <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           <ng-container *ngFor="let option of $optionsTipo | async">
@@ -24,9 +24,20 @@
         </nz-select>
       </nz-form-control>
 
+      <nz-form-label>Tipo de Cuenta</nz-form-label>
+      <nz-form-control>
+        <nz-select formControlName="CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          @for (option of $optionsCuenta | async; track option) {
+          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+      }
 
-      <nz-form-label *ngIf="tableName() === 'ObjetivoDescuento'"[nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
-      <nz-form-control *ngIf="tableName() === 'ObjetivoDescuento'" [nzMd]="5">
+      @if (tableName() === 'ObjetivoDescuento') {
+      <nz-form-label [nzXs]="4">Tipo de Descuento Objetivo</nz-form-label>
+      <nz-form-control [nzMd]="5">
         <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           <ng-container *ngFor="let option of $optionsTipo | async">
@@ -34,11 +45,14 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
+      }
 
-      <nz-form-label [nzXs]="3" class="inputText">Archivo Descuentos</nz-form-label>   
-        <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
+
+
+      <nz-form-label [nzXs]="3" class="inputText">Archivo Descuentos</nz-form-label>
+      <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
         [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
-     
+
     </nz-form-item>
 
     <nz-form-item>
@@ -46,11 +60,12 @@
       <nz-form-control>
         <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
           <!-- <ng-container > -->
-          <div  class="containerAnterioresDescuentos" nz-tooltip nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
-             <ng-container>
-                <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
-                <span nz-icon nzType="download" ></span></a>
-              </ng-container>
+          <div class="containerAnterioresDescuentos" nz-tooltip
+            nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
+            <ng-container>
+              <a app-down-file httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
+                <span nz-icon nzType="download"></span></a>
+            </ng-container>
             <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
           </div>
         </ng-container>
@@ -60,20 +75,20 @@
 
   <div nz-tab>
     <div class="gridErrorPer container-fluid">
-      <angular-slickgrid *ngIf="tableName() === 'PersonalOtroDescuento'"
-        gridId="gridErrorPer" [columns]="columnsPer  | colsFilter" [options]="gridOptionsPer"
-        [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
+      <angular-slickgrid *ngIf="tableName() === 'PersonalOtroDescuento'" gridId="gridErrorPer"
+        [columns]="columnsPer  | colsFilter" [options]="gridOptionsPer" [dataset]="(gridDataImport$ | async) || []"
+        (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
     </div>
   </div>
 
   <div nz-tab>
     <div class="gridErrorObj container-fluid">
-      <angular-slickgrid *ngIf="tableName() === 'ObjetivoDescuento'"
-        gridId="gridErrorObj" [columns]="columnsObj  | colsFilter" [options]="gridOptionsObj"
-        [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
+      <angular-slickgrid *ngIf="tableName() === 'ObjetivoDescuento'" gridId="gridErrorObj"
+        [columns]="columnsObj  | colsFilter" [options]="gridOptionsObj" [dataset]="(gridDataImport$ | async) || []"
+        (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
     </div>
   </div>
-    
+
 </nz-card>

@@ -416,7 +416,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       FROM lige.dbo.liqmaperiodo WHERE anio = @0 AND mes = @1 AND ind_recibos_generados = 1`,
       [anioRequest, mesRequest]
     );
-
+    const CuentaTipoCodigo:string = 'G'
     let updateFile = false
 
     const actual = new Date()
@@ -492,9 +492,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
           , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
           , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
-          , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle
+          , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, CuentaTipoCodigo
           , PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudFechaMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudIpMod)
-           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17,@15, @16, @17)`,
+           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18,@16, @17, @18)`,
           [
             PersonalOtroDescuentoUltNro,
             personalID,
@@ -511,6 +511,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             null,
             "",
             `${mesRequest}/${anioRequest}`, //detalle
+            CuentaTipoCodigo,
             actual,
             usuario,
             ip

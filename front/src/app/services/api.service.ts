@@ -1657,8 +1657,8 @@ export class ApiService {
 
   }
 
-  importXLSImporteVentaDescuentos(files: any, anio: number, mes: number, fecha: Date, DescuentoId: any, tableName: any) {
-    const parameter = { files, anio, mes, fecha, DescuentoId, tableName }
+  importXLSImporteVentaDescuentos(files: any, anio: number, mes: number, fecha: Date, DescuentoId: any, tableName: any,CuentaTipoCodigo:string) {
+    const parameter = { files, anio, mes, fecha, DescuentoId, tableName,CuentaTipoCodigo }
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/import-xls-descuentos`, parameter)
       .pipe(
         tap((res: ResponseJSON<any>) => this.response(res)),

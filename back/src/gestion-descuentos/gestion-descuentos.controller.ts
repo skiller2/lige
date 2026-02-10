@@ -825,6 +825,7 @@ export class GestionDescuentosController extends BaseController {
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const DocumentoId: number = otroDescuento.DocumentoId
     const importeTotal = Number((Number(otroDescuento.Importe)).toFixed(2))
+    const CuentaTipoCodigo:string = otroDescuento?.CuentaTipoCodigo?otroDescuento.CuentaTipoCodigo:'G'
     /*
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
@@ -843,10 +844,10 @@ export class GestionDescuentosController extends BaseController {
       PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
       , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
-      , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, ImportacionDocumentoId
+      , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, ImportacionDocumentoId, CuentaTipoCodigo
       , PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudIpMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudFechaMod)
-      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @12, @7, 0, 1, 1, '' , @8, @6, @9, @10, @11, @9, @10, @11)
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, ip, usuario, now, importeTotal])
+      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @12, @7, 0, 1, 1, '' , @8, @6, @9, @10, @11, @12, @10, @11, @12)
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, CuentaTipoCodigo, ip, usuario, now, importeTotal])
 
 
 
@@ -1662,7 +1663,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async importaXLSOtroDescuento(columnsXLS: any, sheet1: any, file: any, fechaActual: Date, den_documento: string, anioRequest: number, mesRequest: number, dataset: any, descuentoIdRequest: number, queryRunner: any, usuario: string, ip: string) {
+  async importaXLSOtroDescuento(columnsXLS: any, sheet1: any, file: any, fechaActual: Date, den_documento: string, anioRequest: number, mesRequest: number, dataset: any, descuentoIdRequest: number, CuentaTipoCodigo:string, queryRunner: any, usuario: string, ip: string) {
     let columnsnNotFound = []
     let idError = 0
     let altaDescuentos = 0
@@ -1737,7 +1738,8 @@ export class GestionDescuentosController extends BaseController {
         Cuotas: CantidadCuotas,
         Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
         Detalle: row[columnsXLS['Detalle']],
-        DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null
+        DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null,
+        CuentaTipoCodigo
       }
       const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuario, ip)
       altaDescuentos++
@@ -1889,6 +1891,7 @@ export class GestionDescuentosController extends BaseController {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
     const descuentoIdRequest = Number(req.body.DescuentoId)
+    const CuentaTipoCodigo = String(req.body.CuentaTipoCodigo)
     const tableNameRequest = req.body.tableName
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
@@ -1963,7 +1966,7 @@ export class GestionDescuentosController extends BaseController {
               break;
 
             default:
-              result = await this.importaXLSOtroDescuento(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, queryRunner, usuario, ip)
+              result = await this.importaXLSOtroDescuento(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, CuentaTipoCodigo, queryRunner, usuario, ip)
 
               break;
           }
