@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import path from 'path';
 import { mkdirSync, existsSync } from "fs";
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word"
+import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word/index.js"
 import {
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils.ts";
@@ -18,9 +18,6 @@ import { QueryRunner } from "typeorm";
 import { CustodiaController } from "../controller/custodia.controller.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
-import { Filter } from "ldapts/filters/Filter";
-
-
 
 export class RecibosController extends BaseController {
   directoryRecibo = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibos'
