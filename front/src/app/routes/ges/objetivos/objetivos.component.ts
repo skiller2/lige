@@ -48,7 +48,6 @@ export class ObjetivosComponent {
   editClienteId = signal(0)
   ObjetivoNombre = signal("")
   editClienteElementoDependienteId = signal(0)
-  edit =signal(false)
   addNew = false
   visibleHistorial = model<boolean>(false)
   childIsPristine = signal(true)
@@ -172,7 +171,6 @@ export class ObjetivosComponent {
 
   getGridData(): void {
     this.listObjetivos$.next('')
-    this.edit.set(false)
   }
 
   async handleAddOrUpdate(){
@@ -187,6 +185,8 @@ export class ObjetivosComponent {
   listOptionsChange(options: any) {
       this.listOptions = options
       this.listObjetivos$.next('')
+      //Reseteo el registro selecionado
+      this.angularGrid.slickGrid.setSelectedRows([])
   }
 
   onTabsetChange(_event: any) {
