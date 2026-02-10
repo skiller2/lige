@@ -1,10 +1,6 @@
-import { Request, Router, request, response } from "express"
+import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 import { cargaLicenciaController } from "../controller/controller.module.ts";
-import multer, { FileFilterCallback } from "multer";
-import { existsSync, mkdirSync } from "fs";
-import { ClientException } from "../controller/basecontroller.ts";
-import { tmpName } from "../server.ts";
 
 
 type DestinationCallback = (error: Error | null, destination: string) => void;

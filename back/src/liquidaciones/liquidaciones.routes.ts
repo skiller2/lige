@@ -1,4 +1,5 @@
-import type { Request, Router } from "express"
+import  { Router } from "express"
+import type { Request } from "express"
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 import {
   movimientosAutomaticosController,

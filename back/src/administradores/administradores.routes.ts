@@ -1,4 +1,4 @@
-import { Request, Router, request, response } from "express"
+import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 
 import { administradoresController } from "../controller/controller.module.ts";
