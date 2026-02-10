@@ -186,7 +186,7 @@ export class ObjetivosComponent {
       this.listOptions = options
       this.listObjetivos$.next('')
       //Reseteo el registro selecionado
-      this.angularGrid.slickGrid.setSelectedRows([])
+      this.angularGrid?.slickGrid?.setSelectedRows([])
   }
 
   onTabsetChange(_event: any) {
