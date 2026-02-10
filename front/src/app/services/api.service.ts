@@ -790,8 +790,8 @@ export class ApiService {
   }
 
 
-  addDescuentoCargaManualPersonal(gridDataInsert: any, periodo: any, descuentoId: any) {
-    const parameter = [periodo, gridDataInsert, descuentoId]
+  addDescuentoCargaManualPersonal(gridDataInsert: any, anio:number, mes:number, descuentoId: number, CuentaTipoCodigo:string) {
+    const parameter = { anio, mes, gridDataInsert, descuentoId,CuentaTipoCodigo}
     this.notification.success('Respuesta', `Iniciando proceso `);
 
     return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualPersonal', parameter).pipe(

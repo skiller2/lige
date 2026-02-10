@@ -35,6 +35,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   anio = input<number>(0)
   mes = input<number>(0)
   pDescuentoId = input<number>(0)
+  CuentaTipoCodigo = input<string>('G')
   private angularUtilService = inject(AngularUtilService);
   private apiService = inject(ApiService);
 
@@ -230,7 +231,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
     const valuePeriodo = this.mes() + "/" + this.anio();
     if (altas.length > 0) {
-      this.apiService.addDescuentoCargaManualPersonal({ gridDataInsert: altas }, valuePeriodo,this.pDescuentoId()).subscribe({
+      this.apiService.addDescuentoCargaManualPersonal(altas, this.anio(),this.mes(),this.pDescuentoId(),this.CuentaTipoCodigo()).subscribe({
         next: (_res: any) => {
      
             this.formChange$.next('');

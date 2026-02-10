@@ -825,7 +825,7 @@ export class GestionDescuentosController extends BaseController {
     const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const DocumentoId: number = otroDescuento.DocumentoId
     const importeTotal = Number((Number(otroDescuento.Importe)).toFixed(2))
-    const CuentaTipoCodigo:string = otroDescuento?.CuentaTipoCodigo?otroDescuento.CuentaTipoCodigo:'G'
+    const CuentaTipoCodigo: string = otroDescuento?.CuentaTipoCodigo ? otroDescuento.CuentaTipoCodigo : 'G'
     /*
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
@@ -846,8 +846,12 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
       , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, ImportacionDocumentoId, CuentaTipoCodigo
       , PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudIpMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudFechaMod)
-      VALUES (@0,@1,@2,@3, @4, @4, 1, @5, @12, @7, 0, 1, 1, '' , @8, @6, @9, @10, @11, @12, @10, @11, @12)
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, DocumentoId, AplicaEl, Detalle, CuentaTipoCodigo, ip, usuario, now, importeTotal])
+      VALUES (@0,@1,@2,@3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @17, @18, @19)
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio,
+      mes, mes, 1, Cuotas,
+      importeTotal, AplicaEl, 0, 0,
+      1, '', Detalle, DocumentoId, CuentaTipoCodigo,
+      ip, usuario, now])
 
 
 
@@ -1663,7 +1667,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  async importaXLSOtroDescuento(columnsXLS: any, sheet1: any, file: any, fechaActual: Date, den_documento: string, anioRequest: number, mesRequest: number, dataset: any, descuentoIdRequest: number, CuentaTipoCodigo:string, queryRunner: any, usuario: string, ip: string) {
+  async importaXLSOtroDescuento(columnsXLS: any, sheet1: any, file: any, fechaActual: Date, den_documento: string, anioRequest: number, mesRequest: number, dataset: any, descuentoIdRequest: number, CuentaTipoCodigo: string, queryRunner: any, usuario: string, ip: string) {
     let columnsnNotFound = []
     let idError = 0
     let altaDescuentos = 0
@@ -2209,34 +2213,31 @@ export class GestionDescuentosController extends BaseController {
   async addDescuentoCargaManualPersonal(req: any, res: Response, next: NextFunction) {
     let ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
-    const periodo = req.body[0]
+    const anio: number = req.body.anio
+    const mes: number = req.body.mes
     const queryRunner = dataSource.createQueryRunner();
-    let result = req.body[1].gridDataInsert
-    const DescuentoId: number = req.body[2]
+    const gridDataInsert = req.body.gridDataInsert
+    const DescuentoId: number = req.body.descuentoId
+    const CuentaTipoCodigo: string = req.body.CuentaTipoCodigo
     let dataset = []
     try {
+
+
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!periodo) throw new ClientException('Falta ingresar el período.');
 
-      let AplicaEl: Date
-      if (periodo && typeof periodo === 'string' && /^(0?[1-9]|1[0-2])\/\d{4}$/.test(periodo)) {
-        const [mes, anio] = periodo.split('/').map(Number);
-        AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
-      } else {
-        throw new ClientException('Error en formateo del período.');
-      }
-
-      const anio: number = AplicaEl.getFullYear()
-      const mes: number = AplicaEl.getMonth() + 1
+      const AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
+      if (!DescuentoId)
+        throw new ClientException(`Debe indicar un tipo de descuento`)
 
       const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}, no se puede hacer modificaciones`)
 
 
-      for (const row of req.body[1].gridDataInsert) {
+      for (const row of gridDataInsert) {
         const PersonalId: number = row.ApellidoNombre.id
         const Detalle: number = row.Detalle
 
@@ -2245,10 +2246,11 @@ export class GestionDescuentosController extends BaseController {
           row.errorMessage = `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`
           row.isfull = 2
         }
-        let Descuento = {
+        const Descuento = {
           PersonalId: PersonalId,
           AplicaEl: AplicaEl,
           DescuentoId: DescuentoId,
+          CuentaTipoCodigo,
           Cuotas: Number(row.CantidadCuotas),
           Detalle: Detalle,
           Importe: row.ImporteTotal
@@ -2260,11 +2262,11 @@ export class GestionDescuentosController extends BaseController {
         }
       }
       if (dataset.length > 0) {
-        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: result })
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: gridDataInsert })
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+      this.jsonRes({ list: gridDataInsert }, res, `Se procesaron ${gridDataInsert.length} registros `);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)

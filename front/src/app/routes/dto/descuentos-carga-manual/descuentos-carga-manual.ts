@@ -5,6 +5,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { FormBuilder } from '@angular/forms';
 import { DescuentosCargaManualTablePersonalComponent } from '../descuentos-carga-manual-table-personal/descuentos-carga-manual-table-personal';
 import { DescuentosCargaManualTableObjetivoComponent } from '../descuentos-carga-manual-table-objetivo/descuentos-carga-manual-table-objetivo';
+import { ApiService } from 'src/app/services/api.service';
 
 @Component({
   selector: 'app-descuentos-carga-manual',
@@ -15,16 +16,18 @@ import { DescuentosCargaManualTableObjetivoComponent } from '../descuentos-carga
 export class DescuentosCargaManualComponent implements OnInit {
 
   private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
   fb = inject(FormBuilder)
 
   $optionsTipo = this.searchService.getDecuentosTipoOptions();
   $optionsTable = this.searchService.getDescuentoTableOptions();
   anio = input<number>(0)
   mes = input<number>(0)
+    $optionsCuenta = this.apiService.getTipoCuenta();
 
   formDescuentosCargaManual = this.fb.group({
     DescuentoId:0, tableName:'', files: [[]],
-    tipocarga:''
+    tipocarga:'',CuentaTipoCodigo:'G'
 })
 
 

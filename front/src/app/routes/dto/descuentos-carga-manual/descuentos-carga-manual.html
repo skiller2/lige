@@ -16,8 +16,6 @@
 
         @if (ptipocarga() === 'PersonalOtroDescuento') {
           <nz-form-label [nzXs]="4">Tipo de Descuento Personal</nz-form-label>
-        }
-        @if (ptipocarga() === 'PersonalOtroDescuento') {
           <nz-form-control  [nzMd]="5">
             <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
@@ -26,6 +24,18 @@
               }
             </nz-select>
           </nz-form-control>
+
+
+      <nz-form-label>Tipo de Cuenta</nz-form-label>
+      <nz-form-control>
+        <nz-select formControlName="CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          @for (option of $optionsCuenta | async; track option) {
+          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+
         }
 
 
