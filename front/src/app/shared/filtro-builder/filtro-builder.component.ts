@@ -247,18 +247,14 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           this.selections.label = (this.selections.value instanceof Date) ? String(this.datePipe.transform(this.selections.value)) : String(this.selections.value);
         }
       }
-      if (this.selections.originIdx != null) {
-        this.localoptions.filtros.splice(this.selections.originIdx, 1);
-
-      }
-
 
       this.appendFiltro(
         this.selections as any,
         value,
         `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`,
         !this.selections.forced,
-        (this.selections.field.type) ? this.selections.field.type : 'string'
+        (this.selections.field.type) ? this.selections.field.type : 'string',
+        this.selections.originIdx
       )
     }
     this.resetSelections();
@@ -281,7 +277,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     valueToFilter: any[],
     tagName: string,
     closeable: boolean,
-    type: string
+    type: string,
+    originIdx:number|null
   ): Filtro {
     const filtro = {
       index: selections.field.field,
@@ -294,14 +291,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     };
 
-    // NOTE: Codi por si no se quiere que se repita el filtro
-    //    const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
 
-    //    if (existingIndex !== -1) {
-    //      this.localoptions.filtros[existingIndex] = filtro;
-    //    } else {
-    this.localoptions.filtros.push(filtro);
-    //    }
+    console.log('appendFiltro',originIdx, this.localoptions.filtros)
+    if (originIdx!=null)
+      this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
+    else 
+      this.localoptions.filtros.push(filtro);
+
+
+    console.log('appendFiltro despues',originIdx, this.localoptions.filtros)
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
@@ -314,8 +312,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     //    this.options.set(this.localoptions);
   }
 
-  async editFiltro(indexToEdit: number) {
-    const filtro = this.localoptions.filtros[indexToEdit];
+  async editFiltro(originIdx: number) {
+    const filtro = this.localoptions.filtros[originIdx];
     if (!filtro || !filtro.closeable) return;
 
     const fieldObj = this.fieldsToSelect().find(f => f.id === filtro.index);
@@ -428,7 +426,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       //label: filtro.  shouldResetLabel ? '' : extractedLabel,
       label: '',
       forced: !filtro.closeable,
-      originIdx: indexToEdit
+      originIdx: originIdx
     };
 
     this.isFiltroBuilder = true;
