@@ -15,8 +15,7 @@
       <span nz-icon nzType="plus"></span>
       Añadir Filtro
     </nz-tag>
-  }
-  @if (isFiltroBuilder) {
+  } @else {
     <!-- <nz-select
     [nzPlaceHolder]="'Condición'"
     [(ngModel)]="selections.condition"
@@ -26,8 +25,9 @@
       [nzLabel]="condition"
     [nzValue]="condition"></nz-option>
   </nz-select> -->
+  <p>selections: {{ selections | json }} </p>
   <nz-select  nz-col [nzXs]="24" [nzSm]="11" [nzMd]="7" [nzLg]="5" [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
-    style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector>
+    style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector [disabled]="(selections.originIdx!=null)?true:false">
     @for (field of fieldsToSelect(); track field) {
       @if (field.searchHidden!=true) {
         <nz-option [nzLabel]="field.name" [nzValue]="field">
@@ -101,7 +101,7 @@
       }
       @if (selections.field.searchComponent=='inputForFechaSearch') {
         <app-fecha-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
+          [(valueExtended)]="valueExtended" [(operador)]="selections.operator"
           (keydown.enter)="handleInputConfirm()" />
       }
       @if (selections.field.searchComponent=='inputForPeriodoSearch') {

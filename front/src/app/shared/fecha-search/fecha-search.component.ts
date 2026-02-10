@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef, inject } from '@angular/core'
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef, inject, model } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -38,6 +38,8 @@ export class FechaSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("fsc") fsc!: NzSelectComponent
+
+  operador = model('=')
   private datePipe = inject(DatePipe)
 
 
@@ -46,7 +48,6 @@ export class FechaSearchComponent implements ControlValueAccessor {
 
   private _selectedId: any = null
   _selected: any
-  _operador: any  = '='
   operatorsArray: string[] = ['=', '>=', '<=', '<', '>', '<>'];
   // extendedOption = {  }
   // tipo_movimiento:any
@@ -113,19 +114,22 @@ export class FechaSearchComponent implements ControlValueAccessor {
       }
     const fullName=this.datePipe.transform(this._selectedId)
     this.valueExtendedEmitter.emit({fullName })
-//    this.propagateChange(this._operador +' '+ this._selectedId)
-      this.propagateChange({ operator: this._operador, value: this._selectedId })
+//    this.propagateChange(this.operador +' '+ this._selectedId)
+      this.propagateChange({ operator: this.operador(), value: this._selectedId })
     }
   }
 
-  writeValue(value: Date) {
-    if (value !== this._selectedId) {
+  writeValue(value: any) {
+    if (!value) return
+    const tmpVal: Date = (Array.isArray(value))?value[0]:value
+    
+    if (tmpVal !== this._selectedId)
       this.selectedId = value
-    }
+
   }
 
-  modelChangeOp(value: any) {
-    if (value !== this._operador) 
-      this._operador = value;
-  }
+//  modelChangeOp(value: any) {
+//    if (value !== this.operador()) 
+//      this.operador.set(value);
+//  }
 }

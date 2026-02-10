@@ -33,4 +33,5 @@ export interface Selections {
   value: any;
   label: string;
   forced: boolean;
+  originIdx: number|null;
 }

@@ -127,7 +127,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     operator: '',
     value: null,
     label: '',
-    forced: false
+    forced: false,
+    originIdx: null
   };
 
   valueExtended = { fullName: '' }
@@ -211,7 +212,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     return (this.selections.field.name && this.selections.condition && this.selections.operator) ? true : false
   }
 
-  handleInputConfirm() {
+  handleInputConfirm(filtroOrigen: any = null) {
 
     if (this.verifySelections()) {
       let value: any
@@ -246,6 +247,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           this.selections.label = (this.selections.value instanceof Date) ? String(this.datePipe.transform(this.selections.value)) : String(this.selections.value);
         }
       }
+      if (this.selections.originIdx != null) {
+        this.localoptions.filtros.splice(this.selections.originIdx, 1);
+
+      }
+
 
       this.appendFiltro(
         this.selections as any,
@@ -289,13 +295,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     };
 
     // NOTE: Codi por si no se quiere que se repita el filtro
-//    const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
-    
-//    if (existingIndex !== -1) {
-//      this.localoptions.filtros[existingIndex] = filtro;
-//    } else {
-      this.localoptions.filtros.push(filtro);
-//    }
+    //    const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
+
+    //    if (existingIndex !== -1) {
+    //      this.localoptions.filtros[existingIndex] = filtro;
+    //    } else {
+    this.localoptions.filtros.push(filtro);
+    //    }
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
@@ -311,111 +317,118 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   async editFiltro(indexToEdit: number) {
     const filtro = this.localoptions.filtros[indexToEdit];
     if (!filtro || !filtro.closeable) return;
-    const fieldObj = this.fieldsToSelect().find(f => f.field === filtro.index);
-    if (!fieldObj || fieldObj.hidden) return;
 
-    // Simplificar obtención de value
-    let value = Array.isArray(filtro.valor) && filtro.valor.length === 1 ? filtro.valor[0] : filtro.valor;
-
-    // Extraer label de tagName
-    let extractedLabel = '';
-    const tagName = filtro.tagName;
-    if (filtro.operador) {
-      const opPattern = new RegExp(`\\s+${filtro.operador}\\s+`);
-      const split = tagName.split(opPattern);
-      if (split.length > 1) {
-        extractedLabel = split[1];
-      } else if (split.length === 1) {
-        extractedLabel = split[0];
-      }
-    }
-
-    // Si no se pudo extraer, fallback sobre fieldName
-    if (!extractedLabel) {
-      const fieldName = fieldObj.name;
-      const afterField = tagName.slice(tagName.indexOf(fieldName) + fieldName.length).trim();
-      const operators = ['LIKE', '>=', '<=', '!=', '<>', '>', '<', '='];
-      for (const op of operators) {
-        if (afterField.startsWith(op + ' ')) {
-          extractedLabel = afterField.substring(op.length + 1).trim();
-          break;
-        }
-      }
-      if (!extractedLabel) extractedLabel = afterField.trim();
-    }
-
-    // Reset valueExtended
-    this.valueExtended = { fullName: '' };
-
-    // Ajustar valueExtended segun el componente de búsqueda
-    let shouldUseExtendedLabel = false;
-    switch (fieldObj.searchComponent) {
-      case 'inputForPersonalSearch':
-        shouldUseExtendedLabel = true;
-        try {
-          const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value));
-          if (person?.length > 0) {
-            this.valueExtended = { fullName: person[0].fullName };
-            extractedLabel = person[0].fullName;
+    const fieldObj = this.fieldsToSelect().find(f => f.id === filtro.index);
+    if (!fieldObj || fieldObj.searchHidden) return;
+    /*    
+    
+        // Simplificar obtención de value
+        let value = Array.isArray(filtro.valor) && filtro.valor.length === 1 ? filtro.valor[0] : filtro.valor;
+    
+        // Extraer label de tagName
+        let extractedLabel = '';
+        const tagName = filtro.tagName;
+        if (filtro.operador) {
+          const opPattern = new RegExp(`\\s+${filtro.operador}\\s+`);
+          const split = tagName.split(opPattern);
+          if (split.length > 1) {
+            extractedLabel = split[1];
+          } else if (split.length === 1) {
+            extractedLabel = split[0];
           }
-        } catch (e) {
-          console.error('Error loading person data:', e);
         }
-        break;
-      case 'inputForClientSearch':
-        shouldUseExtendedLabel = true;
-        try {
-          const cliente = await firstValueFrom(this.searchService.getClientFromName('ClienteId', value));
-          if (cliente?.length > 0) {
-            this.valueExtended = { fullName: cliente[0].ClienteDenominacion };
-            extractedLabel = cliente[0].ClienteDenominacion;
+    
+        // Si no se pudo extraer, fallback sobre fieldName
+        if (!extractedLabel) {
+          const fieldName = fieldObj.name;
+          const afterField = tagName.slice(tagName.indexOf(fieldName) + fieldName.length).trim();
+          const operators = ['LIKE', '>=', '<=', '!=', '<>', '>', '<', '='];
+          for (const op of operators) {
+            if (afterField.startsWith(op + ' ')) {
+              extractedLabel = afterField.substring(op.length + 1).trim();
+              break;
+            }
           }
-        } catch (e) {
-          console.error('Error loading client data:', e);
+          if (!extractedLabel) extractedLabel = afterField.trim();
         }
-        break;
-      case 'inputForEfectoSearch':
-      case 'inputForEfectoIndividualSearch':
-      case 'inputForGrupoActividadSearch':
-        shouldUseExtendedLabel = true;
-        break;
-      default:
-        if (extractedLabel) this.valueExtended = { fullName: extractedLabel };
-        break;
-    }
+    
+        // Reset valueExtended
+        this.valueExtended = { fullName: '' };
+    
+        // Ajustar valueExtended segun el componente de búsqueda
+        let shouldUseExtendedLabel = false;
+        switch (fieldObj.searchComponent) {
+          case 'inputForPersonalSearch':
+            shouldUseExtendedLabel = true;
+            try {
+              const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value));
+              if (person?.length > 0) {
+                this.valueExtended = { fullName: person[0].fullName };
+                extractedLabel = person[0].fullName;
+              }
+            } catch (e) {
+              console.error('Error loading person data:', e);
+            }
+            break;
+          case 'inputForClientSearch':
+            shouldUseExtendedLabel = true;
+            try {
+              const cliente = await firstValueFrom(this.searchService.getClientFromName('ClienteId', value));
+              if (cliente?.length > 0) {
+                this.valueExtended = { fullName: cliente[0].ClienteDenominacion };
+                extractedLabel = cliente[0].ClienteDenominacion;
+              }
+            } catch (e) {
+              console.error('Error loading client data:', e);
+            }
+            break;
+          case 'inputForEfectoSearch':
+          case 'inputForEfectoIndividualSearch':
+          case 'inputForGrupoActividadSearch':
+            shouldUseExtendedLabel = true;
+            break;
+          default:
+            if (extractedLabel) this.valueExtended = { fullName: extractedLabel };
+            break;
+        }
+    
+        // Fecha y NumberAdvanced: ambos usan {operator, value}
+        if (
+          ((fieldObj.type === 'date' || fieldObj.type === 'dateTime') && fieldObj.searchComponent === 'inputForFechaSearch') ||
+          fieldObj.searchType === 'numberAdvanced'
+        ) {
+          value = { operator: filtro.operador, value };
+        }
+    
+        // Selects múltiples
+        const multiSelects = [
+          'inputForSituacionRevistaSearch',
+          'inputForTipoDocumentoSearch',
+          'inputForLugarHabilitacionSearch',
+          'inputForHabilitacionClaseSearch',
+          'inputForHabilitacionEstadoSearch'
+        ];
+        if (multiSelects.includes(fieldObj.searchComponent)) {
+          const values = String(value).split(';');
+          this.listOfSelectedValue = values.map(v => ({ value: v, label: v })) as any;
+        }
+    
+        // Actualizar selections
+        // Resetear label para campos simples (sin searchComponent) y numberAdvanced,
+        // para que se recalcule con el nuevo valor en handleInputConfirm()
+    */
 
-    // Fecha y NumberAdvanced: ambos usan {operator, value}
-    if (
-      ((fieldObj.type === 'date' || fieldObj.type === 'dateTime') && fieldObj.searchComponent === 'inputForFechaSearch') ||
-      fieldObj.searchType === 'numberAdvanced'
-    ) {
-      value = { operator: filtro.operador, value };
-    }
 
-    // Selects múltiples
-    const multiSelects = [
-      'inputForSituacionRevistaSearch',
-      'inputForTipoDocumentoSearch',
-      'inputForLugarHabilitacionSearch',
-      'inputForHabilitacionClaseSearch',
-      'inputForHabilitacionEstadoSearch'
-    ];
-    if (multiSelects.includes(fieldObj.searchComponent)) {
-      const values = String(value).split(';');
-      this.listOfSelectedValue = values.map(v => ({ value: v, label: v })) as any;
-    }
-
-    // Actualizar selections
-    // Resetear label para campos simples (sin searchComponent) y numberAdvanced,
-    // para que se recalcule con el nuevo valor en handleInputConfirm()
-    const shouldResetLabel = shouldUseExtendedLabel || !fieldObj.searchComponent || fieldObj.searchType === 'numberAdvanced';
+    //    const shouldResetLabel = shouldUseExtendedLabel || !fieldObj.searchComponent || fieldObj.searchType === 'numberAdvanced';
     this.selections = {
       field: fieldObj,
       condition: filtro.condition || 'AND',
       operator: filtro.operador,
-      value,
-      label: shouldResetLabel ? '' : extractedLabel,
+      value: filtro.valor,
+      //label: filtro.  shouldResetLabel ? '' : extractedLabel,
+      label: '',
       forced: !filtro.closeable,
+      originIdx: indexToEdit
     };
 
     this.isFiltroBuilder = true;
@@ -433,7 +446,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       operator: '',
       value: '',
       label: '',
-      forced: false
+      forced: false,
+      originIdx: null
     };
     this.valueExtended = { fullName: '' }
   }
@@ -692,8 +706,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }*/
 
 
-    this.selections = { field: fieldObj, condition, operator, value, label, forced }
-    this.handleInputConfirm()
+    this.selections = { field: fieldObj, condition, operator, value, label, forced, originIdx: null }
+    this.handleInputConfirm(null)
   }
 
 }
