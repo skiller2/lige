@@ -1,6 +1,7 @@
 <nz-card style="max-height: 150px; overflow: auto; border:none !important;">
   @for (tag of localoptions.filtros; track tag) {
-    @if (tag.tagName !="") {
+
+    @if (tag.tagName &&  tag.tagName !="") {
       <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
         <span class="app-tag-span" (click)="editFiltro($index)" style="cursor: pointer;" title="Click para editar">
           <span nz-icon nzType="edit" nzTheme="outline" style="margin-right: 4px; font-size: 12px;"></span>
