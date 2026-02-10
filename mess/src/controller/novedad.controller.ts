@@ -176,7 +176,9 @@ export class NovedadController extends BaseController {
           WHERE nov.ClienteId IN (@0) AND nov.ClienteElementoDependienteId IN (@1) AND nov.VisualizacionFecha IS NULL
         `, [ClienteId, ClienteElementoDependienteId]
       )
-      novPendientes.push(novedades)
+//      novPendientes.push(novedades)
+      novPendientes = novPendientes.concat(novedades)
+
     }
 
     return novPendientes

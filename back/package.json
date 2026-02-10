@@ -59,7 +59,7 @@
       "puppeteer": "^21.10.0",
       "qrcode-reader": "^1.0.4",
       "remove": "^0.1.5",
-      "typeorm": "^0.3.24"
+      "typeorm": "^0.3.28"
    },
    "scripts": {
       "dev": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts",
