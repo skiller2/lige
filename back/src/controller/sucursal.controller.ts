@@ -1,7 +1,7 @@
 import { BaseController } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { NextFunction, Response } from "express";
-import { Request } from "express-serve-static-core";
+import { Request } from "express";
 import { ParsedQs } from "qs";
 
 export class SucursalController extends BaseController {

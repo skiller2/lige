@@ -10,7 +10,7 @@ import { promisify } from 'util';
 import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { TextItem } from "pdfjs-dist/types/src/display/api";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 import { fileUploadController } from "./controller.module.ts";

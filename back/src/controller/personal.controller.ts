@@ -1,11 +1,11 @@
 import { BaseController, ClientException } from "./basecontroller.ts";
-import { PersonaObj } from "../schemas/personal.schemas";
+import { PersonaObj } from "../schemas/personal.schemas.ts";
 import { dataSource } from "../data-source.ts";
-import { Response } from "express-serve-static-core";
+import { Response } from "express";
 import { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 import { promisify } from 'util';
 import * as fs from 'fs';
 import { FileUploadController } from "../controller/file-upload.controller.ts"

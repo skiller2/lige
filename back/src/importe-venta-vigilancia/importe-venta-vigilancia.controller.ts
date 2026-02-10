@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync } from "fs";
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 import { NextFunction, Request, Response } from "express";
 // import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import xlsx from 'node-xlsx';

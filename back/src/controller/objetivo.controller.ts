@@ -1,8 +1,7 @@
-import { Response } from "express";
 import { BaseController } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { ObjetivoInfo } from "../schemas/ResponseJSON.ts";
-import { NextFunction } from "express-serve-static-core";
+import { Response, NextFunction } from 'express';
 import { QueryRunner } from "typeorm";
 
 export class ObjetivoController extends BaseController {

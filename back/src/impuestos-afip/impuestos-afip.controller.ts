@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/basecontroller.ts
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 //import { getDocument } from "pdfjs-dist";
-import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 
 
@@ -28,9 +28,9 @@ import {
 
 import { tmpName } from "../server.ts";
 //import path from "path";
-import { DescuentoJSON } from "../schemas/ResponseJSON";
-import { Filtro, Options } from "../schemas/filtro";
-import { listaColumnas } from "./comprobantes-utils/lista";
+import { DescuentoJSON } from "../schemas/ResponseJSON.ts";
+import { Filtro, Options } from "../schemas/filtro.ts";
+import { listaColumnas } from "./comprobantes-utils/lista.ts";
 import {
   filtrosToSql,
   getOptionsFromRequest,
@@ -39,8 +39,8 @@ import {
 } from "./filtros-utils/filtros.ts";
 import {
   getPeriodoFromRequest,
-} from "./impuestos-afip.utils";
-import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
+} from "./impuestos-afip.utils.ts";
+import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { basename, join } from "path";
 

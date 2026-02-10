@@ -7,10 +7,10 @@ import {
   isOptions,
   orderToSQL,
 } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { TextItem } from "pdfjs-dist/types/src/display/api";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import * as path from 'path';
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import * as fs from 'fs';

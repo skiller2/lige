@@ -2,7 +2,7 @@ import { BaseController, ClientException, ClientWarning } from "../controller/ba
 import { dataSource } from "../data-source.ts";
 import { NextFunction, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 
 const listaColumnas: any[] = [
   {

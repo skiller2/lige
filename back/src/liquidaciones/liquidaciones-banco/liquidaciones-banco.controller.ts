@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../../controller/basecontroller.ts";
 import { dataSource } from "../../data-source.ts";
-import { LiqBanco } from "../../schemas/ResponseJSON";
-import { Filtro, Options } from "../../schemas/filtro";
+import { LiqBanco } from "../../schemas/ResponseJSON.ts";
+import { Filtro, Options } from "../../schemas/filtro.ts";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
 import { recibosController } from "../../controller/controller.module.ts";
@@ -33,7 +33,7 @@ import {
 import {
   SendFileToDownload,
   getPeriodoFromRequest,
-} from "./liquidaciones-banco.utils";
+} from "./liquidaciones-banco.utils.ts";
 import {
   filtrosToSql,
   getOptionsFromRequest,

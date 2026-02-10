@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/basecontroller.ts
 import { dataSource } from "../data-source.ts";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 
 export class AdelantosController extends BaseController {

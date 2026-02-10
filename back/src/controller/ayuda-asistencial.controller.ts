@@ -2,7 +2,7 @@ import { NextFunction, query, Response } from "express";
 import { BaseController, ClientException } from "./basecontroller.ts";
 import { dataSource, getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 
 const optionsSelect: any[] = [
   { label: 'Ayuda Asistencial', value: 1 },

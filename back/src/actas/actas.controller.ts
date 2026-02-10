@@ -2,7 +2,7 @@ import { BaseController, ClientException, ClientWarning } from "../controller/ba
 import { dataSource } from "../data-source.ts";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL, } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro";
+import { Options } from "../schemas/filtro.ts";
 import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import * as path from 'path';

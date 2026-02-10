@@ -12,7 +12,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word"
 import {
   getPeriodoFromRequest,
-} from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
+} from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils.ts";
 
 import { QueryRunner } from "typeorm";
 import { CustodiaController } from "../controller/custodia.controller.ts";
