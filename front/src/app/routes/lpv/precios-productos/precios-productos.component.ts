@@ -71,6 +71,10 @@ export class PreciosProductosComponent {
     this.listPrecios$.next('')
   }
 
+  refreshList(){
+    this.listPrecios$.next('')
+  }
+
   columns$ = this.apiService.getCols('/api/productos/cols-precios').pipe(
     switchMap(async (cols) => {
       const productos = await firstValueFrom(this.searchService.getProductos());
@@ -165,34 +169,33 @@ export class PreciosProductosComponent {
 
       //Intento grabar si tiene error hago undo
       try {
-        if (column.type == FieldType.number || column.type == FieldType.float)
-          editCommand.serializedValue = Number(editCommand.serializedValue)
+        // if (column.type == FieldType.number || column.type == FieldType.float)
+        //   editCommand.serializedValue = Number(editCommand.serializedValue)
 
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
 
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
-        // const producto = row
-        console.log('row: ', row);
-        if (!row.Cliente.id || !row.ProductoCodigo.length || !row.PeriodoDesdeAplica || !row.Importe){
-          // console.log('CAMPOS INSUFICIENTES');
+        
+        if (!row.Cliente.id || !row.ProductoCodigo.length || !row.PeriodoDesdeAplica || !row.Importe)
           return
-        } 
-
 
         if (!row.dbid)
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
-        this.listPrecios$.next('')
+        
+        if (response.data?.action === 'I') {
+          this.listPrecios$.next('')
+          this.angularGridEdit.slickGrid.setSelectedRows([]);
+        }
+
         this.rowLocked = false
       } catch (e: any) {
         //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
 
-        console.log('error', e)
-
-        if (row.tableId) {
+        if (row.idTable) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)
           if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
             const fld = editCommand.editor.args.column.field
@@ -229,7 +232,9 @@ export class PreciosProductosComponent {
 
   async deleteItem() {
     this.loadingDel.set(true)
-    const registros = this.angularGridEdit.dataView.getAllSelectedItems().map((pro:any)=>{
+    const registros = this.angularGridEdit.dataView.getAllSelectedItems().filter(
+      (pro:any) => { return pro.idTable? true : false }
+    ).map((pro:any)=>{
       return {
         id: pro.id,
         idTable: pro.idTable,
@@ -246,6 +251,7 @@ export class PreciosProductosComponent {
     }})
     try {
       await firstValueFrom(this.apiService.deleteProductos({list:registros, length:registros.length}))
+      this.angularGridEdit.slickGrid.setSelectedRows([]);
       this.listPrecios$.next('')
     } catch (error) {
       
@@ -311,7 +317,7 @@ export class PreciosProductosComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (!item.Cliente.id || !item.ProductoCodigo.length || !item.PeriodoDesdeAplica || !item.Importe) {
+      if (!item?.Cliente.id || !item?.ProductoCodigo.length || !item?.PeriodoDesdeAplica || !item?.Importe) {
         meta.cssClasses = 'element-add-no-complete'
       }
       else

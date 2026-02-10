@@ -225,6 +225,7 @@ export class PreciosProductosController extends BaseController {
         fecha:Date,
         usuario:string,
         ip:string,
+        docId?: number
     ){
         await queryRunner.query(`
         INSERT INTO ProductoPrecio (
@@ -234,9 +235,10 @@ export class PreciosProductosController extends BaseController {
             Importe,
             AudFechaIng, AudFechaMod,
             AudUsuarioIng, AudUsuarioMod,
-            AudIpIng, AudIpMod
-        ) VALUES ( @0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
-        `, [ProductoCodigo, ClienteId,  PeriodoDesdeAplica , Importe, fecha, usuario, ip])
+            AudIpIng, AudIpMod,
+            ImportDocumentoId
+        ) VALUES ( @0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7)
+        `, [ProductoCodigo, ClienteId,  PeriodoDesdeAplica , Importe, fecha, usuario, ip, docId?docId:null])
     }
     
     async changecell(req: any, res: Response, next: NextFunction) {
@@ -430,10 +432,10 @@ export class PreciosProductosController extends BaseController {
                 `, [ProductoCodigo, ClienteId, anio, mes])
                 if (checkComprobante[0]?.ComprobanteNro?.length) messageError.push(`FILA ${id}: El precio del producto ya fue facturados`)
                 
-                this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
+                await this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
                 
             }
-            throw new ClientException(`DEBUG`)
+            // throw new ClientException(`DEBUG`)
             if (messageError.length) throw new ClientException(messageError)
             await queryRunner.commitTransaction()
             return this.jsonRes( "", res, "Borrado Exitoso")
@@ -614,6 +616,7 @@ export class PreciosProductosController extends BaseController {
         let altaProductoPrecios = 0
         let result: any
         let docFilePath: string | null = null
+        let docId: number | null = null
         let ProcesoAutomaticoLogCodigo = 0
 
         const queryRunner = dataSource.createQueryRunner();
@@ -623,7 +626,7 @@ export class PreciosProductosController extends BaseController {
 
             ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
                 queryRunner,
-                `Importación xls Precios Producto Codigo ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
+                `Importación xls Precios Producto ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
                 { anioRequest, mesRequest, productoCodigoRequest, tableNameRequest, usuario, ip },
                 usuario,
                 ip
@@ -666,25 +669,32 @@ export class PreciosProductosController extends BaseController {
 
             //Validar que esten las columnas nesesarias
             if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
-            if (isNaN(columnsXLS['Importe'])) columnsnNotFound.push('- Importe')
+            if (isNaN(columnsXLS['Importe Unitario'])) columnsnNotFound.push('- Importe Unitario')
 
             if (columnsnNotFound.length) {
                 columnsnNotFound.unshift('Faltan las siguientes columnas:')
                 throw new ClientException(columnsnNotFound)
             }
 
-            den_documento = `Producto-${ProductoNombre}-${mesRequest}-${anioRequest}`
-            // const docProductoPrecios = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
-            // docFilePath = docProductoPrecios?.newFilePath
+            den_documento = `Precios-Producto-${ProductoNombre}-${mesRequest}-${anioRequest}`
+            const docProductoPrecios = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
+            docFilePath = docProductoPrecios?.newFilePath
+            docId = docProductoPrecios.doc_id ? docProductoPrecios.doc_id : null
             for (const row of sheet1.data) {
                 //Finaliza cuando la fila esta vacia
                 if (
                 !row[columnsXLS['CUIT']]
-                && !row[columnsXLS['Importe']]
+                && !row[columnsXLS['Importe Unitario']]
                 ) break
 
                 const CUIT = row[columnsXLS['CUIT']]
-                const Importe = row[columnsXLS['Importe']]
+                const Importe = row[columnsXLS['Importe Unitario']]
+
+                //Validaciones del Importe Unitario
+                if (!Importe || Importe <= 0) {
+                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'Importe Unitario invalido.' })
+                    continue
+                }
                 
                 //Validaciones del CUIT del cliente
                 //Verifico que tenga 11 digitos
@@ -717,14 +727,14 @@ export class PreciosProductosController extends BaseController {
                         SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
                     `, [productoCodigoRequest, ClienteId, anioRequest, mesRequest])
                     if (checkComprobante[0]?.ComprobanteNro?.length && checkNewCodigo[0].Importe != Importe){//Fue facturado y el Importe es diferente al de la base de datos
-                        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El precio del producto para ese periodo (${anioRequest}/${mesRequest}) existe y ya fue facturado al cliente` })
+                        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El precio del producto del periodo ${anioRequest}/${mesRequest} existe y fue facturado. No se puede modificar` })
                         continue
                     } else if (!checkComprobante[0] && checkNewCodigo[0].Importe != Importe) {//No fue facturado y el Importe es diferente al de la base de datos
                         await this.deleteProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica)
                     }
                 }
                 
-                await this.addProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
+                await this.addProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip, docId)
 
                 altaProductoPrecios++
             }
@@ -733,6 +743,7 @@ export class PreciosProductosController extends BaseController {
                 throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
             }
             
+            await queryRunner.commitTransaction();
             await this.procesoAutomaticoLogFin(
                 queryRunner,
                 ProcesoAutomaticoLogCodigo,
@@ -742,7 +753,6 @@ export class PreciosProductosController extends BaseController {
                 ip
             );
 
-            await queryRunner.commitTransaction();
             this.jsonRes([], res, "XLS Recibido y procesado!");
         } catch (error) {
             await this.rollbackTransaction(queryRunner)

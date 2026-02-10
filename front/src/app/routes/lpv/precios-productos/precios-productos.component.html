@@ -3,7 +3,7 @@
   <div nz-row class="fila">
     <div class="izquierda">
       <nz-form-control>
-        <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo"/>
+        <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo" (ngModelChange)="refreshList()"/>
       </nz-form-control>
     </div>
 
@@ -34,7 +34,7 @@
     <ul nz-menu nzMode="horizontal" style="display: flex;">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'lpv', 'precios_productos', 'precios']" >{{ 'app.precios' | i18n }}</a>
+        <a [routerLink]="['/', 'lpv', 'precios_productos', 'precios']" (click)="refreshList()">{{ 'app.precios' | i18n }}</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
