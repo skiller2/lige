@@ -24,8 +24,10 @@
       *ngFor="let condition of conditionsToSelect"
       [nzLabel]="condition"
     [nzValue]="condition"></nz-option>
-  </nz-select> -->
+  </nz-select>
   <p>selections: {{ selections | json }} </p>
+  -->
+  
   <nz-select  nz-col [nzXs]="24" [nzSm]="11" [nzMd]="7" [nzLg]="5" [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
     style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector [disabled]="(selections.originIdx!=null)?true:false">
     @for (field of fieldsToSelect(); track field) {

@@ -291,15 +291,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     };
 
-
-    console.log('appendFiltro',originIdx, this.localoptions.filtros)
     if (originIdx!=null)
       this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
     else 
       this.localoptions.filtros.push(filtro);
-
-
-    console.log('appendFiltro despues',originIdx, this.localoptions.filtros)
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
