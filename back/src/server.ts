@@ -1,5 +1,5 @@
 import express, { json, Application, Router, NextFunction, Request, Response } from "express";
-import { version, author, name, description } from "./version.json" with { type: 'json' }
+import versionMetadata  from "./version.json" with { type: 'json' }
 import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
@@ -7,6 +7,10 @@ import { createServer } from "http";
 import { ClientException, ClientWarning } from "./controller/basecontroller.ts";
 
 import dotenv from "dotenv"
+
+
+const { version, author, name, description } = versionMetadata;
+
 
 dotenv.config()
 export const tmpName = (dir: string) => {
