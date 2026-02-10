@@ -5,7 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
-import { Utils } from "../liquidaciones/liquidaciones.utils";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import { PersonalController } from "../controller/personal.controller.ts"

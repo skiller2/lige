@@ -7,7 +7,7 @@ import xlsx from 'node-xlsx'
 import { isNumberObject } from "util/types"
 import fetch from "node-fetch"
 //import { resolve } from "path"
-import { tmpName } from "../server"
+import { tmpName } from "../server.ts"
 
 export class InformesController extends BaseController {
   directory = process.env.PATH_INFORMES || "tmp"

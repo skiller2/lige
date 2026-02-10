@@ -1,6 +1,6 @@
 import { Request, Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { gestionDescuentosController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { gestionDescuentosController } from "../controller/controller.module.ts";
 
 export const gestionDescuentosRouter = Router();
 

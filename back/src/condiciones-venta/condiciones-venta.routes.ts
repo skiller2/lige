@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { condicionesVentaController, facturacionController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { condicionesVentaController, facturacionController } from "../controller/controller.module.ts";
 import { facturacionRouter } from "../facturacion/facturacion.routes.ts";
 
 export const condicionesVentaRouter = Router();

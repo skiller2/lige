@@ -3,9 +3,9 @@ import { dataSource } from "../../data-source.ts";
 import { QueryFailedError } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
-import { Utils } from "../liquidaciones.utils";
+import { Utils } from "../liquidaciones.utils.ts";
 import { AsistenciaController } from "../../controller/asistencia.controller.ts";
-import { recibosController } from "../../controller/controller.module";
+import { recibosController } from "../../controller/controller.module.ts";
 
 
 export class IngresoAsistenciaAdministrativosArt42Controller extends BaseController {

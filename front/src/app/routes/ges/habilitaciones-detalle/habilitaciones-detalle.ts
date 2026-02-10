@@ -4,12 +4,12 @@ import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-sli
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
-import { columnTotal, totalRecords } from "../app/shared/custom-search/custom-search"
+import { columnTotal, totalRecords } from "../../..//shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
-import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-detalle-form-drawer/habilitaciones-detalle-form-drawer';
+import { HabilitacionesFormDrawerComponent } from '../../../routes/ges/habilitaciones-detalle-form-drawer/habilitaciones-detalle-form-drawer';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';

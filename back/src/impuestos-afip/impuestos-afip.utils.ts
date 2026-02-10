@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { unlinkSync, writeFileSync } from "fs";
-import { tmpName } from "../server";
+import { tmpName } from "../server.ts";
 import { ClientException } from "../controller/basecontroller.ts";
 
 interface Periodo {

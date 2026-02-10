@@ -2,7 +2,7 @@ import { BaseController, ClientException } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { NextFunction, Request, Response, query, text } from "express";
 import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
-import { Utils } from "../liquidaciones/liquidaciones.utils";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
@@ -13,7 +13,7 @@ import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
-import { fileUploadController } from "./controller.module";
+import { fileUploadController } from "./controller.module.ts";
 import { debug } from "console";
 
 

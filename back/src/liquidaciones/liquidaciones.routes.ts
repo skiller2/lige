@@ -1,5 +1,5 @@
 import { Request, Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
 import {
   movimientosAutomaticosController,
   ingresoPorAsistenciaController,
@@ -12,10 +12,10 @@ import {
   liquidacionesController,
   liquidacionesBancoController,
   compensaGeneralACordinadorController
-} from "../controller/controller.module";
+} from "../controller/controller.module.ts";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
-import { tmpName } from "../server";
+import { tmpName } from "../server.ts";
 import { ClientException } from "../controller/basecontroller.ts";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;

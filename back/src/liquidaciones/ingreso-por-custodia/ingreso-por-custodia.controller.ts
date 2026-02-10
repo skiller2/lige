@@ -4,9 +4,9 @@ import { QueryFailedError, QueryRunner } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Client } from "ldapts";
-import { Utils } from "../liquidaciones.utils";
+import { Utils } from "../liquidaciones.utils.ts";
 import { AsistenciaController } from "../../controller/asistencia.controller.ts";
-import { recibosController } from "../../controller/controller.module";
+import { recibosController } from "../../controller/controller.module.ts";
 import { CustodiaController } from "../../controller/custodia.controller.ts";
 
 

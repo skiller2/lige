@@ -6,12 +6,12 @@ import { ObjetivoController } from "./objetivo.controller.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { CustodiaController } from "./custodia.controller.ts";
 import CryptoJS from "crypto-js";
-import { float } from "@zxing/library/esm/customTypings";
+//import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { FileUploadController } from "./file-upload.controller.ts";
-import { fileUploadController } from "./controller.module";
+import { fileUploadController } from "./controller.module.ts";
 import { get } from "http";
 
 interface DigestAuthOptions {
@@ -3183,7 +3183,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
             const diffMins = maxMinsMidnight - minMinsMidnight
 
 
-            let diffHours: float = Math.floor(diffMins / 60)
+            let diffHours: number = Math.floor(diffMins / 60)
             if (diffMins % 60 > 15) diffHours += 0.5
             if (diffMins % 60 > 45) diffHours += 0.5
 

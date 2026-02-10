@@ -9,7 +9,7 @@ import { Options } from "../schemas/filtro";
 import { promisify } from 'util';
 import * as fs from 'fs';
 import { FileUploadController } from "../controller/file-upload.controller.ts"
-import { habilitacionesController } from "../controller/controller.module"
+import { habilitacionesController } from "../controller/controller.module.ts"
 import { max } from "moment";
 
 const stat = promisify(fs.stat);

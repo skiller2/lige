@@ -1,9 +1,9 @@
 import { Request, Router } from "express";
-import { authMiddleware } from "../middlewares/middleware.module";
-import { impuestosAfipController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { impuestosAfipController } from "../controller/controller.module.ts";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
-import { tmpName } from "../server";
+import { tmpName } from "../server.ts";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FileNameCallback = (error: Error | null, filename: string) => void;

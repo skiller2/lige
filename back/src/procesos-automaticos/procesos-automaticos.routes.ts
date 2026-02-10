@@ -1,6 +1,6 @@
 import { Request, Router, NextFunction } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { procesosAutomaticosController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { procesosAutomaticosController } from "../controller/controller.module.ts";
 
 export const procesosAutomaticosRouter = Router();
 

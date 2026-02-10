@@ -1,6 +1,6 @@
 import { ClientException } from "../../controller/basecontroller.ts";
-import { CustomSort, Filtro, Options } from "../../schemas/filtro";
-import { findColumnByIndex } from "../comprobantes-utils/lista";
+import { CustomSort, Filtro, Options } from "../../schemas/filtro.ts";
+import { findColumnByIndex } from "../comprobantes-utils/lista.ts";
 import { Request } from "express";
 
 const getOptionsSINO: any[] = [

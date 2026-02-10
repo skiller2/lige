@@ -26,7 +26,7 @@ import {
   rgb,
 } from "pdf-lib";
 
-import { tmpName } from "../server";
+import { tmpName } from "../server.ts";
 //import path from "path";
 import { DescuentoJSON } from "../schemas/ResponseJSON";
 import { Filtro, Options } from "../schemas/filtro";

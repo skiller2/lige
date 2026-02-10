@@ -1,5 +1,5 @@
 import express, { json, Application, Router, NextFunction, Request, Response } from "express";
-import { version, author, name, description } from "./version.json";
+import { version, author, name, description } from "./version.json" with { type: 'json' }
 import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";

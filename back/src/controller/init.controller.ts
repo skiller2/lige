@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { BaseController, ClientException } from "./basecontroller.ts";
 import { getConnection } from "../data-source.ts";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller.ts";
-import { objetivosPendasisController } from "./controller.module";
+import { objetivosPendasisController } from "./controller.module.ts";
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { isNumberObject } from "util/types";
 import { AsistenciaController } from "./asistencia.controller.ts";

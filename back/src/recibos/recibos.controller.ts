@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 
-import { Utils } from "../liquidaciones/liquidaciones.utils";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { promises as fsPromises } from 'fs';
 import { PDFDocument } from 'pdf-lib';
 import * as fs from 'fs';

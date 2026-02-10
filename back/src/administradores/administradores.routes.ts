@@ -1,7 +1,7 @@
 import { Request, Router, request, response } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
 
-import { administradoresController } from "../controller/controller.module";
+import { administradoresController } from "../controller/controller.module.ts";
 
 
 export const AdministradoresRouter = Router();

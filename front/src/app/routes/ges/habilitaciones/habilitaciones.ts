@@ -7,16 +7,16 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
-import { FiltroBuilderComponent } from "../app/shared/filtro-builder/filtro-builder.component";
-import { columnTotal, totalRecords } from "../app/shared/custom-search/custom-search"
+import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
+import { columnTotal, totalRecords } from "../../..//shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { HabilitacionesDetalleComponent } from 'src/app/routes/ges/habilitaciones-detalle/habilitaciones-detalle';
-import { HabilitacionesFormDrawerComponent } from 'src/app/routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
+import { HabilitacionesDetalleComponent } from '../../../routes/ges/habilitaciones-detalle/habilitaciones-detalle';
+import { HabilitacionesFormDrawerComponent } from '../../../routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HabilitacionNecesariaFormModalComponent } from 'src/app/routes/ges/habilitacion-necesaria-form-modal/habilitacion-necesaria-form-modal';
-import { DetallePersonaComponent } from "../app/routes/ges/detalle-persona/detalle-persona.component";
+import { DetallePersonaComponent } from "../../../routes/ges/detalle-persona/detalle-persona.component";
 
 @Component({
   selector: 'app-habilitaciones',

@@ -5,7 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuesto
 import { QueryRunner, QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 
-import { Utils } from "../liquidaciones/liquidaciones.utils";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { dangerouslyDisableDefaultSrc } from "helmet/dist/middlewares/content-security-policy";
 
 const TipoCantidadOptions: any[] = [

@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { objetivosController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { objetivosController } from "../controller/controller.module.ts";
 
 export const objetivosRouter = Router();
 

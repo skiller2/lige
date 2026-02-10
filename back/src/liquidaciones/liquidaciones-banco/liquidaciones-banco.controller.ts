@@ -5,7 +5,7 @@ import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
-import { recibosController } from "../../controller/controller.module";
+import { recibosController } from "../../controller/controller.module.ts";
 
 
 //import path from "path";
@@ -40,10 +40,10 @@ import {
   isOptions,
   orderToSQL,
 } from "../../impuestos-afip/filtros-utils/filtros.ts";
-import { tmpName } from "../../server";
+import { tmpName } from "../../server.ts";
 import { format, promisify } from "node:util";
 import { once } from "events";
-import { Utils } from "../liquidaciones.utils";
+import { Utils } from "../liquidaciones.utils.ts";
 
 export class LiquidacionesBancoController extends BaseController {
 

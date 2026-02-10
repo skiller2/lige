@@ -1,6 +1,6 @@
 import { Request, Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { segurosController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { segurosController } from "../controller/controller.module.ts";
 
 export const segurosRouter = Router();
 

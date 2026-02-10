@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { pendienteController } from "../controller/controller.module";
-import { authMiddleware } from "../middlewares/middleware.module";
+import { pendienteController } from "../controller/controller.module.ts";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
 
 export const pendieteRouter = Router();
 const base = "";

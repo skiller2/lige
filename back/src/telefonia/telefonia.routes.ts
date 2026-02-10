@@ -1,9 +1,9 @@
 import { Request, Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { telefoniaController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { telefoniaController } from "../controller/controller.module.ts";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
-import { tmpName } from "../server";
+import { tmpName } from "../server.ts";
 import { ClientException } from "../controller/basecontroller.ts";
 
 const dirtmp = `${process.env.PATH_TELEFONIA}/temp`;

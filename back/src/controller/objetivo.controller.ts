@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { BaseController } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { ObjetivoInfo } from "../schemas/ResponseJSON";
+import { ObjetivoInfo } from "../schemas/ResponseJSON.ts";
 import { NextFunction } from "express-serve-static-core";
 import { QueryRunner } from "typeorm";
 

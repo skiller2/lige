@@ -1,6 +1,6 @@
 import { Router } from "express"
-import { authMiddleware } from "../middlewares/middleware.module";
-import { accesoBotController } from "../controller/controller.module";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { accesoBotController } from "../controller/controller.module.ts";
 import { existsSync } from "fs";
 export const accesoBotRouter = Router();
 

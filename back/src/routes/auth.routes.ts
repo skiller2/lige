@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { authController } from '../controller/controller.module';
-import { authMiddleware } from "../middlewares/middleware.module";
+import { authController } from '../controller/controller.module.ts';
+import { authMiddleware } from "../middlewares/middleware.module.ts";
 import rateLimit from 'express-rate-limit'
 
 

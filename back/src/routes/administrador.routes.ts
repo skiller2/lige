@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { administradorController } from "../controller/controller.module";
-import { authMiddleware } from "../middlewares/middleware.module";
+import { administradorController } from "../controller/controller.module.ts";
+import { authMiddleware } from "../middlewares/middleware.module.ts";
 
 export const administradorRouter = Router();
 const base = "";

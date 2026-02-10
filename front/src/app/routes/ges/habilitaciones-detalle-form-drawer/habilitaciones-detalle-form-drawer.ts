@@ -7,8 +7,8 @@ import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, map } from 'rxjs';
-import { FileUploadComponent } from "../app/shared/file-upload/file-upload.component";
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({

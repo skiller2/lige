@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
-import { Utils } from "../liquidaciones/liquidaciones.utils";
-import { recibosController } from "../controller/controller.module";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
+import { recibosController } from "../controller/controller.module.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 
 export class TelefoniaController extends BaseController {
