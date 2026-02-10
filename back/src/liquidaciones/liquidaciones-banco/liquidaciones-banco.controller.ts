@@ -1,10 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../../controller/basecontroller.ts";
 import { dataSource } from "../../data-source.ts";
-import { LiqBanco } from "../../schemas/ResponseJSON.ts";
-import { Filtro, Options } from "../../schemas/filtro.ts";
-import xlsx, { WorkSheet } from 'node-xlsx';
-import Excel from 'exceljs';
+import type { LiqBanco } from "../../schemas/ResponseJSON.ts";
+import type { Options } from "../../schemas/filtro.ts";
+import xlsx from 'node-xlsx';
 import { recibosController } from "../../controller/controller.module.ts";
 
 
@@ -13,11 +12,12 @@ import {
   PDFDocument,
   PDFEmbeddedPage,
   PDFPage,
-  PDFPageDrawPageOptions,
   PageSizes,
   degrees,
   rgb,
 } from "pdf-lib";
+
+import type {  PDFPageDrawPageOptions }from "pdf-lib";
 
 import {
   copyFileSync,

@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import type { Response } from "express";
-import { NextFunction } from "express";
+import type { Response,NextFunction } from "express";
+
 
 export class PendienteController extends BaseController {
  

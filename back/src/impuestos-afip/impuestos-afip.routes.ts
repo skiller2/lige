@@ -1,7 +1,9 @@
-import { Request, Router } from "express";
+import type { Request, Router } from "express";
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 import { impuestosAfipController } from "../controller/controller.module.ts";
-import multer, { FileFilterCallback } from "multer";
+import multer from "multer";
+import type { FileFilterCallback } from "multer";
+
 import { existsSync, mkdirSync } from "fs";
 import { tmpName } from "../server.ts";
 

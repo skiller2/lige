@@ -2,7 +2,6 @@ import { BaseController, ClientException } from "../../controller/basecontroller
 import { dataSource } from "../../data-source.ts";
 import { QueryFailedError } from "typeorm";
 import type { NextFunction, Request, Response } from "express";
-import { ParsedQs } from "qs";
 
 
 export class MovimientoAcreditacionEnCuentaController extends BaseController {

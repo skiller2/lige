@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { personalController } from "../controller/controller.module.ts";
 import { authMiddleware } from "../middlewares/middleware.module.ts";
-import multer, { FileFilterCallback } from "multer";
 
 export const personalRouter = Router();
 const base = "";

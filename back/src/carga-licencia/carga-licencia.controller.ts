@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { NextFunction, Request, Response, query } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import type { QueryRunner } from "typeorm";
 import * as fs from 'fs';

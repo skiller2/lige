@@ -3,11 +3,9 @@ import { dataSource } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
-import type { QueryRunner } from "typeorm";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { CustodiaController } from "../controller/custodia.controller.ts";
 import { PersonalController } from "../controller/personal.controller.ts"
-import { max } from "moment";
 
 const getHabNecesariaOptions: any[] = [
     { label: 'Si', value: '1' },

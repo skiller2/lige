@@ -1,9 +1,7 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { promises as fsPromises } from 'fs';
 import type { QueryRunner } from "typeorm";
-import { DebugLogger } from "typeorm/logger/DebugLogger.js";
 
 
 export class PersonalObjetivosController extends BaseController {
