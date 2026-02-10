@@ -1,7 +1,7 @@
 import { ClientException } from "../../controller/basecontroller.ts";
-import { CustomSort, Filtro, Options } from "../../schemas/filtro.ts";
+import type { CustomSort,Filtro,Options } from "../../schemas/filtro.ts";
 import { findColumnByIndex } from "../comprobantes-utils/lista.ts";
-import { Request } from "express";
+import type { Request } from "express";
 
 const getOptionsSINO: any[] = [
     { label: 'No', value: '0' },

@@ -1,9 +1,6 @@
 import { BaseController, ClientException } from "./basecontroller.ts";
-import { PersonaObj } from "../schemas/personal.schemas.ts";
-import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source.ts";
-import { Response } from "express";
-import { ParsedQs } from "qs";
+import type { Response } from "express";
 import { NextFunction } from "express";
 
 export class PendienteController extends BaseController {

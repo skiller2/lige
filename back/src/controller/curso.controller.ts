@@ -1,9 +1,8 @@
-import { NextFunction, Response } from "express";
+import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro.ts";
-import { QueryRunner } from "typeorm";
+
 
 
 const columnsCursos: any[] = [

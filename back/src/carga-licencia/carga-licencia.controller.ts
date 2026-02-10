@@ -2,12 +2,8 @@ import { BaseController, ClientException } from "../controller/basecontroller.ts
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { NextFunction, Request, Response, query } from "express";
-import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
-import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
-import { Utils } from "./../liquidaciones/liquidaciones.utils.ts";
-import { Collection, IsNull } from "typeorm";
-import { QueryRunner } from "typeorm";
+import type { QueryRunner } from "typeorm";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';

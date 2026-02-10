@@ -1,6 +1,6 @@
 import { BaseController } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 
 export class InfoController extends BaseController {
 

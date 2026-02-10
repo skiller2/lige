@@ -1,8 +1,8 @@
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { QueryRunner, QueryResult } from "typeorm";
+import type { QueryRunner } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 //import { info } from "pdfjs-dist/types/src/shared/util";
 

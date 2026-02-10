@@ -1,4 +1,5 @@
-import express, { json, Application, Router, NextFunction, Request, Response } from "express";
+import express, { json, Router } from "express";
+import type {  Application, NextFunction, Request, Response } from "express";
 import versionMetadata  from "./version.json" with { type: 'json' }
 import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync } from "node:fs";

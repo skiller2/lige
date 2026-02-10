@@ -1,8 +1,8 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro.ts";
+import type { Options } from "../schemas/filtro.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 
 const getOptionsExcepcionAsistenciaAprobado: any[] = [

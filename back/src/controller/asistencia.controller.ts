@@ -1,7 +1,7 @@
-import { NextFunction, Response, query } from "express";
+import type { NextFunction, Response, query } from "express";
 import { BaseController, ClientException } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { QueryRunner } from "typeorm";
+import type { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { CustodiaController } from "./custodia.controller.ts";

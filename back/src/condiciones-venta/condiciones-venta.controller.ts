@@ -1,6 +1,6 @@
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";

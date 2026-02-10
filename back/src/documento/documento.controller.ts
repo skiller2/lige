@@ -1,13 +1,13 @@
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import {
   filtrosToSql,
   getOptionsFromRequest,
   isOptions,
   orderToSQL,
 } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro.ts";
+import type { Options } from "../schemas/filtro.ts";
 import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem } from "pdfjs-dist/types/src/display/api";

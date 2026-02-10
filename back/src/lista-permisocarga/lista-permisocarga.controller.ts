@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
 
 const columnasGrilla: any[] = [

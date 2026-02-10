@@ -1,5 +1,5 @@
 import { ClientException } from "../controller/basecontroller.ts";
-import { QueryFailedError, QueryRunner } from "typeorm";
+import type { QueryRunner } from "typeorm";
 
 export class Utils {
   static async getMovimientoId(queryRunner: QueryRunner) {

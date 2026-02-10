@@ -1,10 +1,9 @@
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
-import { QueryRunner } from "typeorm";
-import { ObjectId } from "typeorm/browser";
+import type { QueryRunner } from "typeorm";
 
 const getOptions: any[] = [
     { label: 'Si', value: 'True' },

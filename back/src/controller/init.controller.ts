@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { BaseController, ClientException } from "./basecontroller.ts";
 import { getConnection } from "../data-source.ts";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller.ts";

@@ -26,7 +26,7 @@ import { AsyncPipe } from '@angular/common';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { Options } from 'src/app/shared/schemas/filtro';
+import type { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, FieldType, GridOption, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';

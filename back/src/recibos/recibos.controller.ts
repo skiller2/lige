@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 
@@ -14,7 +14,7 @@ import {
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils.ts";
 
-import { QueryRunner } from "typeorm";
+import type { QueryRunner } from "typeorm";
 import { CustodiaController } from "../controller/custodia.controller.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";

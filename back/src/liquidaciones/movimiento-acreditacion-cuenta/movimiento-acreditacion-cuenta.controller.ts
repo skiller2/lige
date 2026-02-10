@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "../../controller/basecontroller.ts";
 import { dataSource } from "../../data-source.ts";
 import { QueryFailedError } from "typeorm";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 
 

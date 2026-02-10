@@ -1,9 +1,6 @@
 import { BaseController, ClientException } from "./basecontroller.ts";
-import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source.ts";
-import { Response } from "express";
-import { ParsedQs } from "qs";
-import { NextFunction } from "express";
+import type { Response,NextFunction } from "express";
 
 export class ClienteController extends BaseController {
   

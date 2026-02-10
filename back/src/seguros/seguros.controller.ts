@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { QueryRunner } from "typeorm";
+import type { QueryRunner } from "typeorm";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";

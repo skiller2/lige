@@ -1,9 +1,7 @@
 import { BaseController, ClientException } from "../../controller/basecontroller.ts";
 import { dataSource } from "../../data-source.ts";
-import { QueryFailedError, QueryRunner } from "typeorm";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils.ts";
-import { AsistenciaController } from "../../controller/asistencia.controller.ts";
 import { recibosController } from "../../controller/controller.module.ts";
 
 

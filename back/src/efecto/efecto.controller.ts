@@ -1,6 +1,6 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 
 const listaColumnasPersonal: any[] = [

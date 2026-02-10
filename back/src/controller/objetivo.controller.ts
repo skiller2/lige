@@ -1,8 +1,8 @@
 import { BaseController } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
-import { ObjetivoInfo } from "../schemas/ResponseJSON.ts";
-import { Response, NextFunction } from 'express';
-import { QueryRunner } from "typeorm";
+import type { ObjetivoInfo } from "../schemas/ResponseJSON.ts";
+import type { Response, NextFunction } from 'express';
+import type { QueryRunner } from "typeorm";
 
 export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {

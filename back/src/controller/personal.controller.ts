@@ -1,16 +1,14 @@
 import { BaseController, ClientException } from "./basecontroller.ts";
-import { PersonaObj } from "../schemas/personal.schemas.ts";
+import type { PersonaObj } from "../schemas/personal.schemas.ts";
 import { dataSource } from "../data-source.ts";
-import { Response } from "express";
-import { NextFunction } from "express";
+import type { Response } from "express";
+import type { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { Options } from "../schemas/filtro.ts";
+import type { Options } from "../schemas/filtro.ts";
 import { promisify } from 'util';
 import * as fs from 'fs';
-import { FileUploadController } from "../controller/file-upload.controller.ts"
 import { habilitacionesController } from "../controller/controller.module.ts"
-import { max } from "moment";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);

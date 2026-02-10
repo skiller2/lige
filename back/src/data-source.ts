@@ -1,4 +1,5 @@
-import { DataSource, QueryRunner } from "typeorm";
+import { DataSource } from "typeorm";
+import type { QueryRunner } from "typeorm";
 
 export const dataSource = new DataSource({
   type: "mssql",

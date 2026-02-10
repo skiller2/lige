@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/basecontroller.ts";
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -20,16 +20,21 @@ import {
   PDFDocument,
   PDFEmbeddedPage,
   PDFPage,
-  PDFPageDrawPageOptions,
+//  PDFPageDrawPageOptions,
   PageSizes,
   degrees,
   rgb,
 } from "pdf-lib";
 
-import { tmpName } from "../server.ts";
+import type {
+  PDFPageDrawPageOptions,
+} from "pdf-lib";
+
+
+
 //import path from "path";
-import { DescuentoJSON } from "../schemas/ResponseJSON.ts";
-import { Filtro, Options } from "../schemas/filtro.ts";
+import type { DescuentoJSON } from "../schemas/ResponseJSON.ts";
+import type { Filtro, Options } from "../schemas/filtro.ts";
 import { listaColumnas } from "./comprobantes-utils/lista.ts";
 import {
   filtrosToSql,

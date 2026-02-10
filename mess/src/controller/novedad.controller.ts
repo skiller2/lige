@@ -1,6 +1,4 @@
 import { BaseController, ClientException } from "./base.controller.ts";
-import type { NextFunction, Request, Response } from "express";
-import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
 import { PersonalController } from "./personal.controller.ts";
