@@ -284,7 +284,19 @@ const columns: any[] = [
     hidden: false,
     searchHidden: true,
     showGridColumn: false
-
+  },
+  {
+    name: "Fecha de Nacimiento",
+    type: "date",
+    id: "PersonalFechaNacimiento",
+    field: "PersonalFechaNacimiento",
+    fieldName: "ISNULL(per.PersonalFechaNacimiento,'9999-12-31')",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false
   },
 ]
 
@@ -642,8 +654,9 @@ export class PersonalController extends BaseController {
         perdom.domCompleto,
         perdom.domCalleNro,
         perdom.DomicilioCodigoPostal, perdom.DomicilioPaisId, perdom.DomicilioProvinciaId,perdom.DomicilioLocalidadId,perdom.DomicilioBarrioId,
-		percat.PersonalCategoriaCom,percat.CategoriaCod,
-		TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail
+        percat.PersonalCategoriaCom,percat.CategoriaCod,
+        TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail,
+        per.PersonalFechaNacimiento
 
         FROM Personal per
         LEFT JOIN (
