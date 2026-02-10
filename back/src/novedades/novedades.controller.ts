@@ -1185,6 +1185,18 @@ export class NovedadesController extends BaseController {
                 fs.rmSync(filesPath, { recursive: true, force: true });
             }
 
+            await this.procesoAutomaticoLogFin(
+                queryRunner,
+                ProcesoAutomaticoLogCodigo,
+                'COM',
+                {
+                res: `Procesado correctamente`,
+                'Informes generados': novedades
+                },
+                usuario,
+                ip
+            );
+
             await this.dowloadPdfBrowser(res, next, tmpfilename, nameFile)
 
         } catch (error) {
