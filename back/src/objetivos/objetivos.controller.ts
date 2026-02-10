@@ -1238,7 +1238,7 @@ SELECT
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }
             const infoActividad = { ...Obj.infoActividad }
-            let ObjObjetivoNew = { infoDocRequerido: [], infoCoordinadorCuenta: {}, infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
+            let ObjObjetivoNew = { infoDocRequerido: [], infoCoordinadorCuenta: [], infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
 
             const now = new Date();
             //throw new ClientException(`test.`)
@@ -1384,9 +1384,11 @@ SELECT
         for (const old of coordinadoresActuales) {
             const nuevo = Coordinadores.find((r: any) => (r.PersonalId == old.PersonalId))
             if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos || nuevo?.ObjetivoPersonalJerarquicoSeDescuentaTelefono != old.ObjetivoPersonalJerarquicoSeDescuentaTelefono) {
+                
                 await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @2
                 WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
                     [old.PersonalId, ObjetivoId, fechaAyer, Fecha])
+
                 await queryRunner.query(`DELETE ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1  AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') < ObjetivoPersonalJerarquicoDesde`,
                     [old.PersonalId, ObjetivoId])
 
@@ -1396,6 +1398,11 @@ SELECT
                         ObjetivoPersonalJerarquicoDescuentos, ObjetivoPersonalJerarquicoSeDescuentaTelefono) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
                         [ObjetivoId, nuevo.PersonalId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
                 }
+            } else if (!nuevo){
+                await queryRunner.query(`
+                UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @4
+                WHERE ObjetivoPersonalJerarquicoId = @0 AND ObjetivoPersonalJerarquicoPersonalId = @1 AND ObjetivoId = @2 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3
+                `, [old.ObjetivoPersonalJerarquicoId ,old.PersonalId, ObjetivoId, Fecha, fechaAyer])
             }
         }
 
