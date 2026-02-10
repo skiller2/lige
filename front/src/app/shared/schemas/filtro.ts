@@ -5,7 +5,7 @@ export interface Filtro {
   operador: string;
   condition: string;
   valor: any[];
-  tagName: WritableSignal<string>;
+  tagName: string;
   closeable: boolean
 }
 

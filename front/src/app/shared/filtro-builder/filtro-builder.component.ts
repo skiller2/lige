@@ -283,19 +283,19 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       operador: selections.operator,
       valor: valueToFilter,
       type: type,
-      tagName: signal(tagName),
+      tagName: tagName,
       closeable
 
     };
 
     // NOTE: Codi por si no se quiere que se repita el filtro
-    const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
+//    const existingIndex = this.localoptions.filtros.findIndex(f => f.index === filtro.index);
     
-    if (existingIndex !== -1) {
-      this.localoptions.filtros[existingIndex] = filtro;
-    } else {
+//    if (existingIndex !== -1) {
+//      this.localoptions.filtros[existingIndex] = filtro;
+//    } else {
       this.localoptions.filtros.push(filtro);
-    }
+//    }
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
@@ -320,7 +320,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     // Extraer label de tagName
     let extractedLabel = '';
-    const tagName = filtro.tagName();
+    const tagName = filtro.tagName;
     if (filtro.operador) {
       const opPattern = new RegExp(`\\s+${filtro.operador}\\s+`);
       const split = tagName.split(opPattern);
