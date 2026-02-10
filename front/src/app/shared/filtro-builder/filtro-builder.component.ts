@@ -310,10 +310,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   async editFiltro(indexToEdit: number) {
     const filtro = this.localoptions.filtros[indexToEdit];
-    if (!filtro) return;
-
+    if (!filtro || !filtro.closeable) return;
     const fieldObj = this.fieldsToSelect().find(f => f.field === filtro.index);
-    if (!fieldObj) return;
+    if (!fieldObj || fieldObj.hidden) return;
 
     // Simplificar obtención de value
     let value = Array.isArray(filtro.valor) && filtro.valor.length === 1 ? filtro.valor[0] : filtro.valor;
