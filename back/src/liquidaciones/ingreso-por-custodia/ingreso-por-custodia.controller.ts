@@ -5,9 +5,9 @@ import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Client } from "ldapts";
 import { Utils } from "../liquidaciones.utils";
-import { AsistenciaController } from "../controller/asistencia.controller.ts";
-import { recibosController } from "../controller/controller.module";
-import { CustodiaController } from "../controller/custodia.controller.ts";
+import { AsistenciaController } from "../../controller/asistencia.controller.ts";
+import { recibosController } from "../../controller/controller.module";
+import { CustodiaController } from "../../controller/custodia.controller.ts";
 
 
 export class IngresoPorCustodiaController extends BaseController {

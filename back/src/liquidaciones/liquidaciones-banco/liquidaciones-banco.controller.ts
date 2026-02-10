@@ -5,7 +5,7 @@ import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
-import { recibosController } from "../controller/controller.module";
+import { recibosController } from "../../controller/controller.module";
 
 
 //import path from "path";

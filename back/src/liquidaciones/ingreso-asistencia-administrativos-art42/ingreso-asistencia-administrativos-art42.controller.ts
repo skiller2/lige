@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Utils } from "../liquidaciones.utils";
 import { AsistenciaController } from "../../controller/asistencia.controller.ts";
-import { recibosController } from "../controller/controller.module";
+import { recibosController } from "../../controller/controller.module";
 
 
 export class IngresoAsistenciaAdministrativosArt42Controller extends BaseController {

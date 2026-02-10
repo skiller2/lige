@@ -5,8 +5,8 @@ import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Client } from "ldapts";
 import { Utils } from "../liquidaciones.utils";
-import { AsistenciaController } from "../controller/asistencia.controller.ts";
-import { recibosController } from "../controller/controller.module";
+import { AsistenciaController } from "../../controller/asistencia.controller.ts";
+import { recibosController } from "../../controller/controller.module";
 
 
 export class IngresoPorAsistenciaController extends BaseController {

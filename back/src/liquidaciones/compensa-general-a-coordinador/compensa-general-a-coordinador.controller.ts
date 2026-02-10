@@ -3,8 +3,8 @@ import { dataSource } from "../../data-source.ts";
 import { QueryFailedError, QueryRunner } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils";
-import { AsistenciaController } from "../controller/asistencia.controller.ts";
-import { recibosController } from "../controller/controller.module";
+import { AsistenciaController } from "../../controller/asistencia.controller.ts";
+import { recibosController } from "../../controller/controller.module";
 
 
 export class CompensaGeneralACordinadorController extends BaseController {
