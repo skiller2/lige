@@ -266,19 +266,11 @@ export class ChatBotController extends BaseController {
     },
   }
 
-/*
-              case '':
-                output = await novedadController.setNovedadVisualizacion(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
-                break;
-
-*/
-  
-
   setNovedadVisualizacion = {
     type: 'function',
     function: {
       name: 'setNovedadVisualizacion',
-      description: 'Update date from last view news',
+      description: 'Update view information for each news',
       parameters: {
         type: 'object',
         required: ['NovedadCodigo','personalId'],
@@ -325,13 +317,11 @@ export class ChatBotController extends BaseController {
     type: 'function',
     function: {
       name: 'getNovedadesPendientesByResponsable',
-      description: 'list pending news by PersonalId',
+      description: 'list pending news using PersonalId as lookup key',
       parameters: {
         type: 'object',
-        required: ['CodObjetivo'],
+        required: ['personalId'],
         properties: {
-          novedad: { type: 'object', description: 'Object of news {}' },
-//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
           personalId: { type: 'number', description: 'The personal id to set salary advance for' },
         }
       },
@@ -381,6 +371,8 @@ export class ChatBotController extends BaseController {
           tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto, this.getBackupNovedad, this.saveNovedad, this.getObjetivoByCodObjetivo, this.getNovedadTipo, this.addNovedad, this.getNovedadesPendientesByResponsable, this.setNovedadVisualizacion],
 
         });
+
+        console.log('responseIA',responseIA.message.content)
 
         botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
 
@@ -455,9 +447,6 @@ export class ChatBotController extends BaseController {
               case 'addNovedad':
                 output = await novedadController.addNovedad(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
                 break;
-              case 'setNovedadVisualizacion':
-                output = await novedadController.setNovedadVisualizacion(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
-                break;
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(tool.function.arguments.personalId)
                 break;
@@ -486,7 +475,7 @@ export class ChatBotController extends BaseController {
       throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
     }
 
-    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls }))
+    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking:m.thinking }))
 
     botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 

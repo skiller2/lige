@@ -260,7 +260,7 @@ Interpretá la intención del usuario y ejecutá la acción correspondiente.
 
 7️⃣ Novedades pendientes por ser vistas
    - Llamá al tool getNovedadesPendientesByResponsable
-   - Mostrá el listado con (codigo, fecha hora, objetivo, tipo, Descripción resumida y Accion)
+   - Mostrá el total y el listado con (codigo, fecha hora, objetivo, tipo, Descripción y Accion)
    - Solicitá confirmación para listar el detalle de cada una de ellas.
    - Al finalizar la presentación detallada de cada novedad llamar al tool setNovedadVisualizacion
 

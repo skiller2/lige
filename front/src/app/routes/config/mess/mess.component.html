@@ -45,7 +45,10 @@
           } @else {
           <div>{{ msg.tool_calls |json }}</div>
           }
+          @if (showTools()){
+          <div>{{ msg.thinking }}</div>
 
+          }
 
 
         </nz-card>
