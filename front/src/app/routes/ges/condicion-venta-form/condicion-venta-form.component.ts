@@ -23,7 +23,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   private periodoSubscription?: Subscription;
   private isNormalizingPeriodo = false;
   /*pristineChange = output<boolean>()*/
-
+  isEdit = model(false);
   CondicionVentaId = model<number>(0);
   onAddorUpdate = output<('save' | 'delete')>();
   isLoading = signal(false);
@@ -230,7 +230,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     try {
       const formValue = this.formCondicionVenta.getRawValue();
 
-      if (this.codobjId()) {
+      if (this.isEdit()) {
         //console.log("voy a actualizar condicion de venta")
         const result = await firstValueFrom(this.apiService.updateCondicionVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
 
@@ -241,6 +241,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
         const clienteid = result.data.ClienteId;
         this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
         this.PeriodoDesdeAplica.set(result.data.PeriodoDesdeAplica);
+
+        this.isEdit.set(true);
 
       }
 

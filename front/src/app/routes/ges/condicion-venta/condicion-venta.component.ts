@@ -21,6 +21,7 @@ export class CondicionVentaComponent implements OnInit {
 
   periodo = signal<Date>(new Date())
   codobj = model<string>('');
+  isEdit = model<boolean>(false);
   objetivoId = model<number>(0);
   childIsPristine = signal(true)
   viewListado = model<boolean>(true)
