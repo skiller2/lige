@@ -59,6 +59,9 @@ export class TableCondicionVentaComponent implements OnInit {
   gridOptions!: GridOption;
   readonly detailViewRowCount = 11;
 
+  //nombreComponente
+  nombreComponente = signal<string>('');
+
   // Exportación a Excel
   excelExportService = new ExcelExportService();
 
@@ -143,6 +146,7 @@ export class TableCondicionVentaComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    this.nombreComponente.set(this.constructor.name);
     this.initializeGridOptions();
   }
 
