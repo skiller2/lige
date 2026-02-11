@@ -146,7 +146,7 @@ export class PreciosProductosComponent {
     this.gridOptionsEdit.editable = true
     this.gridOptionsEdit.autoEdit = true
     this.gridOptionsEdit.forceFitColumns = true
-    this.gridOptionsEdit.enableCheckboxSelector = true
+    // this.gridOptionsEdit.enableCheckboxSelector = true
 
     const dateToday = new Date();
 
@@ -193,7 +193,7 @@ export class PreciosProductosComponent {
 
         this.rowLocked = false
       } catch (e: any) {
-        //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
+        //Si idTable != '' volver a colocar el valor anterior, si idTable == '' marcar en rojo el registro 
 
         if (row.idTable) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)

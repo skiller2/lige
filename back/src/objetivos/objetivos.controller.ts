@@ -1398,10 +1398,18 @@ SELECT
                         [ObjetivoId, nuevo.PersonalId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
                 }
             } else if (!nuevo){
-                await queryRunner.query(`
-                UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @4
-                WHERE ObjetivoPersonalJerarquicoId = @0 AND ObjetivoPersonalJerarquicoPersonalId = @1 AND ObjetivoId = @2 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3
-                `, [old.ObjetivoPersonalJerarquicoId ,old.PersonalId, ObjetivoId, Fecha, fechaAyer])
+                const ObjetivoPersonalJerarquicoDesde = new Date(old.ObjetivoPersonalJerarquicoDesde)
+                if (ObjetivoPersonalJerarquicoDesde.getTime() < Fecha.getTime()) {
+                    await queryRunner.query(`
+                        UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @4
+                        WHERE ObjetivoPersonalJerarquicoId = @0 AND ObjetivoPersonalJerarquicoPersonalId = @1 AND ObjetivoId = @2 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3
+                    `, [old.ObjetivoPersonalJerarquicoId ,old.PersonalId, ObjetivoId, Fecha, fechaAyer])
+                } else {
+                    await queryRunner.query(`
+                        DELETE ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoId = @0 AND ObjetivoPersonalJerarquicoPersonalId = @1  AND ObjetivoId = @2`,
+                    [old.ObjetivoPersonalJerarquicoId, old.PersonalId, ObjetivoId])
+                }
+                
             }
         }
 
