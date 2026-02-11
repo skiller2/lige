@@ -29,6 +29,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions":true,
     "noEmit": true,
+    "verbatimModuleSyntax":true,
     "typeRoots": [
 //      "./src/types",
       "node_modules/@types"
