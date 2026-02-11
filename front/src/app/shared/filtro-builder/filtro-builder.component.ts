@@ -64,6 +64,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   readonly startFilters = input<any[]>([])
   readonly fieldsToSelect = input<any[]>([])
 
+  readonly keyLocalstorage = input<string>("")
+
   private searchService = inject(SearchService)
   private elRef = inject(ElementRef)
   private datePipe = inject(DatePipe)
@@ -291,20 +293,76 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     };
 
-    if (originIdx!=null)
+  
+    /*if (originIdx!=null)
       this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
     else 
-      this.localoptions.filtros.push(filtro);
+      this.localoptions.filtros.push(filtro);*/
+      
+    if (this.keyLocalstorage() != '') {
+
+      if (originIdx!=null){
+        const filtros = this.getLocalstorage(this.keyLocalstorage());
+        filtros.splice(originIdx, 1);
+        localStorage.setItem(this.keyLocalstorage(), JSON.stringify(filtros))
+      }
+
+      this.addLocalstorage(filtro, this.keyLocalstorage());
+      this.localoptions.filtros = this.getLocalstorage(this.keyLocalstorage());
+
+    }else{
+      if (originIdx!=null)
+        this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
+      else 
+        this.localoptions.filtros.push(filtro);
+    }
+
+      
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
 
+
+
+  }
+
+  addLocalstorage(filtro: Filtro, keyLocalstorage: string) {
+
+    const filtros = localStorage.getItem(keyLocalstorage)
+    // Si existe en localStorage: fusionar lo que llega con lo que esta
+    // IMPORTANTE si ya existe el mismo filtro, no agregarlo
+    if (filtros) {
+      let filtrosArray = JSON.parse(filtros)
+      const filtroExistente = filtrosArray.find((f: Filtro) => f.index === filtro.index && f.tagName === filtro.tagName)
+      if (!filtroExistente) {
+        filtrosArray = [...filtrosArray, filtro]
+      }
+      localStorage.setItem(keyLocalstorage, JSON.stringify(filtrosArray))
+    } else {
+      localStorage.setItem(keyLocalstorage, JSON.stringify([filtro]))
+    }
+
+  }
+
+  getLocalstorage(keyLocalstorage: string) {
+    const filtros = localStorage.getItem(keyLocalstorage)
+    return filtros ? JSON.parse(filtros) : []
+  }
+
+  removeLocalstorage(keyLocalstorage: string, indexToRemove: number) {
+    const filtros = this.getLocalstorage(this.keyLocalstorage());
+      filtros.splice(indexToRemove, 1);
+      localStorage.setItem(this.keyLocalstorage(), JSON.stringify(filtros));
   }
 
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
     this.optionsChange.emit(this.localoptions);
-    //    this.options.set(this.localoptions);
+    
+    if (this.keyLocalstorage() != '') {
+      this.removeLocalstorage(this.keyLocalstorage(), indexToRemove);
+
+    }
   }
 
   async editFiltro(originIdx: number) {
