@@ -23,20 +23,20 @@
               nzType="edit" nzTheme="outline"></span></button>
         </a>
 
-        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
-          <button nz-button nzType="default"
-            [disabled]="!PeriodoDesdeAplica() || !condicionesSeleccionadas() || condicionesSeleccionadas().length === 0"
-            (click)="autorizarCondicionVenta()">
-            <span nz-icon nzType="check" nzTheme="outline"></span>
-          </button>
-        </a>
-        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-          <button nz-button nzType="default"
-            [disabled]="!PeriodoDesdeAplica() || !condicionesSeleccionadas() || condicionesSeleccionadas().length === 0"
-            (click)="rechazarCondicionVenta()">
-            <span nz-icon nzType="close" nzTheme="outline"></span>
-          </button>
-        </a>
+       @if(PeriodoDesdeAplica() && condicionesSeleccionadas() && condicionesSeleccionadas().length > 0){
+          <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
+            <button nz-button nzType="default"
+              (click)="autorizarCondicionVenta()">
+              <span nz-icon nzType="check" nzTheme="outline"></span>
+            </button>
+          </a>
+          <a nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
+            <button nz-button nzType="default"
+              (click)="rechazarCondicionVenta()">
+              <span nz-icon nzType="close" nzTheme="outline"></span>
+            </button>
+          </a>
+        }
       </nz-button-group>
     </div>
   </div>
