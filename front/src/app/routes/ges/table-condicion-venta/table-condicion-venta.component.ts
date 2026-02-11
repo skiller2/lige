@@ -4,7 +4,8 @@ import {
   OnInit,
   model,
   input,
-  effect
+  effect,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -77,7 +78,7 @@ export class TableCondicionVentaComponent implements OnInit {
   condicionesSeleccionadas = model<any[]>([]);
 
   // Filtros iniciales
-  startFilters: { field: string; condition: string; operator: string; value: any; forced:boolean}[]=[]
+  startFilters = signal<{ field: string; condition: string; operator: string; value: any; forced:boolean}[]>([])
 
   // Filtros y orden de la grilla
   listOptions: listOptionsT = {
@@ -133,7 +134,6 @@ export class TableCondicionVentaComponent implements OnInit {
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list;
-            console.log('dataAngularGrid...', this.dataAngularGrid);
             return data.list;
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -175,10 +175,10 @@ export class TableCondicionVentaComponent implements OnInit {
   private updateStartFiltersFromPeriodo(periodo: any) {
     const firstDay = new Date(periodo.getFullYear(), periodo.getMonth(), 1)
     const lastDay = new Date(periodo.getFullYear(), periodo.getMonth() + 1, 0)
-    this.startFilters = [
+    this.startFilters.set([
       { field: 'ClienteElementoDependienteContratoFechaDesde', condition: 'AND', operator: '<=', value: lastDay, forced: false },
       { field: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: firstDay, forced: false }
-    ]
+    ]);
   }
 
   // Cambio de filtros desde el componente de filtros
