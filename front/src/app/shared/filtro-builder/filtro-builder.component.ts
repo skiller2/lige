@@ -308,11 +308,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async editFiltro(originIdx: number) {
+    
     const filtro = this.localoptions.filtros[originIdx];
     if (!filtro || !filtro.closeable) return;
 
+
     const fieldObj = this.fieldsToSelect().find(f => f.id === filtro.index);
+
     if (!fieldObj || fieldObj.searchHidden) return;
+
     /*    
     
         // Simplificar obtención de value
@@ -414,12 +418,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     //    const shouldResetLabel = shouldUseExtendedLabel || !fieldObj.searchComponent || fieldObj.searchType === 'numberAdvanced';
     this.selections = {
-      index: fieldObj,
+      field: fieldObj,
       condition: filtro.condition || 'AND',
       operator: filtro.operador,
       value: filtro.valor,
-      //label: filtro.  shouldResetLabel ? '' : extractedLabel,
-      label: '',
+      label: '',//filtro.label,
       closeable: filtro.closeable,
       originIdx: originIdx
     };
