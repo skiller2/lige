@@ -15,6 +15,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { AccesoBotFormComponent } from "../accesso-bot-form/acceso-bot-form.component"
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 
@@ -57,7 +58,7 @@ export class AccesoBotComponent {
   childEdit = viewChild.required<AccesoBotFormComponent>('AccesoBotFormEdit')
 
   formChange$ = new BehaviorSubject('');
-  startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+  startFilters: Selections[]=[]
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)

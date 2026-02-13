@@ -83,7 +83,7 @@ export class ExcepcionesAsistenciaComponent {
     }
 
     this.startFilters.set([
-      { field: 'PersonalArt14Autorizado', condition: 'AND', operator: '=', value: 'P', forced: false },
+      { index: 'PersonalArt14Autorizado', condition: 'AND', operator: '=', value: 'P', closeable: true },
     ])
 
     this.selectedDate()

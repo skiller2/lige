@@ -25,6 +25,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],
@@ -76,7 +77,7 @@ export class TableSeguroListComponent {
     extra: null,
   }
   dataAngularGrid:any
-  startFilters: any[] = []
+  startFilters: Selections[] = []
 
   listOptionsChange(options: any) {
     this.listOptions = options
@@ -107,9 +108,9 @@ export class TableSeguroListComponent {
 
     const dateToday = new Date();
     this.startFilters = [
-     {field:'PersonalSeguroDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-     {field:'PersonalSeguroHasta', condition:'AND', operator:'>=', value: dateToday, forced:false},
-     {field:'SituacionRevistaId', condition:'AND',operator:'=', value: '2;10;11;12', forced:false}]
+     {index:'PersonalSeguroDesde', condition:'AND', operator:'<=', value: dateToday, closeable: true},
+     {index:'PersonalSeguroHasta', condition:'AND', operator:'>=', value: dateToday, closeable: true},
+     {index:'SituacionRevistaId', condition:'AND',operator:'=', value: '2;10;11;12', closeable: true}]
   }
 
   

@@ -23,6 +23,7 @@ import { TablePendientesDescargasComponent } from '../table-pendientes-descargas
 import { TableHistorialDescargasComponent } from '../table-historial-descargas/table-historial-descargas.component'
 import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
 import { LoadingService } from '@delon/abc/loading';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],
@@ -50,7 +51,7 @@ export class CustomDescargaComprobanteComponent {
   providers: [AngularUtilService]
 })
 export class DocumentoComponent {
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
 
   constructor(
     private settingService: SettingsService,
@@ -148,7 +149,7 @@ export class DocumentoComponent {
 
     const fisrtOfMonth = new Date(); //date
     fisrtOfMonth.setDate(1)
-    // this.startFilters.set([{ field: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, forced: false }])
+    // this.startFilters.set([{ index: 'fecha', condition: 'AND', operator: '>=', value: fisrtOfMonth, closeable: true }])
   }
 
   ngAfterViewInit(): void {

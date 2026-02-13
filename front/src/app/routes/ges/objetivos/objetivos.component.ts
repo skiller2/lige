@@ -17,6 +17,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
 import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 @Component({
@@ -59,7 +60,7 @@ export class ObjetivosComponent {
   };
   
   formChange$ = new BehaviorSubject('');
-  startFilters = signal<any[]>([]);
+  startFilters = signal<Selections[]>([]);
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -127,8 +128,8 @@ export class ObjetivosComponent {
 
       const dateToday = new Date();
       this.startFilters.set([
-        {field:'ContratoFechaDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-        {field:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]);
+        {index:'ContratoFechaDesde', condition:'AND', operator:'<=', value: dateToday, closeable: true},
+        {index:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, closeable: true}]);
 
       this.settingsService.setLayout('collapsed', true)
    } 
@@ -225,14 +226,14 @@ export class ObjetivosComponent {
 
     setTimeout(() => {
       if (ClienteId > 0) {
-        this.startFilters.set([ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}]);
+        this.startFilters.set([ {index:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), closeable: true}]);
       }
     }, 1000)
 
     this.route.queryParams.subscribe(params => {
       const filter = this.startFilters()
       if (params['LugarHabilitacionDescripcionList'] == '') {
-        filter.push({field: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, forced: false})
+        filter.push({index: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, closeable: true})
       }
 
       this.startFilters.set(filter)

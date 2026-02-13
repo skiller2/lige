@@ -9,6 +9,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NgForm } from '@angular/forms';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-personal-custodias-drawer',
@@ -26,7 +27,7 @@ export class PersonalCustodiasDrawerComponent {
     visibleCustodias = model<boolean>(false)
     periodo = signal<Date>(new Date);
     placement: NzDrawerPlacement = 'left';
-    startFilters: { index: string; condition: string; operador: string; valor: string[]; closeable: boolean }[] = []
+    startFilters: Selections[] = []
     @ViewChild('personalCustodiasDrawerForm') personalCustodiasDrawerForm?: NgForm;
 
     constructor(
@@ -47,7 +48,7 @@ export class PersonalCustodiasDrawerComponent {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
-            this.startFilters = [{index:'ApellidoNombre', condition:'AND', operador:'=', valor: [`${this.PersonalId()}`] , closeable:true}]
+            this.startFilters = [{index:'ApellidoNombre', condition:'AND', operator:'=', value: [`${this.PersonalId()}`] , closeable:true}]
             return this.searchService.getListaPersonalCustodia({filtros: this.startFilters, sort:null} , this.periodo())
             .pipe(map(data => {
                 data.map((obj:any) =>{

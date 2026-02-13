@@ -157,7 +157,7 @@ export class AdelantoComponent {
   ngAfterContentInit(): void {
     const user: any = this.settingService.getUser()
     this.startFilters.set([
-      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), forced: false },])
+      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), closeable: true },])
 
 
   }

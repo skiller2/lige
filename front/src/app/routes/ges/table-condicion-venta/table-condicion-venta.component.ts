@@ -30,6 +30,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-table-condicion-venta',
@@ -81,7 +82,7 @@ export class TableCondicionVentaComponent implements OnInit {
   condicionesSeleccionadas = model<any[]>([]);
 
   // Filtros iniciales
-  startFilters = signal<{ field: string; condition: string; operator: string; value: any; forced:boolean}[]>([])
+  startFilters = signal<Selections[]>([])
 
   // Filtros y orden de la grilla
   listOptions: listOptionsT = {
@@ -180,8 +181,8 @@ export class TableCondicionVentaComponent implements OnInit {
     const firstDay = new Date(periodo.getFullYear(), periodo.getMonth(), 1)
     const lastDay = new Date(periodo.getFullYear(), periodo.getMonth() + 1, 0)
     this.startFilters.set([
-      { field: 'ClienteElementoDependienteContratoFechaDesde', condition: 'AND', operator: '<=', value: lastDay, forced: false },
-      { field: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: firstDay, forced: false }
+      { index: 'ClienteElementoDependienteContratoFechaDesde', condition: 'AND', operator: '<=', value: lastDay, closeable: true },
+      { index: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: firstDay, closeable: true }
     ]);
   }
 

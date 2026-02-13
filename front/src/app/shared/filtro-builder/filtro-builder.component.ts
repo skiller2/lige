@@ -2,15 +2,11 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
   Output,
-  computed,
   effect,
   forwardRef,
   inject,
   input,
-  model,
-  signal,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Filtro, Options, Selections } from '../schemas/filtro';
@@ -61,7 +57,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR, DatePipe]
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
-  readonly startFilters = input<any[]>([])
+  readonly startFilters = input<Selections[]>([])
   readonly fieldsToSelect = input<any[]>([])
 
   readonly keyLocalstorage = input<string>("")
@@ -123,14 +119,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   isFiltroBuilder = false;
 
   listOfSelectedValue = [];
-  selections: Selections = {
+  selections: any = {
     field: { searchComponent: '', name: '', type: '', searchType: '' },
     condition: 'AND',
     operator: '',
     value: null,
     label: '',
-    forced: false,
-    originIdx: null
+    closeable: true,
+    originIdx: null,
+    inicial: false
   };
 
   valueExtended = { fullName: '' }
@@ -138,7 +135,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   private loggingEffect = effect(() => {
     if (this.fieldsToSelect() && this.startFilters()) {
       for (const filter of this.startFilters()) {
-        this.addFilter(filter.field, filter.condition, filter.operator, filter.value, filter.forced)
+        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.closeable || true, true)
+      }
+      let storedFilters = []
+      try {
+        storedFilters = JSON.parse(localStorage.getItem(this.keyLocalstorage()) || 'null') || []
+      } catch (error) { }
+
+      for (const filter of storedFilters) {
+        this.addFilter(filter.index, filter.condition, filter.operador, filter.valor, filter.closeable, false)
       }
     }
   });
@@ -217,6 +222,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   handleInputConfirm(filtroOrigen: any = null) {
 
     if (this.verifySelections()) {
+
       let value: any
 
       if (this.selections.field.searchType == 'numberAdvanced') {
@@ -254,9 +260,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         this.selections as any,
         value,
         `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`,
-        !this.selections.forced,
+        this.selections.closeable,
         (this.selections.field.type) ? this.selections.field.type : 'string',
-        this.selections.originIdx
+        this.selections.originIdx,
+        (this.selections.inicial == true),
       )
     }
     this.resetSelections();
@@ -274,95 +281,47 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   // Filtros
   //
 
-  appendFiltro(
-    selections: { field: any; condition: any; operator: any },
-    valueToFilter: any[],
-    tagName: string,
-    closeable: boolean,
-    type: string,
-    originIdx:number|null
-  ): Filtro {
+  appendFiltro(selections: any, valueToFilter: any[], tagName: string, closeable: boolean, type: string, originIdx: number | null, inicial: boolean): Filtro {
     const filtro = {
-      index: selections.field.field,
+      index: selections.field.id,
       condition: selections.condition,
       operador: selections.operator,
       valor: valueToFilter,
       type: type,
       tagName: tagName,
-      closeable
-
+      closeable,
+      inicial,
     };
 
-  
-    /*if (originIdx!=null)
+
+    if (originIdx != null)
       this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
-    else 
-      this.localoptions.filtros.push(filtro);*/
-      
-    if (this.keyLocalstorage() != '') {
+    else
+      this.localoptions.filtros.push(filtro);
 
-      if (originIdx!=null){
-        const filtros = this.getLocalstorage(this.keyLocalstorage());
-        filtros.splice(originIdx, 1);
-        localStorage.setItem(this.keyLocalstorage(), JSON.stringify(filtros))
-      }
 
-      this.addLocalstorage(filtro, this.keyLocalstorage());
-      this.localoptions.filtros = this.getLocalstorage(this.keyLocalstorage());
 
-    }else{
-      if (originIdx!=null)
-        this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
-      else 
-        this.localoptions.filtros.push(filtro);
-    }
 
-      
+    if (!inicial)
+      this.saveLocalStorage()
 
     this.optionsChange.emit(this.localoptions);
     return filtro;
 
-
-
   }
 
-  addLocalstorage(filtro: Filtro, keyLocalstorage: string) {
+  saveLocalStorage() {
 
-    const filtros = localStorage.getItem(keyLocalstorage)
-    // Si existe en localStorage: fusionar lo que llega con lo que esta
-    // IMPORTANTE si ya existe el mismo filtro, no agregarlo
-    if (filtros) {
-      let filtrosArray = JSON.parse(filtros)
-      const filtroExistente = filtrosArray.find((f: Filtro) => f.index === filtro.index && f.tagName === filtro.tagName)
-      if (!filtroExistente) {
-        filtrosArray = [...filtrosArray, filtro]
-      }
-      localStorage.setItem(keyLocalstorage, JSON.stringify(filtrosArray))
-    } else {
-      localStorage.setItem(keyLocalstorage, JSON.stringify([filtro]))
-    }
+    const filtrosToSave = this.localoptions.filtros.filter((f: any) => f.inicial == false)
 
-  }
-
-  getLocalstorage(keyLocalstorage: string) {
-    const filtros = localStorage.getItem(keyLocalstorage)
-    return filtros ? JSON.parse(filtros) : []
-  }
-
-  removeLocalstorage(keyLocalstorage: string, indexToRemove: number) {
-    const filtros = this.getLocalstorage(this.keyLocalstorage());
-      filtros.splice(indexToRemove, 1);
-      localStorage.setItem(this.keyLocalstorage(), JSON.stringify(filtros));
+    if (this.keyLocalstorage() != '')
+      localStorage.setItem(this.keyLocalstorage(), JSON.stringify(filtrosToSave))
   }
 
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
     this.optionsChange.emit(this.localoptions);
-    
-    if (this.keyLocalstorage() != '') {
-      this.removeLocalstorage(this.keyLocalstorage(), indexToRemove);
-
-    }
+    this.saveLocalStorage()
   }
 
   async editFiltro(originIdx: number) {
@@ -472,13 +431,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     //    const shouldResetLabel = shouldUseExtendedLabel || !fieldObj.searchComponent || fieldObj.searchType === 'numberAdvanced';
     this.selections = {
-      field: fieldObj,
+      index: fieldObj,
       condition: filtro.condition || 'AND',
       operator: filtro.operador,
       value: filtro.valor,
       //label: filtro.  shouldResetLabel ? '' : extractedLabel,
       label: '',
-      forced: !filtro.closeable,
+      closeable: filtro.closeable,
       originIdx: originIdx
     };
 
@@ -492,12 +451,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   resetSelections() {
     this.selections = {
-      field: { searchComponent: '', name: '', type: '', searchType: '' },
+      index: { searchComponent: '', name: '', type: '', searchType: '' },
       condition: 'AND',
       operator: '',
       value: '',
       label: '',
-      forced: false,
+      closeable: true,
       originIdx: null
     };
     this.valueExtended = { fullName: '' }
@@ -703,12 +662,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
-  async addFilter(field: string, condition: string, operator: string, value: any, forced: boolean) {
+  async addFilter(index: string, condition: string, operator: string, value: any, closeable: boolean, inicial: boolean) {
     if (!this.fieldsToSelect()) return
-    const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
 
+
+    const fieldObj: any = this.fieldsToSelect().filter(x => x.id === index)[0]
     if (!fieldObj)
       return
+
+//    value = Array.isArray(value) ? value[0] : value
+
     let label = ''
     //TODO revisar que pasa con el resto de los filtros
     if (fieldObj.searchComponent == 'inputForPersonalSearch') {
@@ -757,7 +720,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }*/
 
 
-    this.selections = { field: fieldObj, condition, operator, value, label, forced, originIdx: null }
+    this.selections = { field: fieldObj, condition, operator, value, label, closeable, originIdx: null, inicial }
     this.handleInputConfirm(null)
   }
 

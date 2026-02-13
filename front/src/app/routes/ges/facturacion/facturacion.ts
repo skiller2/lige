@@ -109,8 +109,8 @@ export class FacturacionComponent {
   this.gridOptions.cellHighlightCssClass = 'changed'
   this.gridOptions.enableCellNavigation = true
 
-  this.startFilters.set([{ field: 'ComprobanteNro', condition: 'AND', operator: '=', value: null, forced: false },
-    { field: 'ComprobanteTipoCodigo', condition: 'AND', operator: '=', value: null, forced: false }
+  this.startFilters.set([{ index: 'ComprobanteNro', condition: 'AND', operator: '=', value: null, closeable: true },
+    { index: 'ComprobanteTipoCodigo', condition: 'AND', operator: '=', value: null, closeable: true }
   ])
   }
 

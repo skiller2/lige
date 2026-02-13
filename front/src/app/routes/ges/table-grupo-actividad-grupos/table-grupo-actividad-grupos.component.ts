@@ -125,7 +125,7 @@ export class TableGrupoActividadGruposComponent {
 
      let dateToday = new Date();
 
-      this.startFilters.set([{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}])
+      this.startFilters.set([{index:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', closeable: true}])
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 

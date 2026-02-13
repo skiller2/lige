@@ -26,7 +26,7 @@ import { AsyncPipe } from '@angular/common';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import type { Options } from 'src/app/shared/schemas/filtro';
+import type { Options, Selections } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, FieldType, GridOption, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -112,7 +112,7 @@ export class ImpuestoAfipComponent {
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-  startFilters: any[] = []
+  startFilters: Selections[] = []
 
   listOptions: listOptionsT = {
     filtros: [],
@@ -176,9 +176,9 @@ export class ImpuestoAfipComponent {
 
     const user: any = this.settingService.getUser()
       this.startFilters = [
-        { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') },
-        { field: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: 'null' },
-        { field: 'monto', condition: 'AND', operator: '=', value: 'null' }
+        { index: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') },
+        { index: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: 'null' },
+        { index: 'monto', condition: 'AND', operator: '=', value: 'null' }
       ]
 
 

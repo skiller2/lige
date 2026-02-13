@@ -196,7 +196,7 @@ export class AyudaAsistencialComponent {
 
         }
 
-        this.startFilters = [{ field: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', forced: false }]
+        this.startFilters = [{ field: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', closeable: true }]
 
     }
 

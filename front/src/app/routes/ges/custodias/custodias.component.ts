@@ -296,7 +296,7 @@ export class CustodiaComponent {
     
         setTimeout(() => {
           if (ClienteId > 0) {
-            this.startFilters.set([ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}])
+            this.startFilters.set([ {index:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), closeable: true}])
           }
         }, 1000)
       }

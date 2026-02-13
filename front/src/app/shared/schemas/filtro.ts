@@ -27,11 +27,11 @@ export interface Field {
 }
 
 export interface Selections {
-  field: Field;
+  index: string;
   condition: string;
   operator: string;
   value: any;
-  label: string;
-  forced: boolean;
-  originIdx: number|null;
+  label?: string;
+  closeable?: boolean;
+  originIdx?: number|null;
 }

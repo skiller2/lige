@@ -44,7 +44,7 @@
     <nz-option *ngFor="let operator of operatorsToSelect" [nzLabel]="operator" [nzValue]="operator"></nz-option>
   </nz-select>
   -->
-  @if (selections.field.name) {
+  @if (selections.field?.name) {
     <div nz-col [nzXs]="20" [nzSm]="11" [nzMd]="7" [nzLg]="5" class="input-search"
       style="text-align: center; display:inline-block; width: 100%">
       @if (!selections.field.searchComponent) {

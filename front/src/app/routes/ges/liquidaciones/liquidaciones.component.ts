@@ -229,8 +229,8 @@ export class LiquidacionesComponent {
 
     setTimeout(() => {
       if (PersonalId > 0) {
-        this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId), false)
-        this.sharedFiltroBuilder.addFilter('tipocuenta_id', 'AND', '=', tipocuenta_id, false)
+        this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId), false,true)
+        this.sharedFiltroBuilder.addFilter('tipocuenta_id', 'AND', '=', tipocuenta_id, false,true)
       }
     }, 1000)
   }

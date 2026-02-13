@@ -60,7 +60,7 @@ export class TableHistorialDescargasComponent {
         this.gridDetalleOptions.createFooterRow = true
 
         this.startFilters = [
-            {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', forced:false},
+            {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', closeable: true},
         ]
     }
 

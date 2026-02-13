@@ -118,8 +118,8 @@ export class TableGrupoActividadPersonalComponent {
 
     const dateToday = new Date();
     this.startFilters = [
-      { field: 'GrupoActividadPersonalDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
-      { field: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
+      { field: 'GrupoActividadPersonalDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      { field: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
       this.currPeriodo.set({anio:dateToday.getFullYear(), mes:dateToday.getMonth()+1})
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {

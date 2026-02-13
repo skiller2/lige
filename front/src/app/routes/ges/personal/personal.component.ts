@@ -123,8 +123,7 @@ export class PersonalComponent {
     // this.gridOptions.rowSelectionOptions = {
     //     selectActiveRow: true
     // }
-    this.startFilters.set([
-      { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
+    this.startFilters.set([{ index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
     ])
   }
 
@@ -134,7 +133,7 @@ export class PersonalComponent {
 
     setTimeout(() => {
       if (PersonalId > 0) {
-        this.startFilters.set([ {field:'ApellidoNombre', condition:'AND', operator:'=', value: String(PersonalId), forced:false} ]);
+        this.startFilters.set([ {index:'ApellidoNombre', condition:'AND', operator:'=', value: String(PersonalId), closeable: true} ]);
       }
     }, 1000)
   }
