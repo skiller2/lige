@@ -12,6 +12,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { Filtro, Options, Selections } from '../schemas/filtro';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { SearchService } from '../../services/search.service';
+import { SettingsService } from '@delon/theme';
 import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { FechaSearchComponent } from '../fecha-search/fecha-search.component';
@@ -65,6 +66,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   readonly keyLocalstorage = input<string>("")
 
   private searchService = inject(SearchService)
+  private settingsService = inject(SettingsService)
   private elRef = inject(ElementRef)
   private datePipe = inject(DatePipe)
   private apiService = inject(ApiService);
@@ -143,9 +145,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       }
       let storedFilters = []
       try {
-        console.log('leo de',this.keyLocalstorage())
-        if (this.keyLocalstorage()!='')
-          storedFilters = JSON.parse(localStorage.getItem(this.keyLocalstorage()) || 'null') || []
+        const storageKey = this.getUserStorageKey();
+        if (storageKey != '')
+          storedFilters = JSON.parse(localStorage.getItem(storageKey) || 'null') || []
       } catch (error) { }
       for (const filter of storedFilters) {
         this.addFilter(filter.index, filter.condition, filter.operador, filter.valor, filter.label || '', filter.closeable, false)
@@ -294,12 +296,20 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       inputSearch.click()
   }
 
+  private getUserStorageKey(): string {
+    const baseKey = this.keyLocalstorage();
+    if (baseKey === '') return '';
+    const userId: any = this.settingsService.getUser()
+    return userId.PersonalId >=0 ? `${baseKey}_${userId.PersonalId}` : baseKey;
+  }
+
   saveLocalStorage() {
 
     const filtrosToSave = this.localoptions.filtros.filter((f: any) => f.inicial == false)
 
-    if (this.keyLocalstorage() != '')
-      localStorage.setItem(this.keyLocalstorage(), JSON.stringify(filtrosToSave))
+    const storageKey = this.getUserStorageKey();
+    if (storageKey != '')
+      localStorage.setItem(storageKey, JSON.stringify(filtrosToSave))
   }
 
   removeFiltro(indexToRemove: number) {
