@@ -6,7 +6,7 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { goTo } from 'src/app/core/net/helper';
+import { goTo } from '../../../../app/core/net/helper';
 
 @Component({
     selector: 'header-user',

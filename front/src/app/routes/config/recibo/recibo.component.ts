@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, effect, inject, model, signal, view
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { SHARED_IMPORTS } from '@shared';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { PersonalSearchComponent } from '../../../../app/shared/personal-search/personal-search.component';
 import { NgForm } from '@angular/forms';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../../app/services/api.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
