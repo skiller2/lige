@@ -48,6 +48,26 @@ export class CondicionVentaComponent implements OnInit {
 
 
 
+  onAddClick(): void {
+    this.isEdit.set(false);
+    const savedCodobj = this.codobj();
+    const savedObjetivoId = this.objetivoId();
+
+    try {
+      const child = this.childAlta();
+      if (child.formCondicionVenta.invalid || child.formCondicionVenta.pristine) {
+        child.clearForm();
+      }
+    } catch (e) {
+    }
+    this.childTableCondicionVenta()?.clearSelection();
+
+    if (savedCodobj) {
+      this.codobj.set(savedCodobj);
+      this.objetivoId.set(savedObjetivoId);
+    }
+  }
+
   async handleAddOrUpdate() {
     //this.childTableCondicionVenta().RefreshCondVenta.set(true)
   }

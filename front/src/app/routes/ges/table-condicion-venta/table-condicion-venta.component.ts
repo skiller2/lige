@@ -218,6 +218,17 @@ export class TableCondicionVentaComponent implements OnInit {
       this.angularGrid.gridService.hideColumnByIds([]);
   }
 
+  // Limpia la selección de la grilla
+  clearSelection(): void {
+    if (this.angularGrid?.slickGrid) {
+      this.angularGrid.slickGrid.setSelectedRows([]);
+    }
+    this.condicionesSeleccionadas.set([]);
+    this.codobj.set('');
+    this.objetivoId.set(0);
+    this.PeriodoDesdeAplica.set('');
+  }
+
   // Exporta la grilla a Excel
   exportGrid(): void {
     this.excelExportService.exportToExcel({

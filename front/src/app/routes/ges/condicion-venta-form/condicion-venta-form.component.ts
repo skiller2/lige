@@ -320,6 +320,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   clearForm(): void {
     this.formCondicionVenta.reset()
     this.codobjId.set('')
+    this.objetivoId.set(0)
     this.formCondicionVenta.patchValue({
       codobjId: '',
       ObjetivoId: 0,
