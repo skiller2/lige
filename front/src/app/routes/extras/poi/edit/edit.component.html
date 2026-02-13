@@ -74,7 +74,7 @@
   <nz-form-item class="mb-sm">
     <nz-form-label nzSpan="4">人均价格</nz-form-label>
     <nz-form-control nzSpan="8">
-      <nz-input-number [(ngModel)]="i.avg_price" name="avg_price" [nzMin]="0" [nzStep]="10"></nz-input-number>
+      <nz-input type="number" [(ngModel)]="i.avg_price" name="avg_price" min="0" step="10"></nz-input>
     </nz-form-control>
   </nz-form-item>
   <div class="modal-footer">

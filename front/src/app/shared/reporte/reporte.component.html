@@ -38,17 +38,17 @@
             }
             <!-- Si es Integer, mostrar un input numérico entero -->
             @if (param.ParameterType === 'Integer') {
-              <nz-input-number
+              <nz-input type="number"
                 [(ngModel)]="param.Value"
                 style="width: 50%">
-              </nz-input-number>
+              </nz-input>
             }
             <!-- Si es Float, mostrar un input numérico decimal -->
             @if (param.ParameterType === 'Float') {
-              <nz-input-number
+              <nz-input type="number"
                 [(ngModel)]="param.Value"
                 style="width: 50%">
-              </nz-input-number>
+              </nz-input>
             }
             <!-- Si es Boolean, mostrar un checkbox -->
             @if (param.ParameterType === 'Boolean') {
