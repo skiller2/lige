@@ -14,6 +14,7 @@ import { Component, signal, inject } from '@angular/core'
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-table-grupo-actividad-personal',
@@ -45,7 +46,7 @@ export class TableGrupoActividadPersonalComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: any[] = []
+  startFilters: Selections[] = []
 
   currPeriodo = signal({anio:0,mes:0})
   complexityLevelList = [true, false];
@@ -118,8 +119,8 @@ export class TableGrupoActividadPersonalComponent {
 
     const dateToday = new Date();
     this.startFilters = [
-      { field: 'GrupoActividadPersonalDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
-      { field: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
+      { index: 'GrupoActividadPersonalDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      { index: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
       this.currPeriodo.set({anio:dateToday.getFullYear(), mes:dateToday.getMonth()+1})
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {

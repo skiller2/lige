@@ -27,6 +27,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline } from '@ant-design/icons-angular/icons';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 @Component({
@@ -58,7 +59,7 @@ export class PersonalComponent {
     filtros: [],
     sort: null,
   };
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)

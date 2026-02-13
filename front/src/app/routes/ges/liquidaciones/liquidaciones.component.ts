@@ -48,6 +48,7 @@ import { ClienteSearchComponent } from 'src/app/shared/cliente-search/cliente-se
 import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
+import { Selections } from 'src/app/shared/schemas/filtro';
 @Component({
   selector: 'app-liquidaciones',
   templateUrl: './liquidaciones.component.html',
@@ -79,6 +80,8 @@ export class LiquidacionesComponent {
   private notification = inject(NzNotificationService);
   private readonly loadingSrv = inject(LoadingService);
 
+  startFilters= signal(<Selections[]>[])
+  
 
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
@@ -229,8 +232,10 @@ export class LiquidacionesComponent {
 
     setTimeout(() => {
       if (PersonalId > 0) {
-        this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId), false,true)
-        this.sharedFiltroBuilder.addFilter('tipocuenta_id', 'AND', '=', tipocuenta_id, false,true)
+        this.startFilters.set([
+          { index: 'ApellidoNombre', condition: 'AND', operator: '=', value: String(PersonalId), closeable: true },
+          { index: 'tipocuenta_id', condition: 'AND', operator: '=', value: tipocuenta_id, closeable: true },
+        ])
       }
     }, 1000)
   }

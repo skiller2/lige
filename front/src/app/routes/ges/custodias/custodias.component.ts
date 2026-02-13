@@ -17,6 +17,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { FormBuilder, FormArray } from '@angular/forms';
 import { CustodiasPersonalDetalleComponent } from "../../../shared/custodias-personal-detalle/custodias-personal-detalle.component";
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-custodias',
@@ -59,7 +60,7 @@ export class CustodiaComponent {
         filtros: [],
         sort: null,
     };
-    startFilters = signal<any[]>([])
+    startFilters = signal<Selections[]>([])
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)

@@ -19,6 +19,7 @@ import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.comp
 import { TableAyudaAsistencialCuotasComponent } from "../table-ayuda-asistencial-cuotas/table-ayuda-asistencial-cuotas.component";
 import { Router } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -47,7 +48,7 @@ export class AyudaAsistencialComponent {
     gridObj!: SlickGrid;
     excelExportService = new ExcelExportService()
     detailViewRowCount = 1
-    startFilters: any[] = []
+    startFilters: Selections[] = []
     listOptions: listOptionsT = { filtros: [], sort: null, };
     periodo = signal(new Date())
     formChange$ = new BehaviorSubject('');
@@ -196,7 +197,7 @@ export class AyudaAsistencialComponent {
 
         }
 
-        this.startFilters = [{ field: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', closeable: true }]
+        this.startFilters = [{ index: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', closeable: true }]
 
     }
 

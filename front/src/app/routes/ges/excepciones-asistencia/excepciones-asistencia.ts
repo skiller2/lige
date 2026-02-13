@@ -16,6 +16,7 @@ import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.com
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { PauseOutline } from '@ant-design/icons-angular/icons';
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-excepciones-asistencia',
@@ -54,7 +55,7 @@ export class ExcepcionesAsistenciaComponent {
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
   hiddenColumnIds: string[] = [];
 
   columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {

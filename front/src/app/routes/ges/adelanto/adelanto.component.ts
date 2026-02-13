@@ -16,6 +16,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 
@@ -27,7 +28,7 @@ import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custo
   imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
 })
 export class AdelantoComponent {
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
   constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
   //@ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
@@ -157,7 +158,7 @@ export class AdelantoComponent {
   ngAfterContentInit(): void {
     const user: any = this.settingService.getUser()
     this.startFilters.set([
-      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), closeable: true },])
+      { index: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'), closeable: true },])
 
 
   }
