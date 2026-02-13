@@ -1,6 +1,6 @@
 <nz-popconfirm #nzpc ></nz-popconfirm>
 @if ((columnsMovimientos$|async); as columnasMovimientos) {
-  <shared-filtro-builder #sfb [fieldsToSelect]="columnasMovimientos" (optionsChange)="listOptionsChangeMovimiento($event)" />
+  <shared-filtro-builder  [fieldsToSelect]="columnasMovimientos" (optionsChange)="listOptionsChangeMovimiento($event)" />
   <div class="gridContainer3 container-fluid">
     <angular-slickgrid  gridId="grid25" class="" [columns]="columnasMovimientos | colsFilter"
       [options]="gridOptionsMovimientos" [dataset]="(gridDataMovimiento$ | async) || []"

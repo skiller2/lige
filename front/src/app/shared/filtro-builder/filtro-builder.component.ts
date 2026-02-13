@@ -31,6 +31,7 @@ import { ApiService } from '../../services/api.service';
 import { NumberAdvancedSearchComponent } from '../number-advanced-search/number-advanced-search';
 import { PeriodoSearchComponent } from '../periodo-search/periodo-search';
 import { AsyncPipe } from '@angular/common';
+import { AbstractExpandedDecoder } from '@zxing/library';
 
 type listOptionsT = {
   filtros: any[],
@@ -134,16 +135,19 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   private loggingEffect = effect(() => {
     if (this.fieldsToSelect() && this.startFilters()) {
+
+
       for (const filter of this.startFilters()) {
-        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.closeable || true, true)
+        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.label || '', filter.closeable || true, true)
       }
       let storedFilters = []
       try {
-        storedFilters = JSON.parse(localStorage.getItem(this.keyLocalstorage()) || 'null') || []
+        console.log('leo de',this.keyLocalstorage())
+        if (this.keyLocalstorage()!='')
+          storedFilters = JSON.parse(localStorage.getItem(this.keyLocalstorage()) || 'null') || []
       } catch (error) { }
-
       for (const filter of storedFilters) {
-        this.addFilter(filter.index, filter.condition, filter.operador, filter.valor, filter.closeable, false)
+        this.addFilter(filter.index, filter.condition, filter.operador, filter.valor, filter.label || '', filter.closeable, false)
       }
     }
   });
@@ -256,15 +260,28 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         }
       }
 
-      this.appendFiltro(
-        this.selections as any,
-        value,
-        `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`,
-        this.selections.closeable,
-        (this.selections.field.type) ? this.selections.field.type : 'string',
-        this.selections.originIdx,
-        (this.selections.inicial == true),
-      )
+      const filtro = {
+        index: this.selections.field.id,
+        name: this.selections.field.name,
+        condition: this.selections.condition,
+        operador: this.selections.operator,
+        valor: value, //this.selections.value,
+        type: this.selections.field.type || 'string',
+        label: this.selections.label,
+        closeable: this.selections.closeable,
+        inicial: (this.selections.inicial == true),
+      };
+
+      if (this.selections.originIdx != null)
+        this.localoptions.filtros = this.localoptions.filtros.with(this.selections.originIdx, filtro)
+      else
+        this.localoptions.filtros.push(filtro);
+
+      if (!(this.selections.inicial == true)) {
+        this.saveLocalStorage()
+      }
+
+      this.optionsChange.emit(this.localoptions);
     }
     this.resetSelections();
     this.isFiltroBuilder = false;
@@ -274,40 +291,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     if (inputSearch)
       inputSearch.click()
-  }
-
-
-  //
-  // Filtros
-  //
-
-  appendFiltro(selections: any, valueToFilter: any[], tagName: string, closeable: boolean, type: string, originIdx: number | null, inicial: boolean): Filtro {
-    const filtro = {
-      index: selections.field.id,
-      condition: selections.condition,
-      operador: selections.operator,
-      valor: valueToFilter,
-      type: type,
-      tagName: tagName,
-      closeable,
-      inicial,
-    };
-
-
-    if (originIdx != null)
-      this.localoptions.filtros = this.localoptions.filtros.with(originIdx, filtro)
-    else
-      this.localoptions.filtros.push(filtro);
-
-
-
-
-    if (!inicial)
-      this.saveLocalStorage()
-
-    this.optionsChange.emit(this.localoptions);
-    return filtro;
-
   }
 
   saveLocalStorage() {
@@ -662,7 +645,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
-  async addFilter(index: string, condition: string, operator: string, value: any, closeable: boolean, inicial: boolean) {
+  async addFilter(index: string, condition: string, operator: string, value: any, label: string, closeable: boolean, inicial: boolean) {
     if (!this.fieldsToSelect()) return
 
 
@@ -670,9 +653,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (!fieldObj)
       return
 
-//    value = Array.isArray(value) ? value[0] : value
+    //    value = Array.isArray(value) ? value[0] : value
 
-    let label = ''
     //TODO revisar que pasa con el resto de los filtros
     if (fieldObj.searchComponent == 'inputForPersonalSearch') {
       const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value))

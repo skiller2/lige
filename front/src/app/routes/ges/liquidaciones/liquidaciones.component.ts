@@ -70,7 +70,6 @@ import { Selections } from 'src/app/shared/schemas/filtro';
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], [])
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent
 
   public apiService = inject(ApiService);
   public router = inject(Router);

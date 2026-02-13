@@ -10,7 +10,7 @@
   </form>
 
 
-  <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
+  <!-- <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
   <div class="gridContainer container-fluid">
     <angular-slickgrid gridId="gridPersonalGrupo" class="" [columns]="columnas | colsFilter"
       [options]="gridOptionsPersonal" [dataset]="(gridDataPersonal$ | async) || []"

@@ -5,8 +5,9 @@ export interface Filtro {
   operador: string;
   condition: string;
   valor: any[];
-  tagName: string;
-  closeable: boolean
+  closeable: boolean,
+  label: string,
+  name:string
 }
 
 export interface Sort {

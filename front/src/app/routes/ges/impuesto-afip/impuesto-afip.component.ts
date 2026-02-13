@@ -73,9 +73,6 @@ export class ImpuestoAfipComponent {
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
   toggle = false;
-  //  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-  //  sharedFiltroBuilder = viewChild.required(FiltroBuilderComponent);
-  sharedFiltroBuilder = viewChild.required<FiltroBuilderComponent>('sfb');
 
   files: NzUploadFile[] = [];
   anio = 0

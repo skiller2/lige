@@ -27,7 +27,6 @@ import { Selections } from '../schemas/filtro';
 })
 
 export class CustodiasPersonalDetalleComponent {
-    @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
     angularGrid!: AngularGridInstance;
     gridDetalleOptions!: GridOption;

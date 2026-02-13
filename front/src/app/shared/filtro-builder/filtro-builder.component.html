@@ -1,22 +1,21 @@
 <nz-card style="max-height: 150px; overflow: auto; border:none !important;">
   @for (tag of localoptions.filtros; track tag) {
-
-    @if (tag.tagName &&  tag.tagName !="") {
-      <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
-        <span class="app-tag-span" (click)="editFiltro($index)" style="cursor: pointer;" title="Click para editar">
-          <span nz-icon nzType="edit" nzTheme="outline" style="margin-right: 4px; font-size: 12px;"></span>
-          {{ tag.tagName }}
-        </span>
-      </nz-tag>
+    @if (tag.label && tag.label !="") {
+    <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
+      <span class="app-tag-span" (click)="editFiltro($index)" style="cursor: pointer;" title="{{ tag.name }} {{ tag.operador }} {{ tag.label}}">
+        <span nz-icon nzType="edit" nzTheme="outline" style="margin-right: 4px; font-size: 12px;"></span>
+        {{ tag.name }} {{ tag.operador }} {{ tag.label}}
+      </span>
+    </nz-tag>
     }
   }
   @if (!isFiltroBuilder) {
-    <nz-tag class="editable-tag" nzNoAnimation (click)="handleTagInteraction()">
-      <span nz-icon nzType="plus"></span>
-      Añadir Filtro
-    </nz-tag>
+  <nz-tag class="editable-tag" nzNoAnimation (click)="handleTagInteraction()">
+    <span nz-icon nzType="plus"></span>
+    Añadir Filtro
+  </nz-tag>
   } @else {
-    <!-- <nz-select
+  <!-- <nz-select
     [nzPlaceHolder]="'Condición'"
     [(ngModel)]="selections.condition"
     #conditionSelector>
@@ -27,14 +26,16 @@
   </nz-select>
   <p>selections: {{ selections | json }} </p>
   -->
-  
-  <nz-select  nz-col [nzXs]="24" [nzSm]="11" [nzMd]="7" [nzLg]="5" [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
-    style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector [disabled]="(selections.originIdx!=null)?true:false">
+
+  <nz-select nz-col [nzXs]="24" [nzSm]="11" [nzMd]="7" [nzLg]="5" [nzDropdownMatchSelectWidth]="false"
+    [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field" nzShowSearch
+    style="text-align: center; display:inline-block; width: 100%" (ngModelChange)="onOptionChange()" #fieldSelector
+    [disabled]="(selections.originIdx!=null)?true:false">
     @for (field of fieldsToSelect(); track field) {
-      @if (field.searchHidden!=true) {
-        <nz-option [nzLabel]="field.name" [nzValue]="field">
-        </nz-option>
-      }
+    @if (field.searchHidden!=true) {
+    <nz-option [nzLabel]="field.name" [nzValue]="field">
+    </nz-option>
+    }
     }
   </nz-select>
   <!--
@@ -45,409 +46,361 @@
   </nz-select>
   -->
   @if (selections.field?.name) {
-    <div nz-col [nzXs]="20" [nzSm]="11" [nzMd]="7" [nzLg]="5" class="input-search"
-      style="text-align: center; display:inline-block; width: 100%">
-      @if (!selections.field.searchComponent) {
-        <input placeholder="Valor" #inputElement nz-input type="text"
-          [(ngModel)]="selections.value" (keydown.enter)="handleInputConfirm()" />
+  <div nz-col [nzXs]="20" [nzSm]="11" [nzMd]="7" [nzLg]="5" class="input-search"
+    style="text-align: center; display:inline-block; width: 100%">
+    @if (!selections.field.searchComponent) {
+    <input placeholder="Valor" #inputElement nz-input type="text" [(ngModel)]="selections.value"
+      (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForPersonalSearch') {
+    <app-personal-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForEfectoSearch') {
+    <app-efecto-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForTipoAsociadoCategoriaSearch') {
+    <app-tipo-asociado-categoria-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForEfectoIndividualSearch') {
+    <app-efecto-individual-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
+    <app-seguro-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
+    <app-administrador-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForGrupoActividadSearch') {
+    <app-grupo-actividad-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForClientSearch') {
+    <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForObjetivoSearch') {
+    <app-objetivo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForTipoMovimientoSearch') {
+    <app-tipo-movimiento-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForFechaSearch') {
+    <app-fecha-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" [(operador)]="selections.operator" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForPeriodoSearch') {
+    <app-periodo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForNumberAdvancedSearch') {
+    <app-number-advanced-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForRequirenteSearch') {
+    <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    }
+    @if (selections.field.searchComponent=='inputForSucursalSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
+      (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsSucursales | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForPersonalSearch') {
-        <app-personal-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForSePaga') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Se paga" nzShowSearch
+      (ngModelChange)="selectedValueSePaga($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsSepaga | async; track option) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForEfectoSearch') {
-        <app-efecto-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForTipoAsociadoCategoriaSearch') {
-        <app-tipo-asociado-categoria-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForEfectoIndividualSearch') {
-        <app-efecto-individual-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
-        <app-seguro-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
-        <app-administrador-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForGrupoActividadSearch') {
-        <app-grupo-actividad-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForClientSearch') {
-        <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForObjetivoSearch') {
-        <app-objetivo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForTipoMovimientoSearch') {
-        <app-tipo-movimiento-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForFechaSearch') {
-        <app-fecha-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended" [(operador)]="selections.operator"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForPeriodoSearch') {
-        <app-periodo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForNumberAdvancedSearch') {
-        <app-number-advanced-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForRequirenteSearch') {
-        <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-          [(valueExtended)]="valueExtended"
-          (keydown.enter)="handleInputConfirm()" />
-      }
-      @if (selections.field.searchComponent=='inputForSucursalSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Sucursal" nzShowSearch
-          (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsSucursales | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
-          }
-        </nz-select>
-      }
-      @if (selections.field.searchComponent=='inputForSePaga') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Se paga" nzShowSearch
-          (ngModelChange)="selectedValueSePaga($event)"
-          [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsSepaga | async; track option) {
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-          <!-- <nz-option nzLabel="Si" nzValue="S"></nz-option>
+      <!-- <nz-option nzLabel="Si" nzValue="S"></nz-option>
           <nz-option nzLabel="No" nzValue="N"></nz-option>
           <nz-option nzLabel="Indeterminado" nzValue=""></nz-option> -->
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForInactivo') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Inactivo" nzShowSearch
+      (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsInactivo | async; track option) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForInactivo') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Inactivo" nzShowSearch
-          (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsInactivo | async; track option) {
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForInactivoBoolean') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Activo" nzShowSearch
+      (ngModelChange)="selectedValueInactivoBoolean($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsInactivoBoolean | async; track option) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForInactivoBoolean') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Activo" nzShowSearch
-          (ngModelChange)="selectedValueInactivoBoolean($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsInactivoBoolean | async; track option) {
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForActivo') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
+      (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsActivoBoolean | async; track option) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForActivo') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="SI/NO" nzShowSearch
-          (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsActivoBoolean | async; track option) {
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForGrupoActividad') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Grupo Actividad" nzShowSearch
+      (ngModelChange)="selectedValueGrupoActividad($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsGrupoActividad | async; track option) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForGrupoActividad') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Grupo Actividad" nzShowSearch
-          (ngModelChange)="selectedValueGrupoActividad($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsGrupoActividad | async; track option) {
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForComprobanteTipoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Comprobante" nzShowSearch
+      (ngModelChange)="selectedValueComprobanteTipo($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsComprobanteTipo | async; track option) {
+      <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForComprobanteTipoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Tipo Comprobante" nzShowSearch
-          (ngModelChange)="selectedValueComprobanteTipo($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsComprobanteTipo | async; track option) {
-            <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForNivelEstudioSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Nivel de Estudio" nzShowSearch
+      (ngModelChange)="selectedValueNivelEstudio($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsNivelEstudio | async; track option) {
+      <nz-option [nzValue]="option.TipoEstudioId" [nzLabel]="option.TipoEstudioDescripcion"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForNivelEstudioSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Nivel de Estudio" nzShowSearch
-          (ngModelChange)="selectedValueNivelEstudio($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsNivelEstudio | async; track option) {
-            <nz-option [nzValue]="option.TipoEstudioId" [nzLabel]="option.TipoEstudioDescripcion"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForAplicaASearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Aplica A" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsAplicaA | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForAplicaASearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Aplica A" nzShowSearch
-          (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsAplicaA | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForEstadoCustSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsEstadoCust | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForEstadoCustSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Estado" nzShowSearch
-          (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsEstadoCust | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForPrestamoAprobadoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsEstadoPrest | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForPrestamoAprobadoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Estado" nzShowSearch
-          (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsEstadoPrest | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForExcepcionAsistenciaAprobadoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsEstadoExcepcionAsistencia | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForExcepcionAsistenciaAprobadoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Estado" nzShowSearch
-          (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsEstadoExcepcionAsistencia | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForTipoPrestamoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Descripcion" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsTipoPrest | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForTipoPrestamoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Descripcion" nzShowSearch
-          (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsTipoPrest | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForSituacionRevistaSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
+      nzPlaceHolder="Situacion de Revista" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsSitRevista | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForSituacionRevistaSearch') {
-        <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
-          nzPlaceHolder="Situacion de Revista" nzShowSearch
-          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsSitRevista | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForTipoDocumentoSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
+      nzPlaceHolder="Tipo Documento" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsTipoDocumento | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForTipoDocumentoSearch') {
-        <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
-          nzPlaceHolder="Tipo Documento" nzShowSearch
-          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsTipoDocumento | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForProductoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Producto" nzShowSearch
+      (ngModelChange)="selectedValueProducto($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsProducto | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.TipoProductoDescripcion"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForProductoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Producto" nzShowSearch
-          (ngModelChange)="selectedValueProducto($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsProducto | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.TipoProductoDescripcion"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForCursoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Curso" nzShowSearch
+      (ngModelChange)="selectedValueCurso($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsCurso | async; track option) {
+      <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForCursoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Curso" nzShowSearch
-          (ngModelChange)="selectedValueCurso($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsCurso | async; track option) {
-            <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForCompaniaSeguroSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Compania Seguro" nzShowSearch
+      (ngModelChange)="selectedValueCompaniaSeguro($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsCompaniaSeguro | async; track option) {
+      <nz-option [nzValue]="option.CompaniaSeguroId" [nzLabel]="option.CompaniaSeguroDescripcion"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForCompaniaSeguroSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Compania Seguro" nzShowSearch
-          (ngModelChange)="selectedValueCompaniaSeguro($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsCompaniaSeguro | async; track option) {
-            <nz-option [nzValue]="option.CompaniaSeguroId" [nzLabel]="option.CompaniaSeguroDescripcion"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Seguro" nzShowSearch
+      (ngModelChange)="selectedValueTipoSeguro($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsTipoSeguro | async; track option) {
+      <nz-option [nzValue]="option.TipoSeguroCodigo" [nzLabel]="option.TipoSeguroNombre"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Tipo Seguro" nzShowSearch
-          (ngModelChange)="selectedValueTipoSeguro($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsTipoSeguro | async; track option) {
-            <nz-option [nzValue]="option.TipoSeguroCodigo" [nzLabel]="option.TipoSeguroNombre"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForTipoCuentaSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Cuenta" nzShowSearch
+      (ngModelChange)="selectedValueTipoCuenta($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsTipoCuenta | async; track option) {
+      <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForTipoCuentaSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Tipo Cuenta" nzShowSearch
-          (ngModelChange)="selectedValueTipoCuenta($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsTipoCuenta | async; track option) {
-            <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForTipoNovedadSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Novedad" nzShowSearch
+      (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsTipoNovedad | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForTipoNovedadSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Tipo Novedad" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsTipoNovedad | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForTipoDescuentoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Descuento" nzShowSearch
+      (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsTipoDescuento | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForTipoDescuentoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Tipo Descuento" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsTipoDescuento | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForCentroCapacitacionSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Centro Capacitación" nzShowSearch
+      (ngModelChange)="selectedValueCentroCapacitacion($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsCentroCapacitacion | async; track option) {
+      <nz-option [nzValue]="option.CentroCapacitacionId" [nzLabel]="option.CentroCapacitacionRazonSocial"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForCentroCapacitacionSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Centro Capacitación" nzShowSearch
-          (ngModelChange)="selectedValueCentroCapacitacion($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsCentroCapacitacion | async; track option) {
-            <nz-option [nzValue]="option.CentroCapacitacionId"
-            [nzLabel]="option.CentroCapacitacionRazonSocial"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForModalidadCursoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Modalidad Curso" nzShowSearch
+      (ngModelChange)="selectedValueModalidadCurso($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsModalidadCurso | async; track option) {
+      <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForModalidadCursoSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Modalidad Curso" nzShowSearch
-          (ngModelChange)="selectedValueModalidadCurso($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsModalidadCurso | async; track option) {
-            <nz-option [nzValue]="option.ModalidadCursoCodigo"
-            [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForProcesoAutomaticoEstadosSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
+      (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsProcAutoEstado | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForProcesoAutomaticoEstadosSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Estado" nzShowSearch
-          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsProcAutoEstado | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForMetodologiasSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Metodologías" nzShowSearch
+      (ngModelChange)="selectedValueMetodologias($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsMetodologias | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.etiqueta"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForMetodologiasSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Metodologías" nzShowSearch
-          (ngModelChange)="selectedValueMetodologias($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsMetodologias | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.etiqueta"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForProvinciasSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Provincia" nzShowSearch
+      (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsProvincias | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForProvinciasSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Provincia" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsProvincias | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForLocalidadesSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Localidad" nzShowSearch
+      (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsLocalidades | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForLocalidadesSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Localidad" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsLocalidades | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForBarrioSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Barrio" nzShowSearch
+      (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsBarrios | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForBarrioSearch') {
-        <nz-select ngModel nzAllowClear style="width:100%"
-          nzPlaceHolder="Barrio" nzShowSearch
-          (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsBarrios | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForLugarHabilitacionSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
+      nzPlaceHolder="Lugar Habilitacion" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsLugarHabilitacion | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForLugarHabilitacionSearch') {
-        <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
-          nzPlaceHolder="Lugar Habilitacion" nzShowSearch
-          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsLugarHabilitacion | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForHabilitacionClaseSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
+      nzPlaceHolder="Habilitacion Clase" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsHabilitacionClase | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForHabilitacionClaseSearch') {
-        <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
-          nzPlaceHolder="Habilitacion Clase" nzShowSearch
-          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsHabilitacionClase | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
+    </nz-select>
+    }
+    @if (selections.field.searchComponent=='inputForHabilitacionEstadoSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
+      nzPlaceHolder="Habilitacion Estado" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsHabilitacionEstado | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
-      @if (selections.field.searchComponent=='inputForHabilitacionEstadoSearch') {
-        <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
-          nzPlaceHolder="Habilitacion Estado" nzShowSearch
-          (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
-          (keydown.enter)="handleInputConfirm()">
-          @for (option of $optionsHabilitacionEstado | async; track option) {
-            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      }
-    </div>
+    </nz-select>
+    }
+  </div>
   }
-  <button nz-button (click)="handleInputConfirm()" >+</button>
-}
+  <button nz-button (click)="handleInputConfirm()">+</button>
+  }
 </nz-card>

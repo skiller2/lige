@@ -62,7 +62,6 @@ interface PersonalLicenciaHoras {
 })
 export class  TableHorasLicenciaComponent {
 
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
   @Output() valueGridEvent = new EventEmitter();

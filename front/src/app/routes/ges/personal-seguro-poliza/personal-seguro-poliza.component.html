@@ -3,7 +3,7 @@
     
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="width: 80%;">
-              <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" /> 
+              <shared-filtro-builder  [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" /> 
             </div>
           </div>
   

@@ -31,7 +31,6 @@ export class AdelantoComponent {
   startFilters = signal<Selections[]>([])
   constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
-  //@ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
 

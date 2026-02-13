@@ -150,7 +150,7 @@
         <ng-template nz-tab>
           @if ((columns$|async); as columnas) {
           <div>
-            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+            <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
             <div class="gridContainer1 container-fluid">
               <angular-slickgrid gridId="gridLiq" [columns]="columnas | colsFilter" [options]="gridOptions"
                 [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
@@ -169,7 +169,7 @@
         <ng-template nz-tab>
           <!-- <button nz-button nzType="primary" class="btn-add" data-test="add-new-item-top-btn" (click)="openCustomModal()" >Agregar nuevo registro</button>  -->
 
-          <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
+          <!-- <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
           <div class="gridContainer2 container-fluid">
             <angular-slickgrid gridId="gridEdit" [columns]="columnDefinitions | colsFilter" [options]="gridOptionsEdit"
               [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReadyEdit($event)">

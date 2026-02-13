@@ -46,7 +46,6 @@ export class TableHistorialContratoComponent {
 
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
     new NgForm([], []);
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
   @Output() valueGridEvent = new EventEmitter();

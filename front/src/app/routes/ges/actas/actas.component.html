@@ -24,7 +24,7 @@
           <a nz-tab-link routerLink="/ges/actas/listado">Listado</a>
           @if ((columns$|async); as columnas) {
             <ng-template nz-tab>
-              <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"
+              <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters"
                 (optionsChange)="listOptionsChange($event)" />
                 <div class="gridContainer container-fluid">
                   <angular-slickgrid gridId="grid" class="" [columns]="columnas | colsFilter"
