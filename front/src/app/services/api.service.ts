@@ -185,8 +185,10 @@ export class ApiService {
         //minWidth: 250,      // defaults to 300
         //sidePadding: 10,
         //bottomPadding: 10
-        resizeDetection: 'window',
+        resizeDetection: 'container',
       },
+
+      enableAutoResize:true,
       // gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
 
       contextMenu: {
