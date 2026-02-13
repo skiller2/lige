@@ -22,6 +22,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   private searchService = inject(SearchService);
   private periodoSubscription?: Subscription;
   private isNormalizingPeriodo = false;
+  refreshCondVenta = model<number>(0);
   /*pristineChange = output<boolean>()*/
   isEdit = model(false);
   CondicionVentaId = model<number>(0);
@@ -254,7 +255,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       console.error('Error al guardar condición de venta:', e);
     }
     this.loadingSrv.close();
-
+    this.refreshCondVenta.update(v => v + 1)
   }
 
   calcularTotal(index: number) {

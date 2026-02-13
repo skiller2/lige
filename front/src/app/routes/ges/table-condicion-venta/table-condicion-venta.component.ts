@@ -5,13 +5,16 @@ import {
   model,
   input,
   effect,
-  signal
+  signal,
+  resource,
+  computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import {
   BehaviorSubject,
   debounceTime,
+  firstValueFrom,
   map,
   switchMap,
   tap
@@ -46,13 +49,13 @@ export class TableCondicionVentaComponent implements OnInit {
   // Trigger para recargar la grilla
   // Se emite cada vez que hay cambios de filtros o refresh externo
   formChange$ = new BehaviorSubject('refresh');
-
   // Estado de loading de la tabla
   tableLoading$ = new BehaviorSubject<boolean>(false);
 
   // signal desde el padre
   // Se usa para forzar el refresh de la grilla
-  RefreshCondVenta = model<boolean>(false);
+  refreshCondVenta = model<number>(0)
+
 
   // Grid (Angular SlickGrid)
   angularGrid!: AngularGridInstance;
@@ -99,7 +102,7 @@ export class TableCondicionVentaComponent implements OnInit {
 
   // Effect que escucha el refresh desde el padre
   // Cuando RefreshCondVenta pasa a true, limpia filtros y recarga la grilla
-  private refreshEffect = effect(() => {
+  /*private refreshEffect = effect(() => {
     
     if (this.RefreshCondVenta()) {
       console.log(' Recargando grilla');
@@ -113,36 +116,42 @@ export class TableCondicionVentaComponent implements OnInit {
       this.updateStartFiltersFromPeriodo(this.periodo()!);
       this.formChange$.next('refresh');
     }
-  });
+  });*/
 
   // Columnas de la grilla (configuradas desde backend)
-  columns$ = this.apiService.getCols('/api/condiciones-venta/cols').pipe(
-    map((cols) => {
-      // Guardar IDs de columnas que tienen showGridColumn: false
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
-      return cols;
-    })
-  );
+
+  columns = resource({
+    params: () => ({}),
+    loader: async () => {
+      const response = await this.apiService.getCols('/api/condiciones-venta/cols').pipe(
+        map((cols) => {
+          // Guardar IDs de columnas que tienen showGridColumn: false
+          this.hiddenColumnIds = cols
+            .filter((col: any) => col.showGridColumn === false)
+            .map((col: Column) => col.id as string);
+          return cols;
+        })
+      );
+      return response;
+    }
+  });
+
+  columnsData = computed(() => this.columns.value())
 
   // Data source de la grilla
   // Cada vez que formChange$ emite → se vuelve a pedir la data
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() =>
-      this.apiService
-        .setListCondicionesVenta(this.listOptions, this.periodo())
-        .pipe(
-          map(data => {
-            this.dataAngularGrid = data.list;
-            return data.list;
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        )
-    )
-  );
+  gridData = resource({
+    params: () => ({ options: this.listOptions, periodo: this.periodo(), refresh: this.refreshCondVenta()}),
+    loader: async () => {
+      //console.log("voy a refrescar la grilla")
+      const response = await firstValueFrom(this.apiService.setListCondicionesVenta(this.listOptions, this.periodo()));
+      this.dataAngularGrid = response.list;
+      return response.list;
+    }
+  });
+
+  data = computed(() => this.gridData.value())
+
 
   ngOnInit(): void {
     this.initializeGridOptions();
@@ -186,7 +195,8 @@ export class TableCondicionVentaComponent implements OnInit {
   // Cambio de filtros desde el componente de filtros
   listOptionsChange(options: any): void {
     this.listOptions = options;
-    this.formChange$.next('filters');
+    //this.formChange$.next('filters');
+    this.refreshCondVenta.update(v => v + 1)
   }
 
   // Evento cuando la grilla está lista

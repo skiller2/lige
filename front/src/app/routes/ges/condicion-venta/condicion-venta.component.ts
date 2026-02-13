@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, model, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, model, OnInit, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 
 import { I18nPipe, SettingsService } from '@delon/theme';
@@ -30,7 +30,9 @@ export class CondicionVentaComponent implements OnInit {
   childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')
   childTableCondicionVenta = viewChild<TableCondicionVentaComponent>('tableCondicionVenta')
   PeriodoDesdeAplica = model<string>('');
-  RefreshCondVenta = model<boolean>(false)
+
+  refreshCondVenta = signal<number>(0)
+
   condicionesSeleccionadas = model<any[]>([])
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
@@ -81,7 +83,7 @@ export class CondicionVentaComponent implements OnInit {
     );
     
     if (result.status === 'ok') {
-      this.RefreshCondVenta.set(true);
+      this.refreshCondVenta.update(v => v + 1)
       this.condicionesSeleccionadas.set([]);
     }
   }
@@ -97,7 +99,7 @@ export class CondicionVentaComponent implements OnInit {
       this.apiService.rechazarCondicionVentaMultiple(condiciones)
     );
     
-    this.RefreshCondVenta.set(true);
+    this.refreshCondVenta.update(v => v + 1)
     this.condicionesSeleccionadas.set([]);
   }
 

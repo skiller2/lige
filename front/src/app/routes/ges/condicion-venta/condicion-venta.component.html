@@ -50,7 +50,7 @@
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'condiciones-venta', 'detalle']"
-            (click)="viewListado.set(false); RefreshCondVenta.set(false)">{{ 'app.detail' | i18n }} </a>
+            (click)="viewListado.set(false)">{{ 'app.detail' | i18n }} </a>
         </li>
       </ul>
       @if(!childIsPristine()){
@@ -70,7 +70,7 @@
       <ng-template nz-tab>
         <app-table-condicion-venta #tableCondicionVenta [periodo]="periodo()" [(codobj)]="codobj" [(objetivoId)]="objetivoId"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"
-          [(RefreshCondVenta)]="RefreshCondVenta"
+          [refreshCondVenta]="refreshCondVenta()"
           [(condicionesSeleccionadas)]="condicionesSeleccionadas"></app-table-condicion-venta>
       </ng-template>
     </nz-tab>
@@ -88,7 +88,7 @@
       <a nz-tab-link routerLink="/ges/condiciones-venta/detalle">{{ 'app.icon.detail' | i18n }}</a>
       <ng-template nz-tab>
         <app-condicion-venta-form #condicionVentaFormDetalle [(codobjId)]="codobj"
-          [(objetivoId)]="objetivoId"
+          [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
@@ -97,7 +97,7 @@
       <a nz-tab-link routerLink="/ges/condiciones-venta/alta">{{ 'app.alta' | i18n }}</a>
       <ng-template nz-tab>
         <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj"
-          [(objetivoId)]="objetivoId"
+          [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
