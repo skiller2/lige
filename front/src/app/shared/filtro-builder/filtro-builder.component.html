@@ -1,8 +1,8 @@
 <nz-card style="max-height: 150px; overflow: auto; border:none !important;">
   @for (tag of localoptions.filtros; track tag) {
     @if (tag.label && tag.label !="") {
-    <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
-      <span class="app-tag-span" (click)="editFiltro($index)" style="cursor: pointer;" title="{{ tag.name }} {{ tag.operador }} {{ tag.label}}">
+    <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)" class="tag-ellipsis">
+      <span class="app-tag-span tag-text" (click)="editFiltro($index)" style="cursor: pointer;" title="{{ tag.name }} {{ tag.operador }} {{ tag.label}}">
         <span nz-icon nzType="edit" nzTheme="outline" style="margin-right: 4px; font-size: 12px;"></span>
         {{ tag.name }} {{ tag.operador }} {{ tag.label}}
       </span>

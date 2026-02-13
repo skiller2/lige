@@ -55,6 +55,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
+  styleUrl: './filtro-builder.component.scss',
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR, DatePipe]
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
