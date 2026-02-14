@@ -1,5 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { periodValidator, parsePeriod, periodToText } from '../../../shared/period-utils/period-utils';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -38,6 +39,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   $optionsTipoCantidad = this.searchService.getTipoCantidadSearch();
   $optionsTipoImporte = this.searchService.getTipoImporteSearch();
   mensajesHoras = signal<string>('');
+  periodoFacturacionDescripcion = signal<string>('');
 
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
 
@@ -61,7 +63,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     codobjId: '',
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
-    PeriodoFacturacion: '',
+    PeriodoFacturacion: ['', [Validators.required, periodValidator({ min: '1D', max: '2A', allowedUnits: ['D', 'S', 'M', 'A'] })]],
     GeneracionFacturaDia: '',
     GeneracionFacturaDiaComplemento: '',
     Observaciones: '',
@@ -193,6 +195,13 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.$optionsTipoProducto.subscribe(productos => {
       this.productosCache = productos;
+    });
+
+    this.formCondicionVenta.controls.PeriodoFacturacion.valueChanges.pipe(
+      distinctUntilChanged()
+    ).subscribe(value => {
+      const p = parsePeriod(value);
+      this.periodoFacturacionDescripcion.set(p ? periodToText(p) : '');
     });
 
     // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor

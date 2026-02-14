@@ -27,9 +27,19 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <input nz-input formControlName="PeriodoFacturacion" placeholder="Ej: '1S' ,'1M', '1A'." style="width: 100%;" />
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback [nzErrorTip]="periodoFacturacionErrorTpl">
+      <input nz-input formControlName="PeriodoFacturacion" placeholder="Ej: 1S, 1M, 1A" />
+      <ng-template #periodoFacturacionErrorTpl let-control>
+        @if (control.hasError('required')) { Campo requerido }
+        @else if (control.hasError('periodInvalid')) { Formato invalido  }
+        @else if (control.hasError('periodUnitNotAllowed')) { Unidad no permitida }
+        @else if (control.hasError('periodTooSmall')) { Mínimo {{ control.getError('periodTooSmall').min }} }
+        @else if (control.hasError('periodTooLarge')) { Máximo {{ control.getError('periodTooLarge').max }} }
+      </ng-template>
     </nz-form-control>
+    @if (periodoFacturacionDescripcion()) {
+      <span style="margin-left: 8px; line-height: 32px; color: rgba(0, 0, 0, 0.65);">{{ periodoFacturacionDescripcion() }}</span>
+    }
   </nz-form-item>
 
   <nz-form-item class="marginElement">
