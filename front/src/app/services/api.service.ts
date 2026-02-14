@@ -188,7 +188,7 @@ export class ApiService {
         resizeDetection: 'container',
       },
 
-      enableAutoResize:true,
+      enableAutoResize: true,
       // gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
 
       contextMenu: {
@@ -306,7 +306,7 @@ export class ApiService {
         viewComponent: viewComponent,
 
         // Optionally pass your Parent Component reference to your Child Component (row detail component)
-//        parent: parent,
+        //        parent: parent,
 
         parentRef: parent
       },
@@ -502,14 +502,28 @@ export class ApiService {
   }
 
   sendChatMessage(message: string, chatId: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chat`, { message,chatId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chat`, { message, chatId }).pipe(
       //tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: any) => res.data)
     )
   }
 
+  setIaPrompt(iaPrompt: string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  getIaPrompt(): Observable<unknown> {
+    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iaprompt').pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+
+
   reiniciaChat(chatId: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/reinicia`, {chatId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/reinicia`, { chatId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -792,8 +806,8 @@ export class ApiService {
   }
 
 
-  addDescuentoCargaManualPersonal(gridDataInsert: any, anio:number, mes:number, descuentoId: number, CuentaTipoCodigo:string) {
-    const parameter = { anio, mes, gridDataInsert, descuentoId,CuentaTipoCodigo}
+  addDescuentoCargaManualPersonal(gridDataInsert: any, anio: number, mes: number, descuentoId: number, CuentaTipoCodigo: string) {
+    const parameter = { anio, mes, gridDataInsert, descuentoId, CuentaTipoCodigo }
     this.notification.success('Respuesta', `Iniciando proceso `);
 
     return this.http.post<ResponseJSON<any>>('/api/gestion-descuentos/addDescuentoCargaManualPersonal', parameter).pipe(
@@ -1417,7 +1431,7 @@ export class ApiService {
     const ClienteId = codobj.split('/')[0];
     const clienteelementodependienteid = codobj.split('/')[1];
     const parameter = { condicionVenta, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica }
-    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/update',  parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/update', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -1659,8 +1673,8 @@ export class ApiService {
 
   }
 
-  importXLSImporteVentaDescuentos(files: any, anio: number, mes: number, fecha: Date, DescuentoId: any, tableName: any,CuentaTipoCodigo:string) {
-    const parameter = { files, anio, mes, fecha, DescuentoId, tableName,CuentaTipoCodigo }
+  importXLSImporteVentaDescuentos(files: any, anio: number, mes: number, fecha: Date, DescuentoId: any, tableName: any, CuentaTipoCodigo: string) {
+    const parameter = { files, anio, mes, fecha, DescuentoId, tableName, CuentaTipoCodigo }
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/import-xls-descuentos`, parameter)
       .pipe(
         tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1788,10 +1802,10 @@ export class ApiService {
   }
 
 
-  setListCondicionesVenta(filters: any, periodo: any) { 
+  setListCondicionesVenta(filters: any, periodo: any) {
     console.log("voy a cargargar")
 
-    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/list', {filters, periodo}).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/list', { filters, periodo }).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
@@ -1940,44 +1954,44 @@ export class ApiService {
     );
   }
 
-  addPersonalHabiltacion(params:any){
+  addPersonalHabiltacion(params: any) {
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/add', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updatePersonalHabiltacionesNecesarias(params:any){
+  updatePersonalHabiltacionesNecesarias(params: any) {
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/necesarias/update', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  addGestionHabilitacion(params:any){
+  addGestionHabilitacion(params: any) {
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/gestion/add', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updateGestionHabilitacion(params:any){
+  updateGestionHabilitacion(params: any) {
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/gestion/update', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  deleteGestionHabilitacion(PersonalId:any, PersonalHabilitacionId:any, LugarHabilitacionId:any, Codigo:any) {
-    const params = {PersonalId, PersonalHabilitacionId, LugarHabilitacionId, Codigo}
+  deleteGestionHabilitacion(PersonalId: any, PersonalHabilitacionId: any, LugarHabilitacionId: any, Codigo: any) {
+    const params = { PersonalId, PersonalHabilitacionId, LugarHabilitacionId, Codigo }
     return this.http.delete<ResponseJSON<any>>(`/api/habilitaciones/gestion/delete`, params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updateHabilitacionNecesaria(params:any){
+  updateHabilitacionNecesaria(params: any) {
     return this.http.post<ResponseJSON<any>>('api/habilitaciones/necesaria/update', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res.data)),
     )
   }
 
-  
+
   autorizarCondicionVenta(codobj: any, PeriodoDesdeAplica: any) {
     const objetivo = codobj.split('/')[0];
     const clienteelementodependienteid = codobj.split('/')[1];
@@ -2035,10 +2049,10 @@ export class ApiService {
 
   updHabilitacionNecesaria(anio: number, mes: number) {
     return this.http
-      .post<ResponseJSON<any>>(`api/habilitaciones/update-hab-necesaria`,{anio,mes})
+      .post<ResponseJSON<any>>(`api/habilitaciones/update-hab-necesaria`, { anio, mes })
       .pipe(
         tap((res: ResponseJSON<any>) => this.response(res)),
-        
+
         //catchError(() => of([]))
       );
   }

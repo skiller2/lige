@@ -70,6 +70,14 @@
 
 </nz-card>
 
+<nz-card>
+    <h4>IA Prompt</h4>
+    <textarea [(ngModel)]="iaPrompt" placeholder="IA Prompt" style="width: 100%;
+    height: 800px;"></textarea>
+  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="setIaPrompt($event)">Grabar</button>
+
+</nz-card>
+
 <!--
 <nz-card class="small-margin">
 
