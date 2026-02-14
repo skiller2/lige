@@ -26,6 +26,7 @@ import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescri
 import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
+import { readFile } from "node:fs/promises";
 
 
 dotenv.config()
@@ -58,8 +59,9 @@ export class BotServer {
   private tgConfig: any
   private botPort: number
   private ASSISTANT_ID: string
-  public instrucciones: string
+  public iaPrompt: string
   public ollama: Ollama
+  public pathDocuments:string
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
@@ -67,6 +69,7 @@ export class BotServer {
   public chatmess: any[] = []
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
+    this.pathDocuments = process.env.PATH_DOCUMENTS ?? ''
     switch (provider) {
       case "BAILEY":
         this.adapterProvider = createProvider(BaileysProvider, {
@@ -108,7 +111,8 @@ export class BotServer {
     }
     this.botPort = Number(process.env.BOT_PORT) || 3008
     this.providerId = provider + "_" + String(process.env.PROVIDER_ID) || ""
-    this.instrucciones = `
+
+    this.iaPrompt = `
 
 [IDENTIDAD Y ESTILO]
 Sos un asistente virtual oficial de la cooperativa de trabajo Lince Seguridad.
@@ -401,7 +405,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
     await Utils.typing(ctx, provider);
 
 
-    //let mensajes = [{ role: "system", content: this.instrucciones }]
+    //let mensajes = [{ role: "system", content: this.iaPrompt }]
 
 
     const response = await this.ollama.chat({
@@ -512,6 +516,14 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
       });
     }
 
+    try {
+      this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt'`,'utf8')
+     
+    } catch (error) {
+      console.log(`Error leyendo prompt ${error}` )
+    }
+
+
     if (this.adapterProvider)
       this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
@@ -522,7 +534,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
     /*
     
      
-        let mensajes = [{ role: "system", content: this.instrucciones }]
+        let mensajes = [{ role: "system", content: this.iaPrompt }]
     
         while (true) {
           const res = await ask('Pregunta: ')
