@@ -58,13 +58,15 @@ export class CondicionVentaComponent implements OnInit {
       if (child.formCondicionVenta.invalid || child.formCondicionVenta.pristine) {
         child.clearForm();
       }
+      if (savedCodobj) {
+        child.codobjId.set(savedCodobj);
+        child.objetivoId.set(savedObjetivoId);
+      }
     } catch (e) {
-    }
-    this.childTableCondicionVenta()?.clearSelection();
-
-    if (savedCodobj) {
-      this.codobj.set(savedCodobj);
-      this.objetivoId.set(savedObjetivoId);
+      if (savedCodobj) {
+        this.codobj.set(savedCodobj);
+        this.objetivoId.set(savedObjetivoId);
+      }
     }
   }
 
