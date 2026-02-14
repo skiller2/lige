@@ -147,7 +147,7 @@ async setIaPrompt($event: any) {
 
     try {
       const resp: any = await firstValueFrom(this.apiService.setIaPrompt(this.iaPrompt()))
-      this.iaPrompt.set(resp.iaPromt)
+      this.iaPrompt.set(resp.data.iaPromt)
     } catch{}
     btn.disabled = false
 
