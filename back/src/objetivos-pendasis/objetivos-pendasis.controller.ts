@@ -37,12 +37,26 @@ const columnasGrilla: any[] = [
     hidden: true
   },
   {
-    name: "Cliente",
-    type: "string",
-    id: "ClienteDenominacion",
-    field: "ClienteDenominacion",
-    fieldName: "cli.ClienteDenominacion",
-    sortable: true,
+      name: "Cliente",
+      type: "number",
+      id: "ClienteId",
+      field: "ClienteId",
+      fieldName: "obj.ClienteId",
+      searchComponent: "inputForClientSearch",
+      sortable: true,
+      hidden: true,
+      searchHidden: false
+  },
+  {
+      name: "Cliente",
+      type: "string",
+      id: "ClienteDenominacion",
+      field: "ClienteDenominacion",
+      fieldName: "cli.ClienteDenominacion",
+      searchType: "string",
+      sortable: true,
+      searchHidden: true,
+      hidden: false,
   },
   {
     name: "Objetivo",
