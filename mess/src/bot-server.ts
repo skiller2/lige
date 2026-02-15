@@ -518,14 +518,14 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
     }
 
     try {
-      this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt'`,'utf8')
+      this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
      
     } catch (error) {
       console.log(`Error leyendo prompt ${error}` )
     }
 
     try {
-      this.iaPrompt = JSON.parse(await readFile(`${this.pathDocuments}/ia-tools.txt'`,'utf8'))
+      this.iaTools = JSON.parse(await readFile(`${this.pathDocuments}/ia-tools.txt`,'utf8'))
      
     } catch (error) {
       console.log(`Error leyendo tools ${error}` )
