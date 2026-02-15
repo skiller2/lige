@@ -461,6 +461,17 @@ export class CondicionesVentaController extends BaseController {
             throw new ClientException(`Debe completar el campo Dia de Generación Factura.`)
         }
 
+        const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
+        if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 32) {
+            throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 32.`)
+        }
+
+        if (CondicionVenta.GeneracionFacturaDiaComplemento != null && CondicionVenta.GeneracionFacturaDiaComplemento !== '') {
+            const generacionDiaComplemento = Number(CondicionVenta.GeneracionFacturaDiaComplemento);
+            if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 32) {
+                throw new ClientException(`El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 32.`)
+            }
+        }
 
         for (const producto of CondicionVenta.infoProductos) {
             if (producto.ProductoCodigo) {
