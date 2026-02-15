@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../../../app/services/api.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
-import { MarkdownComponent } from 'ngx-markdown';
+import { MarkdownModule } from 'ngx-markdown';
 
 @Component({
   selector: 'app-mess',
@@ -18,7 +18,7 @@ import { MarkdownComponent } from 'ngx-markdown';
     NzAffixModule,
     NzUploadModule,
     PersonalSearchComponent,
-    MarkdownComponent    
+    MarkdownModule
   ],
   templateUrl: './mess.component.html',
   styleUrl: './mess.component.scss'
@@ -72,7 +72,7 @@ export class MessComponent {
   chatId = signal('');
   msgs = signal<any[]>([])
   async enviaChat($event: any) {
-    
+
     const btn = $event.currentTarget as HTMLButtonElement;
 
     btn.disabled = true;
@@ -88,7 +88,7 @@ export class MessComponent {
       this.msgs.update(list => [...list, ...resp.response]);
 
       this.usermsg.set('')
-    } catch{}
+    } catch { }
     btn.disabled = false
 
   }
@@ -114,6 +114,15 @@ export class MessComponent {
     } catch (error) {
       console.log(error)
     }
+
+
+    const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())
+
+    this.iaPrompt.set(resIAPrompt.data.iaPrompt)
+
+    const resIATools: any = await firstValueFrom(this.apiService.getIaTools())
+    this.iaTools.set(resIATools.data.iaTools)
+
   }
 
   trackByMsgId(index: number, msg: any): any {
@@ -131,6 +140,50 @@ export class MessComponent {
       this.chatId.set('')
     }
 
+  }
+
+  iaPrompt = signal('')
+  iaTools = signal('')
+  async setIaPrompt($event: any) {
+    const btn = $event.currentTarget as HTMLButtonElement;
+    btn.disabled = true;
+
+    try {
+      const resp: any = await firstValueFrom(this.apiService.setIaPrompt(this.iaPrompt()))
+      this.iaPrompt.set(resp.data.iaPrompt)
+    } catch { }
+    btn.disabled = false
+
+  }
+
+  async setIaTools($event: any) {
+    const btn = $event.currentTarget as HTMLButtonElement;
+    btn.disabled = true;
+
+    try {
+      const resp: any = await firstValueFrom(this.apiService.setIaTools(this.iaTools()))
+      this.iaTools.set(resp.data.iaTools)
+    } catch { }
+    btn.disabled = false
+
+  }
+
+
+  toJsonString(value: unknown, pretty: boolean): string {
+    if (typeof value === 'string') {
+      // Si ya viene como string, lo usamos tal cual (no asumimos que sea JSON válido)
+      try {
+        // Si es JSON válido y queremos pretty, reindentamos
+        const parsed = JSON.parse(value);
+        return pretty ? JSON.stringify(parsed, null, 2) : JSON.stringify(parsed);
+      } catch {
+        // No es JSON válido: devolvemos el string crudo
+        return value;
+      }
+    } else {
+      // Objeto/array: serializamos
+      return pretty ? JSON.stringify(value, null, 2) : JSON.stringify(value);
+    }
   }
 
 

@@ -10,4 +10,7 @@ chatBotRouter.post(`/sendAlert`, [authMiddleware.verifyToken, authMiddleware.has
 chatBotRouter.post(`/gotoFlow`, (req, res, next) => { chatBotController.gotoFlow(req, res, next) });
 chatBotRouter.post(`/chat`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.chat(req, res, next) });
 chatBotRouter.post(`/reinicia`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.reinicia(req, res, next) });
-        
+chatBotRouter.get(`/iaprompt`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getPrompt(req, res, next) });
+chatBotRouter.post(`/iaprompt`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setPrompt(req, res, next) });
+chatBotRouter.get(`/iatools`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getTools(req, res, next) });
+chatBotRouter.post(`/iatools`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setTools(req, res, next) });
