@@ -61,7 +61,7 @@
 
       <form (ngSubmit)="enviaChat($event)">
         <input style="width: 300px" nz-input nz-tooltip [formField]="chatform.usermsg" />
-        <button nzType="primary" class="btn-add" nz-button type="submit" [disabled]="chatform().submitting()">Enviar</button>
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"  [disabled]="chatform().submitting()">Enviar</button>
       </form>
       <button nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
