@@ -40,10 +40,11 @@
 
             <nz-card nzSize="small">
 
-              @if (msg.content) {
+              @if (msg.content && msg.role !== 'tool') {
               <markdown [data]="msg.content"></markdown>
               } @else {
-              <div>{{ msg.tool_calls |json }}</div>
+              <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
+
               }
               @if (showTools()){
               <div>{{ msg.thinking }}</div>

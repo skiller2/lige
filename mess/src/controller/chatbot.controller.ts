@@ -24,7 +24,7 @@ export class ChatBotController extends BaseController {
 
     try {
       JSON.parse(iaTools)
-      await writeFile(`${this.pathDocuments}/ia-tools.txt`, iaTools, { encoding: 'utf8' })
+      await writeFile(`${this.pathDocuments}/ia-tools.json`, iaTools, { encoding: 'utf8' })
       botServer.iaTools = JSON.parse(iaTools)
       const ret = { iaTools }
       return this.jsonRes(ret, res, 'ok');
