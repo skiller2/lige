@@ -64,8 +64,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: ['', [Validators.required, periodValidator({ min: '1D', max: '2A', allowedUnits: ['D', 'S', 'M', 'A'] })]],
-    GeneracionFacturaDia: '',
-    GeneracionFacturaDiaComplemento: '',
+    GeneracionFacturaDia: ['', [Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(32)]],
+    GeneracionFacturaDiaComplemento: ['', [Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(32)]],
     Observaciones: '',
     infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
     infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
@@ -349,7 +349,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     const productoGroup = this.infoProductos().at(index);
     if (!productoGroup) return '';
 
-    const textoFactura = productoGroup.get('TextoFactura')?.value || '';
+    const textoFactura = (productoGroup.get('TextoFactura')?.value || '').trim();
     const productoCodigo = productoGroup.get('ProductoCodigo')?.value || '';
     const cantidad = productoGroup.get('Cantidad')?.value || '';
     const importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
@@ -359,6 +359,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     if (this.productosCache && this.productosCache.length > 0) {
       const producto = this.productosCache.find((p: any) => p.ProductoCodigo === productoCodigo);
       productoNombre = producto?.Nombre || productoCodigo;
+    }
+
+    if (!textoFactura) {
+      return productoNombre;
     }
 
     let periodoMes = '';
