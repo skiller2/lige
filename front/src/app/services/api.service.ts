@@ -516,7 +516,19 @@ export class ApiService {
 
   getIaPrompt(): Observable<unknown> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iaprompt').pipe(
+      map(res=>res)
+    )
+  }
+
+  setIaTools(iaTools: string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  getIaTools(): Observable<unknown> {
+    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iatools').pipe(
+      map(res=>res)
     )
   }
 

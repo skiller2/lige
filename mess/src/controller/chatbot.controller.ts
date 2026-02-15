@@ -19,12 +19,34 @@ export class ChatBotController extends BaseController {
     return this.jsonRes(ret, res, 'ok');
   }
 
-  async getPrompt(req: any, res: any, next: any) {
-    //    const iaPrompt = readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
-    const ret = { iaPrompt:botServer.iaPrompt }
+  async setTools(req: any, res: any, next: any) {
+    const iaTools = req.body.iaTools
+
+    try {
+      JSON.parse(iaTools)
+      await writeFile(`${this.pathDocuments}/ia-tools.txt`, iaTools, { encoding: 'utf8' })
+      botServer.iaTools = JSON.parse(iaTools)
+      const ret = { iaTools }
+      return this.jsonRes(ret, res, 'ok');
+
+    } catch (err) {
+      if (err instanceof SyntaxError)
+            err = new ClientException(`Error de syntaxis JSON ${err.message}`)
+      return next(err)
+    }
+
+  }
+
+  async getTools(req: any, res: any, next: any) {
+    const ret = { iaTools: JSON.stringify(botServer.iaTools, null, 2) }
     return this.jsonRes(ret, res, 'ok');
   }
 
+  async getPrompt(req: any, res: any, next: any) {
+    //    const iaPrompt = readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
+    const ret = { iaPrompt: botServer.iaPrompt }
+    return this.jsonRes(ret, res, 'ok');
+  }
 
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId

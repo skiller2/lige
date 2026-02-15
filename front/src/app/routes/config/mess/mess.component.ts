@@ -116,10 +116,13 @@ export class MessComponent {
     }
 
 
-    const resIA: any = await firstValueFrom(this.apiService.getIaPrompt())
-    
-    console.log('resIA',resIA.data.iaPrompt)
-    this.iaPrompt.set(resIA.data.iaPrompt)
+    const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())
+
+    this.iaPrompt.set(resIAPrompt.data.iaPrompt)
+
+    const resIATools: any = await firstValueFrom(this.apiService.getIaTools())
+    this.iaTools.set(resIATools.data.iaTools)
+ 
   }
 
   trackByMsgId(index: number, msg: any): any {
@@ -140,14 +143,26 @@ export class MessComponent {
   }
 
 iaPrompt = signal('')
-
+iaTools = signal('')
 async setIaPrompt($event: any) {
     const btn = $event.currentTarget as HTMLButtonElement;
     btn.disabled = true;
 
     try {
       const resp: any = await firstValueFrom(this.apiService.setIaPrompt(this.iaPrompt()))
-      this.iaPrompt.set(resp.data.iaPromt)
+      this.iaPrompt.set(resp.data.iaPrompt)
+    } catch{}
+    btn.disabled = false
+
+  }
+
+async setIaTools($event: any) {
+    const btn = $event.currentTarget as HTMLButtonElement;
+    btn.disabled = true;
+
+    try {
+      const resp: any = await firstValueFrom(this.apiService.setIaTools(this.iaTools()))
+      this.iaTools.set(resp.data.iaTools)
     } catch{}
     btn.disabled = false
 

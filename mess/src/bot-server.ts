@@ -67,6 +67,7 @@ export class BotServer {
   public userLocks = new Map(); // New lock mechanism
 
   public chatmess: any[] = []
+  public iaTools: any;
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
     this.pathDocuments = process.env.PATH_DOCUMENTS ?? ''
@@ -521,6 +522,13 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
      
     } catch (error) {
       console.log(`Error leyendo prompt ${error}` )
+    }
+
+    try {
+      this.iaPrompt = JSON.parse(await readFile(`${this.pathDocuments}/ia-tools.txt'`,'utf8'))
+     
+    } catch (error) {
+      console.log(`Error leyendo tools ${error}` )
     }
 
 
