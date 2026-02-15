@@ -761,59 +761,42 @@ export class CondicionesVentaController extends BaseController {
 
             let autorizadas = 0;
             let yaAutorizadas = 0;
-            const errores: string[] = [];
 
             for (const condicion of condiciones) {
-                try {
-                    const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
-                    PeriodoDesdeAplica.setHours(0, 0, 0, 0);
+                const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
+                PeriodoDesdeAplica.setHours(0, 0, 0, 0);
 
-                    const result = await queryRunner.query(`
-                        SELECT ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, AutorizacionFecha, AutorizacionPersonalId, AutorizacionEstado
-                        FROM CondicionVenta 
-                        WHERE ClienteId = @0
-                        AND ClienteElementoDependienteId = @1
-                        AND PeriodoDesdeAplica = @2`, 
-                        [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                const result = await queryRunner.query(`
+                    SELECT ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, AutorizacionFecha, AutorizacionPersonalId, AutorizacionEstado
+                    FROM CondicionVenta 
+                    WHERE ClienteId = @0
+                    AND ClienteElementoDependienteId = @1
+                    AND PeriodoDesdeAplica = @2`, 
+                    [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                );
+
+                if (result.length === 0) {
+                    throw new ClientException(`No existe condición de venta para cliente ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}.`);
+                }
+
+                if (result[0].AutorizacionFecha && result[0].AutorizacionPersonalId && result[0].AutorizacionEstado) {
+                    yaAutorizadas++;
+                } else {
+                    await this.updateAutorizacionCondicionVenta(
+                        queryRunner, 
+                        condicion.ClienteId, 
+                        condicion.ClienteElementoDependienteId, 
+                        PeriodoDesdeAplica, 
+                        usuario, 
+                        personalId, 
+                        ip
                     );
-
-                    if (result.length > 0) {
-                        if (result[0].AutorizacionFecha && result[0].AutorizacionPersonalId && result[0].AutorizacionEstado) {
-                            yaAutorizadas++;
-                        } else {
-                            await this.updateAutorizacionCondicionVenta(
-                                queryRunner, 
-                                condicion.ClienteId, 
-                                condicion.ClienteElementoDependienteId, 
-                                PeriodoDesdeAplica, 
-                                usuario, 
-                                personalId, 
-                                ip
-                            );
-                            autorizadas++;
-                        }
-                    } else {
-                        errores.push(`No existe condición para cliente ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}`);
-                    }
-                } catch (error: any) {
-                    errores.push(`Error en ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}: ${error.message}`);
+                    autorizadas++;
                 }
             }
 
-            // Si no se autorizó ninguna, es un error - validar ANTES del commit
-            if (autorizadas === 0) {
-                let mensajeError = 'No se pudo autorizar ninguna condición de venta.';
-                if (yaAutorizadas > 0) {
-                    mensajeError = `Todas las condiciones seleccionadas (${yaAutorizadas}) ya estaban autorizadas.`;
-                }
-                if (errores.length > 0) {
-                    if (yaAutorizadas > 0) {
-                        mensajeError += ` Además, ${errores.length} condición(es) tuvieron errores: ${errores.join('; ')}`;
-                    } else {
-                        mensajeError = `No se pudo autorizar ninguna condición. ${errores.join('; ')}`;
-                    }
-                }
-                throw new ClientException(mensajeError);
+            if (autorizadas === 0 && yaAutorizadas > 0) {
+                throw new ClientException(`Todas las condiciones seleccionadas (${yaAutorizadas}) ya estaban autorizadas.`);
             }
 
             await queryRunner.commitTransaction();
@@ -822,15 +805,11 @@ export class CondicionesVentaController extends BaseController {
             if (yaAutorizadas > 0) {
                 mensaje += `, Ya autorizadas: ${yaAutorizadas}`;
             }
-            if (errores.length > 0) {
-                mensaje += `. Errores: ${errores.length}`;
-            }
 
             return this.jsonRes({ 
                 status: 'ok', 
                 autorizadas, 
-                yaAutorizadas, 
-                errores 
+                yaAutorizadas
             }, res, mensaje);
 
         } catch (error) {
@@ -852,54 +831,35 @@ export class CondicionesVentaController extends BaseController {
             }
 
             let rechazadas = 0;
-            const errores: string[] = [];
 
             for (const condicion of condiciones) {
-                try {
-                    const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
-                    PeriodoDesdeAplica.setHours(0, 0, 0, 0);
+                const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
+                PeriodoDesdeAplica.setHours(0, 0, 0, 0);
 
-                    // Delete CondicionVentaDetalle
-                    await queryRunner.query(
-                        `DELETE FROM CondicionVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
-                        [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
-                    );
+                // Delete CondicionVentaDetalle
+                await queryRunner.query(
+                    `DELETE FROM CondicionVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                    [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                );
 
-                    // Delete CondicionVenta
-                    const deleteResult = await queryRunner.query(
-                        `DELETE FROM CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
-                        [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
-                    );
+                // Delete CondicionVenta
+                await queryRunner.query(
+                    `DELETE FROM CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                    [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
+                );
 
-                    rechazadas++;
-                } catch (error: any) {
-                    errores.push(`Error en ${condicion.ClienteId}/${condicion.ClienteElementoDependienteId}: ${error.message}`);
-                }
+                rechazadas++;
             }
 
-            // Si no se rechazó ninguna, es un error - validar ANTES del commit
             if (rechazadas === 0) {
-                let mensajeError = 'No se pudo rechazar ninguna condición de venta.';
-                if (errores.length > 0) {
-                    mensajeError = `No se pudo rechazar ninguna condición. ${errores.join('; ')}`;
-                } else {
-                    mensajeError = 'No se encontraron condiciones de venta para rechazar.';
-                }
-                throw new ClientException(mensajeError);
+                throw new ClientException('No se encontraron condiciones de venta para rechazar.');
             }
 
             await queryRunner.commitTransaction();
-
-            let mensaje = `Proceso completado. Rechazadas: ${rechazadas}`;
-            if (errores.length > 0) {
-                mensaje += `. Errores: ${errores.length}`;
-            }
-
             return this.jsonRes({ 
                 status: 'ok', 
-                rechazadas, 
-                errores 
-            }, res, mensaje);
+                rechazadas
+            }, res, `Proceso completado. Rechazadas: ${rechazadas}`);
 
         } catch (error) {
             await this.rollbackTransaction(queryRunner);
