@@ -349,7 +349,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     const productoGroup = this.infoProductos().at(index);
     if (!productoGroup) return '';
 
-    const textoFactura = productoGroup.get('TextoFactura')?.value || '';
+    const textoFactura = (productoGroup.get('TextoFactura')?.value || '').trim();
     const productoCodigo = productoGroup.get('ProductoCodigo')?.value || '';
     const cantidad = productoGroup.get('Cantidad')?.value || '';
     const importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
@@ -359,6 +359,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     if (this.productosCache && this.productosCache.length > 0) {
       const producto = this.productosCache.find((p: any) => p.ProductoCodigo === productoCodigo);
       productoNombre = producto?.Nombre || productoCodigo;
+    }
+
+    if (!textoFactura) {
+      return productoNombre;
     }
 
     let periodoMes = '';
