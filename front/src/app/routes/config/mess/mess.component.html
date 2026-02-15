@@ -59,11 +59,11 @@
 
       </nz-card>
 
-
-
-      <input style="width: 300px" nz-input nz-tooltip [(ngModel)]="usermsg" />
-      <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat($event)">Enviar</button>
-      <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
+      <form (ngSubmit)="enviaChat($event)">
+        <input style="width: 300px" nz-input nz-tooltip [formField]="chatform.usermsg" />
+        <button nzType="primary" class="btn-add" nz-button type="submit" [disabled]="chatform().submitting()">Enviar</button>
+      </form>
+      <button nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
       <label style="display:inline-flex; gap:8px; align-items:center; margin-left: 12px;">
         <input type="checkbox" [checked]="showTools()" (change)="toggleShowTools($event)" />

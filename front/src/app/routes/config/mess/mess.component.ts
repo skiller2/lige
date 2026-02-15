@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, model, signal } from '@angular/core';
+import { form, FormField, required, submit } from '@angular/forms/signals';
+
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -9,6 +11,7 @@ import { ApiService } from '../../../../app/services/api.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 import { MarkdownModule } from 'ngx-markdown';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-mess',
@@ -18,7 +21,9 @@ import { MarkdownModule } from 'ngx-markdown';
     NzAffixModule,
     NzUploadModule,
     PersonalSearchComponent,
-    MarkdownModule
+    MarkdownModule,
+    FormsModule,
+    FormField
   ],
   templateUrl: './mess.component.html',
   styleUrl: './mess.component.scss'
@@ -68,28 +73,25 @@ export class MessComponent {
 
   }
 
-  usermsg = signal('')
+  chatform = form(signal({
+    usermsg: '',
+  }))
+
   chatId = signal('');
   msgs = signal<any[]>([])
-  async enviaChat($event: any) {
+  async enviaChat(event: any) {
+    event.preventDefault();
+    await submit(this.chatform, async (form) => {
+      localStorage.setItem('chatId', this.chatId())
 
-    const btn = $event.currentTarget as HTMLButtonElement;
-
-    btn.disabled = true;
-
-    localStorage.setItem('chatId', this.chatId())
-
-
-    try {
-      const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.usermsg(), this.chatId()))
-
-      const newMsg: any[] = resp.response
-
-      this.msgs.update(list => [...list, ...resp.response]);
-
-      this.usermsg.set('')
-    } catch { }
-    btn.disabled = false
+      try {
+        const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.chatform.usermsg().value(), this.chatId()))
+        const newMsg: any[] = resp.response
+        this.msgs.update(list => [...list, ...resp.response]);
+        form.usermsg().setControlValue('')
+      } catch { }
+      return undefined; // success
+    })
 
   }
 
