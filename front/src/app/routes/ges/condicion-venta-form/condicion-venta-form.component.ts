@@ -8,6 +8,7 @@ import { firstValueFrom, Subscription, distinctUntilChanged } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
+import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
 
 @Component({
   selector: 'app-condicion-venta-form',
@@ -21,6 +22,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
+  private decimalMarker = inject(DEFAULT_DECIMAL_MARKER);
+  private thousandSeparator = inject(DEFAULT_THOUSAND_SEPARATOR);
   private periodoSubscription?: Subscription;
   private isNormalizingPeriodo = false;
   refreshCondVenta = model<number>(0);
@@ -379,7 +382,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       const response = await firstValueFrom(this.apiService.getPrecioListaPrecios(this.clienteId(), this.periodo(), productoCodigo));
       const newMap = new Map(this.mensajesImporteLista());
       if (response && response.encontrado) {
-        newMap.set(index, `${response.importe} - Período ${anio}/${mes}`);
+        newMap.set(index, `${this.formatImporteSeparator2(response.importe)} - Período ${anio}/${mes}`);
       } else {
         newMap.set(index, `Sin importe cargado en lista de precios para período ${anio}/${mes}`);
       }
@@ -396,6 +399,16 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     const newMap = new Map(this.mensajesImporteLista());
     newMap.delete(index);
     this.mensajesImporteLista.set(newMap);
+  }
+
+  private formatImporteSeparator2(value: number | string): string {
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    const fixed = num.toFixed(2);
+    const [intPart, decPart] = fixed.split('.');
+    const sep = String(this.thousandSeparator);
+    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+    return intFormatted + String(this.decimalMarker) + decPart;
   }
 
   getMensajeImporteLista(index: number): string {
