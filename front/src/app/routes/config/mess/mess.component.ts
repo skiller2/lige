@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, model, signal } from '@angular/core';
-import { form, FormField, required, submit } from '@angular/forms/signals';
+import { form, FormField, minLength, required, submit } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -35,7 +35,8 @@ export class MessComponent {
   ms = signal(0)
   mensaje = model('')
   destino = model('')
-
+  iaPromptHash = signal('')
+  iaToolsHash = signal('')
   showTools = signal<boolean>(false);
 
 
@@ -75,7 +76,12 @@ export class MessComponent {
 
   chatform = form(signal({
     usermsg: '',
-  }))
+  }), (f) => {
+    required(f.usermsg)
+    minLength(f.usermsg,1)
+  })
+
+
 
   chatId = signal('');
   msgs = signal<any[]>([])
@@ -88,7 +94,9 @@ export class MessComponent {
         const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.chatform.usermsg().value(), this.chatId()))
         const newMsg: any[] = resp.response
         this.msgs.update(list => [...list, ...resp.response]);
-        form.usermsg().setControlValue('')
+//        form.usermsg().setControlValue('')
+        this.chatform().reset({ usermsg: '' })
+        
       } catch { }
       return undefined; // success
     })
@@ -121,9 +129,14 @@ export class MessComponent {
     const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())
 
     this.iaPrompt.set(resIAPrompt.data.iaPrompt)
+    this.iaPromptHash.set(resIAPrompt.data.iaPromptHash)
 
     const resIATools: any = await firstValueFrom(this.apiService.getIaTools())
     this.iaTools.set(resIATools.data.iaTools)
+    this.iaToolsHash.set(resIATools.data.iaToolsHash)
+
+
+
 
   }
 
@@ -151,8 +164,10 @@ export class MessComponent {
     btn.disabled = true;
 
     try {
-      const resp: any = await firstValueFrom(this.apiService.setIaPrompt(this.iaPrompt()))
+      const resp: any = await firstValueFrom(this.apiService.setIaPrompt(this.iaPrompt(),this.iaPromptHash()))
       this.iaPrompt.set(resp.data.iaPrompt)
+      this.iaPromptHash.set(resp.data.iaPromptHash)
+      this.msgs.set([])
     } catch { }
     btn.disabled = false
 
@@ -163,8 +178,11 @@ export class MessComponent {
     btn.disabled = true;
 
     try {
-      const resp: any = await firstValueFrom(this.apiService.setIaTools(this.iaTools()))
+      const resp: any = await firstValueFrom(this.apiService.setIaTools(this.iaTools(),this.iaToolsHash()))
       this.iaTools.set(resp.data.iaTools)
+      this.iaToolsHash.set(resp.data.iaToolsHash)
+      this.msgs.set([])
+
     } catch { }
     btn.disabled = false
 

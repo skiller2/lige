@@ -11,6 +11,8 @@ import { BaileysProvider } from '@builderbot/provider-baileys'
 import { TelegramProvider } from '@builderbot/provider-telegram'
 import { MetaProvider } from '@builderbot/provider-meta'
 
+import CryptoJS from 'crypto-js';
+
 import { flowLogin, flowValidateCode, flowSinRegistrar } from "./flow/flowLogin.ts";
 import flowRecibo from "./flow/flowRecibo.ts";
 import flowMonotributo from "./flow/flowMonotributo.ts";
@@ -60,6 +62,7 @@ export class BotServer {
   private botPort: number
   private ASSISTANT_ID: string
   public iaPrompt: string
+  public iaPromptHash: string
   public ollama: Ollama
   public pathDocuments:string
 
@@ -68,6 +71,8 @@ export class BotServer {
 
   public chatmess: any[] = []
   public iaTools: any;
+  public iaToolsHash: string
+
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
     this.pathDocuments = process.env.PATH_DOCUMENTS ?? ''
@@ -519,13 +524,16 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
 
     try {
       this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
-     
+      this.iaPromptHash = CryptoJS.SHA256(this.iaPrompt).toString(CryptoJS.enc.Hex);
+
     } catch (error) {
       console.log(`Error leyendo prompt ${error}` )
     }
 
     try {
-      this.iaTools = JSON.parse(await readFile(`${this.pathDocuments}/ia-tools.json`,'utf8'))
+      const iaTools = await readFile(`${this.pathDocuments}/ia-tools.json`,'utf8')
+      this.iaToolsHash = CryptoJS.SHA256(this.iaTools).toString(CryptoJS.enc.Hex);
+      this.iaTools = JSON.parse(iaTools)
      
     } catch (error) {
       console.log(`Error leyendo tools ${error}` )

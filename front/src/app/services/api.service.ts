@@ -508,8 +508,8 @@ export class ApiService {
     )
   }
 
-  setIaPrompt(iaPrompt: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt }).pipe(
+  setIaPrompt(iaPrompt: string,iaPromptHash:string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt,iaPromptHash }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
@@ -520,8 +520,8 @@ export class ApiService {
     )
   }
 
-  setIaTools(iaTools: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools }).pipe(
+  setIaTools(iaTools: string,iaToolsHash:string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools,iaToolsHash }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

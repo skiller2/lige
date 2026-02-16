@@ -2,6 +2,7 @@ import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "fs";
 import { readFile, writeFile } from 'node:fs/promises';
+import CryptoJS from 'crypto-js';
 
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
@@ -12,39 +13,63 @@ import { PersonalController } from "./personal.controller.ts";
 export class ChatBotController extends BaseController {
   async setPrompt(req: any, res: any, next: any) {
     const iaPrompt = req.body.iaPrompt
-    await writeFile(`${this.pathDocuments}/ia-prompt.txt`, iaPrompt, { encoding: 'utf8' })
-    // await writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
-    botServer.iaPrompt = iaPrompt
-    const ret = { iaPrompt }
-    return this.jsonRes(ret, res, 'ok');
+    const iaPromptHash = req.body.iaPromptHash
+
+    try {
+      if (iaPromptHash !== botServer.iaPromptHash)
+        throw new ClientException('Hay cambios posteriores a la última lectura')
+
+
+      await writeFile(`${this.pathDocuments}/ia-prompt.txt`, iaPrompt, { encoding: 'utf8' })
+      // await writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
+      botServer.iaPrompt = iaPrompt
+
+      botServer.iaPromptHash = CryptoJS.SHA256(iaPrompt).toString(CryptoJS.enc.Hex);
+
+
+      botServer.chatmess = []
+      const ret = { iaPrompt, iaPromptHash: botServer.iaPromptHash }
+      return this.jsonRes(ret, res, 'ok');
+    } catch (err) {
+      return next(err)
+      
+    }
   }
 
   async setTools(req: any, res: any, next: any) {
     const iaTools = req.body.iaTools
+    const iaToolsHash = req.body.iaToolsHash
 
     try {
       JSON.parse(iaTools)
+
+    if (iaToolsHash !== botServer.iaToolsHash)
+      throw new ClientException('Hay cambios posteriores a la última lectura')
+
       await writeFile(`${this.pathDocuments}/ia-tools.json`, iaTools, { encoding: 'utf8' })
       botServer.iaTools = JSON.parse(iaTools)
-      const ret = { iaTools }
+      botServer.iaToolsHash = CryptoJS.SHA256(iaTools).toString(CryptoJS.enc.Hex);
+
+      botServer.chatmess = []
+      const ret = { iaTools, iaToolsHash:botServer.iaToolsHash}
+
       return this.jsonRes(ret, res, 'ok');
 
     } catch (err) {
       if (err instanceof SyntaxError)
-            err = new ClientException(`Error de syntaxis JSON ${err.message}`)
+        err = new ClientException(`Error de syntaxis JSON ${err.message}`)
       return next(err)
     }
 
   }
 
   async getTools(req: any, res: any, next: any) {
-    const ret = { iaTools: JSON.stringify(botServer.iaTools, null, 2) }
+    const ret = { iaTools: JSON.stringify(botServer.iaTools, null, 2), iaToolsHash: botServer.iaToolsHash }
     return this.jsonRes(ret, res, 'ok');
   }
 
   async getPrompt(req: any, res: any, next: any) {
-    //    const iaPrompt = readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
-    const ret = { iaPrompt: botServer.iaPrompt }
+    const ret = { iaPrompt: botServer.iaPrompt, iaPromptHash: botServer.iaPromptHash }
     return this.jsonRes(ret, res, 'ok');
   }
 
@@ -182,8 +207,9 @@ export class ChatBotController extends BaseController {
         }
       } while (recall);
 
-    } catch (error) {
-      throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
+    } catch (err) {
+      err= new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { error });
+      return next(err)
     }
 
     const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking }))
