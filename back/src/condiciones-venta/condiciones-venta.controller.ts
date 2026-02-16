@@ -925,4 +925,48 @@ export class CondicionesVentaController extends BaseController {
         const mensaje = "ej del mes.."
         return this.jsonRes({ mensaje }, res, 'Mensaje de horas obtenido');
     }
+
+    async getPrecioListaPrecios(req: any, res: any, next: any) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const ClienteId = Number(req.params.ClienteId);
+            const anio = Number(req.params.anio);
+            const mes = Number(req.params.mes);
+            const ProductoCodigo = req.params.ProductoCodigo;
+
+            if (!ClienteId) throw new ClientException('Debe completar el campo Objetivo para consultar la lista de precios.');
+            if (!anio || !mes) throw new ClientException('Debe completar el campo Período para consultar la lista de precios.');
+            if (!ProductoCodigo) throw new ClientException('Debe completar el campo Producto para consultar la lista de precios.');
+
+            const result = await queryRunner.query(
+                `SELECT TOP 1 pr.ClienteId, pr.ProductoCodigo, pr.Importe, pr.PeriodoDesdeAplica 
+                 FROM ProductoPrecio pr
+                 WHERE pr.ClienteId = @0 AND pr.PeriodoDesdeAplica <= DATEFROMPARTS(@1,@2,1) AND pr.ProductoCodigo = @3
+                 ORDER BY pr.PeriodoDesdeAplica DESC`,
+                [ClienteId, anio, mes, ProductoCodigo]
+            );
+
+            if (result.length > 0) {
+                const precio = result[0];
+                const periodoDate = new Date(precio.PeriodoDesdeAplica);
+                return this.jsonRes({
+                    importe: precio.Importe,
+                    anio: periodoDate.getFullYear(),
+                    mes: periodoDate.getMonth() + 1,
+                    encontrado: true
+                }, res);
+            } else {
+                return this.jsonRes({
+                    importe: null,
+                    anio: anio,
+                    mes: mes,
+                    encontrado: false
+                }, res);
+            }
+        } catch (error) {
+            return next(error);
+        } finally {
+            await queryRunner.release();
+        }
+    }
 }

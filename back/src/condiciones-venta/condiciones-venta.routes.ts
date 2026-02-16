@@ -59,3 +59,7 @@ condicionesVentaRouter.get('/tipoImporte_getOptions', [authMiddleware.verifyToke
 condicionesVentaRouter.get('/mensaje-horas/:tipoHoras', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   condicionesVentaController.getMensajeHoras(req, res, next)
 })
+
+condicionesVentaRouter.get('/precio-lista/:ClienteId/:anio/:mes/:ProductoCodigo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  condicionesVentaController.getPrecioListaPrecios(req, res, next)
+})

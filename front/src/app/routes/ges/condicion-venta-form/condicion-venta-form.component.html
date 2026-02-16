@@ -90,7 +90,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Producto</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
           <nz-select nzAllowClear style="width:100%" nzPlaceholder="Producto" formControlName="ProductoCodigo"
-            nzShowSearch [nzDropdownMatchSelectWidth]="false">
+            nzShowSearch [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onProductoCodigoChange($event, i)">
             @for (option of $optionsTipoProducto | async; track option) {
             <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
             }
@@ -112,10 +112,14 @@
           </nz-select>
         </nz-form-control>
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Unitario</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8">
           @if (control?.value?.TipoImporte === 'V') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
               Cargar en el cierre de planilla por el responsable
+            </div>
+          } @else if (control?.value?.TipoImporte === 'LP') {
+            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+              {{ getMensajeImporteLista(i) || 'Consultando lista de precios...' }}
             </div>
           } @else {
             <input

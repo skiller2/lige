@@ -2079,6 +2079,19 @@ export class ApiService {
     );
   }
 
+  getPrecioListaPrecios(ClienteId: number, periodo: any, ProductoCodigo: string): Observable<any> {
+    if (!ClienteId || !periodo || !ProductoCodigo) return of(null);
+    const anio = periodo.getFullYear();
+    const mes = periodo.getMonth() + 1;
+    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
+      map((res: ResponseJSON<any>) => res.data),
+      catchError((err) => {
+        console.error('Error al obtener precio lista de precios:', err);
+        return of(null);
+      })
+    );
+  }
+
 
 
 }
