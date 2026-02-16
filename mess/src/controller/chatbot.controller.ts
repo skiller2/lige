@@ -208,7 +208,7 @@ export class ChatBotController extends BaseController {
       } while (recall);
 
     } catch (err) {
-      err= new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { error });
+      err= new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
       return next(err)
     }
 
