@@ -15,6 +15,9 @@ export const botServer = new BotServer(process.env.PROVIDER)
 //const categoriasController = new CategoriasController()
 //const objetivoController = new ObjetivoController()
 
+
+
+
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

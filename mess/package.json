@@ -9,10 +9,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node ./scripts/build.mjs",
+    "buildnew": "esbuild src/index.ts --bundle --format=esm --platform=node --external:node:* --external:express --outfile=/dist/bundle.mjs",
     "prod": "node ./dist/index.js",
     "start": "npm run dev",
     "dev": "node --experimental-strip-types --experimental-transform-types --watch ./src/index.ts",
-    "devnew": "node --experimental-strip-types --experimental-transform-types ./src/index.ts",
+    "devnew": "node --experimental-strip-types --experimental-transform-types --watch ./src/index.ts",
     "devold": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts"
   },
   "keywords": [],
@@ -38,6 +39,6 @@
     "wa-sticker-formatter": "^4.4.4"
   },
   "devDependencies": {
-    "esbuild": "^0.25.8"
+    "esbuild": "^0.27.3"
   }
 }
