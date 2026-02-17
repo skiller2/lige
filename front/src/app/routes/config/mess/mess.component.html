@@ -61,7 +61,8 @@
 
       <form (ngSubmit)="enviaChat($event)">
         <input style="width: 300px" nz-input nz-tooltip [formField]="chatform.usermsg" />
-        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"  [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"
+          [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
       </form>
       <button nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
@@ -78,20 +79,25 @@
   <nz-tab nzTitle="IA Prompt">
     <nz-card>
       <h4>IA Prompt</h4>
-      <textarea [(ngModel)]="iaPrompt" placeholder="IA Prompt" style="width: 100%;
-    height: 800px;"></textarea>
-      <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="setIaPrompt($event)">Grabar</button>
+      <form (ngSubmit)="setIaPrompt($event)">
 
+        <textarea placeholder="IA Prompt" style="width: 100%;
+    height: 800px;" [formField]="promptform.iaPrompt"></textarea>
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="promptform().submitting()"
+          [disabled]="promptform().submitting() || promptform().dirty()==false">Grabar</button>
+      </form>
     </nz-card>
 
   </nz-tab>
   <nz-tab nzTitle="IA Herramientas">
     <nz-card>
       <h4>IA Prompt</h4>
-      <textarea [(ngModel)]="iaTools" placeholder="IA Herramientas" style="width: 100%;
-    height: 800px;"></textarea>
-      <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="setIaTools($event)">Grabar</button>
-
+      <form (ngSubmit)="setIaTools($event)">
+        <textarea placeholder="IA Herramientas" style="width: 100%;
+    height: 800px;" [formField]="toolsform.iaTools"></textarea>
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="toolsform().submitting()"
+          [disabled]="toolsform().submitting() || toolsform().dirty()==false">Grabar</button>
+      </form>
     </nz-card>
 
   </nz-tab>

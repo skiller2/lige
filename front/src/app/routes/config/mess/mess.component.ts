@@ -38,6 +38,8 @@ export class MessComponent {
   iaPromptHash = signal('')
   iaToolsHash = signal('')
   showTools = signal<boolean>(false);
+  chatId = signal('');
+  msgs = signal<any[]>([])
 
 
   toggleShowTools(ev: Event) {
@@ -83,8 +85,22 @@ export class MessComponent {
 
 
 
-  chatId = signal('');
-  msgs = signal<any[]>([])
+  promptform = form(signal({
+    iaPrompt: '',
+  }), (f) => {
+    required(f.iaPrompt)
+    minLength(f.iaPrompt,1)
+  })
+
+  toolsform = form(signal({
+    iaTools: '',
+  }), (f) => {
+    required(f.iaTools)
+    minLength(f.iaTools,1)
+  })
+
+
+
   async enviaChat(event: any) {
     event.preventDefault();
     await submit(this.chatform, async (form) => {
@@ -128,15 +144,14 @@ export class MessComponent {
 
     const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())
 
-    this.iaPrompt.set(resIAPrompt.data.iaPrompt)
+    this.promptform().reset({iaPrompt:resIAPrompt.data.iaPrompt})
+
     this.iaPromptHash.set(resIAPrompt.data.iaPromptHash)
 
     const resIATools: any = await firstValueFrom(this.apiService.getIaTools())
-    this.iaTools.set(resIATools.data.iaTools)
+    this.toolsform().reset({iaTools:resIATools.data.iaTools})
+
     this.iaToolsHash.set(resIATools.data.iaToolsHash)
-
-
-
 
   }
 
@@ -157,35 +172,35 @@ export class MessComponent {
 
   }
 
-  iaPrompt = signal('')
-  iaTools = signal('')
-  async setIaPrompt($event: any) {
-    const btn = $event.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
 
-    try {
-      const resp: any = await firstValueFrom(this.apiService.setIaPrompt(this.iaPrompt(),this.iaPromptHash()))
-      this.iaPrompt.set(resp.data.iaPrompt)
-      this.iaPromptHash.set(resp.data.iaPromptHash)
-      this.msgs.set([])
-    } catch { }
-    btn.disabled = false
+  async setIaPrompt(event: any) {
+    event.preventDefault();
+    await submit(this.promptform, async (form) => {
+      localStorage.setItem('chatId', this.chatId())
 
+      try {
+        const resp: any = await firstValueFrom(this.apiService.setIaPrompt(form().value().iaPrompt,this.iaPromptHash()))
+        this.promptform().reset({ iaPrompt: resp.data.iaPrompt })
+        this.iaPromptHash.set(resp.data.iaPromptHash)
+        this.msgs.set([])
+      } catch { }
+      return undefined; // success
+    })
   }
 
-  async setIaTools($event: any) {
-    const btn = $event.currentTarget as HTMLButtonElement;
-    btn.disabled = true;
+  async setIaTools(event: any) {
+    event.preventDefault();
+    await submit(this.toolsform, async (form) => {
+      localStorage.setItem('chatId', this.chatId())
 
-    try {
-      const resp: any = await firstValueFrom(this.apiService.setIaTools(this.iaTools(),this.iaToolsHash()))
-      this.iaTools.set(resp.data.iaTools)
-      this.iaToolsHash.set(resp.data.iaToolsHash)
-      this.msgs.set([])
-
-    } catch { }
-    btn.disabled = false
-
+      try {
+        const resp: any = await firstValueFrom(this.apiService.setIaTools(form().value().iaTools,this.iaToolsHash()))
+        this.toolsform().reset({ iaTools: resp.data.iaTools })
+        this.iaToolsHash.set(resp.data.iaToolsHash)
+        this.msgs.set([])
+      } catch { }
+      return undefined; // success
+    })
   }
 
 
