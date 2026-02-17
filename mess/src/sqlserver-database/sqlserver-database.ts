@@ -42,7 +42,7 @@ class SqlServerAdapter extends MemoryDB {
   async save(ctx: any): Promise<void> {
     if (ctx.keyword) {
       this.listHistory[ctx.from] = ctx;
-    }
+    } else {ctx.keyword=''}
     const options_json = ctx.options ? JSON.stringify(ctx.options) : null;
     const telefono = ctx.telefono || ctx.from
     let intentos = 3;
