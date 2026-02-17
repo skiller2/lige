@@ -7,7 +7,7 @@ import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
 //import {MemoryDB as Database } from '@builderbot/bot'
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
-import { BaileysProvider } from '@builderbot/provider-baileys'
+import { BaileysProvider } from '@builderbot/provider-baileys';
 import { TelegramProvider } from '@builderbot/provider-telegram'
 import { MetaProvider } from '@builderbot/provider-meta'
 
