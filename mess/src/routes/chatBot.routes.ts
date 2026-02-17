@@ -2,7 +2,7 @@ import { Router } from "express";
 import { chatBotController,authMiddleware } from "../controller/controller.module.ts";
 
 export const chatBotRouter = Router();
-chatBotRouter.get(`/qr/:imgcount?`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {chatBotController.getChatBotQR(req, res, next)});
+chatBotRouter.get(`/qr{/:imgcount}`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {chatBotController.getChatBotQR(req, res, next)});
 chatBotRouter.get(`/status`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => {chatBotController.getChatBotStatus(req, res, next)});
 chatBotRouter.get(`/delay`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => {chatBotController.getChatBotDelay(req, res, next)});
 chatBotRouter.post(`/delay`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {chatBotController.setChatBotDelay(req, res, next)});
