@@ -371,7 +371,7 @@ export class ApiService {
   getCols(url: string) {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
-        const mapped = res.data.map((col: Column) => {
+        const mapped = res.data.map((col: any) => {
           col.editor = { model: Editors['text'] }
 
           if (String(col.formatter) == 'collectionFormatter')
@@ -416,6 +416,10 @@ export class ApiService {
             col.exportWithFormatter = false
           } else if (col.type == 'object')
             col.type = FieldType.object
+
+          if (col.editable == false) {
+            delete col.editor
+          }
 
           return col
         });

@@ -190,6 +190,7 @@ export class PreciosProductosComponent {
         if (response.data?.action === 'I') {
           this.listPrecios$.next('')
           this.angularGridEdit.slickGrid.setSelectedRows([]);
+          this.addNewItem()
         }
 
         this.rowLocked = false
@@ -218,16 +219,20 @@ export class PreciosProductosComponent {
     }
   }
 
+  async ngAfterViewInit() {
+    setTimeout(() => {
+      this.addNewItem()
+    }, 1000)
+  }
+
   async addNewItem() {
-    // if(!this.itemAddActive){
-    const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
-    this.itemAddActive = true
-    // console.log('regs: ',this.angularGridEdit.dataView.getItems());
-    
-    // }else{
-    //   this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
-    // }
+    const list = this.angularGridEdit.dataView.getItems()
+    const find = list.find((row:any) => {return !row.ProductoCodigoOLD})
+    if(!find){
+      const newItem1 = this.createNewItem(1);
+      this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
+    }
+    this.angularGridEdit.slickGrid.setSelectedRows([this.angularGridEdit.dataView.getItems().length-1]);
 
   }
 
