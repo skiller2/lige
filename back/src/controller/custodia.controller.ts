@@ -695,9 +695,9 @@ export class CustodiaController extends BaseController {
         const ClienteId = objetivoCustodia.ClienteId
         const DescripcionRequirente = objetivoCustodia.DescripcionRequirente ? objetivoCustodia.DescripcionRequirente : null
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
-        const fecha_inicio = new Date(objetivoCustodia.FechaInicio)
+        const FechaInicio = new Date(objetivoCustodia.FechaInicio)
         const Origen = objetivoCustodia.Origen
-        const fecha_fin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
+        const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
         const Destino = objetivoCustodia.Destino
         const CantidadModulos = Number(objetivoCustodia.CantidadModulos) ? Number(objetivoCustodia.CantidadModulos) : null
         const ImporteModulo = Number(objetivoCustodia.ImporteModulo) ? Number(objetivoCustodia.ImporteModulo) : null
@@ -709,20 +709,20 @@ export class CustodiaController extends BaseController {
         const ImporteFactura = Number(CantidadModulos) * Number(ImporteModulo) + Number(CantidadHorasExcedente) * Number(ImporteHorasExcedente) + Number(CantidadKmExcedente) * Number(ImporteKmExcedente) + Number(ImportePeaje)
         const NumeroFactura = objetivoCustodia.NumeroFactura ? objetivoCustodia.NumeroFactura : null
         const DescripcionFacturacion = objetivoCustodia.DescripcionFacturacion ? objetivoCustodia.DescripcionFacturacion : null
-        const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
+        const EstadoCodigo = objetivoCustodia.EstadoCodigo ? objetivoCustodia.EstadoCodigo : 0
         const fechaActual = objetivoCustodia.fechaActual ? objetivoCustodia.fechaActual : new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
-        let FechaLiquidacion = (!objetivoCustodia.FechaLiquidacion && (estado == 1 || estado == 3 || estado == 4 || estado == 5)) ? fechaLiquidacionNew : objetivoCustodia.FechaLiquidacion
+        let FechaLiquidacion = (!objetivoCustodia.FechaLiquidacion && (EstadoCodigo == 1 || EstadoCodigo == 3 || EstadoCodigo == 4 || EstadoCodigo == 5)) ? fechaLiquidacionNew : objetivoCustodia.FechaLiquidacion
 
-        if (estado != 1 && estado != 3 && estado != 4 && estado != 5)
+        if (EstadoCodigo != 1 && EstadoCodigo != 3 && EstadoCodigo != 4 && EstadoCodigo != 5)
             FechaLiquidacion = null
 
         const periodo = await queryRunner.query(`
             SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
         `)
 
-        if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && (estado == 1 || estado == 3 || estado == 4 || estado == 5) && objetivoCustodia.FechaLiquidacion == null)
+        if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && (EstadoCodigo == 1 || EstadoCodigo == 3 || EstadoCodigo == 4 || EstadoCodigo == 5) && objetivoCustodia.FechaLiquidacion == null)
             throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
 
         //NEW TABLE
@@ -752,9 +752,9 @@ export class CustodiaController extends BaseController {
                 AudIpMod = @21,
                 AudFechaMod = @22
             WHERE CustodiaCodigo = @0`,
-            [CustodiaCodigo, ClienteId, DescripcionRequirente, Descripcion, fecha_inicio, Origen, fecha_fin, Destino,
+            [CustodiaCodigo, ClienteId, DescripcionRequirente, Descripcion, FechaInicio, Origen, FechaFin, Destino,
             CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente,
-            ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, estado, FechaLiquidacion, usuario, ip, fechaActual]
+            ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual]
         )
     }
 
@@ -1143,7 +1143,7 @@ export class CustodiaController extends BaseController {
             infoCustodia = infoCustodia[0]
             // delete infoCustodia.id
             delete infoCustodia.ResponsableId
-            // delete infoCustodia.estado
+            // delete infoCustodia.EstadoCodigo
 
             infoCustodia.personal = listPersonal
             infoCustodia.vehiculos = listVehiculo
@@ -1174,7 +1174,7 @@ export class CustodiaController extends BaseController {
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, CustodiaCodigo)
             infoCustodia = infoCustodia[0]
 
-            if (objetivoCustodia.estado == 0) {
+            if (objetivoCustodia.EstadoCodigo == 0) {
                 infoCustodia.FechaLiquidacion = null
             }
 
@@ -1464,6 +1464,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const forms: any[] = req.body
             let errores: any[] = []
+
             for (const form of forms) {
                 const ids: number[] = form.custodiasIds
                 const EstadoCodigo: number = form.EstadoCodigo
@@ -1528,7 +1529,7 @@ export class CustodiaController extends BaseController {
                         errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
                         continue
                     }
-
+                    
                     await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
                 }
 
