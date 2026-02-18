@@ -7,9 +7,11 @@ import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
 //import {MemoryDB as Database } from '@builderbot/bot'
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database.ts'
-import { BaileysProvider } from '@builderbot/provider-baileys'
+import { BaileysProvider } from '@builderbot/provider-baileys';
 import { TelegramProvider } from '@builderbot/provider-telegram'
 import { MetaProvider } from '@builderbot/provider-meta'
+
+import CryptoJS from 'crypto-js';
 
 import { flowLogin, flowValidateCode, flowSinRegistrar } from "./flow/flowLogin.ts";
 import flowRecibo from "./flow/flowRecibo.ts";
@@ -26,6 +28,7 @@ import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescri
 import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
+import { readFile } from "node:fs/promises";
 
 
 dotenv.config()
@@ -58,15 +61,21 @@ export class BotServer {
   private tgConfig: any
   private botPort: number
   private ASSISTANT_ID: string
-  public instrucciones: string
+  public iaPrompt: string
+  public iaPromptHash: string
   public ollama: Ollama
+  public pathDocuments:string
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
 
   public chatmess: any[] = []
+  public iaTools: any;
+  public iaToolsHash: string
+
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
+    this.pathDocuments = process.env.PATH_DOCUMENTS ?? ''
     switch (provider) {
       case "BAILEY":
         this.adapterProvider = createProvider(BaileysProvider, {
@@ -108,7 +117,8 @@ export class BotServer {
     }
     this.botPort = Number(process.env.BOT_PORT) || 3008
     this.providerId = provider + "_" + String(process.env.PROVIDER_ID) || ""
-    this.instrucciones = `
+
+    this.iaPrompt = `
 
 [IDENTIDAD Y ESTILO]
 Sos un asistente virtual oficial de la cooperativa de trabajo Lince Seguridad.
@@ -401,7 +411,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
     await Utils.typing(ctx, provider);
 
 
-    //let mensajes = [{ role: "system", content: this.instrucciones }]
+    //let mensajes = [{ role: "system", content: this.iaPrompt }]
 
 
     const response = await this.ollama.chat({
@@ -512,6 +522,24 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
       });
     }
 
+    try {
+      this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
+      this.iaPromptHash = CryptoJS.SHA256(this.iaPrompt).toString(CryptoJS.enc.Hex);
+
+    } catch (error) {
+      console.log(`Error leyendo prompt ${error}` )
+    }
+
+    try {
+      const iaTools = await readFile(`${this.pathDocuments}/ia-tools.json`,'utf8')
+      this.iaToolsHash = CryptoJS.SHA256(this.iaTools).toString(CryptoJS.enc.Hex);
+      this.iaTools = JSON.parse(iaTools)
+     
+    } catch (error) {
+      console.log(`Error leyendo tools ${error}` )
+    }
+
+
     if (this.adapterProvider)
       this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
@@ -522,7 +550,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
     /*
     
      
-        let mensajes = [{ role: "system", content: this.instrucciones }]
+        let mensajes = [{ role: "system", content: this.iaPrompt }]
     
         while (true) {
           const res = await ask('Pregunta: ')

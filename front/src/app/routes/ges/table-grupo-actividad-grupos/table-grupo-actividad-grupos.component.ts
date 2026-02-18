@@ -12,17 +12,18 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Component, signal, inject } from '@angular/core';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
-    selector: 'app-table-grupo-actividad-grupos',
-    providers: [AngularUtilService],
-    imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        FiltroBuilderComponent
-    ],
-    templateUrl: './table-grupo-actividad-grupos.component.html',
-    styleUrl: './table-grupo-actividad-grupos.component.less'
+  selector: 'app-table-grupo-actividad-grupos',
+  providers: [AngularUtilService],
+  imports: [
+    ...SHARED_IMPORTS,
+    CommonModule,
+    FiltroBuilderComponent
+  ],
+  templateUrl: './table-grupo-actividad-grupos.component.html',
+  styleUrl: './table-grupo-actividad-grupos.component.less'
 })
 export class TableGrupoActividadGruposComponent {
 
@@ -40,7 +41,8 @@ export class TableGrupoActividadGruposComponent {
     filtros: [],
     sort: null,
   };
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
+
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
@@ -48,13 +50,13 @@ export class TableGrupoActividadGruposComponent {
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
-  
+
 
   listOptionsChange(options: any) {
     this.listOptions = options
     this.listGrupoActividad$.next('')
   }
-  
+
   columns$ = this.apiService.getCols('/api/grupo-actividad/cols').pipe(
     switchMap(async (cols) => {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
@@ -66,7 +68,7 @@ export class TableGrupoActividadGruposComponent {
       let mapped = data.cols.map((col: Column) => {
 
         switch (col.id) {
-          
+
           case 'GrupoActividadDetalle':
             col.cssClass = "text-row-aling";
             break;
@@ -86,7 +88,7 @@ export class TableGrupoActividadGruposComponent {
             col.params = {
               collection: data.inactivo,
             }
-            
+
             break;
           case 'SucursalId':
             col.editor = {
@@ -106,7 +108,7 @@ export class TableGrupoActividadGruposComponent {
           default:
             break;
         }
-        
+
         return col
       });
       return mapped
@@ -123,9 +125,9 @@ export class TableGrupoActividadGruposComponent {
     this.gridOptionsEdit.autoEdit = true
 
 
-     let dateToday = new Date();
+    let dateToday = new Date();
 
-      this.startFilters.set([{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}])
+    this.startFilters.set([{ index: 'GrupoActividadInactivo', condition: 'AND', operator: '=', value: '0', closeable: true }])
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -136,7 +138,7 @@ export class TableGrupoActividadGruposComponent {
       // if (emptyrows.length == 0) {
       //   await this.addNewItem()
       // } else if (emptyrows.length > 1) {
-       //this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
+      //this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
       // }
       //Intento grabar si tiene error hago undo
 
@@ -209,8 +211,8 @@ export class TableGrupoActividadGruposComponent {
     return {
       id: newId,
       GrupoActividadNumero: "",
-      GrupoActividadNumeroOld:"",
-      GrupoActividadDetalle:"",
+      GrupoActividadNumeroOld: "",
+      GrupoActividadDetalle: "",
       GrupoActividadInactivo: '0',
       GrupoActividadSucursalId: ""
 
@@ -274,12 +276,12 @@ export class TableGrupoActividadGruposComponent {
       if (typeof previousItemMetadata === 'object') {
         meta = previousItemMetadata(rowNumber);
       }
-    
+
       if (
-        item.GrupoActividadNumero == 0 || 
-        item.GrupoActividadDetalle === "" || 
-        item.GrupoActividadInactivo === "" || 
-        item.SucursalId === "" || 
+        item.GrupoActividadNumero == 0 ||
+        item.GrupoActividadDetalle === "" ||
+        item.GrupoActividadInactivo === "" ||
+        item.SucursalId === "" ||
         item.PersonalId === ""
       ) {
         meta.cssClasses = 'element-add-no-complete';
@@ -302,8 +304,7 @@ export class TableGrupoActividadGruposComponent {
     return true;
   }
 
- 
+
 
 }
 
-       

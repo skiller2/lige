@@ -14,6 +14,7 @@ import { Component, model, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-table-grupo-actividad-objetivos',
@@ -44,7 +45,7 @@ export class TableGrupoActividadObjetivosComponent {
     filtros: [],
     sort: null,
   };
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
 
 
   complexityLevelList = [true, false];
@@ -118,8 +119,8 @@ export class TableGrupoActividadObjetivosComponent {
 
     const dateToday = new Date();
     this.startFilters.set([
-      { field: 'GrupoActividadObjetivoDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
-      { field: 'GrupoActividadObjetivoHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }])
+      { index: 'GrupoActividadObjetivoDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      { index: 'GrupoActividadObjetivoHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }])
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -308,7 +309,7 @@ export class TableGrupoActividadObjetivosComponent {
 
     setTimeout(() => {
       if (GrupoActividadId > 0) {
-        this.startFilters.set([ {field:'GrupoActividadId', condition:'AND', operator:'=', value: String(GrupoActividadId), forced:false}]);
+        this.startFilters.set([ {index:'GrupoActividadId', condition:'AND', operator:'=', value: String(GrupoActividadId), closeable: true}]);
       }
     }, 1000)
   }

@@ -10,6 +10,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FacturacionFormComponent } from '../facturacion-form/facturacion-form';
 import { LoadingService } from '@delon/abc/loading';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],
@@ -35,7 +36,7 @@ export class FacturacionComponent {
   gridObj!: SlickGrid
   detailViewRowCount = 1
   private readonly loadingSrv = inject(LoadingService)
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
   isDetail = signal(false)
 
   rowSelected = signal<any[]>([])
@@ -109,8 +110,8 @@ export class FacturacionComponent {
   this.gridOptions.cellHighlightCssClass = 'changed'
   this.gridOptions.enableCellNavigation = true
 
-  this.startFilters.set([{ field: 'ComprobanteNro', condition: 'AND', operator: '=', value: null, forced: false },
-    { field: 'ComprobanteTipoCodigo', condition: 'AND', operator: '=', value: null, forced: false }
+  this.startFilters.set([{ index: 'ComprobanteNro', condition: 'AND', operator: '=', value: null, closeable: true },
+    { index: 'ComprobanteTipoCodigo', condition: 'AND', operator: '=', value: null, closeable: true }
   ])
   }
 

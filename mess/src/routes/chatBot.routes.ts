@@ -2,7 +2,7 @@ import { Router } from "express";
 import { chatBotController,authMiddleware } from "../controller/controller.module.ts";
 
 export const chatBotRouter = Router();
-chatBotRouter.get(`/qr/:imgcount?`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {chatBotController.getChatBotQR(req, res, next)});
+chatBotRouter.get(`/qr{/:imgcount}`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {chatBotController.getChatBotQR(req, res, next)});
 chatBotRouter.get(`/status`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => {chatBotController.getChatBotStatus(req, res, next)});
 chatBotRouter.get(`/delay`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => {chatBotController.getChatBotDelay(req, res, next)});
 chatBotRouter.post(`/delay`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {chatBotController.setChatBotDelay(req, res, next)});
@@ -10,4 +10,7 @@ chatBotRouter.post(`/sendAlert`, [authMiddleware.verifyToken, authMiddleware.has
 chatBotRouter.post(`/gotoFlow`, (req, res, next) => { chatBotController.gotoFlow(req, res, next) });
 chatBotRouter.post(`/chat`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.chat(req, res, next) });
 chatBotRouter.post(`/reinicia`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.reinicia(req, res, next) });
-        
+chatBotRouter.get(`/iaprompt`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getPrompt(req, res, next) });
+chatBotRouter.post(`/iaprompt`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setPrompt(req, res, next) });
+chatBotRouter.get(`/iatools`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getTools(req, res, next) });
+chatBotRouter.post(`/iatools`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setTools(req, res, next) });

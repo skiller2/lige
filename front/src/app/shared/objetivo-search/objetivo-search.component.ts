@@ -91,9 +91,17 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
-  set selectedId(val: string) {
-    this.osc?.focus()
+  writeValue(value: any) {
+    if (value !== this._selectedId) {
+      this.updateSelectedId(value, false)
+    }
+  }
 
+  modelChange(val: string) {
+    this.updateSelectedId(val, true);
+  }
+
+  private updateSelectedId(val: string, shouldPropagate: boolean) {
     val = (val === null || val === undefined) ? '' : val
     if (val !== this._selectedId) {
       this._selectedId = val
@@ -102,7 +110,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
         this._selected = ''
         this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
         this.valueExtendedEmitter.emit(null)
-        this.propagateChange(this._selectedId)
+        if (shouldPropagate) this.propagateChange(this._selectedId)
         return
       }
       firstValueFrom(
@@ -112,15 +120,9 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
             this.extendedOption = res
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
-            this.propagateChange(this._selectedId)
+            if (shouldPropagate) this.propagateChange(this._selectedId)
           }))
       )
-    }
-  }
-
-  writeValue(value: any) {
-    if (value !== this._selectedId) {
-      this.selectedId = value
     }
   }
 
@@ -135,10 +137,6 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
         );
     })
   )
-
-  modelChange(val: string) {
-    this.selectedId = val;
-  }
 
   search(value: string): void {
     this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }

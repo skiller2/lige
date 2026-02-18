@@ -15,6 +15,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 interface ListOptions {
   filtros: any[];
@@ -52,7 +53,7 @@ export class TableObjetivoDocumentoComponent {
 
   tableLoading$ = new BehaviorSubject<boolean>(false);
   listDocsObjetivo$ = new BehaviorSubject('');
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
   ClienteId = input<number>(0);
   ObjetivoId = input<number>(0);
   // RefreshCliente = model<boolean>(false);

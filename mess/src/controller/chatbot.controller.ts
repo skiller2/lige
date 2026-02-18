@@ -1,14 +1,77 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "fs";
+import { readFile, writeFile } from 'node:fs/promises';
+import CryptoJS from 'crypto-js';
+
 //import { botServer } from "../bot-server.ts";
 import { dataSource } from "../data-source.ts";
 import { botServer } from "../index.ts";
-import { documentosController, personalController,novedadController,objetivoController } from "./controller.module.ts";
+import { documentosController, personalController, novedadController, objetivoController } from "./controller.module.ts";
 import { PersonalController } from "./personal.controller.ts";
 
 export class ChatBotController extends BaseController {
+  async setPrompt(req: any, res: any, next: any) {
+    const iaPrompt = req.body.iaPrompt
+    const iaPromptHash = req.body.iaPromptHash
 
+    try {
+      if (iaPromptHash !== botServer.iaPromptHash)
+        throw new ClientException('Hay cambios posteriores a la última lectura')
+
+
+      await writeFile(`${this.pathDocuments}/ia-prompt.txt`, iaPrompt, { encoding: 'utf8' })
+      // await writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
+      botServer.iaPrompt = iaPrompt
+
+      botServer.iaPromptHash = CryptoJS.SHA256(iaPrompt).toString(CryptoJS.enc.Hex);
+
+
+      botServer.chatmess = []
+      const ret = { iaPrompt, iaPromptHash: botServer.iaPromptHash }
+      return this.jsonRes(ret, res, 'ok');
+    } catch (err) {
+      return next(err)
+      
+    }
+  }
+
+  async setTools(req: any, res: any, next: any) {
+    const iaTools = req.body.iaTools
+    const iaToolsHash = req.body.iaToolsHash
+
+    try {
+      JSON.parse(iaTools)
+
+    if (iaToolsHash !== botServer.iaToolsHash)
+      throw new ClientException('Hay cambios posteriores a la última lectura')
+
+      await writeFile(`${this.pathDocuments}/ia-tools.json`, iaTools, { encoding: 'utf8' })
+      botServer.iaTools = JSON.parse(iaTools)
+      botServer.iaToolsHash = CryptoJS.SHA256(iaTools).toString(CryptoJS.enc.Hex);
+
+      botServer.chatmess = []
+      const ret = { iaTools, iaToolsHash:botServer.iaToolsHash}
+
+      return this.jsonRes(ret, res, 'ok');
+
+    } catch (err) {
+      if (err instanceof SyntaxError)
+        err = new ClientException(`Error de syntaxis JSON ${err.message}`)
+      return next(err)
+    }
+
+  }
+
+  async getTools(req: any, res: any, next: any) {
+    const ret = { iaTools: JSON.stringify(botServer.iaTools, null, 2), iaToolsHash: botServer.iaToolsHash }
+    return this.jsonRes(ret, res, 'ok');
+  }
+
+  async getPrompt(req: any, res: any, next: any) {
+    const ret = { iaPrompt: botServer.iaPrompt, iaPromptHash: botServer.iaPromptHash }
+    return this.jsonRes(ret, res, 'ok');
+  }
 
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId
@@ -17,330 +80,6 @@ export class ChatBotController extends BaseController {
     return this.jsonRes(ret, res, 'ok');
   }
 
-  getPersonaState = {
-    type: 'function',
-    function: {
-      name: 'getPersonaState',
-      description: 'Check if a phone number exists in the database',
-      parameters: {
-        type: 'object',
-        required: [],
-        properties: {
-//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
-        }
-      },
-    },
-  }
-
-  genTelCode = {
-    type: 'function',
-    function: {
-      name: 'genTelCode',
-      description: 'create special code to register phone number',
-      parameters: {
-        type: 'object',
-        required: [],
-        properties: {
-//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
-        }
-      },
-    },
-  }
-
-  delTelefonoPersona = {
-    type: 'function',
-    function: {
-      name: 'delTelefonoPersona',
-      description: 'delete a phone number from the database',
-      parameters: {
-        type: 'object',
-        required: [],
-        properties: {
-//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
-        }
-      },
-    },
-  }
-
-  removeCode = {
-    type: 'function',
-    function: {
-      name: 'removeCode',
-      description: 'Remove the verification code for a phone number',
-      parameters: {
-        type: 'object',
-        required: [],
-        properties: {
-  //        phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
-        }
-      },
-    },
-  }
-
-  getInfoPersonal = {
-    type: 'function',
-    function: {
-      name: 'getInfoPersonal',
-      description: 'Get personal information for a phone number and personal',
-      parameters: {
-        type: 'object',
-        required: ['personalId'],
-        properties: {
-//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-        }
-      },
-    },
-  }
-
-  getInfoEmpresa = {
-    type: 'function',
-    function: {
-      name: 'getInfoEmpresa',
-      description: 'Get empresa information',
-      parameters: {
-        type: 'object',
-        required: [],
-        properties: {}
-      },
-    },
-  }
-
-  getLastPeriodosOfComprobantesAFIP = {
-    type: 'function',
-    function: {
-      name: 'getLastPeriodosOfComprobantesAFIP',
-      description: 'Get list of periods of paid tickets in PDF of type MONOT ',
-      parameters: {
-        type: 'object',
-        required: ['personalId','cant'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-          cant: { type: 'number', description: 'The number of period back' },
-        }
-      },
-    },
-  }
-
-  getLastPeriodoOfComprobantes = {
-    type: 'function',
-    function: {
-      name: 'getLastPeriodoOfComprobantes',
-      description: 'Get list of recibos in PDF of type RECIBO ',
-      parameters: {
-        type: 'object',
-        required: ['personalId','cant'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-          cant: { type: 'number', description: 'The number of period back' },
-        }
-      },
-    },
-  }
-  
-  getDocsPendDescarga = {
-    type: 'function',
-    function: {
-      name: 'getDocsPendDescarga',
-      description: 'Get list of documents pending download ',
-      parameters: {
-        type: 'object',
-        required: ['personalId'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-        }
-      },
-    },
-  }
-  
-  getURLDocumentoNewInfo = {
-    type: 'function',
-    function: {
-      name: 'getURLDocumentoNew',
-      description: 'Get URL to download required document in PDF ',
-      parameters: {
-        type: 'object',
-        required: ['DocumentoId'],
-        properties: {
-          DocumentoId: { type: 'number', description: 'The id of the document' },
-        }
-      },
-    },
-  }
-
-  getAdelantoLimits = {
-    type: 'function',
-    function: {
-      name: 'getAdelantoLimits',
-      description: 'Get Limits for asking Salary advance',
-      parameters: {
-        type: 'object',
-        required: ['fecha'],
-        properties: {
-          fecha: { type: 'date', description: 'Current date' },
-        }
-      },
-    },
-  }
-
-  getPersonalAdelanto = {
-    type: 'function',
-    function: {
-      name: 'getPersonalAdelanto',
-      description: 'Get current Salary advance already asked',
-      parameters: {
-        type: 'object',
-        required: ['personalId','anio','mes'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-          anio: { type: 'number', description: 'The year to get info for' },
-          mes: { type: 'number', description: 'The month to get info for' },
-        }
-      },
-    },
-  }
-
-  deletePersonalAdelanto = {
-    type: 'function',
-    function: {
-      name: 'deletePersonalAdelanto',
-      description: 'Delete current Salary advance already asked',
-      parameters: {
-        type: 'object',
-        required: ['personalId','anio','mes'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to get info for' },
-          anio: { type: 'number', description: 'The year to get info for' },
-          mes: { type: 'number', description: 'The month to get info for' },
-        }
-      },
-    },
-  }
-  
-  setPersonalAdelanto = {
-    type: 'function',
-    function: {
-      name: 'setPersonalAdelanto',
-      description: 'Set Salary advance',
-      parameters: {
-        type: 'object',
-        required: ['personalId','anio','mes','importe'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
-          anio: { type: 'number', description: 'The year to set salary advance for' },
-          mes: { type: 'number', description: 'The month to set salary advance for' },
-          importe: { type: 'currency', description: 'The amount to set salary advance for' },
-        }
-      },
-    },
-  }
-
-  getBackupNovedad = {
-    type: 'function',
-    function: {
-      name: 'getBackupNovedad',
-      description: 'Read news object in cache',
-      parameters: {
-        type: 'object',
-        required: ['personalId'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
-        }
-      },
-    },
-  }
-
-  saveNovedad = {
-    type: 'function',
-    function: {
-      name: 'saveNovedad',
-      description: 'Save news object to cache',
-      parameters: {
-        type: 'object',
-        required: ['personalId','novedad'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
-          novedad: { type: 'object', description: 'Object of news {}' },
-        }
-      },
-    },
-  }
-
-  setNovedadVisualizacion = {
-    type: 'function',
-    function: {
-      name: 'setNovedadVisualizacion',
-      description: 'Update view information for each news',
-      parameters: {
-        type: 'object',
-        required: ['NovedadCodigo','personalId'],
-        properties: {
-          NovedadCodigo: { type: 'number', description: 'Code of news' },
-          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
-        }
-      },
-    },
-  }
-
-  getObjetivoByCodObjetivo = {
-    type: 'function',
-    function: {
-      name: 'getObjetivoByCodObjetivo',
-      description: 'get the name of target by his code',
-      parameters: {
-        type: 'object',
-        required: ['CodObjetivo'],
-        properties: {
-          CodObjetivo: { type: 'string', description: 'Target code like 231/1' },
-        }
-      },
-    },
-  }
-
-  addNovedad = {
-    type: 'function',
-    function: {
-      name: 'addNovedad',
-      description: 'save news to sistem and send to person',
-      parameters: {
-        type: 'object',
-        required: ['CodObjetivo'],
-        properties: {
-          novedad: { type: 'object', description: 'Object of news {}' },
-//          phoneNumber: { type: 'string', description: 'The phone number to check is internal provided by middleware' },
-          personalId: { type: 'number', description: 'The personal id to set salary advance for' },
-        }
-      },
-    },
-  }
-  getNovedadesPendientesByResponsable = {
-    type: 'function',
-    function: {
-      name: 'getNovedadesPendientesByResponsable',
-      description: 'list own pending news using PersonalId as lookup key',
-      parameters: {
-        type: 'object',
-        required: ['personalId'],
-        properties: {
-          personalId: { type: 'number', description: 'The personal id of responsable' },
-        }
-      },
-    },
-  }
-
-  getNovedadTipo = {
-    type: 'function',
-    function: {
-      name: 'getNovedadTipo',
-      description: 'get news type',
-      parameters: {
-        type: 'object',
-        required: [],
-        properties: {
-        }
-      },
-    },
-  }
 
 
 
@@ -356,7 +95,7 @@ export class ChatBotController extends BaseController {
 
 
     if (botServer.chatmess[chatId].length == 0)
-      botServer.chatmess[chatId].push({ id: 0, role: "system", content: botServer.instrucciones, sendIt: true });
+      botServer.chatmess[chatId].push({ id: 0, role: "system", content: botServer.iaPrompt, sendIt: true });
 
     botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: req.body.message })
 
@@ -368,11 +107,8 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: [this.getPersonaState, this.delTelefonoPersona, this.genTelCode, this.removeCode, this.getInfoPersonal, this.getInfoEmpresa, this.getLastPeriodosOfComprobantesAFIP, this.getURLDocumentoNewInfo, this.getDocsPendDescarga, this.getLastPeriodoOfComprobantes, this.getAdelantoLimits, this.getPersonalAdelanto, this.deletePersonalAdelanto, this.setPersonalAdelanto, this.getBackupNovedad, this.saveNovedad, this.getObjetivoByCodObjetivo, this.getNovedadTipo, this.addNovedad, this.getNovedadesPendientesByResponsable, this.setNovedadVisualizacion],
-
+          tools: botServer.iaTools,
         });
-
-        //console.log('responseIA',responseIA.message.content)
 
         botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
 
@@ -403,28 +139,28 @@ export class ChatBotController extends BaseController {
                 break;
               case 'getLastPeriodosOfComprobantesAFIP':
                 output = await documentosController.getLastPeriodosOfComprobantesAFIP(tool.function.arguments.personalId, tool.function.arguments.cant).then(array => { return array })
-                break;                
+                break;
               case 'getLastPeriodoOfComprobantes':
                 output = await documentosController.getLastPeriodoOfComprobantes(tool.function.arguments.personalId, tool.function.arguments.cant).then(array => { return array })
-                break;                
+                break;
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(tool.function.arguments.personalId)
-                break;                
+                break;
               case 'getAdelantoLimits':
                 tool.function.arguments.fecha = new Date()
                 output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
-                break;                
+                break;
               case 'getPersonalAdelanto':
                 output = await PersonalController.getPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes)
                 break;
               case 'deletePersonalAdelanto':
                 await personalController.deletePersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes)
-                output = {response:'OK'}
-                break;                
+                output = { response: 'OK' }
+                break;
               case 'setPersonalAdelanto':
                 await personalController.setPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.importe)
-                output = {response:'OK'}
-                break;                
+                output = { response: 'OK' }
+                break;
               case 'getURLDocumentoNew':
                 try {
                   output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId)
@@ -445,7 +181,7 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getNovedadTipo()
                 break;
               case 'addNovedad':
-                output = await novedadController.addNovedad(tool.function.arguments.novedad,chatId,tool.function.arguments.personalId)
+                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, tool.function.arguments.personalId)
                 break;
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(tool.function.arguments.personalId)
@@ -471,11 +207,12 @@ export class ChatBotController extends BaseController {
         }
       } while (recall);
 
-    } catch (error) {
-      throw new ClientException(`Error al procesar el mensaje del chatbot: ${error.message}`, { error });
+    } catch (err) {
+      err= new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
+      return next(err)
     }
 
-    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking:m.thinking }))
+    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking }))
 
     botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 
@@ -604,4 +341,4 @@ export class ChatBotController extends BaseController {
       WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1', method, provider]);
   }
 
- }
+}

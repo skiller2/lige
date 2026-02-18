@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, model, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, model, OnInit, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 
 import { I18nPipe, SettingsService } from '@delon/theme';
@@ -30,7 +30,9 @@ export class CondicionVentaComponent implements OnInit {
   childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')
   childTableCondicionVenta = viewChild<TableCondicionVentaComponent>('tableCondicionVenta')
   PeriodoDesdeAplica = model<string>('');
-  RefreshCondVenta = model<boolean>(false)
+
+  refreshCondVenta = signal<number>(0)
+
   condicionesSeleccionadas = model<any[]>([])
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
@@ -46,11 +48,34 @@ export class CondicionVentaComponent implements OnInit {
 
 
 
+  onAddClick(): void {
+    this.isEdit.set(false);
+    const savedCodobj = this.codobj();
+    const savedObjetivoId = this.objetivoId();
+
+    try {
+      const child = this.childAlta();
+      if (child.formCondicionVenta.invalid || child.formCondicionVenta.pristine) {
+        child.clearForm();
+      }
+      if (savedCodobj) {
+        child.codobjId.set(savedCodobj);
+        child.objetivoId.set(savedObjetivoId);
+      }
+    } catch (e) {
+      if (savedCodobj) {
+        this.codobj.set(savedCodobj);
+        this.objetivoId.set(savedObjetivoId);
+      }
+    }
+  }
+
   async handleAddOrUpdate() {
     //this.childTableCondicionVenta().RefreshCondVenta.set(true)
   }
 
   onTabsetChange(_event: any) {
+    
     console.log("_event.index ", _event.index)
     switch (_event.index) {
       case 4: //INSERT
@@ -80,7 +105,7 @@ export class CondicionVentaComponent implements OnInit {
     );
     
     if (result.status === 'ok') {
-      this.RefreshCondVenta.set(true);
+      this.refreshCondVenta.update(v => v + 1)
       this.condicionesSeleccionadas.set([]);
     }
   }
@@ -96,7 +121,7 @@ export class CondicionVentaComponent implements OnInit {
       this.apiService.rechazarCondicionVentaMultiple(condiciones)
     );
     
-    this.RefreshCondVenta.set(true);
+    this.refreshCondVenta.update(v => v + 1)
     this.condicionesSeleccionadas.set([]);
   }
 

@@ -14,6 +14,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-table-pendientes-descargas',
@@ -36,7 +37,7 @@ export class TablePendientesDescargasComponent {
         sort: null,
     };
     detailViewRowCount = 1;
-    startFilters: any[]=[]
+    startFilters: Selections[]=[]
 
     private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -61,7 +62,7 @@ export class TablePendientesDescargasComponent {
         this.gridDetalleOptions.createFooterRow = true
 
         this.startFilters = [
-            {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', forced:false},
+            {index:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', closeable: true},
         ]
     }
 

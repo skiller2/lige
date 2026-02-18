@@ -1,0 +1,22 @@
+
+:host {
+  /* Tweak this to your needs or override per breakpoint */
+  --tag-max-width: 300px;
+}
+
+/* Make the tag itself respect a max width */
+nz-tag.tag-ellipsis,
+.ant-tag.tag-ellipsis {
+  display: inline-block;        /* so max-width applies */
+  vertical-align: top;
+}
+
+/* Apply the actual truncation to the inner text span */
+.tag-ellipsis .tag-text {
+  display: inline-block;
+  max-width: var(--tag-max-width);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}

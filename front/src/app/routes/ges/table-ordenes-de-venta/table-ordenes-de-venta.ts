@@ -16,6 +16,7 @@ import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.comp
 import { ActivatedRoute } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],
@@ -79,7 +80,7 @@ export class TableOrdenesDeVentaComponent {
     extra: null,
   }
   dataAngularGrid: any
-  startFilters: any[] = []
+  startFilters: Selections[] = []
 
   listOptionsChange(options: any) {
     this.listOptions = options
@@ -174,7 +175,7 @@ export class TableOrdenesDeVentaComponent {
       }
     }, { injector: this.injector });
 
-    this.startFilters = [{}]
+    this.startFilters = []
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {

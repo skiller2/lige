@@ -25,6 +25,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],
@@ -93,7 +94,7 @@ export class ObjetivosPendAsisComponent {
     sort: null,
     extra: null,
   }
-  startfilters = signal<any>([])
+  startfilters = signal<Selections[]>([])
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -141,11 +142,11 @@ export class ObjetivosPendAsisComponent {
     const user: any = this.settingService.getUser()
 
     this.startfilters.set([{
-      field: 'GrupoActividadNumero',
+      index: 'GrupoActividadNumero',
       condition: 'AND',
       operator: '=',
       value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';'),
-      forced: false
+      closeable: true
     }])
 
     setTimeout(() => {

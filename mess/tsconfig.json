@@ -4,36 +4,41 @@
     "baseUrl": "./",
     "rootDir": "./src",
     "outDir": "./dist",
-    "sourceMap": true,
-    //    "declaration": true,
-    //    "declarationDir": "dist",
-    "downlevelIteration": true,
-    "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "module": "nodenext",
+
     "target": "ESNext",
-    "importHelpers": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    "sourceMap": true,
+    "downlevelIteration": true,
+
     "strict": false,
-    "emitDecoratorMetadata": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    "resolveJsonModule": true,
+    "importHelpers": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "noEmit": true,
+
+    // 🔑 ESM + TS moderno (Node 22+ con type-stripping opcional)
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
+
     "typeRoots": [
-      //      "./src/types",
       "node_modules/@types"
     ],
-    "lib": [
-      "es2021",
-    ],
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "lib": ["es2021"]
   },
-  "rewriteRelativeImportExtensions": true,
-  
-  "erasableSyntaxOnly": true,
+
   "exclude": [
     "scripts/**",
     "dist/**"

@@ -15,3 +15,13 @@ export interface Options {
   filtros: Filtro[]
   sort: CustomSort[] | null
 }
+
+export interface Selections {
+  index: string;
+  condition: string;
+  operator: string;
+  value: any;
+  label: string;
+  closeable: boolean;
+  originIdx: number|null;
+}

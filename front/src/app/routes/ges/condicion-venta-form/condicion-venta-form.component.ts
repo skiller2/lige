@@ -1,5 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { periodValidator, parsePeriod, periodToText } from '../../../shared/period-utils/period-utils';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -7,6 +8,7 @@ import { firstValueFrom, Subscription, distinctUntilChanged } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
+import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
 
 @Component({
   selector: 'app-condicion-venta-form',
@@ -20,8 +22,11 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
+  private decimalMarker = inject(DEFAULT_DECIMAL_MARKER);
+  private thousandSeparator = inject(DEFAULT_THOUSAND_SEPARATOR);
   private periodoSubscription?: Subscription;
   private isNormalizingPeriodo = false;
+  refreshCondVenta = model<number>(0);
   /*pristineChange = output<boolean>()*/
   isEdit = model(false);
   CondicionVentaId = model<number>(0);
@@ -32,11 +37,14 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   objetivoId = model<number>(0);
   PeriodoDesdeAplica = model('');
   periodo = input<Date>();
+  clienteId = signal<number>(0);
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
 
   $optionsTipoCantidad = this.searchService.getTipoCantidadSearch();
   $optionsTipoImporte = this.searchService.getTipoImporteSearch();
   mensajesHoras = signal<string>('');
+  mensajesImporteLista = signal<Map<number, string>>(new Map());
+  periodoFacturacionDescripcion = signal<string>('');
 
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
 
@@ -60,9 +68,9 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     codobjId: '',
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
-    PeriodoFacturacion: '',
-    GeneracionFacturaDia: '',
-    GeneracionFacturaDiaComplemento: '',
+    PeriodoFacturacion: ['', [Validators.required, periodValidator({ min: '1D', max: '2A', allowedUnits: ['D', 'S', 'M', 'A'] })]],
+    GeneracionFacturaDia: ['', [Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(32)]],
+    GeneracionFacturaDiaComplemento: ['', [Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(32)]],
     Observaciones: '',
     infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
     infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
@@ -77,6 +85,12 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       });
 
 
+    });
+
+    effect(() => {
+      const _codobj = this.codobjId();
+      const _periodo = this.periodo();
+      this.refrescarPreciosListaPrecios();
     });
   }
 
@@ -171,14 +185,26 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.formCondicionVenta.reset(infoCliente)
 
-    // Calcular totales y deshabilitar ImporteTotal en un solo recorrido
+    // Limpiar mensajes de importes de lista de precios
+    this.mensajesImporteLista.set(new Map());
+
+    // Calcular totales, deshabilitar ImporteTotal y manejar tipo importe en un solo recorrido
     this.infoProductos().controls.forEach((control, index) => {
       const cantidad = control.get('Cantidad')?.value;
       const importeUnitario = control.get('ImporteUnitario')?.value;
+      const tipoImporte = control.get('TipoImporte')?.value;
+
       if (cantidad && importeUnitario) {
         this.calcularTotal(index);
       } else {
         control.get('ImporteTotal')?.disable();
+      }
+
+      if (tipoImporte === 'LP') {
+        control.get('ImporteUnitario')?.disable();
+        this.obtenerPrecioListaPrecios(index);
+      } else if (tipoImporte !== 'F') {
+        control.get('ImporteUnitario')?.disable();
       }
     });
 
@@ -192,6 +218,13 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.$optionsTipoProducto.subscribe(productos => {
       this.productosCache = productos;
+    });
+
+    this.formCondicionVenta.controls.PeriodoFacturacion.valueChanges.pipe(
+      distinctUntilChanged()
+    ).subscribe(value => {
+      const p = parsePeriod(value);
+      this.periodoFacturacionDescripcion.set(p ? periodToText(p) : '');
     });
 
     // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
@@ -223,6 +256,13 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   objetivoDetalleChange(event: any) {
+    if (event && event.clienteId && event.ClienteElementoDependienteId) {                                                                      
+       this.codobjId.set(`${event.clienteId}/${event.ClienteElementoDependienteId}`);    
+       this.clienteId.set(event.clienteId);
+     } else {                                                                                                                                   
+       this.codobjId.set('');                                                                                                                   
+       this.clienteId.set(0);
+    }
   }
 
   async save() {
@@ -254,7 +294,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       console.error('Error al guardar condición de venta:', e);
     }
     this.loadingSrv.close();
-
+    this.refreshCondVenta.update(v => v + 1)
   }
 
   calcularTotal(index: number) {
@@ -270,13 +310,17 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   async onTipoImporteChange(tipoImporte: string, index: number): Promise<void> {
     const importeUnitarioControl = this.infoProductos().at(index)?.get('ImporteUnitario');
     
-    if (tipoImporte !== 'F') {
-      // Si no es 'F', deshabilitar y limpiar el campo
+    if (tipoImporte === 'LP') {
       importeUnitarioControl?.setValue('');
       importeUnitarioControl?.disable();
+      await this.obtenerPrecioListaPrecios(index);
+    } else if (tipoImporte !== 'F') {
+      importeUnitarioControl?.setValue('');
+      importeUnitarioControl?.disable();
+      this.limpiarMensajeImporteLista(index);
     } else {
-      // Si es 'F', habilitar el campo
       importeUnitarioControl?.enable();
+      this.limpiarMensajeImporteLista(index);
     }
 
   }
@@ -316,9 +360,78 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   limpiarMensajeHoras(index: number): void {
     this.mensajesHoras.set('');
   }
+
+  async obtenerPrecioListaPrecios(index: number): Promise<void> {
+ 
+    const codobj = this.codobjId();
+    
+
+    if (!this.clienteId() || !this.periodo() ) {
+      const newMap = new Map(this.mensajesImporteLista());
+      newMap.set(index, 'Debe completar Objetivo, Período y Producto para consultar lista de precios');
+      this.mensajesImporteLista.set(newMap);
+      return;
+    }
+
+    try {
+      const productoCodigo = this.infoProductos().at(index)?.get('ProductoCodigo')?.value || '';
+      
+      const anio = this.periodo()?.getFullYear() || 0;
+      const mes = this.periodo() ? this.periodo()!.getMonth() + 1 : 0;
+ 
+      const response = await firstValueFrom(this.apiService.getPrecioListaPrecios(this.clienteId(), this.periodo(), productoCodigo));
+      const newMap = new Map(this.mensajesImporteLista());
+      if (response && response.encontrado) {
+        newMap.set(index, `${this.formatImporteSeparator2(response.importe)} - Período ${anio}/${mes}`);
+      } else {
+        newMap.set(index, `Sin importe cargado en lista de precios para período ${anio}/${mes}`);
+      }
+      this.mensajesImporteLista.set(newMap);
+    } catch (error) {
+      console.error('Error al obtener precio lista de precios:', error);
+      const newMap = new Map(this.mensajesImporteLista());
+      newMap.set(index, 'Error al consultar lista de precios');
+      this.mensajesImporteLista.set(newMap);
+    }
+  }
+
+  limpiarMensajeImporteLista(index: number): void {
+    const newMap = new Map(this.mensajesImporteLista());
+    newMap.delete(index);
+    this.mensajesImporteLista.set(newMap);
+  }
+
+  private formatImporteSeparator2(value: number | string): string {
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    const fixed = num.toFixed(2);
+    const [intPart, decPart] = fixed.split('.');
+    const sep = String(this.thousandSeparator);
+    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+    return intFormatted + String(this.decimalMarker) + decPart;
+  }
+
+  getMensajeImporteLista(index: number): string {
+    return this.mensajesImporteLista().get(index) || '';
+  }
+
+  refrescarPreciosListaPrecios(): void {
+    this.infoProductos().controls.forEach((control, index) => {
+      if (control.get('TipoImporte')?.value === 'LP') {
+        this.obtenerPrecioListaPrecios(index);
+      }
+    });
+  }
+
+  onProductoCodigoChange(productoCodigo: string, index: number): void {
+    if (this.infoProductos().at(index)?.get('TipoImporte')?.value === 'LP') {
+      this.obtenerPrecioListaPrecios(index);
+    }
+  }
   clearForm(): void {
     this.formCondicionVenta.reset()
     this.codobjId.set('')
+    this.objetivoId.set(0)
     this.formCondicionVenta.patchValue({
       codobjId: '',
       ObjetivoId: 0,
@@ -329,6 +442,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     const newGroup = this.fb.group({ ...this.objProductos })
     this.infoProductos().push(newGroup)
     newGroup.get('ImporteTotal')?.disable()
+    this.mensajesImporteLista.set(new Map())
     this.formCondicionVenta.markAsPristine()
   }
 
@@ -338,7 +452,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     const productoGroup = this.infoProductos().at(index);
     if (!productoGroup) return '';
 
-    const textoFactura = productoGroup.get('TextoFactura')?.value || '';
+    const textoFactura = (productoGroup.get('TextoFactura')?.value || '').trim();
     const productoCodigo = productoGroup.get('ProductoCodigo')?.value || '';
     const cantidad = productoGroup.get('Cantidad')?.value || '';
     const importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
@@ -348,6 +462,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     if (this.productosCache && this.productosCache.length > 0) {
       const producto = this.productosCache.find((p: any) => p.ProductoCodigo === productoCodigo);
       productoNombre = producto?.Nombre || productoCodigo;
+    }
+
+    if (!textoFactura) {
+      return productoNombre;
     }
 
     let periodoMes = '';

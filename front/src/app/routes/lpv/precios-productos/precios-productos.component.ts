@@ -16,6 +16,7 @@ import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-d
 import { Component, model, signal, inject, computed } from '@angular/core';
 import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
 import { ProductosImportacionMasivaComponent } from '../productos-importacion-masiva/productos-importacion-masiva';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-precios-productos',
@@ -51,7 +52,7 @@ export class PreciosProductosComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: any[] = []
+  startFilters: Selections[] = []
   selectedRows = signal<number[]>([])
   loadingDel = signal(false)
 
@@ -151,8 +152,8 @@ export class PreciosProductosComponent {
     const dateToday = new Date();
 
     this.startFilters = [
-      { field: 'desde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
-      { field: 'hasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
+      { index: 'desde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      { index: 'hasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //            let undoCommandArr:EditCommand[]=[]

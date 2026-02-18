@@ -16,6 +16,7 @@ import { columnTotal, totalRecords } from "../custom-search/custom-search"
 import { FiltroBuilderComponent } from "../filtro-builder/filtro-builder.component";
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { Selections } from '../schemas/filtro';
 
 @Component({
     selector: 'app-custodias-personal-detalle',
@@ -26,7 +27,6 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 })
 
 export class CustodiasPersonalDetalleComponent {
-    @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
     angularGrid!: AngularGridInstance;
     gridDetalleOptions!: GridOption;
@@ -39,7 +39,7 @@ export class CustodiasPersonalDetalleComponent {
     };
     detailViewRowCount = 1;
     placement: NzDrawerPlacement = 'left';
-    startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
+    startFilters: Selections[] = []
 
     private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)

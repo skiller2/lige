@@ -6,6 +6,7 @@ import { FileUploadController } from "../controller/file-upload.controller.ts"
 import type { QueryRunner } from "typeorm";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import { ObjetivosController } from "../objetivos/objetivos.controller.ts";
+import type {  Selections } from '../schemas/filtro.ts';
 
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { PersonalController } from "../controller/personal.controller.ts"
@@ -743,25 +744,29 @@ export class NovedadesController extends BaseController {
     }
 
     async getGridFilters(req: any, res: Response, next: NextFunction) {
-        let startFilters: { field: string; condition: string; operator: string; value: any; forced: boolean }[] = []
+        let startFilters: Selections[] = []
         const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') : '';
         if (grupoActividad) {
             startFilters.push({
-                field: 'GrupoActividadNumero',
+                index: 'GrupoActividadNumero',
                 condition: 'AND',
                 operator: '=',
                 value: grupoActividad,
-                forced: res.locals?.authADGroup ? false : true
+                closeable: res.locals?.authADGroup ? true : false,
+                label: '',
+                originIdx:null
             })
             return this.jsonRes(startFilters, res)
         }
 
         startFilters.push({
-            field: 'AudUsuarioIng',
+            index: 'AudUsuarioIng',
             condition: 'AND',
             operator: '=',
             value: res.locals.userName,
-            forced: res.locals?.authADGroup ? false : true
+            closeable: res.locals?.authADGroup ? true : false,
+            label: '',
+            originIdx:null
         })
         return this.jsonRes(startFilters, res)
 

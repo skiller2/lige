@@ -34,7 +34,6 @@ export class DetalleAsistenciaComponent {
     new NgForm([], []);
   @ViewChild('asistenciaPer', { static: true }) asistenciaPer: NgForm =
     new NgForm([], []);
-  //@ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   @Input('ObjetivoId') ObjetivoId: number | undefined
   @Input('PersonalId') PersonalId: number | undefined
 

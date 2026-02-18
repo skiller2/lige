@@ -27,6 +27,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline } from '@ant-design/icons-angular/icons';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 @Component({
@@ -58,7 +59,7 @@ export class PersonalComponent {
     filtros: [],
     sort: null,
   };
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -123,8 +124,7 @@ export class PersonalComponent {
     // this.gridOptions.rowSelectionOptions = {
     //     selectActiveRow: true
     // }
-    this.startFilters.set([
-      { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
+    this.startFilters.set([{ index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
     ])
   }
 
@@ -134,7 +134,7 @@ export class PersonalComponent {
 
     setTimeout(() => {
       if (PersonalId > 0) {
-        this.startFilters.set([ {field:'ApellidoNombre', condition:'AND', operator:'=', value: String(PersonalId), forced:false} ]);
+        this.startFilters.set([ {index:'ApellidoNombre', condition:'AND', operator:'=', value: String(PersonalId), closeable: true} ]);
       }
     }, 1000)
   }

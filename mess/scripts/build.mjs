@@ -3,7 +3,7 @@ import { build } from "esbuild";
 const buildOptions = {
   entryPoints: ["src/index.ts"],
   bundle: true,
-  outfile: "dist/index.js",
+  outfile: "dist/mess.mjs",
   format: "esm",
   target: "esnext",
   platform: "node",
@@ -12,10 +12,12 @@ const buildOptions = {
   external: ['sharp'],
   banner: {
     js: `
+    
     import { createRequire as topLevelCreateRequire } from 'module'
     const require = topLevelCreateRequire(import.meta.url)
 
     const __dirname = import.meta.dirname
+    
     `,
   },
 };

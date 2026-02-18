@@ -16,6 +16,7 @@ import { Component, model, signal, inject } from '@angular/core';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 @Component({
@@ -51,7 +52,7 @@ export class TableGrupoActividadResponsablesComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: any[] = []
+  startFilters: Selections[] = []
   complexityLevelList = [true, false];
   angularGridEditActividad!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
@@ -144,8 +145,8 @@ export class TableGrupoActividadResponsablesComponent {
     this.currPeriodo.set({ anio: dateToday.getFullYear(), mes: dateToday.getMonth() + 1 })
 
     this.startFilters = [
-      { field: 'GrupoActividadJerarquicoDesde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
-      { field: 'GrupoActividadJerarquicoHasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
+      { index: 'GrupoActividadJerarquicoDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      { index: 'GrupoActividadJerarquicoHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //      if column.id 

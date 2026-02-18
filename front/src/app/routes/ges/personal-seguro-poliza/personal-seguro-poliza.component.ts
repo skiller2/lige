@@ -9,6 +9,7 @@ import { BehaviorSubject, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 interface ListOptions {
   filtros: any[];
@@ -38,7 +39,7 @@ export class PersonalSeguroPolizaComponent {
   private excelExportService = new ExcelExportService();
   private angularGridEdit!: AngularGridInstance;
   angularGrid!: AngularGridInstance
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
   PolizaSeguroNroPoliza = input<string>("")
   PolizaSeguroNroEndoso = input<string>("")
   CompaniaSeguroId = input<number>(0)
@@ -104,10 +105,10 @@ export class PersonalSeguroPolizaComponent {
 
         if(this.PolizaSeguroNroPoliza() != "" && this.PolizaSeguroNroEndoso() != "" && this.CompaniaSeguroId() != 0 && this.TipoSeguroCodigo() != ""){
           this.startFilters.set([
-            {field:'PolizaSeguroNroPoliza', condition:'AND', operator:'=', value: this.PolizaSeguroNroPoliza(), forced:false},
-            {field:'PolizaSeguroNroEndoso', condition:'AND', operator:'=', value: this.PolizaSeguroNroEndoso(), forced:false},
-            {field:'CompaniaSeguroId', condition:'AND', operator:'=', value: this.CompaniaSeguroId(), forced:false},
-            {field:'TipoSeguroCodigo', condition:'AND', operator:'=', value: this.TipoSeguroCodigo(), forced:false},
+            {index:'PolizaSeguroNroPoliza', condition:'AND', operator:'=', value: this.PolizaSeguroNroPoliza(), closeable: true},
+            {index:'PolizaSeguroNroEndoso', condition:'AND', operator:'=', value: this.PolizaSeguroNroEndoso(), closeable: true},
+            {index:'CompaniaSeguroId', condition:'AND', operator:'=', value: this.CompaniaSeguroId(), closeable: true},
+            {index:'TipoSeguroCodigo', condition:'AND', operator:'=', value: this.TipoSeguroCodigo(), closeable: true},
           ])
           }
         

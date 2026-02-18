@@ -6,12 +6,15 @@ import { dbServer } from "../index.ts";
 
 export class ClientException extends Error {
   messageArr: string[]
-  constructor(message: string | string[], public extended = null, public code: number = 0) {
+  extended: any
+  code: number
+  constructor(message: string | string[], extended = null, code: number = 0) {
+    super(message instanceof Array ? message.join(', ') : message)
+    this.extended = extended
+    this.code = code
     if (message instanceof Array) {
-      super(message.join(', '))
       this.messageArr = message
     } else {
-      super(message)
       this.messageArr = [message]
     }
     this.name = "ClientException";

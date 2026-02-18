@@ -16,6 +16,7 @@ import { I18nPipe, SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 
 @Component({
@@ -53,7 +54,7 @@ export class ClientesComponent {
 
 
   formChange$ = new BehaviorSubject('');
-  startFilters= signal<any[]>([])
+  startFilters= signal<Selections[]>([])
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -103,7 +104,7 @@ export class ClientesComponent {
     this.gridOptions.forceFitColumns = true
 
     this.startFilters.set( [
-      {field:'activo', condition:'AND', operator:'=', value:'1', forced:false},
+      {index:'activo', condition:'AND', operator:'=', value:'1', closeable: true},
     ])
 
   
@@ -116,7 +117,7 @@ export class ClientesComponent {
 
     setTimeout(() => {
       if (ClienteId > 0) {
-        this.startFilters.set([ {field:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), forced:false}]);
+        this.startFilters.set([ {index:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), closeable: true}]);
       }
     }, 1000)
   }

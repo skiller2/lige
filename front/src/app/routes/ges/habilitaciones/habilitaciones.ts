@@ -17,6 +17,7 @@ import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.comp
 import { ActivatedRoute, Router } from '@angular/router';
 import { HabilitacionNecesariaFormModalComponent } from 'src/app/routes/ges/habilitacion-necesaria-form-modal/habilitacion-necesaria-form-modal';
 import { DetallePersonaComponent } from "../../../routes/ges/detalle-persona/detalle-persona.component";
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-habilitaciones',
@@ -63,7 +64,7 @@ export class HabilitacionesComponent {
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
 
   columns$ = this.apiService.getCols('/api/habilitaciones/cols').pipe(
     map((cols: Column<any>[]) => {
@@ -86,8 +87,8 @@ export class HabilitacionesComponent {
     this.settingsService.setLayout('collapsed', true)
 
     this.startFilters.set([
-      { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
-      { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: '60', forced: false },
+      { index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
+      { index: 'DiasFaltantesVencimiento', condition: 'AND', operator: '<=', value: '60', closeable: true },
     ])
   }
 
@@ -96,9 +97,9 @@ export class HabilitacionesComponent {
     this.route.queryParams.subscribe(params => {
       if (params['DiasFaltantesVencimiento'] && params['GestionHabilitacionEstadoCodigo']) {
         this.startFilters.set([
-          { field: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', forced: false },
-          { field: 'DiasFaltantesVencimiento', condition: 'AND', operator: '=', value: params['DiasFaltantesVencimiento'], forced: false },
-          { field: 'GestionHabilitacionEstadoCodigo', condition: 'AND', operator: 'LIKE', value: params['GestionHabilitacionEstadoCodigo'], forced: false },
+          { index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
+          { index: 'DiasFaltantesVencimiento', condition: 'AND', operator: '=', value: params['DiasFaltantesVencimiento'], closeable: true },
+          { index: 'GestionHabilitacionEstadoCodigo', condition: 'AND', operator: 'LIKE', value: params['GestionHabilitacionEstadoCodigo'], closeable: true },
         ])
       }
     })

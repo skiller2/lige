@@ -3,7 +3,7 @@
     <ng-container>
       @if ((columns$|async); as columnas) {
         <div nz-tab>
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+          <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
           @if ((columns$|async); as columnas) {
             <div class="gridContainer1 container-fluid">
               <angular-slickgrid gridId="gridEdit1" class="" [columns]="columnas | colsFilter"

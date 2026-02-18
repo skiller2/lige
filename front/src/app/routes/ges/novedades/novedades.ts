@@ -11,6 +11,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NovedadesFormComponent } from '../novedades-form/novedades-form';
 import { SettingsService } from '@delon/theme';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-novedades',
@@ -51,7 +52,7 @@ export class NovedadesComponent {
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
-  startFilters = signal<any[]>([])
+  startFilters = signal<Selections[]>([])
 
   columns$ = this.apiService.getCols('/api/novedades/cols')
 

@@ -15,60 +15,96 @@
   <img [src]="imagenUrl()" alt="QR">
 
 </nz-card>
+<nz-tabs>
+  <nz-tab nzTitle="Conversación">
+    <nz-card>
+      <h4>Conversación</h4>
+      <nz-form-label [nzSpan]="5">Persona</nz-form-label>
 
-<nz-card>
-  <h4>Conversación</h4>
-  <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
+      </nz-form-control>
 
-  <nz-form-control [nzSpan]="19">
-    <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
-  </nz-form-control>
+      <nz-form-label [nzSpan]="6" nzFor="chatId">Teléfono</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
+      </nz-form-control>
 
-  <nz-form-label [nzSpan]="6" nzFor="chatId">Teléfono</nz-form-label>
-  <nz-form-control [nzSpan]="14">
-    <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
-  </nz-form-control>
+      <nz-card style="min-height: 300px;">
 
-  <nz-card style="min-height: 300px;">
+        <div class="chat-messages">
+          <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
+            [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
 
-    <div class="chat-messages">
-      <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
-        [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
+            @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
 
-        @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
+            <nz-card nzSize="small">
 
-        <nz-card nzSize="small">
+              @if (msg.content && msg.role !== 'tool') {
+              <markdown [data]="msg.content"></markdown>
+              } @else {
+              <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
 
-          @if (msg.content) {
-          <markdown [data]="msg.content"></markdown>
-          } @else {
-          <div>{{ msg.tool_calls |json }}</div>
-          }
-          @if (showTools()){
-          <div>{{ msg.thinking }}</div>
+              }
+              @if (showTools()){
+              <div>{{ msg.thinking }}</div>
 
-          }
-
-
-        </nz-card>
-        }
-      </div>
-    </div>
-
-  </nz-card>
+              }
 
 
+            </nz-card>
+            }
+          </div>
+        </div>
 
-  <input style="width: 300px" nz-input nz-tooltip [(ngModel)]="usermsg" />
-  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="enviaChat($event)">Enviar</button>
-  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
+      </nz-card>
 
-  <label style="display:inline-flex; gap:8px; align-items:center; margin-left: 12px;">
-    <input type="checkbox" [checked]="showTools()" (change)="toggleShowTools($event)" />
-    Mostrar uso de herramientas
-  </label>
+      <form (ngSubmit)="enviaChat($event)">
+        <input style="width: 300px" nz-input nz-tooltip [formField]="chatform.usermsg" />
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"
+          [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
+      </form>
+      <button nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
 
-</nz-card>
+      <label style="display:inline-flex; gap:8px; align-items:center; margin-left: 12px;">
+        <input type="checkbox" [checked]="showTools()" (change)="toggleShowTools($event)" />
+        Mostrar uso de herramientas
+      </label>
+
+    </nz-card>
+
+
+
+  </nz-tab>
+  <nz-tab nzTitle="IA Prompt">
+    <nz-card>
+      <h4>IA Prompt</h4>
+      <form (ngSubmit)="setIaPrompt($event)">
+
+        <textarea placeholder="IA Prompt" style="width: 100%;
+    height: 800px;" [formField]="promptform.iaPrompt"></textarea>
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="promptform().submitting()"
+          [disabled]="promptform().submitting() || promptform().dirty()==false">Grabar</button>
+      </form>
+    </nz-card>
+
+  </nz-tab>
+  <nz-tab nzTitle="IA Herramientas">
+    <nz-card>
+      <h4>IA Prompt</h4>
+      <form (ngSubmit)="setIaTools($event)">
+        <textarea placeholder="IA Herramientas" style="width: 100%;
+    height: 800px;" [formField]="toolsform.iaTools"></textarea>
+        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="toolsform().submitting()"
+          [disabled]="toolsform().submitting() || toolsform().dirty()==false">Grabar</button>
+      </form>
+    </nz-card>
+
+  </nz-tab>
+</nz-tabs>
+
+
+
 
 <!--
 <nz-card class="small-margin">

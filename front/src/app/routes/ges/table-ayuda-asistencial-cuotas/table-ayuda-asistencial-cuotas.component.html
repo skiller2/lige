@@ -1,5 +1,5 @@
 <ng-container>
-    <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+    <shared-filtro-builder  [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
 
     @if(columns$ | async; as columnas) {
       <div class="gridContainerCut container-fluid">

@@ -94,7 +94,7 @@ export class WebServer {
     /*
     * Agrega starTime a todas las peticiones de la api 
     */
-    this.app.use("*", function (req, res, next) {
+    this.app.use("*splat", function (req, res, next) {
       res.locals.startTime = performance.now()
       return next()
     });
