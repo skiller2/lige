@@ -18,7 +18,13 @@ export class PersonalController extends BaseController {
       throw new ClientException("El monto informado se encuentra por debajo del límite")
     if (now > fechaLimite)
       throw new ClientException("Fuera de vigencia para agregar o modificar un adelanto")
+    if (now.getFullYear() != anio)
+      throw new ClientException("El año del adelato debe ser el corriente")
+    if (now.getMonth()+1 != mes)
+      throw new ClientException("El mes del adelato debe ser el corriente")
 
+
+    throw new ClientException(`Paso ${anio} ${mes} ${now} > ${fechaLimite}`)
 
 
     await dbServer.dataSource.query(
