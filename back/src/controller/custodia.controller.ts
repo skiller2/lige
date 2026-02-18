@@ -511,30 +511,18 @@ export class CustodiaController extends BaseController {
     static async listCustodiasPendientesLiqui(anio: number, mes: number, diascorrimiento: number = 3) {
         diascorrimiento = diascorrimiento * -1
         const queryRunner = dataSource.createQueryRunner();
-        //OLD TABLE
-        return queryRunner.query(`SELECT obj.objetivo_custodia_id, obj.responsable_id, obj.cliente_id, obj.fecha_inicio,
-            obj.Origen, obj.fecha_fin, obj.Destino, obj.estado, TRIM(cli.ClienteDenominacion) ClienteDenominacion,
-            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ResponsableDetalle, obj.impo_facturar,
-            obj.fecha_liquidacion,1, DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) fecha_limite
-            FROM lige.dbo.objetivocustodia obj
-            JOIN Personal per ON per.PersonalId = obj.responsable_id
-            JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
-            
-            WHERE obj.fecha_liquidacion IS NULL AND obj.estado <>2 
-            AND obj.fecha_inicio <= DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) AND obj.fecha_inicio >= DATEADD(DAY,@0,DATEFROMPARTS(@1,@2,1))
-        `, [diascorrimiento, anio, mes])
         //New Table
-        // return queryRunner.query(`SELECT obj.CustodiaCodigo, obj.ResponsableId, obj.ClienteId, obj.FechaInicio,
-        //     obj.Origen, obj.FechaFin, obj.Destino, obj.EstadoCodigo, TRIM(cli.ClienteDenominacion) ClienteDenominacion,
-        //     CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ResponsableDetalle, obj.ImporteFactura,
-        //     obj.FechaLiquidacion,1, DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) fecha_limite
-        //     FROM Custodia obj
-        //     JOIN Personal per ON per.PersonalId = obj.ResponsableId
-        //     JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        return queryRunner.query(`SELECT obj.CustodiaCodigo, obj.ResponsableId, obj.ClienteId, obj.FechaInicio,
+            obj.Origen, obj.FechaFin, obj.Destino, obj.EstadoCodigo, TRIM(cli.ClienteDenominacion) ClienteDenominacion,
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ResponsableDetalle, obj.ImporteFactura,
+            obj.FechaLiquidacion,1, DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) FechaLimite
+            FROM Custodia obj
+            JOIN Personal per ON per.PersonalId = obj.ResponsableId
+            JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
             
-        //     WHERE obj.FechaLiquidacion IS NULL AND obj.EstadoCodigo <>2 
-        //     AND obj.FechaInicio <= DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) AND obj.FechaInicio >= DATEADD(DAY,@0,DATEFROMPARTS(@1,@2,1))
-        // `, [diascorrimiento, anio, mes])
+            WHERE obj.FechaLiquidacion IS NULL AND obj.EstadoCodigo <>2 
+            AND obj.FechaInicio <= DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) AND obj.FechaInicio >= DATEADD(DAY,@0,DATEFROMPARTS(@1,@2,1))
+        `, [diascorrimiento, anio, mes])
     }
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia: any, usuario: any, ip: any) {

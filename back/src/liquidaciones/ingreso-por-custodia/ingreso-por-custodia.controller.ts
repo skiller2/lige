@@ -41,8 +41,8 @@ export class IngresoPorCustodiaController extends BaseController {
 
       const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(anio,mes,3)
       if (resPendLiq.length > 0) {
-        const fecha_limite = resPendLiq[0].fecha_limite
-       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(fecha_limite)}`)
+        const FechaLimite = resPendLiq[0].FechaLimite
+       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
       }
 
       await queryRunner.connect();
