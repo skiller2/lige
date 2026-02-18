@@ -49,7 +49,7 @@ export class CustodiasPersonalDetalleComponent {
 
     columns$ = this.apiService.getCols('/api/custodia/personalcols').pipe(map((cols: any) => {
         let mapped:any = cols.map((col: Column) => {
-            if (col.id == "importe") {
+            if (col.id == "Importe") {
                 col.groupTotalsFormatter = this.sumTotalsFormatterCustom
 
 //                col.groupTotalsFormatter = GroupTotalFormatters['sumTotalsCurrencyFormatter']
@@ -101,7 +101,7 @@ export class CustodiasPersonalDetalleComponent {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'ApellidoNombre')
-            columnTotal('importe', this.angularGrid)
+            columnTotal('Importe', this.angularGrid)
         })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
@@ -138,7 +138,7 @@ export class CustodiasPersonalDetalleComponent {
             case 'persona':
                 grouping = {
                     getter: 'ApellidoNombre',
-                    aggregators: [new Aggregators['Sum']('importe')],
+                    aggregators: [new Aggregators['Sum']('Importe')],
                     formatter: (g) => `${g.value} (${g.count} items)`,
                     aggregateCollapsed: true,
                     lazyTotalsCalculation: true,
@@ -147,7 +147,7 @@ export class CustodiasPersonalDetalleComponent {
             case 'tipotipoimporte':
                 grouping = {
                     getter: 'tipo_importe',
-                    aggregators: [new Aggregators['Sum']('importe')],
+                    aggregators: [new Aggregators['Sum']('Importe')],
                     formatter: (g) => `${g.value} (${g.count} items)`,
                     aggregateCollapsed: true,
                     lazyTotalsCalculation: true,
