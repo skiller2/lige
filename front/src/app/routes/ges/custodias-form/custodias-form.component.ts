@@ -25,8 +25,8 @@ export class CustodiaFormComponent {
     private currencyPipe = inject(CurrencyPipe)
 
     isLoading = signal(false);
-    objPersonal = { personalId: 0, horas_trabajadas: 0, importe_suma_fija: 0, importe: 0, detalle: '', detalleRetiro: '' }
-    objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
+    objPersonal = { PersonalId: 0, HorasTrabajadas: 0, ImporteSumaFija: 0, Importe: 0, detalle: '', detalleRetiro: '' }
+    objVehiculo = { Patente: '', PersonalId: 0, ImporteVehiculo: null, PeajeVehiculo: null }
     objAudit = { usuario: '', fecha: '', accion: '' }
     personalId = signal(0);
     custodiaId = model(0);
@@ -67,12 +67,12 @@ export class CustodiaFormComponent {
     }
 
     formCus = this.fb.group({
-        id: 0, responsable: '', clienteId: 0, descRequirente: '',
-        descripcion: '', fechaInicio: '', origen: '', fechaFinal: '', destino: '',
+        CustodiaCodigo: 0, Responsable: '', ClienteId: 0, DescripcionRequirente: '',
+        Descripcion: '', FechaInicio: '', Origen: '', FechaFin: '', Destino: '',
         personal: this.fb.array([this.newRowPersonal()]),
         vehiculos: this.fb.array([this.fb.group({ ...this.objVehiculo })]),
-        cantModulos: null, impoModulos: null, cantHorasExced: null, impoHorasExced: null, cantKmExced: null,
-        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0, desc_facturacion: '', fecha_liquidacion: ''
+        CantidadModulos: null, ImporteModulo: null, CantidadHorasExcedente: null, ImporteHorasExcedente: null, CantidadKmExcedente: null,
+        ImporteKmExcedente: null, ImportePeaje: null, ImporteFactura: 0, EstadoCodigo: 0, NumeroFactura: 0, DescripcionFacturacion: '', FechaLiquidacion: ''
     })
     personal(): FormArray {
         return this.formCus.get("personal") as FormArray
@@ -81,16 +81,16 @@ export class CustodiaFormComponent {
         return this.formCus.get("vehiculos") as FormArray
     }
     numFactura(): boolean {
-        const value = this.formCus.get("estado")?.value
+        const value = this.formCus.get("EstadoCodigo")?.value
         return (value == 4)
     }
 
     anioLiquidacion(): number {
-        return new Date(this.formCus.get("fechaFinal")?.value!).getFullYear()
+        return new Date(this.formCus.get("FechaFin")?.value!).getFullYear()
     }
 
     mesLiquidacion(): number {
-        return new Date(this.formCus.get("fechaFinal")?.value!).getMonth() + 1
+        return new Date(this.formCus.get("FechaFin")?.value!).getMonth() + 1
     }
 
 
@@ -100,9 +100,9 @@ export class CustodiaFormComponent {
         if (this.custodiaId()) {
             let infoCust = await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
 
-            infoCust.fechaInicio = new Date(infoCust.fechaInicio)
-            if (infoCust.fechaFinal)
-                infoCust.fechaFinal = new Date(infoCust.fechaFinal)
+            infoCust.FechaInicio = new Date(infoCust.FechaInicio)
+            if (infoCust.FechaFin)
+                infoCust.FechaFin = new Date(infoCust.FechaFin)
             this.personal().clear()
             this.vehiculos().clear()
 
@@ -119,8 +119,8 @@ export class CustodiaFormComponent {
                 this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
 
             this.auditHistory.set([
-                {usuario: infoCust.aud_usuario_ins, fecha: this.formatDate(infoCust.aud_fecha_ins), accion: 'Creación'},
-                {usuario: infoCust.aud_usuario_mod, fecha: this.formatDate(infoCust.aud_fecha_mod), accion: 'Modificación'}
+                {usuario: infoCust.AudUsuarioIng, fecha: this.formatDate(infoCust.AudFechaIng), accion: 'Creación'},
+                {usuario: infoCust.AudUsuarioMod, fecha: this.formatDate(infoCust.AudFechaMod), accion: 'Modificación'}
             ])
 
             this.formCus.reset(infoCust)
@@ -145,7 +145,7 @@ export class CustodiaFormComponent {
         this.personal().push(this.newRowPersonal())
         this.vehiculos().push(this.fb.group({ ...this.objVehiculo }))
         this.auditHistory.set([])
-        this.formCus.reset({ estado: 0 })
+        this.formCus.reset({ EstadoCodigo: 0 })
 
         if (this.edit()) {
             this.formCus.enable()
@@ -174,28 +174,28 @@ export class CustodiaFormComponent {
 
     async updatePersonaImporte(persona: FormGroup): Promise<void> {
         let valorHora = 0, fullName = ''
-        const personalId = persona.get('personalId')?.value
-        const horas_trabajadas: number = persona.value.horas_trabajadas || 0
-        const importe_suma_fija: number = persona.value.importe_suma_fija || 0
+        const PersonalId = persona.get('PersonalId')?.value
+        const HorasTrabajadas: number = persona.value.HorasTrabajadas || 0
+        const ImporteSumaFija: number = persona.value.ImporteSumaFija || 0
 
-        if (personalId) {
-            const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(personalId, this.anio(), this.mes(), 1, 0))
+        if (PersonalId) {
+            const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(PersonalId, this.anio(), this.mes(), 1, 0))
             const catcus = categorias.categorias?.filter((c: any) => c.TipoAsociadoId == 2)
             valorHora = catcus[0]?.ValorLiquidacionHoraNormal || 0
             fullName = catcus[0]?.fullName || ''
         }
 
         if (persona.enabled) {
-            const totalTmp: number = Number(horas_trabajadas) * Number(valorHora) + Number(importe_suma_fija)
+            const totalTmp: number = Number(HorasTrabajadas) * Number(valorHora) + Number(ImporteSumaFija)
             
             const total = Math.round(totalTmp * 100) / 100;
 
             persona.patchValue({
                 importe: total,
-                detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs = ${this.currencyPipe.transform(horas_trabajadas * valorHora)} (Valor Hora Cat * Horas Trabajadas)`,
-                detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${horas_trabajadas}hs + ${this.currencyPipe.transform(importe_suma_fija)} (Cat Valor Hora * Horas Trabajadas + Suma fija)`
+                detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${HorasTrabajadas}hs = ${this.currencyPipe.transform(HorasTrabajadas * valorHora)} (Valor Hora Cat * Horas Trabajadas)`,
+                detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${HorasTrabajadas}hs + ${this.currencyPipe.transform(ImporteSumaFija)} (Cat Valor Hora * Horas Trabajadas + Suma fija)`
             }, { onlySelf: false, emitEvent: false, })
-            persona.get('personalId')?.markAsPending()
+            persona.get('PersonalId')?.markAsPending()
         }
 
     }
@@ -230,16 +230,16 @@ export class CustodiaFormComponent {
                 const res = await firstValueFrom(this.apiService.updateObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }, this.custodiaId()))
                 const oldAuditHistory: any[] = this.auditHistory()
                 oldAuditHistory.pop()
-                oldAuditHistory.push({usuario: res.data.aud_usuario_mod, fecha: this.formatDate(res.data.aud_fecha_mod), accion: 'Modificación'})
+                oldAuditHistory.push({usuario: res.data.AudUsuarioMod, fecha: this.formatDate(res.data.AudFechaMod), accion: 'Modificación'})
                 this.auditHistory.set(oldAuditHistory)
             } else {
                 const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form, anio: this.anio(), mes: this.mes() }))
                 if (res.data.custodiaId) {
                     this.custodiaId.set(Number(res.data.custodiaId))
-                    this.formCus.patchValue({ id: res.data.custodiaId, responsable: res.data.responsable })
+                    this.formCus.patchValue({ CustodiaCodigo: res.data.custodiaId, Responsable: res.data.responsable })
                     this.auditHistory.set([
-                        {usuario: res.data.aud_usuario_ins, fecha: this.formatDate(res.data.aud_fecha_ins), accion: 'Creación'},
-                        {usuario: res.data.aud_usuario_ins, fecha: this.formatDate(res.data.aud_fecha_ins), accion: 'Modificación'}
+                        {usuario: res.data.AudUsuarioIng, fecha: this.formatDate(res.data.AudFechaIng), accion: 'Creación'},
+                        {usuario: res.data.AudUsuarioIng, fecha: this.formatDate(res.data.AudFechaIng), accion: 'Modificación'}
                     ])
                 }
             }
@@ -253,33 +253,33 @@ export class CustodiaFormComponent {
     }
 
     onChangeImpo() {
-        const facturacionTmp = (Number(this.formCus.value.cantModulos) ?? 0) * (Number(this.formCus.value.impoModulos) ?? 0) +
-            (Number(this.formCus.value.cantHorasExced) ?? 0) * (Number(this.formCus.value.impoHorasExced) ?? 0) +
-            (Number(this.formCus.value.cantKmExced) ?? 0) * (Number(this.formCus.value.impoKmExced) ?? 0) +
-            (Number(this.formCus.value.impoPeaje) ?? 0)
+        const facturacionTmp = (Number(this.formCus.value.CantidadModulos) ?? 0) * (Number(this.formCus.value.ImporteModulo) ?? 0) +
+            (Number(this.formCus.value.CantidadHorasExcedente) ?? 0) * (Number(this.formCus.value.ImporteHorasExcedente) ?? 0) +
+            (Number(this.formCus.value.CantidadKmExcedente) ?? 0) * (Number(this.formCus.value.ImporteKmExcedente) ?? 0) +
+            (Number(this.formCus.value.ImportePeaje) ?? 0)
         
         const facturacion = Math.round(facturacionTmp * 100) / 100;
 
-        this.formCus.controls['facturacion'].patchValue(facturacion)
+        this.formCus.controls['ImporteFactura'].patchValue(facturacion)
         this.facturacion.set(facturacion)
     }
 
     async searchDueno(index: number) {
         let value = this.vehiculos().value[index]
-        const patente = value.patente
-        if (patente.length > 5) {
-            const res = await firstValueFrom(this.searchService.getLastPersonalByPatente(patente))
+        const Patente = value.Patente
+        if (Patente.length > 5) {
+            const res = await firstValueFrom(this.searchService.getLastPersonalByPatente(Patente))
             if (res) {
-                value.duenoId = res.duenoId
+                value.PersonalId = res.PersonalId
                 this.vehiculos().controls[index].patchValue(value)
             }
         }
     }
 
     async searchDescRequirente() {
-        const clienteId = this.formCus.value['clienteId']
-        if (clienteId) {
-            const res = await firstValueFrom(this.searchService.getRequirentesByCliente(clienteId))
+        const ClienteId = this.formCus.value['ClienteId']
+        if (ClienteId) {
+            const res = await firstValueFrom(this.searchService.getRequirentesByCliente(ClienteId))
             if (res.length) {
                 this.optionsDescRequirente = res
             }
@@ -292,8 +292,8 @@ export class CustodiaFormComponent {
             const personal = this.personal()
             const vehiculos = this.vehiculos()
 
-            personal.value.forEach((obj: any) => { costo += Number(obj.importe) })
-            vehiculos.value.forEach((obj: any) => { costo += (Number(obj.importe) + Number(obj.peaje)) })
+            personal.value.forEach((obj: any) => { costo += Number(obj.Importe) })
+            vehiculos.value.forEach((obj: any) => { costo += (Number(obj.ImporteVehiculo) + Number(obj.PeajeVehiculo)) })
 
             this.costo.set(costo)
 

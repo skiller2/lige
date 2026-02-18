@@ -1541,11 +1541,11 @@ export class SearchService {
     );
   }
 
-  getRequirentesByCliente(clienteId: number): Observable<any> {
-    if (!clienteId) {
+  getRequirentesByCliente(ClienteId: number): Observable<any> {
+    if (!ClienteId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/custodia/requirente`, { clienteId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/custodia/requirente`, { ClienteId }).pipe(
       map(res => {
         return res.data
       }),

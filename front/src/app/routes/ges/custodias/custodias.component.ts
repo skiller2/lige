@@ -83,7 +83,7 @@ export class CustodiaComponent {
     )
 
     fb = inject(FormBuilder)
-    objCusEstado = { clienteId: 0, estado: null, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
+    objCusEstado = { ClienteId: 0, EstadoCodigo: null, NumeroFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
     formCusEstado = this.fb.group({
         custodia: this.fb.array([this.fb.group({ ...this.objCusEstado })])
     })
@@ -91,7 +91,7 @@ export class CustodiaComponent {
         return this.formCusEstado.get("custodia") as FormArray
     }
     numFactura(index: number): boolean {
-        const value = this.custodia().at(index).get("estado")?.value
+        const value = this.custodia().at(index).get("EstadoCodigo")?.value
         if (value == 3 || value == 4)
             return true
         else
@@ -116,7 +116,7 @@ export class CustodiaComponent {
         this.gridOptions.rowSelectionOptions = {
             selectActiveRow: true
         }
-
+        this.gridOptions.forceFitColumns = true
 
 
         effect(async () => {
@@ -149,14 +149,14 @@ export class CustodiaComponent {
         this.angularGrid = angularGrid.detail
         this.gridData = angularGrid.dataView
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(this.angularGrid, 'cliente')
-            columnTotal('facturacion', this.angularGrid)
-            columnTotal('cant_horas_exced', this.angularGrid)
-            columnTotal('impo_horas_exced', this.angularGrid)
-            columnTotal('cant_km_exced', this.angularGrid)
-            columnTotal('impo_km_exced', this.angularGrid)
-            columnTotal('cant_modulos', this.angularGrid)
-            columnTotal('impo_peaje', this.angularGrid)
+            totalRecords(this.angularGrid, 'Cliente')
+            columnTotal('ImporteFactura', this.angularGrid)
+            columnTotal('CantidadHorasExcedente', this.angularGrid)
+            columnTotal('ImporteHorasExcedente', this.angularGrid)
+            columnTotal('CantidadKmExcedente', this.angularGrid)
+            columnTotal('ImporteKmExcedente', this.angularGrid)
+            columnTotal('CantidadModulos', this.angularGrid)
+            columnTotal('ImportePeaje', this.angularGrid)
             
         })
         if (this.apiService.isMobile())
@@ -167,8 +167,10 @@ export class CustodiaComponent {
         this.rows = e.detail.args.rows
         if (e.detail.args.rows.length == 1) {
             const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
+            console.log('selrow: ', selrow);
+            
             this.editCustodiaId.set(selrow.id)
-            if (selrow.estado.tipo === 4)
+            if (selrow.Estado.value === 4)
                 this.estado.set(false)
             else
                 this.estado.set(true)
@@ -177,23 +179,24 @@ export class CustodiaComponent {
             this.estado.set(true)
         }
 
-        //Agrupar por clienteId
+        //Agrupar por ClienteId
         let regs = this.angularGrid.dataView.getAllSelectedItems()
         let itemsByClientes: any[] = []
         let clientesIds: any[] = [] //Ids de los clientes selecionados
         let valueForm: any[] = []
-
+        console.log('regs: ', regs);
+        
         for (const reg of regs) {
             if (!reg) continue
-            if (clientesIds.includes(reg.cliente.id)) {
-                const index: number = clientesIds.indexOf(reg.cliente.id)
-                itemsByClientes[index].total += reg?.facturacion
+            if (clientesIds.includes(reg.Cliente.id)) {
+                const index: number = clientesIds.indexOf(reg.Cliente.id)
+                itemsByClientes[index].total += reg?.ImporteFactura
                 itemsByClientes[index].cantReg += 1
                 valueForm[index].custodiasIds.push(reg.id)
             } else {
-                clientesIds.push(reg.cliente?.id)
-                itemsByClientes.push({ clienteId: reg.cliente.id, clienteName: reg.cliente.fullName, cantReg: 1, total: reg.facturacion, cuit: 0, razonSocial: '', domicilio: '' })
-                valueForm.push({ clienteId: reg.cliente.id, estado: null, numFactura: 0, custodiasIds: [reg.id] })
+                clientesIds.push(reg.Cliente?.id)
+                itemsByClientes.push({ ClienteId: reg.Cliente.id, ClienteName: reg.Cliente.fullName, cantReg: 1, total: reg.ImporteFactura, cuit: 0, razonSocial: '', domicilio: '' })
+                valueForm.push({ ClienteId: reg.Cliente.id, EstadoCodigo: null, NumeroFactura: 0, custodiasIds: [reg.id] })
             }
         }
         this.selectedCli.set(clientesIds)

@@ -29,7 +29,7 @@
       nzTheme="outline"></span></button>
       <button nz-button nzType="default" (click)="setEdit(true); angularGrid.slickGrid.setSelectedRows([])"
         [routerLink]="['/', 'ges', 'cust','alta']" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-        <button nz-button nzType="default" [disabled]="rows.length? false : true" (click)="setFormCusEstado()" nz-tooltip nzTooltipTitle="{{ 'app.icon.editmasivo' | i18n }}"><span
+      <button nz-button nzType="default" [disabled]="rows.length? false : true" (click)="setFormCusEstado()" nz-tooltip nzTooltipTitle="{{ 'app.icon.editmasivo' | i18n }}"><span
         nz-icon nzType="copy" nzTheme="outline"></span></button>
       </nz-button-group>
     </div>
@@ -41,7 +41,7 @@
 
         @if ((columns$|async); as columnas) {
           <ng-template nz-tab>
-            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+            <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
             <div class="gridListContainer container-fluid">
               <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
                 [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
@@ -93,7 +93,7 @@
                 <nz-form-item class="marginElement">
                   <nz-form-label [nzXs]="5">Estado</nz-form-label>
                   <nz-form-control>
-                    <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear
+                    <nz-select formControlName="EstadoCodigo" nzPlaceHolder="Estado" nzAllowClear
                       [nzDropdownMatchSelectWidth]="false">
                       @for (option of $optionsEstadoCust | async; track option) {
                         <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -101,11 +101,12 @@
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
+                {{numFactura(i)}}
                 @if (numFactura(i)) {
                   <nz-form-item class="marginElement">
                     <nz-form-label [nzXs]="10">Número de Factura</nz-form-label>
                     <nz-form-control>
-                      <input nz-input placeholder="" formControlName="numFactura" type="number" />
+                      <input nz-input placeholder="" formControlName="NumeroFactura" type="number" />
                     </nz-form-control>
                   </nz-form-item>
                 }
