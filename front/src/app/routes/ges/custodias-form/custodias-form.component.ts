@@ -191,7 +191,7 @@ export class CustodiaFormComponent {
             const total = Math.round(totalTmp * 100) / 100;
 
             persona.patchValue({
-                importe: total,
+                Importe: total,
                 detalle: `${fullName} \n ${this.currencyPipe.transform(valorHora)} * ${HorasTrabajadas}hs = ${this.currencyPipe.transform(HorasTrabajadas * valorHora)} (Valor Hora Cat * Horas Trabajadas)`,
                 detalleRetiro: `${this.currencyPipe.transform(valorHora)} * ${HorasTrabajadas}hs + ${this.currencyPipe.transform(ImporteSumaFija)} (Cat Valor Hora * Horas Trabajadas + Suma fija)`
             }, { onlySelf: false, emitEvent: false, })

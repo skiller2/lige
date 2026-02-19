@@ -761,7 +761,7 @@ export class CustodiaController extends BaseController {
     async updateRegistroPersonalCustodiaQuery(queryRunner: any, infoPersonal: any, usuario: any, ip: any) {
         const PersonalId = infoPersonal.PersonalId
         const CustodiaCodigo = infoPersonal.CustodiaCodigo
-        const Importe = infoPersonal.importe ? infoPersonal.Importe : null
+        const Importe = infoPersonal.Importe ? infoPersonal.Importe : null
         const HorasTrabajadas = infoPersonal.HorasTrabajadas ? infoPersonal.HorasTrabajadas : null
         const ImporteSumaFija = infoPersonal.ImporteSumaFija ? infoPersonal.ImporteSumaFija : null
         const fechaActual = new Date()
