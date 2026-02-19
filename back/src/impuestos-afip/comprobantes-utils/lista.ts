@@ -120,7 +120,7 @@ const listaColumnas: any[] = [
 ];
 
 const findColumnByIndex = (field: string, list: any[]) => {
-  return list.find((columna) => columna.field === field);
+  return list.find((columna) => columna.field === field || columna.id === field);
 };
 
 export { listaColumnas, findColumnByIndex };

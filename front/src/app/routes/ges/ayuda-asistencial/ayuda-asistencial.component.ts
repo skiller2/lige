@@ -166,7 +166,7 @@ export class AyudaAsistencialComponent {
         this.gridOptions.editable = true
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
-        this.gridOptions.enableCheckboxSelector = false
+        this.gridOptions.enableCheckboxSelector = true
         this.gridOptions.rowSelectionOptions = {
             selectActiveRow: false
         }
