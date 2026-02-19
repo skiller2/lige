@@ -79,7 +79,8 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
         const myState = state.getMyState()
-        const maxImporte = myState.adelanto.maxImporte
+        const {maxImporte}= PersonalController.getAdelantoLimits(new Date())
+
 
         let msg = `Ingrese el importe del adelanto`
         if (myState.adelanto.PersonalPrestamoMonto) msg += ` o 0 para anularlo`
@@ -104,11 +105,12 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
                 return fallBack('El valor ingresado contiene caracteres no válidos. Ingrese solo números, reintente.')
             }
 
-            const maxImporte: number = myState.adelanto.maxImporte
+
+            const {maxImporte, minImporte }= PersonalController.getAdelantoLimits(new Date())
+            
             const anio: number = myState.adelanto.anio
             const mes: number = myState.adelanto.mes
             const personalId = myState.personalId
-            const minImporte = myState.adelanto.minImporte
 
             if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
