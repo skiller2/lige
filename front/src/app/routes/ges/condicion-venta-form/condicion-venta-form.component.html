@@ -46,12 +46,12 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback [nzErrorTip]="generacionFacturaDiaErrorTpl">
       <input nz-input formControlName="GeneracionFacturaDia"
-        placeholder="Día del mes (1-32)" style="width: 100%;">
+        placeholder="Día del mes (1-31)" style="width: 100%;">
       <ng-template #generacionFacturaDiaErrorTpl let-control>
         @if (control.hasError('required')) { Campo requerido }
         @else if (control.hasError('pattern')) { Solo números enteros sin decimales }
         @else if (control.hasError('min')) { Mínimo 1 }
-        @else if (control.hasError('max')) { Máximo 32 }
+        @else if (control.hasError('max')) { Máximo 31 }
       </ng-template>
     </nz-form-control>
   </nz-form-item>
@@ -60,11 +60,11 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura (Complemento)</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11" nzHasFeedback [nzErrorTip]="generacionFacturaDiaComplementoErrorTpl">
       <input nz-input formControlName="GeneracionFacturaDiaComplemento"
-        placeholder="Día complemento (1-32 o vacío)" style="width: 100%;">
+        placeholder="Día complemento (1-31 o vacío)" style="width: 100%;">
       <ng-template #generacionFacturaDiaComplementoErrorTpl let-control>
         @if (control.hasError('pattern')) { Solo números enteros sin decimales }
         @else if (control.hasError('min')) { Mínimo 1 }
-        @else if (control.hasError('max')) { Máximo 32 }
+        @else if (control.hasError('max')) { Máximo 31 }
       </ng-template>
     </nz-form-control>
   </nz-form-item>

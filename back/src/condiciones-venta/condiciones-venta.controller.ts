@@ -452,13 +452,13 @@ export class CondicionesVentaController extends BaseController {
             throw new ClientException(`Debe completar el campo Objetivo.`)
         }
         if (!CondicionVenta.PeriodoDesdeAplica) {
-            throw new ClientException(`Debe completar el campo Periodo.`)
+            throw new ClientException(`Debe completar el campo Período.`)
         }
         if (!CondicionVenta.PeriodoFacturacion) {
-            throw new ClientException(`Debe completar el campo Periodo Facturacion.`)
+            throw new ClientException(`Debe completar el campo Período Facturación.`)
         }
         if (!CondicionVenta.GeneracionFacturaDia) {
-            throw new ClientException(`Debe completar el campo Dia de Generación Factura.`)
+            throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
         }
 
         const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
