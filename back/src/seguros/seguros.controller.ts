@@ -485,14 +485,14 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
 UNION 
 
-            SELECT per.PersonalId, CONCAT('Custodia/s ',STRING_AGG(obj.objetivo_custodia_id,', ')) detalle
-            -- SUM(ABS(CEILING(CONVERT(FLOAT,DATEDIFF(minute, obj.fecha_inicio,obj.fecha_fin)) / 60))) AS detalle
+            SELECT per.PersonalId, CONCAT('Custodia/s ',STRING_AGG(obj.CustodiaCodigo,', ')) detalle
+            -- SUM(ABS(CEILING(CONVERT(FLOAT,DATEDIFF(minute, obj.FechaInicio,obj.FechaFin)) / 60))) AS detalle
             FROM dbo.Personal AS per
-            INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
-            INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
-            INNER JOIN lige.dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
-            INNER JOIN lige.dbo.Personal perres ON perres.PersonalId = obj.responsable_id
-            WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@1 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@2) AND obj.cliente_id = @0
+            INNER JOIN PersonalCustodia regp ON per.PersonalId= regp.PersonalId
+            INNER JOIN Custodia obj ON regp.CustodiaCodigo = obj.CustodiaCodigo
+            INNER JOIN lige.dbo.Cliente cli ON cli.ClienteId = obj.ClienteId
+            INNER JOIN lige.dbo.Personal perres ON perres.PersonalId = obj.ResponsableId
+            WHERE (DATEPART(YEAR,obj.FechaLiquidacion)=@1 AND  DATEPART(MONTH, obj.FechaLiquidacion)=@2) AND obj.ClienteId = @0
 				GROUP BY per.PersonalId
 
 

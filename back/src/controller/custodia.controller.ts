@@ -62,13 +62,8 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.DescripcionRequirente",
         sortable: true,
         type: 'string',
-        // formatter: 'complexObject',
-        // params: {
-        //     complexFieldLabel: 'desc_requirente.fullName',
-        // },
-        searchComponent: "inputForRequirenteSearch",
+        ponent: "inputForRequirenteSearch",
         searchType: "string",
-        // maxWidth: 150,
         minWidth: 110,
         hidden: true,
         searchHidden: false

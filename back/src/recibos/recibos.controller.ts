@@ -428,8 +428,8 @@ export class RecibosController extends BaseController {
     FROM  lige.dbo.liqmamovimientos AS liq
     JOIN  lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
     LEFT JOIN Objetivo obj ON obj.ObjetivoId = liq.objetivo_id
-    LEFT JOIN lige.dbo.objetivocustodia cus ON cus.objetivo_custodia_id = liq.custodia_id
-    LEFT JOIN Cliente cli ON cli.ClienteId = ISNULL(obj.ClienteId, cus.cliente_id)
+    LEFT JOIN Custodia cus ON cus.CustodiaCodigo = liq.custodia_id
+    LEFT JOIN Cliente cli ON cli.ClienteId = ISNULL(obj.ClienteId, cus.ClienteId)
     
     WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
     GROUP BY 

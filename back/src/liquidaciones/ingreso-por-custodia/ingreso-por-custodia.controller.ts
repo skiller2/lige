@@ -70,9 +70,9 @@ export class IngresoPorCustodiaController extends BaseController {
             detalle,
             null,
             row.PersonalId,
-            row.objetivo_custodia_id,
-            row.importe,
-            row.horas, //horas
+            row.CustodiaCodigo,
+            row.Importe,
+            row.Horas, //horas
             0, //TipoAsociadoId,
             0, //CategoriaPersonalId,
             usuario, ip, fechaActual, usuario, ip, fechaActual,

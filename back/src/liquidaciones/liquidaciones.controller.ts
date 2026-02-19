@@ -439,7 +439,7 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const liqudacion = await dataSource.query(
-        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.objetivo_custodia_id, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.fecha_inicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
+        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.CustodiaCodigo, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.FechaInicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
         cat.CategoriaPersonalDescripcion
         FROM lige.dbo.liqmamovimientos AS li
@@ -450,8 +450,8 @@ export class LiquidacionesController extends BaseController {
         LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId=li.tipo_asociado_id AND cat.CategoriaPersonalId =li.categoria_personal_id
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-        LEFT JOIN lige.dbo.objetivocustodia AS cus ON cus.objetivo_custodia_id = li.custodia_id
-        LEFT JOIN Cliente AS cli ON cli.ClienteId = cus.cliente_id
+        LEFT JOIN Custodia AS cus ON cus.CustodiaCodigo = li.custodia_id
+        LEFT JOIN Cliente AS cli ON cli.ClienteId = cus.ClienteId
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
        ${orderBy}
         `, [anio, mes])

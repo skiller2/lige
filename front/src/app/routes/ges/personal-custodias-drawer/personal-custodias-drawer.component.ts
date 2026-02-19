@@ -52,10 +52,10 @@ export class PersonalCustodiasDrawerComponent {
             return this.searchService.getListaPersonalCustodia({filtros: this.startFilters, sort:null} , this.periodo())
             .pipe(map(data => {
                 data.map((obj:any) =>{
-                    let inicio = new Date(obj.fecha_inicio)
-                    let fin = obj.fecha_fin? new Date(obj.fecha_fin) : obj.fecha_fin
-                    obj.fecha_inicio = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
-                    obj.fecha_fin = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
+                    let inicio = new Date(obj.FechaInicio)
+                    let fin = obj.FechaFin? new Date(obj.FechaFin) : obj.FechaFin
+                    obj.FechaInicio = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
+                    obj.FechaFin = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
                 })
                 return data
             }))

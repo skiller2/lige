@@ -294,9 +294,9 @@ export class ClientesController extends BaseController {
         ) correonoti ON correonoti.ClienteId = cli.ClienteId
 
         LEFT JOIN (
-          SELECT cus.cliente_id ClienteId, COUNT(*) CantidadCustodias FROM lige.dbo.objetivocustodia cus
-          WHERE DATEDIFF(day, cus.fecha_inicio, @0)< 30
-          GROUP BY cus.cliente_id
+          SELECT cus.ClienteId , COUNT(*) CantidadCustodias FROM Custodia cus
+          WHERE DATEDIFF(day, cus.FechaInicio, @0)< 30
+          GROUP BY cus.ClienteId
         ) custodias ON custodias.ClienteId = cli.ClienteId
 
 

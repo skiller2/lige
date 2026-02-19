@@ -30,11 +30,11 @@
                 <tbody>
                   @for (data of custPer.data; track data) {
                     <tr class="">
-                      <td>{{ data.objetivo_custodia_id }}</td>
-                      <td>{{ data.cliente.fullName }}</td>
-                      <td>{{ data.fecha_inicio }}</td>
-                      <td>{{ data.fecha_fin }}</td>
-                      <td>{{ data.estado.label }}</td>
+                      <td>{{ data.CustodiaCodigo }}</td>
+                      <td>{{ data.Cliente.fullName }}</td>
+                      <td>{{ data.FechaInicio | date }}</td>
+                      <td>{{ data.FechaFin | date }}</td>
+                      <td>{{ data.Estado.label }}</td>
                       <td>{{ data.tipo_importe }}</td>
                     </tr>
                   }

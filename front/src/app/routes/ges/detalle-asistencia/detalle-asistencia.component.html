@@ -816,12 +816,12 @@
               <tbody>
                 @for (data of custPer.data; track data) {
                 <tr class="">
-                  <td>{{ data.objetivo_custodia_id }}</td>
-                  <td>{{ data.fecha_inicio | date }} - {{ data.fecha_fin | date }}</td>
-                  <td>{{ data.cliente }}</td>
+                  <td>{{ data.CustodiaCodigo }}</td>
+                  <td>{{ data.FechaInicio | date }} - {{ data.FechaFin | date }}</td>
+                  <td>{{ data.Cliente }}</td>
                   <td>{{ data.tipo_importe }} {{ data.patente }}</td>
-                  <td>{{ data.horas }}</td>
-                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
+                  <td>{{ data.Horas }}</td>
+                  <td class="text-right">{{ data.Importe | I18NCurrency }}</td>
                 </tr>
                 }
               </tbody>
