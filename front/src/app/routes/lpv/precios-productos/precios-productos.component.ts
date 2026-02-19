@@ -131,6 +131,20 @@ export class PreciosProductosComponent {
     switchMap(() => {
       return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
         .pipe(map(data => {
+          
+          //Crea una fila vacia al final de la lista
+          const newId = data.list.length + 1
+          data.list.push(
+            {
+              id: newId.toString(),
+              ClienteFacturacionCUIT: null,
+              Cliente: {},
+              ProductoCodigo: '',
+              Importe: null,
+              PeriodoDesdeAplica: new Date(this.anio(),this.mes()-1,1,0,0,0,0),
+            }
+          )
+
           return data.list
         })
         )
@@ -160,18 +174,8 @@ export class PreciosProductosComponent {
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
 
-      //Verifico si hay filas vacias
-      // const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.codigo))
-      // if (emptyrows.length == 0) {
-      //   await this.addNewItem()
-      // } else if (emptyrows.length > 1) {
-      //   this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
-      // }
-
       //Intento grabar si tiene error hago undo
       try {
-        // if (column.type == FieldType.number || column.type == FieldType.float)
-        //   editCommand.serializedValue = Number(editCommand.serializedValue)
 
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
 
@@ -188,9 +192,8 @@ export class PreciosProductosComponent {
         const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
         
         if (response.data?.action === 'I') {
-          this.listPrecios$.next('')
           this.angularGridEdit.slickGrid.setSelectedRows([]);
-          this.addNewItem()
+          this.listPrecios$.next('')
         }
 
         this.rowLocked = false
@@ -217,12 +220,6 @@ export class PreciosProductosComponent {
         this.rowLocked = false
       }
     }
-  }
-
-  async ngAfterViewInit() {
-    setTimeout(() => {
-      this.addNewItem()
-    }, 1000)
   }
 
   async addNewItem() {
