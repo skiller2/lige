@@ -921,10 +921,46 @@ export class CondicionesVentaController extends BaseController {
     }
 
     async getMensajeHoras(req: any, res: any, next: any) {
-        const tipoHoras = req.params.tipoHoras;
-        const mensaje = "ej del mes.."
-        return this.jsonRes({ mensaje }, res, 'Mensaje de horas obtenido');
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const tipoHoras = req.params.tipoHoras;
+            const ObjetivoId = Number(req.params.ObjetivoId);
+            const anio = Number(req.params.anio);
+            const mes = Number(req.params.mes);
+
+            if (!ObjetivoId) throw new ClientException('Debe seleccionar un Objetivo.');
+            if (!anio || !mes) throw new ClientException('Debe seleccionar un Período.');
+
+            const resultado = await queryRunner.query(
+                `SELECT val.TotalHoraA, val.TotalHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+                FROM Objetivo obj
+                LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
+                WHERE obj.ObjetivoId = @0`,
+                [ObjetivoId, anio, mes]
+            );
+
+            let mensaje = '';
+            if (resultado.length > 0) {
+                const row = resultado[0];
+                const cantidadHoras = tipoHoras === 'A' ? row.TotalHoraA : row.TotalHoraB;
+
+                if (cantidadHoras !== null && cantidadHoras !== undefined) {
+                    mensaje = `${cantidadHoras} hs - ${mes} / ${anio}`;
+                } else {
+                    mensaje = `Sin horas cargadas - ${mes} / ${anio}`;
+                }
+            } else {
+                mensaje = `Sin datos - ${mes} / ${anio}`;
+            }
+
+            return this.jsonRes({ mensaje }, res, 'Mensaje de horas obtenido');
+        } catch (error) {
+            return next(error);
+        } finally {
+            await queryRunner.release();
+        }
     }
+
 
     async getPrecioListaPrecios(req: any, res: any, next: any) {
         const queryRunner = dataSource.createQueryRunner();

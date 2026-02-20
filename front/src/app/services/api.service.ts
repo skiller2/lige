@@ -2073,8 +2073,9 @@ export class ApiService {
       );
   }
 
-  getMensajeHoras(tipoHoras: string): Observable<string> {
-    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/mensaje-horas/${tipoHoras}`).pipe(
+  getMensajeHoras(tipoHoras: string, ObjetivoId: number, anio: number, mes: number): Observable<string> {
+    if (!ObjetivoId || !anio || !mes) return of('Debe completar Objetivo y Período');
+    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/mensaje-horas/${tipoHoras}/${ObjetivoId}/${anio}/${mes}`).pipe(
       map((res: ResponseJSON<any>) => res.data.mensaje),
       catchError((err) => {
         console.error('Error al obtener mensaje de horas:', err);

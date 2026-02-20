@@ -166,7 +166,7 @@
             </div>
           } @else if (control?.value?.TipoCantidad === 'A' || control?.value?.TipoCantidad === 'B') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              {{ mensajesHoras() || 'Cargando...' }}
+              {{ getMensajeHoras(i) || 'Cargando...' }}
             </div>
           } @else {
             <input

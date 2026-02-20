@@ -42,7 +42,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
   $optionsTipoCantidad = this.searchService.getTipoCantidadSearch();
   $optionsTipoImporte = this.searchService.getTipoImporteSearch();
-  mensajesHoras = signal<string>('');
+  mensajesHoras = signal<Map<number, string>>(new Map());
   mensajesImporteLista = signal<Map<number, string>>(new Map());
   periodoFacturacionDescripcion = signal<string>('');
 
@@ -91,6 +91,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       const _codobj = this.codobjId();
       const _periodo = this.periodo();
       this.refrescarPreciosListaPrecios();
+      this.refrescarMensajesHoras();
     });
   }
 
@@ -185,14 +186,16 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.formCondicionVenta.reset(infoCliente)
 
-    // Limpiar mensajes de importes de lista de precios
+    // Limpiar mensajes de importes de lista de precios y de horas
     this.mensajesImporteLista.set(new Map());
+    this.mensajesHoras.set(new Map());
 
-    // Calcular totales, deshabilitar ImporteTotal y manejar tipo importe en un solo recorrido
+    // Calcular totales, deshabilitar ImporteTotal y manejar tipo importe/cantidad en un solo recorrido
     this.infoProductos().controls.forEach((control, index) => {
       const cantidad = control.get('Cantidad')?.value;
       const importeUnitario = control.get('ImporteUnitario')?.value;
       const tipoImporte = control.get('TipoImporte')?.value;
+      const tipoCantidad = control.get('TipoCantidad')?.value;
 
       if (cantidad && importeUnitario) {
         this.calcularTotal(index);
@@ -205,6 +208,13 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
         this.obtenerPrecioListaPrecios(index);
       } else if (tipoImporte !== 'F') {
         control.get('ImporteUnitario')?.disable();
+      }
+
+      if (tipoCantidad === 'A' || tipoCantidad === 'B') {
+        control.get('Cantidad')?.disable();
+        this.obtenerMensajeHoras(tipoCantidad, index);
+      } else if (tipoCantidad !== 'F') {
+        control.get('Cantidad')?.disable();
       }
     });
 
@@ -347,18 +357,40 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async obtenerMensajeHoras(tipoHoras: string, index: number): Promise<void> {
+    const objetivoId = this.formCondicionVenta.get('ObjetivoId')?.value;
+    const periodo = this.periodo();
+
+    if (!objetivoId || !periodo) {
+      const newMap = new Map(this.mensajesHoras());
+      newMap.set(index, 'Debe completar Objetivo y Período');
+      this.mensajesHoras.set(newMap);
+      return;
+    }
+
+    const anio = periodo.getFullYear();
+    const mes = periodo.getMonth() + 1;
+
     try {
-      const response = await firstValueFrom(this.apiService.getMensajeHoras(tipoHoras));
-      // Actualizar el signal con el mensaje de respuesta
-      this.mensajesHoras.set(response);
+      const response = await firstValueFrom(this.apiService.getMensajeHoras(tipoHoras, objetivoId, anio, mes));
+      const newMap = new Map(this.mensajesHoras());
+      newMap.set(index, response);
+      this.mensajesHoras.set(newMap);
     } catch (error) {
       console.error('Error al obtener mensaje de horas:', error);
-      this.mensajesHoras.set('Error al cargar mensaje');
+      const newMap = new Map(this.mensajesHoras());
+      newMap.set(index, 'Error al cargar mensaje');
+      this.mensajesHoras.set(newMap);
     }
   }
 
   limpiarMensajeHoras(index: number): void {
-    this.mensajesHoras.set('');
+    const newMap = new Map(this.mensajesHoras());
+    newMap.delete(index);
+    this.mensajesHoras.set(newMap);
+  }
+
+  getMensajeHoras(index: number): string {
+    return this.mensajesHoras().get(index) || '';
   }
 
   async obtenerPrecioListaPrecios(index: number): Promise<void> {
@@ -423,6 +455,15 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     });
   }
 
+  refrescarMensajesHoras(): void {
+    this.infoProductos().controls.forEach((control, index) => {
+      const tipoCantidad = control.get('TipoCantidad')?.value;
+      if (tipoCantidad === 'A' || tipoCantidad === 'B') {
+        this.obtenerMensajeHoras(tipoCantidad, index);
+      }
+    });
+  }
+
   onProductoCodigoChange(productoCodigo: string, index: number): void {
     if (this.infoProductos().at(index)?.get('TipoImporte')?.value === 'LP') {
       this.obtenerPrecioListaPrecios(index);
@@ -443,6 +484,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().push(newGroup)
     newGroup.get('ImporteTotal')?.disable()
     this.mensajesImporteLista.set(new Map())
+    this.mensajesHoras.set(new Map())
     this.formCondicionVenta.markAsPristine()
   }
 
