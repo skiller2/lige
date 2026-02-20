@@ -19,6 +19,7 @@ import {
   switchMap,
   tap
 } from 'rxjs';
+import { parsePeriod, periodToText } from '../../../shared/period-utils/period-utils';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import {
   AngularGridInstance,
@@ -129,6 +130,17 @@ export class TableCondicionVentaComponent implements OnInit {
           this.hiddenColumnIds = cols
             .filter((col: any) => col.showGridColumn === false)
             .map((col: Column) => col.id as string);
+
+          // Agregar formatter para PeriodoFacturacion
+          const periodoFacturacionCol = cols.find((col: Column) => col.id === 'PeriodoFacturacion');
+          if (periodoFacturacionCol) {
+            periodoFacturacionCol.formatter = (_row: number, _cell: number, value: any) => {
+              if (!value) return '';
+              const parsed = parsePeriod(value);
+              return parsed ? periodToText(parsed) : value;
+            };
+          }
+
           return cols;
         })
       );
