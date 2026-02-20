@@ -174,6 +174,12 @@ export class PreciosProductosComponent {
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
 
+      //Solo deja editar el importe de los productos ya creados
+      if (row.idTable?.length && column.id != 'Importe' && SlickGlobalEditorLock.cancelCurrentEdit()) {
+        editCommand.undo();
+        return
+      }
+
       //Intento grabar si tiene error hago undo
       try {
 

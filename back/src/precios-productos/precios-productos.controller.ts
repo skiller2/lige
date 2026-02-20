@@ -267,6 +267,11 @@ export class PreciosProductosController extends BaseController {
                 const ProductoCodigoOLD = req.body.ProductoCodigoOLD
                 const ClienteIdOLD = req.body.ClienteIdOLD
                 const PeriodoDesdeAplicaOLD = new Date(req.body.PeriodoDesdeAplicaOLD)
+                // const ImporteOLD = req.body.ImporteOLD
+
+                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId || PeriodoDesdeAplicaOLD.getTime() != PeriodoDesdeAplica.getTime()) {
+                    throw new ClientException('Solo puede ser modificado el importe unitario en registros existentes')
+                }
                 
                 //Validar que el precio del producto no fue facturado
                 const anio = PeriodoDesdeAplicaOLD.getFullYear()
@@ -276,43 +281,35 @@ export class PreciosProductosController extends BaseController {
                 `, [ProductoCodigoOLD, ClienteIdOLD, anio, mes])
                 if (checkComprobante[0]?.ComprobanteNro?.length) throw new ClientException('No se puede modificar registros ya facturados')
 
-                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId || PeriodoDesdeAplicaOLD.getTime() != PeriodoDesdeAplica.getTime()) {
-                    const checkNewCodigo = await queryRunner.query(`
-                        SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
-                    `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
-                    if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
-                    
-                } 
-
-                await queryRunner.query(`
-                    UPDATE ProductoPrecio SET 
-                        ProductoCodigo = @3, 
-                        ClienteId = @4,
-                        PeriodoDesdeAplica = @5,
-                        Importe = @6,
-                        AudFechaMod = @7,
-                        AudUsuarioMod = @8,
-                        AudIpMod = @9
-                    WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
-                `, [
-                    ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
-                    ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
-                ])
+                // await queryRunner.query(`
+                //     UPDATE ProductoPrecio SET 
+                //         ProductoCodigo = @3, 
+                //         ClienteId = @4,
+                //         PeriodoDesdeAplica = @5,
+                //         Importe = @6,
+                //         AudFechaMod = @7,
+                //         AudUsuarioMod = @8,
+                //         AudIpMod = @9
+                //     WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
+                // `, [
+                //     ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
+                //     ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
+                // ])
 
                 dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
               
             } else {  //Es un nuevo registro de ProductoPrecio
+                dataResultado = {action:'I'}
+                message = "Carga de nuevo Registro exitoso"
+
                 const checkNewCodigo = await queryRunner.query(`
                     SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
                 `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
                 if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
-                
-                await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
-
-                dataResultado = {action:'I'}
-                message = "Carga de nuevo Registro exitoso"
             }
+            
+            await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
             await queryRunner.commitTransaction()
             return this.jsonRes( dataResultado, res, message)
