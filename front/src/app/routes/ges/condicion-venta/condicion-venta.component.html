@@ -78,27 +78,27 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/condiciones-venta/modificar">{{ 'app.icon.edit' | i18n }}</a>
       <ng-template nz-tab>
-        <app-condicion-venta-form #condicionVentaFormEditar [(codobjId)]="codobj"
+        <app-condicion-venta-form #condicionVentaFormEditar [codobjId]="codobj()"
           [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
-          [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
+          [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/condiciones-venta/detalle">{{ 'app.icon.detail' | i18n }}</a>
       <ng-template nz-tab>
-        <app-condicion-venta-form #condicionVentaFormDetalle [(codobjId)]="codobj"
+        <app-condicion-venta-form #condicionVentaFormDetalle [codobjId]="codobj()"
           [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
-          [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
+          [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/condiciones-venta/alta">{{ 'app.alta' | i18n }}</a>
       <ng-template nz-tab>
-        <app-condicion-venta-form #condicionVentaFormAlta [(codobjId)]="codobj"
+        <app-condicion-venta-form #condicionVentaFormAlta [codobjId]="codobj()"
           [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
-          [(PeriodoDesdeAplica)]="PeriodoDesdeAplica" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
+          [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-condicion-venta-form>
       </ng-template>
     </nz-tab>
 

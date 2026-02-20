@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy, untracked, linkedSignal } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { periodValidator, parsePeriod, periodToText, toApproxDays } from '../../../shared/period-utils/period-utils';
 import { SHARED_IMPORTS } from '@shared';
@@ -32,10 +32,16 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   CondicionVentaId = model<number>(0);
   onAddorUpdate = output<('save' | 'delete')>();
   isLoading = signal(false);
+
+  // Signals para manejar la carga pendiente en modo view/edit
+  private pendingViewLoad = signal<boolean>(false);
+  private viewReadonly = signal<boolean>(false);
   objetivoExtended = signal<any>(null);
-  codobjId = model<string>('');
+  codobjIdInput = input<string>('', { alias: 'codobjId' });
+  codobjId = linkedSignal(() => this.codobjIdInput());
   objetivoId = model<number>(0);
-  PeriodoDesdeAplica = model('');
+  PeriodoDesdeAplicaInput = input<string>('', { alias: 'PeriodoDesdeAplica' });
+  PeriodoDesdeAplica = linkedSignal(() => this.PeriodoDesdeAplicaInput());
   periodo = input<Date>();
   clienteId = signal<number>(0);
   $optionsTipoProducto = this.searchService.getTipoProductoSearch();
@@ -98,6 +104,20 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.refrescarPreciosListaPrecios();
       this.refrescarMensajesHoras();
     });
+
+    // Effect para cargar datos cuando hay una carga pendiente y los valores están listos
+    effect(() => {
+      const codobjInput = this.codobjIdInput();
+      const periodoInput = this.PeriodoDesdeAplicaInput();
+      const pendingLoad = this.pendingViewLoad();
+
+      if (pendingLoad && codobjInput && periodoInput) {
+        untracked(() => {
+          this.pendingViewLoad.set(false);
+          this.executeViewLoad();
+        });
+      }
+    });
   }
 
   infoProductos(): FormArray {
@@ -158,25 +178,47 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
 
   async viewRecord(readonly: boolean) {
-    if (this.codobjId() && this.PeriodoDesdeAplica())
-      await this.load()
-    if (readonly) {
-      this.formCondicionVenta.disable()
-      this.infoProductos().disable()
+    this.viewReadonly.set(readonly);
+
+    const codobj = this.codobjIdInput();
+    const periodo = this.PeriodoDesdeAplicaInput();
+
+    if (codobj && periodo) {
+      await this.load();
+      this.applyViewMode(readonly);
     } else {
-      this.formCondicionVenta.enable()
+      this.pendingViewLoad.set(true);
+    }
+  }
+
+  private applyViewMode(readonly: boolean): void {
+    if (readonly) {
+      this.formCondicionVenta.disable();
+      this.infoProductos().disable();
+    } else {
+      this.formCondicionVenta.enable();
       // Deshabilitar ImporteTotal después de habilitar el formulario
       this.infoProductos().controls.forEach(control => {
         control.get('ImporteTotal')?.disable();
       });
     }
-    this.formCondicionVenta.markAsPristine()
+    this.formCondicionVenta.markAsPristine();
+  }
 
+  private async executeViewLoad(): Promise<void> {
+    await this.load();
+    this.applyViewMode(this.viewReadonly());
   }
 
   async load() {
+    const codobj = this.codobjIdInput();
+    const periodo = this.PeriodoDesdeAplicaInput();
 
-    let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta(this.codobjId(), this.PeriodoDesdeAplica()))
+    if (!codobj || !periodo) {
+      return;
+    }
+
+    let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta(codobj, periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
 

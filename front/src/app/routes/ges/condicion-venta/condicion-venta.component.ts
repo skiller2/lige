@@ -75,8 +75,6 @@ export class CondicionVentaComponent implements OnInit {
   }
 
   onTabsetChange(_event: any) {
-
-    console.log("_event.index ", _event.index)
     switch (_event.index) {
       case 4: //INSERT
         this.childAlta().newRecord()
@@ -90,7 +88,6 @@ export class CondicionVentaComponent implements OnInit {
       default:
         break;
     }
-
   }
 
   async autorizarCondicionVenta() {
