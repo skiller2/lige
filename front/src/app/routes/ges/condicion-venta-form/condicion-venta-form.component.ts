@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { periodValidator, parsePeriod, periodToText } from '../../../shared/period-utils/period-utils';
+import { periodValidator, parsePeriod, periodToText, toApproxDays } from '../../../shared/period-utils/period-utils';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -69,12 +69,17 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: ['', [Validators.required, periodValidator({ min: '1D', max: '2A', allowedUnits: ['D', 'S', 'M', 'A'] })]],
+    PeriodoFacturacionInicio: '',
     GeneracionFacturaDia: ['', [Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]],
     GeneracionFacturaDiaComplemento: ['', [Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]],
+    UnificacionFactura: [false],
     Observaciones: '',
     infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
     infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
   })
+
+  // Signal para controlar si se muestra el campo PeriodoFacturacionInicio
+  mostrarPeriodoFacturacionInicio = signal<boolean>(false);
 
 
   constructor() {
@@ -141,6 +146,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       const newGroup = this.fb.group({ ...this.objProductos });
       this.infoProductos().push(newGroup);
       newGroup.get('ImporteTotal')?.disable();
+      this.mostrarPeriodoFacturacionInicio.set(false);
       this.formCondicionVenta.patchValue({
         ObjetivoId: this.objetivoId(),
       });
@@ -185,6 +191,16 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     }
 
     this.formCondicionVenta.reset(infoCliente)
+
+    // Evaluar si debe mostrar PeriodoFacturacionInicio
+    const periodoFacturacion = infoCliente.PeriodoFacturacion;
+    if (periodoFacturacion) {
+      const p = parsePeriod(periodoFacturacion);
+      const esMayorAUnMes = p && toApproxDays(p) > 30;
+      this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
+    } else {
+      this.mostrarPeriodoFacturacionInicio.set(false);
+    }
 
     // Limpiar mensajes de importes de lista de precios y de horas
     this.mensajesImporteLista.set(new Map());
@@ -235,6 +251,18 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     ).subscribe(value => {
       const p = parsePeriod(value);
       this.periodoFacturacionDescripcion.set(p ? periodToText(p) : '');
+
+      // Mostrar PeriodoFacturacionInicio si el período es mayor a 1 mes (aprox 30 días)
+      const esMayorAUnMes = p && toApproxDays(p) > 30;
+      this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
+
+      // Si se muestra y no tiene valor, establecer el valor por defecto de PeriodoDesdeAplica
+      if (esMayorAUnMes && !this.formCondicionVenta.get('PeriodoFacturacionInicio')?.value) {
+        const periodoDesdeAplica = this.formCondicionVenta.get('PeriodoDesdeAplica')?.value;
+        if (periodoDesdeAplica) {
+          this.formCondicionVenta.patchValue({ PeriodoFacturacionInicio: periodoDesdeAplica });
+        }
+      }
     });
 
     // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
@@ -485,6 +513,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     newGroup.get('ImporteTotal')?.disable()
     this.mensajesImporteLista.set(new Map())
     this.mensajesHoras.set(new Map())
+    this.mostrarPeriodoFacturacionInicio.set(false)
     this.formCondicionVenta.markAsPristine()
   }
 

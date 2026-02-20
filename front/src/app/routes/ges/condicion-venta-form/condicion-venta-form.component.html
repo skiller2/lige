@@ -40,6 +40,13 @@
     @if (periodoFacturacionDescripcion()) {
       <span style="margin-left: 8px; line-height: 32px; color: rgba(0, 0, 0, 0.65);">{{ periodoFacturacionDescripcion() }}</span>
     }
+    @if (mostrarPeriodoFacturacionInicio()) {
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" style="margin-left: 16px;">Inicio</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+        <nz-date-picker formControlName="PeriodoFacturacionInicio" nzMode="month" nzFormat="MM/yyyy" style="width: 100%;">
+        </nz-date-picker>
+      </nz-form-control>
+    }
   </nz-form-item>
 
   <nz-form-item class="marginElement">
@@ -66,6 +73,13 @@
         @else if (control.hasError('min')) { Mínimo 1 }
         @else if (control.hasError('max')) { Máximo 31 }
       </ng-template>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Unificación Factura</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <label nz-checkbox formControlName="UnificacionFactura"></label>
     </nz-form-control>
   </nz-form-item>
 

@@ -356,6 +356,8 @@ export class CondicionesVentaController extends BaseController {
             if (existeCondicionVenta.length > 0) throw new ClientException(`Ya existe una condición de venta para el objetivo ${existeCondicionVenta[0].ClienteId}/${existeCondicionVenta[0].ClienteElementoDependienteId} en el periodo ${mes}/${anio}.`)
 
 
+            const PeriodoFacturacionInicio = CondicionVenta.PeriodoFacturacionInicio ? new Date(CondicionVenta.PeriodoFacturacionInicio) : null;
+
             await queryRunner.query(`INSERT INTO CondicionVenta (
                     ClienteId,
                     ClienteElementoDependienteId,
@@ -364,15 +366,17 @@ export class CondicionesVentaController extends BaseController {
                     AutorizacionPersonalId,
                     AutorizacionEstado,
                     PeriodoFacturacion,
+                    PeriodoFacturacionInicio,
                     GeneracionFacturaDia,
                     GeneracionFacturaDiaComplemento,
+                    UnificacionFactura,
                     Observaciones,
                     AudFechaIng,
                     AudUsuarioIng,
                     AudIpIng,
                     AudFechaMod,
                     AudUsuarioMod,
-                    AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`,
+                    AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)`,
                 [objetivoInfo.clienteId,
                 objetivoInfo.ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
@@ -380,8 +384,10 @@ export class CondicionesVentaController extends BaseController {
                     null,
                     null,
                 CondicionVenta.PeriodoFacturacion,
+                PeriodoFacturacionInicio,
                 CondicionVenta.GeneracionFacturaDia,
                 CondicionVenta.GeneracionFacturaDiaComplemento,
+                CondicionVenta.UnificacionFactura ? 1 : 0,
                 CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
             for (const producto of CondicionVenta.infoProductos) {
@@ -560,17 +566,19 @@ export class CondicionesVentaController extends BaseController {
 
     async getInfoCondicionVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
-            queryRunner.query(` SELECT  
+            queryRunner.query(` SELECT
             obj.ObjetivoId,
             Cond.ClienteId,
             Cond.ClienteElementoDependienteId,
             Cond.PeriodoDesdeAplica,
             Cond.PeriodoFacturacion,
+            Cond.PeriodoFacturacionInicio,
             Cond.GeneracionFacturaDia,
             Cond.GeneracionFacturaDiaComplemento,
+            Cond.UnificacionFactura,
             Cond.Observaciones
         FROM CondicionVenta AS Cond
-        INNER JOIN Objetivo AS obj 
+        INNER JOIN Objetivo AS obj
             ON obj.ClienteId = Cond.ClienteId
         AND obj.ClienteElementoDependienteId = Cond.ClienteElementoDependienteId
         WHERE Cond.ClienteId = @0
@@ -716,21 +724,24 @@ export class CondicionesVentaController extends BaseController {
             }
 
             let FechaActual = new Date()
+            const PeriodoFacturacionInicio = condicionVenta.PeriodoFacturacionInicio ? new Date(condicionVenta.PeriodoFacturacionInicio) : null;
 
             //actualiza CondicionVenta
             await queryRunner.query(`UPDATE CondicionVenta SET
                 PeriodoFacturacion = @0,
-                GeneracionFacturaDia = @1,
-                GeneracionFacturaDiaComplemento = @2,
-                Observaciones = @3,
-                AutorizacionFecha = @4,
-                AutorizacionPersonalId = @5,
-                AutorizacionEstado = @6,
-                AudFechaMod = @7,
-                AudUsuarioMod = @8,
-                AudIpMod = @9
-            WHERE ClienteId = @10 AND ClienteElementoDependienteId = @11 AND PeriodoDesdeAplica = @12`,
-                [condicionVenta.PeriodoFacturacion, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
+                PeriodoFacturacionInicio = @1,
+                GeneracionFacturaDia = @2,
+                GeneracionFacturaDiaComplemento = @3,
+                UnificacionFactura = @4,
+                Observaciones = @5,
+                AutorizacionFecha = @6,
+                AutorizacionPersonalId = @7,
+                AutorizacionEstado = @8,
+                AudFechaMod = @9,
+                AudUsuarioMod = @10,
+                AudIpMod = @11
+            WHERE ClienteId = @12 AND ClienteElementoDependienteId = @13 AND PeriodoDesdeAplica = @14`,
+                [condicionVenta.PeriodoFacturacion, PeriodoFacturacionInicio, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.UnificacionFactura ? 1 : 0, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
 
             //actualiza CondicionVentaDetalle
             await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
