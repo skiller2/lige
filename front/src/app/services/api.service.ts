@@ -267,7 +267,7 @@ export class ApiService {
       enableRowSelection: true,  //Se elimina en slickgrid 10
       //enableSelection:true,   //Proximo cambio
       enableGrouping: true,
-      rowSelectionOptions: {   //Se elimina en slickgrid 10
+      selectionOptions: {   //Se elimina en slickgrid 10
         selectActiveRow: true
       },
       enableRowDetailView: true,

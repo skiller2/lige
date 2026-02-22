@@ -109,7 +109,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       this.gridOptionsEdit.autoEdit = true
       this.gridOptionsEdit.editable = true 
       this.gridOptionsEdit.enableCheckboxSelector = true
-      this.gridOptionsEdit.rowSelectionOptions = {
+      this.gridOptionsEdit.selectionOptions = {
         selectActiveRow: false
     }
   

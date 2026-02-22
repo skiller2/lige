@@ -118,9 +118,6 @@ export class CustodiaComponent {
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
         this.gridOptions.enableCheckboxSelector = true
-        this.gridOptions.rowSelectionOptions = {
-            selectActiveRow: true
-        }
         this.gridOptions.forceFitColumns = true
 
 

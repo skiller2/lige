@@ -121,9 +121,6 @@ export class PersonalComponent {
     this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
 
-    // this.gridOptions.rowSelectionOptions = {
-    //     selectActiveRow: true
-    // }
     this.startFilters.set([{ index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
     ])
   }

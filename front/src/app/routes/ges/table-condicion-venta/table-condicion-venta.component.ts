@@ -186,7 +186,7 @@ export class TableCondicionVentaComponent implements OnInit {
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
     this.gridOptions.enableCheckboxSelector = true
-        this.gridOptions.rowSelectionOptions = {
+        this.gridOptions.selectionOptions = {
             selectActiveRow: false
         }
 

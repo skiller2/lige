@@ -79,7 +79,7 @@ export class ExcepcionesAsistenciaComponent {
     this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
 
-    this.gridOptions.rowSelectionOptions = {
+    this.gridOptions.selectionOptions = {
       selectActiveRow: false
     }
 
