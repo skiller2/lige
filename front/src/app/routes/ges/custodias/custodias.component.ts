@@ -6,11 +6,8 @@ import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { debounceTime, finalize, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
-import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 import { SettingsService } from '@delon/theme';
@@ -18,6 +15,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { FormBuilder, FormArray } from '@angular/forms';
 import { CustodiasPersonalDetalleComponent } from "../../../shared/custodias-personal-detalle/custodias-personal-detalle.component";
 import { Selections } from 'src/app/shared/schemas/filtro';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-custodias',
@@ -37,7 +35,6 @@ export class CustodiaComponent {
 
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
-    gridData: any;
     rows: number[] = [];
     detailViewRowCount = 1;
     editCustodiaId = model(0);
@@ -56,11 +53,10 @@ export class CustodiaComponent {
     valueForm = signal<any[]>([])
     refreshGrid = signal(0)
     excelExportService = new ExcelExportService();
-    listCustodia$ = new BehaviorSubject('');
-    listOptions: listOptionsT = {
+    listOptions = signal<listOptionsT>({
         filtros: [],
         sort: null,
-    };
+    });
     startFilters = signal<Selections[]>([])
 
     private angularUtilService = inject(AngularUtilService)
@@ -76,13 +72,21 @@ export class CustodiaComponent {
     columns$ = this.apiService.getCols('/api/custodia/cols')
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
-    gridData$ = this.listCustodia$.pipe(
-        debounceTime(500),
-        switchMap(() => {
-            return this.apiService.getListaObjetivoCustodia(this.listOptions, this.periodo())
-                .pipe(map(data => { return data }))
-        })
-    )
+    gridDataSet = toSignal(
+        toObservable(this.refreshGrid).pipe(
+            debounceTime(200), // colapsa cambios rápidos (por ejemplo, filtros tipeados)
+            switchMap(() => {
+                this.isLoading.set(true);
+                return this.apiService.getListaObjetivoCustodia(this.listOptions(), this.periodo()).pipe(
+                    finalize(() => this.isLoading.set(false))
+                );
+            })
+        ),
+        { initialValue: [] }
+    );
+
+
+
 
     fb = inject(FormBuilder)
     objCusEstado = { ClienteId: 0, EstadoCodigo: null, NumeroFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
@@ -103,12 +107,6 @@ export class CustodiaComponent {
             return false
     }
 
-    // selectedPeriod = computed(() => {
-    //     if (this.periodo()) {
-    //         this.getGridData()
-    //     }
-    // })
-
     async ngOnInit() {
 
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -120,19 +118,17 @@ export class CustodiaComponent {
         this.gridOptions.enableCheckboxSelector = true
         this.gridOptions.forceFitColumns = true
 
-
         effect(async () => {
             const periodo = this.periodo() //para que triggee
             if (periodo) {
                 localStorage.setItem('anio', String(this.anio()))
                 localStorage.setItem('mes', String(this.mes()))
-                this.listCustodia$.next('');
+                this.refreshGridNow()
+            }
+            if (this.listOptions()) {
+                this.refreshGridNow()
             }
 
-            if (this.refreshGrid()) {
-                this.listCustodia$.next('');
-                console.log('refrescar grilla', this.refreshGrid())
-            }
         }, { injector: this.injector });
 
         const now = new Date()
@@ -153,7 +149,7 @@ export class CustodiaComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
-        this.gridData = angularGrid.dataView
+        //        this.gridData = angularGrid.dataView
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'Cliente')
             columnTotal('ImporteFactura', this.angularGrid)
@@ -173,7 +169,6 @@ export class CustodiaComponent {
         this.rows = e.detail.args.rows
         if (e.detail.args.rows.length == 1) {
             const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
-            console.log('selrow: ', selrow);
 
             this.editCustodiaId.set(selrow.id)
             if (selrow.Estado.value === 4)
@@ -190,7 +185,6 @@ export class CustodiaComponent {
         let itemsByClientes: any[] = []
         let clientesIds: any[] = [] //Ids de los clientes selecionados
         let valueForm: any[] = []
-        console.log('regs: ', regs);
 
         for (const reg of regs) {
             if (!reg) continue
@@ -212,11 +206,6 @@ export class CustodiaComponent {
             this.formCusEstado.markAsUntouched()
             this.formCusEstado.markAsPristine()
         }
-    }
-
-    listOptionsChange(options: any) {
-        this.listOptions = options;
-        this.listCustodia$.next('');
     }
 
     setEdit(value: boolean): void {
@@ -258,9 +247,8 @@ export class CustodiaComponent {
         this.editCustodiaId.update(a => 0)
         try {
             let values = this.custodia().value
-            // console.log(values);
             await firstValueFrom(this.apiService.setEstado(values))
-            this.listCustodia$.next('');
+            this.refreshGridNow()
             this.editCustodiaId.set(aux)
             const selrow = this.angularGrid.dataView.getAllSelectedFilteredIds()
             if (selrow.length == 1) {

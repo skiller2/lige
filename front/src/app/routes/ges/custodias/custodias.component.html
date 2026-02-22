@@ -45,10 +45,10 @@
 
         @if ((columns$|async); as columnas) {
           <ng-template nz-tab>
-            <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+            <shared-filtro-builder [fieldsToSelect]="columnas" [(options)]="listOptions" [startFilters]="startFilters()" />
             <div class="gridListContainer container-fluid">
               <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
-                [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+                [dataset]="gridDataSet()" (onAngularGridCreated)="angularGridReady($event)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
               </angular-slickgrid>
             </div>

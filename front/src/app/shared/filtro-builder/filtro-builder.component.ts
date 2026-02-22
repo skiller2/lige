@@ -7,6 +7,9 @@ import {
   forwardRef,
   inject,
   input,
+  model,
+  output,
+  signal,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Filtro, Options, Selections } from '../schemas/filtro';
@@ -73,12 +76,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   //conditionsToSelect = ['AND', 'OR'];
   //operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
-
   @Output() optionsChange = new EventEmitter<Options>();
-  //options = model<Options>({
-  //    filtros: [],
-  //    sort: null
-  //  })
+  options = model<Options>({
+      filtros: [],
+      sort: null
+    })
   formChange$ = new BehaviorSubject('');
 
   $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -283,7 +285,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       if (!(this.selections.inicial == true)) {
         this.saveLocalStorage()
       }
-
+    this.options.update(v=>({...this.localoptions}))
       this.optionsChange.emit(this.localoptions);
     }
     this.resetSelections();
@@ -314,6 +316,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
+    this.options.update(v=>({...this.localoptions}))
     this.optionsChange.emit(this.localoptions);
     this.saveLocalStorage()
   }
@@ -474,7 +477,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   //set accessor including call the onchange callback
-  set localoptions(v: any) {
+  set localoptions(v: Options) {
     if (v !== this._options) {
       this._options = v;
       this.onChangeCallback(v);
