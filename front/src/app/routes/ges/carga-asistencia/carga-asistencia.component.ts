@@ -4,7 +4,7 @@ import { AbstractControl, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ExcelExportOption, SlickGroup } from '@slickgrid-universal/common';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, Aggregators } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, Aggregators } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, firstValueFrom, forkJoin, map, pairwise, startWith, switchMap, tap, timer } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -198,7 +198,7 @@ export class CargaAsistenciaComponent {
             {
                 id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
                 sortable: true,
-                type: FieldType.string,
+                type: 'string',
                 maxWidth: 250,
                 minWidth: 170,
                 formatter: Formatters['complexObject'],
@@ -223,7 +223,7 @@ export class CargaAsistenciaComponent {
             {
                 id: 'forma', name: 'Forma', field: 'forma',
                 sortable: true,
-                type: FieldType.object,
+                type: 'object',
                 maxWidth: 50,
                 minWidth: 50,
                 formatter: Formatters['complexObject'],
@@ -249,7 +249,7 @@ export class CargaAsistenciaComponent {
             {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
-                type: FieldType.string,
+                type: 'string',
                 maxWidth: 100,
                 minWidth: 100,
                 formatter: Formatters['complexObject'],
@@ -316,7 +316,7 @@ export class CargaAsistenciaComponent {
 
             try {
                 //                undoCommandArr.push(editCommand)
-                if (column.type == FieldType.number || column.type == FieldType.float)
+                if (column.type == 'number' || column.type == 'float')
                     editCommand.serializedValue = Number(editCommand.serializedValue)
 
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
@@ -486,7 +486,7 @@ export class CargaAsistenciaComponent {
                 name: `${name} <BR>${index}`,
                 field: `day${index}`,
                 sortable: true,
-                type: FieldType.float,
+                type: 'float',
                 formatter: Formatters['decimal'],
                 params: { maxDecimal: 1, minDecimal: 0 },
                 maxWidth: 55,
@@ -520,7 +520,7 @@ export class CargaAsistenciaComponent {
             name: `Total`,
             field: 'total',
             sortable: true,
-            type: FieldType.float,
+            type: 'float',
             maxWidth: 50,
             minWidth: 50,
             formatter: Formatters['decimal'],

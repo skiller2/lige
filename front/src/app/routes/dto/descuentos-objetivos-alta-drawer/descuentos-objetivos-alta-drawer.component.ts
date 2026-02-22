@@ -1,6 +1,6 @@
 import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, output, ChangeDetectionStrategy } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin } from 'rxjs';
-import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';

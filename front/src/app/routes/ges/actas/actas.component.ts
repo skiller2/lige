@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption, Column, Editors, EditCommand, FieldType, SlickGlobalEditorLock } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, Column, Editors, EditCommand, SlickGlobalEditorLock } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -94,7 +94,7 @@ export class ActasComponent {
             this.angularGrid.slickGrid.invalidate();
             //Intento grabar si tiene error hago undo
             try {
-                if (column.type == FieldType.number || column.type == FieldType.float)
+                if (column.type == 'number' || column.type == 'float')
                     editCommand.serializedValue = Number(editCommand.serializedValue)
 
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return

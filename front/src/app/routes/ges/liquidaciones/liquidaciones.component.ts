@@ -6,7 +6,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, Editors, GridOption, SlickGrid } from 'angular-slickgrid';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -368,7 +368,7 @@ export class LiquidacionesComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'liquidaciones-listado',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 
@@ -460,14 +460,14 @@ export class LiquidacionesComponent {
       {
         id: 'isfull', name: 'isfull', field: 'isfull',
         excludeFromHeaderMenu: false,
-        type: FieldType.number,
+        type: 'number',
         width: 0, minWidth: 0, maxWidth: 0, cssClass: "reallyHidden", headerCssClass: "reallyHidden"
 
       },
       {
         id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
         sortable: true,
-        type: FieldType.string,
+        type: 'string',
         maxWidth: 250,
         minWidth: 250,
         formatter: Formatters['complexObject'],
@@ -488,7 +488,7 @@ export class LiquidacionesComponent {
       {
         id: 'des_cuenta', name: 'Tipo Cuenta', field: 'des_cuenta',
         sortable: true,
-        type: FieldType.string,
+        type: 'string',
         maxWidth: 250,
         minWidth: 250,
         formatter: Formatters['complexObject'],
@@ -509,7 +509,7 @@ export class LiquidacionesComponent {
       {
         id: 'detalle', name: 'Detalle', field: 'detalle',
         sortable: true,
-        type: FieldType.string,
+        type: 'string',
         maxWidth: 250,
         editor: {
           model: Editors['text']
@@ -518,7 +518,7 @@ export class LiquidacionesComponent {
       {
         id: 'ClienteElementoDependienteDescripcion', name: 'Objetivo', field: 'ClienteElementoDependienteDescripcion',
         sortable: true,
-        type: FieldType.string,
+        type: 'string',
         maxWidth: 200,
         formatter: Formatters['complexObject'],
         params: {
@@ -538,7 +538,7 @@ export class LiquidacionesComponent {
       {
         id: 'ApellidoNombre', name: 'Persona', field: 'ApellidoNombre',
         sortable: true,
-        type: FieldType.string,
+        type: 'string',
         maxWidth: 250,
         minWidth: 250,
         formatter: Formatters['complexObject'],
@@ -558,7 +558,7 @@ export class LiquidacionesComponent {
       {
         id: 'monto', name: 'Monto', field: 'monto',
         sortable: true,
-        type: FieldType.float,
+        type: 'float',
         maxWidth: 200,
         // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
         formatter: Formatters['multiple'],

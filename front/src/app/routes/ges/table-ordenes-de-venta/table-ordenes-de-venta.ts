@@ -5,7 +5,7 @@ import { BehaviorSubject, debounceTime, map, switchMap, tap, firstValueFrom, tim
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, FieldType, Editors, SlickGlobalEditorLock, EditCommand, Formatters } from 'angular-slickgrid';
+import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Editors, SlickGlobalEditorLock, EditCommand, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -125,7 +125,7 @@ export class TableOrdenesDeVentaComponent {
       this.angularGridEdit.slickGrid.invalidate();
       //Intento grabar si tiene error hago undo
       try {
-        if (column.type == FieldType.number || column.type == FieldType.float) {
+        if (column.type == 'number' || column.type == 'float') {
           editCommand.serializedValue = Number(editCommand.serializedValue)
           editCommand.prevSerializedValue = Number(editCommand.prevSerializedValue)
         }
@@ -219,7 +219,7 @@ export class TableOrdenesDeVentaComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'lista-ordenes-de-venta',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

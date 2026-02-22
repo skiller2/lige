@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input,signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters, FieldType, Editors } from 'angular-slickgrid';
+import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters, Editors } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -61,7 +61,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       }
 
     if (col.id === 'CantidadCuotas') {
-      col.type = FieldType.float,
+      col.type = 'float',
       col.maxWidth = 120,
       col.editor = {
         model: Editors['text'],
@@ -81,7 +81,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
         }
     }
     if (col.id === 'Detalle') {
-      col.type = FieldType.string,
+      col.type = 'string',
       col.maxWidth = 300,
       col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
       col.editor = {
@@ -90,7 +90,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       }
     }
     if (col.id === 'mensaje') {
-      col.type = FieldType.string;
+      col.type = 'string';
       delete col.editor;
       col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
     

@@ -6,7 +6,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, FileType,  GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column,  GridOption, SlickGrid } from 'angular-slickgrid';
 import { CommonModule } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -259,7 +259,7 @@ export class LiquidacionesBancoComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'liquidaciones-listado',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

@@ -230,7 +230,6 @@ export class CategoriasCambioComponent {
   exportGrid() {
 //    this.excelExportService.exportToExcel({
 //      filename: 'cambios-categorias',
-//      format: FileType.xlsx
 //    });
   }
 

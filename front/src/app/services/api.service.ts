@@ -4,7 +4,7 @@ import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON
 import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { formatDate, formatNumber } from '@angular/common';
-import { collectionFormatter, ExternalResource, FieldType, Formatters, Column, Editors } from '@slickgrid-universal/common';
+import { collectionFormatter, ExternalResource, Formatters, Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
@@ -201,6 +201,7 @@ export class ApiService {
         hideCopyCellValueCommand: false,
         hideExpandAllGroups: false,
         hideExportCsvCommand: false,
+//        hideCommands: [],
         hideExportExcelCommand: false,
         hideExportTextDelimitedCommand: true,
         hideMenuOnScroll: true,
@@ -263,9 +264,10 @@ export class ApiService {
 
       enableAutoTooltip: true,
       enableFiltering: false,
-      enableRowSelection: true,
+      enableRowSelection: true,  //Se elimina en slickgrid 10
+      //enableSelection:true,   //Proximo cambio
       enableGrouping: true,
-      rowSelectionOptions: {
+      rowSelectionOptions: {   //Se elimina en slickgrid 10
         selectActiveRow: true
       },
       enableRowDetailView: true,
@@ -396,7 +398,7 @@ export class ApiService {
             col.width = 100
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['currency']
-            col.type = FieldType.float
+            col.type = 'float'
             col.params = { maxDecimal: 2, minDecimal: 2 }
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
@@ -405,7 +407,7 @@ export class ApiService {
             col.formatter = Formatters['decimal'],
               col.params = { maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
-            col.type = FieldType.float
+            col.type = 'float'
             col.cssClass = 'text-right'
             col.exportWithFormatter = false
 
@@ -415,7 +417,7 @@ export class ApiService {
             col.cssClass = 'text-right'
             col.exportWithFormatter = false
           } else if (col.type == 'object')
-            col.type = FieldType.object
+            col.type = 'object'
 
           if (col.editable == false) {
             delete col.editor

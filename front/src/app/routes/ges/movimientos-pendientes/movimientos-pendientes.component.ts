@@ -4,7 +4,7 @@ import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column,  FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column,  GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -143,7 +143,7 @@ export class MovimientosPendientes {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'liquidaciones-listado',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

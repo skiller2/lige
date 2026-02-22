@@ -7,7 +7,7 @@ import { ApiService,doOnSubscribe } from 'src/app/services/api.service';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs } from 'angular-slickgrid';
+import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
@@ -158,7 +158,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     exportGrid() {
       this.excelExportService.exportToExcel({
         filename: 'lista-historial-cursos',
-        format: FileType.xlsx
+        format: 'xlsx'
       });
     }
   }  

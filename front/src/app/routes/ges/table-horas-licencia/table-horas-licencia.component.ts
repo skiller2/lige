@@ -17,7 +17,7 @@ import {
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -169,7 +169,7 @@ export class  TableHorasLicenciaComponent {
 
       try {
 
-        if (column.type == FieldType.number || column.type == FieldType.float)
+        if (column.type == 'number' || column.type == 'float')
           editCommand.serializedValue = Number(editCommand.serializedValue)
 
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
@@ -243,7 +243,7 @@ export class  TableHorasLicenciaComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'lista-hora',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

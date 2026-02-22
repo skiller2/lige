@@ -4,7 +4,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -160,7 +160,7 @@ export class FacturacionComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'listado-facturacion',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

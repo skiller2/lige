@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -144,7 +144,7 @@ export class TableGrupoActividadGruposComponent {
 
       try {
 
-        if (column.type == FieldType.number || column.type == FieldType.float)
+        if (column.type == 'number' || column.type == 'float')
           editCommand.serializedValue = Number(editCommand.serializedValue)
 
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return

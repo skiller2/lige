@@ -3,7 +3,7 @@ import { Component, inject, signal, viewChild, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -209,7 +209,7 @@ export class TelefoniaComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'telefonos-listado',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -50,10 +50,11 @@ export class CustodiaComponent {
     impTotal = signal(0)
     periodo = signal(new Date())
     anio = computed(() => this.periodo()?.getFullYear())
-    mes = computed(() => this.periodo()?.getMonth()+1)
+    mes = computed(() => this.periodo()?.getMonth() + 1)
     selectedCli = signal<any[]>([])
     selectedCliInfo = signal<any[]>([])
     valueForm = signal<any[]>([])
+    refreshGrid = signal(0)
     excelExportService = new ExcelExportService();
     listCustodia$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
@@ -88,6 +89,9 @@ export class CustodiaComponent {
     formCusEstado = this.fb.group({
         custodia: this.fb.array([this.fb.group({ ...this.objCusEstado })])
     })
+
+    refreshGridNow() { this.refreshGrid.update(v => v + 1); }
+
     custodia(): FormArray {
         return this.formCusEstado.get("custodia") as FormArray
     }
@@ -121,13 +125,17 @@ export class CustodiaComponent {
 
 
         effect(async () => {
-            // console.log('PERIODO',this.periodo());
             const periodo = this.periodo() //para que triggee
-            if(periodo){
-                localStorage.setItem('anio',String(this.anio()))
-                localStorage.setItem('mes',String(this.mes()))
+            if (periodo) {
+                localStorage.setItem('anio', String(this.anio()))
+                localStorage.setItem('mes', String(this.mes()))
+                this.listCustodia$.next('');
             }
-            this.listCustodia('')
+
+            if (this.refreshGrid()) {
+                this.listCustodia$.next('');
+                console.log('refrescar grilla', this.refreshGrid())
+            }
         }, { injector: this.injector });
 
         const now = new Date()
@@ -158,7 +166,7 @@ export class CustodiaComponent {
             columnTotal('ImporteKmExcedente', this.angularGrid)
             columnTotal('CantidadModulos', this.angularGrid)
             columnTotal('ImportePeaje', this.angularGrid)
-            
+
         })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
@@ -169,7 +177,7 @@ export class CustodiaComponent {
         if (e.detail.args.rows.length == 1) {
             const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
             console.log('selrow: ', selrow);
-            
+
             this.editCustodiaId.set(selrow.id)
             if (selrow.Estado.value === 4)
                 this.estado.set(false)
@@ -186,7 +194,7 @@ export class CustodiaComponent {
         let clientesIds: any[] = [] //Ids de los clientes selecionados
         let valueForm: any[] = []
         console.log('regs: ', regs);
-        
+
         for (const reg of regs) {
             if (!reg) continue
             if (clientesIds.includes(reg.Cliente.id)) {
@@ -211,16 +219,13 @@ export class CustodiaComponent {
 
     listOptionsChange(options: any) {
         this.listOptions = options;
-        this.listCustodia('')
+        this.listCustodia$.next('');
     }
 
     setEdit(value: boolean): void {
         this.edit.set(value)
     }
 
-    listCustodia(event: any) {
-        this.listCustodia$.next(event);
-    }
 
     async setFormCusEstado() {
         this.custodia().clear()
@@ -258,7 +263,7 @@ export class CustodiaComponent {
             let values = this.custodia().value
             // console.log(values);
             await firstValueFrom(this.apiService.setEstado(values))
-            this.listCustodia('')
+            this.listCustodia$.next('');
             this.editCustodiaId.set(aux)
             const selrow = this.angularGrid.dataView.getAllSelectedFilteredIds()
             if (selrow.length == 1) {
@@ -277,33 +282,32 @@ export class CustodiaComponent {
     }
 
     onTabsetChange(_event: any) {
-        console.log("_event.index ", _event.index)
         switch (_event.index) {
-          case 2: //EDIT
-            this.childDetalle().load()
-            break;
-          case 3: //ALTA
-            this.childAlta().reset()
-            break;
-          case 4: //Editar
-            this.childEditar().load()
-            break;
+            case 2: //EDIT
+                this.childDetalle().load()
+                break;
+            case 3: //ALTA
+                this.childAlta().reset()
+                break;
+            case 4: //Editar
+                this.childEditar().load()
+                break;
             default:
-            break;
+                break;
         }
-    
+
     }
 
     ngAfterViewInit(): void {
-    
+
         const ClienteId = Number(this.route.snapshot.paramMap.get('ClienteId'))
-    
+
         setTimeout(() => {
-          if (ClienteId > 0) {
-            this.startFilters.set([ {index:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), closeable: true}])
-          }
+            if (ClienteId > 0) {
+                this.startFilters.set([{ index: 'ClienteId', condition: 'AND', operator: '=', value: String(ClienteId), closeable: true }])
+            }
         }, 1000)
-      }
-    
+    }
+
 
 }

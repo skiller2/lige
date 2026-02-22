@@ -1,6 +1,6 @@
 import { Component, inject, input, effect, ChangeDetectionStrategy,  model } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
-import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -95,7 +95,7 @@ export class DescuentosComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'listado-personal',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

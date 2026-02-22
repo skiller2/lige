@@ -1,7 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { default as ngLang } from '@angular/common/locales/zh';
-import { ApplicationConfig, DEFAULT_CURRENCY_CODE, EnvironmentProviders, Provider, importProvidersFrom, provideZonelessChangeDetection} from '@angular/core';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { ApplicationConfig, DEFAULT_CURRENCY_CODE, EnvironmentProviders, Provider, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withHashLocation, RouterFeatures, withViewTransitions } from '@angular/router';
 import { I18NService, defaultInterceptor, provideBindAuthRefresh, provideStartup } from '@core';
 import { provideCellWidgets } from '@delon/abc/cell';
@@ -20,6 +19,8 @@ import { routes } from './routes/routes';
 import { ICONS } from '../style-icons';
 import { ICONS_AUTO } from '../style-icons-auto';
 import { AngularSlickgridModule } from 'angular-slickgrid';
+//import { AngularSlickgridComponent, GridOption } from 'angular-slickgrid';
+
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { NgxMaskOptions, provideEnvironmentNgxMask } from 'ngx-mask';
@@ -47,16 +48,16 @@ const alainConfig: AlainConfig = {
 };
 
 export const maskConfigFactory = (): NgxMaskOptions => ({
- thousandSeparator: thousandSeparatorFactory(),
- decimalMarker: decimalMarkerFactory() as '.'|',',
- leadZero: true,
+  thousandSeparator: thousandSeparatorFactory(),
+  decimalMarker: decimalMarkerFactory() as '.' | ',',
+  leadZero: true,
 });
 
 const ngZorroConfig: NzConfig = {
 };
 
 const routerFeatures: RouterFeatures[] = [
-  withComponentInputBinding(), 
+  withComponentInputBinding(),
   withViewTransitions({
     onViewTransitionCreated: ({ transition, to, from }) => {
       // Solo permitir transiciones cuando el documento esté visible
@@ -64,17 +65,17 @@ const routerFeatures: RouterFeatures[] = [
         transition.skipTransition();
       }
     }
-  }), 
+  }),
   withInMemoryScrolling({ scrollPositionRestoration: 'top' })
 ];
 if (environment.useHash) routerFeatures.push(withHashLocation());
 
 const providers: Array<Provider | EnvironmentProviders> = [
   provideHttpClient(withInterceptors([...(environment.interceptorFns ?? []), authSimpleInterceptor, defaultInterceptor])),
-  provideAnimations(),
+//  provideAnimations(),
   provideRouter(routes, ...routerFeatures),
   provideAlain({ config: alainConfig, defaultLang, i18nClass: I18NService, icons: [...ICONS_AUTO, ...ICONS] }),
-  
+
   provideNzConfig(ngZorroConfig),
   provideAuth(),
   provideCellWidgets(...CELL_WIDGETS),
@@ -100,7 +101,7 @@ const providers: Array<Provider | EnvironmentProviders> = [
 
 
   importProvidersFrom(AngularSlickgridModule.forRoot()),
-
+//  importProvidersFrom(AngularSlickgridComponent, { provide: 'defaultGridOption', useValue: gridOptionConfig }),
 
   importProvidersFrom(
     ServiceWorkerModule.register('ngsw-worker.js', {
@@ -108,15 +109,17 @@ const providers: Array<Provider | EnvironmentProviders> = [
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000',
-    })
+    }),
   ),
+
+
   { provide: DEFAULT_CURRENCY_CODE, useValue: '$' },
   { provide: DATE_PIPE_DEFAULT_OPTIONS, useFactory: (i18n: I18NService) => ({ dateFormat: i18n.getDateFormat() }), deps: [I18NService] },
   { provide: DEFAULT_THOUSAND_SEPARATOR, useFactory: thousandSeparatorFactory },
   { provide: DEFAULT_DECIMAL_MARKER, useFactory: decimalMarkerFactory },
 
-//  { provide: NZ_CONFIG, useFactory: (i18n: I18NService) => ({ datePicker: { nzFormat: i18n.getDateFormat(), // Set the global default format here
-//      },    }), deps: [I18NService] },
+  //  { provide: NZ_CONFIG, useFactory: (i18n: I18NService) => ({ datePicker: { nzFormat: i18n.getDateFormat(), // Set the global default format here
+  //      },    }), deps: [I18NService] },
   provideEnvironmentNgxMask(maskConfigFactory),
   ...(environment.providers || [])
 ];

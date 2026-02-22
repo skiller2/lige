@@ -28,7 +28,7 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import type { Options, Selections } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, FieldType, GridOption, Formatters } from 'angular-slickgrid';
+import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -252,7 +252,7 @@ export class ImpuestoAfipComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'monotributos-listado',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

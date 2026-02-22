@@ -9,7 +9,7 @@ import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.compo
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { SearchService } from '../../services/search.service';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from "../custom-search/custom-search";
 import { NzButtonModule } from 'ng-zorro-antd/button';
 
@@ -106,7 +106,7 @@ export class SedesDrawerComponent {
 
       try {
 
-        if (column.type == FieldType.number || column.type == FieldType.float)
+        if (column.type == 'number' || column.type == 'float')
           editCommand.serializedValue = Number(editCommand.serializedValue)
 
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return

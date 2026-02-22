@@ -1,6 +1,6 @@
 import { Component, inject, input, effect, ChangeDetectionStrategy, InputSignal, model } from '@angular/core';
 import { BehaviorSubject, debounceTime, finalize, map, switchMap } from 'rxjs';
-import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -96,7 +96,7 @@ export class PersonalGrupoComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'personal-responsable',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

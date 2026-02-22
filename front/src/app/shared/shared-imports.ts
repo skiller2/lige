@@ -8,6 +8,7 @@ import { AGEPipe } from './utils/age-pipe';
 import { ImageCropperModule } from 'ngx-image-cropper';
 import { AppDownFileDirective } from './down-file/down-file.directive';
 import { AngularSlickgridModule } from 'angular-slickgrid';
+import { AngularSlickgridComponent, GridOption } from 'angular-slickgrid';
 //import { RowDetailViewComponent } from './row-detail-view/row-detail-view.component';
 //import { RowPreloadDetailComponent } from './row-preload-detail/row-preload-detail.component';
 

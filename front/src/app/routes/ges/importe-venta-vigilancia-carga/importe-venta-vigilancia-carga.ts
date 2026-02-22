@@ -4,7 +4,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
-import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';

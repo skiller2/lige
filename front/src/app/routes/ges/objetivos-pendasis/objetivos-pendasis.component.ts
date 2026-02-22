@@ -16,7 +16,7 @@ import {
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AsyncPipe } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
@@ -250,7 +250,7 @@ export class ObjetivosPendAsisComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'objetivos-pendasis',
-      format: FileType.xlsx
+      format: 'xlsx'
     });
   }
 

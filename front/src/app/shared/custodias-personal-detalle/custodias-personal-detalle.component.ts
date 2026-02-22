@@ -7,7 +7,7 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { NgForm } from '@angular/forms';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters, Grouping, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters, Grouping, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
@@ -117,7 +117,7 @@ export class CustodiasPersonalDetalleComponent {
     exportGrid() {
         this.excelExportService.exportToExcel({
           filename: 'detalle-personal-custodia',
-          format: FileType.xlsx
+          format: 'xlsx'
         });
     }
 

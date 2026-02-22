@@ -33,7 +33,7 @@ export class CustodiaFormComponent {
     edit = model(true)
     costo = signal(0)
     auditHistory = signal<any[]>([])
-
+    onChange = model(0)
 
     facturacion = signal(0)
     horaspopover = signal('test')
@@ -246,6 +246,9 @@ export class CustodiaFormComponent {
 
             this.formCus.markAsUntouched()
             this.formCus.markAsPristine()
+            
+
+            this.onChange.update(v => v + 1)
         } catch (e) {
 
         }

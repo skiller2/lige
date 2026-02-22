@@ -5,7 +5,7 @@ import { FormBuilder } from '@angular/forms';
 import { SearchService } from '../../../services/search.service';
 import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, SlickGrid } from 'angular-slickgrid';
 import { LoadingService } from '@delon/abc/loading';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -193,7 +193,7 @@ export class FacturacionFormComponent {
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'detalle-facturacion',
-      format: FileType.xlsx
+      format: "xlsx"
     });
   }
 }
