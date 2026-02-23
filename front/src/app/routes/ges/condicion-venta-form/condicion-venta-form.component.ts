@@ -57,7 +57,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   objProductos = {
     CondicionVentaProductoId: 0,
     ProductoCodigo: '',
-    Cantidad: '',
+    CantidadHoras: '',
     TipoImporte: '',
     TipoCantidad: '',
     ImporteUnitario: '',
@@ -250,7 +250,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     // Calcular totales, deshabilitar ImporteTotal y manejar tipo importe/cantidad en un solo recorrido
     this.infoProductos().controls.forEach((control, index) => {
-      const cantidad = control.get('Cantidad')?.value;
+      const cantidad = control.get('CantidadHoras')?.value;
       const importeUnitario = control.get('ImporteUnitario')?.value;
       const tipoImporte = control.get('TipoImporte')?.value;
       const tipoCantidad = control.get('TipoCantidad')?.value;
@@ -269,10 +269,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       }
 
       if (tipoCantidad === 'A' || tipoCantidad === 'B') {
-        control.get('Cantidad')?.disable();
+        control.get('CantidadHoras')?.disable();
         this.obtenerMensajeHoras(tipoCantidad, index);
       } else if (tipoCantidad !== 'F') {
-        control.get('Cantidad')?.disable();
+        control.get('CantidadHoras')?.disable();
       }
     });
 
@@ -378,7 +378,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   calcularTotal(index: number) {
-    const cantidad = this.infoProductos().at(index)?.get('Cantidad')?.value;
+    const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
     const importeUnitario = this.infoProductos().at(index)?.get('ImporteUnitario')?.value;
     const importeTotal = Number(cantidad) * Number(importeUnitario);
     this.infoProductos().at(index)?.patchValue({
@@ -406,7 +406,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async onTipoCantidadChange(tipoCantidad: string, index: number): Promise<void> {
-    const cantidadControl = this.infoProductos().at(index)?.get('Cantidad')
+    const cantidadControl = this.infoProductos().at(index)?.get('CantidadHoras')
     
     if (tipoCantidad === 'A' || tipoCantidad === 'B') {
 
@@ -567,8 +567,22 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     const textoFactura = (productoGroup.get('TextoFactura')?.value || '').trim();
     const productoCodigo = productoGroup.get('ProductoCodigo')?.value || '';
-    const cantidad = productoGroup.get('Cantidad')?.value || '';
-    const importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
+    // CantidadHoras: form control (Fijo) o mensajeHoras (Horas A/B)
+    let cantidad = productoGroup.get('CantidadHoras')?.value || '';
+    if (!cantidad) {
+      const mensajeHoras = this.mensajesHoras().get(index) || '';
+      const match = mensajeHoras.match(/^([\d.,]+)/);
+      if (match) cantidad = match[1];
+    }
+
+    // ImporteUnitario: form control (Fijo) o mensajeImporteLista (Lista Precios)
+    let importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
+    if (!importeUnitario) {
+      const mensajeImporte = this.mensajesImporteLista().get(index) || '';
+      const match = mensajeImporte.match(/^([\d.,]+)/);
+      if (match) importeUnitario = match[1];
+    }
+
     const importeTotal = productoGroup.get('ImporteTotal')?.value || '';
 
     let productoNombre = productoCodigo;
@@ -583,7 +597,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     let periodoMes = '';
     let periodoAnio = '';
-    
+
     if (this.periodo()) {
       const fecha = this.periodo();
       if (fecha && !isNaN(fecha.getTime())) {
@@ -597,8 +611,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       .replace(/{Producto}/g, productoNombre)
       .replace(/{PeriodoMes}/g, periodoMes)
       .replace(/{PeriodoAnio}/g, periodoAnio)
-      .replace(/{CantidadHoras}/g, cantidad)
-      .replace(/{ImporteUnitario}/g, importeUnitario)
+      .replace(/{CantidadHoras}/g, cantidad || 'N/A')
+      .replace(/{ImporteUnitario}/g, importeUnitario || 'N/A')
       .replace(/{ImporteTotal}/g, importeTotal);
 
     return preview;

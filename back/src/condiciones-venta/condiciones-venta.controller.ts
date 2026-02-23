@@ -417,7 +417,7 @@ export class CondicionesVentaController extends BaseController {
                             producto.ProductoCodigo, // ProductoCodigo
                             producto.TextoFactura, // TextoFactura
                             producto.TipoCantidad, // TipoCantidad
-                            producto.Cantidad ? Number(producto.Cantidad) : null, // Cantidad
+                            producto.CantidadHoras ? Number(producto.CantidadHoras) : null, // Cantidad
                             producto.TipoImporte, // TipoImporte
                             producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
                             FechaActual, // AudFechaIng
@@ -494,7 +494,7 @@ export class CondicionesVentaController extends BaseController {
                     throw new ClientException(`Debe completar el campo Importe Unitario.`)
                 }
 
-                if (producto.TipoCantidad === 'F' && !producto.Cantidad) {
+                if (producto.TipoCantidad === 'F' && !producto.CantidadHoras) {
                     throw new ClientException(`Debe completar el campo Cantidad.`)
                 }
             }
@@ -590,7 +590,7 @@ export class CondicionesVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT ProductoCodigo, TextoFactura, TipoCantidad, Cantidad, TipoImporte, ImporteUnitario
+            SELECT ProductoCodigo, TextoFactura, TipoCantidad, Cantidad AS CantidadHoras, TipoImporte, ImporteUnitario
             FROM CondicionVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
@@ -916,7 +916,7 @@ export class CondicionesVentaController extends BaseController {
                         producto.ProductoCodigo, // ProductoCodigo
                         producto.TextoFactura, // TextoFactura
                         producto.TipoCantidad, // TipoCantidad
-                        producto.Cantidad ? Number(producto.Cantidad) : null, // Cantidad
+                        producto.CantidadHoras ? Number(producto.CantidadHoras) : null, // Cantidad
                         producto.TipoImporte, // TipoImporte
                         producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
                         FechaActual, // AudFechaIng
