@@ -17,6 +17,7 @@ import { Component, model, signal, inject, computed } from '@angular/core';
 import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
 import { ProductosImportacionMasivaComponent } from '../productos-importacion-masiva/productos-importacion-masiva';
 import { Selections } from 'src/app/shared/schemas/filtro';
+import { PeriodoSelectComponent } from 'src/app/shared/periodo-select/periodo-select.component';
 
 @Component({
     selector: 'app-precios-productos',
@@ -117,6 +118,20 @@ export class PreciosProductosComponent {
             }
 
             break
+          case 'PeriodoDesdeAplica':
+            col.formatter = Formatters['date']
+            col.editor = {
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: PeriodoSelectComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+            col.params = { dateFormat: 'YYYY/MM' } 
+
+            break
           default:
             break;
         }
@@ -197,10 +212,10 @@ export class PreciosProductosComponent {
 
         const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
         
-        if (response.data?.action === 'I') {
+        // if (response.data?.action === 'I') {
           this.angularGridEdit.slickGrid.setSelectedRows([]);
           this.listPrecios$.next('')
-        }
+        // }
 
         this.rowLocked = false
       } catch (e: any) {
