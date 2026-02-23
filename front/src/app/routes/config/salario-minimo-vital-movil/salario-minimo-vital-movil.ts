@@ -196,9 +196,10 @@ export class SalarioMinimoVitalMovil {
             this.editSalarioMinimoVitalMovilId.set(0)
             const list = (response.list || []).map((item: any) => {
               // Los registros existentes tienen ID y están completos
-              if (item.SalarioMinimoVitalMovilId) {
+              if (item.id) {
+                item.SalarioMinimoVitalMovilId = item.id;
                 item.isfull = 1;
-                item.codigoOld = item.SalarioMinimoVitalMovilId;
+                item.codigoOld = item.id;
               }
               return item;
             });
