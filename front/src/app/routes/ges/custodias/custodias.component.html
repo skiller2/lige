@@ -43,12 +43,12 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/cust/objetivos">Custodias</a>
 
-        @if ((columns$|async); as columnas) {
+        @if (columns()) {
           <ng-template nz-tab>
-            <shared-filtro-builder [fieldsToSelect]="columnas" [(options)]="listOptions" [startFilters]="startFilters()" />
+            <shared-filtro-builder [fieldsToSelect]="columns()"   [(options)]="listOptions" [startFilters]="startFilters()" />
             <div class="gridListContainer container-fluid">
-              <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
-                [dataset]="gridDataSet()" (onAngularGridCreated)="angularGridReady($event)"
+              <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
+                [dataset]="gridDataSet()" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
               </angular-slickgrid>
             </div>
@@ -99,7 +99,7 @@
                   <nz-form-control>
                     <nz-select formControlName="EstadoCodigo" nzPlaceHolder="Estado" nzAllowClear
                       [nzDropdownMatchSelectWidth]="false">
-                      @for (option of $optionsEstadoCust | async; track option) {
+                      @for (option of optionsEstadoCust(); track option) {
                         <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
                       }
                     </nz-select>

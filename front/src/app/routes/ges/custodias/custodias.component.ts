@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
+import { Component, Injector, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
+import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -69,8 +69,8 @@ export class CustodiaComponent {
     childDetalle = viewChild.required<CustodiaFormComponent>('custodiaFormDetalle')
     childEditar = viewChild.required<CustodiaFormComponent>('custodiaFormEditar')
 
-    columns$ = this.apiService.getCols('/api/custodia/cols')
-    $optionsEstadoCust = this.searchService.getEstadoCustodia();
+    columns = toSignal(this.apiService.getCols('/api/custodia/cols'))
+    optionsEstadoCust = toSignal(this.searchService.getEstadoCustodia())
 
     gridDataSet = toSignal(
         toObservable(this.refreshGrid).pipe(
@@ -147,28 +147,30 @@ export class CustodiaComponent {
 
     }
 
-    async angularGridReady(angularGrid: any) {
-        this.angularGrid = angularGrid.detail
-        //        this.gridData = angularGrid.dataView
-        this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(this.angularGrid, 'Cliente')
-            columnTotal('ImporteFactura', this.angularGrid)
-            columnTotal('CantidadHorasExcedente', this.angularGrid)
-            columnTotal('ImporteHorasExcedente', this.angularGrid)
-            columnTotal('CantidadKmExcedente', this.angularGrid)
-            columnTotal('ImporteKmExcedente', this.angularGrid)
-            columnTotal('CantidadModulos', this.angularGrid)
-            columnTotal('ImportePeaje', this.angularGrid)
+    async angularGridReady(angularGrid: AngularGridInstance) {
+        this.angularGrid = angularGrid
+        angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+            totalRecords(angularGrid, 'Cliente')
+            columnTotal('ImporteFactura', angularGrid)
+            columnTotal('CantidadHorasExcedente', angularGrid)
+            columnTotal('ImporteHorasExcedente', angularGrid)
+            columnTotal('CantidadKmExcedente', angularGrid)
+            columnTotal('ImporteKmExcedente', angularGrid)
+            columnTotal('CantidadModulos', angularGrid)
+            columnTotal('ImportePeaje', angularGrid)
 
         })
         if (this.apiService.isMobile())
-            this.angularGrid.gridService.hideColumnByIds([])
+            angularGrid.gridService.hideColumnByIds([])
     }
 
     handleSelectedRowsChanged(e: any): void {
+
+        const dataView = e.detail.args.grid.data
+
         this.rows = e.detail.args.rows
         if (e.detail.args.rows.length == 1) {
-            const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
+            const selrow = dataView.getItemByIdx(e.detail.args.rows[0])
 
             this.editCustodiaId.set(selrow.id)
             if (selrow.Estado.value === 4)
@@ -181,7 +183,7 @@ export class CustodiaComponent {
         }
 
         //Agrupar por ClienteId
-        let regs = this.angularGrid.dataView.getAllSelectedItems()
+        const regs = dataView.getAllSelectedItems()
         let itemsByClientes: any[] = []
         let clientesIds: any[] = [] //Ids de los clientes selecionados
         let valueForm: any[] = []
