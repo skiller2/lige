@@ -120,16 +120,16 @@ export class PreciosProductosComponent {
             break
           case 'PeriodoDesdeAplica':
             col.formatter = Formatters['date']
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: PeriodoSelectComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = { dateFormat: 'YYYY/MM' } 
+            // col.editor = {
+            //   model: CustomInputEditor,
+            //   collection: [],
+            //   params: {
+            //     component: PeriodoSelectComponent,
+            //   },
+            //   alwaysSaveOnEnterKey: true,
+            //   required: true
+            // }
+            col.params = { dateFormat: 'YYYY-MM' } 
 
             break
           default:
