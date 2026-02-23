@@ -96,6 +96,10 @@ export class SalarioMinimoVitalMovil {
   columnsData = computed(() => this.columns.value())
 
   async addNewItem(insertPosition?: 'bottom') {
+    const allItems = this.angularGridEdit.dataView.getItems();
+    const hasEmptyRow = allItems.some((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull !== 1);
+    if (hasEmptyRow) return;
+
     const newItem1 = this.createNewItem(1)
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
