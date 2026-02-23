@@ -20,7 +20,7 @@
           <nz-form-control>
             <nz-space-compact nzBlock>
               <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo" ngModel
+                (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel
                 style="width: 90%;" />
               <button nz-button nzType="default" (click)="formChange('', Busqueda.Objetivo)"><span nz-icon
                   nzType="reload" nzTheme="outline" nz-tooltip
@@ -306,5 +306,5 @@
     </angular-slickgrid>
   </div>
 </nz-card>
-<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId"
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
