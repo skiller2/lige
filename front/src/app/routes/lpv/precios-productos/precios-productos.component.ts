@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 //import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, Editors, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, Editors, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand, DateEditor, VanillaCalendarOption } from 'angular-slickgrid';
+import { Calendar } from 'vanilla-calendar-pro';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../../app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -22,17 +23,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 @Component({
-    selector: 'app-precios-productos',
-    providers: [AngularUtilService],
-    imports: [
-        ...SHARED_IMPORTS,
-        CommonModule,
-        FiltroBuilderComponent,
-        ProductoHistorialDrawerComponent,
-        ProductosImportacionMasivaComponent
-    ],
-    templateUrl: './precios-productos.component.html',
-    styleUrl: './precios-productos.component.less'
+  selector: 'app-precios-productos',
+  providers: [AngularUtilService],
+  imports: [
+    ...SHARED_IMPORTS,
+    CommonModule,
+    FiltroBuilderComponent,
+    ProductoHistorialDrawerComponent,
+    ProductosImportacionMasivaComponent
+  ],
+  templateUrl: './precios-productos.component.html',
+  styleUrl: './precios-productos.component.less'
 })
 export class PreciosProductosComponent {
 
@@ -68,11 +69,11 @@ export class PreciosProductosComponent {
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
 
-  refreshList(){
+  refreshList() {
     this.gridData.reload()
   }
 
-  columns = toSignal( 
+  columns = toSignal(
     this.apiService.getCols('/api/productos/cols-precios').pipe(
       switchMap(async (cols) => {
         const productos = await firstValueFrom(this.searchService.getProductos());
@@ -115,17 +116,42 @@ export class PreciosProductosComponent {
 
               break
             case 'PeriodoDesdeAplica':
-              col.formatter = Formatters['date']
-              // col.editor = {
-              //   model: CustomInputEditor,
-              //   // collection: [],
-              //   params: {
-              //     component: PeriodoSelectComponent,
-              //   },
-              //   alwaysSaveOnEnterKey: true,
-              //   required: true
-              // }
-              col.params = { dateFormat: 'YYYY-MM' } 
+              //col.formatter = Formatters['date']
+              col.editor = {
+                model: DateEditor,
+                onInstantiated: (instance: any) => {
+                  const cal = instance as Calendar
+/*
+                  cal.set({
+                    type: 'month',
+                    selectionMonthsMode: true,
+                    selectionDatesMode: undefined,
+                  })
+//cal.onClickTitle
+                  cal.onClickMonth =
+                    (cal: Calendar, event) => {
+
+                      // data.month = 0..11 ; data.year = YYYY
+                      //      const m = String(cal.month + 1).padStart(2, '0');
+                      //    this.input.value = `${data.year}-${m}`;
+
+
+                  
+                      const y = (cal as any).year ?? new Date().getFullYear();
+                      const m0 = (cal as any).month ?? new Date().getMonth(); // 0..11
+                      const mm = String(m0 + 1).padStart(2, '0');
+                      console.log('clicked', cal.selectedYear)
+
+                      // 👇 Forzar cierre del calendario
+                      cal.hide()
+                    }
+*/
+
+                  console.log('editor', this);
+                },
+                options: { type: 'month' } as VanillaCalendarOption
+              }
+              col.params = { dateFormat: 'MM-YYYY' }
 
               break
             case 'Importe':
@@ -144,15 +170,15 @@ export class PreciosProductosComponent {
           return col
         });
         return mapped
-    }))
+      }))
     , { initialValue: [] as Column[] }
   )
 
   gridData = resource({
     params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
-    loader: async (params:any) => {
-      const response = await firstValueFrom(this.searchService.getListaPrecioProductos({options: params.options, anio: this.anio(), mes: this.mes()}));
-      
+    loader: async () => {
+      const response = await firstValueFrom(this.searchService.getListaPrecioProductos({ options: this.listOptions(), anio: this.anio(), mes: this.mes() }));
+
       //Crea una fila vacia al final de la lista
       const newId = response.list.length + 1
       response.list.push(
@@ -162,15 +188,15 @@ export class PreciosProductosComponent {
           Cliente: {},
           ProductoCodigo: '',
           Importe: null,
-          PeriodoDesdeAplica: new Date(this.anio(),this.mes()-1,1,0,0,0,0),
+          PeriodoDesdeAplica: new Date(this.anio(), this.mes() - 1, 1, 0, 0, 0, 0),
         }
       )
 
       return response.list;
     },
-    defaultValue:[]
+    defaultValue: []
   });
-  
+
   async ngOnInit() {
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -208,7 +234,7 @@ export class PreciosProductosComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
-        
+
         if (!row.Cliente.id || !row.ProductoCodigo.length || !row.PeriodoDesdeAplica || !row.Importe)
           return
 
@@ -216,7 +242,7 @@ export class PreciosProductosComponent {
           this.rowLocked = true
 
         await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
-        
+
         this.angularGridEdit.slickGrid.setSelectedRows([])
         this.gridData.isLoading()
 
@@ -248,20 +274,20 @@ export class PreciosProductosComponent {
 
   async addNewItem() {
     const list = this.angularGridEdit.dataView.getItems()
-    const find = list.find((row:any) => {return !row.ProductoCodigoOLD})
-    if(!find){
+    const find = list.find((row: any) => { return !row.ProductoCodigoOLD })
+    if (!find) {
       const newItem1 = this.createNewItem(1);
       this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
     }
-    this.angularGridEdit.slickGrid.setSelectedRows([this.angularGridEdit.dataView.getItems().length-1]);
+    this.angularGridEdit.slickGrid.setSelectedRows([this.angularGridEdit.dataView.getItems().length - 1]);
 
   }
 
   async deleteItem() {
     this.loadingDel.set(true)
     const registros = this.angularGridEdit.dataView.getAllSelectedItems().filter(
-      (pro:any) => { return pro.idTable? true : false }
-    ).map((pro:any)=>{
+      (pro: any) => { return pro.idTable ? true : false }
+    ).map((pro: any) => {
       return {
         id: pro.id,
         idTable: pro.idTable,
@@ -275,18 +301,19 @@ export class PreciosProductosComponent {
         ImporteOLD: pro.ImporteOLD,
         Cliente: pro.Cliente,
         ClienteFacturacionCUIT: pro.Cliente.ClienteFacturacionCUIT,
-    }})
+      }
+    })
     try {
-      await firstValueFrom(this.apiService.deleteProductos({list:registros, length:registros.length}))
+      await firstValueFrom(this.apiService.deleteProductos({ list: registros, length: registros.length }))
       this.angularGridEdit.slickGrid.setSelectedRows([]);
       this.gridData.reload()
     } catch (error) {
-      
+
     }
     this.loadingDel.set(false)
   }
 
-  createNewItem(incrementIdByHowMany:number = 1) {
+  createNewItem(incrementIdByHowMany: number = 1) {
     const dataset = this.angularGridEdit.dataView.getItems();
     let highestId = 0;
     dataset.forEach((item: any) => {
@@ -294,7 +321,7 @@ export class PreciosProductosComponent {
         highestId = item.id;
       }
     });
-    const newId:number = Number(highestId) + incrementIdByHowMany;
+    const newId: number = Number(highestId) + incrementIdByHowMany;
     let isfull = 0
 
     return {
@@ -303,7 +330,7 @@ export class PreciosProductosComponent {
       Cliente: {},
       ProductoCodigo: '',
       Importe: null,
-      PeriodoDesdeAplica: new Date(this.anio(),this.mes()-1,1,0,0,0,0),
+      PeriodoDesdeAplica: new Date(this.anio(), this.mes() - 1, 1, 0, 0, 0, 0),
     };
   }
 

@@ -114,8 +114,8 @@ export class TableCondicionVentaComponent implements OnInit {
 
   gridData = resource({
     params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshCondVenta() }),
-    loader: async (params:any) => {
-      const response = await firstValueFrom(this.apiService.getListCondicionesVenta(params.options, this.periodo()));
+    loader: async () => {
+      const response = await firstValueFrom(this.apiService.getListCondicionesVenta(this.listOptions(), this.periodo()));
       return response.list;
     },
     defaultValue:[]
