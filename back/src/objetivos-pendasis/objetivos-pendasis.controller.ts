@@ -105,7 +105,7 @@ const columnasGrilla: any[] = [
     type: "number",
     id: "AsistenciaHoras",
     field: "AsistenciaHoras",
-    fieldName: "objasissub.sumtotalhorascalc",
+    fieldName: "ISNULL(objasissub.sumtotalhorascalc, 0)",
     sortable: true,
     hidden: false,
     maxWidth: 80,
