@@ -151,11 +151,30 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     if (this.codobjId() && this.PeriodoDesdeAplica()) {
       await this.load()
-      //this.codobjId.set('')
+      // Limpiar IDs para que sea un registro nuevo (copia)
       this.PeriodoDesdeAplica.set('')
       this.formCondicionVenta.patchValue({
+        CondicionVentaId: 0,
         PeriodoDesdeAplica: '',
       });
+      // Limpiar IDs de productos para que se inserten como nuevos
+      this.infoProductos().controls.forEach(control => {
+        control.patchValue({ CondicionVentaProductoId: 0 });
+      });
+      this.formCondicionVenta.enable()
+
+      this.infoProductos().controls.forEach((control, index) => {
+        control.get('ImporteTotal')?.disable();
+        const tipoImporte = control.get('TipoImporte')?.value;
+        if (tipoImporte === 'LP' || tipoImporte === 'V') {
+          control.get('ImporteUnitario')?.disable();
+        }
+        const tipoCantidad = control.get('TipoCantidad')?.value;
+        if (tipoCantidad === 'A' || tipoCantidad === 'B' || tipoCantidad === 'V') {
+          control.get('CantidadHoras')?.disable();
+        }
+      });
+      this.formCondicionVenta.markAsPristine();
 
     } else {
       //this.codobjId.set('')
