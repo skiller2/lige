@@ -26,7 +26,7 @@ interface PageHeaderPath {
     @if (!breadcrumb) {
       @if (paths && paths.length > 0) {
         <nz-breadcrumb >
-          @for (i of paths; track i) {
+          @for (i of paths; track i.link) {
             <nz-breadcrumb-item >
               @if (i.link) {
                 <a [routerLink]="i.link" class="fnt-size-sm">{{ i.title }}</a>

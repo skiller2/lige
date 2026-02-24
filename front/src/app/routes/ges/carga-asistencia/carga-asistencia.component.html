@@ -35,7 +35,7 @@
           <nz-form-control>
             @if (contratos.length==0 && selectedObjetivoId()>0) { <nz-alert nzShowIcon nzType="error"
               nzMessage="Sin contrato" class="app-small"></nz-alert> }
-            @for (contrato of contratos; track contrato) {
+            @for (contrato of contratos; track contrato.ContratoFechaHasta) {
             <li>@if (!contrato.ContratoFechaHasta) {
               <span>Desde</span>
               } {{contrato.ContratoFechaDesde |
