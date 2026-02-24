@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -69,7 +69,7 @@ export class CustodiaComponent {
     childDetalle = viewChild.required<CustodiaFormComponent>('custodiaFormDetalle')
     childEditar = viewChild.required<CustodiaFormComponent>('custodiaFormEditar')
 
-    columns = toSignal(this.apiService.getCols('/api/custodia/cols'))
+    columns = toSignal(this.apiService.getCols('/api/custodia/cols'), { initialValue: [] as Column[] })
     optionsEstadoCust = toSignal(this.searchService.getEstadoCustodia())
 
     gridDataSet = toSignal(
