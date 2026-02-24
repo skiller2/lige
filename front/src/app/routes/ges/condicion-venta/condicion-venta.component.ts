@@ -52,6 +52,13 @@ export class CondicionVentaComponent implements OnInit {
     this.isEdit.set(false);
     const savedCodobj = this.codobj();
     const savedObjetivoId = this.objetivoId();
+    const savedPeriodo = this.PeriodoDesdeAplica();
+
+    // Si hay un registro seleccionado (codobj + periodo), no limpiar el form
+    // para que newRecord() cargue todos los datos como copia
+    if (savedCodobj && savedPeriodo) {
+      return;
+    }
 
     try {
       const child = this.childAlta();
