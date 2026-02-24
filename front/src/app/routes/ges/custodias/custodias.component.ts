@@ -74,13 +74,13 @@ export class CustodiaComponent {
     gridDataSet = resource({
         params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshGrid() }),
         loader: async () => {
-            let response = { list: [] }
+            let response = []
             this.isLoading.set(true)
             try {
-                const response = await firstValueFrom(this.apiService.getListaObjetivoCustodia(this.listOptions(), this.periodo()))
+                response = await firstValueFrom(this.apiService.getListaObjetivoCustodia(this.listOptions(), this.periodo()))
             } catch (e) { }
             this.isLoading.set(false)
-            return response.list
+            return response
         },
         defaultValue:[]
     })
