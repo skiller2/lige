@@ -118,7 +118,7 @@ export class TableCondicionVentaComponent implements OnInit {
       const response = await firstValueFrom(this.apiService.getListCondicionesVenta(this.listOptions(), this.periodo()));
       return response.list;
     }
-  });
+  }).value;
 
   ngOnInit(): void {
     this.initializeGridOptions();
