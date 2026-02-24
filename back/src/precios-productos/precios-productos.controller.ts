@@ -69,10 +69,11 @@ export class PreciosProductosController extends BaseController {
         },
         {
             name: "Importe Unitario",
-            type: "number",
+            type: "currency",
             id: "Importe",
             field: "Importe",
             fieldName: "pp.Importe",
+            searchType: "numberAdvanced",
             sortable: true,
             searchHidden: false,
             hidden: false,

@@ -19,6 +19,7 @@ import { ProductosImportacionMasivaComponent } from '../productos-importacion-ma
 import { Selections } from 'src/app/shared/schemas/filtro';
 import { PeriodoSelectComponent } from 'src/app/shared/periodo-select/periodo-select.component';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 @Component({
     selector: 'app-precios-productos',
@@ -126,6 +127,16 @@ export class PreciosProductosComponent {
               // }
               col.params = { dateFormat: 'YYYY-MM' } 
 
+              break
+            case 'Importe':
+              col.editor = {
+                model: CustomFloatEditor,
+                decimal: 2,
+                minValue: 0,
+                maxValue: 10000000,
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
               break
             default:
               break;
