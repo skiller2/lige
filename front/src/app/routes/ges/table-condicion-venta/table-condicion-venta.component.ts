@@ -49,7 +49,7 @@ export class TableCondicionVentaComponent implements OnInit {
 
   // Trigger para recargar la grilla
   // Se emite cada vez que hay cambios de filtros o refresh externo
-  formChange$ = new BehaviorSubject('refresh');
+  //formChange$ = new BehaviorSubject('refresh');
   // Estado de loading de la tabla
   tableLoading$ = new BehaviorSubject<boolean>(false);
 

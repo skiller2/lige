@@ -82,10 +82,7 @@ export class CargaAsistenciaComponent {
         return Busqueda;
     }
     selectedObjetivoId = signal(0)
-    $isObjetivoDataLoading = new BehaviorSubject(false);
-    $selectedObjetivoIdChange = new BehaviorSubject(0);
-    $formChange = new BehaviorSubject({});
-    objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+    $selectedObjetivoIdChange = new BehaviorSubject({objetivoId:0,periodo:{}});
     isLoadingCheck = signal(false);
     customHeaderExcel: any[] = []
 
@@ -172,15 +169,16 @@ export class CargaAsistenciaComponent {
     }
 
     $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
-        debounceTime(50),
-        switchMap(objetivoId => {
-            return this.getObjetivoDetalle(objetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
+        debounceTime(700),
+        switchMap(data => {
+
+            return this.getObjetivoDetalle(data.objetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
                 .pipe(
                     //                  switchMap((data:any) => { return data}),
-                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-                    tap({
-                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
-                    })
+//                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+//                    tap({
+//                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
+//                    })
                 );
         })
     );
@@ -576,9 +574,7 @@ export class CargaAsistenciaComponent {
             default:
                 break;
         }
-
-        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId());
-        this.$isObjetivoDataLoading.next(true);
+        this.$selectedObjetivoIdChange.next({ objetivoId: this.selectedObjetivoId(), periodo: this.selectedPeriod });
 
 
         this.angularGridEdit.slickGrid.reRenderColumns(true)
@@ -644,7 +640,7 @@ export class CargaAsistenciaComponent {
             await this.setValFact(null)
             const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId())).
                 finally(() => { this.isLoadingCheck.set(false) })
-            this.$selectedObjetivoIdChange.next(this.selectedObjetivoId())
+            this.$selectedObjetivoIdChange.next({ objetivoId: this.selectedObjetivoId(), periodo: this.selectedPeriod });
         } catch (error) {
 
         }
@@ -725,7 +721,8 @@ export class CargaAsistenciaComponent {
         try {
             await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId()))
         } catch (_e) { }
-        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId())
+        this.$selectedObjetivoIdChange.next({ objetivoId: this.selectedObjetivoId(), periodo: this.selectedPeriod });
+
     }
     async setValFact(e: any) {
         if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine || !this.carasistForm.form.get('Observaciones')?.pristine) {
