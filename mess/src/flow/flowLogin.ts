@@ -42,7 +42,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const telefono = ctx.from
+            const telefono = (process.env.CHAT_ID_TEST)? process.env.CHAT_ID_TEST: ctx.from
 
             const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)
             await state.update(stateData)
@@ -120,7 +120,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         start(ctx, gotoFlow, botServer.globalTimeOutMs)
 
 
-        const telefono = ctx.from
+        const telefono = (process.env.CHAT_ID_TEST)? process.env.CHAT_ID_TEST: ctx.from
         await flowDynamic(`🙌 Bienvenido al área de consultas de la Cooperativa Lince Seguridad.`, { delay: delay })
 
         const { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo } = await personalController.getPersonaState(telefono)

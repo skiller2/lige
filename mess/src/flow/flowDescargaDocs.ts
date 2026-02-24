@@ -57,7 +57,7 @@ export const flowDescargaDocs = addKeyword(EVENTS.ACTION)
                 }
 
             } else {
-                if (process.env.PERSONALID_TEST) {
+                if (process.env.CHAT_ID_TEST) {
                     return gotoFlow(flowConsNovedadPendiente)
                 }
                 return stop(ctx, gotoFlow, state)

@@ -181,11 +181,6 @@ export class PersonalController extends BaseController {
     let firstName = ""
     let codigo = 0
     //force
-    /*
-    if (process.env.PERSONALID_TEST) {
-      res.length = 0
-      res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, PersonalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
-    }*/
 
     if (res.length) {
       stateData = { personalId: res[0].PersonalId, cuit: res[0].cuit, codigo: res[0].codigo, name: res[0].name.trim() }
