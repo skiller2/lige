@@ -13,11 +13,12 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-drawer/producto-historial-drawer.component'
-import { Component, model, signal, inject, computed } from '@angular/core';
+import { Component, model, signal, inject, computed, resource } from '@angular/core';
 import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
 import { ProductosImportacionMasivaComponent } from '../productos-importacion-masiva/productos-importacion-masiva';
 import { Selections } from 'src/app/shared/schemas/filtro';
 import { PeriodoSelectComponent } from 'src/app/shared/periodo-select/periodo-select.component';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-precios-productos',
@@ -38,21 +39,20 @@ export class PreciosProductosComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
-  formChange$ = new BehaviorSubject('')
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
   visibleHistorial = model<boolean>(false)
-  listPrecios$ = new BehaviorSubject('')
   editProducto = signal<{ codigo: string }[]>([])
   precioVentaId = signal<{ codigo: string }[]>([])
   periodo = signal(new Date())
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  })
+  refreshGrid = model<number>(0)
   startFilters: Selections[] = []
   selectedRows = signal<number[]>([])
   loadingDel = signal(false)
@@ -68,104 +68,100 @@ export class PreciosProductosComponent {
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
 
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listPrecios$.next('')
-  }
-
   refreshList(){
-    this.listPrecios$.next('')
+    const num = this.refreshGrid()+1
+    this.refreshGrid.set(num)
   }
 
-  columns$ = this.apiService.getCols('/api/productos/cols-precios').pipe(
-    switchMap(async (cols) => {
-      const productos = await firstValueFrom(this.searchService.getProductos());
-      return { cols, productos }
-    }),
-    map((data) => {
-      let mapped = data.cols.map((col: Column) => {
-        if ((col as any).showGridColumn === false) {
-          this.hiddenColumnIds.push(col.id as string)
+  columns = toSignal( 
+    this.apiService.getCols('/api/productos/cols-precios').pipe(
+      switchMap(async (cols) => {
+        const productos = await firstValueFrom(this.searchService.getProductos());
+        return { cols, productos }
+      }),
+      map((data) => {
+        let mapped = data.cols.map((col: Column) => {
+          if ((col as any).showGridColumn === false) {
+            this.hiddenColumnIds.push(col.id as string)
+          }
+          switch (col.id) {
+            case 'ProductoCodigo':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                collection: data.productos,
+              }
+
+              break
+            case 'Cliente':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: EditorClienteComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                complexFieldLabel: 'Cliente.fullName',
+              }
+
+              break
+            case 'PeriodoDesdeAplica':
+              col.formatter = Formatters['date']
+              col.editor = {
+                model: CustomInputEditor,
+                // collection: [],
+                params: {
+                  component: PeriodoSelectComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = { dateFormat: 'YYYY-MM' } 
+
+              break
+            default:
+              break;
+          }
+          return col
+        });
+        return mapped
+    }))
+    , { initialValue: [] as Column[] }
+  )
+
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshGrid() }),
+    loader: async (params:any) => {
+      const response = await firstValueFrom(this.searchService.getListaPrecioProductos({options: params.options, anio: this.anio(), mes: this.mes()}));
+      
+      //Crea una fila vacia al final de la lista
+      const newId = response.list.length + 1
+      response.list.push(
+        {
+          id: newId.toString(),
+          ClienteFacturacionCUIT: null,
+          Cliente: {},
+          ProductoCodigo: '',
+          Importe: null,
+          PeriodoDesdeAplica: new Date(this.anio(),this.mes()-1,1,0,0,0,0),
         }
-        switch (col.id) {
-          case 'ProductoCodigo':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.productos,
-            }
+      )
 
-            break
-          case 'Cliente':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: EditorClienteComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              complexFieldLabel: 'Cliente.fullName',
-            }
-
-            break
-          case 'PeriodoDesdeAplica':
-            col.formatter = Formatters['date']
-            // col.editor = {
-            //   model: CustomInputEditor,
-            //   collection: [],
-            //   params: {
-            //     component: PeriodoSelectComponent,
-            //   },
-            //   alwaysSaveOnEnterKey: true,
-            //   required: true
-            // }
-            col.params = { dateFormat: 'YYYY-MM' } 
-
-            break
-          default:
-            break;
-        }
-        return col
-      });
-      return mapped
-    })
-  );
-
-  gridData$ = this.listPrecios$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListaPrecioProductos({ options: this.listOptions, anio:this.anio(), mes:this.mes() })
-        .pipe(map(data => {
-          
-          //Crea una fila vacia al final de la lista
-          const newId = data.list.length + 1
-          data.list.push(
-            {
-              id: newId.toString(),
-              ClienteFacturacionCUIT: null,
-              Cliente: {},
-              ProductoCodigo: '',
-              Importe: null,
-              PeriodoDesdeAplica: new Date(this.anio(),this.mes()-1,1,0,0,0,0),
-            }
-          )
-
-          return data.list
-        })
-        )
-    })
-  );
-
+      return response.list;
+    },
+    defaultValue:[]
+  });
+  
   async ngOnInit() {
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -210,12 +206,10 @@ export class PreciosProductosComponent {
         if (!row.dbid)
           this.rowLocked = true
 
-        const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
+        await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
         
-        // if (response.data?.action === 'I') {
-          this.angularGridEdit.slickGrid.setSelectedRows([]);
-          this.listPrecios$.next('')
-        // }
+        this.angularGridEdit.slickGrid.setSelectedRows([])
+        this.gridData.isLoading()
 
         this.rowLocked = false
       } catch (e: any) {
@@ -276,7 +270,7 @@ export class PreciosProductosComponent {
     try {
       await firstValueFrom(this.apiService.deleteProductos({list:registros, length:registros.length}))
       this.angularGridEdit.slickGrid.setSelectedRows([]);
-      this.listPrecios$.next('')
+      this.gridData.reload()
     } catch (error) {
       
     }

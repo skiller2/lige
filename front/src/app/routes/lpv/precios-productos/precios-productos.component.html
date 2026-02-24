@@ -54,12 +54,13 @@
   <nz-tab>
     <a nz-tab-link routerLink="/lpv/precios_productos/precios" >{{ 'app.precios' | i18n }}</a>
 
-    @if ((columns$|async); as columnas) {
+    @if (columns().length) {
       <ng-template nz-tab>
-        <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+        <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters" 
+        [keyLocalstorage]="constructor.name" [(options)]="listOptions" />
         <div class="gridContainer2 container-fluid">
-          <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter"
-            [options]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
+          <angular-slickgrid gridId="gridEdit" [columns]="columns()  | colsFilter"
+            [options]="gridOptionsEdit" [dataset]="gridData.value() || []"
             (onAngularGridCreated)="angularGridReadyEdit($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
             >
