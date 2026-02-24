@@ -2,7 +2,7 @@
   #picker
   nzMode="month"
   nzFormat="YYYY-MM"
-  [ngModel]="selectedDate()"
+  [(ngModel)]="selectedDate"
   (ngModelChange)="onChange($event)"
   style="width: 100%;"
 ></nz-date-picker>

@@ -6,6 +6,7 @@ import type { Options } from "../schemas/filtro.ts";
 import xlsx from 'node-xlsx';
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 
 export class PreciosProductosController extends BaseController {
 
@@ -276,12 +277,15 @@ export class PreciosProductosController extends BaseController {
                 //Validar que el precio del producto no fue facturado
                 const anio = PeriodoDesdeAplicaOLD.getFullYear()
                 const mes = PeriodoDesdeAplicaOLD.getMonth()+1
+
                 const checkComprobante = await queryRunner.query(`
                     SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
                 `, [ProductoCodigoOLD, ClienteIdOLD, anio, mes])
-                const checkPeriodo = await this.getPeriodoQuery(queryRunner , PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1)
+
+                const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
+                const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
                 
-                if (!checkComprobante.length && !checkPeriodo[0]?.ind_recibos_generados) {
+                if (!checkComprobante.length && !getRecibosGenerados[0]?.ind_recibos_generados) {
                     await queryRunner.query(`
                         UPDATE ProductoPrecio SET 
                             ProductoCodigo = @3, 
@@ -318,8 +322,12 @@ export class PreciosProductosController extends BaseController {
                 message = "Carga de nuevo Registro exitoso"
 
             }
-            const checkPeriodo = await this.getPeriodoQuery(queryRunner, PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1)
-            if (checkPeriodo[0]?.ind_recibos_generados == 1) throw new ClientException('No se puede crear un precio en un periodo ya cerrado')
+            const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
+            const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+
+            if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
+                throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
+            }
 
             const checkNewCodigo = await queryRunner.query(`
                 SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
@@ -659,10 +667,13 @@ export class PreciosProductosController extends BaseController {
             await queryRunner.startTransaction();
 
             //Valida que el período no tenga el indicador de recibos generado
-            const checkrecibos = await this.getPeriodoQuery(queryRunner, anioRequest, mesRequest)
-            if (checkrecibos[0]?.ind_recibos_generados == 1)
-                throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+            const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anioRequest, mesRequest, usuario, ip)
+            const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
 
+            if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
+                throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+            }
+            
             const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
             const sheet1 = workSheetsFromBuffer[0];
             const columnsName: Array<string> = sheet1.data[0]
