@@ -69,8 +69,8 @@
             [options]="gridOptionsEdit" [dataset]="gridData.value() || []"
             (onAngularGridCreated)="angularGridReadyEdit($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
-            >
-            <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
+            (onBeforeEditCell)="handleOnBeforeEditCell($event)"
+          >
           </angular-slickgrid>
         </div>
       </ng-template>

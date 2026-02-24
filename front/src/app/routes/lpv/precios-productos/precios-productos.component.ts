@@ -380,4 +380,17 @@ export class PreciosProductosComponent {
       return meta;
     };
   }
+  
+  handleOnBeforeEditCell(e: Event) {
+    const { column, item, grid } = (<CustomEvent>e).detail.args
+    
+    if (!item.idTable?.length)
+      return true
+
+    if (column.id == 'Importe')
+      return true
+
+    e.stopImmediatePropagation();
+    return false;
+  }
 }

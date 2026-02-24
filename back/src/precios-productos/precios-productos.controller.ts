@@ -287,31 +287,23 @@ export class PreciosProductosController extends BaseController {
                 const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
                 
                 if (!checkComprobante.length && !getRecibosGenerados[0]?.ind_recibos_generados) {
-                    await queryRunner.query(`
-                        UPDATE ProductoPrecio SET 
-                            ProductoCodigo = @3, 
-                            ClienteId = @4,
-                            PeriodoDesdeAplica = @5,
-                            Importe = @6,
-                            AudFechaMod = @7,
-                            AudUsuarioMod = @8,
-                            AudIpMod = @9
-                        WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
-                    `, [
-                        ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
-                        ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
-                    ])
-                }else{
-                    let fechaHabil = await queryRunner.query(`
-                        SELECT anio, mes
-                        FROM lige.dbo.liqmaperiodo
-                        WHERE ind_recibos_generados IN (0) AND anio >= @0 AND mes >= @1
-                        ORDER BY anio, mes
-                    `, [fechaActual.getFullYear(), fechaActual.getMonth()+1])
                     
-                    if (fechaHabil.length) PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
-                    else PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
+                    await this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
+                
+                }else{
+                    // Busca el periodo mas cercano que aun no se genero los recibos
 
+                    // let fechaHabil = await queryRunner.query(`
+                    //     SELECT anio, mes
+                    //     FROM lige.dbo.liqmaperiodo
+                    //     WHERE ind_recibos_generados IN (0) AND anio >= @0 AND mes >= @1
+                    //     ORDER BY anio, mes
+                    // `, [fechaActual.getFullYear(), fechaActual.getMonth()+1])
+                    
+                    // if (fechaHabil.length) PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
+                    // else PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
+
+                    throw new ClientException('No se puede modificar registros ya facturados')
                 }
 
                 dataResultado = {action:'U'}
@@ -319,15 +311,16 @@ export class PreciosProductosController extends BaseController {
               
             } else {  //Es un nuevo registro de ProductoPrecio
 
+                const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
+                const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+
+                if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
+                    throw new ClientException(`No se puede agregar un precio en un periodo con recibos generados.`)
+                }
+
                 dataResultado = {action:'I'}
                 message = "Carga de nuevo Registro exitoso"
 
-            }
-            const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
-            const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
-
-            if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
-                throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
             }
 
             const checkNewCodigo = await queryRunner.query(`
