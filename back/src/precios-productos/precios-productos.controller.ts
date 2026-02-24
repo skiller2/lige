@@ -806,6 +806,39 @@ export class PreciosProductosController extends BaseController {
             await queryRunner.release();
         }
     }
+
+    async getImportacionesPreciosAnteriores(req: any, res: Response, next: NextFunction) {
+        const anio = req.params.anio
+        const mes = req.params.mes
+        const queryRunner = dataSource.createQueryRunner()
+
+        try {
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
+
+        const importacionesDescuentosAnteriores = await queryRunner.query(
+            `SELECT doc.DocumentoId, DocumentoTipoCodigo, doc.DocumentoAnio,doc.DocumentoMes, doc.DocumentoDenominadorDocumento, FORMAT(DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng
+            FROM documento doc
+            WHERE doc.DocumentoAnio = @0 AND doc.DocumentoMes = @1 AND doc.DocumentoTipoCodigo = 'PRO'`,
+            [Number(anio), Number(mes)])
+
+        this.jsonRes(
+            {
+            total: importacionesDescuentosAnteriores.length,
+            list: importacionesDescuentosAnteriores,
+            },
+
+            res
+        );
+        await queryRunner.commitTransaction()
+
+        } catch (error) {
+        await queryRunner.rollbackTransaction()
+        return next(error)
+        } finally {
+        await queryRunner.release()
+        }
+    }
  
 }
 

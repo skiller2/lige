@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, ChangeDetectionStrategy, resource } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -98,7 +98,17 @@ export class ProductosImportacionMasivaComponent {
     },
   ]
 
-    // $importacionesAnteriores = this.formChange$.pipe(
+  importacionesAnteriores = resource({
+    params: () => ({ anio: this.anio(), mes: this.mes() }),
+    loader: async () => {
+      const response = await firstValueFrom(this.apiService.getImportacionesPreciosProductosAnteriores(this.anio(), this.mes()));
+
+      return response.list;
+    },
+    defaultValue: []
+  });
+
+    // importacionesAnteriores = this.formChange$.pipe(
     //   debounceTime(500),
     //   switchMap(() => {
     //     return this.apiService
@@ -142,55 +152,55 @@ export class ProductosImportacionMasivaComponent {
     });
   }
 
-    ProductoCodigo():string {
-        const value = this.formAltaProd.get("ProductoCodigo")?.value
-        if (value && value.length) {
-          return value
-        }
-        return ''
-    }
+  ProductoCodigo():string {
+      const value = this.formAltaProd.get("ProductoCodigo")?.value
+      if (value && value.length) {
+        return value
+      }
+      return ''
+  }
 
-    uploadChange(event: any) {
-        switch (event.type) {
-          case 'start':
-            this.loadingSrv.open({ type: 'spin', text: '' })
-            this.uploading$.next({ loading: true, event })
-            this.gridDataImport$.next([])
-            this.gridDataImportLen = 0
-            
-            break;
-          case 'progress':
-    
-            break;
-          case 'error':
-            const Error = event.file.error
-            if (Error.error.data?.list) {
-              this.gridDataImport$.next(Error.error.data?.list)
-              this.gridDataImportLen = Error.error.data?.list?.length
-            }
-            this.uploading$.next({ loading:false,event })
-            this.loadingSrv.close()
-            break;
-          case 'success':
-            const Response = event.file.response
-            this.gridDataImport$.next([])
-            this.gridDataImportLen = 0
-            this.uploading$.next({ loading: false, event })
-            this.loadingSrv.close()
-            this.apiService.response(Response)        
-            break
-          default:
-            break;
+  uploadChange(event: any) {
+    switch (event.type) {
+      case 'start':
+        this.loadingSrv.open({ type: 'spin', text: '' })
+        this.uploading$.next({ loading: true, event })
+        this.gridDataImport$.next([])
+        this.gridDataImportLen = 0
+        
+        break;
+      case 'progress':
+
+        break;
+      case 'error':
+        const Error = event.file.error
+        if (Error.error.data?.list) {
+          this.gridDataImport$.next(Error.error.data?.list)
+          this.gridDataImportLen = Error.error.data?.list?.length
         }
-    
+        this.uploading$.next({ loading:false,event })
+        this.loadingSrv.close()
+        break;
+      case 'success':
+        const Response = event.file.response
+        this.gridDataImport$.next([])
+        this.gridDataImportLen = 0
+        this.uploading$.next({ loading: false, event })
+        this.loadingSrv.close()
+        this.apiService.response(Response)        
+        break
+      default:
+        break;
     }
   
+  }
+  
 
-    async angularGridReady(angularGrid: any) {
-      // this.angularGrid = angularGrid.detail
-      // this.gridData = angularGrid.dataView
+  async angularGridReady(angularGrid: any) {
+    // this.angularGrid = angularGrid.detail
+    // this.gridData = angularGrid.dataView
 
-      // if (this.apiService.isMobile())
-      //     this.angularGrid.gridService.hideColumnByIds([])
-    }
+    // if (this.apiService.isMobile())
+    //     this.angularGrid.gridService.hideColumnByIds([])
+  }
 }

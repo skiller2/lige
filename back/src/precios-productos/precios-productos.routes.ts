@@ -32,6 +32,10 @@ preciosProductosRouter.post('/delete', [authMiddleware.verifyToken,authMiddlewar
   preciosProductosController.deleteProductos(req, res, next)
 })
 
-preciosProductosRouter.post("/import-xls-precios", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
+preciosProductosRouter.get("/importaciones_anteriores/:anio/:mes", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    preciosProductosController.getImportacionesPreciosAnteriores(req, res, next);
+});
+
+preciosProductosRouter.post("/import-xls-precios", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     preciosProductosController.handleXLSUpload(req, res, next);
 });
