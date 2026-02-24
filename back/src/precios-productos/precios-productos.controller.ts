@@ -173,10 +173,10 @@ export class PreciosProductosController extends BaseController {
                     pp.Importe,
                     pp.Importe AS ImporteOLD,
                     --pp.ImportDocumentoId,
-                    --pp.AudFechaIng,
-                    --pp.AudUsuarioIng,
-                    --pp.AudFechaMod,
-                    --pp.AudUsuarioMod,
+                    pp.AudFechaIng,
+                    pp.AudUsuarioIng,
+                    pp.AudFechaMod,
+                    pp.AudUsuarioMod,
 
                     --p.Nombre,
                     --p.ProductoTipoCodigo,
@@ -187,7 +187,7 @@ export class PreciosProductosController extends BaseController {
                 LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
 
                 LEFT JOIN ProductoPrecio pp ON p.ProductoCodigo=pp.ProductoCodigo AND pp.PeriodoDesdeAplica=(
-                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1))
+                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo)
 
                 JOIN Cliente c on pp.ClienteId = c.ClienteId
                 LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1) AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)
