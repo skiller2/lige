@@ -117,7 +117,8 @@ export class TableCondicionVentaComponent implements OnInit {
     loader: async () => {
       const response = await firstValueFrom(this.apiService.getListCondicionesVenta(this.listOptions(), this.periodo()));
       return response.list;
-    }
+    },
+    defaultValue:[]
   }).value;
 
   ngOnInit(): void {
