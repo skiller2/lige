@@ -257,6 +257,10 @@ export class PreciosProductosController extends BaseController {
         const Importe = Number(req.body.Importe)
         const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica)
 
+        // instanciar el primer dia del mes
+        PeriodoDesdeAplica.setDate(1)
+        PeriodoDesdeAplica.setHours(0,0,0,0)
+
         const fechaActual = new Date()
         fechaActual.setHours(0,0,0,0)
 

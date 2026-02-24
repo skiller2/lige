@@ -340,9 +340,9 @@ export class CondicionesVentaController extends BaseController {
             const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
             const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
 
-            if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
-                throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
-            }
+            // if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
+            //     throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
+            // }
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
             let FechaActual = new Date()
 
@@ -719,9 +719,9 @@ export class CondicionesVentaController extends BaseController {
             const mes = PeriodoDesdeAplica.getMonth() + 1
             const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
             const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
-            if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
-                throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
-            }
+            // if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
+            //     throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
+            // }
 
             let FechaActual = new Date()
             const PeriodoFacturacionInicio = condicionVenta.PeriodoFacturacionInicio ? new Date(condicionVenta.PeriodoFacturacionInicio) : null;
