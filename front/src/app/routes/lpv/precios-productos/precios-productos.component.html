@@ -9,25 +9,31 @@
 
     <div class="derecha">
       <nz-button-group nz-button nzButtonGroup style="text-align: right;">
-        <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-        <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-      </a> -->
-      <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-        <span nz-icon nzType="plus" nzTheme="outline"></span>
-      </button>
-      <button nz-button nzType="default" [disabled]=" selectedRows().length == 0" [nzLoading]="loadingDel()"
-        nz-popconfirm nzPopconfirmTitle="Eliminar {{selectedRows().length}} registros?" (nzOnConfirm)="deleteItem()"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-        <span nz-icon nzType="delete" nzTheme="outline"></span>
-      </button>
-      <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]=" editProducto().length == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
-      nzTheme="outline"></span></button> -->
-    </nz-button-group>
+        <button nz-button nzType="default" (click)="refreshList()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+        [disabled]="gridData.isLoading()">
+          <span nz-icon nzType="reload" nzTheme="outline"></span>
+        </button>
+        <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <span nz-icon nzType="plus" nzTheme="outline"></span>
+        </button>
+          <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+          <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        </a> -->
+        <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <span nz-icon nzType="plus" nzTheme="outline"></span>
+        </button>
+        <button nz-button nzType="default" [disabled]=" selectedRows().length == 0" [nzLoading]="loadingDel()"
+          nz-popconfirm nzPopconfirmTitle="Eliminar {{selectedRows().length}} registros?" (nzOnConfirm)="deleteItem()"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
+        <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]=" editProducto().length == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button> -->
+      </nz-button-group>
+    </div>
 
   </div>
-
-</div>
 
 <div nz-row class="contentStyle">
   <div nz-col nzSpan="13" class="listStyle">

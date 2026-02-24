@@ -52,7 +52,6 @@ export class PreciosProductosComponent {
     filtros: [],
     sort: null,
   })
-  refreshGrid = model<number>(0)
   startFilters: Selections[] = []
   selectedRows = signal<number[]>([])
   loadingDel = signal(false)
@@ -69,8 +68,7 @@ export class PreciosProductosComponent {
   rowLocked: boolean = false;
 
   refreshList(){
-    const num = this.refreshGrid()+1
-    this.refreshGrid.set(num)
+    this.gridData.reload()
   }
 
   columns = toSignal( 
@@ -117,15 +115,15 @@ export class PreciosProductosComponent {
               break
             case 'PeriodoDesdeAplica':
               col.formatter = Formatters['date']
-              col.editor = {
-                model: CustomInputEditor,
-                // collection: [],
-                params: {
-                  component: PeriodoSelectComponent,
-                },
-                alwaysSaveOnEnterKey: true,
-                required: true
-              }
+              // col.editor = {
+              //   model: CustomInputEditor,
+              //   // collection: [],
+              //   params: {
+              //     component: PeriodoSelectComponent,
+              //   },
+              //   alwaysSaveOnEnterKey: true,
+              //   required: true
+              // }
               col.params = { dateFormat: 'YYYY-MM' } 
 
               break
@@ -140,7 +138,7 @@ export class PreciosProductosComponent {
   )
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshGrid() }),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
     loader: async (params:any) => {
       const response = await firstValueFrom(this.searchService.getListaPrecioProductos({options: params.options, anio: this.anio(), mes: this.mes()}));
       
