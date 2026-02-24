@@ -191,7 +191,7 @@ export class PreciosProductosController extends BaseController {
                         SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo)
 
                 JOIN Cliente c on pp.ClienteId = c.ClienteId
-                LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1) AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)
+                LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde = (Select max(ClienteFacturacionDesde) from ClienteFacturacion fac where fac.ClienteId = c.ClienteId)
                 WHERE ${filterSql}`, [anio, mes])
 
             const formattedData = precios.map((item: any) => ({
