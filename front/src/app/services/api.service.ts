@@ -1023,6 +1023,16 @@ export class ApiService {
 
   }
 
+  getImportacionesPreciosProductosAnteriores(anio: number, mes: number) {
+    return this.http.get(`/api/productos/importaciones_anteriores/${anio}/${mes}`).pipe(
+      map((res: any) => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   onchangecellGrupoActividadGrupo(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/changecellgrupo', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))

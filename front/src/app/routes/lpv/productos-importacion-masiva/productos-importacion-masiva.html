@@ -20,20 +20,20 @@
      
     </nz-form-item>
 
-    <!-- <nz-form-item>
+    <nz-form-item>
       <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
       <nz-form-control>
-        <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
+        <ng-container *ngFor="let movimiento of importacionesAnteriores.value() || []">
           <div  class="containerAnterioresDescuentos" nz-tooltip nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
              <ng-container>
-                <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
-                <span nz-icon nzType="download" ></span></a>
+                <a app-down-file httpUrl="api/file-upload/downloadFile/{{movimiento.DocumentoId}}/Documento/original">
+                <span nz-icon nzType="download"></span></a>
               </ng-container>
             <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
           </div>
         </ng-container>
       </nz-form-control>
-    </nz-form-item> -->
+    </nz-form-item>
   </form>
 
   <div nz-tab>
