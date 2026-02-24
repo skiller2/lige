@@ -116,40 +116,24 @@ export class PreciosProductosComponent {
 
               break
             case 'PeriodoDesdeAplica':
-              //col.formatter = Formatters['date']
-              col.editor = {
-                model: DateEditor,
-                onInstantiated: (instance: any) => {
-                  const cal = instance as Calendar
-/*
-                  cal.set({
-                    type: 'month',
-                    selectionMonthsMode: true,
-                    selectionDatesMode: undefined,
-                  })
-//cal.onClickTitle
-                  cal.onClickMonth =
-                    (cal: Calendar, event) => {
+              col.formatter = Formatters['date']
 
-                      // data.month = 0..11 ; data.year = YYYY
-                      //      const m = String(cal.month + 1).padStart(2, '0');
-                      //    this.input.value = `${data.year}-${m}`;
+              if (col.editor) {
+                col.editor.onInstantiated = (instance: any) => {
+                const cal = instance as Calendar
+                const inputEl: HTMLInputElement = instance?.context.inputElement
 
+                cal.set({
+                  type: 'month',
+                })
 
-                  
-                      const y = (cal as any).year ?? new Date().getFullYear();
-                      const m0 = (cal as any).month ?? new Date().getMonth(); // 0..11
-                      const mm = String(m0 + 1).padStart(2, '0');
-                      console.log('clicked', cal.selectedYear)
-
-                      // 👇 Forzar cierre del calendario
-                      cal.hide()
-                    }
-*/
-
-                  console.log('editor', this);
-                },
-                options: { type: 'month' } as VanillaCalendarOption
+                cal.onClickMonth =
+                  (cal: Calendar, event) => {
+                    const mm = String(cal.context.selectedMonth + 1).padStart(2, '0');
+                    inputEl.value = `${cal.context.selectedYear}-${mm}-1`;
+                    cal.hide()
+                  }
+                }
               }
               col.params = { dateFormat: 'MM-YYYY' }
 
@@ -380,10 +364,10 @@ export class PreciosProductosComponent {
       return meta;
     };
   }
-  
+
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args
-    
+
     if (!item.idTable?.length)
       return true
 
