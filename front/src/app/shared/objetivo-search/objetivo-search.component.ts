@@ -35,7 +35,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
 
   @Input() sucursalId: number | null = null;
   @Input() valueExtended: any
-  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>(true)
   @ViewChild("osc") osc!: NzSelectComponent
 
 
@@ -69,7 +69,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   ngOnDestroy() { 
-    this.osc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+    this.osc?.originElement.nativeElement.removeEventListener('keydown', this.keydownHandler)
   }
 
   onKeydown(event: KeyboardEvent) {
@@ -79,9 +79,11 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
 
+  private keydownHandler = (e: KeyboardEvent) => this.onKeydown(e);
+
   ngAfterViewInit() {
     setTimeout(() => {
-      this.osc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.osc.originElement.nativeElement.addEventListener('keydown', this.keydownHandler);
 
       // this.osc.focus() //Al hacer click en el componente hace foco
     }, 1);
@@ -109,8 +111,12 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
       if (!this._selectedId && this._selectedId !== null) {
         this._selected = ''
         this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
-        this.valueExtendedEmitter.emit(null)
-        if (shouldPropagate) this.propagateChange(this._selectedId)
+        //this.valueExtendedEmitter.emit(null)
+        if (shouldPropagate) 
+          this.valueExtendedEmitter.emit(null)
+
+        this.propagateChange(this._selectedId)
+        
         return
       }
       firstValueFrom(
@@ -119,8 +125,11 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
           .pipe(tap(res => {
             this.extendedOption = res
             this._selected = this._selectedId
-            this.valueExtendedEmitter.emit(this.extendedOption)
-            if (shouldPropagate) this.propagateChange(this._selectedId)
+            if (shouldPropagate)
+              this.valueExtendedEmitter.emit(this.extendedOption)
+              
+              this.propagateChange(this._selectedId)
+
           }))
       )
     }

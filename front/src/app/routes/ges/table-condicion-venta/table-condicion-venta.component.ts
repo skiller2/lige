@@ -7,7 +7,8 @@ import {
   effect,
   signal,
   resource,
-  computed
+  computed,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -35,6 +36,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { Selections } from 'src/app/shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-table-condicion-venta',
@@ -47,16 +49,8 @@ import { Selections } from 'src/app/shared/schemas/filtro';
 })
 export class TableCondicionVentaComponent implements OnInit {
 
-  // Trigger para recargar la grilla
-  // Se emite cada vez que hay cambios de filtros o refresh externo
-  formChange$ = new BehaviorSubject('refresh');
-  // Estado de loading de la tabla
-  tableLoading$ = new BehaviorSubject<boolean>(false);
-
-  // signal desde el padre
   // Se usa para forzar el refresh de la grilla
   refreshCondVenta = model<number>(0)
-
 
   // Grid (Angular SlickGrid)
   angularGrid!: AngularGridInstance;
@@ -64,12 +58,8 @@ export class TableCondicionVentaComponent implements OnInit {
   gridOptions!: GridOption;
   readonly detailViewRowCount = 11;
 
-  
   // Exportación a Excel
   excelExportService = new ExcelExportService();
-
-  // Data actual de la grilla
-  dataAngularGrid: [] = [];
 
   // Período seleccionado (input signal)
   periodo = input<Date>();
@@ -87,83 +77,49 @@ export class TableCondicionVentaComponent implements OnInit {
   startFilters = signal<Selections[]>([])
 
   // Filtros y orden de la grilla
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null
-  };
+  })
 
   // IDs de columnas ocultas
   hiddenColumnIds: string[] = [];
 
-  constructor(
-    private apiService: ApiService,
-    public angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) { }
-
-  // Effect que escucha el refresh desde el padre
-  // Cuando RefreshCondVenta pasa a true, limpia filtros y recarga la grilla
-  /*private refreshEffect = effect(() => {
-    
-    if (this.RefreshCondVenta()) {
-      console.log(' Recargando grilla');
-      this.listOptions.filtros = [];
-      this.RefreshCondVenta.set(false);
-      this.formChange$.next('refresh');
-    }
-
-    if (this.periodo()) {
-      this.listOptions.filtros = [];
-      this.updateStartFiltersFromPeriodo(this.periodo()!);
-      this.formChange$.next('refresh');
-    }
-  });*/
+  private apiService = inject(ApiService)
+  public angularUtilService = inject(AngularUtilService)
+  public searchService = inject(SearchService)
 
   // Columnas de la grilla (configuradas desde backend)
+  columns = toSignal(
+    this.apiService.getCols('/api/condiciones-venta/cols').pipe(
+      map((cols) => {
+        // Guardar IDs de columnas que tienen showGridColumn: false
+        this.hiddenColumnIds = cols
+          .filter((col: any) => col.showGridColumn === false)
+          .map((col: Column) => col.id as string);
 
-  columns = resource({
-    params: () => ({}),
-    loader: async () => {
-      const response = await this.apiService.getCols('/api/condiciones-venta/cols').pipe(
-        map((cols) => {
-          // Guardar IDs de columnas que tienen showGridColumn: false
-          this.hiddenColumnIds = cols
-            .filter((col: any) => col.showGridColumn === false)
-            .map((col: Column) => col.id as string);
+        // Agregar formatter para PeriodoFacturacion
+        const periodoFacturacionCol = cols.find((col: Column) => col.id === 'PeriodoFacturacion');
+        if (periodoFacturacionCol) {
+          periodoFacturacionCol.formatter = (_row: number, _cell: number, value: any) => {
+            if (!value) return '';
+            const parsed = parsePeriod(value);
+            return parsed ? periodToText(parsed) : value;
+          };
+        }
 
-          // Agregar formatter para PeriodoFacturacion
-          const periodoFacturacionCol = cols.find((col: Column) => col.id === 'PeriodoFacturacion');
-          if (periodoFacturacionCol) {
-            periodoFacturacionCol.formatter = (_row: number, _cell: number, value: any) => {
-              if (!value) return '';
-              const parsed = parsePeriod(value);
-              return parsed ? periodToText(parsed) : value;
-            };
-          }
+        return cols;
+      }))
+    , { initialValue: [] as Column[] })
 
-          return cols;
-        })
-      );
-      return response;
-    }
-  });
-
-  columnsData = computed(() => this.columns.value())
-
-  // Data source de la grilla
-  // Cada vez que formChange$ emite → se vuelve a pedir la data
   gridData = resource({
-    params: () => ({ options: this.listOptions, periodo: this.periodo(), refresh: this.refreshCondVenta()}),
-    loader: async () => {
-      //console.log("voy a refrescar la grilla")
-      const response = await firstValueFrom(this.apiService.setListCondicionesVenta(this.listOptions, this.periodo()));
-      this.dataAngularGrid = response.list;
+    params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshCondVenta() }),
+    loader: async (params:any) => {
+      const response = await firstValueFrom(this.apiService.getListCondicionesVenta(params.options, this.periodo()));
       return response.list;
-    }
-  });
-
-  data = computed(() => this.gridData.value())
-
+    },
+    defaultValue:[]
+  }).value;
 
   ngOnInit(): void {
     this.initializeGridOptions();
@@ -186,9 +142,9 @@ export class TableCondicionVentaComponent implements OnInit {
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
     this.gridOptions.enableCheckboxSelector = true
-        this.gridOptions.selectionOptions = {
-            selectActiveRow: false
-        }
+    this.gridOptions.selectionOptions = {
+      selectActiveRow: false
+    }
 
     // Filtros iniciales: desde <= último día del periodo, hasta >= primer día del periodo
     this.updateStartFiltersFromPeriodo(this.periodo());
@@ -202,13 +158,6 @@ export class TableCondicionVentaComponent implements OnInit {
       { index: 'ClienteElementoDependienteContratoFechaDesde', condition: 'AND', operator: '<=', value: lastDay, closeable: true },
       { index: 'ClienteElementoDependienteContratoFechaHasta', condition: 'AND', operator: '>=', value: firstDay, closeable: true }
     ]);
-  }
-
-  // Cambio de filtros desde el componente de filtros
-  listOptionsChange(options: any): void {
-    this.listOptions = options;
-    //this.formChange$.next('filters');
-    this.refreshCondVenta.update(v => v + 1)
   }
 
   // Evento cuando la grilla está lista

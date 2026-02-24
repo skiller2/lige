@@ -20,7 +20,7 @@
           <nz-form-control>
             <nz-space-compact nzBlock>
               <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo" ngModel
+                (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel
                 style="width: 90%;" />
               <button nz-button nzType="default" (click)="formChange('', Busqueda.Objetivo)"><span nz-icon
                   nzType="reload" nzTheme="outline" nz-tooltip
@@ -33,9 +33,9 @@
         <nz-form-item>
           <nz-form-label>Contrato</nz-form-label>
           <nz-form-control>
-            @if (contratos.length==0 && selectedObjetivoId>0) { <nz-alert nzShowIcon nzType="error"
+            @if (contratos.length==0 && selectedObjetivoId()>0) { <nz-alert nzShowIcon nzType="error"
               nzMessage="Sin contrato" class="app-small"></nz-alert> }
-            @for (contrato of contratos; track contrato) {
+            @for (contrato of contratos; track contrato.ContratoFechaHasta) {
             <li>@if (!contrato.ContratoFechaHasta) {
               <span>Desde</span>
               } {{contrato.ContratoFechaDesde |
@@ -51,7 +51,7 @@
 
       </div>
       <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="3" style="text-align:right;">
-        @if (selectedObjetivoId>0) {
+        @if (selectedObjetivoId()>0) {
         <nz-space-compact>
           <div><button nz-button nzType="default" (nzOnConfirm)="eliminaGrilla()" nz-popconfirm
             nzPopconfirmTitle="Elimino toda la carga?" [disabled]="isLoadingCheck()"><span nz-icon
@@ -62,7 +62,7 @@
             'app.btn.name.xls' | i18n }}</button></div>
           }
           <div><button nz-button nzType="default"
-            [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}]"><span nz-icon
+            [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId()}]"><span nz-icon
               nzType="right" nzTheme="outline"></span>{{ 'app.btn.exception' | i18n }}</button></div>
           @if (gridDataInsert.length <= 1 && gridOptionsEdit.editable) { 
             <div><button nz-button nzType="default"
@@ -84,7 +84,7 @@
               [disabled]="isLoadingCheck()"><span nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading'
               | i18n }} </button></div>
             }
-            @if (selectedObjetivoId == 1102 && gridOptionsEdit.editable) {
+            @if (selectedObjetivoId() == 1102 && gridOptionsEdit.editable) {
             <div><button nz-button nzType="default" nz-popconfirm [disabled]="controlAccesoDisabled()"
               nzPopconfirmTitle="Leo registros desde el reloj de asistencia?" (nzOnConfirm)="leerControlAcceso()"
               nz-tooltip nzTooltipTitle="{{'app.btn.control.acceso' | i18n }}"><span nz-icon nzType="copy"
@@ -96,7 +96,7 @@
                   <span nz-icon nzType="download" nzTheme="outline"></span>
                 </button>
               </span> -->
-            @if (selectedObjetivoId == 1102) {
+            @if (selectedObjetivoId() == 1102) {
             <div><button nz-tooltip nzTooltipTitle="Exportar Asis. Bio." nz-button nzType="default" app-down-file
               [httpMethod]="'POST'"
               [httpBody]="{'Reporte':'Listado Asistencia Control Acceso','Formato':'EXCEL', 'Filtros': {'Ano':this.selectedPeriod.year,'Mes':selectedPeriod.month}}"
@@ -206,7 +206,7 @@
 
           @if ($objetivoDetalle | async; as objetivoDetalle) {
           <nz-form-control nzHasFeedback>
-            @if (this.selectedObjetivoId > 0) {
+            @if (selectedObjetivoId() > 0) {
             <app-view-responsable [list]="objetivoDetalle.responsable" (changeSize)="collapseChange($event)">
             </app-view-responsable>
             }
@@ -306,5 +306,5 @@
     </angular-slickgrid>
   </div>
 </nz-card>
-<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId"
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

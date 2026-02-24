@@ -77,9 +77,6 @@ export class CondicionVentaComponent implements OnInit {
     }
   }
 
-  async handleAddOrUpdate() {
-    //this.childTableCondicionVenta().RefreshCondVenta.set(true)
-  }
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
@@ -112,6 +109,10 @@ export class CondicionVentaComponent implements OnInit {
       this.refreshCondVenta.update(v => v + 1)
       this.condicionesSeleccionadas.set([]);
     }
+  }
+
+  refreshGridNow() {
+    this.refreshCondVenta.update(v => v + 1)
   }
 
   async rechazarCondicionVenta() {

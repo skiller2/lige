@@ -48,7 +48,7 @@
             <shared-filtro-builder [fieldsToSelect]="columns()"   [(options)]="listOptions" [startFilters]="startFilters()" />
             <div class="gridListContainer container-fluid">
               <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
-                [dataset]="gridDataSet()" (onAngularGridCreated)="angularGridReady($event.detail)"
+                [dataset]="gridDataSet.value()" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
               </angular-slickgrid>
             </div>

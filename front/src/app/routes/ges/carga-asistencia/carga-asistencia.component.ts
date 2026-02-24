@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, ViewEncapsulation, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, ViewEncapsulation, inject, signal } from '@angular/core';
 import { AbstractControl, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -45,6 +45,7 @@ export class CargaAsistenciaComponent {
     peridoHasta: any;
 
     private readonly loadingSrv = inject(LoadingService);
+    private readonly changeDetectorRef = inject(ChangeDetectorRef);
     private readonly route = inject(ActivatedRoute);
     public apiService = inject(ApiService)
     public router = inject(Router)
@@ -62,9 +63,9 @@ export class CargaAsistenciaComponent {
     angularGridEdit!: AngularGridInstance;
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
-    selectedSucursalId = 0
+    selectedSucursalId = signal(0)
     selectedPersonalId = 0
-    objetivoData: any
+//    objetivoData: any
     ObjetivoIdUrl: any
     periodos: any
     contratos: any[] = []
@@ -72,7 +73,7 @@ export class CargaAsistenciaComponent {
     visibleDrawer: boolean = false
     personalApellidoNombre: any;
     rowLocked: boolean = false;
-    objetivoInfo: any = {}
+//    objetivoInfo = signal({})
     diffHoras = signal(0)
 
     addGridData = signal<boolean>(false);
@@ -80,11 +81,8 @@ export class CargaAsistenciaComponent {
     public get Busqueda() {
         return Busqueda;
     }
-    selectedObjetivoId: number = 0
-    $isObjetivoDataLoading = new BehaviorSubject(false);
-    $selectedObjetivoIdChange = new BehaviorSubject(0);
-    $formChange = new BehaviorSubject({});
-    objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+    selectedObjetivoId = signal(0)
+    $selectedObjetivoIdChange = new BehaviorSubject({objetivoId:0,periodo:{}});
     isLoadingCheck = signal(false);
     customHeaderExcel: any[] = []
 
@@ -109,7 +107,8 @@ export class CargaAsistenciaComponent {
             this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
         ]).pipe(
             map((data: any[]) => {
-                this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
+                this.selectedSucursalId.set(data[1][0]?.SucursalId)
+                this.gridOptionsEdit.params.SucursalId = data[1][0]?.SucursalId
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[1][0]?.ClienteDenominacion}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
                 this.customHeaderExcel = [
                     [{ value: `Año: ${anio}` }],
@@ -135,7 +134,6 @@ export class CargaAsistenciaComponent {
                 this.contratos = data[1]
 
 
-                // console.log('ver', data)
 
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && (this.contratos.length > 0 || data[3].length > 0))
 
@@ -150,7 +148,7 @@ export class CargaAsistenciaComponent {
 
                 this.refreshTotals()
                 this.getHorasNormales(this.gridDataInsert)
-                this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB, Observaciones: data[2][0]?.Observaciones}, { emitEvent: false })
+                this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB, Observaciones: data[2][0]?.Observaciones }, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
                 this.formPrevVals = this.carasistForm.form.value
 
@@ -171,15 +169,16 @@ export class CargaAsistenciaComponent {
     }
 
     $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
-        debounceTime(50),
-        switchMap(objetivoId => {
-            return this.getObjetivoDetalle(objetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
+        debounceTime(700),
+        switchMap(data => {
+
+            return this.getObjetivoDetalle(data.objetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
                 .pipe(
                     //                  switchMap((data:any) => { return data}),
-                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-                    tap({
-                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
-                    })
+//                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+//                    tap({
+//                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
+//                    })
                 );
         })
     );
@@ -280,7 +279,7 @@ export class CargaAsistenciaComponent {
 
         this.columnas = this.columnDefinitions
         this.excelExportOption = {
-            filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
+            filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId()}`,
             columnHeaderStyle: {
                 alignment: { horizontal: 'center' },
                 font: { color: 'black', size: 10, bold: true },
@@ -560,13 +559,12 @@ export class CargaAsistenciaComponent {
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
                 break;
             case Busqueda.Objetivo:
-                if (this.selectedObjetivoId > 0) {
-                    this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
+                if (this.selectedObjetivoId() > 0) {
+                    this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId() }], {
                         relativeTo: this.route,
                         skipLocationChange: false,
                         replaceUrl: false,
                     })
-                    this.selectedSucursalId = this.objetivoInfo?.SucursalId
                 }
 
                 //                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
@@ -576,19 +574,17 @@ export class CargaAsistenciaComponent {
             default:
                 break;
         }
-
-        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
-        this.$isObjetivoDataLoading.next(true);
+        this.$selectedObjetivoIdChange.next({ objetivoId: this.selectedObjetivoId(), periodo: this.selectedPeriod });
 
 
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.gridOptionsEdit.params.anio = this.selectedPeriod.year
         this.gridOptionsEdit.params.mes = this.selectedPeriod.month
-        this.gridOptionsEdit.params.ObjetivoId = this.selectedObjetivoId
-        this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
+        this.gridOptionsEdit.params.ObjetivoId = this.selectedObjetivoId()
+        //        this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
 
         this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
-        this.angularGridEdit.slickGrid.setOptions({ skipFreezeColumnValidation:true, frozenColumn: 2 })
+        this.angularGridEdit.slickGrid.setOptions({ skipFreezeColumnValidation: true, frozenColumn: 2 })
 
         this.addGridData.set(true);
         this.clearAngularGrid()
@@ -619,12 +615,12 @@ export class CargaAsistenciaComponent {
     }
 
     async insertDB(item: any) {
-        if (this.selectedObjetivoId) {
+        if (this.selectedObjetivoId()) {
             let { apellidoNombre, categoria, forma, ...row } = item
             const outItem = {
                 ...row,
                 ...this.selectedPeriod,
-                objetivoId: this.selectedObjetivoId,
+                objetivoId: this.selectedObjetivoId(),
                 personalId: apellidoNombre.id,
                 tipoAsociadoId: categoria.tipoId,
                 categoriaPersonalId: categoria.categoriaId,
@@ -642,9 +638,9 @@ export class CargaAsistenciaComponent {
 
         try {
             await this.setValFact(null)
-            const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+            const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId())).
                 finally(() => { this.isLoadingCheck.set(false) })
-            this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
+            this.$selectedObjetivoIdChange.next({ objetivoId: this.selectedObjetivoId(), periodo: this.selectedPeriod });
         } catch (error) {
 
         }
@@ -662,7 +658,7 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            const res = await firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+            const res = await firstValueFrom(this.apiService.eliminaCargaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId())).
                 finally(() => { this.isLoadingCheck.set(false) })
 
             this.formChange('', Busqueda.Objetivo)
@@ -685,7 +681,7 @@ export class CargaAsistenciaComponent {
         try {
             const persona = this.getPersonalIdFromGrid()
 
-            const res = await firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, persona.PersonalId)).
+            const res = await firstValueFrom(this.apiService.eliminaGrillaPersona(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId(), persona.PersonalId)).
                 finally(() => { this.isLoadingCheck.set(false) })
 
             this.formChange('', Busqueda.Objetivo)
@@ -710,7 +706,7 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId())).
                 finally(() => { this.isLoadingCheck.set(false) })
         } catch (error) {
 
@@ -723,14 +719,15 @@ export class CargaAsistenciaComponent {
 
     async setCargaAsistencia() {
         try {
-            await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+            await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId()))
         } catch (_e) { }
-        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
+        this.$selectedObjetivoIdChange.next({ objetivoId: this.selectedObjetivoId(), periodo: this.selectedPeriod });
+
     }
     async setValFact(e: any) {
-        if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine || !this.carasistForm.form.get('Observaciones')?.pristine ) {
+        if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine || !this.carasistForm.form.get('Observaciones')?.pristine) {
             try {
-                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value, this.carasistForm.form.get('Observaciones')?.value))
+                await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId(), this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value, this.carasistForm.form.get('Observaciones')?.value))
                 this.formPrevVals = this.carasistForm.form.value
             } catch (_e) {
                 this.carasistForm.form.get('TotalHoraA')?.setValue(this.formPrevVals.TotalHoraA)
@@ -793,34 +790,31 @@ export class CargaAsistenciaComponent {
     }
 
     async autocomplete() {
-        if (this.selectedPeriod.month && this.selectedSucursalId) {
-            const objetivoId = this.selectedObjetivoId
-            const anio = this.selectedPeriod.year
-            const mes = this.selectedPeriod.month
+        const objetivoId = this.selectedObjetivoId()
+        const anio = this.selectedPeriod.year
+        const mes = this.selectedPeriod.month
 
-            const list: any = await firstValueFrom(this.searchService.getListaAsistenciaPersonalAsignadoAnterior(objetivoId, anio, mes))
-            if (list.length) {
-                this.angularGridEdit.dataView.setItems(list)
-                this.gridDataInsert = this.angularGridEdit.dataView.getItems()
-                this.addNewItem("bottom")
-            }
-
+        const list: any = await firstValueFrom(this.searchService.getListaAsistenciaPersonalAsignadoAnterior(objetivoId, anio, mes))
+        if (list.length) {
+            this.angularGridEdit.dataView.setItems(list)
+            this.gridDataInsert = this.angularGridEdit.dataView.getItems()
+            this.addNewItem("bottom")
         }
+        this.changeDetectorRef.markForCheck()
     }
 
     async leerControlAcceso() {
-        if (this.selectedPeriod.month && this.selectedSucursalId) {
-            const objetivoId = this.selectedObjetivoId
-            const anio = this.selectedPeriod.year
-            const mes = this.selectedPeriod.month
-            this.controlAccesoDisabled.set(true)
-            try {
-                const list: any = await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(objetivoId, anio, mes))
-                await this.formChange('', Busqueda.Objetivo)
-            } catch (error) { }
-            this.controlAccesoDisabled.set(false)
+        const objetivoId = this.selectedObjetivoId()
+        const anio = this.selectedPeriod.year
+        const mes = this.selectedPeriod.month
+        this.controlAccesoDisabled.set(true)
+        try {
+            const list: any = await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(objetivoId, anio, mes))
+            await this.formChange('', Busqueda.Objetivo)
+        } catch (error) { }
+        this.controlAccesoDisabled.set(false)
+        this.changeDetectorRef.markForCheck()
 
-        }
     }
 
     async exportGrid() {
@@ -941,12 +935,12 @@ export class CargaAsistenciaComponent {
             sheet.mergeCells('A4', 'B4');
             sheet.mergeCells('A5', 'B5');
             sheet.mergeCells('A6', 'B6');
- 
+
             sheet.mergeCells('J6', 'K6');
             sheet.mergeCells('Q6', 'R6');
             sheet.mergeCells('X6', 'Y6');
             sheet.mergeCells('AE6', 'AF6');
-5
+            5
             let colA = columnaInicial
             let colB = columnaInicial
             for (let index = 0; index < grupos.length; index++) {
@@ -957,7 +951,6 @@ export class CargaAsistenciaComponent {
 
             sheet.setRowInstructions(4, { height: 20 })
             sheet.data = auxCustomHeaderExcel;
-            console.log("sheet.data", sheet.data)
 
         }
         this.gridOptionsEdit.excelExportOptions = this.excelExportOption;
@@ -987,7 +980,7 @@ export class CargaAsistenciaComponent {
         return result
     }
 
-    private refreshTotals(){
+    private refreshTotals() {
         for (const col of this.angularGridEdit.slickGrid.getColumns())
             if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
 

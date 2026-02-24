@@ -81,6 +81,14 @@ export class ProductosImportacionMasivaComponent {
       searchHidden: true,
     },
     {
+      id:'RazonSocial', name:'Razón Social', field:'RazonSocial',
+      type:'string',
+      searchType: "string",
+      sortable: true,
+      hidden: false,
+      searchHidden: false,
+    },
+    {
       id:'Detalle', name:'Detalle', field:'Detalle',
       type:'string',
       searchType: "string",

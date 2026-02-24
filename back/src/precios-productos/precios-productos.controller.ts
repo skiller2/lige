@@ -6,6 +6,7 @@ import type { Options } from "../schemas/filtro.ts";
 import xlsx from 'node-xlsx';
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 
 export class PreciosProductosController extends BaseController {
 
@@ -172,10 +173,10 @@ export class PreciosProductosController extends BaseController {
                     pp.Importe,
                     pp.Importe AS ImporteOLD,
                     --pp.ImportDocumentoId,
-                    --pp.AudFechaIng,
-                    --pp.AudUsuarioIng,
-                    --pp.AudFechaMod,
-                    --pp.AudUsuarioMod,
+                    pp.AudFechaIng,
+                    pp.AudUsuarioIng,
+                    pp.AudFechaMod,
+                    pp.AudUsuarioMod,
 
                     --p.Nombre,
                     --p.ProductoTipoCodigo,
@@ -186,7 +187,7 @@ export class PreciosProductosController extends BaseController {
                 LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
 
                 LEFT JOIN ProductoPrecio pp ON p.ProductoCodigo=pp.ProductoCodigo AND pp.PeriodoDesdeAplica=(
-                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1))
+                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo)
 
                 JOIN Cliente c on pp.ClienteId = c.ClienteId
                 LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1) AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)
@@ -276,38 +277,62 @@ export class PreciosProductosController extends BaseController {
                 //Validar que el precio del producto no fue facturado
                 const anio = PeriodoDesdeAplicaOLD.getFullYear()
                 const mes = PeriodoDesdeAplicaOLD.getMonth()+1
+
                 const checkComprobante = await queryRunner.query(`
                     SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
                 `, [ProductoCodigoOLD, ClienteIdOLD, anio, mes])
-                if (checkComprobante[0]?.ComprobanteNro?.length) throw new ClientException('No se puede modificar registros ya facturados')
 
-                // await queryRunner.query(`
-                //     UPDATE ProductoPrecio SET 
-                //         ProductoCodigo = @3, 
-                //         ClienteId = @4,
-                //         PeriodoDesdeAplica = @5,
-                //         Importe = @6,
-                //         AudFechaMod = @7,
-                //         AudUsuarioMod = @8,
-                //         AudIpMod = @9
-                //     WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
-                // `, [
-                //     ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
-                //     ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
-                // ])
+                const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
+                const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+                
+                if (!checkComprobante.length && !getRecibosGenerados[0]?.ind_recibos_generados) {
+                    await queryRunner.query(`
+                        UPDATE ProductoPrecio SET 
+                            ProductoCodigo = @3, 
+                            ClienteId = @4,
+                            PeriodoDesdeAplica = @5,
+                            Importe = @6,
+                            AudFechaMod = @7,
+                            AudUsuarioMod = @8,
+                            AudIpMod = @9
+                        WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
+                    `, [
+                        ProductoCodigoOLD, ClienteIdOLD,  PeriodoDesdeAplicaOLD,
+                        ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip
+                    ])
+                }else{
+                    let fechaHabil = await queryRunner.query(`
+                        SELECT anio, mes
+                        FROM lige.dbo.liqmaperiodo
+                        WHERE ind_recibos_generados IN (0) AND anio >= @0 AND mes >= @1
+                        ORDER BY anio, mes
+                    `, [fechaActual.getFullYear(), fechaActual.getMonth()+1])
+                    
+                    if (fechaHabil.length) PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
+                    else PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
+
+                }
 
                 dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
               
             } else {  //Es un nuevo registro de ProductoPrecio
+
                 dataResultado = {action:'I'}
                 message = "Carga de nuevo Registro exitoso"
 
-                const checkNewCodigo = await queryRunner.query(`
-                    SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
-                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
-                if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
             }
+            const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
+            const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+
+            if (getRecibosGenerados.length > 0 && getRecibosGenerados[0].ind_recibos_generados == 1) {
+                throw new ClientException(`No se puede modificar una condición en un periodo con recibos generados.`)
+            }
+
+            const checkNewCodigo = await queryRunner.query(`
+                SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+            `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+            if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
             
             await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
@@ -642,10 +667,13 @@ export class PreciosProductosController extends BaseController {
             await queryRunner.startTransaction();
 
             //Valida que el período no tenga el indicador de recibos generado
-            const checkrecibos = await this.getPeriodoQuery(queryRunner, anioRequest, mesRequest)
-            if (checkrecibos[0]?.ind_recibos_generados == 1)
-                throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+            const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anioRequest, mesRequest, usuario, ip)
+            const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
 
+            if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
+                throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+            }
+            
             const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
             const sheet1 = workSheetsFromBuffer[0];
             const columnsName: Array<string> = sheet1.data[0]
@@ -677,6 +705,8 @@ export class PreciosProductosController extends BaseController {
             const docProductoPrecios = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anioRequest, mesRequest, file[0], usuario, ip, queryRunner)
             docFilePath = docProductoPrecios?.newFilePath
             docId = docProductoPrecios.doc_id ? docProductoPrecios.doc_id : null
+            let CUITs:number[] = []
+
             for (const row of sheet1.data) {
                 //Finaliza cuando la fila esta vacia
                 if (
@@ -686,12 +716,6 @@ export class PreciosProductosController extends BaseController {
 
                 const CUIT = row[columnsXLS['CUIT']]
                 const Importe = row[columnsXLS['Importe Unitario']]
-
-                //Validaciones del Importe Unitario
-                if (!Importe || Importe <= 0) {
-                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'Importe Unitario invalido.' })
-                    continue
-                }
                 
                 //Validaciones del CUIT del cliente
                 //Verifico que tenga 11 digitos
@@ -701,7 +725,7 @@ export class PreciosProductosController extends BaseController {
                 }
                 //Verifico que exista el CUIT del cliente
                 const cliente = await queryRunner.query(`
-                    SELECT cli.ClienteId FROM ClienteElementoDependiente cli 
+                    SELECT cli.ClienteId, TRIM(cli.ClienteDenominacion) ClienteDenominacion FROM Cliente cli 
                     LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
                         AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
                     WHERE clif.ClienteFacturacionCUIT = @1
@@ -712,6 +736,20 @@ export class PreciosProductosController extends BaseController {
                     continue
                 }
                 const ClienteId = cliente[0].ClienteId
+                const RazonSocial = cliente[0].ClienteDenominacion
+
+                //Verifico que el cliente no este duplicado
+                if (CUITs.find((num:number) => num == CUIT )) {
+                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El CUIT esta duplicado`, RazonSocial })
+                    continue
+                }
+
+                //Validaciones del Importe Unitario
+                //Verifico que el importe sea mayor a 0
+                if (!Importe || Importe <= 0) {
+                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'Importe Unitario invalido.', RazonSocial })
+                    continue
+                }
 
                 //Verifico si ya existe el registro
                 const checkNewCodigo = await queryRunner.query(`
@@ -723,13 +761,15 @@ export class PreciosProductosController extends BaseController {
                     const checkComprobante = await queryRunner.query(`
                         SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
                     `, [productoCodigoRequest, ClienteId, anioRequest, mesRequest])
+
                     if (checkComprobante[0]?.ComprobanteNro?.length && checkNewCodigo[0].Importe != Importe){//Fue facturado y el Importe es diferente al de la base de datos
-                        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El precio del producto del periodo ${anioRequest}/${mesRequest} existe y fue facturado. No se puede modificar` })
+                        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El precio del producto del periodo ${anioRequest}/${mesRequest} existe y fue facturado. No se puede modificar`, RazonSocial })
                         continue
                     } else if (!checkComprobante[0] && checkNewCodigo[0].Importe != Importe) {//No fue facturado y el Importe es diferente al de la base de datos
                         await this.deleteProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica)
                     }
                 }
+                CUITs.push(CUIT)
                 
                 await this.addProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip, docId)
 
