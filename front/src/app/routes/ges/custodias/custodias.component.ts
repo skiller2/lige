@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
+import { Component, Injector, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -42,7 +42,6 @@ export class CustodiaComponent {
     edit = signal(false);
     visible = signal(false);
     isLoading = signal(false);
-    // isLoadingForm = signal(false);
     cantReg = signal(0)
     impTotal = signal(0)
     periodo = signal(new Date())
@@ -72,21 +71,19 @@ export class CustodiaComponent {
     columns = toSignal(this.apiService.getCols('/api/custodia/cols'), { initialValue: [] as Column[] })
     optionsEstadoCust = toSignal(this.searchService.getEstadoCustodia())
 
-    gridDataSet = toSignal(
-        toObservable(this.refreshGrid).pipe(
-            debounceTime(200), // colapsa cambios rápidos (por ejemplo, filtros tipeados)
-            switchMap(() => {
-                this.isLoading.set(true);
-                return this.apiService.getListaObjetivoCustodia(this.listOptions(), this.periodo()).pipe(
-                    finalize(() => this.isLoading.set(false))
-                );
-            })
-        ),
-        { initialValue: [] }
-    );
-
-
-
+    gridDataSet = resource({
+        params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshGrid() }),
+        loader: async () => {
+            let response = { list: [] }
+            this.isLoading.set(true)
+            try {
+                const response = await firstValueFrom(this.apiService.getListaObjetivoCustodia(this.listOptions(), this.periodo()))
+            } catch (e) { }
+            this.isLoading.set(false)
+            return response.list
+        },
+        defaultValue:[]
+    })
 
     fb = inject(FormBuilder)
     objCusEstado = { ClienteId: 0, EstadoCodigo: null, NumeroFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
