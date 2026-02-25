@@ -1,5 +1,5 @@
 <nz-select style="width:30%" [(ngModel)]="operador" [nzDropdownMatchSelectWidth]="false"
-  nzAllowClear 
+  nzAllowClear
   nzShowSearch nzServerSearch>
   @for (ope of operatorsArray; track ope) {
     <nz-option [nzValue]="ope" nzLabel="{{ ope }}"></nz-option>
