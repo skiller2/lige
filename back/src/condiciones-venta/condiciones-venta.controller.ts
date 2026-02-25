@@ -390,7 +390,9 @@ export class CondicionesVentaController extends BaseController {
                 CondicionVenta.UnificacionFactura ? 1 : 0,
                 CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
+            let CondicionVentaDettalleId = 0;
             for (const producto of CondicionVenta.infoProductos) {
+                CondicionVentaDettalleId++;
                 if (producto.ProductoCodigo) {
                     await queryRunner.query(
                         `INSERT INTO CondicionVentaDetalle (
@@ -408,8 +410,9 @@ export class CondicionesVentaController extends BaseController {
                         AudUsuarioIng,
                         AudUsuarioMod,
                         AudIpIng,
-                        AudIpMod
-                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
+                        AudIpMod,
+                        CondicionVentaDettalleId
+                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                         [
                             objetivoInfo.clienteId, // ClienteId
                             objetivoInfo.ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -425,7 +428,8 @@ export class CondicionesVentaController extends BaseController {
                             usuario, // AudUsuarioIng
                             usuario, // AudUsuarioMod
                             ip, // AudIpIng
-                            ip  // AudIpMod
+                            ip,  // AudIpMod
+                            CondicionVentaDettalleId // CondicionVentaDettalleId
                         ]
                     )
                 }
@@ -889,7 +893,9 @@ export class CondicionesVentaController extends BaseController {
                 [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
         }
 
+        let CondicionVentaDetalleId = 0;
         for (const [idx, producto] of infoProductos.entries()) {
+            CondicionVentaDetalleId = idx + 1;
             if (producto.ProductoCodigo) {
                 await queryRunner.query(
                     `INSERT INTO CondicionVentaDetalle (
@@ -907,8 +913,9 @@ export class CondicionesVentaController extends BaseController {
                     AudUsuarioIng,
                     AudUsuarioMod,
                     AudIpIng,
-                    AudIpMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
+                    AudIpMod,
+                    CondicionVentaDetalleId
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                     [
                         ClienteId, // ClienteId
                         ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -924,7 +931,8 @@ export class CondicionesVentaController extends BaseController {
                         usuario, // AudUsuarioIng
                         usuario, // AudUsuarioMod
                         ip, // AudIpIng
-                        ip  // AudIpMod
+                        ip, // AudIpMod
+                        CondicionVentaDetalleId // CondicionVentaDetalleId
                     ]
                 )
             }
