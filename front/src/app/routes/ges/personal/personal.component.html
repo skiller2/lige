@@ -46,6 +46,10 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultDocumentos()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.documents' | i18n }}"><span nz-icon nzType="file"
       nzTheme="outline"></span></button>
+      <!-- btn  exenciones -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultExenciones()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.exenciones' | i18n }}"><span nz-icon nzType="file"
+      nzTheme="outline"></span></button>
       <!-- btn  datos bancarios -->
       <button nz-button nzType="default" (click)="openDrawerforConsultBanco()" [disabled]="personalId() == 0" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
@@ -126,6 +130,8 @@
 [PersonalId]="personalId()"></app-personal-responsable-drawer>
 <app-personal-documentos-drawer #docDrawer [(visibleDocumentos)]="visibleDocumentos"
 [PersonalId]="personalId()"></app-personal-documentos-drawer>
+<app-personal-exenciones-drawer  [(visibleDocumentos)]="visibleExenciones"
+[PersonalId]="personalId()"></app-personal-exenciones-drawer>
 <app-personal-categoria-drawer #cateDrawer [(visibleCategoria)]="visibleCategoria"
 [PersonalId]="personalId()"></app-personal-categoria-drawer>
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"

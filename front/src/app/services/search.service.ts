@@ -1801,6 +1801,17 @@ export class SearchService {
     );
   }
 
+  getExencionesByPersonal(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/exenciones/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getHistoriaCategoriaPersona(id: number): Observable<any> {
     if (!id) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/categoria/${id}`).pipe(

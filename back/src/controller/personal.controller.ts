@@ -2366,6 +2366,36 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId: number = Number(req.params.personalId);
+    // const fechaActual = new Date();
+    try {
+      // await queryRunner.startTransaction()
+
+      const documentos = await queryRunner.query(`
+        SELECT 
+          gen.DocumentoId docId, gen.DocumentoNombreArchivo NombreArchivo, CONCAT(gen.DocumentoMes, '/', gen.DocumentoAnio) periodo,
+          param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
+          CONCAT('api/file-upload/downloadFile/', gen.DocumentoId, '/Documento/0') url,
+          RIGHT(gen.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(gen.DocumentoNombreArchivo)) - 1) TipoArchivo,
+          'Documento' tableName
+        FROM Documento gen
+        LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = gen.DocumentoTipoCodigo
+        WHERE gen.PersonalId IN (@0) AND gen.DocumentoTipoCodigo IN ('FOR152', 'FOR184')
+        `, [personalId]
+      )
+
+      // await queryRunner.commitTransaction()
+      this.jsonRes(documentos, res);
+    } catch (error) {
+      // this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // await queryRunner.release()
+    }
+  }
+
   async downloadPersonaDocumentoImagen(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const id = Number(req.params.id)
