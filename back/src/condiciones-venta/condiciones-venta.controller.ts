@@ -369,6 +369,7 @@ export class CondicionesVentaController extends BaseController {
                     PeriodoFacturacionInicio,
                     GeneracionFacturaDia,
                     GeneracionFacturaDiaComplemento,
+                    GeneracionFacturaReqCliente,
                     UnificacionFactura,
                     Observaciones,
                     AudFechaIng,
@@ -376,7 +377,7 @@ export class CondicionesVentaController extends BaseController {
                     AudIpIng,
                     AudFechaMod,
                     AudUsuarioMod,
-                    AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)`,
+                    AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18)`,
                 [objetivoInfo.clienteId,
                 objetivoInfo.ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
@@ -387,6 +388,7 @@ export class CondicionesVentaController extends BaseController {
                 PeriodoFacturacionInicio,
                 CondicionVenta.GeneracionFacturaDia,
                 CondicionVenta.GeneracionFacturaDiaComplemento,
+                CondicionVenta.GeneracionFacturaReqCliente ? 1 : 0,
                 CondicionVenta.UnificacionFactura ? 1 : 0,
                 CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
@@ -463,13 +465,15 @@ export class CondicionesVentaController extends BaseController {
         if (!CondicionVenta.PeriodoFacturacion) {
             throw new ClientException(`Debe completar el campo Período Facturación.`)
         }
-        if (!CondicionVenta.GeneracionFacturaDia) {
-            throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
-        }
+        if (!CondicionVenta.GeneracionFacturaReqCliente) {
+            if (!CondicionVenta.GeneracionFacturaDia) {
+                throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
+            }
 
-        const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
-        if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
-            throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
+            const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
+            if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
+                throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
+            }
         }
 
         if (CondicionVenta.GeneracionFacturaDiaComplemento != null && CondicionVenta.GeneracionFacturaDiaComplemento !== '') {
@@ -576,6 +580,7 @@ export class CondicionesVentaController extends BaseController {
             Cond.GeneracionFacturaDia,
             Cond.GeneracionFacturaDiaComplemento,
             Cond.UnificacionFactura,
+            Cond.GeneracionFacturaReqCliente,
             Cond.Observaciones
         FROM CondicionVenta AS Cond
         INNER JOIN Objetivo AS obj
@@ -732,16 +737,17 @@ export class CondicionesVentaController extends BaseController {
                 PeriodoFacturacionInicio = @1,
                 GeneracionFacturaDia = @2,
                 GeneracionFacturaDiaComplemento = @3,
-                UnificacionFactura = @4,
-                Observaciones = @5,
-                AutorizacionFecha = @6,
-                AutorizacionPersonalId = @7,
-                AutorizacionEstado = @8,
-                AudFechaMod = @9,
-                AudUsuarioMod = @10,
-                AudIpMod = @11
-            WHERE ClienteId = @12 AND ClienteElementoDependienteId = @13 AND PeriodoDesdeAplica = @14`,
-                [condicionVenta.PeriodoFacturacion, PeriodoFacturacionInicio, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.UnificacionFactura ? 1 : 0, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
+                GeneracionFacturaReqCliente = @4,
+                UnificacionFactura = @5,
+                Observaciones = @6,
+                AutorizacionFecha = @7,
+                AutorizacionPersonalId = @8,
+                AutorizacionEstado = @9,
+                AudFechaMod = @10,
+                AudUsuarioMod = @11,
+                AudIpMod = @12
+            WHERE ClienteId = @13 AND ClienteElementoDependienteId = @14 AND PeriodoDesdeAplica = @15`,
+                [condicionVenta.PeriodoFacturacion, PeriodoFacturacionInicio, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.GeneracionFacturaReqCliente ? 1 : 0, condicionVenta.UnificacionFactura ? 1 : 0, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
 
             //actualiza CondicionVentaDetalle
             await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
