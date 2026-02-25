@@ -187,6 +187,32 @@ export class CondicionesVentaController extends BaseController {
             searchHidden: false
         },
         {
+            name: "Productos con Importe Fijo",
+            type: "number",
+            id: "TipoImporteFijo",
+            field: "TipoImporteFijo",
+            fieldName: "cvd.TipoImporteFijo",
+            sortable: true,
+            hidden: false,
+            searchHidden: false,
+            searchComponent: "inputForNumberAdvancedSearch",
+            searchType: "numberAdvanced",
+            showGridColumn: false
+        },
+        {
+            name: "Productos con Importe Lista Precio",
+            type: "number",
+            id: "TipoImporteListaPrecio",
+            field: "TipoImporteListaPrecio",
+            fieldName: "cvd.TipoImporteListaPrecio",
+            sortable: true,
+            hidden: false,
+            searchHidden: false,
+            searchComponent: "inputForNumberAdvancedSearch",
+            searchType: "numberAdvanced",
+            showGridColumn: false
+        },
+        {
             name: "Fecha Ingreso",
             type: "date",
             id: "AudFechaIng",
@@ -266,7 +292,8 @@ export class CondicionesVentaController extends BaseController {
                     suc.SucursalDescripcion,
 
                     conven.AudFechaIng, conven.AudUsuarioIng, conven.AudIpIng,
-                    conven.AudFechaMod, conven.AudUsuarioMod, conven.AudIpMod
+                    conven.AudFechaMod, conven.AudUsuarioMod, conven.AudIpMod,
+                    cvd.TipoImporteFijo, cvd.TipoImporteListaPrecio
 
                 from ClienteElementoDependiente ele
                 --join ClienteElementoDependienteContrato con on con.ClienteId=ele.ClienteId and con.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=DATEFROMPARTS(@0,@1,1)
@@ -298,6 +325,15 @@ export class CondicionesVentaController extends BaseController {
                 Left join Personal per on per.PersonalId=conven.AutorizacionPersonalId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+                LEFT JOIN (SELECT 
+                        cvd.ClienteId,
+                        cvd.ClienteElementoDependienteId,
+                        cvd.PeriodoDesdeAplica,
+                        SUM(CASE WHEN cvd.TipoImporte = 'F' THEN 1 ELSE 0 END) AS TipoImporteFijo,
+                        SUM(CASE WHEN cvd.TipoImporte = 'LP' THEN 1 ELSE 0 END) AS TipoImporteListaPrecio
+                    FROM CondicionVentaDetalle cvd
+                    WHERE cvd.TipoImporte IN ('F', 'LP')
+                    GROUP BY cvd.ClienteId, cvd.ClienteElementoDependienteId, cvd.PeriodoDesdeAplica) cvd ON cvd.ClienteId = conven.ClienteId AND cvd.ClienteElementoDependienteId = conven.ClienteElementoDependienteId AND cvd.PeriodoDesdeAplica = conven.PeriodoDesdeAplica
 
                   WHERE
              ${filterSql} ${orderBy}`, [anio, mes])
@@ -385,14 +421,16 @@ export class CondicionesVentaController extends BaseController {
                     null,
                     null,
                 CondicionVenta.PeriodoFacturacion,
-                PeriodoFacturacionInicio,
+                    PeriodoFacturacionInicio,
                 CondicionVenta.GeneracionFacturaDia,
                 CondicionVenta.GeneracionFacturaDiaComplemento,
                 CondicionVenta.GeneracionFacturaReqCliente ? 1 : 0,
                 CondicionVenta.UnificacionFactura ? 1 : 0,
                 CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
+            let CondicionVentaDettalleId = 0;
             for (const producto of CondicionVenta.infoProductos) {
+                CondicionVentaDettalleId++;
                 if (producto.ProductoCodigo) {
                     await queryRunner.query(
                         `INSERT INTO CondicionVentaDetalle (
@@ -410,8 +448,9 @@ export class CondicionesVentaController extends BaseController {
                         AudUsuarioIng,
                         AudUsuarioMod,
                         AudIpIng,
-                        AudIpMod
-                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
+                        AudIpMod,
+                        CondicionVentaDettalleId
+                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                         [
                             objetivoInfo.clienteId, // ClienteId
                             objetivoInfo.ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -427,7 +466,8 @@ export class CondicionesVentaController extends BaseController {
                             usuario, // AudUsuarioIng
                             usuario, // AudUsuarioMod
                             ip, // AudIpIng
-                            ip  // AudIpMod
+                            ip,  // AudIpMod
+                            CondicionVentaDettalleId // CondicionVentaDettalleId
                         ]
                     )
                 }
@@ -788,7 +828,7 @@ export class CondicionesVentaController extends BaseController {
                     FROM CondicionVenta 
                     WHERE ClienteId = @0
                     AND ClienteElementoDependienteId = @1
-                    AND PeriodoDesdeAplica = @2`, 
+                    AND PeriodoDesdeAplica = @2`,
                     [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
                 );
 
@@ -800,12 +840,12 @@ export class CondicionesVentaController extends BaseController {
                     yaAutorizadas++;
                 } else {
                     await this.updateAutorizacionCondicionVenta(
-                        queryRunner, 
-                        condicion.ClienteId, 
-                        condicion.ClienteElementoDependienteId, 
-                        PeriodoDesdeAplica, 
-                        usuario, 
-                        personalId, 
+                        queryRunner,
+                        condicion.ClienteId,
+                        condicion.ClienteElementoDependienteId,
+                        PeriodoDesdeAplica,
+                        usuario,
+                        personalId,
                         ip
                     );
                     autorizadas++;
@@ -823,9 +863,9 @@ export class CondicionesVentaController extends BaseController {
                 mensaje += `, Ya autorizadas: ${yaAutorizadas}`;
             }
 
-            return this.jsonRes({ 
-                status: 'ok', 
-                autorizadas, 
+            return this.jsonRes({
+                status: 'ok',
+                autorizadas,
                 yaAutorizadas
             }, res, mensaje);
 
@@ -873,8 +913,8 @@ export class CondicionesVentaController extends BaseController {
             }
 
             await queryRunner.commitTransaction();
-            return this.jsonRes({ 
-                status: 'ok', 
+            return this.jsonRes({
+                status: 'ok',
                 rechazadas
             }, res, `Proceso completado. Rechazadas: ${rechazadas}`);
 
@@ -895,7 +935,9 @@ export class CondicionesVentaController extends BaseController {
                 [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
         }
 
+        let CondicionVentaDetalleId = 0;
         for (const [idx, producto] of infoProductos.entries()) {
+            CondicionVentaDetalleId = idx + 1;
             if (producto.ProductoCodigo) {
                 await queryRunner.query(
                     `INSERT INTO CondicionVentaDetalle (
@@ -913,8 +955,9 @@ export class CondicionesVentaController extends BaseController {
                     AudUsuarioIng,
                     AudUsuarioMod,
                     AudIpIng,
-                    AudIpMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
+                    AudIpMod,
+                    CondicionVentaDetalleId
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                     [
                         ClienteId, // ClienteId
                         ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -930,7 +973,8 @@ export class CondicionesVentaController extends BaseController {
                         usuario, // AudUsuarioIng
                         usuario, // AudUsuarioMod
                         ip, // AudIpIng
-                        ip  // AudIpMod
+                        ip, // AudIpMod
+                        CondicionVentaDetalleId // CondicionVentaDetalleId
                     ]
                 )
             }

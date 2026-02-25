@@ -334,7 +334,7 @@ export class PersonalController extends BaseController {
     try {
       const result = await dataSource.query(
         `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
-      per.PersonalNombre nombre, per.PersonalApellido apellido
+      TRIM(per.PersonalNombre) nombre, TRIM(per.PersonalApellido) apellido
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0`,
@@ -2353,6 +2353,36 @@ export class PersonalController extends BaseController {
         FROM Documento gen
         LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = gen.DocumentoTipoCodigo
         WHERE gen.PersonalId IN (@0) -- AND gen.DocumentoTipoCodigo NOT IN ('REC')
+        `, [personalId]
+      )
+
+      // await queryRunner.commitTransaction()
+      this.jsonRes(documentos, res);
+    } catch (error) {
+      // this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // await queryRunner.release()
+    }
+  }
+
+  async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId: number = Number(req.params.personalId);
+    // const fechaActual = new Date();
+    try {
+      // await queryRunner.startTransaction()
+
+      const documentos = await queryRunner.query(`
+        SELECT 
+          gen.DocumentoId docId, gen.DocumentoNombreArchivo NombreArchivo, CONCAT(gen.DocumentoMes, '/', gen.DocumentoAnio) periodo,
+          param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
+          CONCAT('api/file-upload/downloadFile/', gen.DocumentoId, '/Documento/0') url,
+          RIGHT(gen.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(gen.DocumentoNombreArchivo)) - 1) TipoArchivo,
+          'Documento' tableName
+        FROM Documento gen
+        LEFT JOIN DocumentoTipo param ON param.DocumentoTipoCodigo = gen.DocumentoTipoCodigo
+        WHERE gen.PersonalId IN (@0) AND gen.DocumentoTipoCodigo IN ('FOR152', 'FOR184')
         `, [personalId]
       )
 
