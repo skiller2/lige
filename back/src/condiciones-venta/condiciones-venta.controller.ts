@@ -194,7 +194,10 @@ export class CondicionesVentaController extends BaseController {
             fieldName: "cvd.TipoImporteFijo",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            searchComponent: "inputForNumberAdvancedSearch",
+            searchType: "numberAdvanced",
+            showGridColumn: false
         },
         {
             name: "Productos con Importe Lista Precio",
@@ -204,7 +207,10 @@ export class CondicionesVentaController extends BaseController {
             fieldName: "cvd.TipoImporteListaPrecio",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: false,
+            searchComponent: "inputForNumberAdvancedSearch",
+            searchType: "numberAdvanced",
+            showGridColumn: false
         },
         {
             name: "Fecha Ingreso",
@@ -414,7 +420,7 @@ export class CondicionesVentaController extends BaseController {
                     null,
                     null,
                 CondicionVenta.PeriodoFacturacion,
-                PeriodoFacturacionInicio,
+                    PeriodoFacturacionInicio,
                 CondicionVenta.GeneracionFacturaDia,
                 CondicionVenta.GeneracionFacturaDiaComplemento,
                 CondicionVenta.UnificacionFactura ? 1 : 0,
@@ -816,7 +822,7 @@ export class CondicionesVentaController extends BaseController {
                     FROM CondicionVenta 
                     WHERE ClienteId = @0
                     AND ClienteElementoDependienteId = @1
-                    AND PeriodoDesdeAplica = @2`, 
+                    AND PeriodoDesdeAplica = @2`,
                     [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
                 );
 
@@ -828,12 +834,12 @@ export class CondicionesVentaController extends BaseController {
                     yaAutorizadas++;
                 } else {
                     await this.updateAutorizacionCondicionVenta(
-                        queryRunner, 
-                        condicion.ClienteId, 
-                        condicion.ClienteElementoDependienteId, 
-                        PeriodoDesdeAplica, 
-                        usuario, 
-                        personalId, 
+                        queryRunner,
+                        condicion.ClienteId,
+                        condicion.ClienteElementoDependienteId,
+                        PeriodoDesdeAplica,
+                        usuario,
+                        personalId,
                         ip
                     );
                     autorizadas++;
@@ -851,9 +857,9 @@ export class CondicionesVentaController extends BaseController {
                 mensaje += `, Ya autorizadas: ${yaAutorizadas}`;
             }
 
-            return this.jsonRes({ 
-                status: 'ok', 
-                autorizadas, 
+            return this.jsonRes({
+                status: 'ok',
+                autorizadas,
                 yaAutorizadas
             }, res, mensaje);
 
@@ -901,8 +907,8 @@ export class CondicionesVentaController extends BaseController {
             }
 
             await queryRunner.commitTransaction();
-            return this.jsonRes({ 
-                status: 'ok', 
+            return this.jsonRes({
+                status: 'ok',
                 rechazadas
             }, res, `Proceso completado. Rechazadas: ${rechazadas}`);
 
