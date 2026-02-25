@@ -8,7 +8,7 @@ export class SituacionRevistaController extends BaseController {
   search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
-    let query: string = `SELECT SituacionRevistaId, SituacionRevistaDescripcion FROM SituacionRevista WHERE 1=1 AND `;
+    let query: string = `SELECT SituacionRevistaId, TRIM(SituacionRevistaDescripcion) SituacionRevistaDescripcion FROM SituacionRevista WHERE 1=1 AND `;
     switch (fieldName) {
       case "SituacionRevistaDescripcion":
         const valueArray: Array<string> = value.split(/[\s,.]+/);

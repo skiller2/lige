@@ -334,7 +334,7 @@ export class PersonalController extends BaseController {
     try {
       const result = await dataSource.query(
         `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
-      per.PersonalNombre nombre, per.PersonalApellido apellido
+      TRIM(per.PersonalNombre) nombre, TRIM(per.PersonalApellido) apellido
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0`,
