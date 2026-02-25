@@ -63,7 +63,7 @@
           <div class="containerAnterioresDescuentos" nz-tooltip
             nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
             <ng-container>
-              <a app-down-file httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
+              <a app-down-file httpUrl="/api/file-upload/downloadFile/{{movimiento.DocumentoId}}/Documento/original">
                 <span nz-icon nzType="download"></span></a>
             </ng-container>
             <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
