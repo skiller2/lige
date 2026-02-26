@@ -354,6 +354,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
             }
           }
         }
+        this.refrescarPreciosListaPrecios();
       });
     }
   }
@@ -589,6 +590,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       this.obtenerPrecioListaPrecios(index);
     }
   }
+
   clearForm(): void {
     this.formParametroVenta.reset()
     this.codobjId.set('')
