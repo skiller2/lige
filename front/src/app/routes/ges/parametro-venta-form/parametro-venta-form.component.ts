@@ -11,14 +11,14 @@ import { LoadingService } from '@delon/abc/loading';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
 
 @Component({
-  selector: 'app-condicion-venta-form',
+  selector: 'app-parametro-venta-form',
   imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent],
-  templateUrl: './condicion-venta-form.component.html',
-  styleUrl: './condicion-venta-form.component.less',
+  templateUrl: './parametro-venta-form.component.html',
+  styleUrl: './parametro-venta-form.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class CondicionVentaFormComponent implements OnInit, OnDestroy {
+export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
@@ -30,7 +30,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   refreshCondVenta = model<number>(0);
   /*pristineChange = output<boolean>()*/
   isEdit = model(false);
-  CondicionVentaId = model<number>(0);
+  ParametroVentaId = model<number>(0);
   onAddorUpdate = output<('save' | 'delete')>();
   isLoading = signal(false);
 
@@ -56,7 +56,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
 
   objProductos = {
-    CondicionVentaProductoId: 0,
+    ParametroVentaProductoId: 0,
     ProductoCodigo: '',
     CantidadHoras: '',
     TipoImporte: '',
@@ -70,8 +70,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
 
   fb = inject(FormBuilder)
-  formCondicionVenta = this.fb.group({
-    CondicionVentaId: 0,
+  formParametroVenta = this.fb.group({
+    ParametroVentaId: 0,
     codobjId: '',
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
@@ -93,7 +93,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
 
-      this.formCondicionVenta.patchValue({
+      this.formParametroVenta.patchValue({
         codobjId: this.codobjId(),
       });
 
@@ -123,7 +123,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   infoProductos(): FormArray {
-    return this.formCondicionVenta.get("infoProductos") as FormArray
+    return this.formParametroVenta.get("infoProductos") as FormArray
   }
 
   addProductos(e?: MouseEvent): void {
@@ -146,7 +146,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.infoProductos().push(newGroup);
       newGroup.get('ImporteTotal')?.disable();
     }
-    this.formCondicionVenta.markAsDirty();
+    this.formParametroVenta.markAsDirty();
   }
 
   async newRecord() {
@@ -155,15 +155,15 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       await this.load()
       // Limpiar IDs para que sea un registro nuevo (copia)
       this.PeriodoDesdeAplica.set('')
-      this.formCondicionVenta.patchValue({
-        CondicionVentaId: 0,
+      this.formParametroVenta.patchValue({
+        ParametroVentaId: 0,
         PeriodoDesdeAplica: '',
       });
       // Limpiar IDs de productos para que se inserten como nuevos
       this.infoProductos().controls.forEach(control => {
-        control.patchValue({ CondicionVentaProductoId: 0 });
+        control.patchValue({ ParametroVentaProductoId: 0 });
       });
-      this.formCondicionVenta.enable()
+      this.formParametroVenta.enable()
 
       this.infoProductos().controls.forEach((control, index) => {
         control.get('ImporteTotal')?.disable();
@@ -176,22 +176,22 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
           control.get('CantidadHoras')?.disable();
         }
       });
-      this.formCondicionVenta.markAsPristine();
+      this.formParametroVenta.markAsPristine();
 
     } else {
       //this.codobjId.set('')
       this.PeriodoDesdeAplica.set('')
-      this.formCondicionVenta.enable()
-      this.formCondicionVenta.reset();
+      this.formParametroVenta.enable()
+      this.formParametroVenta.reset();
       this.infoProductos().clear();
       const newGroup = this.fb.group({ ...this.objProductos });
       this.infoProductos().push(newGroup);
       newGroup.get('ImporteTotal')?.disable();
       this.mostrarPeriodoFacturacionInicio.set(false);
-      this.formCondicionVenta.patchValue({
+      this.formParametroVenta.patchValue({
         ObjetivoId: this.objetivoId(),
       });
-      this.formCondicionVenta.markAsPristine();
+      this.formParametroVenta.markAsPristine();
     }
 
   }
@@ -214,16 +214,16 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
   private applyViewMode(readonly: boolean): void {
     if (readonly) {
-      this.formCondicionVenta.disable();
+      this.formParametroVenta.disable();
       this.infoProductos().disable();
     } else {
-      this.formCondicionVenta.enable();
+      this.formParametroVenta.enable();
       // Deshabilitar ImporteTotal después de habilitar el formulario
       this.infoProductos().controls.forEach(control => {
         control.get('ImporteTotal')?.disable();
       });
     }
-    this.formCondicionVenta.markAsPristine();
+    this.formParametroVenta.markAsPristine();
   }
 
   private async executeViewLoad(): Promise<void> {
@@ -239,7 +239,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta(codobj, periodo))
+    let infoCliente = await firstValueFrom(this.searchService.getInfoParametroVenta(codobj, periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
 
@@ -249,14 +249,14 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     });
 
     // Asegurar que siempre haya al menos un producto
-    if (this.infoProductos().length === 0 && this.formCondicionVenta.enabled) {
+    if (this.infoProductos().length === 0 && this.formParametroVenta.enabled) {
       this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
 
-    this.formCondicionVenta.reset(infoCliente)
+    this.formParametroVenta.reset(infoCliente)
 
     // Aplicar estado del checkbox Requerido por Cliente
-    const reqCliente = this.formCondicionVenta.get('GeneracionFacturaReqCliente')?.value;
+    const reqCliente = this.formParametroVenta.get('GeneracionFacturaReqCliente')?.value;
     this.applyReqClienteState(!!reqCliente);
 
     // Evaluar si debe mostrar PeriodoFacturacionInicio
@@ -305,7 +305,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    this.formCondicionVenta.patchValue({
+    this.formParametroVenta.patchValue({
       codobjId: this.codobjId(),
     });
 
@@ -313,7 +313,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.productosCache = productos;
     });
 
-    this.formCondicionVenta.controls.PeriodoFacturacion.valueChanges.pipe(
+    this.formParametroVenta.controls.PeriodoFacturacion.valueChanges.pipe(
       distinctUntilChanged()
     ).subscribe(value => {
       const p = parsePeriod(value);
@@ -324,21 +324,21 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
 
       // Si se muestra y no tiene valor, establecer el valor por defecto de PeriodoDesdeAplica
-      if (esMayorAUnMes && !this.formCondicionVenta.get('PeriodoFacturacionInicio')?.value) {
-        const periodoDesdeAplica = this.formCondicionVenta.get('PeriodoDesdeAplica')?.value;
+      if (esMayorAUnMes && !this.formParametroVenta.get('PeriodoFacturacionInicio')?.value) {
+        const periodoDesdeAplica = this.formParametroVenta.get('PeriodoDesdeAplica')?.value;
         if (periodoDesdeAplica) {
-          this.formCondicionVenta.patchValue({ PeriodoFacturacionInicio: periodoDesdeAplica });
+          this.formParametroVenta.patchValue({ PeriodoFacturacionInicio: periodoDesdeAplica });
         }
       }
     });
 
     // Suscribirse a cambios en GeneracionFacturaReqCliente
-    this.reqClienteSubscription = this.formCondicionVenta.controls.GeneracionFacturaReqCliente.valueChanges.subscribe(checked => {
+    this.reqClienteSubscription = this.formParametroVenta.controls.GeneracionFacturaReqCliente.valueChanges.subscribe(checked => {
       this.applyReqClienteState(!!checked);
     });
 
     // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
-    const periodoControl = this.formCondicionVenta.get('PeriodoDesdeAplica');
+    const periodoControl = this.formParametroVenta.get('PeriodoDesdeAplica');
     if (periodoControl) {
       this.periodoSubscription = periodoControl.valueChanges.pipe(
         distinctUntilChanged()
@@ -369,8 +369,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   private applyReqClienteState(checked: boolean): void {
-    const diaControl = this.formCondicionVenta.get('GeneracionFacturaDia');
-    const diaComplementoControl = this.formCondicionVenta.get('GeneracionFacturaDiaComplemento');
+    const diaControl = this.formParametroVenta.get('GeneracionFacturaDia');
+    const diaComplementoControl = this.formParametroVenta.get('GeneracionFacturaDiaComplemento');
     if (checked) {
       diaControl?.setValue('', { emitEvent: false });
       diaComplementoControl?.setValue('', { emitEvent: false });
@@ -399,15 +399,15 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   async save() {
     this.loadingSrv.open({ type: 'spin', text: '' });
     try {
-      const formValue = this.formCondicionVenta.getRawValue();
+      const formValue = this.formParametroVenta.getRawValue();
 
       if (this.isEdit()) {
         //console.log("voy a actualizar condicion de venta")
-        const result = await firstValueFrom(this.apiService.updateCondicionVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
+        const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
 
       } else {
         // console.log("voy a insertar condicion de venta")
-        const result = await firstValueFrom(this.apiService.addCondicionVenta(formValue));
+        const result = await firstValueFrom(this.apiService.addParametroVenta(formValue));
         const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
         const clienteid = result.data.ClienteId;
         this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
@@ -419,8 +419,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
       await this.load();
       this.onAddorUpdate.emit('save');
-      this.formCondicionVenta.markAsUntouched();
-      this.formCondicionVenta.markAsPristine();
+      this.formParametroVenta.markAsUntouched();
+      this.formParametroVenta.markAsPristine();
     } catch (e) {
       console.error('Error al guardar condición de venta:', e);
     }
@@ -478,7 +478,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async obtenerMensajeHoras(tipoHoras: string, index: number): Promise<void> {
-    const objetivoId = this.formCondicionVenta.get('ObjetivoId')?.value;
+    const objetivoId = this.formParametroVenta.get('ObjetivoId')?.value;
     const periodo = this.periodo();
 
     if (!objetivoId || !periodo) {
@@ -591,10 +591,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     }
   }
   clearForm(): void {
-    this.formCondicionVenta.reset()
+    this.formParametroVenta.reset()
     this.codobjId.set('')
     this.objetivoId.set(0)
-    this.formCondicionVenta.patchValue({
+    this.formParametroVenta.patchValue({
       codobjId: '',
       ObjetivoId: 0,
     });
@@ -607,7 +607,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     this.mensajesImporteLista.set(new Map())
     this.mensajesHoras.set(new Map())
     this.mostrarPeriodoFacturacionInicio.set(false)
-    this.formCondicionVenta.markAsPristine()
+    this.formParametroVenta.markAsPristine()
   }
 
   private productosCache: any[] = [];

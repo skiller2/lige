@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CondicionVentaComponent } from './condicion-venta.component';
+import { ParametroVentaComponent } from './parametro-venta.component';
 
-describe('CondicionVentaComponent', () => {
-  let component: CondicionVentaComponent;
-  let fixture: ComponentFixture<CondicionVentaComponent>;
+describe('ParametroVentaComponent', () => {
+  let component: ParametroVentaComponent;
+  let fixture: ComponentFixture<ParametroVentaComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CondicionVentaComponent]
+      imports: [ParametroVentaComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CondicionVentaComponent);
+    fixture = TestBed.createComponent(ParametroVentaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

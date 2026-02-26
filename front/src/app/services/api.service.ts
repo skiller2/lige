@@ -1449,26 +1449,26 @@ export class ApiService {
     )
   }
 
-  addCondicionVenta(condicionVenta: any) {
-    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/add', condicionVenta).pipe(
+  addParametroVenta(parametroVenta: any) {
+    return this.http.post<ResponseJSON<any>>('/api/parametros-venta/add', parametroVenta).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updateCondicionVenta(condicionVenta: any, codobj: any, PeriodoDesdeAplica: any) {
+  updateParametroVenta(parametroVenta: any, codobj: any, PeriodoDesdeAplica: any) {
     const ClienteId = codobj.split('/')[0];
     const clienteelementodependienteid = codobj.split('/')[1];
-    const parameter = { condicionVenta, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica }
-    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/update', parameter).pipe(
+    const parameter = { parametroVenta, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica }
+    return this.http.post<ResponseJSON<any>>('/api/parametros-venta/update', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  existCondicionVenta(codobjId: any, PeriodoDesdeAplica: any) {
+  existParametroVenta(codobjId: any, PeriodoDesdeAplica: any) {
     const codcliente = codobjId.split('/')[0];
     const codclienteelemento = codobjId.split('/')[1];
     const periodo = PeriodoDesdeAplica || '';
-    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/exist/${codcliente}/${codclienteelemento}/${periodo}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/exist/${codcliente}/${codclienteelemento}/${periodo}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
     )
@@ -1842,10 +1842,10 @@ export class ApiService {
   }
 
 
-  getListCondicionesVenta(filters: any, periodo: any) {
+  getListParametrosVenta(filters: any, periodo: any) {
     console.log("voy a cargargar")
 
-    return this.http.post<ResponseJSON<any>>('/api/condiciones-venta/list', { filters, periodo }).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/parametros-venta/list', { filters, periodo }).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
@@ -2032,26 +2032,26 @@ export class ApiService {
   }
 
 
-  autorizarCondicionVenta(codobj: any, PeriodoDesdeAplica: any) {
+  autorizarParametroVenta(codobj: any, PeriodoDesdeAplica: any) {
     const objetivo = codobj.split('/')[0];
     const clienteelementodependienteid = codobj.split('/')[1];
-    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/autorizar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/autorizar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     )
   }
 
-  rechazarCondicionVenta(codobj: any, PeriodoDesdeAplica: any) {
+  rechazarParametroVenta(codobj: any, PeriodoDesdeAplica: any) {
     const objetivo = codobj.split('/')[0];
     const clienteelementodependienteid = codobj.split('/')[1];
-    return this.http.delete<ResponseJSON<any>>(`api/condiciones-venta/rechazar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
+    return this.http.delete<ResponseJSON<any>>(`api/parametros-venta/rechazar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     )
   }
 
   // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
-  autorizarCondicionVentaMultiple(condiciones: any[]) {
+  autorizarParametroVentaMultiple(condiciones: any[]) {
     const condicionesFormateadas = condiciones.map(c => {
       const objetivo = c.codobj.split('/')[0];
       const clienteelementodependienteid = c.codobj.split('/')[1];
@@ -2062,14 +2062,14 @@ export class ApiService {
       };
     });
 
-    return this.http.post<ResponseJSON<any>>(`api/condiciones-venta/autorizar-multiple`, { condiciones: condicionesFormateadas }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/parametros-venta/autorizar-multiple`, { condiciones: condicionesFormateadas }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: ResponseJSON<any>) => res.data),
       catchError(() => of({ status: 'error' }))
     )
   }
 
-  rechazarCondicionVentaMultiple(condiciones: any[]) {
+  rechazarParametroVentaMultiple(condiciones: any[]) {
     const condicionesFormateadas = condiciones.map(c => {
       const objetivo = c.codobj.split('/')[0];
       const clienteelementodependienteid = c.codobj.split('/')[1];
@@ -2080,7 +2080,7 @@ export class ApiService {
       };
     });
 
-    return this.http.post<ResponseJSON<any>>(`api/condiciones-venta/rechazar-multiple`, { condiciones: condicionesFormateadas }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/parametros-venta/rechazar-multiple`, { condiciones: condicionesFormateadas }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: ResponseJSON<any>) => res.data),
       catchError(() => of({ status: 'error' }))
@@ -2099,7 +2099,7 @@ export class ApiService {
 
   getMensajeHoras(tipoHoras: string, ObjetivoId: number, anio: number, mes: number): Observable<string> {
     if (!ObjetivoId || !anio || !mes) return of('Debe completar Objetivo y Período');
-    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/mensaje-horas/${tipoHoras}/${ObjetivoId}/${anio}/${mes}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/mensaje-horas/${tipoHoras}/${ObjetivoId}/${anio}/${mes}`).pipe(
       map((res: ResponseJSON<any>) => res.data.mensaje),
       catchError((err) => {
         console.error('Error al obtener mensaje de horas:', err);
@@ -2112,7 +2112,7 @@ export class ApiService {
     if (!ClienteId || !periodo || !ProductoCodigo) return of(null);
     const anio = periodo.getFullYear();
     const mes = periodo.getMonth() + 1;
-    return this.http.get<ResponseJSON<any>>(`api/condiciones-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError((err) => {
         console.error('Error al obtener precio lista de precios:', err);
