@@ -27,7 +27,7 @@ import { PersonalExencionesDrawerComponent } from '../personal-exenciones-drawer
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
-import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline } from '@ant-design/icons-angular/icons';
+import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline, FolderViewOutline} from '@ant-design/icons-angular/icons';
 import { Selections } from 'src/app/shared/schemas/filtro';
 
 
@@ -43,7 +43,7 @@ import { Selections } from 'src/app/shared/schemas/filtro';
     DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent, PersonalActaDrawerComponent,
     PersonalExencionesDrawerComponent
   ],
-  providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline])],
+  providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline, FolderViewOutline])],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
