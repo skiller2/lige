@@ -187,6 +187,32 @@ export class CondicionesVentaController extends BaseController {
             searchHidden: false
         },
         {
+            name: "Productos con Importe Fijo",
+            type: "number",
+            id: "TipoImporteFijo",
+            field: "TipoImporteFijo",
+            fieldName: "cvd.TipoImporteFijo",
+            sortable: true,
+            hidden: false,
+            searchHidden: false,
+            searchComponent: "inputForNumberAdvancedSearch",
+            searchType: "numberAdvanced",
+            showGridColumn: false
+        },
+        {
+            name: "Productos con Importe Lista Precio",
+            type: "number",
+            id: "TipoImporteListaPrecio",
+            field: "TipoImporteListaPrecio",
+            fieldName: "cvd.TipoImporteListaPrecio",
+            sortable: true,
+            hidden: false,
+            searchHidden: false,
+            searchComponent: "inputForNumberAdvancedSearch",
+            searchType: "numberAdvanced",
+            showGridColumn: false
+        },
+        {
             name: "Fecha Ingreso",
             type: "date",
             id: "AudFechaIng",
@@ -266,7 +292,8 @@ export class CondicionesVentaController extends BaseController {
                     suc.SucursalDescripcion,
 
                     conven.AudFechaIng, conven.AudUsuarioIng, conven.AudIpIng,
-                    conven.AudFechaMod, conven.AudUsuarioMod, conven.AudIpMod
+                    conven.AudFechaMod, conven.AudUsuarioMod, conven.AudIpMod,
+                    cvd.TipoImporteFijo, cvd.TipoImporteListaPrecio
 
                 from ClienteElementoDependiente ele
                 --join ClienteElementoDependienteContrato con on con.ClienteId=ele.ClienteId and con.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=DATEFROMPARTS(@0,@1,1)
@@ -298,6 +325,15 @@ export class CondicionesVentaController extends BaseController {
                 Left join Personal per on per.PersonalId=conven.AutorizacionPersonalId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+                LEFT JOIN (SELECT 
+                        cvd.ClienteId,
+                        cvd.ClienteElementoDependienteId,
+                        cvd.PeriodoDesdeAplica,
+                        SUM(CASE WHEN cvd.TipoImporte = 'F' THEN 1 ELSE 0 END) AS TipoImporteFijo,
+                        SUM(CASE WHEN cvd.TipoImporte = 'LP' THEN 1 ELSE 0 END) AS TipoImporteListaPrecio
+                    FROM CondicionVentaDetalle cvd
+                    WHERE cvd.TipoImporte IN ('F', 'LP')
+                    GROUP BY cvd.ClienteId, cvd.ClienteElementoDependienteId, cvd.PeriodoDesdeAplica) cvd ON cvd.ClienteId = conven.ClienteId AND cvd.ClienteElementoDependienteId = conven.ClienteElementoDependienteId AND cvd.PeriodoDesdeAplica = conven.PeriodoDesdeAplica
 
                   WHERE
              ${filterSql} ${orderBy}`, [anio, mes])
@@ -369,6 +405,7 @@ export class CondicionesVentaController extends BaseController {
                     PeriodoFacturacionInicio,
                     GeneracionFacturaDia,
                     GeneracionFacturaDiaComplemento,
+                    GeneracionFacturaReqCliente,
                     UnificacionFactura,
                     Observaciones,
                     AudFechaIng,
@@ -376,7 +413,7 @@ export class CondicionesVentaController extends BaseController {
                     AudIpIng,
                     AudFechaMod,
                     AudUsuarioMod,
-                    AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)`,
+                    AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18)`,
                 [objetivoInfo.clienteId,
                 objetivoInfo.ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
@@ -384,13 +421,16 @@ export class CondicionesVentaController extends BaseController {
                     null,
                     null,
                 CondicionVenta.PeriodoFacturacion,
-                PeriodoFacturacionInicio,
+                    PeriodoFacturacionInicio,
                 CondicionVenta.GeneracionFacturaDia,
                 CondicionVenta.GeneracionFacturaDiaComplemento,
+                CondicionVenta.GeneracionFacturaReqCliente ? 1 : 0,
                 CondicionVenta.UnificacionFactura ? 1 : 0,
                 CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
+            let CondicionVentaDettalleId = 0;
             for (const producto of CondicionVenta.infoProductos) {
+                CondicionVentaDettalleId++;
                 if (producto.ProductoCodigo) {
                     await queryRunner.query(
                         `INSERT INTO CondicionVentaDetalle (
@@ -408,8 +448,9 @@ export class CondicionesVentaController extends BaseController {
                         AudUsuarioIng,
                         AudUsuarioMod,
                         AudIpIng,
-                        AudIpMod
-                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
+                        AudIpMod,
+                        CondicionVentaDettalleId
+                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                         [
                             objetivoInfo.clienteId, // ClienteId
                             objetivoInfo.ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -425,7 +466,8 @@ export class CondicionesVentaController extends BaseController {
                             usuario, // AudUsuarioIng
                             usuario, // AudUsuarioMod
                             ip, // AudIpIng
-                            ip  // AudIpMod
+                            ip,  // AudIpMod
+                            CondicionVentaDettalleId // CondicionVentaDettalleId
                         ]
                     )
                 }
@@ -463,13 +505,15 @@ export class CondicionesVentaController extends BaseController {
         if (!CondicionVenta.PeriodoFacturacion) {
             throw new ClientException(`Debe completar el campo Período Facturación.`)
         }
-        if (!CondicionVenta.GeneracionFacturaDia) {
-            throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
-        }
+        if (!CondicionVenta.GeneracionFacturaReqCliente) {
+            if (!CondicionVenta.GeneracionFacturaDia) {
+                throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
+            }
 
-        const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
-        if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
-            throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
+            const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
+            if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
+                throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
+            }
         }
 
         if (CondicionVenta.GeneracionFacturaDiaComplemento != null && CondicionVenta.GeneracionFacturaDiaComplemento !== '') {
@@ -576,6 +620,7 @@ export class CondicionesVentaController extends BaseController {
             Cond.GeneracionFacturaDia,
             Cond.GeneracionFacturaDiaComplemento,
             Cond.UnificacionFactura,
+            Cond.GeneracionFacturaReqCliente,
             Cond.Observaciones
         FROM CondicionVenta AS Cond
         INNER JOIN Objetivo AS obj
@@ -732,16 +777,17 @@ export class CondicionesVentaController extends BaseController {
                 PeriodoFacturacionInicio = @1,
                 GeneracionFacturaDia = @2,
                 GeneracionFacturaDiaComplemento = @3,
-                UnificacionFactura = @4,
-                Observaciones = @5,
-                AutorizacionFecha = @6,
-                AutorizacionPersonalId = @7,
-                AutorizacionEstado = @8,
-                AudFechaMod = @9,
-                AudUsuarioMod = @10,
-                AudIpMod = @11
-            WHERE ClienteId = @12 AND ClienteElementoDependienteId = @13 AND PeriodoDesdeAplica = @14`,
-                [condicionVenta.PeriodoFacturacion, PeriodoFacturacionInicio, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.UnificacionFactura ? 1 : 0, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
+                GeneracionFacturaReqCliente = @4,
+                UnificacionFactura = @5,
+                Observaciones = @6,
+                AutorizacionFecha = @7,
+                AutorizacionPersonalId = @8,
+                AutorizacionEstado = @9,
+                AudFechaMod = @10,
+                AudUsuarioMod = @11,
+                AudIpMod = @12
+            WHERE ClienteId = @13 AND ClienteElementoDependienteId = @14 AND PeriodoDesdeAplica = @15`,
+                [condicionVenta.PeriodoFacturacion, PeriodoFacturacionInicio, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.GeneracionFacturaReqCliente ? 1 : 0, condicionVenta.UnificacionFactura ? 1 : 0, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
 
             //actualiza CondicionVentaDetalle
             await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
@@ -782,7 +828,7 @@ export class CondicionesVentaController extends BaseController {
                     FROM CondicionVenta 
                     WHERE ClienteId = @0
                     AND ClienteElementoDependienteId = @1
-                    AND PeriodoDesdeAplica = @2`, 
+                    AND PeriodoDesdeAplica = @2`,
                     [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
                 );
 
@@ -794,12 +840,12 @@ export class CondicionesVentaController extends BaseController {
                     yaAutorizadas++;
                 } else {
                     await this.updateAutorizacionCondicionVenta(
-                        queryRunner, 
-                        condicion.ClienteId, 
-                        condicion.ClienteElementoDependienteId, 
-                        PeriodoDesdeAplica, 
-                        usuario, 
-                        personalId, 
+                        queryRunner,
+                        condicion.ClienteId,
+                        condicion.ClienteElementoDependienteId,
+                        PeriodoDesdeAplica,
+                        usuario,
+                        personalId,
                         ip
                     );
                     autorizadas++;
@@ -817,9 +863,9 @@ export class CondicionesVentaController extends BaseController {
                 mensaje += `, Ya autorizadas: ${yaAutorizadas}`;
             }
 
-            return this.jsonRes({ 
-                status: 'ok', 
-                autorizadas, 
+            return this.jsonRes({
+                status: 'ok',
+                autorizadas,
                 yaAutorizadas
             }, res, mensaje);
 
@@ -867,8 +913,8 @@ export class CondicionesVentaController extends BaseController {
             }
 
             await queryRunner.commitTransaction();
-            return this.jsonRes({ 
-                status: 'ok', 
+            return this.jsonRes({
+                status: 'ok',
                 rechazadas
             }, res, `Proceso completado. Rechazadas: ${rechazadas}`);
 
@@ -889,7 +935,9 @@ export class CondicionesVentaController extends BaseController {
                 [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
         }
 
+        let CondicionVentaDetalleId = 0;
         for (const [idx, producto] of infoProductos.entries()) {
+            CondicionVentaDetalleId = idx + 1;
             if (producto.ProductoCodigo) {
                 await queryRunner.query(
                     `INSERT INTO CondicionVentaDetalle (
@@ -907,8 +955,9 @@ export class CondicionesVentaController extends BaseController {
                     AudUsuarioIng,
                     AudUsuarioMod,
                     AudIpIng,
-                    AudIpMod
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
+                    AudIpMod,
+                    CondicionVentaDetalleId
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                     [
                         ClienteId, // ClienteId
                         ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -924,7 +973,8 @@ export class CondicionesVentaController extends BaseController {
                         usuario, // AudUsuarioIng
                         usuario, // AudUsuarioMod
                         ip, // AudIpIng
-                        ip  // AudIpMod
+                        ip, // AudIpMod
+                        CondicionVentaDetalleId // CondicionVentaDetalleId
                     ]
                 )
             }

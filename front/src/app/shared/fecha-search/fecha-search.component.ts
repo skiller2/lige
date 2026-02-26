@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef, inject, model } from '@angular/core'
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, effect, forwardRef, inject, model } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -42,6 +42,14 @@ export class FechaSearchComponent implements ControlValueAccessor {
   operador = model('=')
   private datePipe = inject(DatePipe)
 
+  constructor() {
+    effect(() => {
+      if (!this.operador()) {
+        this.operador.set('=');
+      }
+    });
+  }
+
 
   // $searchChange = new BehaviorSubject('');
   // $isOptionsLoading = new BehaviorSubject<boolean>(false)
@@ -84,7 +92,7 @@ export class FechaSearchComponent implements ControlValueAccessor {
     }
   }
 
-  async ngOnInit() { 
+  async ngOnInit() {
   }
 
   ngAfterViewInit() {

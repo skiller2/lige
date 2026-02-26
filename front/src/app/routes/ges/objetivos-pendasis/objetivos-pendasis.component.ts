@@ -26,6 +26,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
 import { Selections } from 'src/app/shared/schemas/filtro';
+import { LoadingService } from '@delon/abc/loading';
 
 type listOptionsT = {
   filtros: any[],
@@ -70,7 +71,8 @@ export class ObjetivosPendAsisComponent {
   anio = 0
   mes = 0
   formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
+  // tableLoading$ = new BehaviorSubject(false);
+  private readonly loadingSrv = inject(LoadingService);
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
     let mapped = cols.map((col: Column) => {
@@ -121,8 +123,8 @@ export class ObjetivosPendAsisComponent {
           map(data => {
             return data.list
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => this.loadingSrv.open()),
+          tap({ complete: () => this.loadingSrv.close() })
         );
     })
   )

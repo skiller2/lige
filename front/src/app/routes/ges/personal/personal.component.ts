@@ -23,6 +23,7 @@ import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-
 import { PersonalActaDrawerComponent } from '../personal-acta-drawer/personal-acta-drawer.component'
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { ActivatedRoute, Router } from '@angular/router';
+import { PersonalExencionesDrawerComponent } from '../personal-exenciones-drawer/personal-exenciones-drawer';
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
@@ -39,7 +40,8 @@ import { Selections } from 'src/app/shared/schemas/filtro';
     PersonalFormComponent, LicenciaHistorialDrawerComponent,
     PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
     PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
-    DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent, PersonalActaDrawerComponent
+    DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent, PersonalActaDrawerComponent,
+    PersonalExencionesDrawerComponent
   ],
   providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline])],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -75,18 +77,13 @@ export class PersonalComponent {
   visibleSitRevista = model<boolean>(false)
   visibleResponsable = model<boolean>(false)
   visibleDocumentos = model<boolean>(false)
+  visibleExenciones = model<boolean>(false)
   visibleDetalle = model<boolean>(false)
   visibleCategoria = model<boolean>(false)
   visibleBanco = model<boolean>(false)
   visibleActa = model<boolean>(false)
   hiddenColumnIds: string[] = [];
 
-
-
-  // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
-  // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
-  // childCustDrawer = viewChild.required<PersonalCustodiasDrawerComponent>('custDrawer')
-  // childDomDrawer = viewChild.required<PersonalDomicilioDrawerComponent>('domDrawer')
   childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
   childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
   childPerDocumentosDrawer = viewChild.required<PersonalDocumentosDrawerComponent>('docDrawer')
@@ -197,6 +194,11 @@ export class PersonalComponent {
 
   openDrawerforConsultDocumentos(): void {
     this.visibleDocumentos.set(true)
+    this.childPerDocumentosDrawer().resetFormValues()
+  }
+
+  openDrawerforConsultExenciones(): void {
+    this.visibleExenciones.set(true)
     this.childPerDocumentosDrawer().resetFormValues()
   }
 

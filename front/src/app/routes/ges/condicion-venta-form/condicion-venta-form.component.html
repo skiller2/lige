@@ -51,7 +51,7 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback [nzErrorTip]="generacionFacturaDiaErrorTpl">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback [nzErrorTip]="generacionFacturaDiaErrorTpl">
       <input nz-input formControlName="GeneracionFacturaDia"
         placeholder="Día del mes (1-31)" style="width: 100%;">
       <ng-template #generacionFacturaDiaErrorTpl let-control>
@@ -60,6 +60,9 @@
         @else if (control.hasError('min')) { Mínimo 1 }
         @else if (control.hasError('max')) { Máximo 31 }
       </ng-template>
+    </nz-form-control>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" style="margin-left: 16px;">
+      <label  nz-checkbox formControlName="GeneracionFacturaReqCliente">Requerido por Cliente</label>
     </nz-form-control>
   </nz-form-item>
 

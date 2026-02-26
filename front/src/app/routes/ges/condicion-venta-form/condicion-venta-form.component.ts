@@ -25,6 +25,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   private decimalMarker = inject(DEFAULT_DECIMAL_MARKER);
   private thousandSeparator = inject(DEFAULT_THOUSAND_SEPARATOR);
   private periodoSubscription?: Subscription;
+  private reqClienteSubscription?: Subscription;
   private isNormalizingPeriodo = false;
   refreshCondVenta = model<number>(0);
   /*pristineChange = output<boolean>()*/
@@ -77,6 +78,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     PeriodoFacturacion: ['', [Validators.required, periodValidator({ min: '1D', max: '2A', allowedUnits: ['D', 'S', 'M', 'A'] })]],
     PeriodoFacturacionInicio: '',
     GeneracionFacturaDia: ['', [Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]],
+    GeneracionFacturaReqCliente: [false],
     GeneracionFacturaDiaComplemento: ['', [Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]],
     UnificacionFactura: [false],
     Observaciones: '',
@@ -253,6 +255,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
 
     this.formCondicionVenta.reset(infoCliente)
 
+    // Aplicar estado del checkbox Requerido por Cliente
+    const reqCliente = this.formCondicionVenta.get('GeneracionFacturaReqCliente')?.value;
+    this.applyReqClienteState(!!reqCliente);
+
     // Evaluar si debe mostrar PeriodoFacturacionInicio
     const periodoFacturacion = infoCliente.PeriodoFacturacion;
     if (periodoFacturacion) {
@@ -326,6 +332,11 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Suscribirse a cambios en GeneracionFacturaReqCliente
+    this.reqClienteSubscription = this.formCondicionVenta.controls.GeneracionFacturaReqCliente.valueChanges.subscribe(checked => {
+      this.applyReqClienteState(!!checked);
+    });
+
     // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
     const periodoControl = this.formCondicionVenta.get('PeriodoDesdeAplica');
     if (periodoControl) {
@@ -351,6 +362,27 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.periodoSubscription) {
       this.periodoSubscription.unsubscribe();
+    }
+    if (this.reqClienteSubscription) {
+      this.reqClienteSubscription.unsubscribe();
+    }
+  }
+
+  private applyReqClienteState(checked: boolean): void {
+    const diaControl = this.formCondicionVenta.get('GeneracionFacturaDia');
+    const diaComplementoControl = this.formCondicionVenta.get('GeneracionFacturaDiaComplemento');
+    if (checked) {
+      diaControl?.setValue('', { emitEvent: false });
+      diaComplementoControl?.setValue('', { emitEvent: false });
+      diaControl?.disable({ emitEvent: false });
+      diaComplementoControl?.disable({ emitEvent: false });
+      diaControl?.clearValidators();
+      diaControl?.updateValueAndValidity({ emitEvent: false });
+    } else {
+      diaControl?.enable({ emitEvent: false });
+      diaComplementoControl?.enable({ emitEvent: false });
+      diaControl?.setValidators([Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]);
+      diaControl?.updateValueAndValidity({ emitEvent: false });
     }
   }
 

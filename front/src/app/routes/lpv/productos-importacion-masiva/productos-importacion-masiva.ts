@@ -103,7 +103,7 @@ export class ProductosImportacionMasivaComponent {
     loader: async () => {
       const response = await firstValueFrom(this.apiService.getImportacionesPreciosProductosAnteriores(this.anio(), this.mes()));
 
-      return response.list;
+      return response;
     },
     defaultValue: []
   });

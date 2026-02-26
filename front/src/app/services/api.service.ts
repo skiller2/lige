@@ -1656,6 +1656,18 @@ export class ApiService {
     );
   }
 
+  addExencion(values: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/personal/execiones/add`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  updateExencion(values: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/personal/execiones/update`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
   getDescuentosPersonal(options: any, anio: number, mes: number) {
     if (!anio && !mes && !options.filtros.length) {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);

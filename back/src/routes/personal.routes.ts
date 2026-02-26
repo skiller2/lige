@@ -124,6 +124,10 @@ personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
+personalRouter.get(`${base}/exenciones/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
+  personalController.getExencionesByPersonalId(req, res, next);
+});
+
 personalRouter.get("/download/:table/:id", authMiddleware.verifyToken, (req, res, next) => {
   personalController.downloadPersonaDocumentoImagen(req, res, next);
 });
