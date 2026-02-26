@@ -59,7 +59,7 @@ import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-
 import { EfectoController } from "../efecto/efecto.controller.ts";
 import { DomicilioController } from "../domicilio/domicilio.controller.ts";
 import { HabilitacionesController } from "../habilitaciones/habilitaciones.controller.ts";
-import { CondicionesVentaController } from "../condiciones-venta/condiciones-venta.controller.ts";
+import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
 import { SalarioMinimoVitalMovilController } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.controller.ts";
 
 export const infoController = new InfoController();
@@ -123,5 +123,5 @@ export const excepcionesAsistenciaController = new ExcepcionesAsistenciaControll
 export const compensaGeneralACordinadorController = new CompensaGeneralACordinadorController()
 export const efectoController = new EfectoController()
 export const habilitacionesController = new HabilitacionesController()
-export const condicionesVentaController = new CondicionesVentaController()
+export const parametrosVentaController = new ParametrosVentaController()
 export const salarioMinimoVitalMovilController = new SalarioMinimoVitalMovilController()

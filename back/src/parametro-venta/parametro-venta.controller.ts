@@ -18,7 +18,7 @@ const TipoImporteOptions: any[] = [
     { label: 'Variable', value: 'V' }
 ]
 
-export class CondicionesVentaController extends BaseController {
+export class ParametrosVentaController extends BaseController {
 
 
     listaColumnas: any[] = [
@@ -267,7 +267,7 @@ export class CondicionesVentaController extends BaseController {
         this.jsonRes(this.listaColumnas, res);
     }
 
-    async listCondicionesVenta(req: any, res: any, next: any) {
+    async listParametrosVenta(req: any, res: any, next: any) {
         const fechaActual = new Date()
         const filterSql = filtrosToSql(req.body.filters.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.filters.sort)
@@ -278,7 +278,7 @@ export class CondicionesVentaController extends BaseController {
 
         try {
 
-            const condicionesVenta = await queryRunner.query(
+            const parametrosVenta = await queryRunner.query(
                 `
                 Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
                 cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId, 
@@ -312,10 +312,10 @@ export class CondicionesVentaController extends BaseController {
                             AND con.ClienteElementoDependienteId = ele.ClienteElementoDependienteId
                             AND con.RowNum = 1    
 
-                LEFT JOIN CondicionVenta conven ON  ele.ClienteId=conven.ClienteId and ele.ClienteElementoDependienteId=conven.ClienteElementoDependienteId and conven.PeriodoDesdeAplica>=con.ClienteElementoDependienteContratoFechaDesde and conven.PeriodoDesdeAplica<=ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')
+                LEFT JOIN ParametroVenta conven ON  ele.ClienteId=conven.ClienteId and ele.ClienteElementoDependienteId=conven.ClienteElementoDependienteId and conven.PeriodoDesdeAplica>=con.ClienteElementoDependienteContratoFechaDesde and conven.PeriodoDesdeAplica<=ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')
                     and conven.PeriodoDesdeAplica = (
                     SELECT max(PeriodoDesdeAplica) 
-                        FROM CondicionVenta cv
+                        FROM ParametroVenta cv
                         WHERE cv.ClienteId = ele.ClienteId
                         AND cv.ClienteElementoDependienteId = ele.ClienteElementoDependienteId
                             and cv.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1)
@@ -331,7 +331,7 @@ export class CondicionesVentaController extends BaseController {
                         cvd.PeriodoDesdeAplica,
                         SUM(CASE WHEN cvd.TipoImporte = 'F' THEN 1 ELSE 0 END) AS TipoImporteFijo,
                         SUM(CASE WHEN cvd.TipoImporte = 'LP' THEN 1 ELSE 0 END) AS TipoImporteListaPrecio
-                    FROM CondicionVentaDetalle cvd
+                    FROM ParametroVentaDetalle cvd
                     WHERE cvd.TipoImporte IN ('F', 'LP')
                     GROUP BY cvd.ClienteId, cvd.ClienteElementoDependienteId, cvd.PeriodoDesdeAplica) cvd ON cvd.ClienteId = conven.ClienteId AND cvd.ClienteElementoDependienteId = conven.ClienteElementoDependienteId AND cvd.PeriodoDesdeAplica = conven.PeriodoDesdeAplica
 
@@ -340,8 +340,8 @@ export class CondicionesVentaController extends BaseController {
 
             this.jsonRes(
                 {
-                    total: condicionesVenta.length,
-                    list: condicionesVenta,
+                    total: parametrosVenta.length,
+                    list: parametrosVenta,
                 },
                 res
             );
@@ -354,23 +354,23 @@ export class CondicionesVentaController extends BaseController {
 
     }
 
-    async addCondicionVenta(req: any, res: any, next: any) {
+    async addParametroVenta(req: any, res: any, next: any) {
 
         const queryRunner = dataSource.createQueryRunner();
-        const CondicionVenta = { ...req.body };
+        const ParametroVenta = { ...req.body };
 
         try {
 
             //validaciones
-            await this.FormValidations(CondicionVenta, queryRunner)
+            await this.FormValidations(ParametroVenta, queryRunner)
             //throw new ClientException('test')
 
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const objetivoInfo = await this.ObjetivoInfoFromId(CondicionVenta.ObjetivoId)
+            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ObjetivoId)
 
-            const PeriodoDesdeAplica = new Date(CondicionVenta.PeriodoDesdeAplica);
+            const PeriodoDesdeAplica = new Date(ParametroVenta.PeriodoDesdeAplica);
             const anio = PeriodoDesdeAplica.getFullYear()
             const mes = PeriodoDesdeAplica.getMonth() + 1
             const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
@@ -384,17 +384,17 @@ export class CondicionesVentaController extends BaseController {
 
             //validacion si existe
 
-            const existeCondicionVenta =
-                await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM CondicionVenta 
+            const existeParametroVenta =
+                await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM ParametroVenta 
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                     [objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, PeriodoDesdeAplica]);
 
-            if (existeCondicionVenta.length > 0) throw new ClientException(`Ya existe una condición de venta para el objetivo ${existeCondicionVenta[0].ClienteId}/${existeCondicionVenta[0].ClienteElementoDependienteId} en el periodo ${mes}/${anio}.`)
+            if (existeParametroVenta.length > 0) throw new ClientException(`Ya existe una condición de venta para el objetivo ${existeParametroVenta[0].ClienteId}/${existeParametroVenta[0].ClienteElementoDependienteId} en el periodo ${mes}/${anio}.`)
 
 
-            const PeriodoFacturacionInicio = CondicionVenta.PeriodoFacturacionInicio ? new Date(CondicionVenta.PeriodoFacturacionInicio) : null;
+            const PeriodoFacturacionInicio = ParametroVenta.PeriodoFacturacionInicio ? new Date(ParametroVenta.PeriodoFacturacionInicio) : null;
 
-            await queryRunner.query(`INSERT INTO CondicionVenta (
+            await queryRunner.query(`INSERT INTO ParametroVenta (
                     ClienteId,
                     ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
@@ -420,20 +420,20 @@ export class CondicionesVentaController extends BaseController {
                     null,
                     null,
                     null,
-                CondicionVenta.PeriodoFacturacion,
+                ParametroVenta.PeriodoFacturacion,
                     PeriodoFacturacionInicio,
-                CondicionVenta.GeneracionFacturaDia,
-                CondicionVenta.GeneracionFacturaDiaComplemento,
-                CondicionVenta.GeneracionFacturaReqCliente ? 1 : 0,
-                CondicionVenta.UnificacionFactura ? 1 : 0,
-                CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
+                ParametroVenta.GeneracionFacturaDia,
+                ParametroVenta.GeneracionFacturaDiaComplemento,
+                ParametroVenta.GeneracionFacturaReqCliente ? 1 : 0,
+                ParametroVenta.UnificacionFactura ? 1 : 0,
+                ParametroVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
-            let CondicionVentaDettalleId = 0;
-            for (const producto of CondicionVenta.infoProductos) {
-                CondicionVentaDettalleId++;
+            let ParametroVentaDetalleId = 0;
+            for (const producto of ParametroVenta.infoProductos) {
+                ParametroVentaDetalleId++;
                 if (producto.ProductoCodigo) {
                     await queryRunner.query(
-                        `INSERT INTO CondicionVentaDetalle (
+                        `INSERT INTO ParametroVentaDetalle (
                         ClienteId,
                         ClienteElementoDependienteId,
                         PeriodoDesdeAplica,
@@ -449,7 +449,7 @@ export class CondicionesVentaController extends BaseController {
                         AudUsuarioMod,
                         AudIpIng,
                         AudIpMod,
-                        CondicionVentaDettalleId
+                        ParametroVentaDetalleId
                     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                         [
                             objetivoInfo.clienteId, // ClienteId
@@ -467,7 +467,7 @@ export class CondicionesVentaController extends BaseController {
                             usuario, // AudUsuarioMod
                             ip, // AudIpIng
                             ip,  // AudIpMod
-                            CondicionVentaDettalleId // CondicionVentaDettalleId
+                            ParametroVentaDetalleId // ParametroVentaDetalleId
                         ]
                     )
                 }
@@ -477,7 +477,7 @@ export class CondicionesVentaController extends BaseController {
             const result = {
                 ClienteId: objetivoInfo.clienteId,
                 ClienteElementoDependienteId: objetivoInfo.ClienteElementoDependienteId,
-                PeriodoDesdeAplica: CondicionVenta.PeriodoDesdeAplica
+                PeriodoDesdeAplica: ParametroVenta.PeriodoDesdeAplica
             }
 
 
@@ -494,36 +494,36 @@ export class CondicionesVentaController extends BaseController {
 
 
 
-    async FormValidations(CondicionVenta: any, queryRunner: any) {
+    async FormValidations(ParametroVenta: any, queryRunner: any) {
 
-        if (!CondicionVenta.ObjetivoId) {
+        if (!ParametroVenta.ObjetivoId) {
             throw new ClientException(`Debe completar el campo Objetivo.`)
         }
-        if (!CondicionVenta.PeriodoDesdeAplica) {
+        if (!ParametroVenta.PeriodoDesdeAplica) {
             throw new ClientException(`Debe completar el campo Período.`)
         }
-        if (!CondicionVenta.PeriodoFacturacion) {
+        if (!ParametroVenta.PeriodoFacturacion) {
             throw new ClientException(`Debe completar el campo Período Facturación.`)
         }
-        if (!CondicionVenta.GeneracionFacturaReqCliente) {
-            if (!CondicionVenta.GeneracionFacturaDia) {
+        if (!ParametroVenta.GeneracionFacturaReqCliente) {
+            if (!ParametroVenta.GeneracionFacturaDia) {
                 throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
             }
 
-            const generacionDia = Number(CondicionVenta.GeneracionFacturaDia);
+            const generacionDia = Number(ParametroVenta.GeneracionFacturaDia);
             if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
                 throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
             }
         }
 
-        if (CondicionVenta.GeneracionFacturaDiaComplemento != null && CondicionVenta.GeneracionFacturaDiaComplemento !== '') {
-            const generacionDiaComplemento = Number(CondicionVenta.GeneracionFacturaDiaComplemento);
+        if (ParametroVenta.GeneracionFacturaDiaComplemento != null && ParametroVenta.GeneracionFacturaDiaComplemento !== '') {
+            const generacionDiaComplemento = Number(ParametroVenta.GeneracionFacturaDiaComplemento);
             if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 31) {
                 throw new ClientException(`El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31.`)
             }
         }
 
-        for (const producto of CondicionVenta.infoProductos) {
+        for (const producto of ParametroVenta.infoProductos) {
             if (producto.ProductoCodigo) {
 
                 if (!producto.TipoImporte) {
@@ -579,7 +579,7 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async infCondicionVenta(req: any, res: Response, next: any) {
+    async infParametroVenta(req: any, res: Response, next: any) {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
@@ -588,15 +588,15 @@ export class CondicionesVentaController extends BaseController {
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
-            const infoCondicionVentaArr = await this.getInfoCondicionVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
+            const infoParametroVentaArr = await this.getInfoParametroVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
             const infoProductos = await this.getInfoProductos(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
-            const infoCondicionVenta = infoCondicionVentaArr[0];
+            const infoParametroVenta = infoParametroVentaArr[0];
 
-            if (infoCondicionVenta)
-                infoCondicionVenta.infoProductos = infoProductos;
+            if (infoParametroVenta)
+                infoParametroVenta.infoProductos = infoProductos;
 
             await queryRunner.commitTransaction();
-            return this.jsonRes(infoCondicionVenta, res);
+            return this.jsonRes(infoParametroVenta, res);
 
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
@@ -608,7 +608,7 @@ export class CondicionesVentaController extends BaseController {
 
 
 
-    async getInfoCondicionVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
+    async getInfoParametroVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` SELECT
             obj.ObjetivoId,
@@ -622,7 +622,7 @@ export class CondicionesVentaController extends BaseController {
             Cond.UnificacionFactura,
             Cond.GeneracionFacturaReqCliente,
             Cond.Observaciones
-        FROM CondicionVenta AS Cond
+        FROM ParametroVenta AS Cond
         INNER JOIN Objetivo AS obj
             ON obj.ClienteId = Cond.ClienteId
         AND obj.ClienteElementoDependienteId = Cond.ClienteElementoDependienteId
@@ -636,13 +636,13 @@ export class CondicionesVentaController extends BaseController {
         return await
             queryRunner.query(` 
             SELECT ProductoCodigo, TextoFactura, TipoCantidad, Cantidad AS CantidadHoras, TipoImporte, ImporteUnitario
-            FROM CondicionVentaDetalle 
+            FROM ParametroVentaDetalle 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }
 
 
-    async getAutorizarCondicionVenta(req: any, res: any, next: any) {
+    async getAutorizarParametroVenta(req: any, res: any, next: any) {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
@@ -657,7 +657,7 @@ export class CondicionesVentaController extends BaseController {
 
             const result = await queryRunner.query(`
                 SELECT  ClienteId,ClienteElementoDependienteId,PeriodoDesdeAplica,AutorizacionFecha,AutorizacionPersonalId,AutorizacionEstado
-                    FROM CondicionVenta 
+                    FROM ParametroVenta 
                     WHERE ClienteId = @0
                     AND ClienteElementoDependienteId = @1
                     AND PeriodoDesdeAplica = @2`, [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
@@ -667,7 +667,7 @@ export class CondicionesVentaController extends BaseController {
                     throw new ClientException(`Ya se aprobo el registro seleccionado.`)
                 }
                 else {
-                    await this.updateAutorizacionCondicionVenta(queryRunner, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, personalId, ip)
+                    await this.updateAutorizacionParametroVenta(queryRunner, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, personalId, ip)
                 }
             } else {
                 throw new ClientException(`No existe el registro seleccionado.`)
@@ -684,10 +684,10 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async updateAutorizacionCondicionVenta(queryRunner: any, codobj: string, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, personalId: number, ip: string) {
+    async updateAutorizacionParametroVenta(queryRunner: any, codobj: string, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, personalId: number, ip: string) {
         let FechaActual = new Date()
         await queryRunner.query(`
-        UPDATE CondicionVenta 
+        UPDATE ParametroVenta 
         SET
             AutorizacionFecha = @0,
             AutorizacionPersonalId = @1,
@@ -702,7 +702,7 @@ export class CondicionesVentaController extends BaseController {
 
     }
 
-    async rechazarCondicionVenta(req: any, res: any, next: any) {
+    async rechazarParametroVenta(req: any, res: any, next: any) {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
@@ -713,12 +713,12 @@ export class CondicionesVentaController extends BaseController {
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
-            // delete CondicionVentaDetalle
-            await queryRunner.query(`DELETE FROM CondicionVentaDetalle  WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+            // delete ParametroVentaDetalle
+            await queryRunner.query(`DELETE FROM ParametroVentaDetalle  WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
 
-            // delete CondicionVenta
-            await queryRunner.query(`DELETE FROM CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+            // delete ParametroVenta
+            await queryRunner.query(`DELETE FROM ParametroVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
 
 
@@ -734,11 +734,11 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async updateCondicionVenta(req: any, res: any, next: any) {
+    async updateParametroVenta(req: any, res: any, next: any) {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
-            const condicionVenta = req.body.condicionVenta;
+            const parametroVenta = req.body.parametroVenta;
             const ClienteId = Number(req.body.ClienteId);
             const clienteelementodependienteid = Number(req.body.clienteelementodependienteid);
             const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica);
@@ -758,7 +758,7 @@ export class CondicionesVentaController extends BaseController {
             }
 
             //validaciones
-            await this.FormValidations(condicionVenta, queryRunner)
+            await this.FormValidations(parametroVenta, queryRunner)
 
             const anio = PeriodoDesdeAplica.getFullYear()
             const mes = PeriodoDesdeAplica.getMonth() + 1
@@ -769,10 +769,10 @@ export class CondicionesVentaController extends BaseController {
             // }
 
             let FechaActual = new Date()
-            const PeriodoFacturacionInicio = condicionVenta.PeriodoFacturacionInicio ? new Date(condicionVenta.PeriodoFacturacionInicio) : null;
+            const PeriodoFacturacionInicio = parametroVenta.PeriodoFacturacionInicio ? new Date(parametroVenta.PeriodoFacturacionInicio) : null;
 
-            //actualiza CondicionVenta
-            await queryRunner.query(`UPDATE CondicionVenta SET
+            //actualiza ParametroVenta
+            await queryRunner.query(`UPDATE ParametroVenta SET
                 PeriodoFacturacion = @0,
                 PeriodoFacturacionInicio = @1,
                 GeneracionFacturaDia = @2,
@@ -787,10 +787,10 @@ export class CondicionesVentaController extends BaseController {
                 AudUsuarioMod = @11,
                 AudIpMod = @12
             WHERE ClienteId = @13 AND ClienteElementoDependienteId = @14 AND PeriodoDesdeAplica = @15`,
-                [condicionVenta.PeriodoFacturacion, PeriodoFacturacionInicio, condicionVenta.GeneracionFacturaDia, condicionVenta.GeneracionFacturaDiaComplemento, condicionVenta.GeneracionFacturaReqCliente ? 1 : 0, condicionVenta.UnificacionFactura ? 1 : 0, condicionVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
+                [parametroVenta.PeriodoFacturacion, PeriodoFacturacionInicio, parametroVenta.GeneracionFacturaDia, parametroVenta.GeneracionFacturaDiaComplemento, parametroVenta.GeneracionFacturaReqCliente ? 1 : 0, parametroVenta.UnificacionFactura ? 1 : 0, parametroVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
 
-            //actualiza CondicionVentaDetalle
-            await this.updateCondicionVentaDetalleQuery(queryRunner, condicionVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
+            //actualiza ParametroVentaDetalle
+            await this.updateParametroVentaDetalleQuery(queryRunner, parametroVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
             //throw new ClientException('test ok')
             await queryRunner.commitTransaction();
             return this.jsonRes({}, res, 'Actualización exitosa');
@@ -803,7 +803,7 @@ export class CondicionesVentaController extends BaseController {
     }
 
     // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
-    async autorizarCondicionVentaMultiple(req: any, res: any, next: any) {
+    async autorizarParametroVentaMultiple(req: any, res: any, next: any) {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction();
@@ -825,7 +825,7 @@ export class CondicionesVentaController extends BaseController {
 
                 const result = await queryRunner.query(`
                     SELECT ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, AutorizacionFecha, AutorizacionPersonalId, AutorizacionEstado
-                    FROM CondicionVenta 
+                    FROM ParametroVenta 
                     WHERE ClienteId = @0
                     AND ClienteElementoDependienteId = @1
                     AND PeriodoDesdeAplica = @2`,
@@ -839,7 +839,7 @@ export class CondicionesVentaController extends BaseController {
                 if (result[0].AutorizacionFecha && result[0].AutorizacionPersonalId && result[0].AutorizacionEstado) {
                     yaAutorizadas++;
                 } else {
-                    await this.updateAutorizacionCondicionVenta(
+                    await this.updateAutorizacionParametroVenta(
                         queryRunner,
                         condicion.ClienteId,
                         condicion.ClienteElementoDependienteId,
@@ -877,7 +877,7 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async rechazarCondicionVentaMultiple(req: any, res: any, next: any) {
+    async rechazarParametroVentaMultiple(req: any, res: any, next: any) {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction();
@@ -893,15 +893,15 @@ export class CondicionesVentaController extends BaseController {
                 const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
                 PeriodoDesdeAplica.setHours(0, 0, 0, 0);
 
-                // Delete CondicionVentaDetalle
+                // Delete ParametroVentaDetalle
                 await queryRunner.query(
-                    `DELETE FROM CondicionVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                    `DELETE FROM ParametroVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                     [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
                 );
 
-                // Delete CondicionVenta
+                // Delete ParametroVenta
                 await queryRunner.query(
-                    `DELETE FROM CondicionVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+                    `DELETE FROM ParametroVenta WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                     [condicion.ClienteId, condicion.ClienteElementoDependienteId, PeriodoDesdeAplica]
                 );
 
@@ -926,21 +926,21 @@ export class CondicionesVentaController extends BaseController {
         }
     }
 
-    async updateCondicionVentaDetalleQuery(queryRunner: any, infoProductos: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
+    async updateParametroVentaDetalleQuery(queryRunner: any, infoProductos: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, ip: string) {
         let FechaActual = new Date()
         const ProductoIds = infoProductos.map((row: { ProductoCodigo: any; }) => row.ProductoCodigo).filter((id) => id !== null && id !== undefined);
 
         if (ProductoIds.length > 0) {
-            await queryRunner.query(`DELETE FROM CondicionVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
+            await queryRunner.query(`DELETE FROM ParametroVentaDetalle WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
                 [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
         }
 
-        let CondicionVentaDetalleId = 0;
+        let ParametroVentaDetalleId = 0;
         for (const [idx, producto] of infoProductos.entries()) {
-            CondicionVentaDetalleId = idx + 1;
+            ParametroVentaDetalleId = idx + 1;
             if (producto.ProductoCodigo) {
                 await queryRunner.query(
-                    `INSERT INTO CondicionVentaDetalle (
+                    `INSERT INTO ParametroVentaDetalle (
                     ClienteId,
                     ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
@@ -956,7 +956,7 @@ export class CondicionesVentaController extends BaseController {
                     AudUsuarioMod,
                     AudIpIng,
                     AudIpMod,
-                    CondicionVentaDetalleId
+                    ParametroVentaDetalleId
                 ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                     [
                         ClienteId, // ClienteId
@@ -974,7 +974,7 @@ export class CondicionesVentaController extends BaseController {
                         usuario, // AudUsuarioMod
                         ip, // AudIpIng
                         ip, // AudIpMod
-                        CondicionVentaDetalleId // CondicionVentaDetalleId
+                        ParametroVentaDetalleId // ParametroVentaDetalleId
                     ]
                 )
             }

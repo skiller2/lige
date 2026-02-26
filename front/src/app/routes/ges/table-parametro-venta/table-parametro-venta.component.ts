@@ -39,15 +39,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 
 @Component({
-  selector: 'app-table-condicion-venta',
+  selector: 'app-table-parametro-venta',
   standalone: true,
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzAffixModule],
-  templateUrl: './table-condicion-venta.component.html',
-  styleUrl: './table-condicion-venta.component.less',
+  templateUrl: './table-parametro-venta.component.html',
+  styleUrl: './table-parametro-venta.component.less',
   providers: [AngularUtilService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TableCondicionVentaComponent implements OnInit {
+export class TableParametroVentaComponent implements OnInit {
 
   // Se usa para forzar el refresh de la grilla
   refreshCondVenta = model<number>(0)
@@ -71,7 +71,7 @@ export class TableCondicionVentaComponent implements OnInit {
   PeriodoDesdeAplica = model<string>('');
 
   // Condiciones seleccionadas (para selección múltiple)
-  condicionesSeleccionadas = model<any[]>([]);
+  parametrosSeleccionadas = model<any[]>([]);
 
   // Filtros iniciales
   startFilters = signal<Selections[]>([])
@@ -91,7 +91,7 @@ export class TableCondicionVentaComponent implements OnInit {
 
   // Columnas de la grilla (configuradas desde backend)
   columns = toSignal(
-    this.apiService.getCols('/api/condiciones-venta/cols').pipe(
+    this.apiService.getCols('/api/parametros-venta/cols').pipe(
       map((cols) => {
         // Guardar IDs de columnas que tienen showGridColumn: false
         this.hiddenColumnIds = cols
@@ -115,7 +115,7 @@ export class TableCondicionVentaComponent implements OnInit {
   gridData = resource({
     params: () => ({ options: this.listOptions(), periodo: this.periodo(), refresh: this.refreshCondVenta() }),
     loader: async () => {
-      const response = await firstValueFrom(this.apiService.getListCondicionesVenta(this.listOptions(), this.periodo()));
+      const response = await firstValueFrom(this.apiService.getListParametrosVenta(this.listOptions(), this.periodo()));
       return response.list;
     },
     defaultValue:[]
@@ -184,7 +184,7 @@ export class TableCondicionVentaComponent implements OnInit {
     if (this.angularGrid?.slickGrid) {
       this.angularGrid.slickGrid.setSelectedRows([]);
     }
-    this.condicionesSeleccionadas.set([]);
+    this.parametrosSeleccionadas.set([]);
     this.codobj.set('');
     this.objetivoId.set(0);
     this.PeriodoDesdeAplica.set('');
@@ -193,7 +193,7 @@ export class TableCondicionVentaComponent implements OnInit {
   // Exporta la grilla a Excel
   exportGrid(): void {
     this.excelExportService.exportToExcel({
-      filename: 'lista-condiciones-venta',
+      filename: 'lista-parametros-venta',
       format: 'xlsx'
     });
   }
@@ -218,7 +218,7 @@ export class TableCondicionVentaComponent implements OnInit {
     });
 
     // Actualizar las condiciones seleccionadas
-    this.condicionesSeleccionadas.set(selectedData);
+    this.parametrosSeleccionadas.set(selectedData);
 
     // Mantener compatibilidad con selección única (para edición)
     if (selectedData.length === 1) {
