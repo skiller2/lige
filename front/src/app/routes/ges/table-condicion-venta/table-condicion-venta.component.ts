@@ -14,7 +14,6 @@ import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import {
   BehaviorSubject,
-  debounceTime,
   firstValueFrom,
   map,
   switchMap,
@@ -37,6 +36,7 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { Selections } from 'src/app/shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
+
 
 @Component({
   selector: 'app-table-condicion-venta',
