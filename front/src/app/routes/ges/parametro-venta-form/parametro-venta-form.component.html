@@ -108,7 +108,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
           <nz-select nzAllowClear style="width:100%" nzPlaceholder="Producto" formControlName="ProductoCodigo"
             nzShowSearch [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onProductoCodigoChange($event, i)">
-            @for (option of $optionsTipoProducto | async; track option) {
+            @for (option of $optionsTipoProducto | async; track option.ProductoCodigo) {
             <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
             }
           </nz-select>
