@@ -641,7 +641,7 @@ export class SearchService {
   }
 
   getTipoProductoSearch(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -661,7 +661,7 @@ export class SearchService {
   }
 
   getTipoCantidadSearch(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/tipoCantidad_getOptions`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/tipoCantidad_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -671,7 +671,7 @@ export class SearchService {
   } 
 
   getTipoImporteSearch(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`/api/condiciones-venta/tipoImporte_getOptions`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/tipoImporte_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1394,9 +1394,9 @@ export class SearchService {
       );
   }
 
-  getInfoCondicionVenta(codobjId: string, PeriodoDesdeAplica: string) {
+  getInfoParametroVenta(codobjId: string, PeriodoDesdeAplica: string) {
     return this.http
-      .get<ResponseJSON<any>>(`api/condiciones-venta/infCondicionVenta/${codobjId}/${PeriodoDesdeAplica}`)
+      .get<ResponseJSON<any>>(`api/parametros-venta/infParametroVenta/${codobjId}/${PeriodoDesdeAplica}`)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

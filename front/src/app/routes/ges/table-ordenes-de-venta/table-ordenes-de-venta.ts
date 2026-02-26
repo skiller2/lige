@@ -47,24 +47,25 @@ export class TableOrdenesDeVentaComponent {
   private injector = inject(Injector)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
-  
+
 
   formChange$ = new BehaviorSubject('');
-  
-  columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols').pipe(map((cols) => {
-    
-    let mapped = cols.map((col: Column) => {
-      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA') 
-        col.editor= { model: CustomFloatEditor, decimal: 2,params:{},alwaysSaveOnEnterKey: true }
 
-      if (col.id === 'TotalHoraA' || col.id === 'TotalHoraB') 
+  columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols').pipe(map((cols) => {
+
+    let mapped = cols.map((col: Column) => {
+      if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA')
+        col.editor = { model: CustomFloatEditor, decimal: 2, params: {}, alwaysSaveOnEnterKey: true }
+
+      if (col.id === 'TotalHoraA' || col.id === 'TotalHoraB')
         col.editor = { model: CustomFloatEditor, decimal: 1, params: {}, alwaysSaveOnEnterKey: true }
 
-      if (col.id === 'Observaciones') 
+      if (col.id === 'Observaciones' || col.id === 'ComprobanteNumero')
         col.editor = { model: Editors['text'], alwaysSaveOnEnterKey: true }
+
       return col
     });
-    
+
     return mapped
   }));
 
@@ -102,7 +103,7 @@ export class TableOrdenesDeVentaComponent {
           doOnSubscribe(() => { }),
           tap({
             complete: () => {
-               this.loadingSrv.close()
+              this.loadingSrv.close()
             }
           })
         );
@@ -119,7 +120,7 @@ export class TableOrdenesDeVentaComponent {
     this.angularGridEdit
     this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
-        if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA' && column.id !== 'TotalHoraA' && column.id !== 'TotalHoraB' && column.id !== 'Observaciones') return
+      if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA' && column.id !== 'TotalHoraA' && column.id !== 'TotalHoraB' && column.id !== 'Observaciones' && column.id !== 'ComprobanteNumero') return
 
       //this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
@@ -145,11 +146,12 @@ export class TableOrdenesDeVentaComponent {
           row.ImporteHoraB,
           row.TotalHoraA,
           row.TotalHoraB,
-          row.Observaciones
+          row.Observaciones,
+          row.ComprobanteNumero
         ))
         //row.TotalAFacturar = (row.TotalHoras * row.ImporteHora) + row.ImporteFijo
 
-        const updRecord = {...row,...ret[0]}
+        const updRecord = { ...row, ...ret[0] }
         this.angularGridEdit.gridService.updateItemById(row.id, updRecord)
 
         this.rowLocked.set(false)
@@ -171,7 +173,7 @@ export class TableOrdenesDeVentaComponent {
       if (this.reloadForm()) {
         this.reloadForm.set(false)
         this.formChange$.next('')
-       
+
       }
     }, { injector: this.injector });
 

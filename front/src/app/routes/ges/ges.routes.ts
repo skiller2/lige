@@ -160,10 +160,10 @@ export const GesRoutes: Routes = [
     path: 'importe-venta-vigilancia/:tab',
     loadComponent: () => import('./importe-venta-vigilancia/importe-venta-vigilancia').then(c => c.ImporteVentaVigilanciaComponent),
   },
-  { path: 'condiciones-venta', redirectTo: 'condiciones-venta/listado' },
+  { path: 'parametros-venta', redirectTo: 'parametros-venta/listado' },
   {
-    path: 'condiciones-venta/:tab',
-    loadComponent: () => import('./condicion-venta/condicion-venta.component').then(c => c.CondicionVentaComponent),
+    path: 'parametros-venta/:tab',
+    loadComponent: () => import('./parametro-venta/parametro-venta.component').then(c => c.ParametroVentaComponent),
   },
   { path: 'facturacion', redirectTo: 'facturacion/listado' },
   {

@@ -2,22 +2,22 @@ import { ChangeDetectionStrategy, Component, inject, input, model, OnInit, signa
 import { SHARED_IMPORTS } from '@shared';
 
 import { I18nPipe, SettingsService } from '@delon/theme';
-import { TableCondicionVentaComponent } from '../table-condicion-venta/table-condicion-venta.component';
+import { TableParametroVentaComponent } from '../table-parametro-venta/table-parametro-venta.component';
 import { AngularUtilService } from 'angular-slickgrid';
-import { CondicionVentaFormComponent } from '../condicion-venta-form/condicion-venta-form.component';
+import { ParametroVentaFormComponent } from '../parametro-venta-form/parametro-venta-form.component';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 
 @Component({
-  selector: 'app-condicion-venta',
+  selector: 'app-parametro-venta',
   standalone: true,
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, I18nPipe, TableCondicionVentaComponent, CondicionVentaFormComponent],
-  templateUrl: './condicion-venta.component.html',
-  styleUrl: './condicion-venta.component.less',
+  imports: [SHARED_IMPORTS, I18nPipe, TableParametroVentaComponent, ParametroVentaFormComponent],
+  templateUrl: './parametro-venta.component.html',
+  styleUrl: './parametro-venta.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CondicionVentaComponent implements OnInit {
+export class ParametroVentaComponent implements OnInit {
 
   periodo = signal<Date>(new Date())
   codobj = model<string>('');
@@ -25,15 +25,15 @@ export class CondicionVentaComponent implements OnInit {
   objetivoId = model<number>(0);
   childIsPristine = signal(true)
   viewListado = model<boolean>(true)
-  childAlta = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormAlta')
-  childDetalle = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormDetalle')
-  childEditar = viewChild.required<CondicionVentaFormComponent>('condicionVentaFormEditar')
-  childTableCondicionVenta = viewChild<TableCondicionVentaComponent>('tableCondicionVenta')
+  childAlta = viewChild.required<ParametroVentaFormComponent>('parametroVentaFormAlta')
+  childDetalle = viewChild.required<ParametroVentaFormComponent>('parametroVentaFormDetalle')
+  childEditar = viewChild.required<ParametroVentaFormComponent>('parametroVentaFormEditar')
+  childTableParametroVenta = viewChild<TableParametroVentaComponent>('tableParametroVenta')
   PeriodoDesdeAplica = model<string>('');
 
   refreshCondVenta = signal<number>(0)
 
-  condicionesSeleccionadas = model<any[]>([])
+  parametrosSeleccionadas = model<any[]>([])
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
   }
@@ -62,7 +62,7 @@ export class CondicionVentaComponent implements OnInit {
 
     try {
       const child = this.childAlta();
-      if (child.formCondicionVenta.invalid || child.formCondicionVenta.pristine) {
+      if (child.formParametroVenta.invalid || child.formParametroVenta.pristine) {
         child.clearForm();
       }
       if (savedCodobj) {
@@ -94,20 +94,20 @@ export class CondicionVentaComponent implements OnInit {
     }
   }
 
-  async autorizarCondicionVenta() {
-    const condiciones = this.condicionesSeleccionadas();
+  async autorizarParametroVenta() {
+    const condiciones = this.parametrosSeleccionadas();
     
     if (condiciones.length === 0) {
       return;
     }
 
     var result = await firstValueFrom(
-      this.apiService.autorizarCondicionVentaMultiple(condiciones)
+      this.apiService.autorizarParametroVentaMultiple(condiciones)
     );
     
     if (result.status === 'ok') {
       this.refreshCondVenta.update(v => v + 1)
-      this.condicionesSeleccionadas.set([]);
+      this.parametrosSeleccionadas.set([]);
     }
   }
 
@@ -115,19 +115,19 @@ export class CondicionVentaComponent implements OnInit {
     this.refreshCondVenta.update(v => v + 1)
   }
 
-  async rechazarCondicionVenta() {
-    const condiciones = this.condicionesSeleccionadas();
+  async rechazarParametroVenta() {
+    const condiciones = this.parametrosSeleccionadas();
     
     if (condiciones.length === 0) {
       return;
     }
 
     await firstValueFrom(
-      this.apiService.rechazarCondicionVentaMultiple(condiciones)
+      this.apiService.rechazarParametroVentaMultiple(condiciones)
     );
     
     this.refreshCondVenta.update(v => v + 1)
-    this.condicionesSeleccionadas.set([]);
+    this.parametrosSeleccionadas.set([]);
   }
 
 }
