@@ -103,8 +103,11 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
     effect(() => {
       const _codobj = this.codobjId();
       const _periodo = this.periodo();
-      this.refrescarPreciosListaPrecios();
-      this.refrescarMensajesHoras();
+      untracked(() => {
+        if (this.isLoading()) return;
+        this.refrescarPreciosListaPrecios();
+        this.refrescarMensajesHoras();
+      });
     });
 
     // Effect para cargar datos cuando hay una carga pendiente y los valores están listos
@@ -239,6 +242,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const wasLoading = this.isLoading();
+    this.isLoading.set(true);
     let infoCliente = await firstValueFrom(this.searchService.getInfoCondicionVenta(codobj, periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
     this.infoProductos().clear();
@@ -301,6 +306,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       }
     });
 
+    if (!wasLoading) this.isLoading.set(false);
   }
 
 
@@ -397,6 +403,8 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async save() {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
     this.loadingSrv.open({ type: 'spin', text: '' });
     try {
       const formValue = this.formCondicionVenta.getRawValue();
@@ -423,8 +431,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       this.formCondicionVenta.markAsPristine();
     } catch (e) {
       console.error('Error al guardar condición de venta:', e);
+    } finally {
+      this.isLoading.set(false);
+      this.loadingSrv.close();
     }
-    this.loadingSrv.close();
     this.refreshCondVenta.update(v => v + 1)
   }
 
