@@ -642,10 +642,6 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       productoNombre = producto?.Nombre || productoCodigo;
     }
 
-    if (!textoFactura) {
-      return productoNombre;
-    }
-
     let periodoMes = '';
     let periodoAnio = '';
 
@@ -655,6 +651,10 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
         periodoMes = (fecha.getMonth() + 1).toString().padStart(2, '0');
         periodoAnio = fecha.getFullYear().toString();
       }
+    }
+
+    if (!textoFactura && productoNombre) {
+      return periodoMes && periodoAnio ? `${productoNombre} ${periodoMes}/${periodoAnio}` : productoNombre;
     }
 
     // Reemplazar variables

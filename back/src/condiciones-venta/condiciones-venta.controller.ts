@@ -428,9 +428,9 @@ export class CondicionesVentaController extends BaseController {
                 CondicionVenta.UnificacionFactura ? 1 : 0,
                 CondicionVenta.Observaciones, FechaActual, usuario, ip, FechaActual, usuario, ip])
 
-            let CondicionVentaDettalleId = 0;
+            let CondicionVentaDetalleId = 0;
             for (const producto of CondicionVenta.infoProductos) {
-                CondicionVentaDettalleId++;
+                CondicionVentaDetalleId++;
                 if (producto.ProductoCodigo) {
                     await queryRunner.query(
                         `INSERT INTO CondicionVentaDetalle (
@@ -449,7 +449,7 @@ export class CondicionesVentaController extends BaseController {
                         AudUsuarioMod,
                         AudIpIng,
                         AudIpMod,
-                        CondicionVentaDettalleId
+                        CondicionVentaDetalleId
                     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                         [
                             objetivoInfo.clienteId, // ClienteId
@@ -467,7 +467,7 @@ export class CondicionesVentaController extends BaseController {
                             usuario, // AudUsuarioMod
                             ip, // AudIpIng
                             ip,  // AudIpMod
-                            CondicionVentaDettalleId // CondicionVentaDettalleId
+                            CondicionVentaDetalleId // CondicionVentaDetalleId
                         ]
                     )
                 }
