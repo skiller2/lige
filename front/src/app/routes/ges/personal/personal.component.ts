@@ -235,4 +235,7 @@ export class PersonalComponent {
     }
   }
 
+  async showPasswordDerivated() {
+    
+  }
 }

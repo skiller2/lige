@@ -61,6 +61,9 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
       nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="showPasswordDerivated()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="unlock"
+      nzTheme="outline"></span></button>
 
     </nz-button-group>
   </div>
