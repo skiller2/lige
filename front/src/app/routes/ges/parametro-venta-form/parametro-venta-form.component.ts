@@ -28,12 +28,9 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private reqClienteSubscription?: Subscription;
   private isNormalizingPeriodo = false;
   refreshCondVenta = model<number>(0);
-  /*pristineChange = output<boolean>()*/
   isEdit = model(false);
   ParametroVentaId = model<number>(0);
-  onAddorUpdate = output<('save' | 'delete')>();
-  isLoading = signal(false);
-
+  
   // Signals para manejar la carga pendiente en modo view/edit
   private pendingViewLoad = signal<boolean>(false);
   private viewReadonly = signal<boolean>(false);
@@ -104,7 +101,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       const _codobj = this.codobjId();
       const _periodo = this.periodo();
       untracked(() => {
-        if (this.isLoading()) return;
         this.refrescarPreciosListaPrecios();
         this.refrescarMensajesHoras();
       });
@@ -241,8 +237,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     if (!codobj || !periodo) {
       return;
     }
-    const wasLoading = this.isLoading();
-    this.isLoading.set(true)
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoParametroVenta(codobj, periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
@@ -306,7 +300,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       }
     });
 
-    if (!wasLoading) this.isLoading.set(false);
   }
 
 
@@ -403,8 +396,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async save() {
-    if (this.isLoading()) return;
-    this.isLoading.set(true);
     this.loadingSrv.open({ type: 'spin', text: '' });
     try {
       const formValue = this.formParametroVenta.getRawValue();
@@ -426,13 +417,11 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       }
 
       await this.load();
-      this.onAddorUpdate.emit('save');
       this.formParametroVenta.markAsUntouched();
       this.formParametroVenta.markAsPristine();
     } catch (e) {
       console.error('Error al guardar condición de venta:', e);
     } finally {
-      this.isLoading.set(false);
       this.loadingSrv.close();
     }
     this.refreshCondVenta.update(v => v + 1)
