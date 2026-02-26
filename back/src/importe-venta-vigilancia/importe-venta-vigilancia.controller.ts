@@ -205,12 +205,36 @@ const columnasGrilla: any[] = [
     editable: true
   },
   {
-    name: "Diferencia Horas Normales",
+    name: "Horas Normales-VentaAB",
     type: "float",
     id: "DiferenciaHoras",
     field: "DiferenciaHoras",
     fieldName: "DiferenciaHoras",
     searchType: "float",
+    sortable: true,
+    hidden: false,
+    editable: false
+  },
+  {
+    name: "Horas Totales-Normales",
+    type: "float",
+    id: "DiferenciaHorasTotNorm",
+    field: "DiferenciaHorasTotNorm",
+    fieldName: "DiferenciaHorasTotNorm",
+    searchType: "float",
+    searchHidden: true,
+    sortable: true,
+    hidden: false,
+    editable: false
+  },
+  {
+    name: "Horas Totales-VentaAB",
+    type: "float",
+    id: "DiferenciaHorasTotalVenta",
+    field: "DiferenciaHorasTotalVenta",
+    fieldName: "DiferenciaHorasTotalVenta",
+    searchType: "float",
+    searchHidden: true,
     sortable: true,
     hidden: false,
     editable: false
@@ -389,7 +413,9 @@ export class ImporteVentaVigilanciaController extends BaseController {
           objasissub.sumtotalhorascalcN AS AsistenciaHorasN,
           objasissubT.sumtotalhorascalcT AS AsistenciaHorasT,
           objm.ObjetivoAsistenciaAnoMesHasta,
-
+          objasissubT.sumtotalhorascalcT - (ISNULL(ven.TotalHoraA,0)+ ISNULL(ven.TotalHoraB,0) ) AS DiferenciaHorasTotalVenta,
+          objasissubT.sumtotalhorascalcT - (ISNULL(objasissub.sumtotalhorascalcN,0)) AS DiferenciaHorasTotNorm,
+          
           ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB, ven.Observaciones, ven.ComprobanteNumero,
           
           (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( sumtotalhorascalcN,0)) AS DiferenciaHoras,
