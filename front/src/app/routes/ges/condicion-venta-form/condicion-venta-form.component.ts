@@ -281,7 +281,7 @@ export class CondicionVentaFormComponent implements OnInit, OnDestroy {
       const tipoCantidad = control.get('TipoCantidad')?.value;
 
       if (cantidad && importeUnitario) {
-        this.calcularTotal(index);
+       // this.calcularTotal(index);
       } else {
         control.get('ImporteTotal')?.disable();
       }
