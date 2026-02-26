@@ -47,8 +47,8 @@ export class ExcepcionAsistenciaComponent {
   private destroy$ = new Subject();
 
   selectedSucursalId = signal(0);
-  selectedObjetivoId = 0;
-  selectedPersonalId = 0;
+  selectedObjetivoId = signal(0);
+  selectedPersonalId = signal(0);
   selectedMetodologiaId: any;
   selectedCategoriaId = '';
   selectedPeriod = signal<Date>(new Date());
@@ -155,13 +155,22 @@ export class ExcepcionAsistenciaComponent {
       this.mes.set(mes);
       this.asistenciaexcepcion.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
       const routeParams = this._route.snapshot.paramMap;
+      const objetivoId = Number(routeParams.get('ObjetivoId')) || 0;
 
-      if (routeParams.get('ObjetivoId') != null) {
-        this.asistenciaexcepcion.form.get('ObjetivoId')?.setValue(Number(routeParams.get('ObjetivoId')));
+      if (objetivoId > 0) {
+        this.asistenciaexcepcion.form.get('ObjetivoId')?.setValue(objetivoId);
+        this.selectedObjetivoId.set(objetivoId);
+        this.$selectedObjetivoIdChange.next(String(objetivoId));
+        this.searchService
+          .ObjetivoInfoFromId(String(objetivoId))
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((objetivoInfo: any) => this.infoObjetivo(objetivoInfo));
       }
 
-      if (localStorage.getItem('SucursalId')) {
-        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(localStorage.getItem('SucursalId')));
+      const sucursalId = Number(localStorage.getItem('SucursalId')) || 0;
+      if (sucursalId > 0) {
+        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(sucursalId);
+        this.selectedSucursalId.set(sucursalId);
       }
 
       console.log('ngAfterViewInit');
@@ -182,10 +191,11 @@ export class ExcepcionAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
         break;
       case Busqueda.Objetivo:
+        this.selectedObjetivoId.set(Number(event));
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
         if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0) {
-          this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
+          this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId() }], {
             relativeTo: this._route,
             skipLocationChange: false,
             replaceUrl: false,
@@ -194,7 +204,7 @@ export class ExcepcionAsistenciaComponent {
         }
         return;
       case Busqueda.Personal:
-        this.selectedPersonalId = Number(event);
+        this.selectedPersonalId.set(Number(event));
         this.$selectedPersonalIdChange.next(event);
         this.$isPersonalDataLoading.next(true);
         return;
@@ -276,7 +286,7 @@ export class ExcepcionAsistenciaComponent {
   }
 
   gotoCargaAsistencia(): void {
-    this.router.navigate(['/ges/carga_asistencia', { ObjetivoId: this.selectedObjetivoId }])
+    this.router.navigate(['/ges/carga_asistencia', { ObjetivoId: this.selectedObjetivoId() }])
   }
 
   infoObjetivo(val: any) {

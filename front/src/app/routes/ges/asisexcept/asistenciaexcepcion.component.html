@@ -20,7 +20,7 @@
       </nz-form-control>
 
       <nz-form-control [nzSpan]="19" style="text-align: right;">
-        @if (this.selectedObjetivoId) {
+        @if (this.selectedObjetivoId()) {
         <nz-button-group nz-button nzButtonGroup>
           <button nz-button nzType="default" (click)="gotoCargaAsistencia()"><span nz-icon nzType="right"
               nzTheme="outline"></span>Asistencia diaria</button>
@@ -32,7 +32,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
       <nz-form-control>
-        <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
+        <app-objetivo-search [ngModel]="selectedObjetivoId()" name="ObjetivoId"
           (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel
           (valueExtendedChange)="infoObjetivo($event)" />
       </nz-form-control>
@@ -42,7 +42,7 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       @if ($objetivoResponsables| async; as objetivoDetalle) {
       <nz-form-control [nzSpan]="21">
-        @if (this.selectedObjetivoId>0) {
+        @if (this.selectedObjetivoId() > 0) {
         <app-view-responsable [list]="objetivoDetalle"></app-view-responsable>
         }
       </nz-form-control>
@@ -113,7 +113,7 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
         @let personaResponsables = $personaResponsables | async;
-        @if (this.selectedPersonalId > 0) {
+        @if (this.selectedPersonalId() > 0) {
         <app-view-responsable [list]="personaResponsables"></app-view-responsable>
         }
       </nz-form-control>
@@ -185,7 +185,7 @@
       </button>
 
       @if (asistenciaexcepcion.controls['metodo']?.value && asistenciaexcepcion.controls['PersonalId']?.value &&
-      selectedObjetivoId) {
+      selectedObjetivoId()) {
       <button nz-col nzDanger nz-button nzType="primary" [nzSize]="'default'" (click)="endexception()">
         <span nz-icon nzType="delete" nzTheme="outline"></span>{{ 'app.btn.exception.finish' | i18n }}</button>
       }
