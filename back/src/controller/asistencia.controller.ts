@@ -2235,8 +2235,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       const result = await CustodiaController.listPersonalCustodiaQuery({ filtros: [{ index: "ApellidoNombre", valor: [personalId], operador: "=", condition: "AND" }] }, queryRunner, anio, mes, 0)
 
-      const totalImporte = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
-      const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)
+      const totalImporte = result.map(row => row.Importe).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = result.map(row => row.Horas).reduce((prev, curr) => prev + curr, 0)
 
       this.jsonRes({ custodias: result, totalImporte, totalHoras }, res);
     } catch (error) {
