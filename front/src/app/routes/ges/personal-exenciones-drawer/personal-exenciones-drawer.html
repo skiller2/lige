@@ -24,7 +24,7 @@
           </nz-form-control>
         </nz-form-item> -->
 
-        <nz-form-item>
+        <!-- <nz-form-item>
           <nz-form-label [nzSpan]="5">Desde</nz-form-label>
           <nz-form-control [nzXs]="7">
             <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="Documentofecha"></nz-date-picker>
@@ -34,14 +34,14 @@
           <nz-form-control [nzXs]="7">
             <nz-date-picker nzFormat="yyyy-MM-dd" formControlName="DocumentoFechaDocumentoVencimiento"></nz-date-picker>
           </nz-form-control>
-        </nz-form-item>
+        </nz-form-item> -->
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
           <nz-form-control>
             <app-file-upload formControlName="archivo" [cantMaxFiles]="1" [idForSearh]="0"
               [textForSearch]="doctipo_id()" [columnForSearch]="'DocumentoId'" [tableForSearch]="'Documento'"
-            [previewFile]="true"></app-file-upload>
+            [previewFile]="true" [showDesdeHasta]="true" ></app-file-upload>
           </nz-form-control>
         </nz-form-item>
 

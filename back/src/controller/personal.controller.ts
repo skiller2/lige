@@ -9,6 +9,7 @@ import type { Options } from "../schemas/filtro.ts";
 import { promisify } from 'util';
 import * as fs from 'fs';
 import { habilitacionesController } from "../controller/controller.module.ts"
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -3364,6 +3365,226 @@ export class PersonalController extends BaseController {
       .catch((error) => {
         return next(error)
       });
+  }
+
+  async getLastExencionByPersonalId(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId: number  = Number(req.params.id);
+
+    try {
+
+      const PersonalExencion = await queryRunner.query(`
+        SELECT PersonalExencionId, PersonalId, PersonalExencionDesde, PersonalExencionHasta
+        FROM PersonalExencion
+        WHERE PersonalId IN (@0)
+        ORDER BY PersonalExencionId DESC
+      `, [PersonalId])
+    
+      const obj = PersonalExencion[0]? PersonalExencion[0] : {}
+      
+      this.jsonRes(obj, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  private valsExeciones(form: any) {
+    const DocumentoTipoCodigo: string = form.DocumentoTipoCodigo
+    const Exencion: number = form.Exencion
+    const PersonalExencionDesde: Date = form.PersonalExencionDesde ? new Date(form.PersonalExencionDesde) : null
+
+    let campos_vacios: any[] = []
+
+    if (form.archivo?.length) {
+      let desdeDocHabilitacion = false
+      let cantDoc = 0
+      
+      for (const docs of form.archivo) {
+          if (docs.file?.[0]) {
+              const doc = docs.file[0]
+
+              if (doc) {
+                  if (!doc.DocumentoFecha) desdeDocHabilitacion = true
+                  cantDoc++
+              }
+          }
+      }
+      if (!DocumentoTipoCodigo && !desdeDocHabilitacion) campos_vacios.push(`- Tipo de documento`)
+      
+      if (desdeDocHabilitacion && DocumentoTipoCodigo) campos_vacios.push(`- Desde (Archivo)`)
+    }
+
+    if (!Exencion && PersonalExencionDesde) {
+      campos_vacios.push('- Exención')
+    }
+
+    if (Exencion && !PersonalExencionDesde) {
+      campos_vacios.push('- Desde')
+    }
+
+    if (campos_vacios.length) {
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      return new ClientException(campos_vacios)
+    }
+    
+  }
+
+  async addExenciones(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    
+    // const DocumentoDenominadorDocumento: string = req.body.DocumentoDenominadorDocumento
+    const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
+    // const cliente_id: number | null = req.body.DocumentoClienteId === 0 ? null : req.body.DocumentoClienteId;
+    // const objetivo_id: number | null = req.body.ObjetivoId === 0 ? null : req.body.ObjetivoId;
+    // const Documentofecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : null
+    // const DocumentoFechaDocumentoVencimiento: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : null
+    const archivo: any[] = req.body.archivo
+    const Exencion = req.body.Exencion
+    const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    // const now = new Date()
+    if (PersonalExencionDesde) PersonalExencionDesde.setHours(0,0,0,0)
+    
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const valsTipoDocumento = this.valsExeciones(req.body)
+      if (valsTipoDocumento instanceof ClientException)
+        throw valsTipoDocumento
+
+      if (archivo?.length) {
+
+        const file = archivo[0].file[0]
+        
+        const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+
+        if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+
+        //Obtengo el CUIT
+        let CUIT = await queryRunner.query(`
+          SELECT cuit.PersonalId
+          FROM PersonalCUITCUIL cuit 
+          WHERE cuit.PersonalId IN (@0) AND PersonalCUITCUILHasta IS NULL
+        `, [PersonalId])
+        if (!CUIT.length) {
+          throw new ClientException('No se pudo identificar el CUIT')
+        }
+        const den_documento = CUIT[0].cuit
+        
+        const IdsRelacionados = {
+            PersonalId: PersonalId,
+        }
+
+        await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+        
+      }
+
+      let newPersonalExencionId = 0
+      if (Exencion) {
+        const consult = await queryRunner.query(`
+          SELECT MAX(PersonalExencionId) PersonalExencionId
+          FROM PersonalExencion
+          WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
+        `, [PersonalId])
+        newPersonalExencionId = consult[0] ? consult[0].PersonalExencionId : 1
+
+        await queryRunner.query(`
+          INSERT INTO PersonalExencion(
+            PersonalExencionId,
+            PersonalId,
+            PersonalExencionCUIT,
+            PersonalExencionDesde,
+          )VALUES(@0, @1, @2, @3, @4)
+          `, [newPersonalExencionId, PersonalId, 1, PersonalExencionDesde])
+      }
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes({PersonalExencionId: newPersonalExencionId}, res, 'Carga exitosa');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async updateExenciones(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    
+    const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
+    const archivo: any[] = req.body.archivo
+    const Exencion = req.body.Exencion
+    const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const now = new Date()
+    now.setHours(0,0,0,0)
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      const valsTipoDocumento = this.valsExeciones(req.body)
+      if (valsTipoDocumento instanceof ClientException)
+        throw valsTipoDocumento
+
+      if (archivo?.length) {
+
+        const file = archivo[0].file[0]
+        
+        const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
+        const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
+
+        if (DocumentoFecha) DocumentoFecha.setHours(0, 0, 0, 0)
+        if (DocumentoFechaDocumentoVencimiento) DocumentoFechaDocumentoVencimiento.setHours(0, 0, 0, 0)
+
+        //Obtengo el CUIT
+        let CUIT = await queryRunner.query(`
+          SELECT cuit.PersonalId
+          FROM PersonalCUITCUIL cuit 
+          WHERE cuit.PersonalId IN (@0) AND PersonalCUITCUILHasta IS NULL
+        `, [PersonalId])
+        if (!CUIT.length) {
+          throw new ClientException('No se pudo identificar el CUIT')
+        }
+        const den_documento = CUIT[0].cuit
+        
+        const IdsRelacionados = {
+            PersonalId: PersonalId,
+        }
+
+        await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+        
+      }
+
+      const consult = await queryRunner.query(`
+        SELECT PersonalExencionId
+        FROM PersonalExencion
+        WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
+      `, [PersonalId])
+      const PersonalExencionIdActual = consult[0] ? new Date(consult[0].PersonalExencionId) : null
+      const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDate()-1)
+
+      if (PersonalExencionIdActual && !Exencion) {
+        await queryRunner.query(`
+          UPDATE PersonalExencion SET
+            PersonalExencionHasta = @1
+          WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
+          `, [PersonalId, ayer])
+      }
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga exitosa');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 
 }

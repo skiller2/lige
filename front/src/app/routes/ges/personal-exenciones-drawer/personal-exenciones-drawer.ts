@@ -55,8 +55,9 @@ export class PersonalExencionesDrawerComponent {
         Documentofecha: null,
         DocumentoFechaDocumentoVencimiento: null,
         archivo: [],
+        PersonalExencionId: 0,
         Exencion: false,
-        PersonalExencionDesde: null
+        PersonalExencionDesde: ''
     })
 
     constructor(
@@ -64,10 +65,21 @@ export class PersonalExencionesDrawerComponent {
         private apiService: ApiService,
     ) {
         effect(async () => {
+            const visible = this.visibleDocumentos()
             const newId:number = this.PersonalId()
-            if (newId > 0) {
+            if (visible && newId > 0) {
                 this.formDocumento.reset()
                 this.formDocumento.get('PersonalId')?.setValue(newId)
+                const exencion = await firstValueFrom(this.searchService.getLastExencionByPersonalId(this.PersonalId()))
+                
+                if (exencion && !exencion.PersonalExencionHasta) {
+                    this.formDocumento.patchValue({
+                        PersonalExencionId: exencion.PersonalExencionId,
+                        Exencion: true,
+                        PersonalExencionDesde: exencion.PersonalExencionDesde
+                    })
+                }
+                
             }
         });
     }
@@ -91,7 +103,7 @@ export class PersonalExencionesDrawerComponent {
         loader: async () => {
             const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
             this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
-            const res = await firstValueFrom(this.searchService.getExencionesByPersonal(Number(this.PersonalId())))
+            const res = await firstValueFrom(this.searchService.getExencionesDocsByPersonal(Number(this.PersonalId())))
             return  res
         },
         defaultValue: []
@@ -124,18 +136,19 @@ export class PersonalExencionesDrawerComponent {
         this.isLoading.set(true)
         const values = this.formDocumento.value
         try {
-            if (values.DocumentoId){
+            if (values.PersonalExencionId){
                 await firstValueFrom(this.apiService.updateExencion(values))
             } else {
                 const res = await firstValueFrom(this.apiService.addExencion(values))
                 if (res.data.DocumentoId){
-                    this.formDocumento.patchValue({ DocumentoId: res.data.DocumentoId })
+                    this.formDocumento.patchValue({ 
+                        DocumentoId: res.data.DocumentoId, 
+                    })
                 }
             }
             this.listaExcencionPer.reload()
             this.formDocumento.markAsUntouched()
             this.formDocumento.markAsPristine()
-            this.resetFormValues()
         } catch (e) {
         }
        
@@ -147,7 +160,6 @@ export class PersonalExencionesDrawerComponent {
     }
 
     resetFormValues() {
-        console.log('entre')
         this.formDocumento.patchValue({
             DocumentoId: 0,
             DocumentoTipoCodigo: '',

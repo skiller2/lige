@@ -58,6 +58,26 @@ personalRouter.post(`${base}/unsubscribe/cbu`, [authMiddleware.verifyToken, auth
   personalController.unsubscribeCBUs(req, res, next)
 });
 
+personalRouter.post("/searchTipoAsociadoCategoria", authMiddleware.verifyToken, (req, res, next) => {
+  personalController.searchTipoAsociadoCategoria(req, res, next);
+});
+
+personalRouter.post("/exenciones/add", authMiddleware.verifyToken, (req, res, next) => {
+  personalController.addExenciones(req, res, next);
+});
+
+personalRouter.post("/exenciones/update", authMiddleware.verifyToken, (req, res, next) => {
+  personalController.updateExenciones(req, res, next);
+});
+
+personalRouter.post("/searchTipoAsociadoCategoria", authMiddleware.verifyToken, (req, res, next) => {
+  personalController.searchTipoAsociadoCategoria(req, res, next);
+});
+
+personalRouter.get(`${base}/last-exencion/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
+  personalController.getLastExencionByPersonalId(req, res, next);
+});
+
 personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
@@ -204,7 +224,3 @@ personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.
   personalController.getSitRevistaAsoByPersonalId(req, res, next);
 });
 
-
-personalRouter.post("/searchTipoAsociadoCategoria", authMiddleware.verifyToken, (req, res, next) => {
-  personalController.searchTipoAsociadoCategoria(req, res, next);
-});

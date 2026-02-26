@@ -1657,13 +1657,13 @@ export class ApiService {
   }
 
   addExencion(values: any) {
-    return this.http.post<ResponseJSON<any>>(`/api/personal/execiones/add`, values).pipe(
+    return this.http.post<ResponseJSON<any>>(`/api/personal/exenciones/add`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 
   updateExencion(values: any) {
-    return this.http.post<ResponseJSON<any>>(`/api/personal/execiones/update`, values).pipe(
+    return this.http.post<ResponseJSON<any>>(`/api/personal/exenciones/update`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }

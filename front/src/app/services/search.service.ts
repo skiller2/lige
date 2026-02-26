@@ -1054,6 +1054,17 @@ export class SearchService {
       .pipe(map(res => res.data));
   }
 
+  getLastExencionByPersonalId(id: number): Observable<any> {
+    if (!id) return of({});
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/last-exencion/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of({});
+      })
+    );
+  }
+
   getPersonalById(id: number): Observable<any> {
     if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
@@ -1801,8 +1812,8 @@ export class SearchService {
     );
   }
 
-  getExencionesByPersonal(id: number): Observable<any> {
-    if (!id) return of([]);
+  getExencionesDocsByPersonal(id: number): Observable<any> {
+    if (!id) return of([])
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/exenciones/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
