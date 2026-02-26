@@ -268,7 +268,19 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     editable: false
+  },
+  {
+    name: "Comprobante",
+    type: "string",
+    id: "ComprobanteNumero",
+    field: "ComprobanteNumero",
+    fieldName: "ComprobanteNumero",
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    editable: true
   }
+
 ];
 
 
@@ -378,7 +390,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
           objasissubT.sumtotalhorascalcT AS AsistenciaHorasT,
           objm.ObjetivoAsistenciaAnoMesHasta,
 
-          ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB, ven.Observaciones,
+          ven.TotalHoraA, ven.TotalHoraB, ven.ImporteHoraA, ven.ImporteHoraB, ven.Observaciones, ven.ComprobanteNumero,
           
           (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( sumtotalhorascalcN,0)) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
@@ -841,7 +853,8 @@ LEFT JOIN (
       TotalHoraB,
       ImporteHoraA,
       ImporteHoraB,
-      Observaciones
+      Observaciones,
+      ComprobanteNumero
     } = req.body
     //    console.log('todo', req.body)
     //        throw new ClientException(`Debug`)
@@ -881,10 +894,10 @@ LEFT JOIN (
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8, Observaciones=@4,
-           AudFechaMod=@9, AudUsuarioMod=@10, AudIpMod=@11
+          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8, Observaciones=@4, ComprobanteNumero=@9,
+           AudFechaMod=@10, AudUsuarioMod=@11, AudIpMod=@12
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, Observaciones, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, Observaciones, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, ComprobanteNumero, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
           `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
