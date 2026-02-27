@@ -14,13 +14,25 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
+import { applyEach, disabled, form, FormField, required, submit, validateTree } from '@angular/forms/signals';
+
+export interface ExencionForm {
+    DocumentoId: number,
+    PersonalId: number,
+    DocumentoTipoCodigo: string,
+    DocumentoDenominadorDocumento: string,
+    archivo: [],
+    PersonalExencionId: number,
+    Exencion: boolean,
+    PersonalExencionDesde: string
+}
 
 @Component({
     selector: 'app-personal-exenciones-drawer',
     templateUrl: './personal-exenciones-drawer.html',
     styleUrl: './personal-exenciones-drawer.less',
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, FileUploadComponent,
-        NgxExtendedPdfViewerModule, ImageLoaderComponent],
+        NgxExtendedPdfViewerModule, ImageLoaderComponent, FormField],
     providers: [AngularUtilService]
 })
   
@@ -46,19 +58,20 @@ export class PersonalExencionesDrawerComponent {
     private destroy$ = new Subject();
     private readonly tokenService = inject(DA_SERVICE_TOKEN);
 
-    fb = inject(FormBuilder)
-    formDocumento = this.fb.group({ 
+    private readonly defaultFormExencion: ExencionForm = {
         DocumentoId: 0,
         PersonalId: 0,
         DocumentoTipoCodigo: '',
-        DocumentoDenominadorDocumento: null,
-        Documentofecha: null,
-        DocumentoFechaDocumentoVencimiento: null,
+        DocumentoDenominadorDocumento: '',
         archivo: [],
         PersonalExencionId: 0,
         Exencion: false,
         PersonalExencionDesde: ''
-    })
+    }
+
+    readonly parametroExencion = signal<ExencionForm>({...this.defaultFormExencion});
+
+    readonly formDocumento = form(this.parametroExencion);
 
     constructor(
         private searchService: SearchService,
@@ -68,31 +81,30 @@ export class PersonalExencionesDrawerComponent {
             const visible = this.visibleDocumentos()
             const newId:number = this.PersonalId()
             if (visible && newId > 0) {
-                this.formDocumento.reset()
-                this.formDocumento.get('PersonalId')?.setValue(newId)
+                this.resetForm()
                 const exencion = await firstValueFrom(this.searchService.getLastExencionByPersonalId(this.PersonalId()))
                 
                 if (exencion && !exencion.PersonalExencionHasta) {
-                    this.formDocumento.patchValue({
-                        PersonalExencionId: exencion.PersonalExencionId,
-                        Exencion: true,
-                        PersonalExencionDesde: exencion.PersonalExencionDesde
-                    })
+                    this.formDocumento
+                    this.formDocumento.PersonalExencionId().value.set(exencion.PersonalExencionId)
+                    this.formDocumento.Exencion().value.set(exencion.PersonalExencionId)
+                    this.formDocumento.PersonalExencionDesde().value.set(exencion.PersonalExencionDesde)
                 }
                 
             }
+            // this.formDocumento().markAsDirty();
         });
     }
 
-    doc_id(): number {
-        const value = this.formDocumento.get("DocumentoId")?.value 
+    DocumentoId(): number {
+        const value = this.formDocumento.DocumentoId().value()
         if (value)
             return value
         return 0
     }
 
-    doctipo_id(): string {
-        const value = this.formDocumento.get("DocumentoTipoCodigo")?.value 
+    DocumentoTipoCodigo(): string {
+        const value = this.formDocumento.DocumentoTipoCodigo().value()
         if (value)
             return value
         return ''
@@ -134,21 +146,20 @@ export class PersonalExencionesDrawerComponent {
 
     async save() {
         this.isLoading.set(true)
-        const values = this.formDocumento.value
+        const values = this.formDocumento().value()
         try {
             if (values.PersonalExencionId){
                 await firstValueFrom(this.apiService.updateExencion(values))
             } else {
                 const res = await firstValueFrom(this.apiService.addExencion(values))
                 if (res.data.DocumentoId){
-                    this.formDocumento.patchValue({ 
-                        DocumentoId: res.data.DocumentoId, 
-                    })
+                    this.formDocumento.DocumentoId().reset(res.data.DocumentoId)
                 }
             }
             this.listaExcencionPer.reload()
-            this.formDocumento.markAsUntouched()
-            this.formDocumento.markAsPristine()
+            // this.formDocumento().markAsUntouched()
+            // this.formDocumento().markAsPristine()
+            
         } catch (e) {
         }
        
@@ -156,20 +167,8 @@ export class PersonalExencionesDrawerComponent {
     }
 
     resetForm() {
-        this.formDocumento.reset({PersonalId: this.PersonalId()})
-    }
-
-    resetFormValues() {
-        this.formDocumento.patchValue({
-            DocumentoId: 0,
-            DocumentoTipoCodigo: '',
-            DocumentoDenominadorDocumento: null,
-            Documentofecha: null,
-            DocumentoFechaDocumentoVencimiento: null,
-            archivo: null,
-            Exencion: false,
-            PersonalExencionDesde: null
-        })
+        this.formDocumento().value.set({...this.defaultFormExencion})
+        this.formDocumento.PersonalId().value.set(this.PersonalId())
     }
 
     async LoadArchivo(url: string, filename: string) {
