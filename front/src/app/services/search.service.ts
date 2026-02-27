@@ -1405,7 +1405,7 @@ export class SearchService {
       );
   }
 
-  getInfoParametroVenta(ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: string) {
+  getInfoParametroVenta(ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
     return this.http
       .get<ResponseJSON<any>>(`api/parametros-venta/infParametroVenta/${ClienteId}/${ClienteElementoDependienteId}/${PeriodoDesdeAplica}`)
       .pipe(
