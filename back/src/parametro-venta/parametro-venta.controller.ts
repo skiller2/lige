@@ -760,7 +760,6 @@ export class ParametrosVentaController extends BaseController {
             const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
-
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
 
