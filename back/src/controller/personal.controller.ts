@@ -2265,88 +2265,101 @@ export class PersonalController extends BaseController {
       // await queryRunner.startTransaction()
 
       const documentos = await queryRunner.query(`
-        SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchivo NombreArchivo,'' periodo,
+       
+ SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', foto.DocumentoImagenFotoId, '/DocumentoImagenFoto/0') url,
         DocumentoImagenFotoBlobTipoArchivo TipoArchivo, 'DocumentoImagenFoto' tableName
         FROM DocumentoImagenFoto foto
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         WHERE foto.PersonalId IN (@0)
-        UNION ALL
-        SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,'' periodo,
+
+ UNION ALL
+        SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url,
         DocumentoImagenDocumentoBlobTipoArchivo TipoArchivo, 'DocumentoImagenDocumento' tableName
         FROM DocumentoImagenDocumento doc
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         WHERE doc.PersonalId IN (@0)
-        UNION ALL
-        SELECT CUIT.DocumentoImagenCUITCUILId docId, CUIT.DocumentoImagenCUITCUILBlobNombreArchivo NombreArchivo,'' periodo,
+
+UNION ALL
+        SELECT CUIT.DocumentoImagenCUITCUILId docId, CUIT.DocumentoImagenCUITCUILBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', CUIT.DocumentoImagenCUITCUILId,'/DocumentoImagenCUITCUIL/0') url,
         DocumentoImagenCUITCUILBlobTipoArchivo TipoArchivo, 'DocumentoImagenCUITCUIL' tableName
         FROM DocumentoImagenCUITCUIL CUIT
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = CUIT.DocumentoImagenParametroId
         WHERE CUIT.PersonalId IN (@0)
-        UNION ALL
-        SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,'' periodo,
+
+UNION ALL
+        SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', afip.DocumentoImagenImpuestoAFIPId,'/DocumentoImagenImpuestoAFIP/0') url,
         DocumentoImagenImpuestoAFIPBlobTipoArchivo TipoArchivo, 'DocumentoImagenImpuestoAFIP' tableName
         FROM DocumentoImagenImpuestoAFIP afip
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = afip.DocumentoImagenParametroId
         WHERE afip.PersonalId IN (@0) 
-        UNION ALL
-        SELECT curso.DocumentoImagenCursoId docId, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo,'' periodo,
+
+UNION ALL
+        SELECT curso.DocumentoImagenCursoId docId, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', curso.DocumentoImagenCursoId, '/DocumentoImagenCurso/0') url,
         DocumentoImagenCursoBlobTipoArchivo TipoArchivo, 'DocumentoImagenCurso' tableName
         FROM DocumentoImagenCurso curso
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
         WHERE curso.PersonalId IN (@0)
-        UNION ALL
-        SELECT habil.DocumentoImagenHabilitacionId docId, habil.DocumentoImagenHabilitacionBlobNombreArchivo NombreArchivo,'' periodo,
+
+UNION ALL
+        SELECT habil.DocumentoImagenHabilitacionId docId, habil.DocumentoImagenHabilitacionBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', habil.DocumentoImagenHabilitacionId, '/DocumentoImagenHabilitacion/0') url,
         DocumentoImagenHabilitacionBlobTipoArchivo TipoArchivo, 'DocumentoImagenHabilitacion' tableName
         FROM DocumentoImagenHabilitacion habil
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = habil.DocumentoImagenParametroId
         WHERE habil.PersonalId IN (@0)
-        UNION ALL
-        SELECT psi.DocumentoImagenPsicofisicoId docId, psi.DocumentoImagenPsicofisicoBlobNombreArchivo NombreArchivo,'' periodo,
+		
+UNION ALL
+        SELECT psi.DocumentoImagenPsicofisicoId docId, psi.DocumentoImagenPsicofisicoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', psi.DocumentoImagenPsicofisicoId, '/DocumentoImagenPsicofisico/0') url,
         DocumentoImagenPsicofisicoBlobTipoArchivo TipoArchivo, 'DocumentoImagenPsicofisico' tableName
         FROM DocumentoImagenPsicofisico psi
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = psi.DocumentoImagenParametroId
         WHERE psi.PersonalId IN (@0)
-        UNION ALL
-        SELECT ren.DocumentoImagenRenarId docId, ren.DocumentoImagenRenarBlobNombreArchivo NombreArchivo,'' periodo,
+
+UNION ALL
+        SELECT ren.DocumentoImagenRenarId docId, ren.DocumentoImagenRenarBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', ren.DocumentoImagenRenarId, '/DocumentoImagenRenar/0') url,
         DocumentoImagenRenarBlobTipoArchivo TipoArchivo, 'DocumentoImagenRenar' tableName
         FROM DocumentoImagenRenar ren
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = ren.DocumentoImagenParametroId
         WHERE ren.PersonalId IN (@0)
-        UNION ALL
-        SELECT rein.DocumentoImagenCertificadoReincidenciaId docId, rein.DocumentoImagenCertificadoReincidenciaBlobNombreArchivo NombreArchivo,'' periodo,
+
+UNION ALL
+        SELECT rein.DocumentoImagenCertificadoReincidenciaId docId, rein.DocumentoImagenCertificadoReincidenciaBlobNombreArchivo NombreArchivo,pcr.PersonalCertificadoReincidenciaVigenciaDesde FechaDesde,pcr.PersonalCertificadoReincidenciaVencimiento FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', rein.DocumentoImagenCertificadoReincidenciaId, '/DocumentoImagenCertificadoReincidencia/0') url,
         DocumentoImagenCertificadoReincidenciaBlobTipoArchivo TipoArchivo, 'DocumentoImagenCertificadoReincidencia' tableName
         FROM DocumentoImagenCertificadoReincidencia rein
+		LEFT JOIN PersonalCertificadoReincidencia pcr on pcr.PersonalId=rein.PersonalId and rein.DocumentoImagenCertificadoReincidenciaId=pcr.PersonalCertificadoReincidenciaId
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = rein.DocumentoImagenParametroId
         WHERE rein.PersonalId IN (@0)
-        UNION ALL
-        SELECT preo.DocumentoImagenPreocupacionalId docId, preo.DocumentoImagenPreocupacionalBlobNombreArchivo NombreArchivo, '' periodo,
+
+UNION ALL
+        SELECT preo.DocumentoImagenPreocupacionalId docId, preo.DocumentoImagenPreocupacionalBlobNombreArchivo NombreArchivo, pp.PersonalPreocupacionalFecha FechaDesde, null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', preo.DocumentoImagenPreocupacionalId, '/DocumentoImagenPreocupacional/0') url,
         DocumentoImagenPreocupacionalBlobTipoArchivo TipoArchivo, 'DocumentoImagenPreocupacional' tableName
         FROM DocumentoImagenPreocupacional preo
+		LEFT JOIN PersonalPreocupacional pp on pp.PersonalId=preo.PersonalId and preo.DocumentoImagenPreocupacionalId=pp.PersonalPreocupacionalId
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = preo.DocumentoImagenParametroId
         WHERE preo.PersonalId IN (@0)
-        UNION ALL
+
+UNION ALL
         SELECT 
-        gen.DocumentoId docId, gen.DocumentoNombreArchivo NombreArchivo, CONCAT(gen.DocumentoMes, '/', gen.DocumentoAnio) periodo,
+        gen.DocumentoId docId, gen.DocumentoNombreArchivo NombreArchivo, gen.DocumentoFecha FechaDesde,gen.DocumentoFechaDocumentoVencimiento FechaHasta,
         param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
         CONCAT('api/file-upload/downloadFile/', gen.DocumentoId, '/Documento/0') url,
         RIGHT(gen.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(gen.DocumentoNombreArchivo)) - 1) TipoArchivo,
@@ -3369,7 +3382,7 @@ export class PersonalController extends BaseController {
 
   async getLastExencionByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const PersonalId: number  = Number(req.params.id);
+    const PersonalId: number = Number(req.params.id);
 
     try {
 
@@ -3379,9 +3392,9 @@ export class PersonalController extends BaseController {
         WHERE PersonalId IN (@0)
         ORDER BY PersonalExencionId DESC
       `, [PersonalId])
-    
-      const obj = PersonalExencion[0]? PersonalExencion[0] : {}
-      
+
+      const obj = PersonalExencion[0] ? PersonalExencion[0] : {}
+
       this.jsonRes(obj, res);
     } catch (error) {
       return next(error)
@@ -3398,19 +3411,19 @@ export class PersonalController extends BaseController {
     if (form.archivo?.length) {
       let desdeDocHabilitacion = false
       let cantDoc = 0
-      
-      for (const docs of form.archivo) {
-          if (docs.file?.[0]) {
-              const doc = docs.file[0]
 
-              if (doc) {
-                  if (!doc.DocumentoFecha) desdeDocHabilitacion = true
-                  cantDoc++
-              }
+      for (const docs of form.archivo) {
+        if (docs.file?.[0]) {
+          const doc = docs.file[0]
+
+          if (doc) {
+            if (!doc.DocumentoFecha) desdeDocHabilitacion = true
+            cantDoc++
           }
+        }
       }
       if (!DocumentoTipoCodigo && !desdeDocHabilitacion) campos_vacios.push(`- Tipo de documento`)
-      
+
       if (desdeDocHabilitacion && DocumentoTipoCodigo) campos_vacios.push(`- Desde (Archivo)`)
     }
 
@@ -3426,12 +3439,12 @@ export class PersonalController extends BaseController {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       return new ClientException(campos_vacios)
     }
-    
+
   }
 
   async addExenciones(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    
+
     // const DocumentoDenominadorDocumento: string = req.body.DocumentoDenominadorDocumento
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
     // const cliente_id: number | null = req.body.DocumentoClienteId === 0 ? null : req.body.DocumentoClienteId;
@@ -3444,8 +3457,8 @@ export class PersonalController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     // const now = new Date()
-    if (PersonalExencionDesde) PersonalExencionDesde.setHours(0,0,0,0)
-    
+    if (PersonalExencionDesde) PersonalExencionDesde.setHours(0, 0, 0, 0)
+
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -3457,7 +3470,7 @@ export class PersonalController extends BaseController {
       if (archivo?.length) {
 
         const file = archivo[0].file[0]
-        
+
         const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
         const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
@@ -3474,13 +3487,13 @@ export class PersonalController extends BaseController {
           throw new ClientException('No se pudo identificar el CUIT')
         }
         const den_documento = CUIT[0].cuit
-        
+
         const IdsRelacionados = {
-            PersonalId: PersonalId,
+          PersonalId: PersonalId,
         }
 
         await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-        
+
       }
 
       let newPersonalExencionId = 0
@@ -3501,9 +3514,9 @@ export class PersonalController extends BaseController {
           )VALUES(@0, @1, @2, @3, @4)
           `, [newPersonalExencionId, PersonalId, 1, PersonalExencionDesde])
       }
-      
+
       await queryRunner.commitTransaction()
-      this.jsonRes({PersonalExencionId: newPersonalExencionId}, res, 'Carga exitosa');
+      this.jsonRes({ PersonalExencionId: newPersonalExencionId }, res, 'Carga exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -3514,7 +3527,7 @@ export class PersonalController extends BaseController {
 
   async updateExenciones(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    
+
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
     const archivo: any[] = req.body.archivo
     const Exencion = req.body.Exencion
@@ -3522,7 +3535,7 @@ export class PersonalController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
-    now.setHours(0,0,0,0)
+    now.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.connect();
@@ -3535,7 +3548,7 @@ export class PersonalController extends BaseController {
       if (archivo?.length) {
 
         const file = archivo[0].file[0]
-        
+
         const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
         const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
 
@@ -3552,13 +3565,13 @@ export class PersonalController extends BaseController {
           throw new ClientException('No se pudo identificar el CUIT')
         }
         const den_documento = CUIT[0].cuit
-        
+
         const IdsRelacionados = {
-            PersonalId: PersonalId,
+          PersonalId: PersonalId,
         }
 
         await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-        
+
       }
 
       const consult = await queryRunner.query(`
@@ -3567,7 +3580,7 @@ export class PersonalController extends BaseController {
         WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
       `, [PersonalId])
       const PersonalExencionIdActual = consult[0] ? new Date(consult[0].PersonalExencionId) : null
-      const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDate()-1)
+      const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
 
       if (PersonalExencionIdActual && !Exencion) {
         await queryRunner.query(`
@@ -3576,7 +3589,7 @@ export class PersonalController extends BaseController {
           WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
           `, [PersonalId, ayer])
       }
-      
+
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga exitosa');
     } catch (error) {

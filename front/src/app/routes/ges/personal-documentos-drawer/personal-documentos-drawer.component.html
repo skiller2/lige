@@ -68,7 +68,8 @@
           <thead>
             <tr>
               <th>Tipo</th>
-              <th class="periodoStyle">Periodo</th>
+              <th class="periodoStyle">Desde</th>
+              <th class="periodoStyle">Hasta</th>
               <th>Documento</th>
             </tr>
           </thead>
@@ -76,7 +77,8 @@
             @for (data of asistPer.data; track data) {
               <tr class="">
                 <td>{{ data.Descripcion }}</td>
-                <td class="periodoStyle">{{ data.periodo }}</td>
+                <td class="periodoStyle">{{ data.FechaDesde | date:'dd/MM/yyyy' }}</td>
+                <td class="periodoStyle">{{ data.FechaHasta | date:'dd/MM/yyyy' }}</td>
                 <td>
                   @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg') {
                     <a nz-icon nzType="search"
