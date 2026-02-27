@@ -19,7 +19,7 @@
         </a>
         <a [routerLink]="['/', 'ges', 'parametros-venta','modificar']" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!(codobj() && PeriodoDesdeAplica())" (click)="isEdit.set(true)"><span nz-icon
+          <button nz-button nzType="default" [disabled]="!(objetivoId() && PeriodoDesdeAplica())" (click)="isEdit.set(true)"><span nz-icon
               nzType="edit" nzTheme="outline"></span></button>
         </a>
 
@@ -75,7 +75,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/parametros-venta/listado">{{ 'app.icon.objectives' | i18n }} </a>
       <ng-template nz-tab>
-        <app-table-parametro-venta #tableParametroVenta [periodo]="periodo()" [(codobj)]="codobj" [(objetivoId)]="objetivoId"
+        <app-table-parametro-venta #tableParametroVenta [periodo]="periodo()" [(objetivoId)]="objetivoId"
           [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"
           [refreshCondVenta]="refreshCondVenta()"
           [(parametrosSeleccionadas)]="parametrosSeleccionadas"></app-table-parametro-venta>

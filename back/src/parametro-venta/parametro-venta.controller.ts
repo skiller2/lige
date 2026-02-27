@@ -496,7 +496,10 @@ export class ParametrosVentaController extends BaseController {
 
     async FormValidations(ParametroVenta: any, queryRunner: any) {
 
-        if (!ParametroVenta.ObjetivoId) {
+        if (!ParametroVenta.ClienteId) {
+            throw new ClientException(`Debe completar el campo Cliente.`)
+        }
+        if (!ParametroVenta.ClienteElementoDependienteId) {
             throw new ClientException(`Debe completar el campo Objetivo.`)
         }
         if (!ParametroVenta.PeriodoDesdeAplica) {
@@ -583,13 +586,13 @@ export class ParametrosVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
-            const codobjId = Number(req.params.codobjId);
+            const ClienteId = Number(req.params.ClienteId);
             const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.params.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
-            const infoParametroVentaArr = await this.getInfoParametroVenta(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
-            const infoProductos = await this.getInfoProductos(queryRunner, codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica);
+            const infoParametroVentaArr = await this.getInfoParametroVenta(queryRunner, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica);
+            const infoProductos = await this.getInfoProductos(queryRunner, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica);
             const infoParametroVenta = infoParametroVentaArr[0];
 
             if (infoParametroVenta)
@@ -608,7 +611,7 @@ export class ParametrosVentaController extends BaseController {
 
 
 
-    async getInfoParametroVenta(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
+    async getInfoParametroVenta(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` SELECT
             obj.ObjetivoId,
@@ -629,16 +632,20 @@ export class ParametrosVentaController extends BaseController {
         WHERE Cond.ClienteId = @0
         AND Cond.ClienteElementoDependienteId = @1
         AND Cond.PeriodoDesdeAplica = @2`,
-                [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
+                [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }
 
-    async getInfoProductos(queryRunner: any, codobjId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
+    async getInfoProductos(queryRunner: any, ClienteId:number, ClienteElementoDependienteId:number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT ProductoCodigo, TextoFactura, TipoCantidad, Cantidad AS CantidadHoras, TipoImporte, ImporteUnitario
-            FROM ParametroVentaDetalle 
-            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
-                [codobjId, ClienteElementoDependienteId, PeriodoDesdeAplica])
+            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, ImporteUnitario.par
+            FROM ParametroVentaDetalle par
+            INNER JOIN Objetivo AS obj
+                ON obj.ClienteId = par.ClienteId
+            AND obj.ClienteElementoDependienteId = par.ClienteElementoDependienteId
+
+            WHERE par.ClienteId = @0 AND par.ClienteElementoDependienteId = @1 AND par.PeriodoDesdeAplica = @2`,
+                [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }
 
 
@@ -684,7 +691,7 @@ export class ParametrosVentaController extends BaseController {
         }
     }
 
-    async updateAutorizacionParametroVenta(queryRunner: any, codobj: string, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, personalId: number, ip: string) {
+    async updateAutorizacionParametroVenta(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date, usuario: string, personalId: number, ip: string) {
         let FechaActual = new Date()
         await queryRunner.query(`
         UPDATE ParametroVenta 
@@ -698,7 +705,7 @@ export class ParametrosVentaController extends BaseController {
         WHERE ClienteId = @5
         AND ClienteElementoDependienteId = @6
         AND PeriodoDesdeAplica = @7
-        `, [FechaActual, personalId, FechaActual, usuario, ip, codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
+        `, [FechaActual, personalId, FechaActual, usuario, ip, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
 
     }
 
@@ -740,7 +747,7 @@ export class ParametrosVentaController extends BaseController {
             await queryRunner.startTransaction()
             const parametroVenta = req.body.parametroVenta;
             const ClienteId = Number(req.body.ClienteId);
-            const clienteelementodependienteid = Number(req.body.clienteelementodependienteid);
+            const ClienteElementoDependienteId = Number(req.body.clienteelementodependienteid);
             const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
@@ -753,7 +760,7 @@ export class ParametrosVentaController extends BaseController {
             if (!ClienteId) {
                 throw new ClientException("error al obtener el cliente")
             }
-            if (!clienteelementodependienteid) {
+            if (!ClienteElementoDependienteId) {
                 throw new ClientException("error al obtener el cliente elemento dependiente")
             }
 
@@ -787,10 +794,10 @@ export class ParametrosVentaController extends BaseController {
                 AudUsuarioMod = @11,
                 AudIpMod = @12
             WHERE ClienteId = @13 AND ClienteElementoDependienteId = @14 AND PeriodoDesdeAplica = @15`,
-                [parametroVenta.PeriodoFacturacion, PeriodoFacturacionInicio, parametroVenta.GeneracionFacturaDia, parametroVenta.GeneracionFacturaDiaComplemento, parametroVenta.GeneracionFacturaReqCliente ? 1 : 0, parametroVenta.UnificacionFactura ? 1 : 0, parametroVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica]);
+                [parametroVenta.PeriodoFacturacion, PeriodoFacturacionInicio, parametroVenta.GeneracionFacturaDia, parametroVenta.GeneracionFacturaDiaComplemento, parametroVenta.GeneracionFacturaReqCliente ? 1 : 0, parametroVenta.UnificacionFactura ? 1 : 0, parametroVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica]);
 
             //actualiza ParametroVentaDetalle
-            await this.updateParametroVentaDetalleQuery(queryRunner, parametroVenta.infoProductos, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica, usuario, ip);
+            await this.updateParametroVentaDetalleQuery(queryRunner, parametroVenta.infoProductos, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, ip);
             //throw new ClientException('test ok')
             await queryRunner.commitTransaction();
             return this.jsonRes({}, res, 'Actualización exitosa');
@@ -985,19 +992,21 @@ export class ParametrosVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             const tipoHoras = req.params.tipoHoras;
-            const ObjetivoId = Number(req.params.ObjetivoId);
+            const ClienteId = Number(req.params.ClienteId);
+            const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
             const anio = Number(req.params.anio);
             const mes = Number(req.params.mes);
 
-            if (!ObjetivoId) throw new ClientException('Debe seleccionar un Objetivo.');
+            if (!ClienteId) throw new ClientException('Debe seleccionar un Cliente.');
+            if (!ClienteElementoDependienteId) throw new ClientException('Debe seleccionar un Elemento Dependiente.');
             if (!anio || !mes) throw new ClientException('Debe seleccionar un Período.');
 
             const resultado = await queryRunner.query(
                 `SELECT val.TotalHoraA, val.TotalHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
                 FROM Objetivo obj
                 LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
-                WHERE obj.ObjetivoId = @0`,
-                [ObjetivoId, anio, mes]
+                WHERE obj.ClienteId = @0 AND obj.ClienteElementoDependienteId = @3`,
+                [ClienteId, anio, mes, ClienteElementoDependienteId]
             );
 
             let mensaje = '';

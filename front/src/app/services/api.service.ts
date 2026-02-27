@@ -1455,24 +1455,13 @@ export class ApiService {
     )
   }
 
-  updateParametroVenta(parametroVenta: any, codobj: any, PeriodoDesdeAplica: any) {
-    const ClienteId = codobj.split('/')[0];
-    const clienteelementodependienteid = codobj.split('/')[1];
-    const parameter = { parametroVenta, ClienteId, clienteelementodependienteid, PeriodoDesdeAplica }
+  updateParametroVenta(parametroVenta: any) {
+    const parameter = { parametroVenta }
     return this.http.post<ResponseJSON<any>>('/api/parametros-venta/update', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  existParametroVenta(codobjId: any, PeriodoDesdeAplica: any) {
-    const codcliente = codobjId.split('/')[0];
-    const codclienteelemento = codobjId.split('/')[1];
-    const periodo = PeriodoDesdeAplica || '';
-    return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/exist/${codcliente}/${codclienteelemento}/${periodo}`).pipe(
-      map((res: { data: any; }) => res.data),
-      catchError(() => of([])),
-    )
-  }
 
 
   addObjetivo(objetivo: any) {
@@ -2032,19 +2021,15 @@ export class ApiService {
   }
 
 
-  autorizarParametroVenta(codobj: any, PeriodoDesdeAplica: any) {
-    const objetivo = codobj.split('/')[0];
-    const clienteelementodependienteid = codobj.split('/')[1];
-    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/autorizar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
+  autorizarParametroVenta(CodObjetivo: number, PeriodoDesdeAplica: any) {
+    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/autorizar/${CodObjetivo}/${PeriodoDesdeAplica}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     )
   }
 
-  rechazarParametroVenta(codobj: any, PeriodoDesdeAplica: any) {
-    const objetivo = codobj.split('/')[0];
-    const clienteelementodependienteid = codobj.split('/')[1];
-    return this.http.delete<ResponseJSON<any>>(`api/parametros-venta/rechazar/${objetivo}/${clienteelementodependienteid}/${PeriodoDesdeAplica}`).pipe(
+  rechazarParametroVenta(CodObjetivo: number, PeriodoDesdeAplica: any) {
+    return this.http.delete<ResponseJSON<any>>(`api/parametros-venta/rechazar/${CodObjetivo}/${PeriodoDesdeAplica}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     )
@@ -2052,17 +2037,7 @@ export class ApiService {
 
   // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
   autorizarParametroVentaMultiple(condiciones: any[]) {
-    const condicionesFormateadas = condiciones.map(c => {
-      const objetivo = c.codobj.split('/')[0];
-      const clienteelementodependienteid = c.codobj.split('/')[1];
-      return {
-        ClienteId: objetivo,
-        ClienteElementoDependienteId: clienteelementodependienteid,
-        PeriodoDesdeAplica: c.PeriodoDesdeAplica
-      };
-    });
-
-    return this.http.post<ResponseJSON<any>>(`api/parametros-venta/autorizar-multiple`, { condiciones: condicionesFormateadas }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/parametros-venta/autorizar-multiple`, { condiciones }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: ResponseJSON<any>) => res.data),
       catchError(() => of({ status: 'error' }))
@@ -2070,17 +2045,7 @@ export class ApiService {
   }
 
   rechazarParametroVentaMultiple(condiciones: any[]) {
-    const condicionesFormateadas = condiciones.map(c => {
-      const objetivo = c.codobj.split('/')[0];
-      const clienteelementodependienteid = c.codobj.split('/')[1];
-      return {
-        ClienteId: objetivo,
-        ClienteElementoDependienteId: clienteelementodependienteid,
-        PeriodoDesdeAplica: c.PeriodoDesdeAplica
-      };
-    });
-
-    return this.http.post<ResponseJSON<any>>(`api/parametros-venta/rechazar-multiple`, { condiciones: condicionesFormateadas }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/parametros-venta/rechazar-multiple`, { condiciones }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: ResponseJSON<any>) => res.data),
       catchError(() => of({ status: 'error' }))

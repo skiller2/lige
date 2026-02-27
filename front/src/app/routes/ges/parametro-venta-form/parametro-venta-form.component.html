@@ -1,12 +1,6 @@
 <form (ngSubmit)="save()">
   <p>parametroVenta: {{ parametroVenta() |json}}</p>
-  <nz-form-item class="marginElement" style="display:none">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">codobjId</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <input nz-input placeholder="" [formField]="formParametroVenta.codobjId" type="string" />
-    </nz-form-control>
-  </nz-form-item>
-
+  
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
@@ -149,9 +143,10 @@
             </div>
           } @else if (parametroVenta().infoProductos[i].TipoImporte === 'LP') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              @if (getImporteUnitario()[i]>0){
-                {{ getImporteUnitario()[i] | currency }}
-              } else {
+              
+              @if ((getImporteUnitario()[i] | async)){
+                {{ (getImporteUnitario()[i] | async) | currency  }}
+              } @else {
                 Sin importe unitario cargado en lista de precios para año xXX y mes XXXX
               }
             </div>
@@ -198,21 +193,22 @@
             </div>
           } @else if (parametroVenta().infoProductos[i].TipoCantidad === 'A' || parametroVenta().infoProductos[i].TipoCantidad === 'B') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              {{ getCantidad()[i] || 'Cargando...' }}
+                            {{ (getCantidad()[i] | async) || 'Cargando...' }}
+
             </div>
           } @else {
+
             <input
             appDotToComma
             mask="separator.2"
             nz-input
-            nzInputNumber
             [formField]="formParametroVenta.infoProductos[i].CantidadHoras"
             type="text"
             style="width: 100%;"
             placeholder="Cantidad"
-            nz-tooltip
-            
-          >
+            nz-tooltip 
+          />
+
           }
          
         </nz-form-control>

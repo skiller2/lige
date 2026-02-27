@@ -31,9 +31,9 @@ export interface ParametroVentaForm {
   PeriodoDesdeAplica: string;
   PeriodoFacturacion: string;
   PeriodoFacturacionInicio: string;
-  GeneracionFacturaDia: number|null;             // 1..31
+  GeneracionFacturaDia: number;             // 1..31
   GeneracionFacturaReqCliente: boolean;
-  GeneracionFacturaDiaComplemento: number|null;  // 1..31 opcional
+  GeneracionFacturaDiaComplemento: number;  // 1..31 opcional
   UnificacionFactura: boolean;
   Observaciones: string;
   infoProductos: Producto[];
@@ -157,9 +157,9 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
     PeriodoFacturacionInicio: '',
-    GeneracionFacturaDia: null,
+    GeneracionFacturaDia: 0,
     GeneracionFacturaReqCliente: false,
-    GeneracionFacturaDiaComplemento: null,
+    GeneracionFacturaDiaComplemento: 0,
     UnificacionFactura: false,
     Observaciones: '',
     infoProductos: [structuredClone(this.defaultProducto)],
@@ -472,7 +472,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
         if (this.isEdit()) {
           //console.log("voy a actualizar condicion de venta")
-          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue, this.objetivoId(), this.PeriodoDesdeAplica()));
+          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue));
 
         } else {
           // console.log("voy a insertar condicion de venta")
@@ -700,12 +700,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
             return precio.Importe
           }
           return 0;
-        // Buscar el mensaje de lista de precios para este índice
-          
-        case 'F':
-          return producto.ImporteUnitario || 0;
         default:
-          return 0;
+          return producto.ImporteUnitario || 0;
       }
     })
   })
