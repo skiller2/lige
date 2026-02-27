@@ -319,8 +319,7 @@ export class ParametroVentaFormComponent implements OnInit {
   async save() {
     await submit(this.formParametroVenta, async (form) => {
       try {
-        const formValue = form().value;
-
+        const formValue = form().value();
         if (this.isEdit()) {
           //console.log("voy a actualizar condicion de venta")
           const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue));
