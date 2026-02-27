@@ -576,7 +576,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     })
     this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
   }
-
+/*
   async onTipoImporteChange(tipoImporte: string, index: number): Promise<void> {
     const importeUnitarioControl = this.infoProductos().at(index)?.get('ImporteUnitario');
 
@@ -594,7 +594,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     }
 
   }
-
+*/
   async onTipoCantidadChange(tipoCantidad: string, index: number): Promise<void> {
     const cantidadControl = this.infoProductos().at(index)?.get('CantidadHoras')
 
@@ -653,6 +653,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     return this.mensajesHoras().get(index) || '';
   }
 
+
+  /*
   async obtenerPrecioListaPrecios(index: number): Promise<void> {
 
     const codobj = this.codobjId();
@@ -686,7 +688,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       this.mensajesImporteLista.set(newMap);
     }
   }
-
+*/
   limpiarMensajeImporteLista(index: number): void {
     const newMap = new Map(this.mensajesImporteLista());
     newMap.delete(index);
@@ -706,7 +708,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   getMensajeImporteLista(index: number): string {
     return this.mensajesImporteLista().get(index) || '';
   }
-
+/*
   refrescarPreciosListaPrecios(): void {
     this.infoProductos().controls.forEach((control, index) => {
       if (control.get('TipoImporte')?.value === 'LP') {
@@ -714,7 +716,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       }
     });
   }
-
+*/
   refrescarMensajesHoras(): void {
     this.infoProductos().controls.forEach((control, index) => {
       const tipoCantidad = control.get('TipoCantidad')?.value;
@@ -723,13 +725,13 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       }
     });
   }
-
+/*
   onProductoCodigoChange(productoCodigo: string, index: number): void {
     if (this.infoProductos().at(index)?.get('TipoImporte')?.value === 'LP') {
       this.obtenerPrecioListaPrecios(index);
     }
   }
-
+*/
   clearForm(): void {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
     this.PeriodoDesdeAplica.set('')
@@ -737,6 +739,28 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     this.objetivoId.set(0)
 
   }
+
+  getImporteUnitario = computed(() => {
+    return this.parametroVenta().infoProductos.map(async producto => {
+      const tipoImporte = producto.TipoImporte || '';
+      const productoCodigo = producto.ProductoCodigo || '';
+
+      switch (tipoImporte) {
+        case 'LP':
+          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(this.clienteId(), this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
+          if (precio.PeriodoDesdeAplica) { 
+            return precio.Importe
+          }
+          return 0;
+        // Buscar el mensaje de lista de precios para este índice
+          
+        case 'F':
+          return producto.ImporteUnitario || 0;
+        default:
+          return 0;
+      }
+    })
+  })
 
   getTextoFacturaPreview = computed(() => {
     

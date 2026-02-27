@@ -1045,19 +1045,14 @@ export class ParametrosVentaController extends BaseController {
 
             if (result.length > 0) {
                 const precio = result[0];
-                const periodoDate = new Date(precio.PeriodoDesdeAplica);
                 return this.jsonRes({
-                    importe: precio.Importe,
-                    anio: periodoDate.getFullYear(),
-                    mes: periodoDate.getMonth() + 1,
-                    encontrado: true
+                    Importe: precio.Importe,
+                    PeriodoDesdeAplica: new Date(precio.PeriodoDesdeAplica)
                 }, res);
             } else {
                 return this.jsonRes({
                     importe: null,
-                    anio: anio,
-                    mes: mes,
-                    encontrado: false
+                    PeriodoDesdeAplica: null
                 }, res);
             }
         } catch (error) {

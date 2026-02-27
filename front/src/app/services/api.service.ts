@@ -2108,10 +2108,8 @@ export class ApiService {
     );
   }
 
-  getPrecioListaPrecios(ClienteId: number, periodo: any, ProductoCodigo: string): Observable<any> {
-    if (!ClienteId || !periodo || !ProductoCodigo) return of(null);
-    const anio = periodo.getFullYear();
-    const mes = periodo.getMonth() + 1;
+  getPrecioListaPrecios(ClienteId: number, anio: number, mes: number, ProductoCodigo: string): Observable<any> {
+    if (!ClienteId ||  !ProductoCodigo) return of(null);
     return this.http.get<ResponseJSON<any>>(`api/parametros-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError((err) => {

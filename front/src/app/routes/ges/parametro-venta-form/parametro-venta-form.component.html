@@ -1,5 +1,4 @@
 <form (ngSubmit)="save()">
-  <p>productos: {{ optionsTipoProducto() |json}}</p>
   <p>parametroVenta: {{ parametroVenta() |json}}</p>
   <nz-form-item class="marginElement" style="display:none">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">codobjId</nz-form-label>
@@ -151,7 +150,7 @@
             </div>
           } @else if (parametroVenta().infoProductos[i].TipoImporte === 'LP') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              {{ getMensajeImporteLista(i) || 'Consultando lista de precios...' }}
+              {{ getImporteUnitario()[i] || 'Sin importe unitario cargado en lista de precios' }}
             </div>
           } @else {
             <input
