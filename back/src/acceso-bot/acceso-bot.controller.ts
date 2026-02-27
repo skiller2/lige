@@ -415,6 +415,7 @@ export class AccesoBotController extends BaseController {
 
                 const lastRegisteredCbuLastSix = String(lastCBU[0]?.PersonalBancoCBU ?? '').slice(-6)
 
+                console.log('activeCbuLastSix', activeCbuLastSix, 'lastRegisteredCbuLastSix', lastRegisteredCbuLastSix)
                 if (!lastRegisteredCbuLastSix || lastRegisteredCbuLastSix !== cbu)
                     throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
             }
