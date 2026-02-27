@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy, untracked, linkedSignal } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { periodValidator, parsePeriod, periodToText, toApproxDays } from '../../../shared/period-utils/period-utils';
+import { FormArray, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
+import { periodValidator, parsePeriod, periodToText, toApproxDays, PeriodUnit } from '../../../shared/period-utils/period-utils';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -9,10 +9,101 @@ import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
+import { applyEach, disabled, form, FormField, required, submit, validateTree } from '@angular/forms/signals';
+
+
+export interface Producto {
+  ParametroVentaProductoId: number;
+  ProductoCodigo: string;
+  CantidadHoras: string;
+  TipoImporte: string;
+  TipoCantidad: string;
+  ImporteUnitario: string;
+  ImporteTotal: string;
+  IndHorasAFacturar: boolean | null;
+  TextoFactura: string;
+  default: string;
+}
+
+export interface ParametroVentaForm {
+  ParametroVentaId: number;
+  codobjId: string;
+  ObjetivoId: number;
+  PeriodoDesdeAplica: string;
+  PeriodoFacturacion: string;
+  PeriodoFacturacionInicio: string;
+  GeneracionFacturaDia: number;             // 1..31
+  GeneracionFacturaReqCliente: boolean;
+  GeneracionFacturaDiaComplemento: number;  // 1..31 opcional
+  UnificacionFactura: boolean;
+  Observaciones: string;
+  infoProductos: Producto[];
+  infoProductosOriginal: Producto[];
+}
+
+
+import { SchemaPathTree, validate, pattern } from '@angular/forms/signals';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+
+
+
+export function periodRange(
+  path: SchemaPathTree<string>,
+  opts: { min: string; max: string; allowedUnits: PeriodUnit[]; message?: string }
+) {
+  validate(path, (ctx) => {
+    const v = (ctx.value() ?? '').trim();
+    if (!v) return null; // 'required' se ocupa del vacío
+
+    const parsed = parsePeriod(v);
+    if (!parsed) return { kind: 'period_format', message: opts.message ?? 'Periodo inválido' };
+    if (!opts.allowedUnits.includes(parsed.unit)) {
+      return { kind: 'period_unit', message: opts.message ?? 'Unidad no permitida' };
+    }
+    const minP = parsePeriod(opts.min)!;
+    const maxP = parsePeriod(opts.max)!;
+    const days = toApproxDays({ value: parsed.value, unit: parsed.unit });
+    const minDays = toApproxDays({ value: minP.value, unit: minP.unit });
+    const maxDays = toApproxDays({ value: maxP.value, unit: maxP.unit });
+    if (days < minDays || days > maxDays) {
+      return { kind: 'period_range', message: opts.message ?? `Debe estar entre ${opts.min} y ${opts.max}` };
+    }
+    return null;
+  });
+
+  // Si querés además forzar el patrón de formato:
+  pattern(path, /^[0-9]+[DSMA]$/, { message: 'Use número seguido de unidad (D,S,M,A), p. ej. 10D' });
+}
+
+export function numericRange(
+  path: SchemaPathTree<number | null>,
+  opts: {
+    min: number; max: number; optional?: boolean; message?: string;
+    when: (ctx: any) => boolean;      // <- condición para ejecutar la validación
+  }
+) {
+  validate(path, (ctx) => {
+
+    if (!opts.when(ctx)) return null;
+
+    const v = ctx.value();
+    if (v == null || (v as any) === '') {
+      return opts.optional ? null : { kind: 'required', message: opts.message ?? 'Requerido' };
+    }
+    const n = Number(v);
+    if (Number.isNaN(n)) return { kind: 'number', message: opts.message ?? 'Debe ser numérico' };
+    if (n < opts.min || n > opts.max) {
+      return { kind: 'range', message: opts.message ?? `Entre ${opts.min} y ${opts.max}` };
+    }
+    return null;
+  });
+}
 
 @Component({
   selector: 'app-parametro-venta-form',
-  imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent],
+  imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, FormField, FormsModule,
+  ],
   templateUrl: './parametro-venta-form.component.html',
   styleUrl: './parametro-venta-form.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,13 +115,10 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private searchService = inject(SearchService);
   private decimalMarker = inject(DEFAULT_DECIMAL_MARKER);
   private thousandSeparator = inject(DEFAULT_THOUSAND_SEPARATOR);
-  private periodoSubscription?: Subscription;
-  private reqClienteSubscription?: Subscription;
-  private isNormalizingPeriodo = false;
   refreshCondVenta = model<number>(0);
   isEdit = model(false);
   ParametroVentaId = model<number>(0);
-  
+
   // Signals para manejar la carga pendiente en modo view/edit
   private pendingViewLoad = signal<boolean>(false);
   private viewReadonly = signal<boolean>(false);
@@ -40,19 +128,23 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   objetivoId = model<number>(0);
   PeriodoDesdeAplicaInput = input<string>('', { alias: 'PeriodoDesdeAplica' });
   PeriodoDesdeAplica = linkedSignal(() => this.PeriodoDesdeAplicaInput());
-  periodo = input<Date>();
+  periodo = input<Date>(new Date());
   clienteId = signal<number>(0);
-  $optionsTipoProducto = this.searchService.getTipoProductoSearch();
+  
+  optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(),{initialValue: []})
 
-  $optionsTipoCantidad = this.searchService.getTipoCantidadSearch();
-  $optionsTipoImporte = this.searchService.getTipoImporteSearch();
+  optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(),{initialValue: []})
+  optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
+
+
   mensajesHoras = signal<Map<number, string>>(new Map());
   mensajesImporteLista = signal<Map<number, string>>(new Map());
-  periodoFacturacionDescripcion = signal<string>('');
 
+  periodoFacturacionDescripcion = computed(() => { return periodToText(parsePeriod(this.parametroVenta().PeriodoFacturacion)) });
+  periodoFacturacionDias = computed(() => { return toApproxDays(parsePeriod(this.parametroVenta().PeriodoFacturacion)) });
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
 
-  objProductos = {
+  private readonly defaultProducto: Producto = {
     ParametroVentaProductoId: 0,
     ProductoCodigo: '',
     CantidadHoras: '',
@@ -62,37 +154,60 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     ImporteTotal: '',
     IndHorasAFacturar: null,
     TextoFactura: '',
-    default: ''
+    default: '',
   };
 
-
-  fb = inject(FormBuilder)
-  formParametroVenta = this.fb.group({
+  private readonly defaultFormParamVenta: ParametroVentaForm = {
     ParametroVentaId: 0,
     codobjId: '',
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
-    PeriodoFacturacion: ['', [Validators.required, periodValidator({ min: '1D', max: '2A', allowedUnits: ['D', 'S', 'M', 'A'] })]],
+    PeriodoFacturacion: '',
     PeriodoFacturacionInicio: '',
-    GeneracionFacturaDia: ['', [Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]],
-    GeneracionFacturaReqCliente: [false],
-    GeneracionFacturaDiaComplemento: ['', [Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]],
-    UnificacionFactura: [false],
+    GeneracionFacturaDia: 0, //null,
+    GeneracionFacturaReqCliente: false,
+    GeneracionFacturaDiaComplemento: 0, //null,
+    UnificacionFactura: false,
     Observaciones: '',
-    infoProductos: this.fb.array([this.fb.group({ ...this.objProductos })]),
-    infoProductosOriginal: this.fb.array([this.fb.group({ ...this.objProductos })]),
+    infoProductos: [structuredClone(this.defaultProducto)],
+    infoProductosOriginal: [structuredClone(this.defaultProducto)],
+  }
+
+  readonly parametroVenta = signal<ParametroVentaForm>(this.defaultFormParamVenta);
+
+  readonly formParametroVenta = form(this.parametroVenta, (p) => {
+    required(p.PeriodoFacturacion, { message: 'Periodo de facturación es requerido' });
+    required(p.GeneracionFacturaDia, {
+      message: 'Día de generación es requerido',
+      when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false,
+    });
+
+    periodRange(p.PeriodoFacturacion, {
+      min: '1D',
+      max: '2A',
+      allowedUnits: ['D', 'S', 'M', 'A'],
+      message: 'Formato inválido o fuera de rango (permitidos: D, S, M, A)',
+    });
+
+    numericRange(p.GeneracionFacturaDia, { min: 1, max: 29, message: 'Día entre 1 y 29', when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false },);
+    disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+    disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+
+    applyEach(p.infoProductos, (productoPath) => {
+      required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });
+      required(productoPath.TipoImporte, { message: 'Tipo de importe es requerido' });
+      required(productoPath.TipoCantidad, { message: 'Tipo de cantidad es requerido' });
+    });
   })
-
-  // Signal para controlar si se muestra el campo PeriodoFacturacionInicio
-  mostrarPeriodoFacturacionInicio = signal<boolean>(false);
-
 
   constructor() {
     effect(() => {
+      //      this.p.codobjId().value.set(this.codobjId());
 
-      this.formParametroVenta.patchValue({
+      this.parametroVenta.update(m => ({
+        ...m,
         codobjId: this.codobjId(),
-      });
+      }));
 
 
     });
@@ -101,8 +216,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       const _codobj = this.codobjId();
       const _periodo = this.periodo();
       untracked(() => {
-        this.refrescarPreciosListaPrecios();
-        this.refrescarMensajesHoras();
+        //        this.refrescarPreciosListaPrecios();
+        //        this.refrescarMensajesHoras();
       });
     });
 
@@ -115,82 +230,94 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       if (pendingLoad && codobjInput && periodoInput) {
         untracked(() => {
           this.pendingViewLoad.set(false);
-          this.executeViewLoad();
+          //          this.executeViewLoad();
         });
       }
     });
   }
 
-  infoProductos(): FormArray {
-    return this.formParametroVenta.get("infoProductos") as FormArray
+
+  infoProductos(): FormArray<any> {
+    //    return this.formParametroVenta.get("infoProductos") as FormArray
+    return new FormArray<any>([])
   }
+
 
   addProductos(e?: MouseEvent): void {
 
     e?.preventDefault();
-    const newGroup = this.fb.group({ ...this.objProductos });
-    this.infoProductos().push(newGroup);
-    newGroup.get('ImporteTotal')?.disable();
 
+    const newProducto = structuredClone(this.defaultProducto)
+
+    this.parametroVenta.update(m => ({
+      ...m,
+      infoProductos: [...m.infoProductos, newProducto],
+    }));
+
+
+    /*
+        const newGroup = this.fb.group({ ...this.objProductos });
+        this.infoProductos().push(newGroup);
+        newGroup.get('ImporteTotal')?.disable();
+    */
   }
 
   removeProductos(index: number, e: MouseEvent): void {
 
     e.preventDefault();
-    if (this.infoProductos().length > 1) {
-      this.infoProductos().removeAt(index)
-    } else {
-      this.infoProductos().clear();
-      const newGroup = this.fb.group({ ...this.objProductos });
-      this.infoProductos().push(newGroup);
-      newGroup.get('ImporteTotal')?.disable();
+
+    if (this.parametroVenta().infoProductos.length == 0)
+
+      this.parametroVenta.update(m => ({
+        ...m,
+        infoProductos: m.infoProductos.filter((_, i) => i !== index),
+      }));
+
+    if (this.parametroVenta().infoProductos.length == 0) {
+      this.addProductos(undefined)
     }
-    this.formParametroVenta.markAsDirty();
+
+
+    /*
+        if (this.infoProductos().length > 1) {
+          this.infoProductos().removeAt(index)
+        } else {
+          this.infoProductos().clear();
+          const newGroup = this.fb.group({ ...this.objProductos });
+          this.infoProductos().push(newGroup);
+          newGroup.get('ImporteTotal')?.disable();
+        }
+    */
+    this.formParametroVenta().markAsDirty();
   }
 
   async newRecord() {
+    this.formParametroVenta().reset(this.defaultFormParamVenta)
 
     if (this.codobjId() && this.PeriodoDesdeAplica()) {
       await this.load()
-      // Limpiar IDs para que sea un registro nuevo (copia)
-      this.PeriodoDesdeAplica.set('')
-      this.formParametroVenta.patchValue({
-        ParametroVentaId: 0,
-        PeriodoDesdeAplica: '',
-      });
-      // Limpiar IDs de productos para que se inserten como nuevos
-      this.infoProductos().controls.forEach(control => {
-        control.patchValue({ ParametroVentaProductoId: 0 });
-      });
-      this.formParametroVenta.enable()
 
-      this.infoProductos().controls.forEach((control, index) => {
-        control.get('ImporteTotal')?.disable();
-        const tipoImporte = control.get('TipoImporte')?.value;
-        if (tipoImporte === 'LP' || tipoImporte === 'V') {
-          control.get('ImporteUnitario')?.disable();
-        }
-        const tipoCantidad = control.get('TipoCantidad')?.value;
-        if (tipoCantidad === 'A' || tipoCantidad === 'B' || tipoCantidad === 'V') {
-          control.get('CantidadHoras')?.disable();
-        }
-      });
-      this.formParametroVenta.markAsPristine();
+      const tmp = this.parametroVenta()
+      tmp.ParametroVentaId = 0;
+      tmp.PeriodoDesdeAplica = '';
+      tmp.infoProductos = tmp.infoProductos.map(p => ({ ...p, ParametroVentaProductoId: 0 }));
+
+      this.parametroVenta.update(m => ({
+        ...m, tmp
+      }));
+
+      this.PeriodoDesdeAplica.set('')
+
+
 
     } else {
       //this.codobjId.set('')
       this.PeriodoDesdeAplica.set('')
-      this.formParametroVenta.enable()
-      this.formParametroVenta.reset();
-      this.infoProductos().clear();
-      const newGroup = this.fb.group({ ...this.objProductos });
-      this.infoProductos().push(newGroup);
-      newGroup.get('ImporteTotal')?.disable();
-      this.mostrarPeriodoFacturacionInicio.set(false);
-      this.formParametroVenta.patchValue({
-        ObjetivoId: this.objetivoId(),
-      });
-      this.formParametroVenta.markAsPristine();
+
+      this.parametroVenta.update(m => ({
+        ...m, ObjetivoId: this.objetivoId()|0,
+      }));
+
     }
 
   }
@@ -212,23 +339,27 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
   private applyViewMode(readonly: boolean): void {
+    /*
     if (readonly) {
-      this.formParametroVenta.disable();
-      this.infoProductos().disable();
-    } else {
-      this.formParametroVenta.enable();
-      // Deshabilitar ImporteTotal después de habilitar el formulario
-      this.infoProductos().controls.forEach(control => {
-        control.get('ImporteTotal')?.disable();
-      });
-    }
-    this.formParametroVenta.markAsPristine();
+  this.formParametroVenta.disable();
+  this.infoProductos().disable();
+  } else {
+  this.formParametroVenta.enable();
+  // Deshabilitar ImporteTotal después de habilitar el formulario
+  this.infoProductos().controls.forEach(control => {
+    control.get('ImporteTotal')?.disable();
+  });
+  }
+  this.formParametroVenta.markAsPristine();
+  */
   }
 
+  /*
   private async executeViewLoad(): Promise<void> {
-    await this.load();
-    this.applyViewMode(this.viewReadonly());
+  await this.load();
+  this.applyViewMode(this.viewReadonly());
   }
+  */
 
   async load() {
     const codobj = this.codobjIdInput();
@@ -240,192 +371,200 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoParametroVenta(codobj, periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
+    /*
     this.infoProductos().clear();
-
+    
     // Crear la cantidad correcta de grupos vacíos
     infoCliente.infoProductos.forEach(() => {
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+    this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     });
-
+    
     // Asegurar que siempre haya al menos un producto
     if (this.infoProductos().length === 0 && this.formParametroVenta.enabled) {
-      this.infoProductos().push(this.fb.group({ ...this.objProductos }));
+    this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
-
-    this.formParametroVenta.reset(infoCliente)
-
+    */
+    this.formParametroVenta().reset(infoCliente)
+    /*
     // Aplicar estado del checkbox Requerido por Cliente
     const reqCliente = this.formParametroVenta.get('GeneracionFacturaReqCliente')?.value;
     this.applyReqClienteState(!!reqCliente);
-
+    
     // Evaluar si debe mostrar PeriodoFacturacionInicio
     const periodoFacturacion = infoCliente.PeriodoFacturacion;
     if (periodoFacturacion) {
-      const p = parsePeriod(periodoFacturacion);
-      const esMayorAUnMes = p && toApproxDays(p) > 30;
-      this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
+    const p = parsePeriod(periodoFacturacion);
+    const esMayorAUnMes = p && toApproxDays(p) > 30;
+    this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
     } else {
-      this.mostrarPeriodoFacturacionInicio.set(false);
+    this.mostrarPeriodoFacturacionInicio.set(false);
     }
-
+    
     // Limpiar mensajes de importes de lista de precios y de horas
     this.mensajesImporteLista.set(new Map());
     this.mensajesHoras.set(new Map());
-
+    
     // Calcular totales, deshabilitar ImporteTotal y manejar tipo importe/cantidad en un solo recorrido
     this.infoProductos().controls.forEach((control, index) => {
-      const cantidad = control.get('CantidadHoras')?.value;
-      const importeUnitario = control.get('ImporteUnitario')?.value;
-      const tipoImporte = control.get('TipoImporte')?.value;
-      const tipoCantidad = control.get('TipoCantidad')?.value;
-
-      if (cantidad && importeUnitario) {
-       // this.calcularTotal(index);
-      } else {
-        control.get('ImporteTotal')?.disable();
-      }
-
-      if (tipoImporte === 'LP') {
-        control.get('ImporteUnitario')?.disable();
-        this.obtenerPrecioListaPrecios(index);
-      } else if (tipoImporte !== 'F') {
-        control.get('ImporteUnitario')?.disable();
-      }
-
-      if (tipoCantidad === 'A' || tipoCantidad === 'B') {
-        control.get('CantidadHoras')?.disable();
-        this.obtenerMensajeHoras(tipoCantidad, index);
-      } else if (tipoCantidad !== 'F') {
-        control.get('CantidadHoras')?.disable();
-      }
+    const cantidad = control.get('CantidadHoras')?.value;
+    const importeUnitario = control.get('ImporteUnitario')?.value;
+    const tipoImporte = control.get('TipoImporte')?.value;
+    const tipoCantidad = control.get('TipoCantidad')?.value;
+    
+    if (cantidad && importeUnitario) {
+     // this.calcularTotal(index);
+    } else {
+      control.get('ImporteTotal')?.disable();
+    }
+    
+    if (tipoImporte === 'LP') {
+      control.get('ImporteUnitario')?.disable();
+      this.obtenerPrecioListaPrecios(index);
+    } else if (tipoImporte !== 'F') {
+      control.get('ImporteUnitario')?.disable();
+    }
+    
+    if (tipoCantidad === 'A' || tipoCantidad === 'B') {
+      control.get('CantidadHoras')?.disable();
+      this.obtenerMensajeHoras(tipoCantidad, index);
+    } else if (tipoCantidad !== 'F') {
+      control.get('CantidadHoras')?.disable();
+    }
     });
-
+    */
   }
 
 
   ngOnInit(): void {
-    this.formParametroVenta.patchValue({
-      codobjId: this.codobjId(),
-    });
+    //this.parametroVenta.patchValue({
+    //codobjId: this.codobjId(),
+    //});
 
-    this.$optionsTipoProducto.subscribe(productos => {
-      this.productosCache = productos;
-    });
-
-    this.formParametroVenta.controls.PeriodoFacturacion.valueChanges.pipe(
-      distinctUntilChanged()
-    ).subscribe(value => {
-      const p = parsePeriod(value);
-      this.periodoFacturacionDescripcion.set(p ? periodToText(p) : '');
-
-      // Mostrar PeriodoFacturacionInicio si el período es mayor a 1 mes (aprox 30 días)
-      const esMayorAUnMes = p && toApproxDays(p) > 30;
-      this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
-
-      // Si se muestra y no tiene valor, establecer el valor por defecto de PeriodoDesdeAplica
-      if (esMayorAUnMes && !this.formParametroVenta.get('PeriodoFacturacionInicio')?.value) {
-        const periodoDesdeAplica = this.formParametroVenta.get('PeriodoDesdeAplica')?.value;
-        if (periodoDesdeAplica) {
-          this.formParametroVenta.patchValue({ PeriodoFacturacionInicio: periodoDesdeAplica });
-        }
-      }
-    });
-
-    // Suscribirse a cambios en GeneracionFacturaReqCliente
-    this.reqClienteSubscription = this.formParametroVenta.controls.GeneracionFacturaReqCliente.valueChanges.subscribe(checked => {
-      this.applyReqClienteState(!!checked);
-    });
-
-    // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
-    const periodoControl = this.formParametroVenta.get('PeriodoDesdeAplica');
-    if (periodoControl) {
-      this.periodoSubscription = periodoControl.valueChanges.pipe(
-        distinctUntilChanged()
-      ).subscribe((value: string | Date | null) => {
-        if (!this.isNormalizingPeriodo && value) {
-          const date = value instanceof Date ? value : new Date(value);
-          if (!isNaN(date.getTime())) {
-            const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
-            // Solo normalizar si la fecha no está ya normalizada (no es el primer día del mes)
-            if (date.getDate() !== 1 || date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0) {
-              this.isNormalizingPeriodo = true;
-              periodoControl.setValue(normalizedDate.toISOString(), { emitEvent: false });
-              this.isNormalizingPeriodo = false;
+    //this.$optionsTipoProducto.subscribe(productos => {
+    //this.productosCache = productos;
+    //});
+    /*
+        this.formParametroVenta.controls.PeriodoFacturacion.valueChanges.pipe(
+          distinctUntilChanged()
+        ).subscribe(value => {
+          const p = parsePeriod(value);
+          this.periodoFacturacionDescripcion.set(p ? periodToText(p) : '');
+    
+          // Mostrar PeriodoFacturacionInicio si el período es mayor a 1 mes (aprox 30 días)
+          const esMayorAUnMes = p && toApproxDays(p) > 30;
+          this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
+    
+          // Si se muestra y no tiene valor, establecer el valor por defecto de PeriodoDesdeAplica
+          if (esMayorAUnMes && !this.formParametroVenta.get('PeriodoFacturacionInicio')?.value) {
+            const periodoDesdeAplica = this.formParametroVenta.get('PeriodoDesdeAplica')?.value;
+            if (periodoDesdeAplica) {
+              this.formParametroVenta.patchValue({ PeriodoFacturacionInicio: periodoDesdeAplica });
             }
           }
+        });
+    
+        // Suscribirse a cambios en GeneracionFacturaReqCliente
+        this.reqClienteSubscription = this.formParametroVenta.controls.GeneracionFacturaReqCliente.valueChanges.subscribe(checked => {
+          this.applyReqClienteState(!!checked);
+        });
+    
+        // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
+        const periodoControl = this.formParametroVenta.get('PeriodoDesdeAplica');
+        if (periodoControl) {
+          this.periodoSubscription = periodoControl.valueChanges.pipe(
+            distinctUntilChanged()
+          ).subscribe((value: string | Date | null) => {
+            if (!this.isNormalizingPeriodo && value) {
+              const date = value instanceof Date ? value : new Date(value);
+              if (!isNaN(date.getTime())) {
+                const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
+                // Solo normalizar si la fecha no está ya normalizada (no es el primer día del mes)
+                if (date.getDate() !== 1 || date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0) {
+                  this.isNormalizingPeriodo = true;
+                  periodoControl.setValue(normalizedDate.toISOString(), { emitEvent: false });
+                  this.isNormalizingPeriodo = false;
+                }
+              }
+            }
+            this.refrescarPreciosListaPrecios();
+          });
         }
-        this.refrescarPreciosListaPrecios();
-      });
-    }
+        */
   }
 
   ngOnDestroy(): void {
+    /*
     if (this.periodoSubscription) {
       this.periodoSubscription.unsubscribe();
     }
     if (this.reqClienteSubscription) {
       this.reqClienteSubscription.unsubscribe();
     }
+    */
   }
-
-  private applyReqClienteState(checked: boolean): void {
-    const diaControl = this.formParametroVenta.get('GeneracionFacturaDia');
-    const diaComplementoControl = this.formParametroVenta.get('GeneracionFacturaDiaComplemento');
-    if (checked) {
-      diaControl?.setValue('', { emitEvent: false });
-      diaComplementoControl?.setValue('', { emitEvent: false });
-      diaControl?.disable({ emitEvent: false });
-      diaComplementoControl?.disable({ emitEvent: false });
-      diaControl?.clearValidators();
-      diaControl?.updateValueAndValidity({ emitEvent: false });
-    } else {
-      diaControl?.enable({ emitEvent: false });
-      diaComplementoControl?.enable({ emitEvent: false });
-      diaControl?.setValidators([Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]);
-      diaControl?.updateValueAndValidity({ emitEvent: false });
+  /*
+    private applyReqClienteState(checked: boolean): void {
+      const diaControl = this.formParametroVenta.get('GeneracionFacturaDia');
+      const diaComplementoControl = this.formParametroVenta.get('GeneracionFacturaDiaComplemento');
+      if (checked) {
+        diaControl?.setValue('', { emitEvent: false });
+        diaComplementoControl?.setValue('', { emitEvent: false });
+        diaControl?.disable({ emitEvent: false });
+        diaComplementoControl?.disable({ emitEvent: false });
+        diaControl?.clearValidators();
+        diaControl?.updateValueAndValidity({ emitEvent: false });
+      } else {
+        diaControl?.enable({ emitEvent: false });
+        diaComplementoControl?.enable({ emitEvent: false });
+        diaControl?.setValidators([Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]);
+        diaControl?.updateValueAndValidity({ emitEvent: false });
+      }
     }
-  }
-
+  */
+    
+  //TODO: No debería ser necesario tener codobjId 
   objetivoDetalleChange(event: any) {
-    if (event && event.clienteId && event.ClienteElementoDependienteId) {                                                                      
-       this.codobjId.set(`${event.clienteId}/${event.ClienteElementoDependienteId}`);    
-       this.clienteId.set(event.clienteId);
-     } else {                                                                                                                                   
-       this.codobjId.set('');                                                                                                                   
-       this.clienteId.set(0);
+    if (event && event.clienteId && event.ClienteElementoDependienteId) {
+      this.codobjId.set(`${event.clienteId}/${event.ClienteElementoDependienteId}`);
+      this.clienteId.set(event.clienteId);
+    } else {
+      this.codobjId.set('');
+      this.clienteId.set(0);
     }
   }
 
   async save() {
-    this.loadingSrv.open({ type: 'spin', text: '' });
-    try {
-      const formValue = this.formParametroVenta.getRawValue();
+    await submit(this.formParametroVenta, async (form) => {
+      try {
+        const formValue = form().value;
 
-      if (this.isEdit()) {
-        //console.log("voy a actualizar condicion de venta")
-        const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
+        if (this.isEdit()) {
+          //console.log("voy a actualizar condicion de venta")
+          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
 
-      } else {
-        // console.log("voy a insertar condicion de venta")
-        const result = await firstValueFrom(this.apiService.addParametroVenta(formValue));
-        const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
-        const clienteid = result.data.ClienteId;
-        this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
-        this.PeriodoDesdeAplica.set(result.data.PeriodoDesdeAplica);
+        } else {
+          // console.log("voy a insertar condicion de venta")
+          const result = await firstValueFrom(this.apiService.addParametroVenta(formValue));
+          const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
+          const clienteid = result.data.ClienteId;
+          this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
+          this.PeriodoDesdeAplica.set(result.data.PeriodoDesdeAplica);
 
-        this.isEdit.set(true);
+          this.isEdit.set(true);
 
+        }
+
+        await this.load();
+        //      this.formParametroVenta.markAsUntouched();
+        //      this.formParametroVenta.markAsPristine();
+        this.refreshCondVenta.update(v => v + 1)
+
+      } catch (e) {
+        console.error('Error al guardar condición de venta:', e);
+      } finally {
+        //        this.loadingSrv.close();
       }
-
-      await this.load();
-      this.formParametroVenta.markAsUntouched();
-      this.formParametroVenta.markAsPristine();
-    } catch (e) {
-      console.error('Error al guardar condición de venta:', e);
-    } finally {
-      this.loadingSrv.close();
-    }
-    this.refreshCondVenta.update(v => v + 1)
+    })
   }
 
   calcularTotal(index: number) {
@@ -440,7 +579,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
   async onTipoImporteChange(tipoImporte: string, index: number): Promise<void> {
     const importeUnitarioControl = this.infoProductos().at(index)?.get('ImporteUnitario');
-    
+
     if (tipoImporte === 'LP') {
       importeUnitarioControl?.setValue('');
       importeUnitarioControl?.disable();
@@ -458,7 +597,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
   async onTipoCantidadChange(tipoCantidad: string, index: number): Promise<void> {
     const cantidadControl = this.infoProductos().at(index)?.get('CantidadHoras')
-    
+
     if (tipoCantidad === 'A' || tipoCantidad === 'B') {
 
       cantidadControl?.setValue('')
@@ -478,7 +617,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async obtenerMensajeHoras(tipoHoras: string, index: number): Promise<void> {
-    const objetivoId = this.formParametroVenta.get('ObjetivoId')?.value;
+    const objetivoId = this.parametroVenta().ObjetivoId;
     const periodo = this.periodo();
 
     if (!objetivoId || !periodo) {
@@ -515,11 +654,11 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
   async obtenerPrecioListaPrecios(index: number): Promise<void> {
- 
-    const codobj = this.codobjId();
-    
 
-    if (!this.clienteId() || !this.periodo() ) {
+    const codobj = this.codobjId();
+
+
+    if (!this.clienteId() || !this.periodo()) {
       const newMap = new Map(this.mensajesImporteLista());
       newMap.set(index, 'Debe completar Objetivo, Período y Producto para consultar lista de precios');
       this.mensajesImporteLista.set(newMap);
@@ -528,10 +667,10 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
     try {
       const productoCodigo = this.infoProductos().at(index)?.get('ProductoCodigo')?.value || '';
-      
+
       const anio = this.periodo()?.getFullYear() || 0;
       const mes = this.periodo() ? this.periodo()!.getMonth() + 1 : 0;
- 
+
       const response = await firstValueFrom(this.apiService.getPrecioListaPrecios(this.clienteId(), this.periodo(), productoCodigo));
       const newMap = new Map(this.mensajesImporteLista());
       if (response && response.encontrado) {
@@ -592,82 +731,47 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
   clearForm(): void {
-    this.formParametroVenta.reset()
+    this.formParametroVenta().reset(this.defaultFormParamVenta)
+    this.PeriodoDesdeAplica.set('')
     this.codobjId.set('')
     this.objetivoId.set(0)
-    this.formParametroVenta.patchValue({
-      codobjId: '',
-      ObjetivoId: 0,
+
+  }
+
+  getTextoFacturaPreview = computed(() => {
+    
+    return this.parametroVenta().infoProductos.map(producto => {
+      let textoFactura = (producto.TextoFactura || '').trim();
+      const productoCodigo = producto.ProductoCodigo || '';
+      if (!productoCodigo) return ''
+
+      const periodoMes = (this.periodo().getMonth() + 1).toString().padStart(2, '0') || '';
+      const periodoAnio = this.periodo().getFullYear().toString() || '';
+
+      const productoNombre = this.optionsTipoProducto().find((p: { ProductoCodigo: string; }) => p.ProductoCodigo === productoCodigo)?.Nombre || productoCodigo;
+
+      //TODO: pendiente verificar los tipos de importe y cantidad,  por si las tengo que ir a buscar 
+      const importeUnitario = producto.ImporteUnitario || '';
+      const cantidad = producto.CantidadHoras || '';
+
+      if (!textoFactura)
+        textoFactura = '{Producto} {PeriodoMes}/{PeriodoAnio}'
+
+      
+
+
+      const preview = textoFactura
+        .replace(/{Producto}/g, productoNombre)
+        .replace(/{PeriodoMes}/g, periodoMes)
+        .replace(/{PeriodoAnio}/g, periodoAnio)
+        .replace(/{CantidadHoras}/g, cantidad || 'N/A')
+        .replace(/{ImporteUnitario}/g, importeUnitario || 'N/A')
+        .replace(/{ImporteTotal}/g, cantidad && importeUnitario ? (Number(cantidad) * Number(importeUnitario)).toFixed(2) : 'N/A');
+
+      return preview;
+
     });
-
-    this.PeriodoDesdeAplica.set('')
-    this.infoProductos().clear()
-    const newGroup = this.fb.group({ ...this.objProductos })
-    this.infoProductos().push(newGroup)
-    newGroup.get('ImporteTotal')?.disable()
-    this.mensajesImporteLista.set(new Map())
-    this.mensajesHoras.set(new Map())
-    this.mostrarPeriodoFacturacionInicio.set(false)
-    this.formParametroVenta.markAsPristine()
-  }
-
-  private productosCache: any[] = [];
-
-  getTextoFacturaPreview(index: number): string {
-    const productoGroup = this.infoProductos().at(index);
-    if (!productoGroup) return '';
-
-    const textoFactura = (productoGroup.get('TextoFactura')?.value || '').trim();
-    const productoCodigo = productoGroup.get('ProductoCodigo')?.value || '';
-    // CantidadHoras: form control (Fijo) o mensajeHoras (Horas A/B)
-    let cantidad = productoGroup.get('CantidadHoras')?.value || '';
-    if (!cantidad) {
-      const mensajeHoras = this.mensajesHoras().get(index) || '';
-      const match = mensajeHoras.match(/^([\d.,]+)/);
-      if (match) cantidad = match[1];
-    }
-
-    // ImporteUnitario: form control (Fijo) o mensajeImporteLista (Lista Precios)
-    let importeUnitario = productoGroup.get('ImporteUnitario')?.value || '';
-    if (!importeUnitario) {
-      const mensajeImporte = this.mensajesImporteLista().get(index) || '';
-      const match = mensajeImporte.match(/^([\d.,]+)/);
-      if (match) importeUnitario = match[1];
-    }
-
-    const importeTotal = productoGroup.get('ImporteTotal')?.value || '';
-
-    let productoNombre = productoCodigo;
-    if (this.productosCache && this.productosCache.length > 0) {
-      const producto = this.productosCache.find((p: any) => p.ProductoCodigo === productoCodigo);
-      productoNombre = producto?.Nombre || productoCodigo;
-    }
-
-    let periodoMes = '';
-    let periodoAnio = '';
-
-    if (this.periodo()) {
-      const fecha = this.periodo();
-      if (fecha && !isNaN(fecha.getTime())) {
-        periodoMes = (fecha.getMonth() + 1).toString().padStart(2, '0');
-        periodoAnio = fecha.getFullYear().toString();
-      }
-    }
-
-    if (!textoFactura && productoNombre) {
-      return periodoMes && periodoAnio ? `${productoNombre} ${periodoMes}/${periodoAnio}` : productoNombre;
-    }
-
-    // Reemplazar variables
-    let preview = textoFactura
-      .replace(/{Producto}/g, productoNombre)
-      .replace(/{PeriodoMes}/g, periodoMes)
-      .replace(/{PeriodoAnio}/g, periodoAnio)
-      .replace(/{CantidadHoras}/g, cantidad || 'N/A')
-      .replace(/{ImporteUnitario}/g, importeUnitario || 'N/A')
-      .replace(/{ImporteTotal}/g, importeTotal);
-
-    return preview;
-  }
+    
+  });
 
 }

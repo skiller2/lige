@@ -10,7 +10,7 @@ export interface Period {
 export const PERIOD_REGEX = /^(?<value>\d+)\s*(?<unit>[DSMA])$/i;
 
 /** Parsea un string tipo "2A", "3S", "1M", "15D" a objeto Period */
-export function parsePeriod(input: string | null | undefined): Period | null {
+export function parsePeriod_old(input: string | null | undefined): Period | null {
   if (!input) return null;
   const trimmed = String(input).trim();
   const match = PERIOD_REGEX.exec(trimmed);
@@ -22,6 +22,15 @@ export function parsePeriod(input: string | null | undefined): Period | null {
   if (!Number.isFinite(value) || value <= 0) return null;
   return { value, unit };
 }
+
+export function parsePeriod(v: string | null ): Period {
+  const s = (v ?? '').trim().toUpperCase();
+  const m = /^([0-9]+)\s*([DSMA])$/.exec(s);
+  if (!m) return { value: 0, unit:'D'} ;
+  return { value: Number(m[1]), unit: m[2] as PeriodUnit };
+}
+
+
 
 /** Normaliza a ISO 8601 (P{n}D | P{n}W | P{n}M | P{n}Y) */
 export function toIsoDuration(p: Period): string {
@@ -42,6 +51,7 @@ export function toApproxDays(p: Period): number {
     case 'A': return p.value * 365;
   }
 }
+
 
 /** Construye Period desde string corto (e.g., '2A') */
 export function fromShortString(s: string): Period | null {

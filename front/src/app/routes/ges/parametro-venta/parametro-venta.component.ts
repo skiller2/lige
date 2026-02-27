@@ -62,9 +62,9 @@ export class ParametroVentaComponent implements OnInit {
 
     try {
       const child = this.childAlta();
-      if (child.formParametroVenta.invalid || child.formParametroVenta.pristine) {
-        child.clearForm();
-      }
+//      if (child.formParametroVenta.invalid || child.formParametroVenta.pristine) {
+//        child.clearForm();
+//      }
       if (savedCodobj) {
         child.codobjId.set(savedCodobj);
         child.objetivoId.set(savedObjetivoId);
