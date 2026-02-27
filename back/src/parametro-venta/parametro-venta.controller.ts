@@ -648,7 +648,7 @@ export class ParametrosVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, ClienteId:number, ClienteElementoDependienteId:number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, ImporteUnitario.par
+            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, par.ImporteUnitario
             FROM ParametroVentaDetalle par
             INNER JOIN Objetivo AS obj
                 ON obj.ClienteId = par.ClienteId

@@ -19,11 +19,11 @@
         </a>
         <a [routerLink]="['/', 'ges', 'parametros-venta','modificar']" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-          <button nz-button nzType="default" [disabled]="!(objetivoId() && PeriodoDesdeAplica())" (click)="isEdit.set(true)"><span nz-icon
+          <button nz-button nzType="default" [disabled]="!(ClienteId() && PeriodoDesdeAplica())" (click)="isEdit.set(true)"><span nz-icon
               nzType="edit" nzTheme="outline"></span></button>
         </a>
 
-       @if(PeriodoDesdeAplica() && parametrosSeleccionadas() && parametrosSeleccionadas().length > 0){
+       @if(PeriodoDesdeAplica() && parametrosSeleccionadas().length > 0){
           <a nz-tooltip nzTooltipTitle="{{ 'app.icon.autorizar' | i18n }}">
             <button nz-button nzType="default"
               (click)="autorizarParametroVenta()">
@@ -79,7 +79,6 @@
 
         <p>Parametros: {{parametrosSeleccionadas()|json}}</p>
         <app-table-parametro-venta #tableParametroVenta [periodo]="periodo()"
-          [(PeriodoDesdeAplica)]="PeriodoDesdeAplica"
           [refreshCondVenta]="refreshCondVenta()"
           [(parametrosSeleccionadas)]="parametrosSeleccionadas"></app-table-parametro-venta>
       </ng-template>
@@ -89,7 +88,7 @@
       <a nz-tab-link routerLink="/ges/parametros-venta/modificar">{{ 'app.icon.edit' | i18n }}</a>
       <ng-template nz-tab>
         <app-parametro-venta-form #parametroVentaFormEditar
-          [ClienteId]="parametrosSeleccionadas()[0]?.ClienteId" [ClienteElementoDependienteId]="parametrosSeleccionadas()[0]?.ClienteElementoDependienteId" [(refreshCondVenta)]="refreshCondVenta"
+          [ClienteId]="ClienteId()" [ClienteElementoDependienteId]="ClienteElementoDependienteId()" [(refreshCondVenta)]="refreshCondVenta"
           [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-parametro-venta-form>
       </ng-template>
     </nz-tab>
@@ -98,7 +97,7 @@
       <a nz-tab-link routerLink="/ges/parametros-venta/detalle">{{ 'app.icon.detail' | i18n }}</a>
       <ng-template nz-tab>
         <app-parametro-venta-form #parametroVentaFormDetalle
-          [ClienteId]="parametrosSeleccionadas()[0]?.ClienteId" [ClienteElementoDependienteId]="parametrosSeleccionadas()[0]?.ClienteElementoDependienteId" [(refreshCondVenta)]="refreshCondVenta"
+          [ClienteId]="ClienteId()" [ClienteElementoDependienteId]="ClienteElementoDependienteId()" [(refreshCondVenta)]="refreshCondVenta"
           [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-parametro-venta-form>
       </ng-template>
     </nz-tab>
@@ -107,7 +106,7 @@
       <a nz-tab-link routerLink="/ges/parametros-venta/alta">{{ 'app.alta' | i18n }}</a>
       <ng-template nz-tab>
         <app-parametro-venta-form #parametroVentaFormAlta
-          [ClienteId]="parametrosSeleccionadas()[0]?.ClienteId" [ClienteElementoDependienteId]="parametrosSeleccionadas()[0]?.ClienteElementoDependienteId" [(refreshCondVenta)]="refreshCondVenta"
+          [ClienteId]="ClienteId()" [ClienteElementoDependienteId]="ClienteElementoDependienteId()" [(refreshCondVenta)]="refreshCondVenta"
           [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-parametro-venta-form>
       </ng-template>
     </nz-tab>

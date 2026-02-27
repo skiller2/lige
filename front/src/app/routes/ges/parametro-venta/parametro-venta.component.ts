@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, model, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, model, OnInit, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 
 import { I18nPipe, SettingsService } from '@delon/theme';
@@ -29,11 +29,20 @@ export class ParametroVentaComponent implements OnInit {
   childDetalle = viewChild.required<ParametroVentaFormComponent>('parametroVentaFormDetalle')
   childEditar = viewChild.required<ParametroVentaFormComponent>('parametroVentaFormEditar')
   childTableParametroVenta = viewChild<TableParametroVentaComponent>('tableParametroVenta')
-  PeriodoDesdeAplica = model<string>('');
 
   refreshCondVenta = signal<number>(0)
 
+
+
+
   parametrosSeleccionadas = model<any[]>([])
+  
+  ClienteId = computed(() => this.parametrosSeleccionadas()?.length > 0 ? this.parametrosSeleccionadas()[0].ClienteId : 0);
+  ClienteElementoDependienteId = computed(() => this.parametrosSeleccionadas()?.length > 0 ? this.parametrosSeleccionadas()[0].ClienteElementoDependienteId : 0);
+  PeriodoDesdeAplica = computed(() => this.parametrosSeleccionadas()?.length > 0 ? this.parametrosSeleccionadas()[0].PeriodoDesdeAplica : '');
+
+  
+  
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
   }
@@ -42,30 +51,13 @@ export class ParametroVentaComponent implements OnInit {
 
   ngOnInit(): void {
     this.viewListado.set(true)
-    this.PeriodoDesdeAplica.set('')
   }
 
 
 
   onAddClick(): void {
     this.isEdit.set(false);
-    const savedObjetivoId = this.objetivoId();
-    const savedPeriodo = this.PeriodoDesdeAplica();
-
-    // Si hay un registro seleccionado (codobj + periodo), no limpiar el form
-    // para que newRecord() cargue todos los datos como copia
-    if (savedPeriodo) {
-      return;
-    }
-
-    try {
-      const child = this.childAlta();
-//      if (child.formParametroVenta.invalid || child.formParametroVenta.pristine) {
-//        child.clearForm();
-//      }
-//        child.ObjetivoId.set(savedObjetivoId);
-    } catch (e) {
-    }
+     const child = this.childAlta();
   }
 
 
