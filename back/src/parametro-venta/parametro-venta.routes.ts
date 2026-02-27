@@ -25,14 +25,6 @@ parametrosVentaRouter.get('/infParametroVenta/:ClienteId/:ClienteElementoDependi
   parametrosVentaController.infParametroVenta(req, res, next)
 })
 
-parametrosVentaRouter.get('/autorizar/:ClienteId/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'Liquidaciones'])], (req, res, next) => {
-  parametrosVentaController.getAutorizarParametroVenta(req, res, next)
-})
-
-parametrosVentaRouter.delete('/rechazar/:ClienteId/:ClienteElementoDependienteId/:PeriodoDesdeAplica', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'Liquidaciones'])], (req, res, next) => {
-  parametrosVentaController.rechazarParametroVenta(req, res, next)
-})
-
 parametrosVentaRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'Liquidaciones'])], (req, res, next) => {
   parametrosVentaController.updateParametroVenta(req, res, next)
 })

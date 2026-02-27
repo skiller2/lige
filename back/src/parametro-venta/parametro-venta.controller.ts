@@ -834,7 +834,7 @@ export class ParametrosVentaController extends BaseController {
 
             let autorizadas = 0;
             let yaAutorizadas = 0;
-
+            
             for (const condicion of condiciones) {
                 const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
                 PeriodoDesdeAplica.setHours(0, 0, 0, 0);

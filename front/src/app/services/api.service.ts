@@ -2019,21 +2019,6 @@ export class ApiService {
     )
   }
 
-
-  autorizarParametroVenta(CodObjetivo: number, PeriodoDesdeAplica: any) {
-    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/autorizar/${CodObjetivo}/${PeriodoDesdeAplica}`).pipe(
-      map((res: { data: any; }) => res.data),
-      catchError(() => of([]))
-    )
-  }
-
-  rechazarParametroVenta(CodObjetivo: number, PeriodoDesdeAplica: any) {
-    return this.http.delete<ResponseJSON<any>>(`api/parametros-venta/rechazar/${CodObjetivo}/${PeriodoDesdeAplica}`).pipe(
-      map((res: { data: any; }) => res.data),
-      catchError(() => of([]))
-    )
-  }
-
   // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
   autorizarParametroVentaMultiple(condiciones: any[]) {
     return this.http.post<ResponseJSON<any>>(`api/parametros-venta/autorizar-multiple`, { condiciones }).pipe(
