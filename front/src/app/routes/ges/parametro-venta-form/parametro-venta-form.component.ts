@@ -4,12 +4,11 @@ import { periodValidator, parsePeriod, periodToText, toApproxDays, PeriodUnit } 
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
-import { firstValueFrom, Subscription, distinctUntilChanged } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
-import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
-import { applyEach, disabled, form, FormField, hidden, required, submit, validateTree } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
 
 
 export interface Producto {
@@ -110,7 +109,8 @@ export function numericRange(
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class ParametroVentaFormComponent implements OnInit, OnDestroy {
+  
+export class ParametroVentaFormComponent implements OnInit {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
@@ -128,10 +128,10 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   PeriodoDesdeAplica = input<Date>(new Date());
 
   periodo = input<Date>(new Date());
-  
-  optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(),{initialValue: []})
 
-  optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(),{initialValue: []})
+  optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(), { initialValue: [] })
+
+  optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
 
 
@@ -191,7 +191,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     numericRange(p.GeneracionFacturaDia, { min: 1, max: 29, message: 'Día entre 1 y 29', when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false },);
     disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
     disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
-//    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
+    //    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
 
 
     applyEach(p.infoProductos, (productoPath) => {
@@ -241,7 +241,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
   async newRecord() {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
-//    this.parametroVenta.set(this.defaultFormParamVenta)
+    //    this.parametroVenta.set(this.defaultFormParamVenta)
 
     if (this.ClienteId() && this.ClienteElementoDependienteId() && this.PeriodoDesdeAplica()) {
       await this.load()
@@ -260,7 +260,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     } else {
 
       this.parametroVenta.update(m => ({
-        ...m, ClienteId: this.ClienteId()|0, ClienteElementoDependienteId: this.ClienteElementoDependienteId()|0, PeriodoDesdeAplica: ''
+        ...m, ClienteId: this.ClienteId() | 0, ClienteElementoDependienteId: this.ClienteElementoDependienteId() | 0, PeriodoDesdeAplica: ''
       }));
 
     }
@@ -268,7 +268,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
 
-//TODO: No es necesario
+  //TODO: No es necesario
   async viewRecord(readonly: boolean) {
     this.viewReadonly.set(readonly);
 
@@ -308,98 +308,14 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.ClienteId(),this.ClienteElementoDependienteId(), this.PeriodoDesdeAplica()))
+    const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.ClienteId(), this.ClienteElementoDependienteId(), this.PeriodoDesdeAplica()))
     this.formParametroVenta().reset(paramtroVenta)
   }
 
 
   ngOnInit(): void {
-    //this.parametroVenta.patchValue({
-    //codobjId: this.codobjId(),
-    //});
 
-    //this.$optionsTipoProducto.subscribe(productos => {
-    //this.productosCache = productos;
-    //});
-    /*
-        this.formParametroVenta.controls.PeriodoFacturacion.valueChanges.pipe(
-          distinctUntilChanged()
-        ).subscribe(value => {
-          const p = parsePeriod(value);
-          this.periodoFacturacionDescripcion.set(p ? periodToText(p) : '');
-    
-          // Mostrar PeriodoFacturacionInicio si el período es mayor a 1 mes (aprox 30 días)
-          const esMayorAUnMes = p && toApproxDays(p) > 30;
-          this.mostrarPeriodoFacturacionInicio.set(!!esMayorAUnMes);
-    
-          // Si se muestra y no tiene valor, establecer el valor por defecto de PeriodoDesdeAplica
-          if (esMayorAUnMes && !this.formParametroVenta.get('PeriodoFacturacionInicio')?.value) {
-            const periodoDesdeAplica = this.formParametroVenta.get('PeriodoDesdeAplica')?.value;
-            if (periodoDesdeAplica) {
-              this.formParametroVenta.patchValue({ PeriodoFacturacionInicio: periodoDesdeAplica });
-            }
-          }
-        });
-    
-        // Suscribirse a cambios en GeneracionFacturaReqCliente
-        this.reqClienteSubscription = this.formParametroVenta.controls.GeneracionFacturaReqCliente.valueChanges.subscribe(checked => {
-          this.applyReqClienteState(!!checked);
-        });
-    
-        // Suscribirse a cambios en PeriodoDesdeAplica para normalizar el valor
-        const periodoControl = this.formParametroVenta.get('PeriodoDesdeAplica');
-        if (periodoControl) {
-          this.periodoSubscription = periodoControl.valueChanges.pipe(
-            distinctUntilChanged()
-          ).subscribe((value: string | Date | null) => {
-            if (!this.isNormalizingPeriodo && value) {
-              const date = value instanceof Date ? value : new Date(value);
-              if (!isNaN(date.getTime())) {
-                const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
-                // Solo normalizar si la fecha no está ya normalizada (no es el primer día del mes)
-                if (date.getDate() !== 1 || date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0) {
-                  this.isNormalizingPeriodo = true;
-                  periodoControl.setValue(normalizedDate.toISOString(), { emitEvent: false });
-                  this.isNormalizingPeriodo = false;
-                }
-              }
-            }
-            this.refrescarPreciosListaPrecios();
-          });
-        }
-        */
   }
-
-  ngOnDestroy(): void {
-    /*
-    if (this.periodoSubscription) {
-      this.periodoSubscription.unsubscribe();
-    }
-    if (this.reqClienteSubscription) {
-      this.reqClienteSubscription.unsubscribe();
-    }
-    */
-  }
-  /*
-    private applyReqClienteState(checked: boolean): void {
-      const diaControl = this.formParametroVenta.get('GeneracionFacturaDia');
-      const diaComplementoControl = this.formParametroVenta.get('GeneracionFacturaDiaComplemento');
-      if (checked) {
-        diaControl?.setValue('', { emitEvent: false });
-        diaComplementoControl?.setValue('', { emitEvent: false });
-        diaControl?.disable({ emitEvent: false });
-        diaComplementoControl?.disable({ emitEvent: false });
-        diaControl?.clearValidators();
-        diaControl?.updateValueAndValidity({ emitEvent: false });
-      } else {
-        diaControl?.enable({ emitEvent: false });
-        diaComplementoControl?.enable({ emitEvent: false });
-        diaControl?.setValidators([Validators.required, Validators.pattern('^[0-9]+$'), Validators.min(1), Validators.max(31)]);
-        diaControl?.updateValueAndValidity({ emitEvent: false });
-      }
-    }
-  */
-   
 
   async save() {
     await submit(this.formParametroVenta, async (form) => {
@@ -439,76 +355,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     })
     this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
   }
-/*
-  async onTipoImporteChange(tipoImporte: string, index: number): Promise<void> {
-    const importeUnitarioControl = this.infoProductos().at(index)?.get('ImporteUnitario');
 
-    if (tipoImporte === 'LP') {
-      importeUnitarioControl?.setValue('');
-      importeUnitarioControl?.disable();
-      await this.obtenerPrecioListaPrecios(index);
-    } else if (tipoImporte !== 'F') {
-      importeUnitarioControl?.setValue('');
-      importeUnitarioControl?.disable();
-      this.limpiarMensajeImporteLista(index);
-    } else {
-      importeUnitarioControl?.enable();
-      this.limpiarMensajeImporteLista(index);
-    }
-
-  }
-*/
-/*
-  async onTipoCantidadChange(tipoCantidad: string, index: number): Promise<void> {
-    const cantidadControl = this.infoProductos().at(index)?.get('CantidadHoras')
-
-    if (tipoCantidad === 'A' || tipoCantidad === 'B') {
-
-      cantidadControl?.setValue('')
-      cantidadControl?.disable()
-      await this.obtenerMensajeHoras(tipoCantidad, index)
-
-    } else if (tipoCantidad !== 'F') {
-      cantidadControl?.setValue('')
-      cantidadControl?.disable()
-      // Limpiar mensaje si existe
-      this.limpiarMensajeHoras(index)
-    } else {
-      cantidadControl?.enable()
-      // Limpiar mensaje si existe
-      this.limpiarMensajeHoras(index)
-    }
-  }
-*/
-/*
-  async obtenerMensajeHoras(tipoHoras: string, index: number): Promise<void> {
-    const objetivoId = this.parametroVenta().ObjetivoId;
-    const periodo = this.periodo();
-
-    if (!objetivoId || !periodo) {
-      const newMap = new Map(this.mensajesHoras());
-      newMap.set(index, 'Debe completar Objetivo y Período');
-      this.mensajesHoras.set(newMap);
-      return;
-    }
-
-    const anio = periodo.getFullYear();
-    const mes = periodo.getMonth() + 1;
-
-    try {
-      const response = await firstValueFrom(this.apiService.getMensajeHoras(tipoHoras, objetivoId, anio, mes));
-      if response.data.mensaje
-      const newMap = new Map(this.mensajesHoras());
-      newMap.set(index, response);
-      this.mensajesHoras.set(newMap);
-    } catch (error) {
-      console.error('Error al obtener mensaje de horas:', error);
-      const newMap = new Map(this.mensajesHoras());
-      newMap.set(index, 'Error al cargar mensaje');
-      this.mensajesHoras.set(newMap);
-    }
-  }
-*/
   limpiarMensajeHoras(index: number): void {
     const newMap = new Map(this.mensajesHoras());
     newMap.delete(index);
@@ -519,42 +366,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     return this.mensajesHoras().get(index) || '';
   }
 
-
-  /*
-  async obtenerPrecioListaPrecios(index: number): Promise<void> {
-
-    const codobj = this.codobjId();
-
-
-    if (!this.clienteId() || !this.periodo()) {
-      const newMap = new Map(this.mensajesImporteLista());
-      newMap.set(index, 'Debe completar Objetivo, Período y Producto para consultar lista de precios');
-      this.mensajesImporteLista.set(newMap);
-      return;
-    }
-
-    try {
-      const productoCodigo = this.infoProductos().at(index)?.get('ProductoCodigo')?.value || '';
-
-      const anio = this.periodo()?.getFullYear() || 0;
-      const mes = this.periodo() ? this.periodo()!.getMonth() + 1 : 0;
-
-      const response = await firstValueFrom(this.apiService.getPrecioListaPrecios(this.clienteId(), this.periodo(), productoCodigo));
-      const newMap = new Map(this.mensajesImporteLista());
-      if (response && response.encontrado) {
-        newMap.set(index, `${this.formatImporteSeparator2(response.importe)} - Período ${anio}/${mes}`);
-      } else {
-        newMap.set(index, `Sin importe cargado en lista de precios para período ${anio}/${mes}`);
-      }
-      this.mensajesImporteLista.set(newMap);
-    } catch (error) {
-      console.error('Error al obtener precio lista de precios:', error);
-      const newMap = new Map(this.mensajesImporteLista());
-      newMap.set(index, 'Error al consultar lista de precios');
-      this.mensajesImporteLista.set(newMap);
-    }
-  }
-*/
   limpiarMensajeImporteLista(index: number): void {
     const newMap = new Map(this.mensajesImporteLista());
     newMap.delete(index);
@@ -564,32 +375,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   getMensajeImporteLista(index: number): string {
     return this.mensajesImporteLista().get(index) || '';
   }
-/*
-  refrescarPreciosListaPrecios(): void {
-    this.infoProductos().controls.forEach((control, index) => {
-      if (control.get('TipoImporte')?.value === 'LP') {
-        this.obtenerPrecioListaPrecios(index);
-      }
-    });
-  }
-*/
-  /*
-  refrescarMensajesHoras(): void {
-    this.infoProductos().controls.forEach((control, index) => {
-      const tipoCantidad = control.get('TipoCantidad')?.value;
-      if (tipoCantidad === 'A' || tipoCantidad === 'B') {
-        this.obtenerMensajeHoras(tipoCantidad, index);
-      }
-    });
-  }
-  */
-/*
-  onProductoCodigoChange(productoCodigo: string, index: number): void {
-    if (this.infoProductos().at(index)?.get('TipoImporte')?.value === 'LP') {
-      this.obtenerPrecioListaPrecios(index);
-    }
-  }
-*/
+
   clearForm(): void {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
   }
@@ -605,7 +391,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
         case 'B':
           const response = await firstValueFrom(this.apiService.getMensajeHoras(TipoCantidad, ClienteId, ClienteElementoDependienteId, this.periodo().getFullYear(), this.periodo().getMonth() + 1));
           return response
-          
+
         case 'F':
           return '';
         default:
@@ -625,8 +411,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
       switch (tipoImporte) {
         case 'LP':
-          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(ClienteId,ClienteElementoDependienteId, this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
-          if (precio.PeriodoDesdeAplica) { 
+          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(ClienteId, ClienteElementoDependienteId, this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
+          if (precio.PeriodoDesdeAplica) {
             return precio.Importe
           }
           return 0;
@@ -637,7 +423,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   })
 
   getTextoFacturaPreview = computed(() => {
-    
+
     return this.parametroVenta().infoProductos.map(producto => {
       let textoFactura = (producto.TextoFactura || '').trim();
       const productoCodigo = producto.ProductoCodigo || '';
@@ -655,7 +441,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       if (!textoFactura)
         textoFactura = '{Producto} {PeriodoMes}/{PeriodoAnio}'
 
-      
+
 
 
       const preview = textoFactura
@@ -669,7 +455,12 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       return preview;
 
     });
-    
+
   });
+
+  objetivoDetalleChange = (val: any) => {
+    this.formParametroVenta.ClienteId().value.set(val?.clienteId);
+    this.formParametroVenta.ClienteElementoDependienteId().value.set(val?.ClienteElementoDependienteId);
+  };
 
 }

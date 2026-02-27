@@ -4,7 +4,7 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"></app-objetivo-search>
+      <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"   (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
     </nz-form-control>
   </nz-form-item>
 
