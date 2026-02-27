@@ -368,7 +368,7 @@ export class ParametrosVentaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ObjetivoId)
+            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId)
 
             const PeriodoDesdeAplica = new Date(ParametroVenta.PeriodoDesdeAplica);
             const anio = PeriodoDesdeAplica.getFullYear()
@@ -563,17 +563,17 @@ export class ParametrosVentaController extends BaseController {
     }
 
 
-    async ObjetivoInfoFromId(objetivoId: string) {
+    async ObjetivoInfoFromId(ClienteId: number, ClienteElementoDependienteId: number) {
         try {
             const result = await dataSource.query(
-                `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId,
+                `SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
             CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
             ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
             FROM Objetivo obj 
             JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
             JOIN ClienteElementoDependiente ele ON ele.ClienteId = obj.ClienteId AND ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-            WHERE obj.ObjetivoId = @0`,
-                [objetivoId]
+            WHERE obj.ClienteId = @0 AND obj.ClienteElementoDependienteId = @1`,
+                [ClienteId, ClienteElementoDependienteId]
             );
             const info = result[0];
             return info
