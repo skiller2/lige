@@ -64,12 +64,6 @@ export class TableParametroVentaComponent implements OnInit {
   // Período seleccionado (input signal)
   periodo = input<Date>();
 
-  // Objetivo seleccionado (para compatibilidad con selección única)
-  codobj = model<string>('');
-  objetivoId = model<number>(0);
-  // Fecha desde aplica (para compatibilidad con selección única)
-  PeriodoDesdeAplica = model<string>('');
-
   // Condiciones seleccionadas (para selección múltiple)
   parametrosSeleccionadas = model<any[]>([]);
 
@@ -185,9 +179,6 @@ export class TableParametroVentaComponent implements OnInit {
       this.angularGrid.slickGrid.setSelectedRows([]);
     }
     this.parametrosSeleccionadas.set([]);
-    this.codobj.set('');
-    this.objetivoId.set(0);
-    this.PeriodoDesdeAplica.set('');
   }
 
   // Exporta la grilla a Excel
@@ -211,7 +202,7 @@ export class TableParametroVentaComponent implements OnInit {
           codobj: row.codobj,
           PeriodoDesdeAplica: row.PeriodoDesdeAplica,
           ClienteId: row.ClienteId,
-          ClienteElementoDependienteId: row.ClienteElementoDependienteDescripcion,
+          ClienteElementoDependienteId: row.ClienteElementoDependienteId,
           ObjetivoId: row.ObjetivoId
         });
       }
@@ -220,15 +211,5 @@ export class TableParametroVentaComponent implements OnInit {
     // Actualizar las condiciones seleccionadas
     this.parametrosSeleccionadas.set(selectedData);
 
-    // Mantener compatibilidad con selección única (para edición)
-    if (selectedData.length === 1) {
-      this.objetivoId.set(selectedData[0].ObjetivoId);
-      this.codobj.set(selectedData[0].codobj);
-      this.PeriodoDesdeAplica.set(selectedData[0].PeriodoDesdeAplica);
-    } else {
-      this.objetivoId.set(0);
-      this.codobj.set('');
-      this.PeriodoDesdeAplica.set('');
-    }
   }
 }

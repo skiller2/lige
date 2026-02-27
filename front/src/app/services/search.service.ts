@@ -1405,9 +1405,9 @@ export class SearchService {
       );
   }
 
-  getInfoParametroVenta(ObjetivoId: number, PeriodoDesdeAplica: string) {
+  getInfoParametroVenta(ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: string) {
     return this.http
-      .get<ResponseJSON<any>>(`api/parametros-venta/infParametroVenta/${ObjetivoId}/${PeriodoDesdeAplica}`)
+      .get<ResponseJSON<any>>(`api/parametros-venta/infParametroVenta/${ClienteId}/${ClienteElementoDependienteId}/${PeriodoDesdeAplica}`)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

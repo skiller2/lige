@@ -7,12 +7,13 @@ import { AngularUtilService } from 'angular-slickgrid';
 import { ParametroVentaFormComponent } from '../parametro-venta-form/parametro-venta-form.component';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-parametro-venta',
   standalone: true,
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, I18nPipe, TableParametroVentaComponent, ParametroVentaFormComponent],
+  imports: [SHARED_IMPORTS, CommonModule,I18nPipe, TableParametroVentaComponent, ParametroVentaFormComponent,],
   templateUrl: './parametro-venta.component.html',
   styleUrl: './parametro-venta.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,7 +63,7 @@ export class ParametroVentaComponent implements OnInit {
 //      if (child.formParametroVenta.invalid || child.formParametroVenta.pristine) {
 //        child.clearForm();
 //      }
-        child.objetivoId.set(savedObjetivoId);
+//        child.ObjetivoId.set(savedObjetivoId);
     } catch (e) {
     }
   }

@@ -44,6 +44,16 @@ export class ParametrosVentaController extends BaseController {
             searchHidden: false
         },
         {
+            name: "ClienteElementoDependienteId",
+            type: "number",
+            id: "ClienteId",
+            field: "ClienteElementoDependienteId",
+            fieldName: "ele.ClienteElementoDependienteId",
+            sortable: true,
+            hidden: true,
+            searchHidden: false
+        },
+        {
             name: "Cliente",
             type: "string",
             id: "ClienteDenominacion",
@@ -281,7 +291,7 @@ export class ParametrosVentaController extends BaseController {
             const parametrosVenta = await queryRunner.query(
                 `
                 Select ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
-                cli.ClienteDenominacion,cli.ClienteId,CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId, 
+                cli.ClienteDenominacion,cli.ClienteId,ele.ClienteElementoDependienteId, CONCAT(ele.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0)) codobj,obj.ObjetivoId, 
                     CONCAT(ele.ClienteId,'/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
                     conven.PeriodoDesdeAplica, FORMAT(conven.PeriodoDesdeAplica,'yyyy/MM') FormatPeriodoDesdeAplica,conven.AutorizacionFecha,per.PersonalId,conven.AutorizacionEstado,
                     case when per.PersonalId is null then null

@@ -28,6 +28,8 @@ export interface Producto {
 export interface ParametroVentaForm {
   ParametroVentaId: number;
   ObjetivoId: number;
+  ClienteId: number;
+  ClienteElementoDependienteId: number;
   PeriodoDesdeAplica: string;
   PeriodoFacturacion: string;
   PeriodoFacturacionInicio: string;
@@ -120,7 +122,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private pendingViewLoad = signal<boolean>(false);
   private viewReadonly = signal<boolean>(false);
   objetivoExtended = signal<any>(null);
-  objetivoId = model<number>(0);
+  ClienteId = model<number>(0);
+  ClienteElementoDependienteId = model<number>(0);
   PeriodoDesdeAplicaInput = input<string>('', { alias: 'PeriodoDesdeAplica' });
   PeriodoDesdeAplica = linkedSignal(() => this.PeriodoDesdeAplicaInput());
   periodo = input<Date>(new Date());
@@ -154,6 +157,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private readonly defaultFormParamVenta: ParametroVentaForm = {
     ParametroVentaId: 0,
     ObjetivoId: 0,
+    ClienteId: 0,
+    ClienteElementoDependienteId: 0,
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
     PeriodoFacturacionInicio: '',
@@ -237,11 +242,13 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
 //    this.parametroVenta.set(this.defaultFormParamVenta)
 
-    if (this.objetivoId() && this.PeriodoDesdeAplica()) {
+    if (this.ClienteId() && this.ClienteElementoDependienteId() && this.PeriodoDesdeAplica()) {
       await this.load()
 
       const tmp = this.parametroVenta()
       tmp.ParametroVentaId = 0;
+      tmp.ClienteId = this.ClienteId();
+      tmp.ClienteElementoDependienteId = this.ClienteElementoDependienteId();
       tmp.PeriodoDesdeAplica = '';
       tmp.infoProductos = tmp.infoProductos.map(p => ({ ...p, ParametroVentaProductoId: 0 }));
 
@@ -257,7 +264,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       this.PeriodoDesdeAplica.set('')
 
       this.parametroVenta.update(m => ({
-        ...m, ObjetivoId: this.objetivoId()|0,
+        ...m, ClienteId: this.ClienteId()|0, ClienteElementoDependienteId: this.ClienteElementoDependienteId()|0, PeriodoDesdeAplica: ''
       }));
 
     }
@@ -271,7 +278,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
     const periodo = this.PeriodoDesdeAplicaInput();
 
-    if (this.objetivoId() && periodo) {
+    if (this.ClienteId() && periodo && this.ClienteElementoDependienteId()) {
       await this.load();
       this.applyViewMode(readonly);
     } else {
@@ -305,11 +312,11 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   async load() {
     const periodo = this.PeriodoDesdeAplicaInput();
 
-    if (!this.objetivoId() || !periodo) {
+    if (!this.ClienteId() || !this.ClienteElementoDependienteId() || !periodo) {
       return;
     }
 
-    const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.objetivoId(), periodo))
+    const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.ClienteId(),this.ClienteElementoDependienteId(), periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
     /*
     this.infoProductos().clear();
@@ -660,21 +667,21 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   clearForm(): void {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
     this.PeriodoDesdeAplica.set('')
-    this.objetivoId.set(0)
+    this.ClienteId.set(0)
+    this.ClienteElementoDependienteId.set(0)
 
   }
-
 
   getCantidad = computed(() => {
     return this.parametroVenta().infoProductos.map(async producto => {
       const TipoCantidad = producto.TipoCantidad || '';
-      const productoCodigo = producto.ProductoCodigo || '';
-      const ObjetivoId = this.parametroVenta().ObjetivoId || 0;
+      const ClienteId = this.parametroVenta().ClienteId || 0;
+      const ClienteElementoDependienteId = this.parametroVenta().ClienteElementoDependienteId || 0;
 
       switch (TipoCantidad) {
         case 'A':
         case 'B':
-          const response = await firstValueFrom(this.apiService.getMensajeHoras(TipoCantidad, ObjetivoId, this.periodo().getFullYear(), this.periodo().getMonth() + 1));
+          const response = await firstValueFrom(this.apiService.getMensajeHoras(TipoCantidad, ClienteId, ClienteElementoDependienteId, this.periodo().getFullYear(), this.periodo().getMonth() + 1));
           return response
           
         case 'F':
@@ -691,11 +698,12 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     return this.parametroVenta().infoProductos.map(async producto => {
       const tipoImporte = producto.TipoImporte || '';
       const productoCodigo = producto.ProductoCodigo || '';
-      const ObjetivoId = this.parametroVenta().ObjetivoId || 0;
+      const ClienteId = this.parametroVenta().ClienteId || 0;
+      const ClienteElementoDependienteId = this.parametroVenta().ClienteElementoDependienteId || 0;
 
       switch (tipoImporte) {
         case 'LP':
-          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(ObjetivoId, this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
+          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(ClienteId,ClienteElementoDependienteId, this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
           if (precio.PeriodoDesdeAplica) { 
             return precio.Importe
           }
