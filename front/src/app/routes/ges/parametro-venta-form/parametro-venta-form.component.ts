@@ -109,7 +109,7 @@ export function numericRange(
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-  
+
 export class ParametroVentaFormComponent implements OnInit {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
@@ -201,12 +201,12 @@ export class ParametroVentaFormComponent implements OnInit {
     });
   })
 
-
-  infoProductos(): FormArray<any> {
-    //    return this.formParametroVenta.get("infoProductos") as FormArray
-    return new FormArray<any>([])
-  }
-
+  /*
+    infoProductos(): FormArray<any> {
+      //    return this.formParametroVenta.get("infoProductos") as FormArray
+      return new FormArray<any>([])
+    }
+  */
 
   addProductos(e?: MouseEvent): void {
 
@@ -236,26 +236,22 @@ export class ParametroVentaFormComponent implements OnInit {
       this.addProductos(undefined)
     }
 
-    this.formParametroVenta().markAsDirty();
   }
 
   async newRecord() {
-    this.formParametroVenta().reset(this.defaultFormParamVenta)
-    //    this.parametroVenta.set(this.defaultFormParamVenta)
+    //this.formParametroVenta().reset(this.defaultFormParamVenta)
+    this.parametroVenta.set(this.defaultFormParamVenta)
 
     if (this.ClienteId() && this.ClienteElementoDependienteId() && this.PeriodoDesdeAplica()) {
       await this.load()
 
-      const tmp = this.parametroVenta()
-      tmp.ParametroVentaId = 0;
-      tmp.ClienteId = this.ClienteId();
-      tmp.ClienteElementoDependienteId = this.ClienteElementoDependienteId();
-      tmp.PeriodoDesdeAplica = '';
-      tmp.infoProductos = tmp.infoProductos.map(p => ({ ...p, ParametroVentaProductoId: 0 }));
-
       this.parametroVenta.update(m => ({
-        ...m, tmp
+        ...m,
+        ParametroVentaId: 0,
+        PeriodoDesdeAplica: '',
+        infoProductos: m.infoProductos.map(p => ({ ...p, ParametroVentaProductoId: 0 })),
       }));
+
 
     } else {
 
@@ -304,17 +300,20 @@ export class ParametroVentaFormComponent implements OnInit {
   */
 
   async load() {
+
     if (!this.ClienteId() || !this.ClienteElementoDependienteId() || !this.PeriodoDesdeAplica()) {
       return;
     }
 
     const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.ClienteId(), this.ClienteElementoDependienteId(), this.PeriodoDesdeAplica()))
-    this.formParametroVenta().reset(paramtroVenta)
+    //this.formParametroVenta().reset(paramtroVenta)
+    this.parametroVenta.set(paramtroVenta);
+    this.resetDirty()
+    //TODO:  make this.formParametroVenta  dirty = false
   }
 
 
   ngOnInit(): void {
-
   }
 
   async save() {
@@ -345,39 +344,64 @@ export class ParametroVentaFormComponent implements OnInit {
       }
     })
   }
+  /*
+    calcularTotal(index: number) {
+      const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
+      const importeUnitario = this.infoProductos().at(index)?.get('ImporteUnitario')?.value;
+      const importeTotal = Number(cantidad) * Number(importeUnitario);
+      this.infoProductos().at(index)?.patchValue({
+        ImporteTotal: importeTotal
+      })
+      this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
+    }
+  
+    limpiarMensajeHoras(index: number): void {
+      const newMap = new Map(this.mensajesHoras());
+      newMap.delete(index);
+      this.mensajesHoras.set(newMap);
+    }
+  
+    getMensajeHoras(index: number): string {
+      return this.mensajesHoras().get(index) || '';
+    }
+  
+    limpiarMensajeImporteLista(index: number): void {
+      const newMap = new Map(this.mensajesImporteLista());
+      newMap.delete(index);
+      this.mensajesImporteLista.set(newMap);
+    }
+  
+    getMensajeImporteLista(index: number): string {
+      return this.mensajesImporteLista().get(index) || '';
+    }
+  */
 
-  calcularTotal(index: number) {
-    const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
-    const importeUnitario = this.infoProductos().at(index)?.get('ImporteUnitario')?.value;
-    const importeTotal = Number(cantidad) * Number(importeUnitario);
-    this.infoProductos().at(index)?.patchValue({
-      ImporteTotal: importeTotal
-    })
-    this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
-  }
 
-  limpiarMensajeHoras(index: number): void {
-    const newMap = new Map(this.mensajesHoras());
-    newMap.delete(index);
-    this.mensajesHoras.set(newMap);
-  }
+// 2) Log suspects (add any fields you suspect)
+private _auditFields = effect(() => {
+  const f = this.formParametroVenta;
+  // Root check
+  if (!f().dirty()) return;
 
-  getMensajeHoras(index: number): string {
-    return this.mensajesHoras().get(index) || '';
-  }
-
-  limpiarMensajeImporteLista(index: number): void {
-    const newMap = new Map(this.mensajesImporteLista());
-    newMap.delete(index);
-    this.mensajesImporteLista.set(newMap);
-  }
-
-  getMensajeImporteLista(index: number): string {
-    return this.mensajesImporteLista().get(index) || '';
-  }
-
+  const suspects = [
+    ['ObjetivoId', f.ObjetivoId().dirty(), f.ObjetivoId().value()],
+  ] as const;
+  console.table(suspects.map(([name, dirty, value]) => ({ name, dirty, value })));
+});
+  
   clearForm(): void {
-    this.formParametroVenta().reset(this.defaultFormParamVenta)
+    //    this.formParametroVenta().reset(this.defaultFormParamVenta)
+    this.parametroVenta.set(this.defaultFormParamVenta)
+
+
+    this.resetDirty()
+    //TODO: set dirty = false in this.formParametroVenta  porque objetivo queda en dirty=true 
+
+  }
+
+  resetDirty(): void {
+    const snap = structuredClone(this.parametroVenta());
+    this.parametroVenta.set(snap);
   }
 
   getCantidad = computed(() => {
@@ -459,8 +483,19 @@ export class ParametroVentaFormComponent implements OnInit {
   });
 
   objetivoDetalleChange = (val: any) => {
-    this.formParametroVenta.ClienteId().value.set(val?.clienteId);
-    this.formParametroVenta.ClienteElementoDependienteId().value.set(val?.ClienteElementoDependienteId);
+    const nextClienteId = Number(val?.clienteId ?? 0);
+    const nextDepId = Number(val?.ClienteElementoDependienteId ?? 0);
+
+    untracked(() => {
+      if (this.parametroVenta().ClienteId !== nextClienteId) {
+        this.parametroVenta.update(m => ({ ...m, ClienteId: nextClienteId, }));
+//        this.formParametroVenta.ClienteId().value.set(nextClienteId);
+      }
+      if (this.parametroVenta().ClienteElementoDependienteId !== nextDepId) {
+        //        this.formParametroVenta.ClienteElementoDependienteId().value.set(nextDepId);
+        this.parametroVenta.update(m => ({ ...m, ClienteElementoDependienteId: nextDepId, }));
+      }
+    });
   };
 
 }
