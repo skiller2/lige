@@ -57,7 +57,7 @@ export class AccesoBotController extends BaseController {
             hidden: true,
             searchHidden: false,
             sortable: true
-          },
+        },
         {
             name: "CUIT",
             type: "number",
@@ -385,20 +385,19 @@ export class AccesoBotController extends BaseController {
         const cbu = String(req.params.cbu).trim()
         const cuit = String(req.params.cuit).trim()
         const encTelNro = req.params.encTelNro
-
-        const usuario = res.locals.userName
-        const ip = this.getRemoteAddress(req)
         const fecha = new Date()
+
         let newValue
         const queryRunner = dataSource.createQueryRunner()
 
         try {
-            console.log('validateCbu', cuit, cbu)
 
-            if (cbu.length != 6)
+            if (!/^\d{6}$/.test(cbu))
                 throw new ClientException(`Debe ingresar los últimos 6 digitos CBU para el CUIT ${cuit}`);
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+            if (!personaIdQuery?.length) throw new ClientException(`El CUIT ${cuit} no se encuentra asociado a ninguna persona.`)
+
             const personalId = personaIdQuery[0].PersonalId
 
             const result = await queryRunner.query(`SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta 
@@ -409,10 +408,16 @@ export class AccesoBotController extends BaseController {
                 ORDER BY cue.PersonalBancoHasta DESC;
             `, [personalId, fecha])
 
+            const activeCbuLastSix = String(result[0]?.PersonalBancoCBU ?? '').slice(-6)
 
+            if (!activeCbuLastSix || activeCbuLastSix !== cbu) {
+                const lastCBU = await queryRunner.query(`SELECT TOP 1 PersonalBancoCBU FROM PersonalBanco WHERE PersonalId = @0 ORDER BY PersonalBancoDesde DESC`, [personalId])
 
-            if (result.length == 0 || result[0].PersonalBancoCBU.slice(-6) != cbu)
-                throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
+                const lastRegisteredCbuLastSix = String(lastCBU[0]?.PersonalBancoCBU ?? '').slice(-6)
+
+                if (!lastRegisteredCbuLastSix || lastRegisteredCbuLastSix !== cbu)
+                    throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
+            }
 
 
             let base_url = process.env.URL_MESS_API || "http://localhost:3010"
@@ -702,33 +707,33 @@ export class AccesoBotController extends BaseController {
     }
 
     static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
-        const queryRunner = dataSource.createQueryRunner()  
+        const queryRunner = dataSource.createQueryRunner()
         const fechaActual = new Date()
         try {
-            const existsTel = await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [personal_id]) 
-            if (existsTel.length==0) throw new ClientException(`El personal no tiene un telefono registrado.`)
-    
+            const existsTel = await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [personal_id])
+            if (existsTel.length == 0) throw new ClientException(`El personal no tiene un telefono registrado.`)
+
             await queryRunner
                 .query(`INSERT INTO BotColaMensajes (FechaIngreso, PersonalId, ClaseMensaje, TextoMensaje, FechaProceso, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudFechaMod, AudIpMod) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, personal_id, clase_mensaje, texto_mensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
             return true
 
-        } catch (error) { 
+        } catch (error) {
             return false
         }
     }
 
-    static getPreviousMonthYear(year: number,month: number): { year: number,month: number } {
+    static getPreviousMonthYear(year: number, month: number): { year: number, month: number } {
         if (month === 1) {
             return { year: year - 1, month: 12 };
         } else {
-            return { year: year, month: month - 1  };
+            return { year: year, month: month - 1 };
         }
-    }    
+    }
 
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
         if (personalIdList.length == 0) return []
-        const { year, month } = AccesoBotController.getPreviousMonthYear(anio,mes)
+        const { year, month } = AccesoBotController.getPreviousMonthYear(anio, mes)
 
         return queryRunner
             .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
@@ -775,6 +780,6 @@ AND doc.DocumentoMes = @4
 
 
             WHERE
-            per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes, year,month])
+            per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes, year, month])
     }
 }
