@@ -134,10 +134,6 @@ export class ParametroVentaFormComponent implements OnInit {
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
 
-
-  mensajesHoras = signal<Map<number, string>>(new Map());
-  mensajesImporteLista = signal<Map<number, string>>(new Map());
-
   periodoFacturacionDescripcion = computed(() => { return periodToText(parsePeriod(this.parametroVenta().PeriodoFacturacion)) });
   periodoFacturacionDias = computed(() => { return toApproxDays(parsePeriod(this.parametroVenta().PeriodoFacturacion)) });
   textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
@@ -200,13 +196,6 @@ export class ParametroVentaFormComponent implements OnInit {
       required(productoPath.TipoCantidad, { message: 'Tipo de cantidad es requerido' });
     });
   })
-
-  /*
-    infoProductos(): FormArray<any> {
-      //    return this.formParametroVenta.get("infoProductos") as FormArray
-      return new FormArray<any>([])
-    }
-  */
 
   addProductos(e?: MouseEvent): void {
 
@@ -306,10 +295,9 @@ export class ParametroVentaFormComponent implements OnInit {
     }
 
     const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.ClienteId(), this.ClienteElementoDependienteId(), this.PeriodoDesdeAplica()))
-    //this.formParametroVenta().reset(paramtroVenta)
     this.parametroVenta.set(paramtroVenta);
-    this.resetDirty()
-    //TODO:  make this.formParametroVenta  dirty = false
+
+    setTimeout(() => { this.formParametroVenta().reset() }, 400);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
 
@@ -332,14 +320,10 @@ export class ParametroVentaFormComponent implements OnInit {
         }
 
         await this.load();
-        //      this.formParametroVenta.markAsUntouched();
-        //      this.formParametroVenta.markAsPristine();
         this.refreshCondVenta.update(v => v + 1)
 
       } catch (e) {
         console.error('Error al guardar condición de venta:', e);
-      } finally {
-        //        this.loadingSrv.close();
       }
     })
   }
@@ -375,32 +359,9 @@ export class ParametroVentaFormComponent implements OnInit {
     }
   */
 
-
-// 2) Log suspects (add any fields you suspect)
-private _auditFields = effect(() => {
-  const f = this.formParametroVenta;
-  // Root check
-  if (!f().dirty()) return;
-
-  const suspects = [
-    ['ObjetivoId', f.ObjetivoId().dirty(), f.ObjetivoId().value()],
-  ] as const;
-  console.table(suspects.map(([name, dirty, value]) => ({ name, dirty, value })));
-});
-  
   clearForm(): void {
-    //    this.formParametroVenta().reset(this.defaultFormParamVenta)
     this.parametroVenta.set(this.defaultFormParamVenta)
-
-
-    this.resetDirty()
-    //TODO: set dirty = false in this.formParametroVenta  porque objetivo queda en dirty=true 
-
-  }
-
-  resetDirty(): void {
-    const snap = structuredClone(this.parametroVenta());
-    this.parametroVenta.set(snap);
+    this.formParametroVenta().reset();
   }
 
   getCantidad = computed(() => {
@@ -488,10 +449,8 @@ private _auditFields = effect(() => {
     untracked(() => {
       if (this.parametroVenta().ClienteId !== nextClienteId) {
         this.parametroVenta.update(m => ({ ...m, ClienteId: nextClienteId, }));
-//        this.formParametroVenta.ClienteId().value.set(nextClienteId);
       }
       if (this.parametroVenta().ClienteElementoDependienteId !== nextDepId) {
-        //        this.formParametroVenta.ClienteElementoDependienteId().value.set(nextDepId);
         this.parametroVenta.update(m => ({ ...m, ClienteElementoDependienteId: nextDepId, }));
       }
     });
