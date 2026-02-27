@@ -2108,9 +2108,10 @@ export class ApiService {
     );
   }
 
-  getPrecioListaPrecios(ClienteId: number, anio: number, mes: number, ProductoCodigo: string): Observable<any> {
-    if (!ClienteId ||  !ProductoCodigo) return of(null);
-    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
+  getPrecioListaPrecios(ObjetivoId: number, anio: number, mes: number, ProductoCodigo: string): Observable<any> {
+    //TODO: Cambiar por ObjetivoId
+    if (!ObjetivoId ||  !ProductoCodigo) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/precio-lista/${ObjetivoId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError((err) => {
         console.error('Error al obtener precio lista de precios:', err);

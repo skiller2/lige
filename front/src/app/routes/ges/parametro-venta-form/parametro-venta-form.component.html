@@ -10,8 +10,7 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-      <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"
-        (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
+      <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"></app-objetivo-search>
     </nz-form-control>
   </nz-form-item>
 
@@ -150,7 +149,11 @@
             </div>
           } @else if (parametroVenta().infoProductos[i].TipoImporte === 'LP') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              {{ getImporteUnitario()[i] || 'Sin importe unitario cargado en lista de precios' }}
+              @if (getImporteUnitario()[i]>0){
+                {{ getImporteUnitario()[i] | currency }}
+              } else {
+                Sin importe unitario cargado en lista de precios para año xXX y mes XXXX
+              }
             </div>
           } @else {
             <input
@@ -195,7 +198,7 @@
             </div>
           } @else if (parametroVenta().infoProductos[i].TipoCantidad === 'A' || parametroVenta().infoProductos[i].TipoCantidad === 'B') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              {{ getMensajeHoras(i) || 'Cargando...' }}
+              {{ getCantidad()[i] || 'Cargando...' }}
             </div>
           } @else {
             <input

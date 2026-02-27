@@ -9,7 +9,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from 'src/app/app.config.defaults';
-import { applyEach, disabled, form, FormField, required, submit, validateTree } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, hidden, required, submit, validateTree } from '@angular/forms/signals';
 
 
 export interface Producto {
@@ -27,14 +27,13 @@ export interface Producto {
 
 export interface ParametroVentaForm {
   ParametroVentaId: number;
-  codobjId: string;
   ObjetivoId: number;
   PeriodoDesdeAplica: string;
   PeriodoFacturacion: string;
   PeriodoFacturacionInicio: string;
-  GeneracionFacturaDia: number;             // 1..31
+  GeneracionFacturaDia: number|null;             // 1..31
   GeneracionFacturaReqCliente: boolean;
-  GeneracionFacturaDiaComplemento: number;  // 1..31 opcional
+  GeneracionFacturaDiaComplemento: number|null;  // 1..31 opcional
   UnificacionFactura: boolean;
   Observaciones: string;
   infoProductos: Producto[];
@@ -113,8 +112,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
-  private decimalMarker = inject(DEFAULT_DECIMAL_MARKER);
-  private thousandSeparator = inject(DEFAULT_THOUSAND_SEPARATOR);
   refreshCondVenta = model<number>(0);
   isEdit = model(false);
   ParametroVentaId = model<number>(0);
@@ -123,13 +120,10 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   private pendingViewLoad = signal<boolean>(false);
   private viewReadonly = signal<boolean>(false);
   objetivoExtended = signal<any>(null);
-  codobjIdInput = input<string>('', { alias: 'codobjId' });
-  codobjId = linkedSignal(() => this.codobjIdInput());
   objetivoId = model<number>(0);
   PeriodoDesdeAplicaInput = input<string>('', { alias: 'PeriodoDesdeAplica' });
   PeriodoDesdeAplica = linkedSignal(() => this.PeriodoDesdeAplicaInput());
   periodo = input<Date>(new Date());
-  clienteId = signal<number>(0);
   
   optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(),{initialValue: []})
 
@@ -159,14 +153,13 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
   private readonly defaultFormParamVenta: ParametroVentaForm = {
     ParametroVentaId: 0,
-    codobjId: '',
     ObjetivoId: 0,
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
     PeriodoFacturacionInicio: '',
-    GeneracionFacturaDia: 0, //null,
+    GeneracionFacturaDia: null,
     GeneracionFacturaReqCliente: false,
-    GeneracionFacturaDiaComplemento: 0, //null,
+    GeneracionFacturaDiaComplemento: null,
     UnificacionFactura: false,
     Observaciones: '',
     infoProductos: [structuredClone(this.defaultProducto)],
@@ -192,6 +185,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     numericRange(p.GeneracionFacturaDia, { min: 1, max: 29, message: 'Día entre 1 y 29', when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false },);
     disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
     disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+//    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
+
 
     applyEach(p.infoProductos, (productoPath) => {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });
@@ -199,42 +194,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       required(productoPath.TipoCantidad, { message: 'Tipo de cantidad es requerido' });
     });
   })
-
-  constructor() {
-    effect(() => {
-      //      this.p.codobjId().value.set(this.codobjId());
-
-      this.parametroVenta.update(m => ({
-        ...m,
-        codobjId: this.codobjId(),
-      }));
-
-
-    });
-
-    effect(() => {
-      const _codobj = this.codobjId();
-      const _periodo = this.periodo();
-      untracked(() => {
-        //        this.refrescarPreciosListaPrecios();
-        //        this.refrescarMensajesHoras();
-      });
-    });
-
-    // Effect para cargar datos cuando hay una carga pendiente y los valores están listos
-    effect(() => {
-      const codobjInput = this.codobjIdInput();
-      const periodoInput = this.PeriodoDesdeAplicaInput();
-      const pendingLoad = this.pendingViewLoad();
-
-      if (pendingLoad && codobjInput && periodoInput) {
-        untracked(() => {
-          this.pendingViewLoad.set(false);
-          //          this.executeViewLoad();
-        });
-      }
-    });
-  }
 
 
   infoProductos(): FormArray<any> {
@@ -254,12 +213,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       infoProductos: [...m.infoProductos, newProducto],
     }));
 
-
-    /*
-        const newGroup = this.fb.group({ ...this.objProductos });
-        this.infoProductos().push(newGroup);
-        newGroup.get('ImporteTotal')?.disable();
-    */
   }
 
   removeProductos(index: number, e: MouseEvent): void {
@@ -277,24 +230,14 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       this.addProductos(undefined)
     }
 
-
-    /*
-        if (this.infoProductos().length > 1) {
-          this.infoProductos().removeAt(index)
-        } else {
-          this.infoProductos().clear();
-          const newGroup = this.fb.group({ ...this.objProductos });
-          this.infoProductos().push(newGroup);
-          newGroup.get('ImporteTotal')?.disable();
-        }
-    */
     this.formParametroVenta().markAsDirty();
   }
 
   async newRecord() {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
+//    this.parametroVenta.set(this.defaultFormParamVenta)
 
-    if (this.codobjId() && this.PeriodoDesdeAplica()) {
+    if (this.objetivoId() && this.PeriodoDesdeAplica()) {
       await this.load()
 
       const tmp = this.parametroVenta()
@@ -311,7 +254,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
 
     } else {
-      //this.codobjId.set('')
       this.PeriodoDesdeAplica.set('')
 
       this.parametroVenta.update(m => ({
@@ -323,14 +265,13 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   }
 
 
-
+//TODO: No es necesario
   async viewRecord(readonly: boolean) {
     this.viewReadonly.set(readonly);
 
-    const codobj = this.codobjIdInput();
     const periodo = this.PeriodoDesdeAplicaInput();
 
-    if (codobj && periodo) {
+    if (this.objetivoId() && periodo) {
       await this.load();
       this.applyViewMode(readonly);
     } else {
@@ -362,14 +303,13 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   */
 
   async load() {
-    const codobj = this.codobjIdInput();
     const periodo = this.PeriodoDesdeAplicaInput();
 
-    if (!codobj || !periodo) {
+    if (!this.objetivoId() || !periodo) {
       return;
     }
 
-    let infoCliente = await firstValueFrom(this.searchService.getInfoParametroVenta(codobj, periodo))
+    const paramtroVenta = await firstValueFrom(this.searchService.getInfoParametroVenta(this.objetivoId(), periodo))
     // Limpiar el FormArray antes de agregar nuevos elementos
     /*
     this.infoProductos().clear();
@@ -384,7 +324,9 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     this.infoProductos().push(this.fb.group({ ...this.objProductos }));
     }
     */
-    this.formParametroVenta().reset(infoCliente)
+    this.formParametroVenta().reset(paramtroVenta)
+    //this.parametroVenta.set(infoCliente)
+
     /*
     // Aplicar estado del checkbox Requerido por Cliente
     const reqCliente = this.formParametroVenta.get('GeneracionFacturaReqCliente')?.value;
@@ -521,17 +463,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       }
     }
   */
-    
-  //TODO: No debería ser necesario tener codobjId 
-  objetivoDetalleChange(event: any) {
-    if (event && event.clienteId && event.ClienteElementoDependienteId) {
-      this.codobjId.set(`${event.clienteId}/${event.ClienteElementoDependienteId}`);
-      this.clienteId.set(event.clienteId);
-    } else {
-      this.codobjId.set('');
-      this.clienteId.set(0);
-    }
-  }
+   
 
   async save() {
     await submit(this.formParametroVenta, async (form) => {
@@ -540,14 +472,12 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
         if (this.isEdit()) {
           //console.log("voy a actualizar condicion de venta")
-          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue, this.codobjId(), this.PeriodoDesdeAplica()));
+          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue, this.objetivoId(), this.PeriodoDesdeAplica()));
 
         } else {
           // console.log("voy a insertar condicion de venta")
           const result = await firstValueFrom(this.apiService.addParametroVenta(formValue));
           const clienteelementodependienteid = result.data.ClienteElementoDependienteId;
-          const clienteid = result.data.ClienteId;
-          this.codobjId.set(`${clienteid}/${clienteelementodependienteid}`);
           this.PeriodoDesdeAplica.set(result.data.PeriodoDesdeAplica);
 
           this.isEdit.set(true);
@@ -595,6 +525,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
   }
 */
+/*
   async onTipoCantidadChange(tipoCantidad: string, index: number): Promise<void> {
     const cantidadControl = this.infoProductos().at(index)?.get('CantidadHoras')
 
@@ -615,7 +546,8 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       this.limpiarMensajeHoras(index)
     }
   }
-
+*/
+/*
   async obtenerMensajeHoras(tipoHoras: string, index: number): Promise<void> {
     const objetivoId = this.parametroVenta().ObjetivoId;
     const periodo = this.periodo();
@@ -632,6 +564,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
 
     try {
       const response = await firstValueFrom(this.apiService.getMensajeHoras(tipoHoras, objetivoId, anio, mes));
+      if response.data.mensaje
       const newMap = new Map(this.mensajesHoras());
       newMap.set(index, response);
       this.mensajesHoras.set(newMap);
@@ -642,7 +575,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       this.mensajesHoras.set(newMap);
     }
   }
-
+*/
   limpiarMensajeHoras(index: number): void {
     const newMap = new Map(this.mensajesHoras());
     newMap.delete(index);
@@ -695,16 +628,6 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     this.mensajesImporteLista.set(newMap);
   }
 
-  private formatImporteSeparator2(value: number | string): string {
-    const num = Number(value);
-    if (isNaN(num)) return String(value);
-    const fixed = num.toFixed(2);
-    const [intPart, decPart] = fixed.split('.');
-    const sep = String(this.thousandSeparator);
-    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
-    return intFormatted + String(this.decimalMarker) + decPart;
-  }
-
   getMensajeImporteLista(index: number): string {
     return this.mensajesImporteLista().get(index) || '';
   }
@@ -717,6 +640,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
     });
   }
 */
+  /*
   refrescarMensajesHoras(): void {
     this.infoProductos().controls.forEach((control, index) => {
       const tipoCantidad = control.get('TipoCantidad')?.value;
@@ -725,6 +649,7 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
       }
     });
   }
+  */
 /*
   onProductoCodigoChange(productoCodigo: string, index: number): void {
     if (this.infoProductos().at(index)?.get('TipoImporte')?.value === 'LP') {
@@ -735,19 +660,42 @@ export class ParametroVentaFormComponent implements OnInit, OnDestroy {
   clearForm(): void {
     this.formParametroVenta().reset(this.defaultFormParamVenta)
     this.PeriodoDesdeAplica.set('')
-    this.codobjId.set('')
     this.objetivoId.set(0)
 
   }
+
+
+  getCantidad = computed(() => {
+    return this.parametroVenta().infoProductos.map(async producto => {
+      const TipoCantidad = producto.TipoCantidad || '';
+      const productoCodigo = producto.ProductoCodigo || '';
+      const ObjetivoId = this.parametroVenta().ObjetivoId || 0;
+
+      switch (TipoCantidad) {
+        case 'A':
+        case 'B':
+          const response = await firstValueFrom(this.apiService.getMensajeHoras(TipoCantidad, ObjetivoId, this.periodo().getFullYear(), this.periodo().getMonth() + 1));
+          return response
+          
+        case 'F':
+          return '';
+        default:
+          return '';
+      }
+    })
+  })
+
+
 
   getImporteUnitario = computed(() => {
     return this.parametroVenta().infoProductos.map(async producto => {
       const tipoImporte = producto.TipoImporte || '';
       const productoCodigo = producto.ProductoCodigo || '';
+      const ObjetivoId = this.parametroVenta().ObjetivoId || 0;
 
       switch (tipoImporte) {
         case 'LP':
-          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(this.clienteId(), this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
+          const precio = await firstValueFrom(this.apiService.getPrecioListaPrecios(ObjetivoId, this.periodo().getFullYear(), this.periodo().getMonth() + 1, productoCodigo));
           if (precio.PeriodoDesdeAplica) { 
             return precio.Importe
           }

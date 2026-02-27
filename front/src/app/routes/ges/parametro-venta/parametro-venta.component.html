@@ -85,7 +85,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/parametros-venta/modificar">{{ 'app.icon.edit' | i18n }}</a>
       <ng-template nz-tab>
-        <app-parametro-venta-form #parametroVentaFormEditar [codobjId]="codobj()"
+        <app-parametro-venta-form #parametroVentaFormEditar
           [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
           [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-parametro-venta-form>
       </ng-template>
@@ -94,7 +94,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/parametros-venta/detalle">{{ 'app.icon.detail' | i18n }}</a>
       <ng-template nz-tab>
-        <app-parametro-venta-form #parametroVentaFormDetalle [codobjId]="codobj()"
+        <app-parametro-venta-form #parametroVentaFormDetalle
           [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
           [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-parametro-venta-form>
       </ng-template>
@@ -103,7 +103,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/parametros-venta/alta">{{ 'app.alta' | i18n }}</a>
       <ng-template nz-tab>
-        <app-parametro-venta-form #parametroVentaFormAlta [codobjId]="codobj()"
+        <app-parametro-venta-form #parametroVentaFormAlta
           [(objetivoId)]="objetivoId" [(refreshCondVenta)]="refreshCondVenta"
           [PeriodoDesdeAplica]="PeriodoDesdeAplica()" [periodo]="periodo()" [(isEdit)]="isEdit"></app-parametro-venta-form>
       </ng-template>

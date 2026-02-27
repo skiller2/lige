@@ -20,7 +20,6 @@ import { ApiService } from 'src/app/services/api.service';
 export class ParametroVentaComponent implements OnInit {
 
   periodo = signal<Date>(new Date())
-  codobj = model<string>('');
   isEdit = model<boolean>(false);
   objetivoId = model<number>(0);
   childIsPristine = signal(true)
@@ -41,7 +40,6 @@ export class ParametroVentaComponent implements OnInit {
   private apiService = inject(ApiService);
 
   ngOnInit(): void {
-    this.codobj.set('')
     this.viewListado.set(true)
     this.PeriodoDesdeAplica.set('')
   }
@@ -50,13 +48,12 @@ export class ParametroVentaComponent implements OnInit {
 
   onAddClick(): void {
     this.isEdit.set(false);
-    const savedCodobj = this.codobj();
     const savedObjetivoId = this.objetivoId();
     const savedPeriodo = this.PeriodoDesdeAplica();
 
     // Si hay un registro seleccionado (codobj + periodo), no limpiar el form
     // para que newRecord() cargue todos los datos como copia
-    if (savedCodobj && savedPeriodo) {
+    if (savedPeriodo) {
       return;
     }
 
@@ -65,15 +62,8 @@ export class ParametroVentaComponent implements OnInit {
 //      if (child.formParametroVenta.invalid || child.formParametroVenta.pristine) {
 //        child.clearForm();
 //      }
-      if (savedCodobj) {
-        child.codobjId.set(savedCodobj);
         child.objetivoId.set(savedObjetivoId);
-      }
     } catch (e) {
-      if (savedCodobj) {
-        this.codobj.set(savedCodobj);
-        this.objetivoId.set(savedObjetivoId);
-      }
     }
   }
 
