@@ -96,7 +96,6 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   writeValue(value: any) {
     if (value === 0)
       value=''
-    console.log('',value,this._selectedId)
     if (value !== this._selectedId) {
       this.updateSelectedId(value, false)
     }
