@@ -228,7 +228,6 @@ export class ParametroVentaFormComponent implements OnInit {
   }
 
   async newRecord() {
-    //this.formParametroVenta().reset(this.defaultFormParamVenta)
     this.parametroVenta.set(this.defaultFormParamVenta)
 
     if (this.ClienteId() && this.ClienteElementoDependienteId() && this.PeriodoDesdeAplica()) {
@@ -253,7 +252,7 @@ export class ParametroVentaFormComponent implements OnInit {
   }
 
 
-  //TODO: No es necesario
+  //TODO: No es necesario o si
   async viewRecord(readonly: boolean) {
     this.viewReadonly.set(readonly);
 
@@ -308,15 +307,12 @@ export class ParametroVentaFormComponent implements OnInit {
     await submit(this.formParametroVenta, async (form) => {
       try {
         const formValue = form().value();
-        if (this.isEdit()) {
-          //console.log("voy a actualizar condicion de venta")
-          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue));
 
+        if (this.isEdit()) {
+          const result = await firstValueFrom(this.apiService.updateParametroVenta(formValue));
         } else {
-          // console.log("voy a insertar condicion de venta")
           await firstValueFrom(this.apiService.addParametroVenta(formValue));
           this.isEdit.set(true);
-
         }
 
         await this.load();
@@ -418,7 +414,7 @@ export class ParametroVentaFormComponent implements OnInit {
 
       const productoNombre = this.optionsTipoProducto().find((p: { ProductoCodigo: string; }) => p.ProductoCodigo === productoCodigo)?.Nombre || productoCodigo;
 
-      //TODO: pendiente verificar los tipos de importe y cantidad,  por si las tengo que ir a buscar 
+      //TODO: pendiente verificar los tipos de importe y cantidad, debería hacerlo desde el computed value por el idx 
       const importeUnitario = producto.ImporteUnitario || '';
       const cantidad = producto.CantidadHoras || '';
 
