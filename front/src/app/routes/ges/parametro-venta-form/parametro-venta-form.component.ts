@@ -242,10 +242,12 @@ export class ParametroVentaFormComponent implements OnInit {
 
 
     } else {
-
+      const res = await firstValueFrom(this.apiService.getObjetivoByCliEle(this.ClienteId(), this.ClienteElementoDependienteId()))
+      const ObjetvoId = res.data.ObjetivoId || 0;
       this.parametroVenta.update(m => ({
-        ...m, ClienteId: this.ClienteId() | 0, ClienteElementoDependienteId: this.ClienteElementoDependienteId() | 0, PeriodoDesdeAplica: ''
+        ...m, ClienteId: this.ClienteId() | 0, ClienteElementoDependienteId: this.ClienteElementoDependienteId() | 0, PeriodoDesdeAplica: '', ObjetvoId
       }));
+      setTimeout(() => { this.formParametroVenta().reset() }, 400);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
 
     }
 

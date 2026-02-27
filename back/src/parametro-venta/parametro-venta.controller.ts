@@ -364,6 +364,26 @@ export class ParametrosVentaController extends BaseController {
 
     }
 
+
+
+
+    async getObjetivo(req: any, res: any, next: any) {
+        const ClienteId = req.params.ClienteId
+        const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+            const objetivo = await this.ObjetivoInfoFromId(ClienteId, ClienteElementoDependienteId)
+            return this.jsonRes(objetivo, res);
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+
+    }
     async addParametroVenta(req: any, res: any, next: any) {
 
         const queryRunner = dataSource.createQueryRunner();

@@ -57,13 +57,14 @@ export class ParametroVentaComponent implements OnInit {
 
   onAddClick(): void {
     this.isEdit.set(false);
-     const child = this.childAlta();
   }
 
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 4: //INSERT
+    console.log("childAlta().newRecord()"  , this.ClienteId(), this.ClienteElementoDependienteId(), this.PeriodoDesdeAplica())
+        
         this.childAlta().newRecord()
         break
       case 3: //DETAIL

@@ -25,6 +25,10 @@ parametrosVentaRouter.get('/infParametroVenta/:ClienteId/:ClienteElementoDependi
   parametrosVentaController.infParametroVenta(req, res, next)
 })
 
+parametrosVentaRouter.get('/objetivo/:ClienteId/:ClienteElementoDependienteId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+  parametrosVentaController.getObjetivo(req, res, next)
+})
+
 parametrosVentaRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'Liquidaciones'])], (req, res, next) => {
   parametrosVentaController.updateParametroVenta(req, res, next)
 })

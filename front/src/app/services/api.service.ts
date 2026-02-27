@@ -2056,6 +2056,16 @@ export class ApiService {
       })
     );
   }
+  
+  getObjetivoByCliEle(ClienteId: number, ClienteElementoDependienteId: number): Observable<any> {
+    if (!ClienteId || !ClienteElementoDependienteId) return of({});
+    return this.http.get<ResponseJSON<any>>(`api/parametros-venta/objetivo/${ClienteId}/${ClienteElementoDependienteId}`).pipe(
+      map((res: ResponseJSON<any>) => res.data.mensaje),
+      catchError((err) => {
+        return of({});
+      })
+    );
+  }
 
   getPrecioListaPrecios(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number, ProductoCodigo: string): Observable<any> {
     //TODO: Cambiar por ObjetivoId
