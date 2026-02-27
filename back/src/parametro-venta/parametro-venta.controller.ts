@@ -755,11 +755,11 @@ export class ParametrosVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try {
             await queryRunner.startTransaction()
-            const parametroVenta = req.body.parametroVenta;
             const ClienteId = Number(req.body.ClienteId);
-            const ClienteElementoDependienteId = Number(req.body.clienteelementodependienteid);
+            const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica);
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
+
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
@@ -775,7 +775,7 @@ export class ParametrosVentaController extends BaseController {
             }
 
             //validaciones
-            await this.FormValidations(parametroVenta, queryRunner)
+            await this.FormValidations(req.body, queryRunner)
 
             const anio = PeriodoDesdeAplica.getFullYear()
             const mes = PeriodoDesdeAplica.getMonth() + 1
@@ -786,7 +786,7 @@ export class ParametrosVentaController extends BaseController {
             // }
 
             let FechaActual = new Date()
-            const PeriodoFacturacionInicio = parametroVenta.PeriodoFacturacionInicio ? new Date(parametroVenta.PeriodoFacturacionInicio) : null;
+            const PeriodoFacturacionInicio = req.body.PeriodoFacturacionInicio ? new Date(req.body.PeriodoFacturacionInicio) : null;
 
             //actualiza ParametroVenta
             await queryRunner.query(`UPDATE ParametroVenta SET
@@ -804,10 +804,10 @@ export class ParametrosVentaController extends BaseController {
                 AudUsuarioMod = @11,
                 AudIpMod = @12
             WHERE ClienteId = @13 AND ClienteElementoDependienteId = @14 AND PeriodoDesdeAplica = @15`,
-                [parametroVenta.PeriodoFacturacion, PeriodoFacturacionInicio, parametroVenta.GeneracionFacturaDia, parametroVenta.GeneracionFacturaDiaComplemento, parametroVenta.GeneracionFacturaReqCliente ? 1 : 0, parametroVenta.UnificacionFactura ? 1 : 0, parametroVenta.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica]);
+                [req.body.PeriodoFacturacion, PeriodoFacturacionInicio, req.body.GeneracionFacturaDia, req.body.GeneracionFacturaDiaComplemento, req.body.GeneracionFacturaReqCliente ? 1 : 0, req.body.UnificacionFactura ? 1 : 0, req.body.Observaciones, null, null, null, FechaActual, usuario, ip, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica]);
 
             //actualiza ParametroVentaDetalle
-            await this.updateParametroVentaDetalleQuery(queryRunner, parametroVenta.infoProductos, ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, ip);
+            await this.updateParametroVentaDetalleQuery(queryRunner, req.body.infoProductos || [], ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, ip);
             //throw new ClientException('test ok')
             await queryRunner.commitTransaction();
             return this.jsonRes({}, res, 'Actualización exitosa');

@@ -1456,8 +1456,7 @@ export class ApiService {
   }
 
   updateParametroVenta(parametroVenta: any) {
-    const parameter = { parametroVenta }
-    return this.http.post<ResponseJSON<any>>('/api/parametros-venta/update', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/parametros-venta/update', parametroVenta).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
