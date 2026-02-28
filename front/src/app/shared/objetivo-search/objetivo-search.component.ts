@@ -106,7 +106,6 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   private updateSelectedId(val: string, shouldPropagate: boolean) {
-    console.log('updateSelectedId')
     val = (val === null || val === undefined) ? '' : val
     if (val !== this._selectedId) {
       this._selectedId = val

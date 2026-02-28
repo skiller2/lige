@@ -44,6 +44,7 @@ export interface ParametroVentaForm {
 
 import { SchemaPathTree, validate, pattern } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ConsoleSqlOutline } from '@ant-design/icons-angular/icons';
 
 
 
@@ -211,15 +212,11 @@ export class ParametroVentaFormComponent implements OnInit {
   }
 
   removeProductos(index: number, e: MouseEvent): void {
-
     e.preventDefault();
-
-    if (this.parametroVenta().infoProductos.length == 0)
-
-      this.parametroVenta.update(m => ({
-        ...m,
-        infoProductos: m.infoProductos.filter((_, i) => i !== index),
-      }));
+    this.parametroVenta.update(m => ({
+      ...m,
+      infoProductos: m.infoProductos.filter((_, i) => i !== index),
+    }));
 
     if (this.parametroVenta().infoProductos.length == 0) {
       this.addProductos(undefined)
@@ -243,14 +240,15 @@ export class ParametroVentaFormComponent implements OnInit {
 
     } else {
       const res = await firstValueFrom(this.apiService.getObjetivoByCliEle(this.ClienteId(), this.ClienteElementoDependienteId()))
-      const ObjetvoId = res.data.ObjetivoId || 0;
+      const ObjetivoId = res?.ObjetivoId || 0;
+      const ClienteId = res?.ClienteId || 0;
+      const ClienteElementoDependienteId = res?.ClienteElementoDependienteId || 0;
       this.parametroVenta.update(m => ({
-        ...m, ClienteId: this.ClienteId() | 0, ClienteElementoDependienteId: this.ClienteElementoDependienteId() | 0, PeriodoDesdeAplica: '', ObjetvoId
+        ...m, PeriodoDesdeAplica: '', ObjetivoId, ClienteElementoDependienteId, ClienteId
       }));
       setTimeout(() => { this.formParametroVenta().reset() }, 400);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
 
     }
-
   }
 
 
