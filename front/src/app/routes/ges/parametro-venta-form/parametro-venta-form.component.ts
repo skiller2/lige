@@ -323,6 +323,7 @@ export class ParametroVentaFormComponent implements OnInit {
       }
     })
   }
+  
   /*
     calcularTotal(index: number) {
       const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
@@ -334,25 +335,6 @@ export class ParametroVentaFormComponent implements OnInit {
       this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
     }
   
-    limpiarMensajeHoras(index: number): void {
-      const newMap = new Map(this.mensajesHoras());
-      newMap.delete(index);
-      this.mensajesHoras.set(newMap);
-    }
-  
-    getMensajeHoras(index: number): string {
-      return this.mensajesHoras().get(index) || '';
-    }
-  
-    limpiarMensajeImporteLista(index: number): void {
-      const newMap = new Map(this.mensajesImporteLista());
-      newMap.delete(index);
-      this.mensajesImporteLista.set(newMap);
-    }
-  
-    getMensajeImporteLista(index: number): string {
-      return this.mensajesImporteLista().get(index) || '';
-    }
   */
 
   clearForm(): void {
