@@ -71,47 +71,36 @@ export class PersonalExencionesDrawerComponent {
 
     readonly parametroExencion = signal<ExencionForm>({...this.defaultFormExencion});
 
-    readonly formDocumento = form(this.parametroExencion);
+    readonly formParametroExencion = form(this.parametroExencion);
 
-    constructor(
-        private searchService: SearchService,
-        private apiService: ApiService,
-    ) {
-        effect(async () => {
+    private searchService = inject(SearchService)
+    private apiService = inject(ApiService)
+
+    effectExencionPersonal = effect(async () => {
             const visible = this.visibleDocumentos()
             const newId: number = this.PersonalId()
             if (visible && newId > 0) {
-                this.resetForm()
+                // this.resetForm()
+                let obj:any = {PersonalId: this.PersonalId()}
                 const exencion = await firstValueFrom(this.searchService.getExencionesByPersonalId(this.PersonalId()))
                 console.log('exencion: ', exencion);
                 
                 if (exencion.length && !exencion[0].PersonalExencionHasta) {
-                    this.parametroExencion.update((m) => ({
-                        ...m, 
+                    obj = {
+                        ...obj,
                         PersonalExencionId: exencion[0].PersonalExencionId,
                         Exencion: (exencion[0].PersonalExencionId? true : false),
                         PersonalExencionDesde: exencion[0].PersonalExencionDesde
-                    }))
+                    }
                 }
-                
+                this.parametroExencion.update((m) => ({
+                        ...m, 
+                        ...obj
+                    }))
+                this.formParametroExencion().reset()
             }
-            // this.formDocumento().markAsDirty();
+            // this.parametroExencion().markAsDirty();
         });
-    }
-
-    DocumentoId(): number {
-        const value = this.formDocumento.DocumentoId().value()
-        if (value)
-            return value
-        return 0
-    }
-
-    DocumentoTipoCodigo(): string {
-        const value = this.formDocumento.DocumentoTipoCodigo().value()
-        if (value)
-            return value
-        return ''
-    }
 
     listaExcencionPer = resource({
         params: () => ({ PersonalId: this.PersonalId() }),
@@ -148,10 +137,12 @@ export class PersonalExencionesDrawerComponent {
     }
 
     async save() {
-        this.isLoading.set(true)
-        const values = this.formDocumento().value()
+        await submit(this.formParametroExencion, async (form) => {
+        const values:any = form().value()
         try {
             let res: any = null
+            console.log('PersonalExencionId: ',values.PersonalExencionId);
+            
             if (values.PersonalExencionId){
                 res = await firstValueFrom(this.apiService.updateExencion(values))
                 
@@ -165,7 +156,7 @@ export class PersonalExencionesDrawerComponent {
                 }
             }
 
-            if (!this.DocumentoId() && res.data.DocumentoId) {
+            if (!this.parametroExencion().DocumentoId && res.data.DocumentoId) {
                 this.parametroExencion.update((m) => ({
                     ...m,
                     DocumentoId: res.data.DocumentoId
@@ -174,26 +165,23 @@ export class PersonalExencionesDrawerComponent {
 
 
             this.listaExcencionPer.reload()
-            // this.formDocumento().markAsUntouched()
-            // this.formDocumento().markAsPristine()
-            
+            // this.parametroExencion().markAsUntouched()
+            // this.parametroExencion().markAsPristine()
+            this.formParametroExencion().reset()
         } catch (e) {
         }
        
-        this.isLoading.set(false)
+        })
     }
 
     resetForm() {
-        const Exencion = this.formDocumento.Exencion().value()
-        const PersonalExencionDesde = this.formDocumento.PersonalExencionDesde().value()
-        const PersonalExencionId = this.formDocumento.PersonalExencionId().value()
         this.parametroExencion.update((m) => ({
-            ...this.defaultFormExencion, 
-            PersonalId: this.PersonalId(),
-            PersonalExencionId,
-            Exencion,
-            PersonalExencionDesde
+            ...m,
+            DocumentoId: 0,
+            DocumentoTipoCodigo: '',
+            archivo: [],
         }))
+        this.formParametroExencion().reset()
     }
 
     async LoadArchivo(url: string, filename: string) {

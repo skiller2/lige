@@ -1211,7 +1211,7 @@ export class PersonalController extends BaseController {
   }
 
   async setFoto(queryRunner: any, personalId: any, file: any) {
-    console.log("file", file)
+
     if (file?.tempfilename) {
       const type = file.mimetype.split('/')[1] ? file.mimetype.split('/')[1] : file.TipoArchivo
       // const type = file.TipoArchivo
@@ -1556,7 +1556,6 @@ export class PersonalController extends BaseController {
       `, [PersonalId])
 
     for (const infoEstudio of estudios) {
-      console.log('infoEstudio', infoEstudio)
 
       if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado) {
         let campos_vacios = []
@@ -1610,7 +1609,7 @@ export class PersonalController extends BaseController {
 
         if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
           const docTitulo = infoEstudio.DocTitulo[0]
-          console.log('docTitulo', docTitulo)
+          
           if (!docTitulo?.id)
             await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
 
@@ -3501,17 +3500,17 @@ UNION ALL
         const consult = await queryRunner.query(`
           SELECT MAX(PersonalExencionId) PersonalExencionId
           FROM PersonalExencion
-          WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
+          WHERE PersonalId IN (@0)
         `, [PersonalId])
-        newPersonalExencionId = consult[0] ? consult[0].PersonalExencionId : 1
+        newPersonalExencionId = consult[0] ? consult[0].PersonalExencionId+1 : 1
 
         await queryRunner.query(`
           INSERT INTO PersonalExencion(
             PersonalExencionId,
             PersonalId,
             PersonalExencionCUIT,
-            PersonalExencionDesde,
-          )VALUES(@0, @1, @2, @3, @4)
+            PersonalExencionDesde
+          )VALUES(@0, @1, @2, @3)
           `, [newPersonalExencionId, PersonalId, 1, PersonalExencionDesde])
       }
 
@@ -3603,10 +3602,11 @@ UNION ALL
           `, [PersonalExencionId, PersonalId])
           
         } else {
-          const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+          const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDay(),0,0,0,0)
+          
           await queryRunner.query(`
             UPDATE PersonalExencion SET
-              PersonalExencionHasta = @1
+              PersonalExencionHasta = @2
             WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
           `, [PersonalExencionId, PersonalId, ayer])
         }
