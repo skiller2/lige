@@ -25,7 +25,6 @@ export class PersonalBancoDrawerComponent {
     isLoading1 = signal(false);
     isLoading2 = signal(false);
     visibleBanco = model<boolean>(false)
-    periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
 
     constructor(
@@ -64,8 +63,6 @@ export class PersonalBancoDrawerComponent {
     );
 
     async ngOnInit(){
-        this.periodo.set(new Date())
-        
         this.selectedPersonalIdChange$.next('');
     }
 

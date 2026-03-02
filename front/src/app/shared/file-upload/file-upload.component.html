@@ -140,13 +140,13 @@
 
     @if(showDesdeHasta()){
     <nz-form-control class="inputsConteiner" [nzMd]="12">
-      <nz-date-picker [(ngModel)]="desdeSelected" nzPlaceHolder="Desde" nzFormat="yyyy-MM-dd" nzMode="date"
+      <nz-date-picker [(ngModel)]="desdeSelected" nzPlaceHolder="Desde" nzFormat="dd/MM/yyyy" nzMode="date"
         style="width: 100%;" [nzDisabled]="files().length > 0">
       </nz-date-picker>
     </nz-form-control>
 
     <nz-form-control class="inputsConteiner" [nzMd]="12">
-      <nz-date-picker [(ngModel)]="hastaSelected" nzPlaceHolder="Hasta" nzFormat="yyyy-MM-dd" nzMode="date"
+      <nz-date-picker [(ngModel)]="hastaSelected" nzPlaceHolder="Hasta" nzFormat="dd/MM/yyyy" nzMode="date"
         style="width: 100%;" [nzDisabled]="files().length > 0">
       </nz-date-picker>
     </nz-form-control>
