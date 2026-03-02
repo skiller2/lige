@@ -574,6 +574,10 @@ export class ParametrosVentaController extends BaseController {
                 if (producto.TipoCantidad === 'F' && !producto.CantidadHoras) {
                     throw new ClientException(`Debe completar el campo Cantidad.`)
                 }
+
+                if (!producto.CantidadReferencia) {
+                    throw new ClientException(`Debe completar el campo Cantidad Referencia.`)
+                }
             }
         }
     }
@@ -668,7 +672,7 @@ export class ParametrosVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, ClienteId:number, ClienteElementoDependienteId:number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, par.ImporteUnitario
+            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, par.ImporteUnitario, par.CantidadEstandar AS CantidadReferencia
             FROM ParametroVentaDetalle par
             INNER JOIN Objetivo AS obj
                 ON obj.ClienteId = par.ClienteId
@@ -986,6 +990,7 @@ export class ParametrosVentaController extends BaseController {
                     Cantidad,
                     TipoImporte,
                     ImporteUnitario,
+                    CantidadEstandar,
                     AudFechaIng,
                     AudFechaMod,
                     AudUsuarioIng,
@@ -993,7 +998,7 @@ export class ParametrosVentaController extends BaseController {
                     AudIpIng,
                     AudIpMod,
                     ParametroVentaDetalleId
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
                     [
                         ClienteId, // ClienteId
                         ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -1004,6 +1009,7 @@ export class ParametrosVentaController extends BaseController {
                         producto.CantidadHoras ? Number(producto.CantidadHoras) : null, // Cantidad
                         producto.TipoImporte, // TipoImporte
                         producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
+                        producto.CantidadReferencia ? Number(producto.CantidadReferencia) : null, // CantidadEstandar
                         FechaActual, // AudFechaIng
                         FechaActual, // AudFechaMod
                         usuario, // AudUsuarioIng

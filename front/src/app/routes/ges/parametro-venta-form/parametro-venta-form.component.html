@@ -173,7 +173,7 @@
       <nz-form-item class="marginElement">
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Cantidad</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
           <nz-select [formField]="formParametroVenta.infoProductos[i].TipoCantidad" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" >
             @for (option of optionsTipoCantidad(); track option.value) {
@@ -183,8 +183,8 @@
           </nz-select>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
 
           @if (parametroVenta().infoProductos[i].TipoCantidad === 'V') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
@@ -210,6 +210,15 @@
 
           }
          
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad de Referencia </nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
+          <input nz-input [formField]="formParametroVenta.infoProductos[i].CantidadReferencia" type="text"
+            style="width: 100%;"
+            placeholder="Cantidad de Referencia"
+            nz-tooltip 
+          />
         </nz-form-control>
 
       </nz-form-item>

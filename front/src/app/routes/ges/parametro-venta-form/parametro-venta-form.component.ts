@@ -22,6 +22,7 @@ export interface Producto {
   IndHorasAFacturar: boolean | null;
   TextoFactura: string;
   default: string;
+  CantidadReferencia: string;
 }
 
 export interface ParametroVentaForm {
@@ -150,6 +151,7 @@ export class ParametroVentaFormComponent implements OnInit {
     IndHorasAFacturar: null,
     TextoFactura: '',
     default: '',
+    CantidadReferencia: '',
   };
 
   private readonly defaultFormParamVenta: ParametroVentaForm = {
@@ -195,6 +197,7 @@ export class ParametroVentaFormComponent implements OnInit {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });
       required(productoPath.TipoImporte, { message: 'Tipo de importe es requerido' });
       required(productoPath.TipoCantidad, { message: 'Tipo de cantidad es requerido' });
+      required(productoPath.CantidadReferencia, { message: 'Cantidad Referencia es requerido' });
     });
   })
 
