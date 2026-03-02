@@ -54,18 +54,16 @@ import { HeaderTitleComponent } from './widgets/title.component';
       </layout-default-header-item>
 
 
-      <!-- 
       <layout-default-header-item direction="right">
         <header-notify />
       </layout-default-header-item>
-      <layout-default-header-item direction="right" hidden="mobile">
+      <!-- <layout-default-header-item direction="right" hidden="mobile">
         <header-task />
-      </layout-default-header-item>
+      </layout-default-header-item> -->
 
       <layout-default-header-item direction="right" hidden="mobile">
         <header-icon />
       </layout-default-header-item>
-      -->
       <layout-default-header-item direction="right" hidden="mobile">
         <div layout-default-header-item-trigger nz-dropdown [nzDropdownMenu]="settingsMenu" nzTrigger="click" nzPlacement="bottomRight">
           <nz-icon nzType="setting" />
@@ -126,9 +124,9 @@ import { HeaderTitleComponent } from './widgets/title.component';
     SettingDrawerModule,
     ThemeBtnComponent,
     HeaderSearchComponent,
-//    HeaderNotifyComponent,
-//    HeaderTaskComponent,
-//    HeaderIconComponent,
+    HeaderNotifyComponent,
+    //  HeaderTaskComponent,
+    HeaderIconComponent,
     HeaderRTLComponent,
     HeaderI18nComponent,
     HeaderClearStorageComponent,
