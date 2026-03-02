@@ -178,7 +178,7 @@ personalRouter.get(
 
 personalRouter.get(
   `${base}/historial/banco/:personalId`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])],
+  [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`, `Liquidaciones Consultas`])],
   (req, res, next) => {
     personalController.getHistoryPersonalBanco(req, res, next);
   }
