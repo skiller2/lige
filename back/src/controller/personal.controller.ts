@@ -2380,7 +2380,7 @@ UNION ALL
     }
   }
 
-  async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {
+  async getExencionesDocsByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const personalId: number = Number(req.params.personalId);
     // const fechaActual = new Date();
@@ -3380,7 +3380,7 @@ UNION ALL
       });
   }
 
-  async getLastExencionByPersonalId(req: any, res: Response, next: NextFunction) {
+  async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId: number = Number(req.params.id);
 
@@ -3393,9 +3393,7 @@ UNION ALL
         ORDER BY PersonalExencionId DESC
       `, [PersonalId])
 
-      const obj = PersonalExencion[0] ? PersonalExencion[0] : {}
-
-      this.jsonRes(obj, res);
+      this.jsonRes(PersonalExencion, res);
     } catch (error) {
       return next(error)
     }
@@ -3446,6 +3444,7 @@ UNION ALL
     const queryRunner = dataSource.createQueryRunner();
 
     // const DocumentoDenominadorDocumento: string = req.body.DocumentoDenominadorDocumento
+    const DocumentoId: number | null = req.body.DocumentoId === 0 ? null : req.body.DocumentoId;
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
     // const cliente_id: number | null = req.body.DocumentoClienteId === 0 ? null : req.body.DocumentoClienteId;
     // const objetivo_id: number | null = req.body.ObjetivoId === 0 ? null : req.body.ObjetivoId;
@@ -3456,6 +3455,7 @@ UNION ALL
     const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
+    let newDocumentoId: number = null
     // const now = new Date()
     if (PersonalExencionDesde) PersonalExencionDesde.setHours(0, 0, 0, 0)
 
@@ -3467,7 +3467,7 @@ UNION ALL
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      if (archivo?.length) {
+      if (archivo?.length && !DocumentoId) {
 
         const file = archivo[0].file[0]
 
@@ -3492,8 +3492,8 @@ UNION ALL
           PersonalId: PersonalId,
         }
 
-        await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-
+        const resDoc = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+        newDocumentoId = resDoc.doc_id
       }
 
       let newPersonalExencionId = 0
@@ -3516,7 +3516,7 @@ UNION ALL
       }
 
       await queryRunner.commitTransaction()
-      this.jsonRes({ PersonalExencionId: newPersonalExencionId }, res, 'Carga exitosa');
+      this.jsonRes({ PersonalExencionId: newPersonalExencionId, DocumentoId: (newDocumentoId? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -3528,13 +3528,17 @@ UNION ALL
   async updateExenciones(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
 
+    const DocumentoId: number | null = req.body.DocumentoId === 0 ? null : req.body.DocumentoId;
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
     const archivo: any[] = req.body.archivo
+    const PersonalExencionId: number = req.body.PersonalExencionId
     const Exencion = req.body.Exencion
     const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
+    let newDocumentoId: number = null
+
     now.setHours(0, 0, 0, 0)
 
     try {
@@ -3545,7 +3549,7 @@ UNION ALL
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
-      if (archivo?.length) {
+      if (archivo?.length && !DocumentoId) {
 
         const file = archivo[0].file[0]
 
@@ -3570,28 +3574,47 @@ UNION ALL
           PersonalId: PersonalId,
         }
 
-        await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-
+        const resDoc = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+        newDocumentoId = resDoc.doc_id
       }
 
-      const consult = await queryRunner.query(`
-        SELECT PersonalExencionId
-        FROM PersonalExencion
-        WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
-      `, [PersonalId])
-      const PersonalExencionIdActual = consult[0] ? new Date(consult[0].PersonalExencionId) : null
-      const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
 
-      if (PersonalExencionIdActual && !Exencion) {
+      if (Exencion) {
+
         await queryRunner.query(`
           UPDATE PersonalExencion SET
-            PersonalExencionHasta = @1
-          WHERE PersonalId IN (@0) AND PersonalExencionHasta IS NULL
-          `, [PersonalId, ayer])
+            PersonalExencionDesde = @2
+          WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
+        `, [PersonalExencionId, PersonalId, PersonalExencionDesde])
+        
+      } else {
+
+        const PersonalExencion = await queryRunner.query(`
+          SELECT PersonalExencionDesde, PersonalExencionHasta
+          FROM PersonalExencion
+          WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) 
+        `, [PersonalExencionId, PersonalId])
+        const oldPersonalExencionDesde = PersonalExencion[0] ? new Date(PersonalExencion[0].PersonalExencionDesde) : null
+
+        if (oldPersonalExencionDesde.getTime() >= now.getTime()) {
+          await queryRunner.query(`
+            DELETE FROM PersonalExencion 
+            WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1)
+          `, [PersonalExencionId, PersonalId])
+          
+        } else {
+          const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+          await queryRunner.query(`
+            UPDATE PersonalExencion SET
+              PersonalExencionHasta = @1
+            WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
+          `, [PersonalExencionId, PersonalId, ayer])
+        }
+        
       }
 
       await queryRunner.commitTransaction()
-      this.jsonRes({}, res, 'Carga exitosa');
+      this.jsonRes({DocumentoId: (newDocumentoId? newDocumentoId : DocumentoId)}, res, 'Carga exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
