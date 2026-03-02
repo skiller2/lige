@@ -24,7 +24,6 @@ export class PersonalCategoriaDrawerComponent {
     PersonalNombre = signal<string>("")
     isLoading = signal(false);
     visibleCategoria = model<boolean>(false)
-    periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
 
     constructor(
@@ -79,7 +78,6 @@ export class PersonalCategoriaDrawerComponent {
     );
 
     async ngOnInit(){
-        this.periodo.set(new Date())
         this.selectedPersonalIdChange$.next('');
     }
 

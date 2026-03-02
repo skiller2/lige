@@ -165,7 +165,7 @@ export class ExcepcionesAsistenciaComponent {
     this.loadingApr.set(true)
     this.rowsError.set([])
     // const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
-    const reg = this.angularGrid.dataView.getAllSelectedItems().map((obj:any) => {
+    const reg = this.angularGrid.dataView.getAllSelectedItems().filter((obj: any) => !!obj).map((obj: any) => {
         return {
           PersonalArt14Id: obj.PersonalArt14Id,
           PersonalId: obj.PersonalId,
@@ -174,6 +174,11 @@ export class ExcepcionesAsistenciaComponent {
           PersonalArt14FormaArt14: obj.PersonalArt14FormaArt14
         }
       })
+
+    if (!reg.length) {
+      this.loadingApr.set(false)
+      return
+    }
     try {
       const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaAprobar({ ids: reg, rows: this.rows() }))
       this.listExcepcionesAsistencia$.next('')
@@ -190,6 +195,10 @@ export class ExcepcionesAsistenciaComponent {
     this.loadingRec.set(true)
     this.rowsError.set([])
     const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+    if (!ids.length) {
+      this.loadingRec.set(false)
+      return
+    }
     // console.log(ids,this.rows());
     try {
       await firstValueFrom(this.apiService.excepcionesAsistenciaRechazar({ ids: ids, rows: this.rows() }))
@@ -205,7 +214,12 @@ export class ExcepcionesAsistenciaComponent {
 
   async pendienteReg() {
     this.loadingPen.set(true)
+    this.rowsError.set([])
     const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+    if (!ids.length) {
+      this.loadingPen.set(false)
+      return
+    }
     // console.log(ids,this.rows());
     try {
       const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaPendiente({ ids: ids, rows: this.rows() }))

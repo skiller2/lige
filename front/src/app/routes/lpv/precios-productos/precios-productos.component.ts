@@ -135,7 +135,7 @@ export class PreciosProductosComponent {
                   }
                 }
               }
-              col.params = { dateFormat: 'MM-YYYY' }
+              col.params = { dateFormat: 'MM/YYYY' }
 
               break
             case 'Importe':
