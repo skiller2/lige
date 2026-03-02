@@ -7,32 +7,32 @@ type DestinationCallback = (error: Error | null, destination: string) => void;
 
 export const CargaLicenciaCargaRouter = Router();
 
-CargaLicenciaCargaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+CargaLicenciaCargaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res) => {
   cargaLicenciaController.getGridCols(req, res);
 });
 
-CargaLicenciaCargaRouter.get("/colsHistory", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+CargaLicenciaCargaRouter.get("/colsHistory", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res) => {
   cargaLicenciaController.getGridColsHistory(req, res);
 });
 
-CargaLicenciaCargaRouter.get("/colsHoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+CargaLicenciaCargaRouter.get("/colsHoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res) => {
   cargaLicenciaController.getGridColsHoras(req, res);
 });
 
-CargaLicenciaCargaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+CargaLicenciaCargaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res, next) => {
     cargaLicenciaController.list(req, res, next);
 });
 
-CargaLicenciaCargaRouter.post("/listHistory", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+CargaLicenciaCargaRouter.post("/listHistory", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res, next) => {
   cargaLicenciaController.listHistory(req, res, next);
 });
 
 
-CargaLicenciaCargaRouter.post("/listhoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+CargaLicenciaCargaRouter.post("/listhoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res, next) => {
     cargaLicenciaController.listHoras(req, res, next);
 });
 
-CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res, next) => {
     cargaLicenciaController.getLicencia(req, res, next);
 });
   
@@ -52,7 +52,7 @@ CargaLicenciaCargaRouter.delete("/", [authMiddleware.verifyToken, authMiddleware
   cargaLicenciaController.getLicenciaAnteriores(req.params.anio, req.params.mes, req.params.PersonalId, req.params.PersonalLicenciaId, req, res, next)
 });*/
 
-CargaLicenciaCargaRouter.get('/sepaga_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+CargaLicenciaCargaRouter.get('/sepaga_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res, next) => {
   cargaLicenciaController.getOptions(req, res)
 });
 
