@@ -20,7 +20,6 @@ import { ColsFilterPipe } from './utils/cols-pipe';
 import { UrlAuthPipe } from './utils/url-auth-pipe';
 import { NgxMaskDirective } from 'ngx-mask';
 import { DotToCommaDirective } from './dot-coma/dot-coma';
-import { NumericFormatDirective } from './numeric-format/numeric-format.directive';
 import { I18NCurrencyPipe } from './utils/i18n-currency.pipe';
 
 // #region third libs
@@ -57,7 +56,6 @@ export const SHARED_IMPORTS = [
   AngularSlickgridModule,
   NgxMaskDirective,
   DotToCommaDirective,
-  NumericFormatDirective,
   ...SHARED_DELON_MODULES,
   ...SHARED_ZORRO_MODULES
 ];

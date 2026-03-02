@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, model, OnI
 import { SHARED_IMPORTS } from '@shared';
 
 import { I18nPipe, SettingsService } from '@delon/theme';
-import { TableParametroVentaComponent } from '../table-parametro-venta/table-parametro-venta.component';
+import { TableParametroVentaComponent } from '../table-parametro-venta/table-parametro-venta';
 import { AngularUtilService } from 'angular-slickgrid';
-import { ParametroVentaFormComponent } from '../parametro-venta-form/parametro-venta-form.component';
+import { ParametroVentaFormComponent } from '../parametro-venta-form/parametro-venta-form';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { CommonModule } from '@angular/common';
@@ -14,8 +14,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   providers: [AngularUtilService],
   imports: [SHARED_IMPORTS, CommonModule,I18nPipe, TableParametroVentaComponent, ParametroVentaFormComponent,],
-  templateUrl: './parametro-venta.component.html',
-  styleUrl: './parametro-venta.component.less',
+  templateUrl: './parametro-venta.html',
+  styleUrl: './parametro-venta.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ParametroVentaComponent implements OnInit {

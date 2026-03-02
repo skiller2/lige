@@ -106,8 +106,8 @@ export function numericRange(
   selector: 'app-parametro-venta-form',
   imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, FormField, FormsModule,
   ],
-  templateUrl: './parametro-venta-form.component.html',
-  styleUrl: './parametro-venta-form.component.less',
+  templateUrl: './parametro-venta-form.html',
+  styleUrl: './parametro-venta-form.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })

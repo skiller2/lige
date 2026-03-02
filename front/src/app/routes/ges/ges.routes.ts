@@ -163,7 +163,7 @@ export const GesRoutes: Routes = [
   { path: 'parametros-venta', redirectTo: 'parametros-venta/listado' },
   {
     path: 'parametros-venta/:tab',
-    loadComponent: () => import('./parametro-venta/parametro-venta.component').then(c => c.ParametroVentaComponent),
+    loadComponent: () => import('./parametro-venta/parametro-venta').then(c => c.ParametroVentaComponent),
   },
   { path: 'facturacion', redirectTo: 'facturacion/listado' },
   {

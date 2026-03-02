@@ -42,8 +42,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
   selector: 'app-table-parametro-venta',
   standalone: true,
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzAffixModule],
-  templateUrl: './table-parametro-venta.component.html',
-  styleUrl: './table-parametro-venta.component.less',
+  templateUrl: './table-parametro-venta.html',
+  styleUrl: './table-parametro-venta.less',
   providers: [AngularUtilService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TableParametroVentaComponent } from './table-parametro-venta.component';
+import { TableParametroVentaComponent } from './table-parametro-venta';
 
 describe('TableParametroVentaComponent', () => {
   let component: TableParametroVentaComponent;
