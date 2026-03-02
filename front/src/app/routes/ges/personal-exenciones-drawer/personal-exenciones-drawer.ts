@@ -79,16 +79,19 @@ export class PersonalExencionesDrawerComponent {
     ) {
         effect(async () => {
             const visible = this.visibleDocumentos()
-            const newId:number = this.PersonalId()
+            const newId: number = this.PersonalId()
             if (visible && newId > 0) {
                 this.resetForm()
-                const exencion = await firstValueFrom(this.searchService.getLastExencionByPersonalId(this.PersonalId()))
+                const exencion = await firstValueFrom(this.searchService.getExencionesByPersonalId(this.PersonalId()))
+                console.log('exencion: ', exencion);
                 
-                if (exencion && !exencion.PersonalExencionHasta) {
-                    this.formDocumento
-                    this.formDocumento.PersonalExencionId().value.set(exencion.PersonalExencionId)
-                    this.formDocumento.Exencion().value.set(exencion.PersonalExencionId)
-                    this.formDocumento.PersonalExencionDesde().value.set(exencion.PersonalExencionDesde)
+                if (exencion.length && !exencion[0].PersonalExencionHasta) {
+                    this.parametroExencion.update((m) => ({
+                        ...m, 
+                        PersonalExencionId: exencion[0].PersonalExencionId,
+                        Exencion: (exencion[0].PersonalExencionId? true : false),
+                        PersonalExencionDesde: exencion[0].PersonalExencionDesde
+                    }))
                 }
                 
             }
@@ -123,7 +126,7 @@ export class PersonalExencionesDrawerComponent {
 
     async ngOnInit(){
         const options:any = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
-        //aca filtra los tipos de documentos
+        //Aca filtra los tipos de documentos
         const opcionsPersonal = options.filter((obj:any) => obj.value.includes("FOR1"))
         this.optionsLabels.set(opcionsPersonal)
     }
@@ -148,14 +151,28 @@ export class PersonalExencionesDrawerComponent {
         this.isLoading.set(true)
         const values = this.formDocumento().value()
         try {
+            let res: any = null
             if (values.PersonalExencionId){
-                await firstValueFrom(this.apiService.updateExencion(values))
+                res = await firstValueFrom(this.apiService.updateExencion(values))
+                
             } else {
-                const res = await firstValueFrom(this.apiService.addExencion(values))
+                res = await firstValueFrom(this.apiService.addExencion(values))
                 if (res.data.DocumentoId){
-                    this.formDocumento.DocumentoId().reset(res.data.DocumentoId)
+                    this.parametroExencion.update((m) => ({
+                        ...m,
+                        PersonalExencionId: res.data.PersonalExencionId,
+                    }))
                 }
             }
+
+            if (!this.DocumentoId() && res.data.DocumentoId) {
+                this.parametroExencion.update((m) => ({
+                    ...m,
+                    DocumentoId: res.data.DocumentoId
+                }))
+            }
+
+
             this.listaExcencionPer.reload()
             // this.formDocumento().markAsUntouched()
             // this.formDocumento().markAsPristine()
@@ -167,8 +184,16 @@ export class PersonalExencionesDrawerComponent {
     }
 
     resetForm() {
-        this.formDocumento().value.set({...this.defaultFormExencion})
-        this.formDocumento.PersonalId().value.set(this.PersonalId())
+        const Exencion = this.formDocumento.Exencion().value()
+        const PersonalExencionDesde = this.formDocumento.PersonalExencionDesde().value()
+        const PersonalExencionId = this.formDocumento.PersonalExencionId().value()
+        this.parametroExencion.update((m) => ({
+            ...this.defaultFormExencion, 
+            PersonalId: this.PersonalId(),
+            PersonalExencionId,
+            Exencion,
+            PersonalExencionDesde
+        }))
     }
 
     async LoadArchivo(url: string, filename: string) {

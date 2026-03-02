@@ -74,8 +74,8 @@ personalRouter.post("/searchTipoAsociadoCategoria", authMiddleware.verifyToken, 
   personalController.searchTipoAsociadoCategoria(req, res, next);
 });
 
-personalRouter.get(`${base}/last-exencion/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
-  personalController.getLastExencionByPersonalId(req, res, next);
+personalRouter.get(`${base}/exenciones/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
+  personalController.getExencionesByPersonalId(req, res, next);
 });
 
 personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
@@ -144,8 +144,8 @@ personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/exenciones/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
-  personalController.getExencionesByPersonalId(req, res, next);
+personalRouter.get(`${base}/exenciones-docs/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
+  personalController.getExencionesDocsByPersonalId(req, res, next);
 });
 
 personalRouter.get("/download/:table/:id", authMiddleware.verifyToken, (req, res, next) => {
