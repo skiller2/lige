@@ -419,6 +419,18 @@ export class ParametroVentaFormComponent implements OnInit {
     });
   });
 
+  formatDecimal(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.value) return;
+    const cleaned = input.value.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(cleaned);
+    if (isNaN(num)) return;
+    const parts = num.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    input.value = parts.join(',');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   objetivoDetalleChange = (val: any) => {
     const nextClienteId = Number(val?.clienteId ?? 0);
     const nextDepId = Number(val?.ClienteElementoDependienteId ?? 0);

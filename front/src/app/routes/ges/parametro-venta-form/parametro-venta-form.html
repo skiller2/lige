@@ -152,7 +152,8 @@
           } @else {
             <input
             appDotToComma
-            mask="separator.2"
+            (blur)="formatDecimal($event)"
+
             nz-input
             [formField]="formParametroVenta.infoProductos[i].ImporteUnitario"
             type="text"
@@ -196,13 +197,13 @@
 
             <input
             appDotToComma
-            mask="separator.2"
             nz-input
             [formField]="formParametroVenta.infoProductos[i].CantidadHoras"
             type="text"
             style="width: 100%;"
             placeholder="Cantidad"
             nz-tooltip
+            (blur)="formatDecimal($event)"
           />
 
           }
@@ -213,7 +214,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
           <input
             appDotToComma
-            mask="separator.2"
+            (blur)="formatDecimal($event)"
             nz-input
             [formField]="formParametroVenta.infoProductos[i].CantidadReferencia"
             type="text"
