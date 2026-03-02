@@ -1,4 +1,4 @@
-<form (ngSubmit)="save()">
+f<form (ngSubmit)="save()">
   <p>{{parametroVenta() | json }}</p>
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
@@ -152,7 +152,7 @@
           } @else {
             <input
             appDotToComma
-            (blur)="formatDecimal($event)"
+            mask="separator.2"
 
             nz-input
             [formField]="formParametroVenta.infoProductos[i].ImporteUnitario"
@@ -203,7 +203,7 @@
             style="width: 100%;"
             placeholder="Cantidad"
             nz-tooltip
-            (blur)="formatDecimal($event)"
+            mask="separator.2"
           />
 
           }
@@ -214,7 +214,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
           <input
             appDotToComma
-            (blur)="formatDecimal($event)"
+            mask="separator.2"
             nz-input
             [formField]="formParametroVenta.infoProductos[i].CantidadReferencia"
             type="text"

@@ -50,7 +50,7 @@ const alainConfig: AlainConfig = {
 export const maskConfigFactory = (): NgxMaskOptions => ({
   thousandSeparator: thousandSeparatorFactory(),
   decimalMarker: decimalMarkerFactory() as '.' | ',',
-  leadZero: true,
+//  leadZero: true,
 });
 
 const ngZorroConfig: NzConfig = {

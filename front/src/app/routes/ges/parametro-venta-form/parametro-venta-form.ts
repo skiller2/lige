@@ -419,6 +419,7 @@ export class ParametroVentaFormComponent implements OnInit {
     });
   });
 
+  /*
   formatDecimal(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.value) return;
@@ -430,6 +431,7 @@ export class ParametroVentaFormComponent implements OnInit {
     input.value = parts.join(',');
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }
+  */
 
   objetivoDetalleChange = (val: any) => {
     const nextClienteId = Number(val?.clienteId ?? 0);
