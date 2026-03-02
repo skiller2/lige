@@ -230,7 +230,7 @@
           [nzPopoverContent]="textFacturaTemplate">
           <textarea nz-input [formField]="formParametroVenta.infoProductos[i].TextoFactura" rows="3" style="width: 100%;"
             nzPlaceholder="Ingrese el texto de la factura"></textarea>
-          <p style="color:rgba(0, 0, 0, 0.347); margin-top: 8px;">Vista previa: {{ getTextoFacturaPreview()[i] }}</p> 
+          <p style="color:rgba(0, 0, 0, 0.347); margin-top: 8px;">Vista previa: {{ (getTextoFacturaPreview()[i] | async) || '' }}</p> 
         </nz-form-control>
 
         @if (true) {

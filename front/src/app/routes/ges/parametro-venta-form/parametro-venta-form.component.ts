@@ -388,26 +388,24 @@ export class ParametroVentaFormComponent implements OnInit {
   })
 
   getTextoFacturaPreview = computed(() => {
+    const importeUnitarioPromises = this.getImporteUnitario();
+    const cantidadPromises = this.getCantidad();
 
-    return this.parametroVenta().infoProductos.map(producto => {
+    return this.parametroVenta().infoProductos.map(async (producto, idx) => {
       let textoFactura = (producto.TextoFactura || '').trim();
       const productoCodigo = producto.ProductoCodigo || '';
-      if (!productoCodigo) return ''
+      if (!productoCodigo) return '';
 
       const periodoMes = (this.periodo().getMonth() + 1).toString().padStart(2, '0') || '';
       const periodoAnio = this.periodo().getFullYear().toString() || '';
 
       const productoNombre = this.optionsTipoProducto().find((p: { ProductoCodigo: string; }) => p.ProductoCodigo === productoCodigo)?.Nombre || productoCodigo;
 
-      //TODO: pendiente verificar los tipos de importe y cantidad, debería hacerlo desde el computed value por el idx 
-      const importeUnitario = producto.ImporteUnitario || '';
-      const cantidad = producto.CantidadHoras || '';
+      const importeUnitario = String(await importeUnitarioPromises[idx] ?? '');
+      const cantidad = String(await cantidadPromises[idx] ?? '');
 
       if (!textoFactura)
-        textoFactura = '{Producto} {PeriodoMes}/{PeriodoAnio}'
-
-
-
+        textoFactura = '{Producto} {PeriodoMes}/{PeriodoAnio}';
 
       const preview = textoFactura
         .replace(/{Producto}/g, productoNombre)
@@ -418,9 +416,7 @@ export class ParametroVentaFormComponent implements OnInit {
         .replace(/{ImporteTotal}/g, cantidad && importeUnitario ? (Number(cantidad) * Number(importeUnitario)).toFixed(2) : 'N/A');
 
       return preview;
-
     });
-
   });
 
   objetivoDetalleChange = (val: any) => {
