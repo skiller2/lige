@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
-import { applyEach, disabled, form, FormField, required, submit, type ValidationError} from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
 
 
 export interface Producto {
@@ -33,9 +33,9 @@ export interface ParametroVentaForm {
   PeriodoDesdeAplica: string;
   PeriodoFacturacion: string;
   PeriodoFacturacionInicio: string;
-  GeneracionFacturaDia: number;             // 1..31
+  GeneracionFacturaDia: number | null;             // 1..31
   GeneracionFacturaReqCliente: boolean;
-  GeneracionFacturaDiaComplemento: number;  // 1..31 opcional
+  GeneracionFacturaDiaComplemento: number | null;  // 1..31 opcional
   UnificacionFactura: boolean;
   Observaciones: string;
   infoProductos: Producto[];
@@ -46,8 +46,6 @@ export interface ParametroVentaForm {
 import { SchemaPathTree, validate, pattern } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ConsoleSqlOutline } from '@ant-design/icons-angular/icons';
-
-
 
 
 export function periodRange(
@@ -303,6 +301,13 @@ export class ParametroVentaFormComponent implements OnInit {
   }
 
 
+  uppercaseEffect = effect(() => {
+    const value = this.parametroVenta().PeriodoFacturacion;
+    if (value && value !== value.toUpperCase()) {
+      this.parametroVenta.update(m => ({ ...m, PeriodoFacturacion: value.toUpperCase() }));
+    }
+  });
+
   ngOnInit(): void {
   }
 
@@ -321,20 +326,12 @@ export class ParametroVentaFormComponent implements OnInit {
         await this.load();
         this.refreshCondVenta.update(v => v + 1)
 
-      } catch (e: any) {
+      } catch (e) {
         console.error('Error al guardar condición de venta:', e);
-
-        if (e.error.data.fieldErrors) {
-
-          // Return the errors to the submit function, which applies them to the form
-          return e.error.data.fieldErrors;
-
-        }
       }
-      return undefined
     })
   }
-
+  
   /*
     calcularTotal(index: number) {
       const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
@@ -427,7 +424,6 @@ export class ParametroVentaFormComponent implements OnInit {
     });
   });
 
-  /*
   formatDecimal(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.value) return;
@@ -439,7 +435,6 @@ export class ParametroVentaFormComponent implements OnInit {
     input.value = parts.join(',');
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }
-  */
 
   objetivoDetalleChange = (val: any) => {
     const nextClienteId = Number(val?.clienteId ?? 0);
