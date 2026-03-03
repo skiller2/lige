@@ -11,6 +11,7 @@ import { HttpContext } from '@angular/common/http';
 import { ALLOW_ANONYMOUS } from '@delon/auth';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
 import { I18NService } from '@core';
+import { FieldTree, ValidationError } from '@angular/forms/signals';
 
 
 @Injectable({
@@ -2078,6 +2079,45 @@ export class ApiService {
       })
     );
   }
+
+
+  toSegments(path: string): (string | number)[] {
+    return path
+      .replace(/\[(\d+)\]/g, '.$1')   // brackets -> dots
+      .split('.')
+      .filter(Boolean)
+      .map(s => (/^\d+$/.test(s) ? +s : s));
+  }
+
+
+  fieldTreeOfPath(
+    root: FieldTree<Record<PropertyKey, unknown>>,
+    path: string
+  ): unknown /* Field */ {
+    let node: any = root;
+    for (const seg of this.toSegments(path)) {
+      node = node?.[seg];
+      if (node == null) return null;
+    }
+    return node;
+  }
+
+
+  formBackendErrors(
+      root: any,
+      backend: any[]
+    ): ValidationError.WithOptionalFieldTree[] {
+      return (backend ?? []).map((e) => {
+        const field =
+          e.fieldTree ? this.fieldTreeOfPath(root, e.fieldTree) : undefined;
+
+        return {
+          kind: e.kind ?? 'server',
+          message: e.message,
+          ...(field ? { fieldTree: field as any } : null),
+        };
+      });
+    }
 
 
 

@@ -312,7 +312,7 @@ export class ParametroVentaFormComponent implements OnInit {
   }
 
   async save() {
-    await submit(this.formParametroVenta, async (form:FieldTree<ParametroVentaForm>) => {
+    await submit(this.formParametroVenta, async (form) => {
       try {
         const formValue = form().value();
 
@@ -327,55 +327,14 @@ export class ParametroVentaFormComponent implements OnInit {
         this.refreshCondVenta.update(v => v + 1)
 
       } catch (e: any) {
-        console.error('Error al guardar condición de venta:', e.error.data.fieldErrors);
-/*
-        const errors: ValidationError.WithOptionalField[] = [];
-        const key:string='hola'
-        errors.push({
-          fieldTree: this.formParametroVenta().get('PeriodoDesdeAplica'),
-//          fieldTree: form.get('PeriodoDesdeAplica'),
-          kind: 'server',
-          message: 'Test uno dos tre'
-        });
-
-
-
-        const fieldErrors = e.error.data.fieldErrors.map((fe: any) => {
-          const path = fe.fieldTree.replace(/\[(\d+)\]/g, '.$1'); // normalización opcional
-          //const ft = this.formParametroVenta[fe.fieldTree]
-          const ft = this.formParametroVenta().get(fe.fieldTree);
-          return {
-            path,
-            fieldTree: ft,
-
-            kind: fe.kind,
-            message: fe.message,
-          };
-        });
-
-
-        return fieldErrors;
-
-
-        errors.push({
-          //fieldTree: form.PeriodoDesdeAplica,
-          fieldTree: form['PeriodoDesdeAplica'],
-          kind: 'server',
-          message: 'Name is not valid'
-        });
-        console.log('errores', errors)
-        return errors;
-        if (e.error.data.fieldErrors) {
-
-          // Return the errors to the submit function, which applies them to the form
-          return e.error.data.fieldErrors;
-
-        }
-        */
+        if (e.error.data.fieldErrors)
+          return this.apiService.formBackendErrors(form, e.error.data.fieldErrors);
       }
+      return undefined
+
     })
   }
-  
+
   /*
     calcularTotal(index: number) {
       const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
