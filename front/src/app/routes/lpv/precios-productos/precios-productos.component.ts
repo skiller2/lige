@@ -219,13 +219,35 @@ export class PreciosProductosComponent {
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
 
-        if (!row.Cliente.id || !row.ProductoCodigo.length || !row.PeriodoDesdeAplica || !row.Importe)
+        const emptyRows = this.angularGridEdit.dataView.getItems().filter(item => {
+          const rowComplete = !!item?.Cliente?.id
+            && !!item?.ProductoCodigo?.length
+            && !!item?.PeriodoDesdeAplica
+            // && item?.Importe != null
+          
+          return !item?.idTable && !rowComplete
+        })
+
+        if (emptyRows.length === 0) {
+          this.addNewItem()
+        } else if (emptyRows.length > 1) {
+          emptyRows.slice(0, -1).forEach((item: any) => this.angularGridEdit.gridService.deleteItemById(item.id))
+        }
+
+        const rowComplete = !!row?.Cliente?.id && !!row?.ProductoCodigo?.length && !!row?.PeriodoDesdeAplica && row?.Importe != null
+
+        if (!rowComplete)
           return
 
         if (!row.dbid)
           this.rowLocked = true
 
-        await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
+        const response: any = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
+
+        if (response?.data?.action === 'I' && !row.idTable?.length) {
+          row.idTable = row.id
+          this.angularGridEdit.gridService.updateItemById(row.id, row)
+        }
 
         this.angularGridEdit.slickGrid.setSelectedRows([])
         this.gridData.isLoading()
@@ -259,8 +281,16 @@ export class PreciosProductosComponent {
   async addNewItem() {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
-    this.angularGridEdit.slickGrid.setSelectedRows([this.angularGridEdit.dataView.getItems().length - 1]);
+    // this.angularGridEdit.slickGrid.setSelectedRows([this.angularGridEdit.dataView.getItems().length - 1]);
+  }
 
+  async selectNewItemRow() {
+      const newRowIndex = this.angularGridEdit.dataView.getItems().length - 1
+      if (newRowIndex < 0) return
+
+      this.angularGridEdit.slickGrid.setSelectedRows([newRowIndex]);
+      this.angularGridEdit.slickGrid.scrollRowIntoView(newRowIndex, false)
+      this.angularGridEdit.slickGrid.setActiveCell(newRowIndex, 0)
   }
 
   async deleteItem() {
@@ -302,7 +332,6 @@ export class PreciosProductosComponent {
       }
     });
     const newId: number = Number(highestId) + incrementIdByHowMany;
-    let isfull = 0
 
     return {
       id: newId.toString(),
@@ -342,7 +371,6 @@ export class PreciosProductosComponent {
   //Actualiza el CSS de las filas de la grilla
   updateItemMetadata(previousItemMetadata: any) {
     return (rowNumber: number) => {
-      const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
       let meta = {
         cssClasses: ''
@@ -351,7 +379,14 @@ export class PreciosProductosComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (!item?.Cliente.id || !item?.ProductoCodigo.length || !item?.PeriodoDesdeAplica || !item?.Importe) {
+      const rowComplete = !!item?.Cliente?.id
+        && !!item?.ProductoCodigo?.length
+        && !!item?.PeriodoDesdeAplica
+        && item?.Importe != null
+
+      const hasInput = !!item?.Cliente?.id || !!item?.ProductoCodigo?.length || item?.Importe != null
+
+      if (!rowComplete && hasInput) {
         meta.cssClasses = 'element-add-no-complete'
       }
       else
