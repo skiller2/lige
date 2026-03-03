@@ -259,34 +259,11 @@ export class ParametroVentaFormComponent implements OnInit {
 
     if (this.ClienteId() && this.PeriodoDesdeAplica() && this.ClienteElementoDependienteId()) {
       await this.load();
-      this.applyViewMode(readonly);
     } else {
       this.pendingViewLoad.set(true);
     }
   }
 
-  private applyViewMode(readonly: boolean): void {
-    /*
-    if (readonly) {
-  this.formParametroVenta.disable();
-  this.infoProductos().disable();
-  } else {
-  this.formParametroVenta.enable();
-  // Deshabilitar ImporteTotal después de habilitar el formulario
-  this.infoProductos().controls.forEach(control => {
-    control.get('ImporteTotal')?.disable();
-  });
-  }
-  this.formParametroVenta.markAsPristine();
-  */
-  }
-
-  /*
-  private async executeViewLoad(): Promise<void> {
-  await this.load();
-  this.applyViewMode(this.viewReadonly());
-  }
-  */
 
   async load() {
 
@@ -328,66 +305,11 @@ export class ParametroVentaFormComponent implements OnInit {
 
       } catch (e: any) {
         console.error('Error al guardar condición de venta:', e.error.data.fieldErrors);
-/*
-        const errors: ValidationError.WithOptionalField[] = [];
-        const key:string='hola'
-        errors.push({
-          fieldTree: this.formParametroVenta().get('PeriodoDesdeAplica'),
-//          fieldTree: form.get('PeriodoDesdeAplica'),
-          kind: 'server',
-          message: 'Test uno dos tre'
-        });
-
-
-
-        const fieldErrors = e.error.data.fieldErrors.map((fe: any) => {
-          const path = fe.fieldTree.replace(/\[(\d+)\]/g, '.$1'); // normalización opcional
-          //const ft = this.formParametroVenta[fe.fieldTree]
-          const ft = this.formParametroVenta().get(fe.fieldTree);
-          return {
-            path,
-            fieldTree: ft,
-
-            kind: fe.kind,
-            message: fe.message,
-          };
-        });
-
-
-        return fieldErrors;
-
-
-        errors.push({
-          //fieldTree: form.PeriodoDesdeAplica,
-          fieldTree: form['PeriodoDesdeAplica'],
-          kind: 'server',
-          message: 'Name is not valid'
-        });
-        console.log('errores', errors)
-        return errors;
-        if (e.error.data.fieldErrors) {
-
-          // Return the errors to the submit function, which applies them to the form
-          return e.error.data.fieldErrors;
-
-        }
-        */
       }
     })
   }
   
-  /*
-    calcularTotal(index: number) {
-      const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
-      const importeUnitario = this.infoProductos().at(index)?.get('ImporteUnitario')?.value;
-      const importeTotal = Number(cantidad) * Number(importeUnitario);
-      this.infoProductos().at(index)?.patchValue({
-        ImporteTotal: importeTotal
-      })
-      this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
-    }
   
-  */
 
   clearForm(): void {
     this.parametroVenta.set(this.defaultFormParamVenta)
