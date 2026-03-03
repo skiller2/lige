@@ -126,26 +126,24 @@ export class DocumentoController extends BaseController {
     },
     {
       id: "FechaDescarga",
-      name: "Fecha Ultima Descarga",
+      name: "Fecha Descarga",
       field: "FechaDescarga",
       type: "date",
       fieldName: "dd.FechaDescarga",
-      searchComponent: "inputForFechaSearch",
       searchType: "date",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
       hidden: false,
     },
     {
-      id: "Telefono Ultima Descarga",
-      name: "Telefono",
+      id: "Telefono",
+      name: "Telefono Descarga",
       field: "Telefono",
       type: "string",
       fieldName: "dd.Telefono",
-      searchComponent: "inputForTelefonoSearch",
       searchType: "string",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
       hidden: false,
     }
   ];
@@ -334,9 +332,8 @@ export class DocumentoController extends BaseController {
 
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.Documentoanio = per.anio AND docg.Documentomes = per.mes
       LEFT JOIN Cliente AS cli ON docg.DocumentoClienteId = cli.ClienteId
-	  left JOIN DocumentoDescargaLog dd on dd.DocumentoId=docg.DocumentoId and (SELECT MAX(FechaDescarga) maxFechaDescarga FROM DocumentoDescargaLog dd WHERE dd.DocumentoId = docg.DocumentoId) = dd.FechaDescarga
+	  left JOIN DocumentoDescargaLog dd on dd.DocumentoId=docg.DocumentoId and (SELECT MIN(FechaDescarga) minFechaDescarga FROM DocumentoDescargaLog dd WHERE dd.DocumentoId = docg.DocumentoId) = dd.FechaDescarga
 	  
-
       WHERE ${filterSql}
       ${orderBy}
     `,)
