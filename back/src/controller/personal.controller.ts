@@ -3468,7 +3468,7 @@ UNION ALL
 
       if (archivo?.length && !DocumentoId) {
 
-        const file = archivo[0].file[0]
+        const file = archivo[0]
 
         const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
         const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
@@ -3478,14 +3478,14 @@ UNION ALL
 
         //Obtengo el CUIT
         let CUIT = await queryRunner.query(`
-          SELECT cuit.PersonalId
+          SELECT cuit.PersonalId, PersonalCUITCUILCUIT
           FROM PersonalCUITCUIL cuit 
           WHERE cuit.PersonalId IN (@0) AND PersonalCUITCUILHasta IS NULL
         `, [PersonalId])
         if (!CUIT.length) {
           throw new ClientException('No se pudo identificar el CUIT')
         }
-        const den_documento = CUIT[0].cuit
+        const den_documento = CUIT[0].PersonalCUITCUILCUIT
 
         const IdsRelacionados = {
           PersonalId: PersonalId,
@@ -3549,8 +3549,8 @@ UNION ALL
         throw valsTipoDocumento
 
       if (archivo?.length && !DocumentoId) {
-
-        const file = archivo[0].file[0]
+        
+        const file = archivo[0]
 
         const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
         const DocumentoFechaDocumentoVencimiento = file.DocumentoFechaDocumentoVencimiento ? new Date(file.DocumentoFechaDocumentoVencimiento) : null
@@ -3560,14 +3560,14 @@ UNION ALL
 
         //Obtengo el CUIT
         let CUIT = await queryRunner.query(`
-          SELECT cuit.PersonalId
+          SELECT cuit.PersonalId, PersonalCUITCUILCUIT
           FROM PersonalCUITCUIL cuit 
           WHERE cuit.PersonalId IN (@0) AND PersonalCUITCUILHasta IS NULL
         `, [PersonalId])
         if (!CUIT.length) {
           throw new ClientException('No se pudo identificar el CUIT')
         }
-        const den_documento = CUIT[0].cuit
+        const den_documento = CUIT[0].PersonalCUITCUILCUIT
 
         const IdsRelacionados = {
           PersonalId: PersonalId,
