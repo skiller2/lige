@@ -4,7 +4,9 @@ import type { QueryRunner } from "typeorm";
 
 export class ClientException extends Error {
   messageArr: string[]
-  constructor(message: string | string[], public extended: any = '', public code: number = 0) {
+  code: number;
+  extended: any;
+  constructor(message: string | string[], extended: any = '', code: number = 0) {
     if (message instanceof Array) {
       super(message.join(', '))
       this.messageArr = message
@@ -15,16 +17,20 @@ export class ClientException extends Error {
     this.name = "ClientException";
     if (extended)
       this.stack += "\nExtra: " + extended
+
+    this.extended = extended;
+    this.code = code;
   }
 }
 
 export class ClientWarning extends Error {
   messageArr: string[];
-
+  code: number;
+  extended: any;
   constructor(
     message: string | string[],
-    public extended: any = '',
-    public code: number = 0
+    extended: any = '',
+    code: number = 0
   ) {
     if (message instanceof Array) {
       super(message.join(', '));
@@ -39,6 +45,8 @@ export class ClientWarning extends Error {
     if (extended) {
       this.stack += "\nExtra: " + extended;
     }
+    this.extended = extended;
+    this.code = code;
   }
 }
 
