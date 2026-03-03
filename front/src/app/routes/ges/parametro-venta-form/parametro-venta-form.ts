@@ -259,34 +259,11 @@ export class ParametroVentaFormComponent implements OnInit {
 
     if (this.ClienteId() && this.PeriodoDesdeAplica() && this.ClienteElementoDependienteId()) {
       await this.load();
-      this.applyViewMode(readonly);
     } else {
       this.pendingViewLoad.set(true);
     }
   }
 
-  private applyViewMode(readonly: boolean): void {
-    /*
-    if (readonly) {
-  this.formParametroVenta.disable();
-  this.infoProductos().disable();
-  } else {
-  this.formParametroVenta.enable();
-  // Deshabilitar ImporteTotal después de habilitar el formulario
-  this.infoProductos().controls.forEach(control => {
-    control.get('ImporteTotal')?.disable();
-  });
-  }
-  this.formParametroVenta.markAsPristine();
-  */
-  }
-
-  /*
-  private async executeViewLoad(): Promise<void> {
-  await this.load();
-  this.applyViewMode(this.viewReadonly());
-  }
-  */
 
   async load() {
 
