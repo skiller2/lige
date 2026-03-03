@@ -536,9 +536,8 @@ export class ParametrosVentaController extends BaseController {
         }
         if (!ParametroVenta.PeriodoDesdeAplica) {
             throw new ClientException(`Debe completar el campo Período.`, {
-                fieldErrors: [{
-                    PeriodoDesdeAplica:[{ kind: 'server', message: 'Debe completar el campo Período' }],
-                }]
+                fieldErrors: [{ fieldTree: 'PeriodoDesdeAplica', kind: 'server', message: 'Debe completar el campo Período' }],
+                
             })
         }
         if (!ParametroVenta.PeriodoFacturacion) {
