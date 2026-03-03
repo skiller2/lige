@@ -304,8 +304,7 @@ export class ParametroVentaFormComponent implements OnInit {
         this.refreshCondVenta.update(v => v + 1)
 
       } catch (e: any) {
-        if (e.error.data.fieldErrors)
-          return this.apiService.formBackendErrors(form, e.error.data.fieldErrors);
+          return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
       return undefined
 
