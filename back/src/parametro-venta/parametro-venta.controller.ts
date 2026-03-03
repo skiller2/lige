@@ -389,6 +389,8 @@ export class ParametrosVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const ParametroVenta = { ...req.body };
 
+        console.log('ParametroVenta', ParametroVenta)
+
         try {
 
             //validaciones
@@ -417,7 +419,7 @@ export class ParametrosVentaController extends BaseController {
             const existeParametroVenta =
                 await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM ParametroVenta 
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND PeriodoDesdeAplica = @2`,
-                    [objetivoInfo.clienteId, objetivoInfo.ClienteElementoDependienteId, PeriodoDesdeAplica]);
+                    [ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId, PeriodoDesdeAplica]);
 
             if (existeParametroVenta.length > 0) throw new ClientException(`Ya existe una condición de venta para el objetivo ${existeParametroVenta[0].ClienteId}/${existeParametroVenta[0].ClienteElementoDependienteId} en el periodo ${mes}/${anio}.`)
 
@@ -444,8 +446,8 @@ export class ParametrosVentaController extends BaseController {
                     AudFechaMod,
                     AudUsuarioMod,
                     AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18)`,
-                [objetivoInfo.clienteId,
-                objetivoInfo.ClienteElementoDependienteId,
+                [ParametroVenta.ClienteId,
+                    ParametroVenta.ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
                     null,
                     null,
@@ -482,8 +484,8 @@ export class ParametrosVentaController extends BaseController {
                         ParametroVentaDetalleId
                     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
                         [
-                            objetivoInfo.clienteId, // ClienteId
-                            objetivoInfo.ClienteElementoDependienteId, // ClienteElementoDependienteId
+                            ParametroVenta.ClienteId, // ClienteId
+                            ParametroVenta.ClienteElementoDependienteId, // ClienteElementoDependienteId
                             PeriodoDesdeAplica, // PeriodoDesdeAplica
                             producto.ProductoCodigo, // ProductoCodigo
                             producto.TextoFactura, // TextoFactura
@@ -505,8 +507,8 @@ export class ParametrosVentaController extends BaseController {
 
 
             const result = {
-                ClienteId: objetivoInfo.clienteId,
-                ClienteElementoDependienteId: objetivoInfo.ClienteElementoDependienteId,
+                ClienteId: ParametroVenta.ClienteId,
+                ClienteElementoDependienteId: ParametroVenta.ClienteElementoDependienteId,
                 PeriodoDesdeAplica: ParametroVenta.PeriodoDesdeAplica
             }
 
@@ -541,7 +543,10 @@ export class ParametrosVentaController extends BaseController {
         if (!ParametroVenta.PeriodoFacturacion) {
             throw new ClientException(`Debe completar el campo Período Facturación.`)
         }
-        if (!ParametroVenta.GeneracionFacturaReqCliente) {
+        if (ParametroVenta.GeneracionFacturaReqCliente) {
+            ParametroVenta.GeneracionFacturaDia = null;
+            ParametroVenta.GeneracionFacturaDiaComplemento = null;
+        } else {
             if (!ParametroVenta.GeneracionFacturaDia) {
                 throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
             }
@@ -550,12 +555,12 @@ export class ParametrosVentaController extends BaseController {
             if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
                 throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
             }
-        }
 
-        if (ParametroVenta.GeneracionFacturaDiaComplemento != null && ParametroVenta.GeneracionFacturaDiaComplemento !== '') {
-            const generacionDiaComplemento = Number(ParametroVenta.GeneracionFacturaDiaComplemento);
-            if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 31) {
-                throw new ClientException(`El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31.`)
+            if (ParametroVenta.GeneracionFacturaDiaComplemento != null && ParametroVenta.GeneracionFacturaDiaComplemento !== '') {
+                const generacionDiaComplemento = Number(ParametroVenta.GeneracionFacturaDiaComplemento);
+                if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 31) {
+                    throw new ClientException(`El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31.`)
+                }
             }
         }
 
