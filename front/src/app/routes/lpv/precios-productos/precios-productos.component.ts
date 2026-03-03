@@ -205,7 +205,7 @@ export class PreciosProductosComponent {
       this.angularGridEdit.slickGrid.invalidate();
 
       //Solo deja editar el importe de los productos ya creados
-      if (row.idTable?.length && column.id != 'Importe' && SlickGlobalEditorLock.cancelCurrentEdit()) {
+      if (row.idTable?.length && column.id != 'Importe' && column.id != 'PeriodoDesdeAplica' && SlickGlobalEditorLock.cancelCurrentEdit()) {
         editCommand.undo();
         return
       }
@@ -402,7 +402,7 @@ export class PreciosProductosComponent {
     if (!item.idTable?.length)
       return true
 
-    if (column.id == 'Importe')
+    if (column.id == 'Importe' || column.id == 'PeriodoDesdeAplica')
       return true
 
     e.stopImmediatePropagation();

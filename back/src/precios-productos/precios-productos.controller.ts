@@ -275,7 +275,7 @@ export class PreciosProductosController extends BaseController {
                 const PeriodoDesdeAplicaOLD = new Date(req.body.PeriodoDesdeAplicaOLD)
                 // const ImporteOLD = req.body.ImporteOLD
 
-                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId || PeriodoDesdeAplicaOLD.getTime() != PeriodoDesdeAplica.getTime()) {
+                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId) {
                     throw new ClientException('Solo puede ser modificado el importe unitario en registros existentes')
                 }
                 
