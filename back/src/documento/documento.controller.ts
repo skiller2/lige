@@ -124,6 +124,30 @@ export class DocumentoController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
+    {
+      id: "FechaDescarga",
+      name: "Fecha Ultima Descarga",
+      field: "FechaDescarga",
+      type: "date",
+      fieldName: "dd.FechaDescarga",
+      searchComponent: "inputForFechaSearch",
+      searchType: "date",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      id: "Telefono Ultima Descarga",
+      name: "Telefono",
+      field: "Telefono",
+      type: "string",
+      fieldName: "dd.Telefono",
+      searchComponent: "inputForTelefonoSearch",
+      searchType: "string",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    }
   ];
 
   listaPersonalDescarga: any[] = [
@@ -290,24 +314,29 @@ export class DocumentoController extends BaseController {
       docg.DocumentoId,
       docg.DocumentoDenominadorDocumento,
       tipo.DocumentoTipoDetalle AS DocumentoTipoDetalle,
-      docg.DocumentoTipoCodigo AS DocumentoTipoCodigo, 
+      docg.DocumentoTipoCodigo AS DocumentoTipoCodigo,
       docg.DocumentoFecha, docg.DocumentoFechaDocumentoVencimiento,
       case when pers.PersonalId is null then ''
         else CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) end as ApellidoNombre,
-      obj.ObjetivoId, 
-      case when eledep.ClienteElementoDependienteId is null then '' 
+      obj.ObjetivoId,
+      case when eledep.ClienteElementoDependienteId is null then ''
         else CONCAT(eledep.ClienteId,'/', eledep.ClienteElementoDependienteId, ' ', TRIM(cliele.ClienteDenominacion), ' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) end as ClienteElementoDependienteDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
-      FROM Documento AS docg   
+	  , dd.FechaDescarga,dd.Telefono
+
+      FROM Documento AS docg
       LEFT JOIN DocumentoTipo AS tipo ON docg.DocumentoTipoCodigo = tipo.DocumentoTipoCodigo
-      LEFT JOIN Personal AS pers ON docg.PersonalId = pers.PersonalId 
+      LEFT JOIN Personal AS pers ON docg.PersonalId = pers.PersonalId
       LEFT JOIN Objetivo AS obj ON docg.ObjetivoId = obj.ObjetivoId
 
-      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId 
+      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN Cliente AS cliele on cliele.ClienteId = eledep.ClienteId
 
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.Documentoanio = per.anio AND docg.Documentomes = per.mes
       LEFT JOIN Cliente AS cli ON docg.DocumentoClienteId = cli.ClienteId
+	  left JOIN DocumentoDescargaLog dd on dd.DocumentoId=docg.DocumentoId and (SELECT MAX(FechaDescarga) maxFechaDescarga FROM DocumentoDescargaLog dd WHERE dd.DocumentoId = docg.DocumentoId) = dd.FechaDescarga
+	  
+
       WHERE ${filterSql}
       ${orderBy}
     `,)
