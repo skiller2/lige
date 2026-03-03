@@ -33,9 +33,9 @@ export interface ParametroVentaForm {
   PeriodoDesdeAplica: string;
   PeriodoFacturacion: string;
   PeriodoFacturacionInicio: string;
-  GeneracionFacturaDia: number | null;             // 1..31
+  GeneracionFacturaDia: number;             // 1..31
   GeneracionFacturaReqCliente: boolean;
-  GeneracionFacturaDiaComplemento: number | null;  // 1..31 opcional
+  GeneracionFacturaDiaComplemento: number;  // 1..31 opcional
   UnificacionFactura: boolean;
   Observaciones: string;
   infoProductos: Producto[];
@@ -77,7 +77,7 @@ export function periodRange(
 }
 
 export function numericRange(
-  path: SchemaPathTree<number | null>,
+  path: SchemaPathTree<number | null | string>,
   opts: {
     min: number; max: number; optional?: boolean; message?: string;
     when: (ctx: any) => boolean;      // <- condición para ejecutar la validación
