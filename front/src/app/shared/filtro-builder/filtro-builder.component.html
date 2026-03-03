@@ -68,14 +68,14 @@
     <app-efecto-individual-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
     }
-    @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
+   <!-- @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
     <app-seguro-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
-    }
-    @if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
+    } -->
+   <!--@if (selections.field.searchComponent=='inputForTipoSeguroSearch') {
     <app-administrador-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
-    }
+    } -->
     @if (selections.field.searchComponent=='inputForGrupoActividadSearch') {
     <app-grupo-actividad-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />

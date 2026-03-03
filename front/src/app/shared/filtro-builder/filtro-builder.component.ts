@@ -55,7 +55,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   selector: 'shared-filtro-builder',
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent, EfectoIndividualSearchComponent,
-    TipoAsociadoCategoriaSearchComponent, RequirenteSearchComponent, AdministradorSearchComponent, SeguroSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
+    TipoAsociadoCategoriaSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
