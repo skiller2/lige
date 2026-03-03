@@ -61,6 +61,7 @@ import { DomicilioController } from "../domicilio/domicilio.controller.ts";
 import { HabilitacionesController } from "../habilitaciones/habilitaciones.controller.ts";
 import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
 import { SalarioMinimoVitalMovilController } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.controller.ts";
+import { OrdenesDeVentaController } from "../ordenes-de-venta/ordenes-de-venta.controller.ts";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -125,3 +126,4 @@ export const efectoController = new EfectoController()
 export const habilitacionesController = new HabilitacionesController()
 export const parametrosVentaController = new ParametrosVentaController()
 export const salarioMinimoVitalMovilController = new SalarioMinimoVitalMovilController()
+export const ordenesDeVentaController = new OrdenesDeVentaController()

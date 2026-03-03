@@ -613,7 +613,7 @@ export class RecibosController extends BaseController {
             throw new ClientException(`Error al generar el recibo unificado ${origpath}`);
 
           const pdfBytes = await fs.promises.readFile(origpath);
-          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const pdfDoc = await PDFDocument.load(new Uint8Array(pdfBytes));
           const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
 
           for (const pg of copiedPages) mergedPdf.addPage(pg)
@@ -727,7 +727,7 @@ export class RecibosController extends BaseController {
 
     for (const archivo of archivosPDF) {
       const contenidoPDF = fs.readFileSync(path.join(rutaDirectorio, archivo));
-      const pdf = await PDFDocument.load(contenidoPDF);
+      const pdf = await PDFDocument.load(new Uint8Array(contenidoPDF));
       const paginas = pdf.getPages();
 
       for (const pagina of paginas) {

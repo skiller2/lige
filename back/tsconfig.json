@@ -16,9 +16,9 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "esModuleInterop":true,
-    "module": "ESNext",
+    "module": "nodenext",
     "target": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "nodenext",
     "importHelpers": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
@@ -37,7 +37,7 @@
     ],
     "lib": [
       "es2021",
-    ]
+    ],
   },
   
   "exclude": ["scripts/**","dist/**","node_modules/**"]

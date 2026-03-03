@@ -3,15 +3,10 @@ import { dataSource } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import {
   filtrosToSql,
-  getOptionsFromRequest,
   isOptions,
   orderToSQL,
 } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
-import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import type { TextItem } from "pdfjs-dist/types/src/display/api";
-import * as path from 'path';
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import * as fs from 'fs';
 import { promisify } from 'util';

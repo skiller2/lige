@@ -636,7 +636,8 @@ export class AccesoBotController extends BaseController {
             const normalizedPath = fullPath.replace(/\\/g, '/');
 
 
-            const resBuffer = Buffer.from(readFileSync(normalizedPath));
+            // readFileSync returns a Buffer already; no need to call Buffer.from()
+            const resBuffer: Buffer = readFileSync(normalizedPath) as Buffer;
 
             const hints = new Map();
             const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX/*, ...*/];

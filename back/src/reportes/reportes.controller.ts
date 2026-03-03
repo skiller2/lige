@@ -119,10 +119,10 @@ export class ReportesController extends BaseController {
             break;
         }
   
-        const buffer = await report.buffer();
+        const buffer = await report.arrayBuffer();
         const tmpfilename = `${this.directory}/${tmpName(this.directory)}`;
-  
-        writeFileSync(tmpfilename, buffer);
+
+        writeFileSync(tmpfilename, new Uint8Array(buffer));
   
         res.download(tmpfilename, `${Reporte}.${extension}`, (msg) => {
           unlinkSync(tmpfilename);

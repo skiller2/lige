@@ -913,7 +913,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       if (fileExists) {
         currentFileBuffer = readFileSync(filePath);
-        currentFilePDF = await PDFDocument.load(currentFileBuffer);
+        currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         let embeddedPage: PDFEmbeddedPage = null;

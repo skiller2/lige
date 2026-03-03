@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/basecontroller.ts
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 //import { getDocument } from "pdfjs-dist";
-import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api.d.ts";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 
 
@@ -599,7 +599,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         const currentFileBuffer = readFileSync(file.path);
         const fileUploadController = new FileUploadController()
         const pdfDoc = await PDFDocument.create();
-        const srcDoc = await PDFDocument.load(currentFileBuffer);
+        const srcDoc = await PDFDocument.load(new Uint8Array(currentFileBuffer));
 
         const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1]);
         const [copiedPage] = copiedPages;
@@ -908,7 +908,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       if (fileExists) {
         currentFileBuffer = readFileSync(fullPath);
-        currentFilePDF = await PDFDocument.load(currentFileBuffer);
+        currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         let embeddedPage: PDFEmbeddedPage = null;
@@ -1139,15 +1139,16 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (!existsSync(fullPath))
         throw new ClientException(`El archivo de monotributo no se encontró ${month}/${year}, CUIT:${cuit} .`);
 
-      const uint8Array = readFileSync(fullPath);
+      const fileBuffer = readFileSync(fullPath);
 
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
       const ApellidoNombre = comprobante.ApellidoNombre;
       const GrupoActividadDetalle = comprobante.GrupoActividadDetalle;
 
+      // readFileSync returns a Buffer – convert it to Uint8Array for alterPDF
       const buffer = await this.alterPDF(
-        uint8Array,
+        new Uint8Array(fileBuffer),
         ApellidoNombre,
         GrupoActividadDetalle
       );
@@ -1162,12 +1163,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
   }
 
   async alterPDF(
-    bufferPDF: Uint8Array,
+    bufferPDF: Uint8Array | Buffer,
     ApellidoNombre: string,
     GrupoActividadDetalle: string
   ) {
     if (bufferPDF.length == 0) return;
-    const originPDF = await PDFDocument.load(bufferPDF);
+    const originPDF = await PDFDocument.load(new Uint8Array(bufferPDF));
     const originPDFPages = originPDF.getPages();
     if (originPDFPages.length == 0) return;
 
