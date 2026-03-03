@@ -13,6 +13,9 @@
       <nz-date-picker [formField]="formParametroVenta.PeriodoDesdeAplica" nzMode="month" nzFormat="MM/yyyy"
         style="width: 100%;">
       </nz-date-picker>
+        @for (e of formParametroVenta.PeriodoDesdeAplica().errors(); track e.kind) {
+          <div class="ant-form-item-explain-error">{{ e.message ?? e.kind }}</div>
+        }
 
     </nz-form-control>
   </nz-form-item>

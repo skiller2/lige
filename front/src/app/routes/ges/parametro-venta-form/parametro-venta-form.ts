@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
-import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, required, submit, type ValidationError} from '@angular/forms/signals';
 
 
 export interface Producto {
@@ -321,12 +321,20 @@ export class ParametroVentaFormComponent implements OnInit {
         await this.load();
         this.refreshCondVenta.update(v => v + 1)
 
-      } catch (e) {
+      } catch (e: any) {
         console.error('Error al guardar condición de venta:', e);
+
+        if (e.error.data.fieldErrors) {
+
+          // Return the errors to the submit function, which applies them to the form
+          return e.error.data.fieldErrors;
+
+        }
       }
+      return undefined
     })
   }
-  
+
   /*
     calcularTotal(index: number) {
       const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;

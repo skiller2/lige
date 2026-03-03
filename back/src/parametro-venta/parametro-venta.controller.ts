@@ -533,7 +533,11 @@ export class ParametrosVentaController extends BaseController {
             throw new ClientException(`Debe completar el campo Objetivo.`)
         }
         if (!ParametroVenta.PeriodoDesdeAplica) {
-            throw new ClientException(`Debe completar el campo Período.`)
+            throw new ClientException(`Debe completar el campo Período.`, {
+                fieldErrors: [{
+                    PeriodoDesdeAplica:[{ kind: 'server', message: 'Debe completar el campo Período' }],
+                }]
+            })
         }
         if (!ParametroVenta.PeriodoFacturacion) {
             throw new ClientException(`Debe completar el campo Período Facturación.`)
@@ -669,7 +673,7 @@ export class ParametrosVentaController extends BaseController {
                 [ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica])
     }
 
-    async getInfoProductos(queryRunner: any, ClienteId:number, ClienteElementoDependienteId:number, PeriodoDesdeAplica: Date) {
+    async getInfoProductos(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
             SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, par.ImporteUnitario, par.CantidadEstandar AS CantidadReferencia
@@ -858,7 +862,7 @@ export class ParametrosVentaController extends BaseController {
 
             let autorizadas = 0;
             let yaAutorizadas = 0;
-            
+
             for (const condicion of condiciones) {
                 const PeriodoDesdeAplica = new Date(condicion.PeriodoDesdeAplica);
                 PeriodoDesdeAplica.setHours(0, 0, 0, 0);
