@@ -332,6 +332,7 @@ export class PreciosProductosController extends BaseController {
             `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
             if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
             
+            if (Importe <= 0) throw new ClientException('El importe debe ser mayor a 0')
             await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
             await queryRunner.commitTransaction()
@@ -769,6 +770,10 @@ export class PreciosProductosController extends BaseController {
                 }
                 CUITs.push(CUIT)
                 
+                if (Importe <= 0) {
+                    dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'El Importe Unitario debe ser mayor a 0.', RazonSocial })
+                    continue
+                }
                 await this.addProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip, docId)
 
                 altaProductoPrecios++
