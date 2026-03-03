@@ -3424,9 +3424,9 @@ UNION ALL
       if (desdeDocHabilitacion && DocumentoTipoCodigo) campos_vacios.push(`- Desde (Archivo)`)
     }
 
-    if (!Exencion && PersonalExencionDesde) {
-      campos_vacios.push('- Exención')
-    }
+    // if (!Exencion && PersonalExencionDesde) {
+    //   campos_vacios.push('- Exención')
+    // }
 
     if (Exencion && !PersonalExencionDesde) {
       campos_vacios.push('- Desde')
