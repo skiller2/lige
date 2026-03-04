@@ -20,7 +20,9 @@ import { ColsFilterPipe } from './utils/cols-pipe';
 import { UrlAuthPipe } from './utils/url-auth-pipe';
 import { NgxMaskDirective } from 'ngx-mask';
 import { DotToCommaDirective } from './dot-coma/dot-coma';
+
 import { I18NCurrencyPipe } from './utils/i18n-currency.pipe';
+import { SfErrorTipDirective } from './sf-error-tip/sf-error-tip';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -56,6 +58,8 @@ export const SHARED_IMPORTS = [
   AngularSlickgridModule,
   NgxMaskDirective,
   DotToCommaDirective,
+  SfErrorTipDirective,
+
   ...SHARED_DELON_MODULES,
   ...SHARED_ZORRO_MODULES
 ];

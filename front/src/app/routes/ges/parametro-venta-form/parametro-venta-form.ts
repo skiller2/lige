@@ -102,7 +102,7 @@ export function numericRange(
 
 @Component({
   selector: 'app-parametro-venta-form',
-  imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, FormField, FormsModule,
+  imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, FormField, FormsModule
   ],
   templateUrl: './parametro-venta-form.html',
   styleUrl: './parametro-venta-form.less',
@@ -289,7 +289,7 @@ export class ParametroVentaFormComponent implements OnInit {
   }
 
   async save() {
-    await submit(this.formParametroVenta, async (form:FieldTree<ParametroVentaForm>) => {
+    await submit(this.formParametroVenta, async (form) => {
       try {
         const formValue = form().value();
 
@@ -304,12 +304,25 @@ export class ParametroVentaFormComponent implements OnInit {
         this.refreshCondVenta.update(v => v + 1)
 
       } catch (e: any) {
-        console.error('Error al guardar condición de venta:', e.error.data.fieldErrors);
+          return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
+      return undefined
+
     })
   }
+
+  /*
+    calcularTotal(index: number) {
+      const cantidad = this.infoProductos().at(index)?.get('CantidadHoras')?.value;
+      const importeUnitario = this.infoProductos().at(index)?.get('ImporteUnitario')?.value;
+      const importeTotal = Number(cantidad) * Number(importeUnitario);
+      this.infoProductos().at(index)?.patchValue({
+        ImporteTotal: importeTotal
+      })
+      this.infoProductos().at(index)?.get('ImporteTotal')?.disable();
+    }
   
-  
+  */
 
   clearForm(): void {
     this.parametroVenta.set(this.defaultFormParamVenta)

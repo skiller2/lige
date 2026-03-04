@@ -83,6 +83,7 @@ export class NovedadController extends BaseController {
 
 
   async addNovedad(novedad: any, Telefono: string, PersonalId: number) {
+    console.log("novedad",novedad)
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
 
@@ -90,7 +91,7 @@ export class NovedadController extends BaseController {
 
     const Descripcion = novedad.Descripcion
     const Accion = novedad.Accion
-    const NovedadTipoCod = novedad.Tipo.NovedadTipoCod
+    const NovedadTipoCod = novedad.Tipo.NovedadTipoCod || novedad.TipoNovedadId
     const now: Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
     const NovedadCodigo = await BaseController.getProxNumero(dbServer.dataSource, `Novedad`, 'bot', '::1')

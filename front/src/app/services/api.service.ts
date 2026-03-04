@@ -11,6 +11,7 @@ import { HttpContext } from '@angular/common/http';
 import { ALLOW_ANONYMOUS } from '@delon/auth';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
 import { I18NService } from '@core';
+import { FieldTree, ValidationError } from '@angular/forms/signals';
 
 
 @Injectable({
@@ -201,7 +202,7 @@ export class ApiService {
         hideCopyCellValueCommand: false,
         hideExpandAllGroups: false,
         hideExportCsvCommand: false,
-//        hideCommands: [],
+        //        hideCommands: [],
         hideExportExcelCommand: false,
         hideExportTextDelimitedCommand: true,
         hideMenuOnScroll: true,
@@ -514,27 +515,27 @@ export class ApiService {
     )
   }
 
-  setIaPrompt(iaPrompt: string,iaPromptHash:string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt,iaPromptHash }).pipe(
+  setIaPrompt(iaPrompt: string, iaPromptHash: string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt, iaPromptHash }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
   getIaPrompt(): Observable<unknown> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iaprompt').pipe(
-      map(res=>res)
+      map(res => res)
     )
   }
 
-  setIaTools(iaTools: string,iaToolsHash:string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools,iaToolsHash }).pipe(
+  setIaTools(iaTools: string, iaToolsHash: string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools, iaToolsHash }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
   getIaTools(): Observable<unknown> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iatools').pipe(
-      map(res=>res)
+      map(res => res)
     )
   }
 
@@ -1679,8 +1680,8 @@ export class ApiService {
       );
   }
 
-  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string, ComprobanteNumero:string) {
-    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB, Observaciones,ComprobanteNumero }).pipe(map(res => res.data))
+  setValorFacturacion(anio: number, mes: number, ObjetivoId: number, ImporteHoraA: number, ImporteHoraB: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string, ComprobanteNumero: string) {
+    return this.http.post<ResponseJSON<any>>('api/importe-venta-vigilancia/valorFacturacion', { anio, mes, ObjetivoId, ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB, Observaciones, ComprobanteNumero }).pipe(map(res => res.data))
   }
 
   importXLSImporteVenta(files: any, anio: number, mes: number) {
@@ -2056,7 +2057,7 @@ export class ApiService {
       })
     );
   }
-  
+
   getObjetivoByCliEle(ClienteId: number, ClienteElementoDependienteId: number): Observable<any> {
     if (!ClienteId || !ClienteElementoDependienteId) return of({});
     return this.http.get<ResponseJSON<any>>(`api/parametros-venta/objetivo/${ClienteId}/${ClienteElementoDependienteId}`).pipe(
@@ -2069,7 +2070,7 @@ export class ApiService {
 
   getPrecioListaPrecios(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number, ProductoCodigo: string): Observable<any> {
     //TODO: Cambiar por ObjetivoId
-    if (!ClienteId ||  !ProductoCodigo) return of(null);
+    if (!ClienteId || !ProductoCodigo) return of(null);
     return this.http.get<ResponseJSON<any>>(`api/parametros-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError((err) => {
@@ -2097,6 +2098,47 @@ export class ApiService {
       catchError(() => of(null))
     );
   }
+  toSegments(path: string): (string | number)[] {
+    return path
+      .replace(/\[(\d+)\]/g, '.$1')   // brackets -> dots
+      .split('.')
+      .filter(Boolean)
+      .map(s => (/^\d+$/.test(s) ? +s : s));
+  }
+
+
+  fieldTreeOfPath(
+    root: FieldTree<Record<PropertyKey, unknown>>,
+    path: string
+  ): unknown /* Field */ {
+    let node: any = root;
+    for (const seg of this.toSegments(path)) {
+      node = node?.[seg];
+      if (node == null) return null;
+    }
+    return node;
+  }
+
+
+  formBackendErrors(
+    root: any,
+    backend: any[]
+  ): ValidationError.WithOptionalFieldTree[] {
+
+    if (!backend?.length) return [];
+    return (backend ?? []).map((e) => {
+      const field =
+        e.fieldTree ? this.fieldTreeOfPath(root, e.fieldTree) : undefined;
+
+      return {
+        kind: e.kind ?? 'server',
+        message: e.message,
+        ...(field ? { fieldTree: field as any } : null),
+      };
+    });
+  }
+
+
 
 }
 
