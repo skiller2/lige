@@ -37,7 +37,7 @@
 
     @if (periodoFacturacionDias()>=60) {
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" style="margin-left: 16px;">Inicio</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback [sfErrorTip]="formParametroVenta.PeriodoFacturacionInicio">
       <nz-date-picker [formField]="formParametroVenta.PeriodoFacturacionInicio" nzMode="month" nzFormat="MM/yyyy" style="width: 100%;">
       </nz-date-picker>
     </nz-form-control>
@@ -46,47 +46,35 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback >
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback nzHasFeedback [sfErrorTip]="formParametroVenta.GeneracionFacturaDia">
       <input nz-input [formField]="formParametroVenta.GeneracionFacturaDia" type="number"
         placeholder="Día del mes (1-31)" style="width: 100%;">
-
-     @if (formParametroVenta.GeneracionFacturaDia().touched() && formParametroVenta.GeneracionFacturaDia().invalid()) {
-        @for (e of formParametroVenta.GeneracionFacturaDia().errors(); track e.kind) {
-          <div class="ant-form-item-explain-error">{{ e.message ?? e.kind }}</div>
-        }
-      }
-
     </nz-form-control>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" style="margin-left: 16px;">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" style="margin-left: 16px;" nzHasFeedback [sfErrorTip]="formParametroVenta.GeneracionFacturaReqCliente">
       <label nz-checkbox [formField]="formParametroVenta.GeneracionFacturaReqCliente">Requerido por Cliente</label>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura (Complemento)</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11" nzHasFeedback
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11" nzHasFeedback [sfErrorTip]="formParametroVenta.GeneracionFacturaDiaComplemento"
       >
       <input nz-input [formField]="formParametroVenta.GeneracionFacturaDiaComplemento" type="number"
         placeholder="Día complemento (1-31 o vacío)" style="width: 100%;">
 
-      @if (formParametroVenta.GeneracionFacturaDiaComplemento().touched() && formParametroVenta.GeneracionFacturaDiaComplemento().invalid()) {
-        @for (e of formParametroVenta.GeneracionFacturaDiaComplemento().errors(); track e.kind) {
-          <div class="ant-form-item-explain-error">{{ e.message ?? e.kind }}</div>
-        }
-      }
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Unificación Factura</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback [sfErrorTip]="formParametroVenta.UnificacionFactura">
       <label nz-checkbox [formField]="formParametroVenta.UnificacionFactura"></label>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Observaciones</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback [sfErrorTip]="formParametroVenta.Observaciones">
       <textarea nz-input [formField]="formParametroVenta.Observaciones" placeholder="Ingrese observaciones"
         [nzAutosize]="{ minRows: 3, maxRows: 6 }">
       </textarea>
@@ -104,18 +92,13 @@
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Producto</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].ProductoCodigo">
           <nz-select nzAllowClear style="width:100%" nzPlaceholder="Producto" [formField]="formParametroVenta.infoProductos[i].ProductoCodigo"
             nzShowSearch [nzDropdownMatchSelectWidth]="false" >
             @for (option of optionsTipoProducto(); track option.ProductoCodigo) {
             <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
             }
           </nz-select>
-          @if (formParametroVenta.infoProductos[i].ProductoCodigo().touched() && formParametroVenta.infoProductos[i].ProductoCodigo().invalid()) {
-              @for (e of formParametroVenta.infoProductos[i].ProductoCodigo().errors(); track e.kind) {
-                <div class="ant-form-item-explain-error">{{ e.message ?? e.kind }}</div>
-              }
-            }
         </nz-form-control>
       </nz-form-item>
 
@@ -123,7 +106,7 @@
       <nz-form-item class="marginElement">
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Importe</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].TipoImporte">
           <nz-select [formField]="formParametroVenta.infoProductos[i].TipoImporte" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" >
             @for (option of optionsTipoImporte(); track option.value) {
@@ -133,7 +116,7 @@
           </nz-select>
         </nz-form-control>
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Unitario</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].ImporteUnitario">
           @if (parametroVenta().infoProductos[i].TipoImporte === 'V') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
               Cargar en el cierre de planilla por el responsable
@@ -169,7 +152,7 @@
       <nz-form-item class="marginElement">
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Cantidad</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].TipoCantidad">
           <nz-select [formField]="formParametroVenta.infoProductos[i].TipoCantidad" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" >
             @for (option of optionsTipoCantidad(); track option.value) {
@@ -180,7 +163,7 @@
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].CantidadHoras">
 
           @if (parametroVenta().infoProductos[i].TipoCantidad === 'V') {
             <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
@@ -209,7 +192,7 @@
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad de Referencia </nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].CantidadReferencia">
           <input
             appDotToComma
             mask="separator.2"
@@ -227,7 +210,7 @@
       <nz-form-item class="marginElement">
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto Factura</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16" nz-popover
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16" nzHasFeedback [sfErrorTip]="formParametroVenta.infoProductos[i].TextoFactura"   nz-popover
           [nzPopoverContent]="textFacturaTemplate">
           <textarea nz-input [formField]="formParametroVenta.infoProductos[i].TextoFactura" rows="3" style="width: 100%;"
             nzPlaceholder="Ingrese el texto de la factura"></textarea>
