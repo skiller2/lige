@@ -1568,7 +1568,7 @@ export class PersonalController extends BaseController {
 
       if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length)) {
         let campos_vacios = []
-     
+
         if (!infoEstudio.EstudioTitulo) campos_vacios.push('- Título Estudio')
         if (!infoEstudio.TipoEstudioId) campos_vacios.push('- Tipo Estudio')
         if (!infoEstudio.PersonalEstudioOtorgado) campos_vacios.push('- Fecha Estudio otorgado')
@@ -3390,15 +3390,17 @@ UNION ALL
   async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId: number = Number(req.params.id);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
 
     try {
 
       const PersonalExencion = await queryRunner.query(`
         SELECT PersonalExencionId, PersonalId, PersonalExencionDesde, PersonalExencionHasta
         FROM PersonalExencion
-        WHERE PersonalId IN (@0)
+        WHERE PersonalId IN (@0) and ISNULL(PersonalExencionHasta, '9999-12-31') >= @1 AND PersonalExencionDesde <= @1 
         ORDER BY PersonalExencionId DESC
-      `, [PersonalId])
+      `, [PersonalId, now])
 
       this.jsonRes(PersonalExencion, res);
     } catch (error) {
