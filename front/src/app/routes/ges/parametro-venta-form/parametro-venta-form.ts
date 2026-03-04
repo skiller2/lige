@@ -102,7 +102,7 @@ export function numericRange(
 
 @Component({
   selector: 'app-parametro-venta-form',
-  imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, FormField, FormsModule,
+  imports: [SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, FormField, FormsModule
   ],
   templateUrl: './parametro-venta-form.html',
   styleUrl: './parametro-venta-form.less',

@@ -10,6 +10,7 @@ export * from './utils/filter-type';
 
 export * from './down-file/down-file.directive'
 export * from './dot-coma/dot-coma'
+export * from './sf-error-tip/sf-error-tip';
 
 // Module
 export * from './shared-imports';

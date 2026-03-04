@@ -24,14 +24,9 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback >
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback [sfErrorTip]="formParametroVenta.PeriodoFacturacion" >
       <input nz-input [formField]="formParametroVenta.PeriodoFacturacion" placeholder="Ej: 1S, 1M, 1A" />
 
-      @if (formParametroVenta.PeriodoFacturacion().touched() && formParametroVenta.PeriodoFacturacion().invalid()) {
-        @for (e of formParametroVenta.PeriodoFacturacion().errors(); track e.kind) {
-          <div class="ant-form-item-explain-error">{{ e.message ?? e.kind }}</div>
-        }
-      }
 </nz-form-control>
 
     @if (periodoFacturacionDescripcion()) {
