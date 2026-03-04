@@ -23,7 +23,7 @@ import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.
         NgxExtendedPdfViewerModule, ImageLoaderComponent],
     providers: [AngularUtilService]
 })
-  
+
 export class PersonalDocumentosDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
@@ -44,7 +44,7 @@ export class PersonalDocumentosDrawerComponent {
         private apiService: ApiService,
     ) {
         effect(async () => {
-            const newId:number = this.PersonalId()
+            const newId: number = this.PersonalId()
             if (newId > 0) {
                 this.formDocumento.reset()
                 this.formDocumento.get('PersonalId')?.setValue(newId)
@@ -55,18 +55,18 @@ export class PersonalDocumentosDrawerComponent {
     private readonly tokenService = inject(DA_SERVICE_TOKEN);
 
     fb = inject(FormBuilder)
-    formDocumento = this.fb.group({ 
-        DocumentoId:0, PersonalId:0, DocumentoTipoCodigo: '', DocumentoDenominadorDocumento: null, Documentofecha: null, DocumentoFechaDocumentoVencimiento: null, archivo: [] 
+    formDocumento = this.fb.group({
+        DocumentoId: 0, PersonalId: 0, DocumentoTipoCodigo: '', DocumentoDenominadorDocumento: null, Documentofecha: null, DocumentoFechaDocumentoVencimiento: null, archivo: []
     })
 
     doc_id(): number {
-        const value = this.formDocumento.get("DocumentoId")?.value 
+        const value = this.formDocumento.get("DocumentoId")?.value
         if (value)
             return value
         return 0
     }
     doctipo_id(): string {
-        const value = this.formDocumento.get("DocumentoTipoCodigo")?.value 
+        const value = this.formDocumento.get("DocumentoTipoCodigo")?.value
         if (value)
             return value
         return ''
@@ -75,18 +75,18 @@ export class PersonalDocumentosDrawerComponent {
     selectedPersonalIdChange$ = new BehaviorSubject('');
     $listaDocumentosPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
-        switchMap(() =>{
+        switchMap(() => {
             setTimeout(async () => {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
-                this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
+                this.PersonalNombre.set(personal.PersonalApellido + ', ' + personal.PersonalNombre)
             }, 0);
             return this.searchService.getDocumentosByPersonal(Number(this.PersonalId()))
         })
     );
 
-    async ngOnInit(){
+    async ngOnInit() {
         this.selectedPersonalIdChange$.next('');
-        const options:any = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
+        const options: any = await firstValueFrom(this.searchService.getDocumentoTipoOptions())
         //aca filtra los tipos de documentos que no son de personal
         //const opcionsPersonal = options.filter((obj:any) => obj.des_den_documento.includes("Personal"))
         this.optionsLabels.set(options)
@@ -112,11 +112,11 @@ export class PersonalDocumentosDrawerComponent {
         this.isLoading.set(true)
         const values = this.formDocumento.value
         try {
-            if (values.DocumentoId){
+            if (values.DocumentoId) {
                 await firstValueFrom(this.apiService.updateDocumento(values))
             } else {
                 const res = await firstValueFrom(this.apiService.addDocumento(values))
-                if (res.data.DocumentoId){
+                if (res.data.DocumentoId) {
                     this.formDocumento.patchValue({ DocumentoId: res.data.DocumentoId })
                 }
             }
@@ -126,28 +126,28 @@ export class PersonalDocumentosDrawerComponent {
             this.resetFormValues()
         } catch (e) {
         }
-       
+
         this.isLoading.set(false)
     }
 
     resetForm() {
-        this.formDocumento.reset({PersonalId: this.PersonalId()})
+        this.formDocumento.reset({ PersonalId: this.PersonalId() })
     }
 
     resetFormValues() {
-        console.log('entre')
         this.formDocumento.patchValue({
             DocumentoId: 0,
             DocumentoTipoCodigo: '',
             DocumentoDenominadorDocumento: null,
             Documentofecha: null,
             DocumentoFechaDocumentoVencimiento: null,
-            archivo: null})
+            archivo: null
+        })
     }
 
     async LoadArchivo(url: string, filename: string) {
         this.modalViewerVisiable1.set(false)
-        this.src.set(await fetch(`${url}`,{headers:{token:this.tokenService.get()?.token ?? ''}}).then(res => res.blob()))
+        this.src.set(await fetch(`${url}`, { headers: { token: this.tokenService.get()?.token ?? '' } }).then(res => res.blob()))
         this.fileName.set(filename)
         this.modalViewerVisiable1.set(true)
     }
