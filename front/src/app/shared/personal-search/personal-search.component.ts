@@ -19,17 +19,17 @@ import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detall
 import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 
 @Component({
-    selector: 'app-personal-search',
-    templateUrl: './personal-search.component.html',
-    styleUrls: ['./personal-search.component.less'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => PersonalSearchComponent),
-            multi: true,
-        },
-    ],
-    imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent]
+  selector: 'app-personal-search',
+  templateUrl: './personal-search.component.html',
+  styleUrls: ['./personal-search.component.less'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => PersonalSearchComponent),
+      multi: true,
+    },
+  ],
+  imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent]
 })
 
 export class PersonalSearchComponent implements ControlValueAccessor {
@@ -39,14 +39,14 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-  private isDisabled =false
+  private isDisabled = false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
   private _selectedId: string = ''
-  _selected =signal('')
+  _selected = signal('')
   extendedOption = { PersonalId: 0, fullName: "" }
-  
+
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
   anio = input(0)
@@ -63,8 +63,8 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    console.log('onChange',this.psc)
-//    this.psc?.focus()
+    console.log('onChange', this.psc)
+    //    this.psc?.focus()
 
   }
 
@@ -76,14 +76,14 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     this.propagateTouched = fn
   }
 
-  ngOnDestroy() { 
+  ngOnDestroy() {
     this.psc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {
-//    this._lastInputEvent = event;
-//    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
-    if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    //    this._lastInputEvent = event;
+    //    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
@@ -95,7 +95,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       // this.psc.focus()  //Al hacer click en el componente hace foco
       this.psc.setDisabledState(this.isDisabled)
-     
+
     }, 1);
   }
 
@@ -104,7 +104,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
-  get selectedIdNum():number {
+  get selectedIdNum(): number {
     return parseInt(this._selectedId)
   }
 
@@ -117,12 +117,12 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
       if (this._selectedId == '' || this._selectedId == '0') {
         this.valueExtendedEmitter.emit({})
-        if (this._selected()!='')
+        if (this._selected() != '')
           this._selected.set('')
         this.propagateChange(this._selectedId)
         return
       }
-  
+
       firstValueFrom(
         this.searchService
           .getPersonFromName('PersonalId', this._selectedId)
@@ -131,11 +131,11 @@ export class PersonalSearchComponent implements ControlValueAccessor {
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
 
-//            if (this.tmpInputVal != this._selected()) {
-//              this.tmpInputVal = this._selected()
-              this.propagateChange(this._selectedId)
-//            }
-            
+            //            if (this.tmpInputVal != this._selected()) {
+            //              this.tmpInputVal = this._selected()
+            this.propagateChange(this._selectedId)
+            //            }
+
           }))
       )
 
@@ -143,7 +143,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
-    console.log('writeValue',value)
     if (value !== this._selectedId) {
       this.selectedId = value
     }
@@ -170,23 +169,23 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     this.$searchChange.next(value)
   }
 
-  focus() { 
+  focus() {
     console.log('focus')
 
   }
 
   visibleDrawer = signal(false)
   setDisabledState(isDisabled: boolean): void {
-    this.isDisabled =  isDisabled
+    this.isDisabled = isDisabled
     this.psc?.setDisabledState(isDisabled)
   }
 
-   openDrawer(): void {
-    this.visibleDrawer.set( true)
+  openDrawer(): void {
+    this.visibleDrawer.set(true)
   }
-  
+
   closeDrawer(): void {
-    this.visibleDrawer.set( false)
+    this.visibleDrawer.set(false)
   }
 
 }

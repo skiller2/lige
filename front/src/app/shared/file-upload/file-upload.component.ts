@@ -43,7 +43,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   constructor() {
     pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
 
-    effect(async() => {
+    effect(async () => {
       const desde = this.desdeSelected()
       const hasta = this.hastaSelected()
       if (!this.showDesdeHasta()) return this.disabledByDesdeHasta.set(false)
@@ -120,10 +120,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivosAnteriores(idForSearh: any) {
- 
-    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== ""){
-      console.log('this.docTiposValidos()[0]', this.docTiposValidos()[0]);
-      
+
+    if (this.docTiposValidos().length == 1 && this.docTiposValidos()[0] !== "") {
       this.tipoSelected.set(this.docTiposValidos()[0])
     }
 
@@ -138,7 +136,7 @@ export class FileUploadComponent implements ControlValueAccessor {
       this.cantFilesAnteriores.set(result.length)
       this.prevFiles.emit(result)
       this.files.set(result)
-      
+
     } else {
       this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)
@@ -270,7 +268,7 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.propagateChange = fn
   }
 
-  registerOnTouched(fn: any) {}
+  registerOnTouched(fn: any) { }
 
   writeValue(value: any) {
     //this.formChangeArchivos$.next('');
