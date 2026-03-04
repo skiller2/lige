@@ -2079,7 +2079,24 @@ export class ApiService {
     );
   }
 
+  getAvisos(): Observable<any[]> {
+    return this.http.get<ResponseJSON<any>>('api/aviso').pipe(
+      map((res: ResponseJSON<any>) => res.data),
+      catchError(() => of([]))
+    );
+  }
 
+  marcarAvisoVisto(AvisoId: number): Observable<any> {
+    return this.http.put<ResponseJSON<any>>('api/aviso/marcar-visto', { AvisoId }).pipe(
+      catchError(() => of(null))
+    );
+  }
+
+  marcarTodosAvisosVistos(): Observable<any> {
+    return this.http.put<ResponseJSON<any>>('api/aviso/marcar-todos-vistos', {}).pipe(
+      catchError(() => of(null))
+    );
+  }
 
 }
 
