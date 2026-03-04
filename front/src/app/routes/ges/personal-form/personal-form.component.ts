@@ -39,7 +39,7 @@ export class PersonalFormComponent {
   
   fb = inject(FormBuilder)
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
-  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', DocTitulo:[], docId:0}
+  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', PersonalEstudioVencimiento:'', DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
   objBeneficiario = {Apellido:'', Nombre:'', TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:'', Desde:''}
   objDomicilio = {Calle:'', Nro:'', Piso:'', Dpto:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, LocalidadId:0, BarrioId:0, DomicilioId:0,}

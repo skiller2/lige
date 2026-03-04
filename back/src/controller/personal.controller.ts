@@ -463,7 +463,7 @@ export class PersonalController extends BaseController {
     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
     const anio = fechaActual.getFullYear();
     const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0', [PersonalId])
-    const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo, est.PersonalEstudioOtorgado FROM PersonalEstudio est 
+    const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo, est.PersonalEstudioOtorgado, est.PersonalEstudioHasta AS PersonalEstudioVencimiento FROM PersonalEstudio est 
       JOIN TipoEstudio tip ON tip.TipoEstudioId = est.TipoEstudioId
       WHERE est.PersonalId=@0 AND est.EstadoEstudioId = 2
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
@@ -1039,11 +1039,18 @@ export class PersonalController extends BaseController {
 
       //Estudios
       for (const estudio of estudios) {
-        if (estudio.EstudioTitulo) {
-          if (!estudio.TipoEstudioId || !estudio.EstadoEstudioId) {
-            errors.push(`Los campos Tipo y Estados de la seccion Estudios No pueden estar vacios.`)
+        if (estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || (estudio.DocTitulo && estudio.DocTitulo.length)) {
+          const camposVacios: string[] = []
+
+          if (!estudio.EstudioTitulo) camposVacios.push('- Título Estudio')
+          if (!estudio.TipoEstudioId) camposVacios.push('- Tipo Estudio')
+          if (!estudio.PersonalEstudioOtorgado) camposVacios.push('- Fecha Estudio otorgado')
+
+          if (camposVacios.length) {
+            errors.push(`En la sección Estudios faltan: ${camposVacios.join(', ')}.`)
             break
           }
+
           await this.addPersonalEstudio(queryRunner, estudio, PersonalId)
         }
       }
@@ -1108,6 +1115,7 @@ export class PersonalController extends BaseController {
     // const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
     const PersonalEstudioOtorgado = estudio.PersonalEstudioOtorgado
+    const PersonalEstudioVencimiento = estudio.PersonalEstudioVencimiento
     const docTitulo = (estudio.DocTitulo) ? estudio.DocTitulo[0] : null
     const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro) ? ultnro[0]?.PersonalEstudioUltNro + 1 : 1
@@ -1135,10 +1143,11 @@ export class PersonalController extends BaseController {
         EstadoEstudioId,
         PersonalEstudioTitulo,
         PersonalEstudioOtorgado,
-        PersonalEstudioPagina1Id
+        PersonalEstudioPagina1Id,
+        PersonalEstudioHasta
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
-      personalId, PersonalEstudioId, tipoEstudioId, 2, estudioTitulo, PersonalEstudioOtorgado, DocumentoImagenEstudioId
+      VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`, [
+      personalId, PersonalEstudioId, tipoEstudioId, 2, estudioTitulo, PersonalEstudioOtorgado, DocumentoImagenEstudioId, PersonalEstudioVencimiento
     ])
 
     await queryRunner.query(`
@@ -1545,8 +1554,7 @@ export class PersonalController extends BaseController {
 
   private async updatePersonalEstudio(queryRunner: any, PersonalId: number, estudios: any[]) {
     let oldStudies = await queryRunner.query(`
-      SELECT PersonalEstudioId, PersonalEstudioPagina1Id, PersonalEstudioPagina2Id,
-      PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+      SELECT PersonalEstudioId, PersonalEstudioPagina1Id
       FROM PersonalEstudio
       WHERE PersonalId IN (@0)
       `, [PersonalId])
@@ -1556,12 +1564,14 @@ export class PersonalController extends BaseController {
       `, [PersonalId])
 
     for (const infoEstudio of estudios) {
+      console
 
-      if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado) {
+      if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length)) {
         let campos_vacios = []
-        if (!infoEstudio.EstudioTitulo) campos_vacios.push('- Título')
-        if (!infoEstudio.TipoEstudioId) campos_vacios.push('- Tipo de Estudio')
-        if (!infoEstudio.PersonalEstudioOtorgado) campos_vacios.push('- Estudio Otorgado')
+     
+        if (!infoEstudio.EstudioTitulo) campos_vacios.push('- Título Estudio')
+        if (!infoEstudio.TipoEstudioId) campos_vacios.push('- Tipo Estudio')
+        if (!infoEstudio.PersonalEstudioOtorgado) campos_vacios.push('- Fecha Estudio otorgado')
 
         if (campos_vacios.length) {
           campos_vacios.unshift('Debe completar los siguientes campos de la sección estudios:')
@@ -1573,9 +1583,7 @@ export class PersonalController extends BaseController {
       if (infoEstudio.PersonalEstudioId) {
         let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId) })
         let Pagina1Id = find.PersonalEstudioPagina1Id
-        // const Pagina2Id = find.PersonalEstudioPagina2Id
-        // const Pagina3Id = find.PersonalEstudioPagina3Id
-        // const Pagina4Id = find.PersonalEstudioPagina4Id
+
         if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
           const DocumentoImagenEstudio = await queryRunner.query(`
             INSERT INTO DocumentoImagenEstudio (
@@ -1597,19 +1605,19 @@ export class PersonalController extends BaseController {
             EstadoEstudioId,
             PersonalEstudioTitulo,
             PersonalEstudioOtorgado,
-            PersonalEstudioPagina1Id
-            --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+            PersonalEstudioPagina1Id,
+            PersonalEstudioHasta
+            
           )
-          VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`, [
           PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
           2, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
-          Pagina1Id,
-          //Pagina2Id, Pagina3Id, Pagina4Id
+          Pagina1Id, infoEstudio.PersonalEstudioVencimiento
         ])
 
         if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
           const docTitulo = infoEstudio.DocTitulo[0]
-          
+
           if (!docTitulo?.id)
             await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
 
@@ -1881,7 +1889,7 @@ export class PersonalController extends BaseController {
   private async getFormEstudiosByPersonalIdQuery(queryRunner: any, personalId: any) {
     return await queryRunner.query(`
         SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
-        TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioOtorgado PersonalEstudioOtorgado,
+        TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioOtorgado PersonalEstudioOtorgado, est.PersonalEstudioHasta PersonalEstudioVencimiento,
         est.PersonalEstudioPagina1Id AS docId
         FROM PersonalEstudio est
         WHERE est.PersonalId IN (@0)
@@ -3502,7 +3510,7 @@ UNION ALL
           FROM PersonalExencion
           WHERE PersonalId IN (@0)
         `, [PersonalId])
-        newPersonalExencionId = consult[0] ? consult[0].PersonalExencionId+1 : 1
+        newPersonalExencionId = consult[0] ? consult[0].PersonalExencionId + 1 : 1
 
         await queryRunner.query(`
           INSERT INTO PersonalExencion(
@@ -3515,7 +3523,7 @@ UNION ALL
       }
 
       await queryRunner.commitTransaction()
-      this.jsonRes({ PersonalExencionId: newPersonalExencionId, DocumentoId: (newDocumentoId? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');
+      this.jsonRes({ PersonalExencionId: newPersonalExencionId, DocumentoId: (newDocumentoId ? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -3549,7 +3557,7 @@ UNION ALL
         throw valsTipoDocumento
 
       if (archivo?.length && !DocumentoId) {
-        
+
         const file = archivo[0]
 
         const DocumentoFecha = file.DocumentoFecha ? new Date(file.DocumentoFecha) : null
@@ -3585,7 +3593,7 @@ UNION ALL
             PersonalExencionDesde = @2
           WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
         `, [PersonalExencionId, PersonalId, PersonalExencionDesde])
-        
+
       } else {
 
         const PersonalExencion = await queryRunner.query(`
@@ -3600,21 +3608,21 @@ UNION ALL
             DELETE FROM PersonalExencion 
             WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1)
           `, [PersonalExencionId, PersonalId])
-          
+
         } else {
-          const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDay(),0,0,0,0)
-          
+          const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDay(), 0, 0, 0, 0)
+
           await queryRunner.query(`
             UPDATE PersonalExencion SET
               PersonalExencionHasta = @2
             WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
           `, [PersonalExencionId, PersonalId, ayer])
         }
-        
+
       }
 
       await queryRunner.commitTransaction()
-      this.jsonRes({DocumentoId: (newDocumentoId? newDocumentoId : DocumentoId)}, res, 'Carga exitosa');
+      this.jsonRes({ DocumentoId: (newDocumentoId ? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
