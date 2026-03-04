@@ -149,7 +149,7 @@
               @if ((getImporteUnitario()[i] | async)){
                 {{ (getImporteUnitario()[i] | async) | currency  }}
               } @else {
-                Sin importe unitario cargado en lista de precios para año xXX y mes XXXX
+                Sin importe unitario cargado en lista de precios para año {{periodo().getFullYear()}} y mes {{periodo().getMonth() + 1}}
               }
             </div>
           } @else {
