@@ -1029,7 +1029,7 @@ export class FileUploadController extends BaseController {
     }
 
     const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
-    
+
     if (!existsSync(originalFilePath)) {
       throw new ClientException(`El archivo temporal no existe: ${filename}`);
     }
@@ -1429,6 +1429,7 @@ export class FileUploadController extends BaseController {
 
     const renderContext = {
       canvasContext: canvasAndContext.context,
+      canvas: canvasAndContext.canvas,
       viewport,
     };
 
