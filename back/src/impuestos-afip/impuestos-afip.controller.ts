@@ -20,7 +20,7 @@ import {
   PDFDocument,
   PDFEmbeddedPage,
   PDFPage,
-//  PDFPageDrawPageOptions,
+  //  PDFPageDrawPageOptions,
   PageSizes,
   degrees,
   rgb,
@@ -55,11 +55,11 @@ import { basename, join } from "path";
 
 
 const cuitRegex = [
-  /:\d{2}\n(\d{11})$/m,
-  /control\n(\d{11})$/m,
-  /CUIT\/CUIL\/CDI\s(\d{11})/m,
-  /^CUIT: (\d{11})$/m,
-  /^Identificacion: (\d{11})$/m,
+  /:\d{2}\n(\d{2}-?\d{8}-?\d{1})$/m,
+  /control\n(\d{2}-?\d{8}-?\d{1})$/m,
+  /CUIT\/CUIL\/CDI\s(\d{2}-?\d{8}-?\d{1})/m,
+  /^CUIT: (\d{2}-?\d{8}-?\d{1})$/m,
+  /^Identificacion: (\d{2}-?\d{8}-?\d{1})$/m,
 ];
 const periodoRegex = [
   /PERIODO FISCAL (\d*)\/(\d*)/m,
@@ -421,7 +421,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       FROM lige.dbo.liqmaperiodo WHERE anio = @0 AND mes = @1 AND ind_recibos_generados = 1`,
       [anioRequest, mesRequest]
     );
-    const CuentaTipoCodigo:string = 'G'
+    const CuentaTipoCodigo: string = 'G'
     let updateFile = false
 
     const actual = new Date()
@@ -712,6 +712,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             cuitRegex,
             new ClientException("No se pudo encontrar el CUIT.", textdocument)
           );
+          CUIT = CUIT.replace(/-/g, "");
 
           let [, importeMontoTemp] = this.getByRegexText(
             textdocument,
