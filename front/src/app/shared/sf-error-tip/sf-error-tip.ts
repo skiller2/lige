@@ -5,9 +5,14 @@ import {
   effect,
   inject,
   input,
+  ContentChild,
+  signal,
+  contentChild,
+  computed,
+  Signal,
 } from '@angular/core';
 import { NzFormControlComponent } from 'ng-zorro-antd/form';
-import type { ValidationError } from '@angular/forms/signals';
+import { type ValidationError, FormField } from '@angular/forms/signals';
 
 export type SfErrorMap = Record<
   string,
@@ -29,8 +34,17 @@ export const SF_AGGREGATE_MODE = new InjectionToken<'first' | 'all'>(
   standalone: true,
 })
 export class SfErrorTipDirective {
-  // 🔴 IMPORTANTE: alias para que [sfErrorTip]="..." alimente este input
   readonly field = input.required<any>({ alias: 'sfErrorTip' });
+
+  readonly childFormFieldDir = contentChild<FormField<unknown>>(FormField, { descendants: true });
+
+  private readonly fieldRef = computed<Signal<any> | undefined>(() => {
+    const viaInput = this.field();
+    const childDir = this.childFormFieldDir();
+    if (viaInput) return viaInput;
+    return childDir?.field()
+  });
+
 
   private readonly injectedErrorMap =
     inject(SF_ERROR_MAP, { optional: true }) ?? undefined;
@@ -54,19 +68,22 @@ export class SfErrorTipDirective {
   private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
+
+
+
     effect(() => {
       const host = this.nzFormControl;
-      const fieldRef = this.field();
-
+      const fieldRef = this.fieldRef();
       if (!host || !fieldRef) return;
 
       const state = fieldRef();
-
       const mode = this.showOn();
       const shouldShow =
         mode === 'always' ||
-        (mode === 'touched' && state.touched()) ||
-        (mode === 'dirty' && state.dirty());
+        (mode === 'touched' && state?.touched()) ||
+        (mode === 'dirty' && state?.dirty());
+
+
 
       const errs: readonly ValidationError[] =
         state.invalid() ? state.errors() ?? [] : [];
@@ -95,10 +112,10 @@ export class SfErrorTipDirective {
         }
       }
 
+      host.nzErrorTip = message ?? undefined;
 
       host.nzValidateStatus = shouldShow && errs.length ? 'error' : '';
       // nzErrorTip: string | TemplateRef | undefined (nunca null)
-      host.nzErrorTip = message ?? undefined;
 
       // Forzamos chequeo (OnPush)
       this.cdr.markForCheck();
