@@ -73,7 +73,6 @@ export class SfErrorTipDirective {
 
     effect(() => {
       const host = this.nzFormControl;
-      if (!this.fieldRef()) return
       const fieldRef = this.fieldRef();
       if (!host || !fieldRef) return;
 
