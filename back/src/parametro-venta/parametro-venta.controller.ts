@@ -528,11 +528,11 @@ export class ParametrosVentaController extends BaseController {
 
     async FormValidations(ParametroVenta: any, queryRunner: any) {
 
-        if (!ParametroVenta.ClienteId) {
-            throw new ClientException(`Debe completar el campo Cliente.`)
-        }
+       
         if (!ParametroVenta.ClienteElementoDependienteId) {
-            throw new ClientException(`Debe completar el campo Objetivo.`)
+            throw new ClientException(`Debe completar el campo Objetivo.`, {
+                fieldErrors: [{ fieldTree: 'ClienteElementoDependienteId', kind: 'server', message: 'Debe completar el campo Objetivo' }],
+            })
         }
         if (!ParametroVenta.PeriodoDesdeAplica) {
             throw new ClientException(`Debe completar el campo Período.`, {
@@ -541,25 +541,33 @@ export class ParametrosVentaController extends BaseController {
             })
         }
         if (!ParametroVenta.PeriodoFacturacion) {
-            throw new ClientException(`Debe completar el campo Período Facturación.`)
+            throw new ClientException(`Debe completar el campo Período Facturación.`, {
+                fieldErrors: [{ fieldTree: 'PeriodoFacturacion', kind: 'server', message: 'Debe completar el campo Período Facturación' }],
+            })
         }
         if (ParametroVenta.GeneracionFacturaReqCliente) {
             ParametroVenta.GeneracionFacturaDia = null;
             ParametroVenta.GeneracionFacturaDiaComplemento = null;
         } else {
             if (!ParametroVenta.GeneracionFacturaDia) {
-                throw new ClientException(`Debe completar el campo Día de Generación Factura.`)
+                throw new ClientException(`Debe completar el campo Día de Generación Factura.`, {
+                    fieldErrors: [{ fieldTree: 'GeneracionFacturaDia', kind: 'server', message: 'Debe completar el campo Día de Generación Factura' }],
+                })
             }
 
             const generacionDia = Number(ParametroVenta.GeneracionFacturaDia);
             if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31) {
-                throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`)
+                throw new ClientException(`El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31.`, {
+                    fieldErrors: [{ fieldTree: 'GeneracionFacturaDia', kind: 'server', message: 'El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31' }],
+                })
             }
 
             if (ParametroVenta.GeneracionFacturaDiaComplemento != null && ParametroVenta.GeneracionFacturaDiaComplemento !== '') {
                 const generacionDiaComplemento = Number(ParametroVenta.GeneracionFacturaDiaComplemento);
                 if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 31) {
-                    throw new ClientException(`El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31.`)
+                    throw new ClientException(`El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31.`, {
+                        fieldErrors: [{ fieldTree: 'GeneracionFacturaDiaComplemento', kind: 'server', message: 'El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31' }],
+                    })
                 }
             }
         }
@@ -568,23 +576,33 @@ export class ParametrosVentaController extends BaseController {
             if (producto.ProductoCodigo) {
 
                 if (!producto.TipoImporte) {
-                    throw new ClientException(`Debe completar el campo Tipo Importe.`)
+                    throw new ClientException(`Debe completar el campo Tipo Importe.`, {
+                        fieldErrors: [{ fieldTree: 'TipoImporte', kind: 'server', message: 'Debe completar el campo Tipo Importe' }],
+                    })
                 }
 
                 if (!producto.TipoCantidad) {
-                    throw new ClientException(`Debe completar el campo Tipo Cantidad.`)
+                    throw new ClientException(`Debe completar el campo Tipo Cantidad.`, {
+                        fieldErrors: [{ fieldTree: 'TipoCantidad', kind: 'server', message: 'Debe completar el campo Tipo Cantidad' }],
+                    })
                 }
 
                 if (producto.TipoImporte === 'F' && !producto.ImporteUnitario) {
-                    throw new ClientException(`Debe completar el campo Importe Unitario.`)
+                    throw new ClientException(`Debe completar el campo Importe Unitario.`, {
+                        fieldErrors: [{ fieldTree: 'ImporteUnitario', kind: 'server', message: 'Debe completar el campo Importe Unitario' }],
+                    })
                 }
 
                 if (producto.TipoCantidad === 'F' && !producto.CantidadHoras) {
-                    throw new ClientException(`Debe completar el campo Cantidad.`)
+                    throw new ClientException(`Debe completar el campo Cantidad.`, {
+                        fieldErrors: [{ fieldTree: 'CantidadHoras', kind: 'server', message: 'Debe completar el campo Cantidad' }],
+                    })
                 }
 
                 if (!producto.CantidadReferencia) {
-                    throw new ClientException(`Debe completar el campo Cantidad Referencia.`)
+                    throw new ClientException(`Debe completar el campo Cantidad Referencia.`, {
+                        fieldErrors: [{ fieldTree: 'CantidadReferencia', kind: 'server', message: 'Debe completar el campo Cantidad Referencia' }],
+                    })
                 }
             }
         }
