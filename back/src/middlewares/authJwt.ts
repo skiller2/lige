@@ -75,10 +75,10 @@ export class AuthMiddleware {
       }
 
       // se agregan las excepciones si cuenta con los sigueintes permisos
-      if (res.locals?.verifyGrupoActividad 
-          || res.locals?.hasAuthObjetivo 
-          || res.locals?.authResp) return next()
-      
+      if (res.locals?.verifyGrupoActividad
+        || res.locals?.hasAuthObjetivo
+        || res.locals?.authResp) return next()
+
 
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
@@ -114,7 +114,6 @@ export class AuthMiddleware {
     }
 
     //      res.locals.filterSucursal.push(2)
-    console.log('filterSucursal', res.locals.filterSucursal, req?.groups);
     console.log(res.locals);
 
     return next()
@@ -209,7 +208,7 @@ export class AuthMiddleware {
       try {
 
         const stmActual = new Date();
-        const ResponsablePersonalId = res.locals.PersonalId;
+        const UserPersonalId = res.locals.PersonalId;
         const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo?.[0]?.tableForSearch || req.body.files?.[0]?.tableForSearch;
 
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
@@ -254,7 +253,7 @@ export class AuthMiddleware {
               // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
               if (Documento.length === 0) return next();
-              if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
+              if (path.includes('downloadFile') && UserPersonalId == DocumentoPersonalId) return next();
 
               const documentoTipoIdOld = doc.doctipo_id
               const documentoTipoIdNew = req.body.doctipo_id
@@ -339,7 +338,7 @@ export class AuthMiddleware {
               // Si el documento no tiene persona_id ni DocumentoTipoJsonPermisosActDir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
 
               if (Documento.length === 0) return next();
-              if (path.includes('downloadFile') && ResponsablePersonalId == DocumentoPersonalId) return next();
+              if (path.includes('downloadFile') && UserPersonalId == DocumentoPersonalId) return next();
 
               const documentoTipoIdOld = doc.DocumentoTipoCodigo
               const documentoTipoIdNew = req.body.DocumentoTipoCodigo
@@ -358,32 +357,32 @@ export class AuthMiddleware {
               if (!doc.PersonalId && !doc.DocumentoTipoJsonPermisosActDir || !doc.DocumentoTipoJsonPermisosActDir) return next();
 
               // validacion cuando caso de ser un supervisor de la persona y quiera descargar un documento de la persona
-              if (doc.PersonalId && doc.DocumentoTipoCodigo === 'REC' && req.route.path.includes('downloadFile')) {
-                const anio = stmActual.getFullYear();
-                const mes = stmActual.getMonth() + 1;
+              // if (doc.PersonalId && doc.DocumentoTipoCodigo === 'REC' && req.route.path.includes('downloadFile')) {
+              //   const anio = stmActual.getFullYear();
+              //   const mes = stmActual.getMonth() + 1;
 
-                const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
-                const listGrupos = grupos.map(row => row.GrupoActividadId);
+              //   const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
+              //   const listGrupos = grupos.map(row => row.GrupoActividadId);
 
 
-                if (listGrupos.length > 0) {
-                  const resPers = await queryRunner.query(`
-                    SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
-                    WHERE gap.GrupoActividadPersonalPersonalId = @0  
-                    AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-                    AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-                    AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
-                    UNION
-                    SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
-                    WHERE gap.GrupoActividadJerarquicoPersonalId = @0  
-                    AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-                    AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-                    AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
-                    AND gap.GrupoActividadJerarquicoComo = 'J'
-                `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
-                  if (resPers.length > 0) return next();
-                }
-              }
+              //   if (listGrupos.length > 0) {
+              //     const resPers = await queryRunner.query(`
+              //       SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+              //       WHERE gap.GrupoActividadPersonalPersonalId = @0  
+              //       AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+              //       AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+              //       AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+              //       UNION
+              //       SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+              //       WHERE gap.GrupoActividadJerarquicoPersonalId = @0  
+              //       AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+              //       AND ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+              //       AND gap.GrupoActividadId IN (${listGrupos.map((_, i) => `@${i + 3}`).join(',')})
+              //       AND gap.GrupoActividadJerarquicoComo = 'J'
+              //   `, [DocumentoPersonalId, anio, mes, ...listGrupos]);
+              //     if (resPers.length > 0) return next();
+              //   }
+              // }
 
               // Si el documento tiene DocumentoTipoJsonPermisosActDir, se valida
               return this.validateJsonPermisosActDir(doc.DocumentoTipoJsonPermisosActDir)(req, res, next);

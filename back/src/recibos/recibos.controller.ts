@@ -39,7 +39,7 @@ export class RecibosController extends BaseController {
   }
 
 
-  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, anio: number, mes:number, isUnique: any, directorPathUnique: string, den_documento: number) {
+  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, anio: number, mes: number, isUnique: any, directorPathUnique: string, den_documento: number) {
     try {
 
       if (isUnique) {
@@ -54,18 +54,18 @@ export class RecibosController extends BaseController {
           });
         }
       }
-      await this.deleteDirectories(queryRunner, anio,mes, isUnique, den_documento)
+      await this.deleteDirectories(queryRunner, anio, mes, isUnique, den_documento)
     } catch (error) {
       console.error("Error al limpiar el directorio:", error);
     }
   }
 
-  async deleteDirectories(queryRunner: QueryRunner, anio: number, mes:number, isUnique: any, den_documento: number) {
+  async deleteDirectories(queryRunner: QueryRunner, anio: number, mes: number, isUnique: any, den_documento: number) {
 
     if (isUnique) {
       await queryRunner.query(`delete from Documento where DocumentoDenominadorDocumento=@0 AND DocumentoTipoCodigo='REC' `, [den_documento])
     } else {
-      await queryRunner.query(`delete from Documento WHERE DocumentoAnio=@1 AND DocumentoMes=@2 AND DocumentoTipoCodigo='REC' `, [null,anio,mes])
+      await queryRunner.query(`delete from Documento WHERE DocumentoAnio=@1 AND DocumentoMes=@2 AND DocumentoTipoCodigo='REC' `, [null, anio, mes])
     }
 
   }
@@ -117,7 +117,7 @@ export class RecibosController extends BaseController {
     let ProcesoAutomaticoLogCodigo = 0
 
     try {
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner,"Recibos",req.body,usuario,ip))
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner, "Recibos", req.body, usuario, ip))
 
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
@@ -204,10 +204,10 @@ export class RecibosController extends BaseController {
 
       await page.close()
       await browser.close()
-//      await queryRunner.commitTransaction()
+      //      await queryRunner.commitTransaction()
 
 
-      await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'COM', { res: `Procesado correctamente`,'CantRecibos': movimientosPendientes.length }, usuario, ip)
+      await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'COM', { res: `Procesado correctamente`, 'CantRecibos': movimientosPendientes.length }, usuario, ip)
 
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
 
@@ -240,8 +240,8 @@ export class RecibosController extends BaseController {
   }
 
 
-  existReciboId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes:number, personalId: number) {
-    return queryRunner.query(`SELECT * from Documento WHERE DocumentoAnio= @1 AND DocumentoMes=@2 AND PersonalId = @0`, [personalId,anio,mes])
+  existReciboId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes: number, personalId: number) {
+    return queryRunner.query(`SELECT * from Documento WHERE DocumentoAnio= @1 AND DocumentoMes=@2 AND PersonalId = @0`, [personalId, anio, mes])
   }
 
 
@@ -306,7 +306,7 @@ export class RecibosController extends BaseController {
           adelanto += liquidacionElement.SumaImporte
           break;
         case "R":
-          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte*-1)}</td></tr>`
+          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte * -1)}</td></tr>`
           retribucion += liquidacionElement.SumaImporte
           break;
         case "D":
@@ -324,7 +324,7 @@ export class RecibosController extends BaseController {
     if (adelanto > 0)
       htmlAdelanto += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(adelanto)}</td></tr>`
     if (retribucion > 0)
-      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion*-1)}</td></tr>`
+      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion * -1)}</td></tr>`
     if (retenciones > 0)
       htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones)}</td></tr>`
 
@@ -505,7 +505,7 @@ export class RecibosController extends BaseController {
         anio, // DocumentoAnio 
         mes, // DocumentoMes 
         0 // DocumentoVersion
-    ]
+      ]
     )
   }
 
@@ -524,6 +524,19 @@ export class RecibosController extends BaseController {
 
     try {
       await queryRunner.connect();
+
+      // // validar la sucursal del usuario que desea descargar el recibo
+      // if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
+      //   recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number }) => res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
+      // } else {
+      //   recibosListaFiltroSuc = recibosLista
+      // }
+      // const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: ' + res.locals.filterSucursal.join(',') : ''
+      // if (recibosListaFiltroSuc.length == 0)
+      //   throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
+
+
+
       const data = await queryRunner.query(`SELECT doc.DocumentoId, doc.DocumentoPath, doc.DocumentoNombreArchivo
         from Documento doc
           WHERE doc.DocumentoAnio =@1 AND doc.DocumentoMes=@2 AND doc.PersonalId = @0 AND doc.DocumentoTipoCodigo = 'REC'
@@ -590,13 +603,13 @@ export class RecibosController extends BaseController {
       const recibosLista = (lista)
         ? await this.getparthFile(queryRunner, Number(Anio), Number(Mes), lista)
         : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
-      
+
       if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
-        recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number })=>res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
+        recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number }) => res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
       } else {
         recibosListaFiltroSuc = recibosLista
       }
-      const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: '+res.locals.filterSucursal.join(',') :''
+      const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: ' + res.locals.filterSucursal.join(',') : ''
       if (recibosListaFiltroSuc.length == 0)
         throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
 
@@ -697,7 +710,7 @@ export class RecibosController extends BaseController {
     }
 
     const listPers = await queryRunner.query(filterExtraIN, [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
-    
+
 
     if (listPers.length == 0) listPers.push({ persona_id: 0 })
     return queryRunner.query(`
@@ -715,9 +728,9 @@ export class RecibosController extends BaseController {
       [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
   }
 
-  async getparthFile(queryRunner: QueryRunner, anio:number,mes:number, perosonalIds: number[]) {
+  async getparthFile(queryRunner: QueryRunner, anio: number, mes: number, perosonalIds: number[]) {
     const personalIdsString = perosonalIds.join(', ');
-    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [,anio,mes])
+    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [, anio, mes])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
