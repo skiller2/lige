@@ -60,7 +60,7 @@ const fileFilterPdf = (
   file: Express.Multer.File,
   callback: FileFilterCallback
 ): void => {
-  const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","video/mp4", "application/vnd.ms-excel"];
+  const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "video/mp4", "application/vnd.ms-excel"];
   if (!allowedMimeTypes.includes(file.mimetype)) {
     callback(new ClientException(`El archivo no es del tipo seleccionado, ${file.mimetype}`));
     return;
@@ -78,12 +78,12 @@ const uploadPdf = multer({
 export const FileUploadRouter = Router();
 
 // todo: agregar middlewares de auth de doc tipo 'rec'
-FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId()], async (req, res, next) => {
+FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId(), authMiddleware.filterSucursal], async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
 //Se agrego para solucionar un tema puntual en la descarga de imágenes de los procesos de credencuales y descarga de documentos en el BOT, pero no deberían existir, hay que revisar
-FileUploadRouter.get("/downloadImg/:id/:tableForSearch/:filename",  async (req, res, next) => {
+FileUploadRouter.get("/downloadImg/:id/:tableForSearch/:filename", async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
@@ -124,11 +124,11 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
         .status(409)
         .json({ msg: "File is required!", data: [], stamp: new Date() });
     } else {
-    
+
       const fileData = {
         url: `/api/file-upload/downloadFile/${req.file.filename}/temp/original`,
         tempfilename: req.file.filename,
-        fieldname: req.file.fieldname,   
+        fieldname: req.file.fieldname,
         mimetype: req.file.mimetype,
         originalname: req.file.originalname,
         size: req.file.size,
@@ -145,7 +145,7 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
   });
 });
 
-FileUploadRouter.delete("/delete", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId(), authMiddleware.hasGroup(['gLegales', 'Liquidaciones','gSistemas', 'gPersonal', 'gComersial', 'gOperaciones', 'gLogistica', 'gDireTec', 'gAsistClientes'])], async (req, res, next) => {
+FileUploadRouter.delete("/delete", [authMiddleware.verifyToken, authMiddleware.hasAuthByDocId(), authMiddleware.hasGroup(['gLegales', 'Liquidaciones', 'gSistemas', 'gPersonal', 'gComersial', 'gOperaciones', 'gLogistica', 'gDireTec', 'gAsistClientes'])], async (req, res, next) => {
   await fileUploadController.deleteDocumento(req, res, next);
 });
 
