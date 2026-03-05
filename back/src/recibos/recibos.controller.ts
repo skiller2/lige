@@ -682,7 +682,7 @@ export class RecibosController extends BaseController {
 
         break;
       case 'P':
-        filterExtraIN = 'SELECT @4'
+        filterExtraIN = 'SELECT @4 AS persona_id'
 
         break;
       case 'S':
@@ -723,14 +723,14 @@ export class RecibosController extends BaseController {
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId AND h.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
 
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
-        WHERE doc.DocumentoTipoCodigo = 'REC' AND per.PersonalId IN (${listPers.map(o => o.persona_id).join(',')})
+        WHERE doc.DocumentoTipoCodigo = 'REC' AND per.PersonalId IN (${listPers.map(o => o.persona_id).filter(id => id !== undefined && id !== null).join(',') || '0'})
     ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`,
       [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
   }
 
   async getparthFile(queryRunner: QueryRunner, anio: number, mes: number, perosonalIds: number[]) {
-    const personalIdsString = perosonalIds.join(', ');
-    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [, anio, mes])
+    const personalIdsString = (perosonalIds.length > 0) ? perosonalIds.join(', ') : '0';
+    return queryRunner.query(`SELECT * FROM Documento doc WHERE doc.DocumentoAnio = @1 AND doc.DocumentoMes=@2 AND doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId IN (${personalIdsString})`, [null, anio, mes])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
@@ -780,7 +780,7 @@ export class RecibosController extends BaseController {
       this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
 
     } catch (error) {
-      console.log('capturo', error)
+      console.log('error:', error)
       return next(error)
     }
   }
