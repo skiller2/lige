@@ -69,7 +69,7 @@ export class HeaderNotifyComponent implements OnInit {
         }),
         emptyText: 'No hay avisos',
         emptyImage: 'https://gw.alipayobjects.com/zos/rmsportal/wAhyIChODzsoKIOBHcBk.svg',
-        clearText: 'Limpiar avisos',
+        clearText: 'Marcar como leidos',
       }
     ];
   });
