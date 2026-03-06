@@ -2,21 +2,17 @@
   <!-- <p>{{parametroVenta() | json }}</p> -->
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip> 
       <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"   (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Aplica Desde</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
       <nz-date-picker [formField]="formParametroVenta.PeriodoDesdeAplica" nzMode="month" nzFormat="MM/yyyy"
         style="width: 100%;">
       </nz-date-picker>
-        @for (e of formParametroVenta.PeriodoDesdeAplica().errors(); track e.kind) {
-          <div class="ant-form-item-explain-error">{{ e.message ?? e.kind }}</div>
-        }
-
     </nz-form-control>
   </nz-form-item>
 
@@ -46,7 +42,7 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback nzHasFeedback sfErrorTip>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback sfErrorTip>
       <input nz-input [formField]="formParametroVenta.GeneracionFacturaDia" type="number"
         placeholder="Día del mes (1-31)" style="width: 100%;">
     </nz-form-control>
