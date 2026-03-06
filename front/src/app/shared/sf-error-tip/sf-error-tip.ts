@@ -35,22 +35,14 @@ export const SF_AGGREGATE_MODE = new InjectionToken<'first' | 'all'>(
   standalone: true,
 })
 export class SfErrorTipDirective {
-  //readonly field = input.required<any>({ alias: 'sfErrorTip' });
+  readonly field = input.required<any>({ alias: 'sfErrorTip' });
 
-  readonly field = input<Signal<any> | undefined>(undefined, { alias: 'sfErrorTip' });
+  //readonly field = input<Signal<any> | undefined>(undefined, { alias: 'sfErrorTip' });
 
   readonly childFormFieldDir = contentChild<FormField<unknown>>(FormField, { descendants: true });
 
-  //private readonly fieldRef = computed<Signal<any> | undefined>(() => {
-  //  const viaInput = this.field();
-  //  const childDir = this.childFormFieldDir();
-  //  if (viaInput) return viaInput;
-  //  return childDir?.field()
-  //});
-
 
   private readonly injector = inject(Injector);
-
 
   private readonly injectedErrorMap =
     inject(SF_ERROR_MAP, { optional: true }) ?? undefined;
@@ -66,24 +58,22 @@ export class SfErrorTipDirective {
     inject(SF_AGGREGATE_MODE, { optional: true }) ?? 'all';
   readonly aggregate = input<'first' | 'all'>(this.injectedAggregate);
 
-
-
   private readonly nzFormControl = inject(NzFormControlComponent, {
     optional: true,
   });
   private readonly cdr = inject(ChangeDetectorRef);
 
-  
   private fieldRef!: Signal<any> | undefined;
 
-  
   ngAfterContentInit(): void {
 
     this.fieldRef = computed<Signal<any> | undefined>(() => {
+      const viaInput = this.field();
       const childDir = this.childFormFieldDir();
-      if (childDir) return childDir.field() as Signal<any>;
-      return this.field(); // puede ser undefined y NO lanza
+      if (viaInput) return viaInput;
+      return childDir?.field() as Signal<any> | undefined; // puede ser undefined y NO lanza
     });
+
 
 
     effect(() => {
@@ -137,6 +127,7 @@ export class SfErrorTipDirective {
 
       // Forzamos chequeo (OnPush)
       this.cdr.markForCheck();
-    },{ injector: this.injector });
+    }, { injector: this.injector });
   }
+
 }
