@@ -242,7 +242,7 @@
   <nz-form-item class="btn-margintop">
     <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
       <button style="margin-right: 10px;" nzType="primary" nz-button type="submit" [nzLoading]="formParametroVenta().submitting()"
-          [disabled]="formParametroVenta().submitting() || formParametroVenta().dirty()==false">
+          [disabled]="formParametroVenta().submitting() || formParametroVenta().dirty()==false || formParametroVenta().valid()==false">
         {{ 'app.btn.save' | i18n }}
       </button>
       <button nz-button nzType="default" (click)="clearForm()" type="button">
