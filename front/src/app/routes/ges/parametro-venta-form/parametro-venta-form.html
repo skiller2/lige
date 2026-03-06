@@ -2,8 +2,9 @@
   <!-- <p>{{parametroVenta() | json }}</p> -->
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip> 
-      <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"   (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip>
+      <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"
+        (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
     </nz-form-control>
   </nz-form-item>
 
@@ -20,21 +21,22 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback sfErrorTip >
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback sfErrorTip>
       <input nz-input [formField]="formParametroVenta.PeriodoFacturacion" placeholder="Ej: 1S, 1M, 1A" />
 
-</nz-form-control>
+    </nz-form-control>
 
     @if (periodoFacturacionDescripcion()) {
-      <span style="margin-left: 8px; line-height: 32px; color: rgba(0, 0, 0, 0.65);">
-        {{ periodoFacturacionDescripcion() }}
-      </span>
+    <span style="margin-left: 8px; line-height: 32px; color: rgba(0, 0, 0, 0.65);">
+      {{ periodoFacturacionDescripcion() }}
+    </span>
     }
 
     @if (periodoFacturacionDias()>=60) {
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" style="margin-left: 16px;">Inicio</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback sfErrorTip>
-      <nz-date-picker [formField]="formParametroVenta.PeriodoFacturacionInicio" nzMode="month" nzFormat="MM/yyyy" style="width: 100%;">
+      <nz-date-picker [formField]="formParametroVenta.PeriodoFacturacionInicio" nzMode="month" nzFormat="MM/yyyy"
+        style="width: 100%;">
       </nz-date-picker>
     </nz-form-control>
     }
@@ -53,8 +55,7 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura (Complemento)</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11" nzHasFeedback sfErrorTip
-      >
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11" nzHasFeedback sfErrorTip>
       <input nz-input [formField]="formParametroVenta.GeneracionFacturaDiaComplemento" type="number"
         placeholder="Día complemento (1-31 o vacío)" style="width: 100%;">
 
@@ -83,14 +84,14 @@
   </div>
   <div style="padding-top: 25px;">
 
-  @for (ip of formParametroVenta.infoProductos; let i = $index; track i) {
+    @for (ip of formParametroVenta.infoProductos; let i = $index; track i) {
     <div [ngClass]="{'even-background': i % 2 === 0}" [style.margin-top.px]="i % 2 !== 0 ? 15 : 0">
 
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Producto</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" nzHasFeedback sfErrorTip>
           <nz-select nzAllowClear style="width:100%" nzPlaceholder="Producto" [formField]="ip.ProductoCodigo"
-            nzShowSearch [nzDropdownMatchSelectWidth]="false" >
+            nzShowSearch [nzDropdownMatchSelectWidth]="false">
             @for (option of optionsTipoProducto(); track option.ProductoCodigo) {
             <nz-option [nzValue]="option.ProductoCodigo" [nzLabel]="option.Nombre"></nz-option>
             }
@@ -104,7 +105,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Importe</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" nzHasFeedback sfErrorTip>
           <nz-select [formField]="ip.TipoImporte" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" >
+            [nzDropdownMatchSelectWidth]="false">
             @for (option of optionsTipoImporte(); track option.value) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
@@ -114,30 +115,21 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Unitario</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" nzHasFeedback sfErrorTip>
           @if (parametroVenta().infoProductos[i].TipoImporte === 'V') {
-            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              Cargar en el cierre de planilla por el responsable
-            </div>
+          <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+            Cargar en el cierre de planilla por el responsable
+          </div>
           } @else if (parametroVenta().infoProductos[i].TipoImporte === 'LP') {
-            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              
-              @if ((getImporteUnitario()[i] | async)){
-                {{ (getImporteUnitario()[i] | async) | currency  }}
-              } @else {
-                Sin importe unitario cargado en lista de precios para año xXX y mes XXXX
-              }
-            </div>
-          } @else {
-            <input
-            appDotToComma
-            mask="separator.2"
+          <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
 
-            nz-input
-            [formField]="ip.ImporteUnitario"
-            type="text"
-            style="width: 100%;"
-            placeholder="Precio Unitario"
-            nz-tooltip
-            >
+            @if ((getImporteUnitario()[i] | async)){
+            {{ (getImporteUnitario()[i] | async) | currency }}
+            } @else {
+            Sin importe unitario cargado en lista de precios para año {{periodo().getFullYear()}} y mes {{periodo().getMonth() + 1}}
+            }
+          </div>
+          } @else {
+          <input appDotToComma mask="separator.2" nz-input [formField]="ip.ImporteUnitario" type="text"
+            style="width: 100%;" placeholder="Precio Unitario" nz-tooltip>
           }
         </nz-form-control>
 
@@ -150,7 +142,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Cantidad</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4" nzHasFeedback sfErrorTip>
           <nz-select [formField]="ip.TipoCantidad" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" >
+            [nzDropdownMatchSelectWidth]="false">
             @for (option of optionsTipoCantidad(); track option.value) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
@@ -162,43 +154,28 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback sfErrorTip>
 
           @if (parametroVenta().infoProductos[i].TipoCantidad === 'V') {
-            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-              Cargar en el cierre de planilla por el responsable
-            </div>
-          } @else if (parametroVenta().infoProductos[i].TipoCantidad === 'A' || parametroVenta().infoProductos[i].TipoCantidad === 'B') {
-            <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
-                            {{ (getCantidad()[i] | async) || 'Cargando...' }}
+          <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+            Cargar en el cierre de planilla por el responsable
+          </div>
+          } @else if (parametroVenta().infoProductos[i].TipoCantidad === 'A' ||
+          parametroVenta().infoProductos[i].TipoCantidad === 'B') {
+          <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+            {{ (getCantidad()[i] | async) || 'Cargando...' }}
 
-            </div>
+          </div>
           } @else {
 
-            <input
-            appDotToComma
-            nz-input
-            [formField]="ip.CantidadHoras"
-            type="text"
-            style="width: 100%;"
-            placeholder="Cantidad"
-            nz-tooltip
-            mask="separator.2"
-          />
+          <input appDotToComma nz-input [formField]="ip.CantidadHoras" type="text" style="width: 100%;"
+            placeholder="Cantidad" nz-tooltip mask="separator.2" />
 
           }
-         
+
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad de Referencia </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback sfErrorTip>
-          <input
-            appDotToComma
-            mask="separator.2"
-            nz-input
-            [formField]="ip.CantidadReferencia"
-            type="text"
-            style="width: 100%;"
-            placeholder="Cantidad de Referencia"
-            nz-tooltip
-          />
+          <input appDotToComma mask="separator.2" nz-input [formField]="ip.CantidadReferencia" type="text"
+            style="width: 100%;" placeholder="Cantidad de Referencia" nz-tooltip />
         </nz-form-control>
 
       </nz-form-item>
@@ -206,11 +183,12 @@
       <nz-form-item class="marginElement">
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto Factura</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16" nzHasFeedback sfErrorTip   nz-popover
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="16" nzHasFeedback sfErrorTip nz-popover
           [nzPopoverContent]="textFacturaTemplate">
           <textarea nz-input [formField]="ip.TextoFactura" rows="3" style="width: 100%;"
             nzPlaceholder="Ingrese el texto de la factura"></textarea>
-          <p style="color:rgba(0, 0, 0, 0.347); margin-top: 8px;">Vista previa: {{ (getTextoFacturaPreview()[i] | async) || '' }}</p> 
+          <p style="color:rgba(0, 0, 0, 0.347); margin-top: 8px;">Vista previa: {{ (getTextoFacturaPreview()[i] | async)
+            || '' }}</p>
         </nz-form-control>
 
         @if (true) {
@@ -233,16 +211,17 @@
         }
 
       </nz-form-item>
-</div>
+    </div>
 
-  }
-</div>
+    }
+  </div>
 
   @if (true) {
   <nz-form-item class="btn-margintop">
     <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-      <button style="margin-right: 10px;" nzType="primary" nz-button type="submit" [nzLoading]="formParametroVenta().submitting()"
-          [disabled]="formParametroVenta().submitting() || formParametroVenta().dirty()==false || formParametroVenta().valid()==false">
+      <button style="margin-right: 10px;" nzType="primary" nz-button type="submit"
+        [nzLoading]="formParametroVenta().submitting()"
+        [disabled]="formParametroVenta().submitting() || formParametroVenta().dirty()==false || formParametroVenta().valid()==false">
         {{ 'app.btn.save' | i18n }}
       </button>
       <button nz-button nzType="default" (click)="clearForm()" type="button">
