@@ -1,4 +1,6 @@
 import type { Response } from "express";
+import { Client } from 'ldapts';
+import type { SearchOptions } from 'ldapts';
 import { DataSource } from "typeorm";
 import type { QueryRunner } from "typeorm";
 
@@ -436,6 +438,93 @@ export class BaseController {
     );
     await queryRunner.commitTransaction();
     return { ProcesoAutomaticoLogCodigo }
+  }
+
+
+  static async getADGroupMembers(groupName: string) {
+    const url = process.env.LDAP_URL ? process.env.LDAP_URL : "";
+    const ldap_username = process.env.LDAP_USERNAME ? process.env.LDAP_USERNAME : "";
+    const ldap_passowrd = process.env.LDAP_PASSWORD ? process.env.LDAP_PASSWORD : "";
+    const ldapsearch = process.env.LDAP_SEARCH ? process.env.LDAP_SEARCH : "";
+
+    const con = new Client({
+      url: url,
+      timeout: 0,
+      connectTimeout: 0,
+      tlsOptions: {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: false,
+      },
+      strictDN: false,
+    });
+
+    const defdomain = process.env.LDAP_AUTH_DOMAIN ? process.env.LDAP_AUTH_DOMAIN : "finanzas";
+    const bindUser = ldap_username.includes('@') ? ldap_username : `${ldap_username}@${defdomain}`;
+
+    try {
+      await con.bind(bindUser, ldap_passowrd);
+
+      // Primer paso: Buscar el DN del grupo
+      const groupOpts: SearchOptions = {
+        filter: `(&(objectClass=group)(sAMAccountName=${groupName}))`,
+        scope: 'sub',
+        attributes: ['dn'],
+        paged: false,
+        sizeLimit: 1,
+      };
+
+      const { searchEntries: groupEntries } = await con.search(ldapsearch, groupOpts);
+
+      if (groupEntries.length === 0) {
+        throw new ClientException(`No se encontró el grupo: ${groupName}`);
+      }
+
+      const groupDn = groupEntries[0].dn;
+
+      // Segundo paso: Buscar miembros del grupo
+      // Usamos el filtro memberOf con el DN del grupo
+      const memberOpts: SearchOptions = {
+        filter: `(&(objectClass=user)(memberOf=${groupDn}))`,
+        scope: 'sub',
+        attributes: ['sAMAccountName', 'displayName', 'name'],
+        paged: false,
+        sizeLimit: 0,
+      };
+
+      const { searchEntries: memberEntries } = await con.search(ldapsearch, memberOpts);
+
+      await con.unbind();
+
+      return memberEntries.map(entry => ({
+        userName: entry.sAMAccountName,
+        displayName: entry.displayName || entry.name || entry.sAMAccountName
+      }));
+
+    } catch (err) {
+      await con.unbind();
+      throw err;
+    }
+  }
+
+  async createAviso(queryRunner: QueryRunner, Usuario: string | null, ClaseMensaje: string, TextoMensaje: string, EnlaceUrl: string | null, usuarioAud: string, ipAud: string, groupAD?: string) {
+    const fechaActual = new Date();
+    let usersToNotify: string[] = [];
+
+    if (groupAD) {
+      const members = await BaseController.getADGroupMembers(groupAD);
+      usersToNotify = members.map(m => String(m.userName));
+    } else if (Usuario) {
+      usersToNotify = [Usuario];
+    }
+
+    for (const user of usersToNotify) {
+      const AvisoId = await BaseController.getProxNumero(queryRunner, `Aviso`, usuarioAud, ipAud);
+      await queryRunner.query(
+        `INSERT INTO Aviso (AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng, AudUsuarioIng, AudIpIng)
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8)`,
+        [AvisoId, user, ClaseMensaje, TextoMensaje, EnlaceUrl, null, fechaActual, usuarioAud, ipAud]
+      );
+    }
   }
 
 }
