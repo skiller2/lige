@@ -3494,7 +3494,6 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         usuario,
         ip
       );
-      await this.createAviso(queryRunner, null, 'ERROR', `Error al procesar asistencia ${mes}/${anio}`, null, usuario, ip, 'gSistemas');
       return next(error)
     } finally {
       await queryRunner.release()
