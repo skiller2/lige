@@ -10,6 +10,7 @@ import {
   contentChild,
   computed,
   Signal,
+  Injector,
 } from '@angular/core';
 import { NzFormControlComponent } from 'ng-zorro-antd/form';
 import { type ValidationError, FormField } from '@angular/forms/signals';
@@ -34,16 +35,21 @@ export const SF_AGGREGATE_MODE = new InjectionToken<'first' | 'all'>(
   standalone: true,
 })
 export class SfErrorTipDirective {
-  readonly field = input.required<any>({ alias: 'sfErrorTip' });
+  //readonly field = input.required<any>({ alias: 'sfErrorTip' });
+
+  readonly field = input<Signal<any> | undefined>(undefined, { alias: 'sfErrorTip' });
 
   readonly childFormFieldDir = contentChild<FormField<unknown>>(FormField, { descendants: true });
 
-  private readonly fieldRef = computed<Signal<any> | undefined>(() => {
-    const viaInput = this.field();
-    const childDir = this.childFormFieldDir();
-    if (viaInput) return viaInput;
-    return childDir?.field()
-  });
+  //private readonly fieldRef = computed<Signal<any> | undefined>(() => {
+  //  const viaInput = this.field();
+  //  const childDir = this.childFormFieldDir();
+  //  if (viaInput) return viaInput;
+  //  return childDir?.field()
+  //});
+
+
+  private readonly injector = inject(Injector);
 
 
   private readonly injectedErrorMap =
@@ -67,13 +73,25 @@ export class SfErrorTipDirective {
   });
   private readonly cdr = inject(ChangeDetectorRef);
 
-  constructor() {
+  
+  private fieldRef!: Signal<any> | undefined;
 
+  
+  ngAfterContentInit(): void {
+
+    this.fieldRef = computed<Signal<any> | undefined>(() => {
+      const childDir = this.childFormFieldDir();
+      if (childDir) return childDir.field() as Signal<any>;
+      return this.field(); // puede ser undefined y NO lanza
+    });
 
 
     effect(() => {
       const host = this.nzFormControl;
-      const fieldRef = this.fieldRef();
+      if (!this.fieldRef)
+        return
+
+      const fieldRef = this.fieldRef()
       if (!host || !fieldRef) return;
 
       const state = fieldRef();
@@ -119,6 +137,6 @@ export class SfErrorTipDirective {
 
       // Forzamos chequeo (OnPush)
       this.cdr.markForCheck();
-    });
+    },{ injector: this.injector });
   }
 }
