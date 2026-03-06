@@ -65,7 +65,7 @@
               {{ 'app.btn.save' | i18n }}
             </button>
             @if (parametroExencion().DocumentoId) {
-              <button nz-button nzType="primary" (click)="resetForm()">
+              <button nz-button nzType="primary" type="button" (click)="resetForm()">
                 {{ 'app.btn.clear.form' | i18n }}
               </button>
             }
