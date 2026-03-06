@@ -2108,7 +2108,7 @@ export class GestionDescuentosController extends BaseController {
         usuario,
         ip
       );
-      this.jsonRes([], res, "XLS Recibido y procesado!");
+      this.jsonRes([], res, `XLS Recibido y procesado! Se procesaron ${altaDescuentos} registros correctamente`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
 

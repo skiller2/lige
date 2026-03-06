@@ -644,7 +644,6 @@ export class PreciosProductosController extends BaseController {
         try {
             let campos_vacios: any[] = [];
 
-
             ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
                 queryRunner,
                 `Importación xls Precios Producto ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
@@ -793,7 +792,7 @@ export class PreciosProductosController extends BaseController {
                 ip
             );
 
-            this.jsonRes([], res, "XLS Recibido y procesado!");
+            this.jsonRes([], res, `XLS Recibido y procesado! Se procesaron ${altaProductoPrecios} registros correctamente`);
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
 
