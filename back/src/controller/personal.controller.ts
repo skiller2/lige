@@ -3398,7 +3398,7 @@ UNION ALL
       const PersonalExencion = await queryRunner.query(`
         SELECT PersonalExencionId, PersonalId, PersonalExencionDesde, PersonalExencionHasta
         FROM PersonalExencion
-        WHERE PersonalId IN (@0) and ISNULL(PersonalExencionHasta, '9999-12-31') >= @1 AND PersonalExencionDesde <= @1 
+        WHERE PersonalId IN (@0) 
         ORDER BY PersonalExencionId DESC
       `, [PersonalId, now])
 
