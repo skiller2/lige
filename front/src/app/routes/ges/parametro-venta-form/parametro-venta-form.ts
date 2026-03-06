@@ -1,6 +1,6 @@
-import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy, untracked, linkedSignal } from '@angular/core';
-import { FormArray, FormsModule } from '@angular/forms';
-import { periodValidator, parsePeriod, periodToText, toApproxDays, PeriodUnit } from '../../../shared/period-utils/period-utils';
+import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, model, output, computed, input, OnInit, effect, OnDestroy, untracked } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { parsePeriod, periodToText, toApproxDays, PeriodUnit } from '../../../shared/period-utils/period-utils';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
