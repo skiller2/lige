@@ -395,7 +395,6 @@ export class ParametrosVentaController extends BaseController {
 
             //validaciones
             await this.FormValidations(ParametroVenta, queryRunner)
-            //throw new ClientException('test')
 
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
@@ -514,7 +513,6 @@ export class ParametrosVentaController extends BaseController {
 
 
             await queryRunner.commitTransaction();
-            //throw new ClientException('test')
             return this.jsonRes(result, res, 'Carga  de nuevo registro exitoso');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
@@ -717,7 +715,6 @@ export class ParametrosVentaController extends BaseController {
             } else {
                 throw new ClientException(`No existe el registro seleccionado.`)
             }
-            //throw new ClientException('test')
             await queryRunner.commitTransaction();
             // Modify the response to include a status field
             return this.jsonRes({ status: 'ok' }, res, 'Autorización exitosa');
@@ -767,7 +764,6 @@ export class ParametrosVentaController extends BaseController {
                 [codobj, ClienteElementoDependienteId, PeriodoDesdeAplica])
 
 
-            //throw new ClientException('test')
             await queryRunner.commitTransaction();
             return this.jsonRes({}, res, 'Rechazo exitoso');
 
@@ -794,12 +790,8 @@ export class ParametrosVentaController extends BaseController {
             if (!PeriodoDesdeAplica) {
                 throw new ClientException("error al obtener el periodo desde aplica")
             }
-            if (!ClienteId) {
-                throw new ClientException("error al obtener el cliente")
-            }
-            if (!ClienteElementoDependienteId) {
-                throw new ClientException("error al obtener el cliente elemento dependiente")
-            }
+            if (!ClienteId || !ClienteElementoDependienteId) 
+                throw new ClientException("error al obtener el objetivo")
 
             //validaciones
             await this.FormValidations(req.body, queryRunner)
@@ -835,7 +827,6 @@ export class ParametrosVentaController extends BaseController {
 
             //actualiza ParametroVentaDetalle
             await this.updateParametroVentaDetalleQuery(queryRunner, req.body.infoProductos || [], ClienteId, ClienteElementoDependienteId, PeriodoDesdeAplica, usuario, ip);
-            //throw new ClientException('test ok')
             await queryRunner.commitTransaction();
             return this.jsonRes({}, res, 'Actualización exitosa');
         } catch (error) {
@@ -1036,8 +1027,7 @@ export class ParametrosVentaController extends BaseController {
             const anio = Number(req.params.anio);
             const mes = Number(req.params.mes);
 
-            if (!ClienteId) throw new ClientException('Debe seleccionar un Cliente.');
-            if (!ClienteElementoDependienteId) throw new ClientException('Debe seleccionar un Elemento Dependiente.');
+            if (!ClienteId || !ClienteElementoDependienteId) throw new ClientException('Debe seleccionar un Objetivo');
             if (!anio || !mes) throw new ClientException('Debe seleccionar un Período.');
 
             const resultado = await queryRunner.query(
