@@ -208,14 +208,15 @@ export class RecibosController extends BaseController {
 
 
       await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'COM', { res: `Procesado correctamente`, 'CantRecibos': movimientosPendientes.length }, usuario, ip)
+      await this.createAviso(queryRunner, null, 'INFO', `Se generaron ${movimientosPendientes.length} recibos correctamente para el periodo ${periodo.month}/${periodo.year}`, null, usuario, ip, 'gSistemas');
 
-      this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
+      this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos correctamente para el periodo ${periodo.month}/${periodo.year}`);
 
     } catch (error) {
 
       await this.rollbackTransaction(queryRunner)
       await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'ERR', { res: error }, usuario, ip)
-
+      await this.createAviso(queryRunner, null, 'ERROR', `Error al generar recibos`, null, usuario, ip, 'gSistemas');
       return next(error)
     } finally {
       //   await queryRunner.release();

@@ -730,6 +730,7 @@ UNION
         usuario,
         ip
       );
+      await this.createAviso(queryRunner, null, 'ERROR', `Error al procesar seguros ${mes}/${anio}`, null, usuario, ip, 'gSistemas');
 
       return next(error)
     }
