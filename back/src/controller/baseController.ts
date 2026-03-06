@@ -506,7 +506,7 @@ export class BaseController {
     }
   }
 
-  async addAviso(queryRunner: QueryRunner, Usuario: string, ClaseMensaje: string, TextoMensaje: string, EnlaceUrl: string | null, usuarioAud: string, ipAud: string) {
+  async addAviso(queryRunner: QueryRunner, Usuario: string, ClaseMensaje: string, TextoMensaje: string, EnlaceUrl: string, usuario: string, ip: string, Grupo: string) {
     const fechaActual = new Date();
     // let usersToNotify: string[] = [];
 
@@ -526,11 +526,11 @@ export class BaseController {
     //   );
     // }
 
-    const AvisoId = await BaseController.getProxNumero(queryRunner, `Aviso`, usuarioAud, ipAud);
+    const AvisoId = await BaseController.getProxNumero(queryRunner, `Aviso`, usuario, ip);
     await queryRunner.query(
-      `INSERT INTO Aviso (AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng, AudUsuarioIng, AudIpIng)
-      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8)`,
-      [AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, null, fechaActual, usuarioAud, ipAud]
+      `INSERT INTO Aviso (AvisoId, Usuario, Grupo, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, Visible, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @8, @9, @10)`,
+      [AvisoId, Usuario, Grupo, ClaseMensaje, TextoMensaje, EnlaceUrl, null, 1, fechaActual, usuario, ip]
     );
   }
 
