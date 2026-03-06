@@ -506,25 +506,32 @@ export class BaseController {
     }
   }
 
-  async createAviso(queryRunner: QueryRunner, Usuario: string | null, ClaseMensaje: string, TextoMensaje: string, EnlaceUrl: string | null, usuarioAud: string, ipAud: string, groupAD?: string) {
+  async addAviso(queryRunner: QueryRunner, Usuario: string, ClaseMensaje: string, TextoMensaje: string, EnlaceUrl: string | null, usuarioAud: string, ipAud: string) {
     const fechaActual = new Date();
-    let usersToNotify: string[] = [];
+    // let usersToNotify: string[] = [];
 
-    if (groupAD) {
-      const members = await BaseController.getADGroupMembers(groupAD);
-      usersToNotify = members.map(m => String(m.userName));
-    } else if (Usuario) {
-      usersToNotify = [Usuario];
-    }
+    // if (groupAD) {
+    //   const members = await BaseController.getADGroupMembers(groupAD);
+    //   usersToNotify = members.map(m => String(m.userName));
+    // } else if (Usuario) {
+    //   usersToNotify = [Usuario];
+    // }
 
-    for (const user of usersToNotify) {
-      const AvisoId = await BaseController.getProxNumero(queryRunner, `Aviso`, usuarioAud, ipAud);
-      await queryRunner.query(
-        `INSERT INTO Aviso (AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng, AudUsuarioIng, AudIpIng)
+    // for (const user of usersToNotify) {
+    //   const AvisoId = await BaseController.getProxNumero(queryRunner, `Aviso`, usuarioAud, ipAud);
+    //   await queryRunner.query(
+    //     `INSERT INTO Aviso (AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng, AudUsuarioIng, AudIpIng)
+    //   VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8)`,
+    //     [AvisoId, user, ClaseMensaje, TextoMensaje, EnlaceUrl, null, fechaActual, usuarioAud, ipAud]
+    //   );
+    // }
+
+    const AvisoId = await BaseController.getProxNumero(queryRunner, `Aviso`, usuarioAud, ipAud);
+    await queryRunner.query(
+      `INSERT INTO Aviso (AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng, AudUsuarioIng, AudIpIng)
       VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8)`,
-        [AvisoId, user, ClaseMensaje, TextoMensaje, EnlaceUrl, null, fechaActual, usuarioAud, ipAud]
-      );
-    }
+      [AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, null, fechaActual, usuarioAud, ipAud]
+    );
   }
 
 }
