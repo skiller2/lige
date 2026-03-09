@@ -534,5 +534,20 @@ export class BaseController {
     );
   }
 
+  async getClienteElementoDependienteByObjetivoId(queryRunner: QueryRunner, ObjetivoId: number) {
+
+    const clienteElementoDependiente = await queryRunner.query(
+      `SELECT ClienteId, ClienteElementoDependienteId
+      FROM Objetivo
+      WHERE ObjetivoId = @0`,
+      [ObjetivoId]
+    );
+
+    if (clienteElementoDependiente.length == 0)
+      throw new ClientException('Objetivo no localizado')
+
+    return clienteElementoDependiente[0];
+  }
+
 }
 

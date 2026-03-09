@@ -273,10 +273,28 @@ export class AsistenciaController extends BaseController {
 
     const queryRunner = dataSource.createQueryRunner();
 
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date()
+
     try {
 
       await queryRunner.startTransaction()
       await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
+
+      // registro de apertura de planilla 
+      const AperturaAsistenciaLogId = await BaseController.getProxNumero(queryRunner, `AperturaAsistenciaLog`, usuario, ip)
+      const clienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
+
+      const ClienteId = clienteElementoDependiente.ClienteId
+      const ClienteElementoDependienteId = clienteElementoDependiente.ClienteElementoDependienteId
+
+      await queryRunner.query(`INSERT INTO AperturaAsistenciaLog (AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, Anio, Mes, TipoMovimiento, AudFechaIng,AudUsuarioIng,AudIpIng,PlanillaAsistenciaJson, ExepcionAsistenciaJson)
+      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+      `, [AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, anio, mes, 'AP', fechaActual, usuario, ip, null, null]
+      );
+
+
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
@@ -411,7 +429,8 @@ export class AsistenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     let fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
-
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
     try {
       await queryRunner.startTransaction()
       const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
@@ -434,16 +453,15 @@ export class AsistenciaController extends BaseController {
       }
 
 
-      if (cabecera[0].ImporteHora < 1 && cabecera[0].ImporteFijo < 1) {
-        //        throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
-      }
+      // if (cabecera[0].ImporteHora < 1 && cabecera[0].ImporteFijo < 1) {
+      //   throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
+      // }
 
       if (cabecera[0].ImporteHora > 0 && cabecera[0].ImporteFijo > 0) {
         throw new ClientException('Solo Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
       }
 
-
-      //TODO incorporar validaciones de todo la carga.
+      //TODO incorporar validaciones de toda la carga.
 
       if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
         const result = await queryRunner.query(
@@ -452,14 +470,24 @@ export class AsistenciaController extends BaseController {
         );
       }
 
-      await queryRunner.commitTransaction();
+      const AperturaAsistenciaLogId = await BaseController.getProxNumero(queryRunner, `AperturaAsistenciaLog`, usuario, ip)
+      const clienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
 
+      const ClienteId = clienteElementoDependiente.ClienteId
+      const ClienteElementoDependienteId = clienteElementoDependiente.ClienteElementoDependienteId
+
+      await queryRunner.query(`INSERT INTO AperturaAsistenciaLog (AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, Anio, Mes, TipoMovimiento, AudFechaIng,AudUsuarioIng,AudIpIng,PlanillaAsistenciaJson, ExepcionAsistenciaJson)
+      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+      `, [AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, anio, mes, 'CI', new Date(), usuario, ip, JSON.stringify(valGrid?.gridData || []), JSON.stringify(valGrid?.excepAsistencia || [])]
+      );
+
+
+      await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ClienteElementoDependienteDescripcion}`)
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      // you need to release query runner which is manually created:
       await queryRunner.release()
     }
   }
@@ -3666,6 +3694,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
 
     let errores: any[] = []
+    let excepAsistencia: any[] = []
     let index: number
     let desde = new Date(anio, mes - 1, 1)
 
@@ -3679,7 +3708,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         errores.push(`Horas a facturar debe ser mayor a 0`)
 
       //Validación de Excepción de Asistencia
-      const excepAsistencia = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
+      excepAsistencia = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
 
       for (index = 0; index < gridData.length; index++) {
         let item = gridData[index]
@@ -3742,6 +3771,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     if (errores.length) {
       return new ClientException(errores)
     }
+
+    return { gridData, excepAsistencia }
   }
 
   async getTiposHoraQuery() {
