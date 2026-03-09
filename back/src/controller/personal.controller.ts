@@ -3413,7 +3413,8 @@ UNION ALL
     const Exencion: number = form.Exencion
     const PersonalExencionDesde: Date = form.PersonalExencionDesde ? new Date(form.PersonalExencionDesde) : null
 
-    let campos_vacios: any[] = []
+    // let campos_vacios: any[] = [];
+    let fieldErrors: any[] = [];
 
     if (form.archivo?.length) {
       let desdeDocHabilitacion = false
@@ -3429,9 +3430,15 @@ UNION ALL
           }
         }
       }
-      if (!DocumentoTipoCodigo && !desdeDocHabilitacion) campos_vacios.push(`- Tipo de documento`)
+      if (!DocumentoTipoCodigo && !desdeDocHabilitacion) {
+        // campos_vacios.push(`- Tipo de documento`)
+        fieldErrors.push({ fieldTree: 'DocumentoTipoCodigo', kind: 'server', message: 'Debe completar el campo Tipo de documento' })
+      } 
 
-      if (desdeDocHabilitacion && DocumentoTipoCodigo) campos_vacios.push(`- Desde (Archivo)`)
+      if (desdeDocHabilitacion && DocumentoTipoCodigo) {
+        // campos_vacios.push(`- Desde (Archivo)`)
+        fieldErrors.push({ fieldTree: 'archivo', kind: 'server', message: 'Debe completar el campo Desde (Archivo)' })
+      } 
     }
 
     // if (!Exencion && PersonalExencionDesde) {
@@ -3439,12 +3446,16 @@ UNION ALL
     // }
 
     if (Exencion && !PersonalExencionDesde) {
-      campos_vacios.push('- Desde')
+      // campos_vacios.push('- Desde')
+      fieldErrors.push({ fieldTree: 'PersonalExencionDesde', kind: 'server', message: 'Debe completar el campo Desde' })
     }
 
-    if (campos_vacios.length) {
-      campos_vacios.unshift('Debe completar los siguientes campos: ')
-      return new ClientException(campos_vacios)
+    // if (campos_vacios.length) {
+    //   campos_vacios.unshift('Debe completar los siguientes campos: ')
+    //   return new ClientException(campos_vacios)
+    // }
+    if (fieldErrors.length) {
+      return new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
     }
 
   }
@@ -3622,6 +3633,7 @@ UNION ALL
         }
 
       }
+      throw new ClientException('DEBUG')
 
       await queryRunner.commitTransaction()
       this.jsonRes({ DocumentoId: (newDocumentoId ? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');

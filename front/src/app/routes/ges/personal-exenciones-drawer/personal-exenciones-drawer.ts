@@ -71,12 +71,20 @@ export class PersonalExencionesDrawerComponent {
 
     readonly parametroExencion = signal<ExencionForm>({ ...this.defaultFormExencion });
 
-    readonly formParametroExencion = form(this.parametroExencion);
+    readonly formParametroExencion = form(this.parametroExencion, (p) => {
+        required(p.PersonalExencionDesde, { 
+            message: 'Desde es requerido',
+            when: (ctx) => ctx.valueOf(p.Exencion) !== false,
+        });
+        disabled(p.PersonalExencionDesde, (ctx) => ctx.valueOf(p.Exencion) === false);
+
+        // disabled(p.archivo, (ctx) => (ctx.valueOf(p.DocumentoTipoCodigo) === '' || ctx.valueOf(p.DocumentoTipoCodigo) === null));
+    });
 
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
 
-    effectExencionPersonal = effect(async () => {
+    effectExencionForm = effect(async () => {
         const visible = this.visibleDocumentos()
         const newId: number = this.PersonalId()
         if (visible && newId > 0) {
@@ -165,9 +173,10 @@ export class PersonalExencionesDrawerComponent {
                 // this.parametroExencion().markAsUntouched()
                 // this.parametroExencion().markAsPristine()
                 this.formParametroExencion().reset()
-            } catch (e) {
+            } catch (e: any) {
+                return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
             }
-
+            return undefined
         })
     }
 

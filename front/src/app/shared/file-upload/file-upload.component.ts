@@ -104,7 +104,7 @@ export class FileUploadComponent implements ControlValueAccessor {
     if (changes['idForSearh'] || changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       if (changes['textForSearch']) {
         //Parsear textForSearch y armar arreglo con los tipos de documento.
-        this.docTiposValidos.set(this.textForSearch().split(','))
+        this.textForSearch()? this.docTiposValidos.set(this.textForSearch().split(',')) : this.docTiposValidos.set([])
       }
 
       if (this.docTiposValidos().length == 1)
