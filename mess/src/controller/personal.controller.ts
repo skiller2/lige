@@ -11,7 +11,7 @@ export class PersonalController extends BaseController {
     const usuario = 'bot'
 
     const { maxImporte, minImporte, fechaLimite } = PersonalController.getAdelantoLimits(now)
-    
+
     if (monto > maxImporte)
       throw new ClientException("El monto informado supera el límite")
     if (monto < minImporte)
@@ -20,12 +20,8 @@ export class PersonalController extends BaseController {
       throw new ClientException("Fuera de vigencia para agregar o modificar un adelanto")
     if (now.getFullYear() != anio)
       throw new ClientException("El año del adelato debe ser el corriente")
-    if (now.getMonth()+1 != mes)
+    if (now.getMonth() + 1 != mes)
       throw new ClientException("El mes del adelato debe ser el corriente")
-
-
-    throw new ClientException(`Paso ${anio} ${mes} ${now} > ${fechaLimite}`)
-
 
     await dbServer.dataSource.query(
       `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
@@ -84,10 +80,9 @@ export class PersonalController extends BaseController {
     const FormaPrestamoId = 7 //Adelanto
     const now = new Date()
     const { maxImporte, minImporte, fechaLimite } = PersonalController.getAdelantoLimits(now)
-    
+
     if (now > fechaLimite)
       throw new ClientException("Fuera de vigencia para eliminar un adelanto")
-
 
     const adelanto: any = await dbServer.dataSource.query(`
       SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
@@ -427,10 +422,10 @@ export class PersonalController extends BaseController {
 
 
   static getAdelantoLimits(fecha) {
-        const maxImporte = 100000
-        const minImporte = 10000
-        const fechaLimite = new Date(fecha.getFullYear(), fecha.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
-    return {maxImporte, minImporte, fechaLimite}
+    const maxImporte = 100000
+    const minImporte = 10000
+    const fechaLimite = new Date(fecha.getFullYear(), fecha.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
+    return { maxImporte, minImporte, fechaLimite }
   }
 
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
@@ -514,13 +509,13 @@ José Manuel Cuenca – Síndico
     response.push(`Su coordinador de zona es: ${coordinador}`)
 
     if (coordinadorgeneralrec[0].PersonalId) {
-        const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
-        if (telrec[0])
-            response.push(`Contacto del coordinador 📞 ${telrec[0].Telefono}`)
+      const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
+      if (telrec[0])
+        response.push(`Contacto del coordinador 📞 ${telrec[0].Telefono}`)
     }
 
 
-    return  response
+    return response
   }
 
 }
