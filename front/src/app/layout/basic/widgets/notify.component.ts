@@ -26,7 +26,7 @@ const CLASE_CONFIG: Record<string, { icon: string; color: string }> = {
   template: `
     <notice-icon
       [data]="data()"
-      [count]="avisos.value()?.length"
+      [count]="count"
       [loading]="avisos.isLoading()"
       btnClass="alain-default__nav-item"
       btnIconClass="alain-default__nav-item-icon"
@@ -42,6 +42,7 @@ export class HeaderNotifyComponent {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
 
+  count = computed(() => (this.avisos.value() ?? []).filter(a => !a.FechaVisualizacion).length);
   data = computed<NoticeItem[]>(() => {
     const items = this.avisos.value() ?? [];
 
@@ -69,21 +70,21 @@ export class HeaderNotifyComponent {
   });
 
   private readonly tick = toSignal(timer(0, 60000), { initialValue: -1 });
-  
+
   readonly avisos = resource({
-      params: () => this.tick(), // <- reactive param
-      loader: async () => {
-        const avisos = await firstValueFrom(this.apiService.getAvisos());
-        return avisos as Aviso[];
-      },
-    });
+    params: () => this.tick(), // <- reactive param
+    loader: async () => {
+      const avisos = await firstValueFrom(this.apiService.getAvisos());
+      return avisos as Aviso[];
+    },
+  });
 
   async select(res: NoticeIconSelect): Promise<void> {
     const lista = this.avisos.value() ?? [];
     const aviso = lista.find(a => a.AvisoId === res.item['id']);
     if (!aviso) return;
     const result = await firstValueFrom(this.apiService.marcarAvisoVisto(aviso.AvisoId));
-    this.avisos.update(list => (list??[]).map(a =>
+    this.avisos.update(list => (list ?? []).map(a =>
       a.AvisoId === aviso.AvisoId ? { ...a, FechaVisualizacion: new Date().toISOString() } : a
     ));
 
@@ -93,7 +94,7 @@ export class HeaderNotifyComponent {
   }
 
   async marcaTodoVisto(_type: string): Promise<void> {
-    
+
     const res = await firstValueFrom(this.apiService.marcarTodosAvisosVistos())
     this.avisos.update(list => (list ?? []).map(a => ({ ...a, FechaVisualizacion: a.FechaVisualizacion ?? new Date().toISOString() })));
   }
