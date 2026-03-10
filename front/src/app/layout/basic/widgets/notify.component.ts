@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, signal, computed } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, computed, Injector, resource } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { NoticeIconModule, NoticeIconSelect, NoticeItem } from '@delon/abc/notice-icon';
-import { interval } from 'rxjs';
+import { firstValueFrom, timer } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 
 interface Aviso {
@@ -26,31 +26,25 @@ const CLASE_CONFIG: Record<string, { icon: string; color: string }> = {
   template: `
     <notice-icon
       [data]="data()"
-      [count]="count()"
-      [loading]="loading()"
+      [count]="avisos.value()?.length"
+      [loading]="avisos.isLoading()"
       btnClass="alain-default__nav-item"
       btnIconClass="alain-default__nav-item-icon"
       (select)="select($event)"
-      (clear)="clear($event)"
-      (popoverVisibleChange)="loadData()"
+      (clear)="marcaTodoVisto($event)"
+      (popoverVisibleChange)="avisos.reload()"
     />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NoticeIconModule]
 })
-export class HeaderNotifyComponent implements OnInit {
+export class HeaderNotifyComponent {
   private readonly apiService = inject(ApiService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
-
-  private avisos = signal<Aviso[]>([]);
-  loading = signal(false);
-
-  count = computed(() => this.avisos().filter(a => !a.FechaVisualizacion).length);
 
   data = computed<NoticeItem[]>(() => {
-    const items = this.avisos();
+    const items = this.avisos.value() ?? [];
+
     return [
       {
         title: 'Avisos',
@@ -74,49 +68,33 @@ export class HeaderNotifyComponent implements OnInit {
     ];
   });
 
-  ngOnInit(): void {
-    this.loadData();
-    interval(60000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.loadData());
-  }
-
-  loadData(): void {
-    if (this.loading()) return;
-    this.loading.set(true);
-    this.apiService.getAvisos().subscribe({
-      next: (avisos: Aviso[]) => {
-        this.avisos.set(avisos);
-        this.loading.set(false);
-        this.cdr.detectChanges();
+  private readonly tick = toSignal(timer(0, 60000), { initialValue: -1 });
+  
+  readonly avisos = resource({
+      params: () => this.tick(), // <- reactive param
+      loader: async () => {
+        const avisos = await firstValueFrom(this.apiService.getAvisos());
+        return avisos as Aviso[];
       },
-      error: () => {
-        this.loading.set(false);
-        this.cdr.detectChanges();
-      }
     });
-  }
 
-  select(res: NoticeIconSelect): void {
-    const aviso = this.avisos().find(a => a.AvisoId === res.item['id']);
+  async select(res: NoticeIconSelect): Promise<void> {
+    const lista = this.avisos.value() ?? [];
+    const aviso = lista.find(a => a.AvisoId === res.item['id']);
     if (!aviso) return;
-
-    this.apiService.marcarAvisoVisto(aviso.AvisoId).subscribe(() => {
-      this.avisos.update(list => list.map(a =>
-        a.AvisoId === aviso.AvisoId ? { ...a, FechaVisualizacion: new Date().toISOString() } : a
-      ));
-      this.cdr.detectChanges();
-    });
+    const result = await firstValueFrom(this.apiService.marcarAvisoVisto(aviso.AvisoId));
+    this.avisos.update(list => (list??[]).map(a =>
+      a.AvisoId === aviso.AvisoId ? { ...a, FechaVisualizacion: new Date().toISOString() } : a
+    ));
 
     if (aviso.EnlaceUrl) {
       this.router.navigateByUrl(aviso.EnlaceUrl);
     }
   }
 
-  clear(_type: string): void {
-    this.apiService.marcarTodosAvisosVistos().subscribe(() => {
-      this.avisos.update(list => list.map(a => ({ ...a, FechaVisualizacion: a.FechaVisualizacion ?? new Date().toISOString() })));
-      this.cdr.detectChanges();
-    });
+  async marcaTodoVisto(_type: string): Promise<void> {
+    
+    const res = await firstValueFrom(this.apiService.marcarTodosAvisosVistos())
+    this.avisos.update(list => (list ?? []).map(a => ({ ...a, FechaVisualizacion: a.FechaVisualizacion ?? new Date().toISOString() })));
   }
 }
