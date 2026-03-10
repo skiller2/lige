@@ -485,7 +485,7 @@ export class ObjetivosController extends BaseController {
 
     filtroExtraHabilitaciones(filtros: any): any {
 
-    const sql = `
+        const sql = `
                   SELECT 
               obj.ObjetivoId
 
@@ -508,35 +508,24 @@ export class ObjetivosController extends BaseController {
           WHERE  docHabilitacion.ObjetivoHabilitado is null 
     
         `
-    const findObjHab = filtros.filter((f: any) => f.index == 'ObjetivoHabilitado')
-    if (findObjHab.length > 0) {
-        let cond = ''
-        switch (findObjHab[0].valor[0]) {
-            case '1':
-                cond = `NOT IN`
-                break
-            case '0':
-                cond = `IN`
-                break
+        const findObjHab = filtros.find((f: any) => f.index == 'ObjetivoHabilitado')
+        if (findObjHab) {
+            switch (findObjHab.valor[0]) {
+                case '1':
+                    findObjHab.valor    = [`obj.ObjetivoId NOT IN ( ${sql} )`]
+                    findObjHab.label = 'con Habilitación'
+                    break
+                case '0':
+                    findObjHab.valor    = [`obj.ObjetivoId IN ( ${sql} )`]
+                    findObjHab.label = 'sin Habilitación'
+                    break
+            }
+            findObjHab.index = 'ObjetivoId'
+            findObjHab.operador = 'RAW'
+            findObjHab.fieldName = 'obj.ObjetivoId'
         }
-
-        filtros.push({
-            index: 'ObjetivoId',
-            name: 'Objetivo',
-            condition: 'AND',
-            operador: 'RAW',
-            valor: [`obj.ObjetivoId ${cond} ( ${sql} )`],
-            type: 'number',
-            label: 'Sin Habilitacion',
-            closeable: true,
-            inicial: false
-        })
+        return filtros
     }
-
-
-    return filtros
-
-}
 
 
     async list(req: any, res: Response, next: NextFunction) {
@@ -552,7 +541,7 @@ export class ObjetivosController extends BaseController {
         try {
             const objetivos = await queryRunner.query(
                 `
-SELECT 
+                    SELECT 
                     -- DISTINCT
                     ROW_NUMBER() OVER (ORDER BY obj.ObjetivoId) AS id,
                     obj.ObjetivoId,

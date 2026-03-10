@@ -9,10 +9,6 @@
 
     <div class="derecha">
       <nz-button-group nz-button nzButtonGroup style="text-align: right;">
-        <button nz-button nzType="default" (click)="refreshList()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
-        [disabled]="gridData.isLoading()">
-          <span nz-icon nzType="reload" nzTheme="outline"></span>
-        </button>
           <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
           <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a> -->
@@ -27,6 +23,11 @@
         <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]=" editProducto().length == 0"
           nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button> -->
+        <button nz-button nzType="default" (click)="refreshList()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+        [disabled]="gridData.isLoading()">
+          <span nz-icon nzType="reload" nzTheme="outline"></span>
+        </button>
+
       </nz-button-group>
     </div>
 

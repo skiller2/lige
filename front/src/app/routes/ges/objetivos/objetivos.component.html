@@ -19,7 +19,13 @@
         </a>
         <a  nz-tooltip (click)="openCondVentaLink()"  ><button nz-button nzType="default" [disabled]="editObjetivoId()? false : true" >{{ 'app.asistenciaDiaria' | i18n }}</button>
         </a>
-      
+
+        <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+        [disabled]="gridData.isLoading()">
+          <span nz-icon nzType="reload" nzTheme="outline"></span>
+        </button>
+        
+
       </nz-button-group>
 
     </div>
@@ -54,12 +60,12 @@
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/objetivos/listado" >{{ 'app.icon.objectives' | i18n }} </a>
-      @if ((columns$|async); as columnas) {
+      @if (columns().length) {
         <ng-template nz-tab>
-          <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+          <shared-filtro-builder  [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
           <div class="gridListContainer container-fluid" >
-            <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
-              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+            <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
+              [dataset]="gridData.value()||[]" (onAngularGridCreated)="angularGridReady($event)"
               (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
             </angular-slickgrid>
           </div>
