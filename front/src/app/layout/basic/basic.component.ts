@@ -14,7 +14,7 @@ import { HeaderClearStorageComponent } from './widgets/clear-storage.component';
 import { HeaderFullScreenComponent } from './widgets/fullscreen.component';
 import { HeaderI18nComponent } from './widgets/i18n.component';
 import { HeaderIconComponent } from './widgets/icon.component';
-import { HeaderNotifyComponent } from './widgets/notify.component';
+import { HeaderNotifyComponent } from './widgets/notify';
 import { HeaderRTLComponent } from './widgets/rtl.component';
 import { HeaderSearchComponent } from './widgets/search.component';
 import { HeaderTaskComponent } from './widgets/task.component';
