@@ -1014,13 +1014,14 @@ export class GestionDescuentosController extends BaseController {
       `, [, anio, mes])
   }
 
-  async addDescuentoCuotas(req: any, res: Response, next: NextFunction) {
+
+  async jobDescuentoCuotas(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const anio: number = req.body.year
     const mes: number = req.body.month
-    // let errors : string[] = []
+
     try {
-      //      throw new ClientException(`Proceso desactivado, no es necesario`)
+      throw new ClientException(`Proceso Efectos Cuotas en proceso`)
 
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -1040,15 +1041,96 @@ export class GestionDescuentosController extends BaseController {
         1
         FROM PersonalOtroDescuento des 
         LEFT JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
-        WHERE 
-        des.PersonalOtroDescuentoDescuentoId =31 
+        WHERE
+        1 = 1 
+        -- des.PersonalOtroDescuentoDescuentoId =31 
 		  -- des.PersonalOtroDescuentoCantidadCuotas = 1 AND 
 		  AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
-		  AND des.PersonalOtroDescuentoAnoAplica=2025 AND des.PersonalOtroDescuentoMesesAplica=10
+		  AND des.PersonalOtroDescuentoAnoAplica=@1 AND des.PersonalOtroDescuentoMesesAplica=@2
         --GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
         -- HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
 			AND cuo.PersonalOtroDescuentoCuotaImporte IS NULL
-`)
+`, [,anio, mes])
+      for (const descuento of coutaspend) {
+        let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
+        let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
+        let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
+
+        //        const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+        //        cuotaAnio = per.cuotaAnio
+        //        cuotaMes = per.cuotaMes
+
+        const importeCuota = descuento.PersonalOtroDescuentoImporteVariable / descuento.PersonalOtroDescuentoCantidadCuotas
+        for (let cuota = 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
+          PersonalOtroDescuentoCuotaId++
+          await queryRunner.query(`
+          INSERT INTO PersonalOtroDescuentoCuota (
+        PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
+        PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
+        PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
+        PersonalOtroDescuentoCuotaProceso)
+        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
+      `, [PersonalOtroDescuentoCuotaId, descuento.PersonalOtroDescuentoId, descuento.PersonalId,
+            cuotaAnio, cuotaMes, cuota,
+            importeCuota, 0, 0, 'FA'])
+
+          const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+          cuotaAnio = per.cuotaAnio
+          cuotaMes = per.cuotaMes
+        }
+        await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [descuento.PersonalId, descuento.PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId])
+
+      }
+
+
+      // throw new ClientException(`DEBUG.`)
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+
+  async jobOtroDescuentoCuotas(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const anio: number = req.body.year
+    const mes: number = req.body.month
+
+    try {
+      throw new ClientException(`Proceso OtroDescuento Cuotas desactivado, no es necesario`)
+
+      await queryRunner.startTransaction()
+      const per = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (per[0] && per[0].ind_recibos_generados == 1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
+
+
+      const coutaspend = await queryRunner.query(`
+        SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
+        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, 
+        ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS cuotavalor, 
+        -- cuo.PersonalOtroDescuentoCuotaImporte  ImporteReal,  
+        --MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
+        des.PersonalOtroDescuentoCuotaUltNro,
+        cuo.PersonalOtroDescuentoCuotaImporte,
+        0 generadas ,
+        1
+        FROM PersonalOtroDescuento des 
+        LEFT JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
+        WHERE
+        1 = 1 
+        -- des.PersonalOtroDescuentoDescuentoId =31 
+		  -- des.PersonalOtroDescuentoCantidadCuotas = 1 AND 
+		  AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+		  AND des.PersonalOtroDescuentoAnoAplica=@1 AND des.PersonalOtroDescuentoMesesAplica=@2
+        --GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
+        -- HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+			AND cuo.PersonalOtroDescuentoCuotaImporte IS NULL
+`, [,anio, mes])
       for (const descuento of coutaspend) {
         let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica

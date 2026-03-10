@@ -32,17 +32,28 @@ export class DescuentosComponent {
     private readonly loadingSrv = inject(LoadingService);
     private settingsService = inject(SettingsService)
 
-    async addCuotaReg() {
+    async jobGenCuotasOtroDescuento() {
         this.loadingSrv.open({ type: 'spin', text: '' })
         try {
-            const res: any = await firstValueFrom(this.apiService.descuentoAddCuota({ year: this.anio(), month: this.mes() }))
+            const res: any = await firstValueFrom(this.apiService.jobGenCuotasOtroDescuento({ year: this.anio(), month: this.mes() }))
             let newReload = this.reload()+1
             this.reload.set(newReload)
         } catch (error) {
-            console.log(error);
         }
         this.loadingSrv.close()
     }
+
+    async jobGenCuotasDescuento() {
+        this.loadingSrv.open({ type: 'spin', text: '' })
+        try {
+            const res: any = await firstValueFrom(this.apiService.jobGenCuotasDescuento({ year: this.anio(), month: this.mes() }))
+            let newReload = this.reload()+1
+            this.reload.set(newReload)
+        } catch (error) {
+        }
+        this.loadingSrv.close()
+    }
+
 
     ngOnInit() {
         this.selectedDate()
