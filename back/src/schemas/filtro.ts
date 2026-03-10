@@ -1,6 +1,6 @@
 export interface Filtro {
   index: string;
-  operador: "FIND" | "LIKE" | "<" | ">" | "=" | ">=" | "<=" | "<>";
+  operador: "FIND" | "LIKE" | "<" | ">" | "=" | ">=" | "<=" | "<>" | "RAW";
   condition: "OR" | "AND";
   valor: string[];
 }
