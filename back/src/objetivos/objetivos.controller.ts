@@ -491,7 +491,7 @@ export class ObjetivosController extends BaseController {
 
           FROM Objetivo obj
           JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-            AND eledepcon.ClienteElementoDependienteContratoFechaDesde<=GETDATE() and isnull(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >=GETDATE()
+            AND eledepcon.ClienteElementoDependienteContratoFechaDesde<=@2 and isnull(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >=@2
           LEFT JOIN (
             SELECT ohn.ObjetivoId,
               STRING_AGG(TRIM(lh.LugarHabilitacionDescripcion),' , ') ObjetivoHabilitado,
@@ -501,7 +501,7 @@ export class ObjetivosController extends BaseController {
             FROM ObjetivoHabilitacionNecesaria ohn
             JOIN LugarHabilitacion lh ON lh.LugarHabilitacionId = ohn.ObjetivoHabilitacionNecesariaLugarHabilitacionId
             LEFT JOIN DocumentoTipo dt on dt.DocumentoTipoCodigo=lh.DocumentoTipoCodigoAsoc
-            JOIN Documento doc on doc.ObjetivoId=ohn.ObjetivoId and doc.DocumentoTipoCodigo=dt.DocumentoTipoCodigo and doc.DocumentoFecha<=GETDATE() and ISNULL(doc.DocumentoFechaDocumentoVencimiento,'9999-12-31')>=GETDATE()
+            JOIN Documento doc on doc.ObjetivoId=ohn.ObjetivoId and doc.DocumentoTipoCodigo=dt.DocumentoTipoCodigo and doc.DocumentoFecha<=@2 and ISNULL(doc.DocumentoFechaDocumentoVencimiento,'9999-12-31')>=@2
             GROUP BY ohn.ObjetivoId
             --HAVING COUNT(*) > 1
           ) docHabilitacion ON docHabilitacion.ObjetivoId = obj.ObjetivoId
@@ -529,11 +529,12 @@ export class ObjetivosController extends BaseController {
 
 
     async list(req: any, res: Response, next: NextFunction) {
-        req.body.options.filtros = this.filtroExtraHabilitaciones(req.body.options.filtros)
+        const fechaActual = new Date()
+        req.body.options.filtros = this.filtroExtraHabilitaciones(req.body.options.filtros,)
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
-        const fechaActual = new Date()
+
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
 
