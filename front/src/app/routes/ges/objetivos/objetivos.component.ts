@@ -1,16 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
+import { Component, ViewEncapsulation, inject, viewChild, ChangeDetectionStrategy, signal, model, resource } from '@angular/core';
+import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
-import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
@@ -18,22 +15,23 @@ import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.compone
 import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 import { Selections } from 'src/app/shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 @Component({
-    selector: 'app-objetivos',
-    templateUrl: './objetivos.component.html',
-    styleUrl: './objetivos.component.less',
-    encapsulation: ViewEncapsulation.None,
-    providers: [AngularUtilService],
-    imports: [
-        SHARED_IMPORTS,
-        CommonModule,
-        ObjetivosFormComponent,
-        FiltroBuilderComponent,
-        ObjetivoHistorialDrawerComponent
-    ],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-objetivos',
+  templateUrl: './objetivos.component.html',
+  styleUrl: './objetivos.component.less',
+  encapsulation: ViewEncapsulation.None,
+  providers: [AngularUtilService],
+  imports: [
+    SHARED_IMPORTS,
+    CommonModule,
+    ObjetivosFormComponent,
+    FiltroBuilderComponent,
+    ObjetivoHistorialDrawerComponent
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObjetivosComponent {
 
@@ -45,7 +43,7 @@ export class ObjetivosComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   hiddenColumnIds: string[] = [];
-  editObjetivoId= signal(0)
+  editObjetivoId = signal(0)
   editClienteId = signal(0)
   ObjetivoNombre = signal("")
   editClienteElementoDependienteId = signal(0)
@@ -53,21 +51,22 @@ export class ObjetivosComponent {
   visibleHistorial = model<boolean>(false)
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
-  listObjetivos$ = new BehaviorSubject('')
-  listOptions: listOptionsT = {
+
+  listOptions = signal<listOptionsT>({
     filtros: [],
-    sort: null,
-  };
-  
-  formChange$ = new BehaviorSubject('');
+    sort: null
+  })
+
   startFilters = signal<Selections[]>([]);
 
-    private angularUtilService = inject(AngularUtilService)
-    private searchService = inject(SearchService)
-    private apiService = inject(ApiService)
-    private settingsService = inject(SettingsService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private settingsService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/objetivos/cols').pipe(
+
+  columns = toSignal(
+    this.apiService.getCols('/api/objetivos/cols').pipe(
       map((cols) => {
         // Guardar IDs de columnas que tienen showGridColumn: false
         this.hiddenColumnIds = cols.filter((col: any) => col.showGridColumn === false).map((col: Column) => col.id as string);
@@ -96,86 +95,82 @@ export class ObjetivosComponent {
         return cols
       })
     )
+    , { initialValue: [] as Column[] }
+  )
 
-    childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
-    childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
-    childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
 
-    gridData$ = this.listObjetivos$.pipe(
-        debounceTime(500),
-        switchMap(() => {
-          return this.searchService.getListObjetivos({ options: this.listOptions })
-            .pipe(map(data => {
-              return data.list
-            })
-          )
-        })
-    )
+  childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
+  childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
+  childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
 
-  
-    async ngOnInit(){
 
-      if (!this.router.url.includes('/listado')) {
-        this.router.navigate(['/ges/objetivos/listado']); 
-      }
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async () => {
+      const response = await firstValueFrom(this.searchService.getListObjetivos({ options: this.listOptions() }));
+      return response.list;
+    },
+    defaultValue: []
+  });
 
-      this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
-      this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-      this.gridOptions.showFooterRow = true
-      this.gridOptions.createFooterRow = true
-      this.gridOptions.forceFitColumns = true
+  async ngOnInit() {
 
-      const dateToday = new Date();
-      this.startFilters.set([
-        {index:'ContratoFechaDesde', condition:'AND', operator:'<=', value: dateToday, closeable: true},
-        {index:'ContratoFechaHasta', condition:'AND', operator:'>=', value: dateToday, closeable: true}]);
+    if (!this.router.url.includes('/listado')) {
+      this.router.navigate(['/ges/objetivos/listado']);
+    }
 
-      this.settingsService.setLayout('collapsed', true)
-   } 
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
-    async angularGridReady(angularGrid: any) {
-      this.angularGrid = angularGrid.detail
-      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-           totalRecords(this.angularGrid)
-           columnTotal('CantidadObjetivos', this.angularGrid)
-      })
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
+    this.gridOptions.forceFitColumns = true
 
-      // Ocultar columnas basadas en la propiedad hidden de cada columna
-      if (this.hiddenColumnIds.length > 0) {
-        this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-      }
+    const dateToday = new Date();
+    this.startFilters.set([
+      { index: 'ContratoFechaDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      { index: 'ContratoFechaHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]);
 
-      if (this.apiService.isMobile())
-          this.angularGrid.gridService.hideColumnByIds([])
+    this.settingsService.setLayout('collapsed', true)
+  }
+
+  async angularGridReady(angularGrid: any) {
+    this.angularGrid = angularGrid.detail
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('CantidadObjetivos', this.angularGrid)
+    })
+
+    // Ocultar columnas basadas en la propiedad hidden de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+    }
+
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds([])
   }
 
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    if (row?.id){
+    if (row?.id) {
       this.editObjetivoId.set(row.ObjetivoId)
       this.editClienteId.set(row.ClienteId)
       this.editClienteElementoDependienteId.set(row.ClienteElementoDependienteId)
       //
       this.ObjetivoNombre.set(`${row.ClienteDenominacion} - ${row.Descripcion}`)
     }
-    
 
   }
 
-  // ngOnChanges(changes: SimpleChanges) {
-  //   if (changes['addNew']) {
-  //     this.listObjetivos$.next('');
-  //   }
-  // }
 
   getGridData(): void {
-    this.listObjetivos$.next('')
+    this.gridData.reload()
   }
 
-  async handleAddOrUpdate(){
-    this.listObjetivos$.next('')
+  async handleAddOrUpdate() {
+    this.gridData.reload()
   }
 
   onPristineChange(isPristine: boolean) {
@@ -183,18 +178,11 @@ export class ObjetivosComponent {
 
   }
 
-  listOptionsChange(options: any) {
-      this.listOptions = options
-      this.listObjetivos$.next('')
-      //Reseteo el registro selecionado
-      this.angularGrid?.slickGrid?.setSelectedRows([])
-  }
-
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 4: //INSERT
-       this.childAlta().newRecord()
-       this.childAlta().mostrarDocs.set(false)
+        this.childAlta().newRecord()
+        this.childAlta().mostrarDocs.set(false)
         break
       case 3: //DETAIL
         this.childDeta().viewRecord(true)
@@ -208,52 +196,52 @@ export class ObjetivosComponent {
         this.childEdit().mostrarDocs.set(false)
         this.childDeta().mostrarDocs.set(false)
         break;
-        default:
+      default:
         break;
     }
 
   }
 
-  openDrawerforConsultHistory(): void{
+  openDrawerforConsultHistory(): void {
 
     this.visibleHistorial.set(true)
-       
+
   }
 
   ngAfterViewInit(): void {
-    
+
     const ClienteId = Number(this.route.snapshot.paramMap.get('ClienteId'))
 
     setTimeout(() => {
       if (ClienteId > 0) {
-        this.startFilters.set([ {index:'ClienteId', condition:'AND', operator:'=', value: String(ClienteId), closeable: true}]);
+        this.startFilters.set([{ index: 'ClienteId', condition: 'AND', operator: '=', value: String(ClienteId), closeable: true }]);
       }
     }, 1000)
 
     this.route.queryParams.subscribe(params => {
       const filter = this.startFilters()
       if (params['LugarHabilitacionDescripcionList'] == '') {
-        filter.push({index: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, closeable: true})
+        filter.push({ index: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, closeable: true })
       }
 
       this.startFilters.set(filter)
-      
+
     })
-    
+
   }
 
 
   renderClienteDenominacionComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     let ClienteId = dataContext.ClienteId
-    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/clientes/listado', params:{ ClienteId: ClienteId } , detail: cellNode.innerText})
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/clientes/listado', params: { ClienteId: ClienteId }, detail: cellNode.innerText })
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
-  
+
     cellNode.replaceChildren(componentOutput.domElement)
-    
+
   }
 
-  async openCondVentaLink(){
+  async openCondVentaLink() {
     const objetivoId = this.editObjetivoId();
     if (objetivoId && objetivoId > 0) {
       this.router.navigate(['/ges/carga_asistencia', { ObjetivoId: objetivoId }]);
@@ -263,19 +251,19 @@ export class ObjetivosComponent {
   renderDescripcionObjetivoComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     let ObjetivoId = dataContext.ObjetivoId
-    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/carga_asistencia', params:{ ObjetivoId: ObjetivoId } , detail: cellNode.innerText})
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/carga_asistencia', params: { ObjetivoId: ObjetivoId }, detail: cellNode.innerText })
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
-  
+
     cellNode.replaceChildren(componentOutput.domElement)
   }
 
   renderGrupoActividadDetalleComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
-    
-      let GrupoActividadId = dataContext.GrupoActividadId
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/grupo-actividad/objetivos', params:{ GrupoActividadId: GrupoActividadId } , detail: cellNode.innerText})
+
+    let GrupoActividadId = dataContext.GrupoActividadId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/grupo-actividad/objetivos', params: { GrupoActividadId: GrupoActividadId }, detail: cellNode.innerText })
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
-  
+
     cellNode.replaceChildren(componentOutput.domElement)
   }
 

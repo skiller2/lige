@@ -1871,8 +1871,14 @@ export class ApiService {
     );
   }
 
-  descuentoAddCuota(parameter: any,) {
-    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/addcuota`, parameter).pipe(
+  jobGenCuotasOtroDescuento(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/job-genera-otro-descuento-cuotas`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  jobGenCuotasDescuento(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/job-genera-descuento-cuotas`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

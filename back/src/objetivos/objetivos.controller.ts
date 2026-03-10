@@ -234,25 +234,17 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: false
     },
-    // {
-    //     name: "Objetivo Habilitado",
-    //     id: "ObjetivoHabilitado",
-    //     field: "ObjetivoHabilitado",
-    //     fieldName: "ISNULL(docHabilitacion.ObjetivoHabilitado,'0')",
-    //     type: 'string',
+    {
+        name: "Objetivo Habilitado",
+        id: "ObjetivoHabilitado",
+        field: "",
+        fieldName: "",
+        type: 'string',
 
-    //     searchComponent: "inputForActivo",
-    //     sortable: true,
-    //     formatter: 'collectionFormatter',
-    //     params: { collection: getOptionsSINO },
-    //     exportWithFormatter: true,
-        
-    //     hidden: false,
-    //     searchHidden: false,
-    //     minWidth: 80,
-    //     maxWidth: 80,
-    //     cssClass: 'text-center'
-    // },
+        searchComponent: "inputForActivo",
+        hidden: true,
+        //     searchHidden: false,
+    },
 
 ];
 
@@ -491,19 +483,66 @@ export class ObjetivosController extends BaseController {
         this.jsonRes(listDocsColumns, res);
     }
 
-    async list(req: any, res: Response, next: NextFunction) {
+    filtroExtraHabilitaciones(filtros: any): any {
 
+        const sql = `
+                  SELECT 
+              obj.ObjetivoId
+
+          FROM Objetivo obj
+          JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+            AND eledepcon.ClienteElementoDependienteContratoFechaDesde<=@2 and isnull(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >=@2
+          LEFT JOIN (
+            SELECT ohn.ObjetivoId,
+              STRING_AGG(TRIM(lh.LugarHabilitacionDescripcion),' , ') ObjetivoHabilitado,
+              STRING_AGG(lh.LugarHabilitacionId,',') LugarHabilitacionIdList,
+              count (*) ObjetivoHabilitadoCant
+
+            FROM ObjetivoHabilitacionNecesaria ohn
+            JOIN LugarHabilitacion lh ON lh.LugarHabilitacionId = ohn.ObjetivoHabilitacionNecesariaLugarHabilitacionId
+            LEFT JOIN DocumentoTipo dt on dt.DocumentoTipoCodigo=lh.DocumentoTipoCodigoAsoc
+            JOIN Documento doc on doc.ObjetivoId=ohn.ObjetivoId and doc.DocumentoTipoCodigo=dt.DocumentoTipoCodigo and doc.DocumentoFecha<=@2 and ISNULL(doc.DocumentoFechaDocumentoVencimiento,'9999-12-31')>=@2
+            GROUP BY ohn.ObjetivoId
+            --HAVING COUNT(*) > 1
+          ) docHabilitacion ON docHabilitacion.ObjetivoId = obj.ObjetivoId
+          WHERE  docHabilitacion.ObjetivoHabilitado is null 
+    
+        `
+        const findObjHab = filtros.find((f: any) => f.index == 'ObjetivoHabilitado')
+        if (findObjHab) {
+            switch (findObjHab.valor[0]) {
+                case '1':
+                    findObjHab.valor    = [`obj.ObjetivoId NOT IN ( ${sql} )`]
+                    findObjHab.label = 'con Habilitación'
+                    break
+                case '0':
+                    findObjHab.valor    = [`obj.ObjetivoId IN ( ${sql} )`]
+                    findObjHab.label = 'sin Habilitación'
+                    break
+            }
+            findObjHab.index = 'ObjetivoId'
+            findObjHab.operador = 'RAW'
+            findObjHab.fieldName = 'obj.ObjetivoId'
+        }
+        return filtros
+    }
+
+
+    async list(req: any, res: Response, next: NextFunction) {
+        const fechaActual = new Date()
+        req.body.options.filtros = this.filtroExtraHabilitaciones(req.body.options.filtros,)
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
-        const fechaActual = new Date()
+
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
+
 
         try {
             const objetivos = await queryRunner.query(
                 `
-SELECT 
+                    SELECT 
                     -- DISTINCT
                     ROW_NUMBER() OVER (ORDER BY obj.ObjetivoId) AS id,
                     obj.ObjetivoId,
@@ -644,8 +683,8 @@ SELECT
         this.jsonRes(getOptions, res);
     }
 
-    async infObjetivoQuerys(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId:any) {
-        
+    async infObjetivoQuerys(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
+
         let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
         const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
         const rubrosCliente = await this.getRubroQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
@@ -1383,7 +1422,7 @@ SELECT
         for (const old of coordinadoresActuales) {
             const nuevo = Coordinadores.find((r: any) => (r.PersonalId == old.PersonalId))
             if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos || nuevo?.ObjetivoPersonalJerarquicoSeDescuentaTelefono != old.ObjetivoPersonalJerarquicoSeDescuentaTelefono) {
-                
+
                 await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @2
                 WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
                     [old.PersonalId, ObjetivoId, fechaAyer, Fecha])
@@ -1397,19 +1436,19 @@ SELECT
                         ObjetivoPersonalJerarquicoDescuentos, ObjetivoPersonalJerarquicoSeDescuentaTelefono) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
                         [ObjetivoId, nuevo.PersonalId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos, nuevo.ObjetivoPersonalJerarquicoSeDescuentaTelefono])
                 }
-            } else if (!nuevo){
+            } else if (!nuevo) {
                 const ObjetivoPersonalJerarquicoDesde = new Date(old.ObjetivoPersonalJerarquicoDesde)
                 if (ObjetivoPersonalJerarquicoDesde.getTime() < Fecha.getTime()) {
                     await queryRunner.query(`
                         UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @4
                         WHERE ObjetivoPersonalJerarquicoId = @0 AND ObjetivoPersonalJerarquicoPersonalId = @1 AND ObjetivoId = @2 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3
-                    `, [old.ObjetivoPersonalJerarquicoId ,old.PersonalId, ObjetivoId, Fecha, fechaAyer])
+                    `, [old.ObjetivoPersonalJerarquicoId, old.PersonalId, ObjetivoId, Fecha, fechaAyer])
                 } else {
                     await queryRunner.query(`
                         DELETE ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoId = @0 AND ObjetivoPersonalJerarquicoPersonalId = @1  AND ObjetivoId = @2`,
-                    [old.ObjetivoPersonalJerarquicoId, old.PersonalId, ObjetivoId])
+                        [old.ObjetivoPersonalJerarquicoId, old.PersonalId, ObjetivoId])
                 }
-                
+
             }
         }
 
@@ -2158,3 +2197,6 @@ SELECT
     }
 
 }
+
+
+

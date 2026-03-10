@@ -97,6 +97,9 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             }
           }
           break;
+        case "RAW":
+          filterString.push(`${valorBusqueda}`)
+          break;
         case "=":
           if (type == 'number' || type == 'float' || type == 'currency') {
             if (valorBusqueda === '' || valorBusqueda === null || valorBusqueda === 'null')

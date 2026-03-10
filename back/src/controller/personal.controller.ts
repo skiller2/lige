@@ -1830,7 +1830,7 @@ export class PersonalController extends BaseController {
       PersonalLocalidadId LocalidadId, email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
-      per.PersonalLeyNro LeyNro
+      per.PersonalLeyNro LeyNro, per.LugarFisicoLegajoId
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
@@ -3433,12 +3433,12 @@ UNION ALL
       if (!DocumentoTipoCodigo && !desdeDocHabilitacion) {
         // campos_vacios.push(`- Tipo de documento`)
         fieldErrors.push({ fieldTree: 'DocumentoTipoCodigo', kind: 'server', message: 'Debe completar el campo Tipo de documento' })
-      } 
+      }
 
       if (desdeDocHabilitacion && DocumentoTipoCodigo) {
         // campos_vacios.push(`- Desde (Archivo)`)
         fieldErrors.push({ fieldTree: 'archivo', kind: 'server', message: 'Debe completar el campo Desde (Archivo)' })
-      } 
+      }
     }
 
     // if (!Exencion && PersonalExencionDesde) {

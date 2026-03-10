@@ -32,8 +32,12 @@ gestionDescuentosRouter.post('/add', [authMiddleware.verifyToken,authMiddleware.
     gestionDescuentosController.addDescuento(req, res, next)
 });
 
-gestionDescuentosRouter.post('/addcuota', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
-    gestionDescuentosController.addDescuentoCuotas(req, res, next)
+gestionDescuentosRouter.post('/job-genera-otro-descuento-cuotas', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
+    gestionDescuentosController.jobOtroDescuentoCuotas(req, res, next)
+});
+
+gestionDescuentosRouter.post('/job-genera-descuento-cuotas', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
+    gestionDescuentosController.jobDescuentoCuotas(req, res, next)
 });
 
 gestionDescuentosRouter.post('/update', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
