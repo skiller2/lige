@@ -9,9 +9,9 @@ export class AvisoController extends BaseController {
     try {
       const userName = res.locals.userName;
       const avisos = await queryRunner.query(
-        `SELECT AvisoId, Usuario, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng
+        `SELECT AvisoId, Usuario, Grupo, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng
          FROM Aviso
-         WHERE Usuario = @0 AND AudFechaIng >= DATEADD(DAY, -30, GETDATE())
+         WHERE Usuario = @0 AND (Visible = 1 OR Visible IS NULL) AND AudFechaIng >= DATEADD(DAY, -30, GETDATE())
          ORDER BY AudFechaIng DESC`,
         [userName]
       );
@@ -36,6 +36,26 @@ export class AvisoController extends BaseController {
         [AvisoId, userName]
       );
       this.jsonRes({ message: "Aviso marcado como visto" }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async ocultarAviso(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const userName = res.locals.userName;
+      const { AvisoId } = req.body;
+      if (!AvisoId) throw new ClientException("AvisoId es requerido");
+
+      await queryRunner.query(
+        `UPDATE Aviso SET Visible = 0, FechaVisualizacion = ISNULL(FechaVisualizacion, GETDATE())
+         WHERE AvisoId = @0 AND Usuario = @1`,
+        [AvisoId, userName]
+      );
+      this.jsonRes({ message: "Aviso ocultado" }, res);
     } catch (error) {
       return next(error);
     } finally {

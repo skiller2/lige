@@ -2098,6 +2098,13 @@ export class ApiService {
       catchError(() => of(null))
     );
   }
+
+  ocultarAviso(AvisoId: number): Observable<any> {
+    return this.http.put<ResponseJSON<any>>('api/aviso/ocultar', { AvisoId }).pipe(
+      catchError(() => of(null))
+    );
+  }
+
   toSegments(path: string): (string | number)[] {
     return path
       .replace(/\[(\d+)\]/g, '.$1')   // brackets -> dots

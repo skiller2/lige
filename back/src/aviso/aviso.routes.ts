@@ -15,3 +15,7 @@ avisoRouter.put(`/marcar-visto`, authMiddleware.verifyToken, (req, res, next) =>
 avisoRouter.put(`/marcar-todos-vistos`, authMiddleware.verifyToken, (req, res, next) => {
   avisoController.marcarTodosVistos(req, res, next);
 });
+
+avisoRouter.put(`/ocultar`, authMiddleware.verifyToken, (req, res, next) => {
+  avisoController.ocultarAviso(req, res, next);
+});
