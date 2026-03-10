@@ -486,16 +486,6 @@
     </nz-form-control>
   </nz-form-item>
 
-
-  <nz-form-item>
-    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-      <button nzType="primary" nz-button *ngIf="formPer.enabled" (click)="save()" [nzLoading]="isLoading()"
-        [disabled]="formPer.pristine">
-        {{ 'app.btn.save' | i18n }}
-      </button>
-    </nz-form-control>
-  </nz-form-item>
-
   <ng-container>
     <!-- <nz-divider nzText="Situacion de Revista" nzOrientation="left"></nz-divider> -->
     <div class="input-container1">
@@ -520,4 +510,12 @@
     </nz-form-item>
   </ng-container>
 
+  <nz-form-item>
+    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+      <button nzType="primary" nz-button *ngIf="formPer.enabled" (click)="save()" [nzLoading]="isLoading()"
+        [disabled]="formPer.pristine">
+        {{ 'app.btn.save' | i18n }}
+      </button>
+    </nz-form-control>
+  </nz-form-item>
 </form>
