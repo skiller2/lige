@@ -720,7 +720,7 @@ FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
       const con = await getConnection()
       const rec = await con.query(`
         WITH ObjetivosSinHabilitacion AS (
-          SELECT 
+          SELECT DISTINCT
               obj.ObjetivoId, 
               CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId, 0)) AS codobj,
               docHabilitacion.ObjetivoHabilitado,
