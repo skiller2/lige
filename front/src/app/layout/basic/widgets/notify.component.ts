@@ -26,7 +26,7 @@ const CLASE_CONFIG: Record<string, { icon: string; color: string }> = {
   template: `
     <notice-icon
       [data]="data()"
-      [count]="count"
+      [count]="count()"
       [loading]="avisos.isLoading()"
       btnClass="alain-default__nav-item"
       btnIconClass="alain-default__nav-item-icon"
