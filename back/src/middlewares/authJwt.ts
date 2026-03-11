@@ -114,7 +114,6 @@ export class AuthMiddleware {
     }
 
     //      res.locals.filterSucursal.push(2)
-    console.log(res.locals);
 
     return next()
   }
