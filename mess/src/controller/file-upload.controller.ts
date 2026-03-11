@@ -993,8 +993,9 @@ export class FileUploadController extends BaseController {
     const canvasFactory: any = pdfDoc.canvasFactory;
 
     const canvasAndContext = canvasFactory.create(
-      viewport.width,
-      viewport.height
+      canvasContext: canvasAndContext.context,
+      canvas: canvasAndContext.canvas,
+      viewport,
     );
 
     const renderContext = {
