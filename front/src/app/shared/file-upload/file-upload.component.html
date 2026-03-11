@@ -17,7 +17,7 @@
           </nz-upload>
           }
           @if (previewFile()){
-          @if ((filesAdd.mimetype.includes('image') || forceImg()) ) {
+          @if ((filesAdd?.mimetype?.includes('image') || forceImg()) ) {
           <div class="preview">
             <app-image-loader class="image-content"
               [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/'+(forceImg()?'image':'original')" />
@@ -26,7 +26,7 @@
                       class="image-content" /> -->
           </div>
           }
-          @if (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update) {
+          @if (filesAdd?.mimetype?.includes('pdf') && !forceImg() && !filesAdd.update) {
           <div class="preview">
             <app-image-loader class="image-content"
               [src]="'api/file-upload/downloadFile/'+filesAdd.id+'/'+tableForSearch()+'/thumb'" />
@@ -51,7 +51,7 @@
               app-down-file [httpMethod]="'GET'"
               httpUrl="api/file-upload/downloadFile/{{filesAdd.id}}/{{tableForSearch()}}/original"> </a>
             }
-            @if (previewFile() && (filesAdd.mimetype.includes('pdf') && !forceImg() && !filesAdd.update)){
+            @if (previewFile() && (filesAdd?.mimetype?.includes('pdf') && !forceImg() && !filesAdd.update)){
             <a nz-icon nzType="search" nzTheme="outline"
               (click)="LoadArchivo(filesAdd.id,tableForSearch(),filesAdd.tempfilename)"></a>
             }
@@ -61,7 +61,7 @@
       }@else{
       <div class="containerAnteriores">
         <div class="fila">
-          @if(previewFile() && filesAdd.mimetype.includes('image')){
+          @if(previewFile() && filesAdd?.mimetype?.includes('image')){
           <div class="preview">
             <app-image-loader [src]="'api/file-upload/downloadFile/'+filesAdd.tempfilename+'/temp/original'" />
           </div>
@@ -81,7 +81,7 @@
           </div>
 
           <div class="actions">
-            @if ( previewFile() && filesAdd.mimetype.includes('pdf') ) {
+            @if ( previewFile() && filesAdd?.mimetype?.includes('pdf') ) {
             <a nz-icon nzType="search" nzTheme="outline" class="cursor-pointer"
               (click)="LoadArchivo(filesAdd.tempfilename,'temp',filesAdd.originalname)"></a>
             }
