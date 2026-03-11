@@ -1030,26 +1030,47 @@ export class GestionDescuentosController extends BaseController {
 
 
       const coutaspend = await queryRunner.query(`
-        SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
-        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, 
-        ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS cuotavalor, 
-        -- cuo.PersonalOtroDescuentoCuotaImporte  ImporteReal,  
-        --MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
-        des.PersonalOtroDescuentoCuotaUltNro,
-        cuo.PersonalOtroDescuentoCuotaImporte,
-        0 generadas ,
-        1
-        FROM PersonalOtroDescuento des 
-        LEFT JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
-        WHERE
-        1 = 1 
-        -- des.PersonalOtroDescuentoDescuentoId =31 
-		  -- des.PersonalOtroDescuentoCantidadCuotas = 1 AND 
-		  AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
-		  AND des.PersonalOtroDescuentoAnoAplica=@1 AND des.PersonalOtroDescuentoMesesAplica=@2
-        --GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
-        -- HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
-			AND cuo.PersonalOtroDescuentoCuotaImporte IS NULL
+SELECT
+    des.PersonalDescuentoPersonalId,
+    des.PersonalDescuentoId,
+    des.PersonalDescuentoFechaDescuento,
+    des.PersonalDescuentoImporte,
+    des.PersonalDescuentoPorcentajeDescuento,
+    des.PersonalDescuentoCuotas,
+--    des.FechaAnulacion,
+    CASE
+        WHEN ISNULL(des.PersonalDescuentoCuotas, 0) > 0
+            THEN ROUND((des.PersonalDescuentoImporte*des.PersonalDescuentoPorcentajeDescuento/100) / des.PersonalDescuentoCuotas, 2)
+        ELSE 0
+    END AS ImporteCuotaCalculado,
+    -- cuo.PersonalDescuentoCuotaImporte AS ImporteCuotaReal,
+    des.PersonalDescuentoCuotaUltNro,
+    COUNT(cuo.PersonalDescuentoCuotaId) AS generadas,
+    
+    
+    COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='FA' THEN 1 END) fas, 
+    COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='AP' THEN 1 END) aps
+    
+FROM PersonalDescuento des
+LEFT JOIN PersonalDescuentoCuota cuo
+    ON cuo.PersonalDescuentoId = des.PersonalDescuentoId
+   AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
+WHERE des.FechaAnulacion IS NULL
+-- AND des.PersonalDescuentoCuotas >10
+-- AND des.PersonalDescuentoPersonalId = 17676
+		  -- des.PersonalDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalDescuentoCantidadCuotas
+		  -- AND des.PersonalDescuentoAnoAplica=@1 AND des.PersonalDescuentoMesesAplica=@2
+GROUP BY des.PersonalDescuentoPersonalId, des.PersonalDescuentoId , des.PersonalDescuentoFechaDescuento, des.FechaAnulacion, des.PersonalDescuentoImporte, des.PersonalDescuentoCuotas, 
+des.PersonalDescuentoCuotaUltNro,PersonalDescuentoPorcentajeDescuento
+-- cuo.PersonalDescuentoCuotaImporte
+
+HAVING COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso='FA' THEN 1 END) <> des.PersonalDescuentoCuotas
+AND COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='AP' THEN 1 END) = 0
+
+
+-- des.PersonalDescuentoCantidadCuotas, des.PersonalDescuentoAnoAplica, des.PersonalDescuentoMesesAplica,des.PersonalDescuentoCuotaUltNro
+        -- HAVING COUNT (*) <> des.PersonalDescuentoCantidadCuotas
+			-- AND cuo.PersonalDescuentoCuotaImporte IS NULL
 `, [,anio, mes])
       for (const descuento of coutaspend) {
         let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
