@@ -3633,7 +3633,6 @@ UNION ALL
         }
 
       }
-      throw new ClientException('DEBUG')
 
       await queryRunner.commitTransaction()
       this.jsonRes({ DocumentoId: (newDocumentoId ? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');
