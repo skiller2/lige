@@ -39,7 +39,7 @@ export class AvisoController extends BaseController {
       if (!AvisoId) throw new ClientException("AvisoId es requerido");
 
       await queryRunner.query(
-        `UPDATE Aviso SET FechaVisualizacion = @0, AudFechaMod = @0, AudUsuarioMod = @3, AudUsuarioIng = @2
+        `UPDATE Aviso SET FechaVisualizacion = @0, AudFechaMod = @0, AudUsuarioMod = @3, AudIpMod = @2
          WHERE AvisoId = @1 AND FechaVisualizacion IS NULL`,
         [now, AvisoId, ip, userName]
       );
@@ -62,7 +62,7 @@ export class AvisoController extends BaseController {
 
       await queryRunner.query(
         `UPDATE Aviso SET Visible = 0, FechaVisualizacion = ISNULL(FechaVisualizacion, @0), AudFechaMod = @0, AudIpMod=@2, AudUsuarioMod = @3
-        WHERE AvisoId = @1 AND Usuario = @2`,
+        WHERE AvisoId = @1`,
         [now, AvisoId, ip, userName]
       );
       this.jsonRes({ message: "Aviso ocultado" }, res);
@@ -77,10 +77,12 @@ export class AvisoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const userName = res.locals.userName;
+      const now = new Date()
+      const ip = this.getRemoteAddress(req)
       await queryRunner.query(
-        `UPDATE Aviso SET FechaVisualizacion = GETDATE()
-         WHERE Usuario = @0 AND FechaVisualizacion IS NULL`,
-        [userName]
+        `UPDATE Aviso SET FechaVisualizacion = @0, AudFechaMod = @0, AudIpMod=@2, AudUsuarioMod = @1
+         WHERE Usuario = @1 AND FechaVisualizacion IS NULL`,
+        [now, userName, ip]
       );
       this.jsonRes({ message: "Todos los avisos marcados como vistos" }, res);
     } catch (error) {
