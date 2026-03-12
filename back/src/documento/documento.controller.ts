@@ -73,8 +73,8 @@ export class DocumentoController extends BaseController {
       searchHidden: true,
     },
     {
-      id: "objetivo", name: "Objetivo", field: "objetivo.fullname", 
-      fieldName: "obj.ObjetivoId", 
+      id: "objetivo", name: "Objetivo", field: "objetivo.fullname",
+      fieldName: "obj.ObjetivoId",
       type: "string",
       formatter: 'complexObject',
       params: {
@@ -88,7 +88,7 @@ export class DocumentoController extends BaseController {
     },
     {
       id: 'cliente', name: 'Cliente', field: 'cliente.fullname',
-      fieldName: "cli.ClienteId", 
+      fieldName: "cli.ClienteId",
       type: 'string',
       formatter: 'complexObject',
       params: {
@@ -407,7 +407,7 @@ export class DocumentoController extends BaseController {
       const valsTipoDocumento = this.valsTipoDocumento(req.body)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
-      
+
       archivos[0].ind_descarga_bot = ind_descarga_bot
       const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, null, fecha, fec_doc_ven, den_documento, null, null, archivos[0], usuario, ip, queryRunner)
       const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
@@ -609,12 +609,12 @@ export class DocumentoController extends BaseController {
     const fecha: Date = tipoDocumento.Documentofecha ? new Date(tipoDocumento.Documentofecha) : tipoDocumento.Documentofecha
     const fec_doc_ven: Date = tipoDocumento.DocumentoFechaDocumentoVencimiento ? new Date(tipoDocumento.DocumentoFechaDocumentoVencimiento) : tipoDocumento.DocumentoFechaDocumentoVencimiento
 
-    const documentoTipoInvalidos = ['POLSEG', 'NOV', 'EST', 'IMPVENV', 'LIC', 'MONOT', 'TEL', 'DES']
+    const documentoTipoInvalidos = ['POLSEG', 'NOV', 'EST', 'IMPVENV', 'LIC', 'MONOT', 'TEL', 'DES', 'PRO', 'HABPERCABA', 'HABPERPRO']
     if (documentoTipoInvalidos.includes(doctipo_id)) return new ClientException(`No se puede ingresar/modificar el registro. Se debera hacer desde el modulo correspondiente. Tipo seleccionado: ${doctipo_id}.`)
 
-    const docTipoPersonalRequerido = ['CLU', 'REC', 'LIC', 'DOCIDEDOR', 'DOCIDEFRE', 'EST', 'FOR152', 'FOR184', 'FOTO', 'HABPERCABA', 'HABPERPRO', 'MONOT', 'PERANT', 'PERREI', 'PERSAN', 'PREELE','PREHIS', 'PRELAB', 'PREPSI', 'PRERAD', 'PRESUB']
-    const docTipoClienteRequerido = ['CLI', 'CONINS']
-    const docTipoObjetivoRequerido = ['OBJ', 'DECOBJFOR', 'HABOBJCABA', 'HABOBJPBA' , 'HABOBJPRE']
+    const docTipoPersonalRequerido = ['CLU', 'REC', 'LIC', 'DOCIDEDOR', 'DOCIDEFRE', 'EST', 'FOR152', 'FOR184', 'FOTO', 'HABPERCABA', 'HABPERPRO', 'MONOT', 'PERANT', 'PERREI', 'PERSAN', 'PREELE', 'PREHIS', 'PRELAB', 'PREPSI', 'PRERAD', 'PRESUB']
+    const docTipoClienteRequerido = ['CLI', 'HABEMPCABA', 'HABEMPPRO']
+    const docTipoObjetivoRequerido = ['OBJ', 'DECOBJFOR', 'HABOBJCABA', 'HABOBJPBA', 'HABOBJPRE']
 
     let campos_vacios: any[] = []
 
