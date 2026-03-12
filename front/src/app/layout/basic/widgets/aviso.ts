@@ -122,7 +122,7 @@ const CLASE_CONFIG: Record<string, { icon: string; color: string }> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NzBadgeModule, NzIconModule, NzDropDownModule, NzSpinModule, NzTabsModule, NzListModule, NzTagModule, NzTooltipModule, DatePipe]
 })
-export class HeaderNotifyComponent {
+export class AvisoNotifyComponent {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
 
