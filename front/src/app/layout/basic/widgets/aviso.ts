@@ -12,6 +12,7 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { DatePipe } from '@angular/common';
+import { SettingsService } from '@delon/theme';
 
 interface Aviso {
   AvisoId: number;
@@ -125,7 +126,7 @@ const CLASE_CONFIG: Record<string, { icon: string; color: string }> = {
 export class AvisoNotifyComponent {
   private readonly apiService = inject(ApiService);
   private readonly router = inject(Router);
-
+  private readonly settingService = inject(SettingsService)
   delayShow = signal(false);
 
   private readonly tick = toSignal(timer(0, 60000), { initialValue: -1 });
@@ -133,6 +134,8 @@ export class AvisoNotifyComponent {
   readonly avisos = resource({
     params: () => this.tick(),
     loader: async () => {
+      //console.log('this.settingService.getUser()',this.settingService.getUser())
+      //TODO: En caso que no tenga usuario no debe pedir los avisos.  return [] as Aviso[];
       const avisos = await firstValueFrom(this.apiService.getAvisos());
       return avisos as Aviso[];
     },

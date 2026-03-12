@@ -11,13 +11,13 @@ export class Utils {
     return (impoexpomax[0].max_impoexpo_id != undefined) ? impoexpomax[0].max_impoexpo_id : 0
   }
 
-  
-static getNextPeriodo(anio: number, mes: number): {anio: number, mes: number} {
-  if (mes === 12) {
-    return { anio: anio + 1, mes: 1 };
+
+  static getNextPeriodo(anio: number, mes: number): { anio: number, mes: number } {
+    if (mes === 12) {
+      return { anio: anio + 1, mes: 1 };
+    }
+    return { anio, mes: mes + 1 };
   }
-  return { anio, mes: mes + 1 };
-}
 
 
   static async getPeriodoId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes: number, usuario: any, ip: any) {
@@ -37,9 +37,18 @@ static getNextPeriodo(anio: number, mes: number): {anio: number, mes: number} {
     const aniomesmax = await queryRunner.query(`SELECT TOP 1 periodo_id, anio, mes FROM lige.dbo.liqmaperiodo ORDER BY anio DESC, mes DESC `)
     const anioMax = (aniomesmax.length > 0) ? aniomesmax[0].anio : 0
     const mesMax = (aniomesmax.length > 0) ? aniomesmax[0].mes : 0
+
     const { anio: proxAnio, mes: proxMes } = Utils.getNextPeriodo(anioMax, mesMax)
-    if (anio !== proxAnio || mes !== proxMes)
+    const esSiguiente = (anio === proxAnio && mes === proxMes)
+    const esAnteriorValido = (anio >= 1900 && (anioMax !== 0 && (anio < anioMax || (anio === anioMax && mes < mesMax))))
+    const esPrimerPeriodoValido = (anioMax === 0 && anio >= 1900)
+
+    if (!esSiguiente && !esAnteriorValido && !esPrimerPeriodoValido) {
+      if (anio < 1900)
+        throw new ClientException(`Período no válido ${mes}/${anio}. El año mínimo permitido es 1900`)
+
       throw new ClientException(`Período no válido ${mes}/${anio}. El próximo período es ${proxMes}/${proxAnio}`)
+    }
 
     const periodomax = await queryRunner.query(`SELECT MAX(per.periodo_id) max_periodo_id FROM lige.dbo.liqmaperiodo per`)
     let periodo_id = (periodomax[0].max_periodo_id != undefined) ? periodomax[0].max_periodo_id : 0
