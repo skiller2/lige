@@ -1032,11 +1032,13 @@ WITH cte AS (
         des.PersonalDescuentoId,
         des.PersonalDescuentoFechaDescuento,
         des.PersonalDescuentoImporte,
+        des.PersonalDescuentoCantidadEfectos,
         des.PersonalDescuentoPorcentajeDescuento,
         des.PersonalDescuentoCuotas,
+        des.PersonalDescuentoCuotasPagas,
         CASE
             WHEN ISNULL(des.PersonalDescuentoCuotas, 0) > 0
-                THEN ROUND((des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento / 100.0) / des.PersonalDescuentoCuotas, 2)
+                THEN ROUND((des.PersonalDescuentoImporte * des.PersonalDescuentoCantidadEfectos * des.PersonalDescuentoPorcentajeDescuento / 100.0) / des.PersonalDescuentoCuotas, 2)
             ELSE 0
         END AS ImporteCuotaCalculado,
         des.PersonalDescuentoCuotaUltNro,
@@ -1076,7 +1078,9 @@ WITH cte AS (
         des.PersonalDescuentoCuotas,
         des.PersonalDescuentoCuotaUltNro,
         des.PersonalDescuentoPorcentajeDescuento,
-        sit.PersonalFechaBaja
+        sit.PersonalFechaBaja,
+        des.PersonalDescuentoCuotasPagas,
+        des.PersonalDescuentoCantidadEfectos
 
     HAVING COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso = 'FA' THEN 1 END) <> des.PersonalDescuentoCuotas
 )
@@ -1114,6 +1118,14 @@ FROM cte
           countPersonalFechaBaja++
           continue
         }
+
+        if (descuento.PersonalDescuentoCuotas===descuento.PersonalDescuentoCuotasPagas && descuento.CuotasGeneradas == 0  ) {
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Sin cuotas generadas' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento])
+          countPersonalFechaBaja++
+          continue
+        }
+
+
 /*
         const cuotaAnio = descuento.AnioUltCuo
         const cuotaMes = descuento.MesUltCuo
