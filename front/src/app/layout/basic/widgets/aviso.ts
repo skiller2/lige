@@ -153,9 +153,10 @@ export class AvisoNotifyComponent {
 
   async onSelect(aviso: Aviso): Promise<void> {
     if (!aviso.FechaVisualizacion) {
-      await firstValueFrom(this.apiService.marcarAvisoVisto(aviso.AvisoId));
+      const res = await firstValueFrom(this.apiService.marcarAvisoVisto(aviso.AvisoId));
+      const fecha = res?.FechaVisualizacion;
       this.avisos.update(list => (list ?? []).map(a =>
-        a.AvisoId === aviso.AvisoId ? { ...a, FechaVisualizacion: new Date().toISOString() } : a
+        a.AvisoId === aviso.AvisoId ? { ...a, FechaVisualizacion: fecha } : a
       ));
     }
 
@@ -171,7 +172,8 @@ export class AvisoNotifyComponent {
   }
 
   async marcaTodoVisto(): Promise<void> {
-    await firstValueFrom(this.apiService.marcarTodosAvisosVistos());
-    this.avisos.update(list => (list ?? []).map(a => ({ ...a, FechaVisualizacion: a.FechaVisualizacion ?? new Date().toISOString() })));
+    const res = await firstValueFrom(this.apiService.marcarTodosAvisosVistos());
+    const fecha = res?.FechaVisualizacion;
+    this.avisos.update(list => (list ?? []).map(a => ({ ...a, FechaVisualizacion: a.FechaVisualizacion ?? fecha })));
   }
 }

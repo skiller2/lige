@@ -2095,12 +2095,14 @@ export class ApiService {
 
   marcarAvisoVisto(AvisoId: number): Observable<any> {
     return this.http.put<ResponseJSON<any>>('api/aviso/marcar-visto', { AvisoId }).pipe(
+      map((res: ResponseJSON<any>) => res.data),
       catchError(() => of(null))
     );
   }
 
   marcarTodosAvisosVistos(): Observable<any> {
     return this.http.put<ResponseJSON<any>>('api/aviso/marcar-todos-vistos', {}).pipe(
+      map((res: ResponseJSON<any>) => res.data),
       catchError(() => of(null))
     );
   }

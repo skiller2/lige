@@ -43,7 +43,7 @@ export class AvisoController extends BaseController {
          WHERE AvisoId = @1 AND FechaVisualizacion IS NULL`,
         [now, AvisoId, ip, userName]
       );
-      this.jsonRes({ message: "Aviso marcado como visto" }, res);
+      this.jsonRes({ message: "Aviso marcado como visto", FechaVisualizacion: now }, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -84,7 +84,7 @@ export class AvisoController extends BaseController {
          WHERE Usuario = @1 AND FechaVisualizacion IS NULL`,
         [now, userName, ip]
       );
-      this.jsonRes({ message: "Todos los avisos marcados como vistos" }, res);
+      this.jsonRes({ message: "Todos los avisos marcados como vistos", FechaVisualizacion: now }, res);
     } catch (error) {
       return next(error);
     } finally {
