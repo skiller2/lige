@@ -28,11 +28,11 @@
       </ul>
       
       <nz-button-group nz-button nz-buttonGroup>
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas (Descuento) para el periodo {{mes()}}/{{anio()}}"
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas (Descuento)"
         (nzOnConfirm)="jobGenCuotasOtroDescuento()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas.descuento' | i18n }}" >
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas (Efectos) para el periodo {{mes()}}/{{anio()}}"
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas (Efectos)"
         (nzOnConfirm)="jobGenCuotasDescuento()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas.efecto' | i18n }}" >
           <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button>

@@ -1015,98 +1015,134 @@ export class GestionDescuentosController extends BaseController {
   }
 
 
-  async jobDescuentoCuotas(req: any, res: Response, next: NextFunction) {
+  async jobDescuentoCuotas(req: any, res: Response, next: NextFunction) {   //Procesa las CUOTAS de los descuentos de EFECTOS
     const queryRunner = dataSource.createQueryRunner();
-    const anio: number = req.body.year
-    const mes: number = req.body.month
+    //    const anio: number = req.body.year
+    //    const mes: number = req.body.month
 
     try {
-      throw new ClientException(`Proceso Efectos Cuotas en proceso`)
 
       await queryRunner.startTransaction()
-      const per = await this.getPeriodoQuery(queryRunner, anio, mes)
-      if (per[0] && per[0].ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
 
 
       const coutaspend = await queryRunner.query(`
+WITH cte AS (
+    SELECT
+        des.PersonalDescuentoPersonalId,
+        des.PersonalDescuentoId,
+        des.PersonalDescuentoFechaDescuento,
+        des.PersonalDescuentoImporte,
+        des.PersonalDescuentoPorcentajeDescuento,
+        des.PersonalDescuentoCuotas,
+        CASE
+            WHEN ISNULL(des.PersonalDescuentoCuotas, 0) > 0
+                THEN ROUND((des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento / 100.0) / des.PersonalDescuentoCuotas, 2)
+            ELSE 0
+        END AS ImporteCuotaCalculado,
+        des.PersonalDescuentoCuotaUltNro,
+
+        IIF(
+            COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso = 'AP' THEN 1 END) > 0,
+            CONVERT(date, CONCAT(MIN(cuo.PersonalDescuentoCuotaAno * 100 + cuo.PersonalDescuentoCuotaMes), '01')),
+            NULL
+        ) AS FechaAnulacionCuota,
+
+        IIF(
+            COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso = 'FA' THEN 1 END) > 0,
+            MAX(cuo.PersonalDescuentoCuotaAno * 100 + cuo.PersonalDescuentoCuotaMes),
+            NULL
+        ) AS AnioMesUltCuo,
+
+        sit.PersonalFechaBaja,
+
+        COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso = 'FA' THEN 1 END) AS CuotasGeneradas
+
+    FROM PersonalDescuento des
+    LEFT JOIN PersonalDescuentoCuota cuo
+        ON cuo.PersonalDescuentoId = des.PersonalDescuentoId
+       AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
+    LEFT JOIN PersonalIngresoEgreso sit
+        ON sit.PersonalId = des.PersonalDescuentoPersonalId
+
+    WHERE des.FechaAnulacion IS NULL
+    -- AND  sit.PersonalFechaBaja IS NULL
+
+    GROUP BY
+        des.PersonalDescuentoPersonalId,
+        des.PersonalDescuentoId,
+        des.PersonalDescuentoFechaDescuento,
+        des.FechaAnulacion,
+        des.PersonalDescuentoImporte,
+        des.PersonalDescuentoCuotas,
+        des.PersonalDescuentoCuotaUltNro,
+        des.PersonalDescuentoPorcentajeDescuento,
+        sit.PersonalFechaBaja
+
+    HAVING COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso = 'FA' THEN 1 END) <> des.PersonalDescuentoCuotas
+)
 SELECT
-    des.PersonalDescuentoPersonalId,
-    des.PersonalDescuentoId,
-    des.PersonalDescuentoFechaDescuento,
-    des.PersonalDescuentoImporte,
-    des.PersonalDescuentoPorcentajeDescuento,
-    des.PersonalDescuentoCuotas,
---    des.FechaAnulacion,
-    CASE
-        WHEN ISNULL(des.PersonalDescuentoCuotas, 0) > 0
-            THEN ROUND((des.PersonalDescuentoImporte*des.PersonalDescuentoPorcentajeDescuento/100) / des.PersonalDescuentoCuotas, 2)
-        ELSE 0
-    END AS ImporteCuotaCalculado,
-    -- cuo.PersonalDescuentoCuotaImporte AS ImporteCuotaReal,
-    des.PersonalDescuentoCuotaUltNro,
-    COUNT(cuo.PersonalDescuentoCuotaId) AS generadas,
-    
-    
-    COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='FA' THEN 1 END) fas, 
-    COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='AP' THEN 1 END) aps
-    
-FROM PersonalDescuento des
-LEFT JOIN PersonalDescuentoCuota cuo
-    ON cuo.PersonalDescuentoId = des.PersonalDescuentoId
-   AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
-WHERE des.FechaAnulacion IS NULL
--- AND des.PersonalDescuentoCuotas >10
--- AND des.PersonalDescuentoPersonalId = 17676
-		  -- des.PersonalDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalDescuentoCantidadCuotas
-		  -- AND des.PersonalDescuentoAnoAplica=@1 AND des.PersonalDescuentoMesesAplica=@2
-GROUP BY des.PersonalDescuentoPersonalId, des.PersonalDescuentoId , des.PersonalDescuentoFechaDescuento, des.FechaAnulacion, des.PersonalDescuentoImporte, des.PersonalDescuentoCuotas, 
-des.PersonalDescuentoCuotaUltNro,PersonalDescuentoPorcentajeDescuento
--- cuo.PersonalDescuentoCuotaImporte
+    cte.*,
+    IIF(cte.AnioMesUltCuo IS NOT NULL,cte.AnioMesUltCuo / 100,DATEPART(YEAR,cte.PersonalDescuentoFechaDescuento)) AS AnioUltCuo,
+    IIF(cte.AnioMesUltCuo IS NOT NULL,cte.AnioMesUltCuo % 100, DATEPART(MONTH,cte.PersonalDescuentoFechaDescuento)) AS MesUltCuo
+FROM cte
+`, [])
 
-HAVING COUNT(CASE WHEN cuo.PersonalDescuentoCuotaProceso='FA' THEN 1 END) <> des.PersonalDescuentoCuotas
-AND COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='AP' THEN 1 END) = 0
-
-
--- des.PersonalDescuentoCantidadCuotas, des.PersonalDescuentoAnoAplica, des.PersonalDescuentoMesesAplica,des.PersonalDescuentoCuotaUltNro
-        -- HAVING COUNT (*) <> des.PersonalDescuentoCantidadCuotas
-			-- AND cuo.PersonalDescuentoCuotaImporte IS NULL
-`, [,anio, mes])
+      let countPersonalDescuentoPorcentajeDescuento = 0
+      let countFechaAnulacionCuota = 0
+      let countPersonalFechaBaja = 0
+      let countCuotasGeneradas = 0
       for (const descuento of coutaspend) {
-        let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
-        let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
-        let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
+        const PersonalDescuentoPersonalId = descuento.PersonalDescuentoPersonalId
+        const PersonalDescuentoId = descuento.PersonalDescuentoId
+        let PersonalDescuentoCuotaUltNro = descuento.PersonalDescuentoCuotaUltNro
+        const ImporteCuotaCalculado = descuento.ImporteCuotaCalculado
 
-        //        const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
-        //        cuotaAnio = per.cuotaAnio
-        //        cuotaMes = per.cuotaMes
-
-        const importeCuota = descuento.PersonalOtroDescuentoImporteVariable / descuento.PersonalOtroDescuentoCantidadCuotas
-        for (let cuota = 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
-          PersonalOtroDescuentoCuotaId++
-          await queryRunner.query(`
-          INSERT INTO PersonalOtroDescuentoCuota (
-        PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
-        PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
-        PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
-        PersonalOtroDescuentoCuotaProceso)
-        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
-      `, [PersonalOtroDescuentoCuotaId, descuento.PersonalOtroDescuentoId, descuento.PersonalId,
-            cuotaAnio, cuotaMes, cuota,
-            importeCuota, 0, 0, 'FA'])
-
-          const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
-          cuotaAnio = per.cuotaAnio
-          cuotaMes = per.cuotaMes
+        if (!descuento.PersonalDescuentoPorcentajeDescuento) { 
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Anulado Porcentaje 0' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento])
+          countPersonalDescuentoPorcentajeDescuento++
+          continue
         }
-        await queryRunner.query(`UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoCuotaUltNro = @2 WHERE PersonalId =@0 AND PersonalOtroDescuentoId=@1`, [descuento.PersonalId, descuento.PersonalOtroDescuentoId, PersonalOtroDescuentoCuotaId])
 
+        if (descuento.FechaAnulacionCuota) {
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='CUOTA AP (Anulado)' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.FechaAnulacionCuota])
+          countFechaAnulacionCuota++
+          continue
+        }
+
+        if (descuento.PersonalFechaBaja) {
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Baja Personal' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalFechaBaja])
+          countPersonalFechaBaja++
+          continue
+        }
+/*
+        const cuotaAnio = descuento.AnioUltCuo
+        const cuotaMes = descuento.MesUltCuo
+        if (!cuotaAnio || !cuotaMes) 
+          throw new ClientException(`No se pudo determinar el período de la próxima cuota a generar para el descuento ${PersonalDescuentoId} del personal ${PersonalDescuentoPersonalId}.`)
+
+        for (let cuota = descuento.CuotasGeneradas+1; cuota <= descuento.PersonalDescuentoCuotas; cuota++) {
+          const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
+
+          await queryRunner.query(`
+              INSERT INTO PersonalDescuentoCuota (
+            PersonalDescuentoCuotaId, PersonalDescuentoId, PersonalDescuentoPersonalId,
+            PersonalDescuentoCuotaAno, PersonalDescuentoCuotaMes, PersonalDescuentoCuotaCuota, PersonalDescuentoCuotaImporte, 
+            PersonalDescuentoCuotaFinalizado, PersonalDescuentoCuotaProceso )
+            VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8)
+          `, [++PersonalDescuentoCuotaUltNro, PersonalDescuentoId, PersonalDescuentoPersonalId,
+            per.cuotaAnio, per.cuotaMes, cuota, ImporteCuotaCalculado,
+            0, 'FA'])
+
+        }
+        countCuotasGeneradas++
+        await queryRunner.query(`UPDATE PersonalDescuento SET PersonalDescuentoCuotaUltNro = @2 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, PersonalDescuentoCuotaUltNro])
+*/
       }
 
 
-      // throw new ClientException(`DEBUG.`)
+//      throw new ClientException(`DEBUG. PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa');
+      return this.jsonRes({}, res, `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1151,7 +1187,7 @@ AND COUNT( CASE WHEN cuo.PersonalDescuentoCuotaProceso='AP' THEN 1 END) = 0
         --GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
         -- HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
 			AND cuo.PersonalOtroDescuentoCuotaImporte IS NULL
-`, [,anio, mes])
+`, [, anio, mes])
       for (const descuento of coutaspend) {
         let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica

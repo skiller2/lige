@@ -591,7 +591,7 @@ export class PersonalController extends BaseController {
         break;
       case "CUIT":
         if (value.trim().length > 1) {
-          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' AND `;
+          query += ` (cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' OR per.PersonalId = '${value.trim()}') AND `;
           buscar = true;
         }
         break;

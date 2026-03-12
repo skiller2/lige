@@ -16,7 +16,6 @@ import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detalle-persona.component"
-import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 
 @Component({
   selector: 'app-personal-search',
