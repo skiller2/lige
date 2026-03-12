@@ -8,10 +8,16 @@ export class AvisoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const userName = res.locals.userName;
+      const grupos: string[] = req.groups || [];
+      let gruposCondition = '1=0';
+
+      if (grupos.length > 0) {
+        gruposCondition = `Grupo IN ('${grupos.join("','")}')`;
+      }
       const avisos = await queryRunner.query(
         `SELECT AvisoId, Usuario, Grupo, ClaseMensaje, TextoMensaje, EnlaceUrl, FechaVisualizacion, AudFechaIng
          FROM Aviso
-         WHERE Usuario = @0 AND (Visible = 1 OR Visible IS NULL) AND AudFechaIng >= DATEADD(DAY, -30, GETDATE())
+         WHERE (Visible = 1 OR Visible IS NULL) AND AudFechaIng >= DATEADD(DAY, -30, GETDATE()) AND (${gruposCondition} OR Usuario = @0)
          ORDER BY AudFechaIng DESC`,
         [userName]
       );
@@ -27,13 +33,15 @@ export class AvisoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const userName = res.locals.userName;
+      const ip = this.getRemoteAddress(req)
+      const now = new Date()
       const { AvisoId } = req.body;
       if (!AvisoId) throw new ClientException("AvisoId es requerido");
 
       await queryRunner.query(
-        `UPDATE Aviso SET FechaVisualizacion = GETDATE()
-         WHERE AvisoId = @0 AND Usuario = @1 AND FechaVisualizacion IS NULL`,
-        [AvisoId, userName]
+        `UPDATE Aviso SET FechaVisualizacion = @0, AudFechaMod = @0, AudUsuarioMod = @3, AudUsuarioIng = @2
+         WHERE AvisoId = @1 AND FechaVisualizacion IS NULL`,
+        [now, AvisoId, ip, userName]
       );
       this.jsonRes({ message: "Aviso marcado como visto" }, res);
     } catch (error) {
@@ -47,13 +55,15 @@ export class AvisoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const userName = res.locals.userName;
+      const ip = this.getRemoteAddress(req)
+      const now = new Date()
       const { AvisoId } = req.body;
       if (!AvisoId) throw new ClientException("AvisoId es requerido");
 
       await queryRunner.query(
-        `UPDATE Aviso SET Visible = 0, FechaVisualizacion = ISNULL(FechaVisualizacion, GETDATE())
-         WHERE AvisoId = @0 AND Usuario = @1`,
-        [AvisoId, userName]
+        `UPDATE Aviso SET Visible = 0, FechaVisualizacion = ISNULL(FechaVisualizacion, @0), AudFechaMod = @0, AudIpMod=@2, AudUsuarioMod = @3
+        WHERE AvisoId = @1 AND Usuario = @2`,
+        [now, AvisoId, ip, userName]
       );
       this.jsonRes({ message: "Aviso ocultado" }, res);
     } catch (error) {
