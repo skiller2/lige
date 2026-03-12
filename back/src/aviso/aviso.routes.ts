@@ -4,7 +4,7 @@ import { authMiddleware } from "../middlewares/middleware.module.ts";
 
 export const avisoRouter = Router();
 
-avisoRouter.get(`/`, authMiddleware.verifyToken, (req, res, next) => {
+avisoRouter.get(`/`, (req, res, next) => {
   avisoController.getAvisos(req, res, next);
 });
 
