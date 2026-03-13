@@ -303,39 +303,15 @@ export class PersonalFormComponent {
     this.enableSelectReset.set(false)
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
-      let values:any = {...this.defaultPersonalForm}
-      for (const key in values) {
-        if (infoPersonal[key]) {
-          values[key] = infoPersonal[key]
-        }
-      }
 
-      // infoPersonal.telefonos.forEach((obj:any) => {
-      //     this.parametroPersonal().telefonos.push(structuredClone(this.objTelefono))
-      // });
-      
-      // infoPersonal.estudios.forEach((obj:any) => {
-      //   this.parametroPersonal().estudios.push(structuredClone(this.objEstudio))
-      // });
-      
-      // infoPersonal.familiares.forEach((obj:any) => {
-      //   this.parametroPersonal().familiares.push(structuredClone(this.objFamiliar))
-      // });
-
-      // infoPersonal.beneficiarios.forEach((obj:any) => {
-      //   this.parametroPersonal().beneficiarios.push(structuredClone(this.objBeneficiario))
-      // });
-
-      if (!values.telefonos.length) values.telefonos = [structuredClone(this.objTelefono)]
-      if (!values.estudios.length) values.estudios = [structuredClone(this.objEstudio)]
-      if (!values.familiares.length) values.familiares = [structuredClone(this.objFamiliar)]
-      if (!values.beneficiarios.length) values.beneficiarios = [structuredClone(this.objBeneficiario)]
-      
-      console.log('values: ', values);
+      if (!infoPersonal.telefonos.length) infoPersonal.telefonos = [structuredClone(this.objTelefono)]
+      if (!infoPersonal.estudios.length) infoPersonal.estudios = [structuredClone(this.objEstudio)]
+      if (!infoPersonal.familiares.length) infoPersonal.familiares = [structuredClone(this.objFamiliar)]
+      if (!infoPersonal.beneficiarios.length) infoPersonal.beneficiarios = [structuredClone(this.objBeneficiario)]
       
       this.parametroPersonal.update(m => ({
         ...m,
-        ...values
+        ...infoPersonal
       }))
 
       setTimeout(() => { this.formParametroPersonal().reset() }, 400);

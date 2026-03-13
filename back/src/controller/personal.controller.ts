@@ -1887,7 +1887,7 @@ export class PersonalController extends BaseController {
   }
 
   private async getFormEstudiosByPersonalIdQuery(queryRunner: any, personalId: any) {
-    return await queryRunner.query(`
+    const estudios:any[] = await queryRunner.query(`
         SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
         TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioOtorgado PersonalEstudioOtorgado, est.PersonalEstudioHasta PersonalEstudioVencimiento,
         est.PersonalEstudioPagina1Id AS docId
@@ -1895,6 +1895,7 @@ export class PersonalController extends BaseController {
         WHERE est.PersonalId IN (@0)
       `, [personalId]
     )
+    return estudios.map((obj) => {return {...obj, DocTitulo:[]}})
   }
 
   private async getFormFamiliaresByPersonalIdQuery(queryRunner: any, personalId: any) {
