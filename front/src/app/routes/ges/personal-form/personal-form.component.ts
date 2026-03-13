@@ -76,6 +76,9 @@ export interface ParametroPersonalForm {
   LeyNro: number;
   habilitacion: any[];
   beneficiarios: Beneficiario[]
+  TipoVehiculoId:number; VehiculoMarcaId:number; VehiculoMarcaModeloId:number;
+  PersonalVehiculoPatente:string; Cilindrada:string;
+  LugarFisicoLegajoId: number;
 }
 
 @Component({
@@ -129,6 +132,9 @@ export class PersonalFormComponent {
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
     LeyNro: NaN,
     habilitacion: [],
+    TipoVehiculoId:0, VehiculoMarcaId:0, VehiculoMarcaModeloId:0,
+    PersonalVehiculoPatente:'', Cilindrada:'',
+    LugarFisicoLegajoId: 0,
   }
   
   // formPer = this.fb.group({ ...this.defaultPersonalForm })
@@ -162,6 +168,8 @@ export class PersonalFormComponent {
   optionsEstadoCivil = toSignal(this.searchService.getEstadoCivilOptions(), { initialValue: [] });
   optionsLugarHabilitacion = toSignal(this.searchService.getLugarHabilitacionOptions(), { initialValue: [] });
   optionsSexo = signal<any[]>([{value:'M', label:'MASCULINO'}, {value:'F', label:'FEMENINO'}])
+  optionsTipoVehiculo = toSignal(this.searchService.getTiposVehiculoOptions(), { initialValue: [] });
+  optionsUbicacionLegajo = toSignal(this.searchService.getUbicacionLegajoOptions(), { initialValue: [] });
 
   optionsPais = toSignal(this.searchService.getPaises(), { initialValue: [] });
 
@@ -234,6 +242,35 @@ export class PersonalFormComponent {
         return [];
       }
       return await firstValueFrom(this.searchService.getLocalidadesByProvincia(params.PaisId, params.ProvinciaId))
+      
+    }
+  });
+
+  optionsMarcaVehiculo = resource({
+    params: () => ({
+      TipoVehiculoId: this.parametroPersonal().TipoVehiculoId,
+    }),
+
+    loader: async ({ params }) => {
+      if (!params.TipoVehiculoId) {
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getMarcasVehiculo(params.TipoVehiculoId))
+      
+    }
+  });
+
+  optionsModeloVehiculo = resource({
+    params: () => ({
+      TipoVehiculoId: this.parametroPersonal().TipoVehiculoId,
+      VehiculoMarcaId: this.parametroPersonal().VehiculoMarcaId,
+    }),
+
+    loader: async ({ params }) => {
+      if (!params.TipoVehiculoId || !params.VehiculoMarcaId) {
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getModelosVehiculo(params.TipoVehiculoId, params.VehiculoMarcaId))
       
     }
   });
@@ -325,6 +362,12 @@ export class PersonalFormComponent {
     this.isLoading.set(true)
     const values:any = form().value()
     try {
+      //Filtra los array de los objeto no usados
+      values.telefonos = values.telefonos.filter((t:Telefono) => { return !this.isEqualObject(t, this.objTelefono) })
+      values.estudios = values.estudios.filter((e:Estudio) => { return !this.isEqualObject(e, this.objEstudio) })
+      values.familiares = values.familiares.filter((f:Familiar) => { return !this.isEqualObject(f, this.objFamiliar) })
+      values.beneficiarios = values.beneficiarios.filter((b:Beneficiario) => { return !this.isEqualObject(b, this.objBeneficiario) })
+      
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
       }else{
@@ -437,6 +480,23 @@ export class PersonalFormComponent {
     if (!this.formParametroPersonal().dirty()) {
       this.personalId.set(0)
     }
+  }
+
+  isEqualObject(a: any, b: any): boolean {
+    return Object.keys(b).every(key => {
+      const valA = a[key];
+      const valB = b[key];
+
+      if (Array.isArray(valB)) {
+        return Array.isArray(valA) && valA.length === valB.length;
+      }
+
+      if (Number.isNaN(valB)) {
+        return Number.isNaN(valA);
+      }
+
+      return valA === valB;
+    });
   }
 
 }

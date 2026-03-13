@@ -3645,4 +3645,18 @@ UNION ALL
     }
   }
 
+  async getLugarFisicoLegajo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT LugarFisicoLegajoId value, TRIM(LugarFisicoLegajoDescripcion) label
+        FROM LugarFisicoLegajo
+      `)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

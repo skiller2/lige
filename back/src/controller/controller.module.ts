@@ -63,6 +63,7 @@ import { ParametrosVentaController } from "../parametro-venta/parametro-venta.co
 import { SalarioMinimoVitalMovilController } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.controller.ts";
 import { OrdenesDeVentaController } from "../ordenes-de-venta/ordenes-de-venta.controller.ts";
 import { AvisoController } from "../aviso/aviso.controller.ts";
+import { VehiculoController } from "../vehiculo/vehiculo.controller.ts";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -129,3 +130,4 @@ export const parametrosVentaController = new ParametrosVentaController()
 export const salarioMinimoVitalMovilController = new SalarioMinimoVitalMovilController()
 export const ordenesDeVentaController = new OrdenesDeVentaController()
 export const avisoController = new AvisoController()
+export const vehiculoController = new VehiculoController()

@@ -118,6 +118,10 @@ personalRouter.get(`${base}/tipo-documento/options`, authMiddleware.verifyToken,
   personalController.getTipoDocumento(req, res, next)
 });
 
+personalRouter.get(`${base}/ubicacion-legajo/options`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getLugarFisicoLegajo(req, res, next)
+});
+
 personalRouter.get(`${base}/cols`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getGridColumns(req, res, next)
 });

@@ -2373,4 +2373,51 @@ export class SearchService {
       );
   }
 
+  getUbicacionLegajoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/ubicacion-legajo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  //Vehiculo
+  getTiposVehiculoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/vehiculo/tipo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getMarcasVehiculo(TipoVehiculoId: number): Observable<any> {
+    if (!TipoVehiculoId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/vehiculo/marca/options`, { TipoVehiculoId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getModelosVehiculo(TipoVehiculoId: number, VehiculoMarcaId: number): Observable<any> {
+    if (!TipoVehiculoId || !VehiculoMarcaId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/vehiculo/modelo/options`, { TipoVehiculoId, VehiculoMarcaId }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
