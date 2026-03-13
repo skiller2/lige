@@ -1,4 +1,4 @@
-import { Component, Injector, inject, signal, model, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, Injector, inject, signal, model, effect, computed, ChangeDetectionStrategy, input, resource  } from '@angular/core';
 import { BehaviorSubject, debounceTime, switchMap, firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -8,12 +8,83 @@ import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
 import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+
+export interface Telefono {
+  PersonalTelefonoId: number;
+  TipoTelefonoId: number;
+  TelefonoNro: string;
+}
+
+export interface Estudio {
+  PersonalEstudioId: number;
+  TipoEstudioId: number;
+  EstadoEstudioId: number;
+  EstudioTitulo: string;
+  PersonalEstudioOtorgado: string;
+  PersonalEstudioVencimiento: string;
+  DocTitulo: any[];
+  docId: number;
+}
+
+export interface Familiar {
+  PersonalFamiliaId: number;
+  Apellido: string;
+  Nombre: string;
+  TipoParentescoId: number;
+}
+
+export interface Beneficiario {
+  Apellido: string;
+  Nombre: string;
+  TipoDocumentoId: number;
+  DocumentoNro: number;
+  TipoParentescoId: number;
+  Observacion: string;
+  Desde: string;
+}
+
+export interface Domicilio {
+  Calle: string;
+  Nro: string;
+  Piso: string;
+  Dpto: string;
+  CodigoPostal: string;
+  PaisId: number;
+  ProvinciaId: number;
+  LocalidadId: number;
+  BarrioId: number;
+  DomicilioId: number;
+}
+
+export interface ParametroPersonalForm {
+  Nombre: string; Apellido: string;
+  CUIT: number; NroLegajo: number; SucursalId: number;
+  FechaNacimiento: string; NacionalidadId: number; Sexo: string; EstadoCivilId: number;
+  FotoId: number; Foto: any[]|null,
+  docDorsoId: number; docDorso: any[]|null;
+  docFrenteId: number; docFrente: any[]|null;
+  domicilio: Domicilio;
+  PaisId: number; ProvinciaId: number; LocalidadId: number;
+  PersonalEmailId: number; Email:string;
+  telefonos: Telefono[];
+  estudios: Estudio[];
+  familiares: Familiar[];
+  PersonalSituacionRevistaId: number; SituacionId: number; Motivo: string;
+  LeyNro: number;
+  habilitacion: any[];
+  beneficiarios: Beneficiario[]
+}
 
 @Component({
     selector: 'app-personal-form',
     templateUrl: './personal-form.component.html',
     styleUrl: './personal-form.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule,
+      FormField, FormsModule
+    ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
   
@@ -38,118 +109,178 @@ export class PersonalFormComponent {
   optionsTipoDocumento = signal<any[]>([])
   
   fb = inject(FormBuilder)
-  objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
-  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', PersonalEstudioVencimiento:'', DocTitulo:[], docId:0}
-  objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
-  objBeneficiario = {Apellido:'', Nombre:'', TipoDocumentoId:0, DocumentoNro:null, TipoParentescoId:0, Observacion:'', Desde:''}
-  objDomicilio = {Calle:'', Nro:'', Piso:'', Dpto:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, LocalidadId:0, BarrioId:0, DomicilioId:0,}
+  private readonly objTelefono: Telefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
+  private readonly objEstudio: Estudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', PersonalEstudioVencimiento:'', DocTitulo:[], docId:0}
+  private readonly objFamiliar: Familiar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
+  private readonly objBeneficiario: Beneficiario = {Apellido:'', Nombre:'', TipoDocumentoId:0, DocumentoNro:NaN, TipoParentescoId:0, Observacion:'', Desde:''}
+  private readonly objDomicilio: Domicilio = {Calle:'', Nro:'', Piso:'', Dpto:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, LocalidadId:0, BarrioId:0, DomicilioId:0,}
 
-  inputs = { 
-    Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
-    FechaIngreso:'', FechaNacimiento:'', NacionalidadId:0, Sexo:'', EstadoCivilId:0,
+  private readonly defaultPersonalForm: ParametroPersonalForm = { 
+    Nombre:'', Apellido:'', CUIT:NaN, NroLegajo:NaN, SucursalId:0,
+    FechaNacimiento:'', NacionalidadId:0, Sexo:'', EstadoCivilId:0,
     FotoId:0, Foto:[], docDorsoId:0, docDorso:[], docFrenteId: 0, docFrente:[],
-    domicilio:   this.fb.group({ ...this.objDomicilio }),
+    domicilio:   {...this.objDomicilio},
     PaisId:0, ProvinciaId:0, LocalidadId:0, //Lugar de nacimiento
     PersonalEmailId:0, Email:'', //Email
-    telefonos:   this.fb.array([this.fb.group({...this.objTelefono})]),
-    estudios:    this.fb.array([this.fb.group({...this.objEstudio})]),
-    familiares:  this.fb.array([this.fb.group({...this.objFamiliar})]),
+    telefonos:   [structuredClone(this.objTelefono)],
+    estudios:    [structuredClone(this.objEstudio)],
+    familiares:  [structuredClone(this.objFamiliar)],
+    beneficiarios: [structuredClone(this.objBeneficiario)],
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
-    
-    LeyNro:null,
+    LeyNro: NaN,
     habilitacion: [],
-    beneficiarios:this.fb.array([this.fb.group({...this.objBeneficiario})]),
   }
   
-  formPer = this.fb.group({ ...this.inputs })
+  // formPer = this.fb.group({ ...this.defaultPersonalForm })
+  readonly parametroPersonal = signal<ParametroPersonalForm>(this.defaultPersonalForm);
 
-  $optionsSucursal = this.searchService.getSucursales();
-  $optionsNacionalidad = this.searchService.getNacionalidadOptions();
-  $optionsSitRevista = this.searchService.getSitRevistaOptions();
-  $optionsEstadoCivil = this.searchService.getEstadoCivilOptions();
-  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
-  optionsSexo = [{value:'M', label:'MASCULINO'}, {value:'F', label:'FEMENINO'}]
+  readonly formParametroPersonal = form(this.parametroPersonal, (p) => {
+    disabled(p, () => this.readonly())
+  })
 
-  fotoId():number {
-    const value = this.formPer.value.FotoId
-    if (value) {
-      return value
+  domicilio = computed(() => this.parametroPersonal().domicilio);
+  domicilioPaisChange = computed(() => {
+    return !this.domicilio().PaisId && (this.domicilio().ProvinciaId || this.domicilio().LocalidadId || this.domicilio().BarrioId)
+  });
+  domicilioProvinciaChange = computed(() => {
+    return !this.domicilio().ProvinciaId && (this.domicilio().LocalidadId || this.domicilio().BarrioId)
+  });
+  domicilioLocalidadChange = computed(() => {
+    return !this.domicilio().LocalidadId && this.domicilio().BarrioId
+  });
+
+  lugarNacimientoPaisChange = computed(() => {
+    return !this.parametroPersonal().PaisId && (this.parametroPersonal().ProvinciaId || this.parametroPersonal().LocalidadId)
+  });
+  lugarNacimientoProvinciaChange = computed(() => {
+    return !this.parametroPersonal().ProvinciaId && this.parametroPersonal().LocalidadId
+  });
+
+  optionsSucursal = toSignal(this.searchService.getSucursales(), { initialValue: [] });
+  optionsNacionalidad = toSignal(this.searchService.getNacionalidadOptions(), { initialValue: [] });
+  optionsSitRevista = toSignal(this.searchService.getSitRevistaOptions(), { initialValue: [] });
+  optionsEstadoCivil = toSignal(this.searchService.getEstadoCivilOptions(), { initialValue: [] });
+  optionsLugarHabilitacion = toSignal(this.searchService.getLugarHabilitacionOptions(), { initialValue: [] });
+  optionsSexo = signal<any[]>([{value:'M', label:'MASCULINO'}, {value:'F', label:'FEMENINO'}])
+
+  optionsPais = toSignal(this.searchService.getPaises(), { initialValue: [] });
+
+  optionsDomicilioProvincia = resource({
+    params: () => this.domicilio().PaisId,
+
+    loader: async ({ params: PaisId }) => {
+      
+      if (!PaisId) {
+        
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getProvinciasByPais(PaisId))
+      
     }
-    return 0
-  }
-  docDorsoId():number {
-    const value = this.formPer.get("docDorsoId")?.value
-    if(value) return value
-    return 0
-  }
-  docFrenteId():number {
-    const value = this.formPer.get("docFrenteId")?.value
-    if(value) return value
-    return 0
-  }
-  paisId():number {
-    const value = this.formPer.get("PaisId")?.value
-    if(value) return value
-    else return 0
-  }
-  domicilio():FormGroup {
-    return this.formPer.get("domicilio") as FormGroup
-  }
-  domicilioPaisId():number {
-    const value = this.domicilio().get("PaisId")?.value
-    if(value) return value
-    else return 0
-  }
-  domicilioProvinciaId():number {
-      const value = this.domicilio().get("ProvinciaId")?.value
-      if(value) return value
-      else return 0
-  }
-  domicilioLocalidadId():number {
-      const value = this.domicilio().get("LocalidadId")?.value
-      if(value) return value
-      else return 0
-  }
-  telefonos():FormArray {
-    return this.formPer.get("telefonos") as FormArray
-  }
-  estudios():FormArray {
-    return this.formPer.get("estudios") as FormArray
-  }
-  familiares():FormArray {
-    return this.formPer.get("familiares") as FormArray
-  }
-  beneficiarios():FormArray {
-    return this.formPer.get("beneficiarios") as FormArray
-  }
+  });
 
-  $optionsPais = this.searchService.getPaises();
+  optionsDomicilioLocalidad = resource({
+    params: () => ({
+      PaisId: this.domicilio().PaisId,
+      ProvinciaId: this.domicilio().ProvinciaId,
+    }),
 
-  optionsDomicilioProvincia = signal<any[]>([])
-  optionsDomicilioLocalidad = signal<any[]>([])
-  optionsDomicilioBarrio = signal<any[]>([])
+    loader: async ({ params }) => {
+      
+      if (!params.PaisId || !params.ProvinciaId) {
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getLocalidadesByProvincia(params.PaisId, params.ProvinciaId))
+    
+    }
+  });
 
-  optionsProvincia = signal<any[]>([])
-  optionsLocalidad = signal<any[]>([])
+  optionsDomicilioBarrio = resource({
+    params: () => ({
+      PaisId: this.domicilio().PaisId,
+      ProvinciaId: this.domicilio().ProvinciaId,
+      LocalidadId: this.domicilio().LocalidadId
+    }),
 
-  // $optionsProvincia = this.$selectedPaisIdChange.pipe(
-  //   debounceTime(500),
-  //   switchMap(() =>{
-  //     return this.searchService.getProvinciasByPais(this.paisId())
-  //   })
-  // );
-  // $optionsLocalidad = this.$selectedProvinciaIdChange.pipe(
-  //   debounceTime(500),
-  //   switchMap(() =>{
-  //     return this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId())
-  //   })
-  // );
-  // $optionsBarrio = this.$selectedLocalidadIdChange.pipe(
-  //   debounceTime(500),
-  //   switchMap(() =>{
-  //       return this.searchService.getBarriosByLocalidad(this.paisId(), this.provinciaId(), this.localidadId())
-  //   })
-  // );
+    loader: async ({ params }) => {
+      
+      if (!params.PaisId || !params.ProvinciaId || !params.LocalidadId) {
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getBarriosByLocalidad(params.PaisId, params.ProvinciaId, params.LocalidadId));
+      
+    }
+  });
+
+  optionsProvincia = resource({
+    params: () => this.parametroPersonal().PaisId,
+
+    loader: async ({ params: PaisId }) => {
+      if (!PaisId) {
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getProvinciasByPais(PaisId))
+    }
+  });
+
+  optionsLocalidad = resource({
+    params: () => ({
+      PaisId: this.parametroPersonal().PaisId,
+      ProvinciaId: this.parametroPersonal().ProvinciaId,
+    }),
+
+    loader: async ({ params }) => {
+      if (!params.PaisId || !params.ProvinciaId) {
+        return [];
+      }
+      return await firstValueFrom(this.searchService.getLocalidadesByProvincia(params.PaisId, params.ProvinciaId))
+      
+    }
+  });
+
+  domicilioEffect = effect(() => {
+    let obj:any = {}
+    if (this.enableSelectReset()) {
+      
+      if (this.domicilioLocalidadChange()){
+        obj.BarrioId = 0
+      } else if (this.domicilioProvinciaChange()){
+        obj.LocalidadId = 0
+        obj.BarrioId = 0
+      } else if (this.domicilioPaisChange()){
+        obj.ProvinciaId = 0
+        obj.LocalidadId = 0
+        obj.BarrioId = 0
+      }
+      
+      if (Object.keys(obj).length) {
+        this.parametroPersonal.update(m => ({
+          ...m, domicilio: { ...m.domicilio, ...obj}
+        }));
+      }
+      
+    }
+  });
+
+  lugarNacimientoEffect = effect(() => {
+    let obj:any = {}
+    if (this.enableSelectReset()) {
+      
+      if (this.lugarNacimientoProvinciaChange()){
+        obj.LocalidadId = 0
+      } else if (this.lugarNacimientoPaisChange()){
+        obj.ProvinciaId = 0
+        obj.LocalidadId = 0
+      }
+      
+      if (Object.keys(obj).length) {
+        this.parametroPersonal.update(m => ({
+          ...m, ...obj
+        }));
+      }
+      
+    }
+  });
 
   async ngOnInit(){
     let now : Date = new Date()
@@ -170,59 +301,53 @@ export class PersonalFormComponent {
 
   async load() {
     this.enableSelectReset.set(false)
-    this.formPer.enable()
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
-      let values:any = {...this.inputs}
+      let values:any = {...this.defaultPersonalForm}
       for (const key in values) {
-        values[key] = infoPersonal[key]
+        if (infoPersonal[key]) {
+          values[key] = infoPersonal[key]
+        }
       }
-      this.telefonos().clear()
-      this.estudios().clear()
-      this.familiares().clear()
-      this.beneficiarios().clear()
 
-      infoPersonal.telefonos.forEach((obj:any) => {
-          this.telefonos().push(this.fb.group({...this.objTelefono}))
-      });
-      if (this.telefonos().length == 0)
-          this.telefonos().push(this.fb.group({...this.objTelefono}))
+      // infoPersonal.telefonos.forEach((obj:any) => {
+      //     this.parametroPersonal().telefonos.push(structuredClone(this.objTelefono))
+      // });
       
-      infoPersonal.estudios.forEach((obj:any) => {
-          this.estudios().push(this.fb.group({...this.objEstudio}))
-      });
-      if (this.estudios().length == 0)
-          this.estudios().push(this.fb.group({...this.objEstudio}))
+      // infoPersonal.estudios.forEach((obj:any) => {
+      //   this.parametroPersonal().estudios.push(structuredClone(this.objEstudio))
+      // });
       
-      infoPersonal.familiares.forEach((obj:any) => {
-        this.familiares().push(this.fb.group({...this.objFamiliar}))
-      });
+      // infoPersonal.familiares.forEach((obj:any) => {
+      //   this.parametroPersonal().familiares.push(structuredClone(this.objFamiliar))
+      // });
 
-      if (this.familiares().length == 0)
-          this.familiares().push(this.fb.group({...this.objFamiliar}))
+      // infoPersonal.beneficiarios.forEach((obj:any) => {
+      //   this.parametroPersonal().beneficiarios.push(structuredClone(this.objBeneficiario))
+      // });
 
-      infoPersonal.beneficiarios.forEach((obj:any) => {
-        this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
-      });
+      if (!values.telefonos.length) values.telefonos = [structuredClone(this.objTelefono)]
+      if (!values.estudios.length) values.estudios = [structuredClone(this.objEstudio)]
+      if (!values.familiares.length) values.familiares = [structuredClone(this.objFamiliar)]
+      if (!values.beneficiarios.length) values.beneficiarios = [structuredClone(this.objBeneficiario)]
+      
+      console.log('values: ', values);
+      
+      this.parametroPersonal.update(m => ({
+        ...m,
+        ...values
+      }))
 
-      if (this.beneficiarios().length == 0)
-          this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
-
-      this.formPer.reset(values)
-
-      this.formPer.controls.PersonalSituacionRevistaId.disable()
-      this.formPer.controls.SituacionId.disable()
-      this.formPer.controls.Motivo.disable()
+      setTimeout(() => { this.formParametroPersonal().reset() }, 400);
     }
     
     this.enableSelectReset.set(true)
-    if (this.readonly())
-      this.formPer.disable()
   }
 
   async save() {
+    await submit(this.formParametroPersonal, async (form) => {
     this.isLoading.set(true)
-    const values:any = this.formPer.value
+    const values:any = form().value()
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
@@ -232,140 +357,110 @@ export class PersonalFormComponent {
       }
 
       this.load()      
-      this.formPer.markAsUntouched()
-      this.formPer.markAsPristine()
+      // this.formParametroPersonal().reset()
     } catch (e) {
       
     }
     this.isLoading.set(false)
-  }
-
-  async selectedDomicilioPaisChange(event: any){
-    if (this.enableSelectReset()){
-      this.domicilio().get('ProvinciaId')?.reset()
-      this.domicilio().get('LocalidadId')?.reset()
-      this.domicilio().get('BarrioId')?.reset()
-    }
-    const Provincias = await firstValueFrom(this.searchService.getProvinciasByPais(event))
-    this.optionsDomicilioProvincia.set(Provincias)
-    this.optionsDomicilioLocalidad.set([])
-    this.optionsDomicilioBarrio.set([])
-  }
-
-  async selectedDomicilioProvinciaChange(event: any){
-    if (this.enableSelectReset()){
-      this.domicilio().get('LocalidadId')?.reset()
-      this.domicilio().get('BarrioId')?.reset()
-    }
-    const Localidades = await firstValueFrom(this.searchService.getLocalidadesByProvincia(this.domicilioPaisId(), event))
-    this.optionsDomicilioLocalidad.set(Localidades)
-    this.optionsDomicilioBarrio.set([])
-  }
-
-  async selectedDomicilioLocalidadChange(event: any){
-    if (this.enableSelectReset()) 
-      this.domicilio().get('BarrioId')?.reset()
-    const Barrios = await firstValueFrom(this.searchService.getBarriosByLocalidad(this.domicilioPaisId(), this.domicilioProvinciaId(), event))
-    this.optionsDomicilioBarrio.set(Barrios)
-  }
-
-  async selectedPaisChange(event: any){
-    if (this.enableSelectReset()){
-      this.formPer.get('ProvinciaId')?.reset()
-      this.formPer.get('LocalidadId')?.reset()
-    }
-    const Provincias = await firstValueFrom(this.searchService.getProvinciasByPais(event))
-    this.optionsProvincia.set(Provincias)
-    this.optionsLocalidad.set([])
-  }
-
-  async selectedProvinciaChange(event: any){
-    if (this.enableSelectReset()){
-      this.formPer.get('LocalidadId')?.reset()
-    }
-    const Localidades = await firstValueFrom(this.searchService.getLocalidadesByProvincia(this.paisId(), event))
-    this.optionsLocalidad.set(Localidades)
+    })
   }
 
   addTelefono(e?: MouseEvent): void {
     e?.preventDefault();
-    this.telefonos().push(this.fb.group({...this.objTelefono}))
+
+    const newTelefono = structuredClone(this.objTelefono)
+
+    this.parametroPersonal.update(m => ({
+      ...m,
+      telefonos: [...m.telefonos, newTelefono],
+    }));
   }
 
   addEstudio(e?: MouseEvent): void {
     e?.preventDefault();
-    this.estudios().push(this.fb.group({...this.objEstudio}))
+
+    const newEstudio = structuredClone(this.objEstudio)
+
+    this.parametroPersonal.update(m => ({
+      ...m,
+      estudios: [...m.estudios, newEstudio],
+    }));
   }
 
   addFamiliar(e?: MouseEvent): void {
     e?.preventDefault();
-    this.familiares().push(this.fb.group({...this.objFamiliar}))
+
+    const newFamiliar = structuredClone(this.objFamiliar)
+
+    this.parametroPersonal.update(m => ({
+      ...m,
+      familiares: [...m.familiares, newFamiliar],
+    }));
   }
 
   addBeneficiario(e?: MouseEvent): void {
     e?.preventDefault();
-    this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
+
+    const newBeneficiario = structuredClone(this.objBeneficiario)
+
+    this.parametroPersonal.update(m => ({
+      ...m,
+      beneficiarios: [...m.beneficiarios, newBeneficiario],
+    }));
   }
 
   removeTelefono(index: number, e: MouseEvent): void {
     e.preventDefault();
-    if (this.telefonos().controls.length > 1 ) {
-      this.telefonos().removeAt(index)
-      this.formPer.markAsDirty()
+    this.parametroPersonal.update(m => ({
+      ...m,
+      telefonos: m.telefonos.filter((_, i) => i !== index),
+    }));
+
+    if (this.parametroPersonal().telefonos.length == 0) {
+      this.addTelefono(undefined)
     }
   }
 
   removeEstudio(index: number, e: MouseEvent): void {
     e.preventDefault();
-    if (this.estudios().controls.length > 1 ) {
-      this.estudios().removeAt(index)
-      this.formPer.markAsDirty()
+    this.parametroPersonal.update(m => ({
+      ...m,
+      estudios: m.estudios.filter((_, i) => i !== index),
+    }));
+
+    if (this.parametroPersonal().estudios.length == 0) {
+      this.addEstudio(undefined)
     }
   }
 
   removeFamiliar(index: number, e: MouseEvent): void {
     e.preventDefault();
-    if (this.familiares().controls.length > 1 ) {
-      this.familiares().removeAt(index)
-      this.formPer.markAsDirty()
+    this.parametroPersonal.update(m => ({
+      ...m,
+      familiares: m.familiares.filter((_, i) => i !== index),
+    }));
+
+    if (this.parametroPersonal().familiares.length == 0) {
+      this.addFamiliar(undefined)
     }
   }
 
   removeBeneficiario(index: number, e: MouseEvent): void {
     e.preventDefault();
-    if (this.beneficiarios().controls.length > 1 ) {
-      this.beneficiarios().removeAt(index)
-      this.formPer.markAsDirty()
+    this.parametroPersonal.update(m => ({
+      ...m,
+      beneficiarios: m.beneficiarios.filter((_, i) => i !== index),
+    }));
+
+    if (this.parametroPersonal().beneficiarios.length == 0) {
+      this.addBeneficiario(undefined)
     }
   }
 
   async newRecord() {
-    if (this.formPer.pristine) {
+    if (!this.formParametroPersonal().dirty()) {
       this.personalId.set(0)
-      this.formPer.enable()
-      this.formPer.reset()
-      this.telefonos().clear()
-      this.estudios().clear()
-      this.familiares().clear()
-      this.beneficiarios().clear()
-
-      if (this.telefonos().length == 0)
-        this.telefonos().push(this.fb.group({...this.objTelefono}))
-      if (this.estudios().length == 0)
-        this.estudios().push(this.fb.group({...this.objEstudio}))
-      if (this.familiares().length == 0)
-        this.familiares().push(this.fb.group({...this.objFamiliar}))
-      if (this.beneficiarios().length == 0)
-        this.beneficiarios().push(this.fb.group({...this.objBeneficiario}))
-
-      this.formPer.markAsPristine()
     }
-  }
-
-  getDocEstudioId(index:number):number{
-    if(this.estudios().value[index].docId == 0)
-      return 0
-    return this.estudios().value[index].docId
   }
 
 }
