@@ -132,7 +132,7 @@ export class PersonalFormComponent {
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
     LeyNro: NaN,
     habilitacion: [],
-    TipoVehiculoId:0, VehiculoMarcaId:0, VehiculoMarcaModeloId:0,
+    TipoVehiculoId:3, VehiculoMarcaId:0, VehiculoMarcaModeloId:0,
     PersonalVehiculoPatente:'', Cilindrada:'',
     LugarFisicoLegajoId: 0,
   }
