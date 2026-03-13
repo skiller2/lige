@@ -75,6 +75,8 @@ export class DescuentosComponent {
     }
 
     dateChange(result: Date): void {
+        if (!result)
+            return
         this.selectedPeriod.year = result.getFullYear();
         this.selectedPeriod.month = result.getMonth() + 1;
         console.log('this.selectedPeriod: ', this.selectedPeriod);

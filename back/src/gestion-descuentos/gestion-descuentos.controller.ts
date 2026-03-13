@@ -3,7 +3,7 @@ import { dataSource } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
+import { existsSync, mkdirSync, readFileSync } from "fs";
 import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
@@ -1095,13 +1095,15 @@ FROM cte
       let countFechaAnulacionCuota = 0
       let countPersonalFechaBaja = 0
       let countCuotasGeneradas = 0
+      let countSinCuotasGeneradas = 0
+      let countDiferenciaPagasGeneradas = 0
       for (const descuento of coutaspend) {
         const PersonalDescuentoPersonalId = descuento.PersonalDescuentoPersonalId
         const PersonalDescuentoId = descuento.PersonalDescuentoId
         let PersonalDescuentoCuotaUltNro = descuento.PersonalDescuentoCuotaUltNro
         const ImporteCuotaCalculado = descuento.ImporteCuotaCalculado
 
-        if (!descuento.PersonalDescuentoPorcentajeDescuento) { 
+        if (!descuento.PersonalDescuentoPorcentajeDescuento) {
           await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Anulado Porcentaje 0' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento])
           countPersonalDescuentoPorcentajeDescuento++
           continue
@@ -1119,20 +1121,24 @@ FROM cte
           continue
         }
 
-        if (descuento.PersonalDescuentoCuotas===descuento.PersonalDescuentoCuotasPagas && descuento.CuotasGeneradas == 0  ) {
+        if ((descuento.PersonalDescuentoCuotas === descuento.PersonalDescuentoCuotasPagas || descuento.AnioUltCuo < 2025) && descuento.CuotasGeneradas == 0) {
           await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Sin cuotas generadas' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento])
-          countPersonalFechaBaja++
+          countSinCuotasGeneradas++
           continue
         }
 
+        if (descuento.PersonalDescuentoCuotasPagas > descuento.CuotasGeneradas && descuento.PersonalDescuentoCuotasPagas == descuento.PersonalDescuentoCuotas) {
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='No se generaron todas las cuotas pagas' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, new Date(descuento.AnioUltCuo, descuento.MesUltCuo, 1)])
+          countDiferenciaPagasGeneradas++
+          continue
+        }
 
-/*
         const cuotaAnio = descuento.AnioUltCuo
         const cuotaMes = descuento.MesUltCuo
-        if (!cuotaAnio || !cuotaMes) 
+        if (!cuotaAnio || !cuotaMes)
           throw new ClientException(`No se pudo determinar el período de la próxima cuota a generar para el descuento ${PersonalDescuentoId} del personal ${PersonalDescuentoPersonalId}.`)
 
-        for (let cuota = descuento.CuotasGeneradas+1; cuota <= descuento.PersonalDescuentoCuotas; cuota++) {
+        for (let cuota = descuento.CuotasGeneradas + 1; cuota <= descuento.PersonalDescuentoCuotas; cuota++) {
           const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
 
           await queryRunner.query(`
@@ -1142,19 +1148,20 @@ FROM cte
             PersonalDescuentoCuotaFinalizado, PersonalDescuentoCuotaProceso )
             VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8)
           `, [++PersonalDescuentoCuotaUltNro, PersonalDescuentoId, PersonalDescuentoPersonalId,
-            per.cuotaAnio, per.cuotaMes, cuota, ImporteCuotaCalculado,
+          per.cuotaAnio, per.cuotaMes, cuota, ImporteCuotaCalculado,
             0, 'FA'])
 
+          countCuotasGeneradas++
+
         }
-        countCuotasGeneradas++
         await queryRunner.query(`UPDATE PersonalDescuento SET PersonalDescuentoCuotaUltNro = @2 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, PersonalDescuentoCuotaUltNro])
-*/
+
       }
 
 
-//      throw new ClientException(`DEBUG. PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`)
+      //      throw new ClientException(`DEBUG. PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`);
+      return this.jsonRes({}, res, `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)

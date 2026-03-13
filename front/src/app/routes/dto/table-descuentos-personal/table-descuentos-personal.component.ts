@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input, Injector, } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
+import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input, Injector, resource, } from '@angular/core';
+import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -12,6 +12,9 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { DescuentosPersonalAltaDrawerComponent } from "../descuentos-personal-alta-drawer/descuentos-personal-alta-drawer.component"
 import { LoadingService } from '@delon/abc/loading';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { Selections } from 'src/app/shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TableHistorialDescargasComponent } from '../../ges/table-historial-descargas/table-historial-descargas.component';
 
 @Component({
     selector: 'app-table-descuentos-personal',
@@ -19,26 +22,26 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
     styleUrls: ['./table-descuentos-personal.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosPersonalAltaDrawerComponent ],
+    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DescuentosPersonalAltaDrawerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableDescuentosPersonalComponent {
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
-    gridData: any;
     rows: number[] = [];
-    reloadGrid = model<boolean>(false)
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
     mes = input<number>(0)
     reload = input<number>(0)
-    listDescuento$ = new BehaviorSubject('');
-    listOptions: listOptionsT = {
+
+    listOptions = signal<listOptionsT>({
         filtros: [],
-        sort: null,
-    };
-    startFilters: any[] = []
+        sort: null
+    })
+
+    startFilters = signal<Selections[]>([]);
+
     columnDefinitions: Column[] = []
     descuentoId = signal<number>(0)
     periodo = input<any>(null)
@@ -46,44 +49,37 @@ export class TableDescuentosPersonalComponent {
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
     tipoint = signal<string>('')
-    disabledForm = signal(false);
-    cancelDesc = signal(false);
-    isAnulacion = signal(false);
-    constructor(
-        // private searchService: SearchService,
-        private apiService: ApiService,
-        private angularUtilService : AngularUtilService,
-        // private injector : Injector,
-    ) {
-        effect(async () => {
-            const anio = this.anio()
-            const mes = this.mes()
-            const reload = this.reload()
-            this.listDescuento('')
-             this.reloadGrid();
-            this.reloadGrid.set(false)
-        });
-    }
+    disabledForm = signal(false)
+    cancelDesc = signal(false)
+    isAnulacion = signal(false)
+    private apiService =inject(ApiService)
+    private angularUtilService= inject(AngularUtilService)
 
-    private readonly loadingSrv = inject(LoadingService);
+    private readonly loadingSrv = inject(LoadingService)
     private notification = inject(NzNotificationService)
 
-    columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/personal')
 
-    gridData$ = this.listDescuento$.pipe(
-        debounceTime(500),
-        switchMap(() => {
+    columns = toSignal(this.apiService.getCols('/api/gestion-descuentos/cols/personal'), { initialValue: [] as Column[] })
+
+    gridData = resource({
+        params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
+        loader: async () => {
+            let response = []
             this.loadingSrv.open({ type: 'spin', text: '' })
-            return this.apiService.getDescuentosPersonal(this.listOptions, this.anio(), this.mes())
-            .pipe(
-                map(data => { return data }),
-                doOnSubscribe(() => { }),
-                tap({ complete: () => { this.loadingSrv.close() } })
-            )
-        })
-    )
+            try {
+                response = await firstValueFrom(this.apiService.getDescuentosPersonal(this.listOptions(), this.anio(), this.mes()));
+            } catch (_e) { }
+            this.loadingSrv.close()
+
+            return response || [];
+        },
+
+        defaultValue: []
+    });
+
 
     async ngOnInit() {
+
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridDescPersonal', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.enableAutoSizeColumns = true
@@ -94,12 +90,12 @@ export class TableDescuentosPersonalComponent {
     }
 
     handleSelectedRowsChanged(e: any): void {
-        if (e.detail.args.changedSelectedRows.length ==1) {
+        if (e.detail.args.changedSelectedRows.length == 1) {
             const rowNum = e.detail.args.changedSelectedRows[0]
             const row = this.angularGrid.dataView.getItemByIdx(rowNum)
             this.tipoint.set(row?.tipoint)
-            const id:string = row?.id
-            const ids:string[] = row?.perdes_id.split('-')
+            const id: string = row?.id
+            const ids: string[] = row?.perdes_id.split('-')
             this.descuentoId.set(parseInt(ids[1]))
             this.personalId.set(parseInt(ids[2]))
         } else {
@@ -110,7 +106,7 @@ export class TableDescuentosPersonalComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
-        this.gridData = angularGrid.dataView
+//        this.gridData = angularGrid.dataView
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'tipocuenta_id')
             columnTotal('importe', this.angularGrid)
@@ -122,64 +118,55 @@ export class TableDescuentosPersonalComponent {
             this.angularGrid.gridService.hideColumnByIds([])
     }
 
-    listOptionsChange(options: any) {
-        this.listOptions = options;
-        this.listDescuento('')
-    }
-
-    listDescuento(event: any) {
-        this.listDescuento$.next(event);
-    }
-
-    openDrawerforAltaDescuentos(){
+    openDrawerforAltaDescuentos() {
         this.visibleAltaDesc.set(true)
         this.isAnulacion.set(false)
     }
 
-    openDrawerforEditDescuentos(){
+    openDrawerforEditDescuentos() {
         if (this.tipoint() == 'OTRO') {
             this.cancelDesc.set(false)
             this.disabledForm.set(false)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
-        }else{
+        } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
-    openDrawerforDetailDescuentos(){
+    openDrawerforDetailDescuentos() {
         if (this.tipoint() == 'OTRO') {
             this.cancelDesc.set(false)
             this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
-        }else{
+        } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
-    openDrawerforCancelDescuentos(){
+    openDrawerforCancelDescuentos() {
         if (this.tipoint() == 'OTRO') {
             this.disabledForm.set(true)
             this.cancelDesc.set(true)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(true)
-        }else{
+        } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
-    openDrawerforViewDescuentos(){
+    openDrawerforViewDescuentos() {
         if (this.tipoint() == 'OTRO') {
             this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
-        }else{
+        } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
     }
 
-    onAddorUpdate(_e:any) {
-        this.listDescuento('')
+    onAddorUpdate(_e: any) {
+        this.gridData.reload()
     }
 }
