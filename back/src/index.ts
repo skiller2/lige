@@ -11,6 +11,7 @@ import { SegurosController } from "./seguros/seguros.controller.ts";
 import { Temporal } from "@js-temporal/polyfill";
 import { ClientesController } from "./clientes/clientes.controller.ts";
 import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller.ts";
+import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 //import { GlobalWorkerOptions } from "pdfjs-dist";
 
@@ -38,10 +39,10 @@ scheduleJob('1 0 * * *', async function (fireDate) { //At 12:01 AM
   segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
 });
 
-scheduleJob('2 0 * * *', async function (fireDate) { //At 12:02 AM
-  //TODO Se debería instanciar Response correctamente
-
-  const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
+scheduleJob('5 0 * * *', async function (fireDate) { //At 12:02 AM
+  //Procesa las CUOTAS de los descuentos de EFECTOS
+  const gestionDescuentosController = new GestionDescuentosController()
+  const ret  = await gestionDescuentosController.jobDescuentoCuotas(null, null, (ret: any) => ret) 
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
  
@@ -49,6 +50,11 @@ scheduleJob('3 0 * * *', async function (fireDate) { //At 12:03 AM
   //TODO Se debería instanciar Response correctamente
 
   const ret = await grupoActividadController.objetivosGrupos(null, null, (ret: any) => ret)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
+});
+
+scheduleJob('4 0 * * *', async function (fireDate) {//At 12:04 AM
+  const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
