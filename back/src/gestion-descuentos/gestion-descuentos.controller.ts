@@ -1038,7 +1038,7 @@ WITH cte AS (
         des.PersonalDescuentoCuotasPagas,
         CASE
             WHEN ISNULL(des.PersonalDescuentoCuotas, 0) > 0
-                THEN ROUND((des.PersonalDescuentoImporte * des.PersonalDescuentoCantidadEfectos * des.PersonalDescuentoPorcentajeDescuento / 100.0) / des.PersonalDescuentoCuotas, 2)
+                THEN ROUND((des.PersonalDescuentoImporte *  des.PersonalDescuentoPorcentajeDescuento / 100.0) / des.PersonalDescuentoCuotas, 2)
             ELSE 0
         END AS ImporteCuotaCalculado,
         des.PersonalDescuentoCuotaUltNro,
