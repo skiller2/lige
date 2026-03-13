@@ -1016,9 +1016,12 @@ export class GestionDescuentosController extends BaseController {
 
 
   async jobDescuentoCuotas(req: any, res: Response, next: NextFunction) {   //Procesa las CUOTAS de los descuentos de EFECTOS
+
+    const fechaActual = new Date()
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+
     const queryRunner = dataSource.createQueryRunner();
-    //    const anio: number = req.body.year
-    //    const mes: number = req.body.month
 
     try {
 
@@ -1104,31 +1107,31 @@ FROM cte
         const ImporteCuotaCalculado = descuento.ImporteCuotaCalculado
 
         if (!descuento.PersonalDescuentoPorcentajeDescuento) {
-          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Anulado Porcentaje 0' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento])
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Anulado Porcentaje 0', PersonalDescuentoAudFechaMod=@3, PersonalDescuentoAudUsuarioMod=@4, PersonalDescuentoAudIpMod=@5 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento, fechaActual, usuario, ip])
           countPersonalDescuentoPorcentajeDescuento++
           continue
         }
 
         if (descuento.FechaAnulacionCuota) {
-          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='CUOTA AP (Anulado)' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.FechaAnulacionCuota])
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='CUOTA AP (Anulado)', PersonalDescuentoAudFechaMod=@3, PersonalDescuentoAudUsuarioMod=@4, PersonalDescuentoAudIpMod=@5 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.FechaAnulacionCuota, fechaActual, usuario, ip])
           countFechaAnulacionCuota++
           continue
         }
 
         if (descuento.PersonalFechaBaja) {
-          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Baja Personal' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalFechaBaja])
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Baja Personal', PersonalDescuentoAudFechaMod=@3, PersonalDescuentoAudUsuarioMod=@4, PersonalDescuentoAudIpMod=@5 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalFechaBaja, fechaActual, usuario, ip])
           countPersonalFechaBaja++
           continue
         }
 
         if ((descuento.PersonalDescuentoCuotas === descuento.PersonalDescuentoCuotasPagas || descuento.AnioUltCuo < 2025) && descuento.CuotasGeneradas == 0) {
-          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Sin cuotas generadas' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento])
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='Sin cuotas generadas', PersonalDescuentoAudFechaMod=@3, PersonalDescuentoAudUsuarioMod=@4, PersonalDescuentoAudIpMod=@5 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, descuento.PersonalDescuentoFechaDescuento, fechaActual, usuario, ip])
           countSinCuotasGeneradas++
           continue
         }
 
         if (descuento.PersonalDescuentoCuotasPagas > descuento.CuotasGeneradas && descuento.PersonalDescuentoCuotasPagas == descuento.PersonalDescuentoCuotas) {
-          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='No se generaron todas las cuotas pagas' WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, new Date(descuento.AnioUltCuo, descuento.MesUltCuo, 1)])
+          await queryRunner.query(`UPDATE PersonalDescuento SET FechaAnulacion = @2, DetalleAnulacion='No se generaron todas las cuotas pagas', PersonalDescuentoAudFechaMod=@3, PersonalDescuentoAudUsuarioMod=@4, PersonalDescuentoAudIpMod=@5 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, new Date(descuento.AnioUltCuo, descuento.MesUltCuo, 1), fechaActual, usuario, ip])
           countDiferenciaPagasGeneradas++
           continue
         }
