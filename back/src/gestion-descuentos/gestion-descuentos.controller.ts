@@ -1018,12 +1018,20 @@ export class GestionDescuentosController extends BaseController {
   async jobDescuentoCuotas(req: any, res: Response, next: NextFunction) {   //Procesa las CUOTAS de los descuentos de EFECTOS
 
     const fechaActual = new Date()
-    const usuario = res.locals.userName
+    const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
+    let ProcesoAutomaticoLogCodigo = 0
 
     const queryRunner = dataSource.createQueryRunner();
 
     try {
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+        queryRunner,
+        `Generación cuotas efectos`,
+        { usuario, ip },
+        usuario,
+        ip
+      ));
 
       await queryRunner.startTransaction()
 
@@ -1164,9 +1172,31 @@ FROM cte
 
       //      throw new ClientException(`DEBUG. PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`)
       await queryRunner.commitTransaction()
+
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        {
+          res: `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`
+
+        },
+        usuario,
+        ip
+      );
+
+
       return this.jsonRes({}, res, `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
       return next(error)
     } finally {
       await queryRunner.release()
