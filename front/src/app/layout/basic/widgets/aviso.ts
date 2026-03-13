@@ -134,10 +134,12 @@ export class AvisoNotifyComponent {
   readonly avisos = resource({
     params: () => this.tick(),
     loader: async () => {
-      //console.log('this.settingService.getUser()',this.settingService.getUser())
-      //TODO: En caso que no tenga usuario no debe pedir los avisos.  return [] as Aviso[];
-      const avisos = await firstValueFrom(this.apiService.getAvisos());
-      return avisos as Aviso[];
+      const user:any = this.settingService.getUser()
+      let avisos: Aviso[] = []
+      if (user.name != '') {
+        avisos = await firstValueFrom(this.apiService.getAvisos());
+      }
+      return avisos
     },
   });
 
