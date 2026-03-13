@@ -1173,12 +1173,13 @@ FROM cte
       //      throw new ClientException(`DEBUG. PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`)
       await queryRunner.commitTransaction()
 
+      const resMsg = `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`
       await this.procesoAutomaticoLogFin(
         queryRunner,
         ProcesoAutomaticoLogCodigo,
         'COM',
         {
-          res: `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`,
+          res: resMsg,
           countPersonalDescuentoPorcentajeDescuento,
           countFechaAnulacionCuota,
           countPersonalFechaBaja,
@@ -1189,9 +1190,7 @@ FROM cte
         usuario,
         ip
       );
-
-
-      return this.jsonRes({}, res, `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`);
+      return this.jsonRes({}, res, resMsg);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.procesoAutomaticoLogFin(queryRunner,
