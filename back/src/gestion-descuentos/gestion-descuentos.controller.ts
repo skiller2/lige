@@ -1178,8 +1178,13 @@ FROM cte
         ProcesoAutomaticoLogCodigo,
         'COM',
         {
-          res: `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`
-
+          res: `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`,
+          countPersonalDescuentoPorcentajeDescuento,
+          countFechaAnulacionCuota,
+          countPersonalFechaBaja,
+          countCuotasGeneradas,
+          countSinCuotasGeneradas,
+          countDiferenciaPagasGeneradas
         },
         usuario,
         ip
