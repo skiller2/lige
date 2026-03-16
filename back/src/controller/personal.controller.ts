@@ -1548,6 +1548,9 @@ export class PersonalController extends BaseController {
         await queryRunner.query(`
           UPDATE NexoDomicilio SET NexoDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
 
+        // Validar que BarrioId sea null si es 0 o falsy para evitar violación de FK
+        const BarrioId = infoDomicilio.BarrioId ? infoDomicilio.BarrioId : null
+
         await queryRunner.query(`INSERT INTO Domicilio (
             DomicilioDomCalle, DomicilioDomNro, DomicilioDomPiso, DomicilioDomDpto,
             DomicilioCodigoPostal, DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, 
@@ -1555,7 +1558,7 @@ export class PersonalController extends BaseController {
             VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
           infoDomicilio.Calle, infoDomicilio.Nro, infoDomicilio.Piso, infoDomicilio.Dpto,
           infoDomicilio.CodigoPostal, 1, infoDomicilio.ProvinciaId, infoDomicilio.LocalidadId,
-          infoDomicilio.BarrioId
+          BarrioId
         ])
         const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
 
