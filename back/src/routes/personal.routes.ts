@@ -62,11 +62,11 @@ personalRouter.post("/searchTipoAsociadoCategoria", authMiddleware.verifyToken, 
   personalController.searchTipoAsociadoCategoria(req, res, next);
 });
 
-personalRouter.post("/exenciones/add", authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.post("/exenciones/add", authMiddleware.verifyToken, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   personalController.addExenciones(req, res, next);
 });
 
-personalRouter.post("/exenciones/update", authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.post("/exenciones/update", authMiddleware.verifyToken, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
   personalController.updateExenciones(req, res, next);
 });
 
