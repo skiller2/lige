@@ -1807,7 +1807,8 @@ FROM cte
       , PersonalOtroDescuentoId id
       , PersonalOtroDescuentoDetalleAnulacion DetalleAnulacion
       , PersonalOtroDescuentoFechaAnulacion FechaAnulacion
-      , ImportacionDocumentoId
+      , ImportacionDocumentoId, PersonalOtroDescuentoCantidad Cantidad, PorcentajeDescuento
+      EfectoId, EfectoIndividualId
       FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
       `, [DescuentoId, PersonalId])
       // throw new ClientException(`DEBUG.`)
