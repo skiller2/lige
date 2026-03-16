@@ -11,7 +11,7 @@ const personalController = new PersonalController()
 const flowInformacionEmpresa = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, { flowDynamic, state, gotoFlow }) => {
         reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-        const infoEmpresa = personalController.getInfoEmpresa()
+        const infoEmpresa = await personalController.getInfoEmpresa()
         await flowDynamic([{ body: infoEmpresa , delay}])
 
     })

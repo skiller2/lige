@@ -818,6 +818,14 @@ export class PersonalController extends BaseController {
     const PaisId: number = infoPersonal.PaisId
     const ProvinciaId: number = infoPersonal.ProvinciaId
     const LocalidadId: number = infoPersonal.LocalidadId
+    const LugarFisicoLegajoId: number = infoPersonal.LugarFisicoLegajoId
+
+    //Vehiculo
+    const TipoVehiculoId = infoPersonal.TipoVehiculoId
+    const VehiculoMarcaId = infoPersonal.VehiculoMarcaId
+    const VehiculoMarcaModeloId = infoPersonal.VehiculoMarcaModeloId
+    const PersonalVehiculoPatente = infoPersonal.PersonalVehiculoPatente
+    const Cilindrada = infoPersonal.Cilindrada
 
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
@@ -875,10 +883,16 @@ export class PersonalController extends BaseController {
         PersonalAudIpIng,
         PersonalAudFechaMod,
         PersonalAudUsuarioMod,
-        PersonalAudIpMod
+        PersonalAudIpMod,
+        TipoVehiculoId,
+        VehiculoMarcaId,
+        VehiculoMarcaModeloId,
+        PersonalVehiculoPatente,
+        Cilindrada,
+        LugarFisicoLegajoId
       )
       VALUES (@0,@1,@2,@3,@4,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
-        ,@18,@19,@20,@18,@19,@20)
+        ,@18,@19,@20,@18,@19,@20,@21,@22,@23,@24,@25,@26)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -902,9 +916,15 @@ export class PersonalController extends BaseController {
       LocalidadId,
       now,
       usuario,
-      ip
+      ip,
+      TipoVehiculoId,
+      VehiculoMarcaId,
+      VehiculoMarcaModeloId,
+      PersonalVehiculoPatente,
+      Cilindrada,
+      LugarFisicoLegajoId
     ])
-    // console.log('newId:',newId);
+    
     let PersonalId = newId[0].id
     return PersonalId
   }
@@ -1395,7 +1415,9 @@ export class PersonalController extends BaseController {
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro,
-      EstadoCivilId, PersonalSexo Sexo, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId, PersonalLocalidadId LocalidadId
+      EstadoCivilId, PersonalSexo Sexo, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId, PersonalLocalidadId LocalidadId,
+      TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada,
+      LugarFisicoLegajoId
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1422,6 +1444,14 @@ export class PersonalController extends BaseController {
     const PaisId: number = infoPersonal.PaisId
     const ProvinciaId: number = infoPersonal.ProvinciaId
     const LocalidadId: number = infoPersonal.LocalidadId
+    const LugarFisicoLegajoId: number = infoPersonal.LugarFisicoLegajoId
+
+    //Vehiculo
+    const TipoVehiculoId = infoPersonal.TipoVehiculoId
+    const VehiculoMarcaId = infoPersonal.VehiculoMarcaId
+    const VehiculoMarcaModeloId = infoPersonal.VehiculoMarcaModeloId
+    const PersonalVehiculoPatente = infoPersonal.PersonalVehiculoPatente
+    const Cilindrada = infoPersonal.Cilindrada
 
     FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
@@ -1448,11 +1478,19 @@ export class PersonalController extends BaseController {
         PersonalLocalidadId = @14,
         PersonalAudFechaMod = @15,
         PersonalAudUsuarioMod = @16,
-        PersonalAudIpMod = @17
+        PersonalAudIpMod = @17,
+        TipoVehiculoId = @18,
+        VehiculoMarcaId = @19,
+        VehiculoMarcaModeloId = @20,
+        PersonalVehiculoPatente = @21,
+        Cilindrada = @22,
+        LugarFisicoLegajoId = @23
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaNacimiento, NacionalidadId,
       SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, PaisId, ProvinciaId, LocalidadId,
-      now, usuario, ip
+      now, usuario, ip,
+      TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada, //Vehiculo
+      LugarFisicoLegajoId
     ])
   }
 
@@ -1830,7 +1868,9 @@ export class PersonalController extends BaseController {
       PersonalLocalidadId LocalidadId, email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
-      per.PersonalLeyNro LeyNro, per.LugarFisicoLegajoId
+      per.PersonalLeyNro LeyNro, per.LugarFisicoLegajoId,
+      per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
+      per.LugarFisicoLegajoId
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
