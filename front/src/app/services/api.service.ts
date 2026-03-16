@@ -714,6 +714,16 @@ export class ApiService {
 
   }
 
+
+  getListListaTablasBloqueadas() {
+    return this.http.post<ResponseJSON<any>>('/api/procesos-automaticos/listtablasbloqueadas').pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+
+  }
+
   getListCursosHistory(filters: any, anio: any, mes: any, CursoHabilitacionId: any, CentroCapacitacionSedeId: any) {
 
     const parameter = { filters, anio, mes, CursoHabilitacionId, CentroCapacitacionSedeId }

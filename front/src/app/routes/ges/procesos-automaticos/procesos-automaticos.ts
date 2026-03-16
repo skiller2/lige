@@ -13,13 +13,14 @@ import { SettingsService } from '@delon/theme';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ProcesosAutomaticosDetalleComponent } from "../procesos-automaticos-detalle/procesos-automaticos-detalle";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { TableBloqueadasComponent } from '../table-bloqueadas/table-locked '
 
 @Component({
   selector: 'app-procesos-automaticos',
   templateUrl: './procesos-automaticos.html',
   styleUrl: './procesos-automaticos.less',
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent,TableBloqueadasComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProcesosAutomaticosComponent {

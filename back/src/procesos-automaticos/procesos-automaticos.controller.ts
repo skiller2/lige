@@ -77,11 +77,274 @@ const listaColumnas: any[] = [
   },
 ]
 
+
+const listaColumnasBloqueadas: any[] = [
+  {
+    id: 'id', name: 'id', field: 'id',
+    fieldName: 'id',
+    type: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+  },
+  {
+    id: 'ObjectName', name: 'Objeto', field: 'ObjectName',
+    fieldName: 'o.name',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'TypeDesc', name: 'Tipo Objeto', field: 'TypeDesc',
+    fieldName: 'o.type_desc',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'RequestType', name: 'Tipo Request', field: 'RequestType',
+    fieldName: 'request_type',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'LoginTime', name: 'Login Time', field: 'LoginTime',
+    fieldName: 'login_time',
+    type: 'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'HostName', name: 'Host', field: 'HostName',
+    fieldName: 'host_name',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'ProgramName', name: 'Programa', field: 'ProgramName',
+    fieldName: 'program_name',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'ClientInterfaceName', name: 'Interface', field: 'ClientInterfaceName',
+    fieldName: 'client_interface_name',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'LoginName', name: 'Login', field: 'LoginName',
+    fieldName: 'login_name',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'NtDomain', name: 'Dominio NT', field: 'NtDomain',
+    fieldName: 'nt_domain',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'NtUserName', name: 'Usuario NT', field: 'NtUserName',
+    fieldName: 'nt_user_name',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'Status', name: 'Estado', field: 'Status',
+    fieldName: 's.status',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'LastRequestStartTime', name: 'Ultimo Request Inicio', field: 'LastRequestStartTime',
+    fieldName: 'last_request_start_time',
+    type: 'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'LastRequestEndTime', name: 'Ultimo Request Fin', field: 'LastRequestEndTime',
+    fieldName: 'last_request_end_time',
+    type: 'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'LogicalReads', name: 'Lecturas Logicas', field: 'LogicalReads',
+    fieldName: 's.logical_reads',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'Reads', name: 'Lecturas', field: 'Reads',
+    fieldName: 's.reads',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'RequestStatus', name: 'Estado Request', field: 'RequestStatus',
+    fieldName: 'request_status',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'RequestOwnerType', name: 'Tipo Owner', field: 'RequestOwnerType',
+    fieldName: 'request_owner_type',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'ObjectId', name: 'Object ID', field: 'ObjectId',
+    fieldName: 'objectid',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+  },
+  {
+    id: 'DbId', name: 'DB ID', field: 'DbId',
+    fieldName: 'dbid',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+  },
+  {
+    id: 'Number', name: 'Numero', field: 'Number',
+    fieldName: 'a.number',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'Encrypted', name: 'Encriptado', field: 'Encrypted',
+    fieldName: 'a.encrypted',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'BlockingSessionId', name: 'Sesion Bloqueante', field: 'BlockingSessionId',
+    fieldName: 'a.blocking_session_id',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'Text', name: 'Texto SQL', field: 'Text',
+    fieldName: 'a.text',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'RequestMode', name: 'Modo Request', field: 'RequestMode',
+    fieldName: 'request_mode',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'SessionID', name: 'Session ID', field: 'SessionID',
+    fieldName: 's.Session_id',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'ResourceType', name: 'Tipo Recurso', field: 'ResourceType',
+    fieldName: 'resource_type',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: 'DatabaseName', name: 'Base de Datos', field: 'DatabaseName',
+    fieldName: 'DB_NAME(resource_database_id)',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+ 
+]
+
+
 export class ProcesosAutomaticosController extends BaseController {
 
   async getGridCols(req, res, next) {
     this.jsonRes(listaColumnas, res);
   }
+
+  async getGridColsBloqueadas(req, res, next) {
+    this.jsonRes(listaColumnasBloqueadas, res);
+  }
+
+  
 
   async listProcesosAutomaticos(req: any, res: Response, next: NextFunction ) {
 
@@ -98,6 +361,59 @@ export class ProcesosAutomaticosController extends BaseController {
         Order by palog.ProcesoAutomaticoLogCodigo DESC
       `,);
 
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+  async listtablasbloqueadas(req: any, res: Response, next: NextFunction ) {
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      let list = await queryRunner.query(` SELECT 
+        ROW_NUMBER() OVER(ORDER BY s.session_id) AS id,
+          o.name, o.type_desc,
+          request_type,
+          login_time,
+          host_name,
+          program_name,
+          client_interface_name,
+          login_name,
+          nt_domain,
+          nt_user_name,
+          s.status,
+          last_request_start_time,
+          last_request_end_time,
+          s.logical_reads,
+          s.reads,
+          request_status,
+          request_owner_type,
+          objectid,
+          dbid,
+          o.name, o.type_desc,
+          a.number,
+          a.encrypted ,
+          a.blocking_session_id,
+          a.text,
+          request_mode,
+          SessionID = s.Session_id,
+          resource_type,   
+          DatabaseName = DB_NAME(resource_database_id)
+
+      FROM   
+          sys.dm_tran_locks l
+          JOIN sys.dm_exec_sessions s ON l.request_session_id = s.session_id
+          LEFT JOIN   
+          (
+              SELECT  *
+              FROM    sys.dm_exec_requests r
+              CROSS APPLY sys.dm_exec_sql_text(sql_handle)
+          ) a ON s.session_id = a.session_id
+          LEFT JOIN sys.objects o ON o.object_id = l.resource_associated_entity_id
+      WHERE  
+          s.session_id > 50 AND program_name = 'node-mssql' AND o.name IS NOT NULL `,);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)

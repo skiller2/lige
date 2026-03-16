@@ -3451,9 +3451,9 @@ UNION ALL
 
   private valsExeciones(form: any) {
     const DocumentoTipoCodigo: string = form.DocumentoTipoCodigo
-    const Exencion: number = form.Exencion
+    const PersonalExencionId: number = form.PersonalExencionId
     const PersonalExencionDesde: Date = form.PersonalExencionDesde ? new Date(form.PersonalExencionDesde) : null
-
+    const PersonalExencionHasta: Date = form.PersonalExencionHasta ? new Date(form.PersonalExencionHasta) : null
     // let campos_vacios: any[] = [];
     let fieldErrors: any[] = [];
 
@@ -3486,7 +3486,7 @@ UNION ALL
     //   campos_vacios.push('- Exención')
     // }
 
-    if (Exencion && !PersonalExencionDesde) {
+    if ((PersonalExencionId && !PersonalExencionDesde) || (!PersonalExencionDesde && PersonalExencionHasta)) {
       // campos_vacios.push('- Desde')
       fieldErrors.push({ fieldTree: 'PersonalExencionDesde', kind: 'server', message: 'Debe completar el campo Desde' })
     }
@@ -3504,22 +3504,18 @@ UNION ALL
   async addExenciones(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
 
-    // const DocumentoDenominadorDocumento: string = req.body.DocumentoDenominadorDocumento
     const DocumentoId: number | null = req.body.DocumentoId === 0 ? null : req.body.DocumentoId;
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
-    // const cliente_id: number | null = req.body.DocumentoClienteId === 0 ? null : req.body.DocumentoClienteId;
-    // const objetivo_id: number | null = req.body.ObjetivoId === 0 ? null : req.body.ObjetivoId;
-    // const Documentofecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : null
-    // const DocumentoFechaDocumentoVencimiento: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : null
     const archivo: any[] = req.body.archivo
-    const Exencion = req.body.Exencion
+    
     const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
+    const PersonalExencionHasta: Date = req.body.PersonalExencionHasta ? new Date(req.body.PersonalExencionHasta) : null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     let newDocumentoId: number = null
     // const now = new Date()
     if (PersonalExencionDesde) PersonalExencionDesde.setHours(0, 0, 0, 0)
-
+    if (PersonalExencionHasta) PersonalExencionHasta.setHours(0, 0, 0, 0)
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -3558,23 +3554,31 @@ UNION ALL
       }
 
       let newPersonalExencionId = 0
-      if (Exencion) {
-        const consult = await queryRunner.query(`
-          SELECT MAX(PersonalExencionId) PersonalExencionId
-          FROM PersonalExencion
-          WHERE PersonalId IN (@0)
-        `, [PersonalId])
-        newPersonalExencionId = consult[0] ? consult[0].PersonalExencionId + 1 : 1
+      const ultPersonalExencion = await queryRunner.query(`
+        SELECT MAX(PersonalExencionId) PersonalExencionId
+        FROM PersonalExencion
+        WHERE PersonalId IN (@0)
+      `, [PersonalId])
+      newPersonalExencionId = ultPersonalExencion[0] ? ultPersonalExencion[0].PersonalExencionId + 1 : 1
 
-        await queryRunner.query(`
-          INSERT INTO PersonalExencion(
-            PersonalExencionId,
-            PersonalId,
-            PersonalExencionCUIT,
-            PersonalExencionDesde
-          )VALUES(@0, @1, @2, @3)
-          `, [newPersonalExencionId, PersonalId, 1, PersonalExencionDesde])
-      }
+      // Validar que las fechas no esten un un periodo ya creado
+      // const consult = await queryRunner.query(`
+      //   SELECT PersonalExencionId
+      //   FROM PersonalExencion
+      //   WHERE PersonalId IN (@0) AND PersonalExencionDesde <= @1 AND ISNULL(PersonalExencionHasta, '9999-12-31') >= @1
+      // `, [PersonalId, PersonalExencionDesde])
+
+
+
+      await queryRunner.query(`
+        INSERT INTO PersonalExencion(
+          PersonalExencionId,
+          PersonalId,
+          PersonalExencionCUIT,
+          PersonalExencionDesde,
+          PersonalExencionHasta
+        )VALUES(@0, @1, @2, @3, @4)
+        `, [newPersonalExencionId, PersonalId, 1, PersonalExencionDesde, PersonalExencionHasta])
 
       await queryRunner.commitTransaction()
       this.jsonRes({ PersonalExencionId: newPersonalExencionId, DocumentoId: (newDocumentoId ? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');
@@ -3593,14 +3597,16 @@ UNION ALL
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
     const archivo: any[] = req.body.archivo
     const PersonalExencionId: number = req.body.PersonalExencionId
-    const Exencion = req.body.Exencion
     const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
+    const PersonalExencionHasta: Date = req.body.PersonalExencionHasta ? new Date(req.body.PersonalExencionHasta) : null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
     let newDocumentoId: number = null
 
     now.setHours(0, 0, 0, 0)
+    if (PersonalExencionDesde) PersonalExencionDesde.setHours(0, 0, 0, 0)
+    if (PersonalExencionHasta) PersonalExencionHasta.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.connect();
@@ -3639,41 +3645,35 @@ UNION ALL
         newDocumentoId = resDoc.doc_id
       }
 
+      await queryRunner.query(`
+        UPDATE PersonalExencion SET
+          PersonalExencionDesde = @2
+          PersonalExencionHasta = @3
+        WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1)
+      `, [PersonalExencionId, PersonalId, PersonalExencionDesde, PersonalExencionHasta])
 
-      if (Exencion) {
+        // const PersonalExencion = await queryRunner.query(`
+        //   SELECT PersonalExencionDesde, PersonalExencionHasta
+        //   FROM PersonalExencion
+        //   WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) 
+        // `, [PersonalExencionId, PersonalId])
+        // const oldPersonalExencionDesde = PersonalExencion[0] ? new Date(PersonalExencion[0].PersonalExencionDesde) : null
 
-        await queryRunner.query(`
-          UPDATE PersonalExencion SET
-            PersonalExencionDesde = @2
-          WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
-        `, [PersonalExencionId, PersonalId, PersonalExencionDesde])
+        // if (oldPersonalExencionDesde.getTime() >= now.getTime()) {
+        //   await queryRunner.query(`
+        //     DELETE FROM PersonalExencion 
+        //     WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1)
+        //   `, [PersonalExencionId, PersonalId])
 
-      } else {
+        // } else {
+        //   const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDay(), 0, 0, 0, 0)
 
-        const PersonalExencion = await queryRunner.query(`
-          SELECT PersonalExencionDesde, PersonalExencionHasta
-          FROM PersonalExencion
-          WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) 
-        `, [PersonalExencionId, PersonalId])
-        const oldPersonalExencionDesde = PersonalExencion[0] ? new Date(PersonalExencion[0].PersonalExencionDesde) : null
-
-        if (oldPersonalExencionDesde.getTime() >= now.getTime()) {
-          await queryRunner.query(`
-            DELETE FROM PersonalExencion 
-            WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1)
-          `, [PersonalExencionId, PersonalId])
-
-        } else {
-          const ayer = new Date(now.getFullYear(), now.getMonth(), now.getDay(), 0, 0, 0, 0)
-
-          await queryRunner.query(`
-            UPDATE PersonalExencion SET
-              PersonalExencionHasta = @2
-            WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
-          `, [PersonalExencionId, PersonalId, ayer])
-        }
-
-      }
+        //   await queryRunner.query(`
+        //     UPDATE PersonalExencion SET
+        //       PersonalExencionHasta = @2
+        //     WHERE PersonalExencionId IN (@0) AND PersonalId IN (@1) AND PersonalExencionHasta IS NULL
+        //   `, [PersonalExencionId, PersonalId, ayer])
+        // }
 
       await queryRunner.commitTransaction()
       this.jsonRes({ DocumentoId: (newDocumentoId ? newDocumentoId : DocumentoId) }, res, 'Carga exitosa');

@@ -8,8 +8,16 @@ procesosAutomaticosRouter.get("/cols", [authMiddleware.verifyToken, authMiddlewa
     procesosAutomaticosController.getGridCols(req, res, next);
 });
 
+procesosAutomaticosRouter.get("/colsBloqueadas", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  procesosAutomaticosController.getGridColsBloqueadas(req, res, next);
+});
+
 procesosAutomaticosRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     procesosAutomaticosController.listProcesosAutomaticos(req, res, next);
+});
+
+procesosAutomaticosRouter.post("/listtablasbloqueadas", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  procesosAutomaticosController.listProcesosAutomaticos(req, res, next);
 });
 
 procesosAutomaticosRouter.get("/:logCodigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
