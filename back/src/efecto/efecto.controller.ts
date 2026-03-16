@@ -655,6 +655,7 @@ export class EfectoController extends BaseController {
     }
   }
 
+  // usada para detalle asistencia, apartado de efectos por personal
   async getEfectoByPersonalId(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.id
     const queryRunner = dataSource.createQueryRunner();
@@ -762,6 +763,5 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
 	  
       AND ${filterSql} `)
   }
-
 
 }
