@@ -1,0 +1,16 @@
+<nz-card class="small-margin">
+    <form nz-form #objpendForm="ngForm">
+      <ng-container>
+  
+        @if ((columns$|async); as columnas) {
+          <div class=" gridContainer container-fluid">
+            <angular-slickgrid gridId="gridEdit" class="" [columns]="columnas | colsFilter"
+              [options]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)">
+            </angular-slickgrid>
+          </div>
+        }
+      </ng-container>
+    </form>
+  </nz-card>
+  

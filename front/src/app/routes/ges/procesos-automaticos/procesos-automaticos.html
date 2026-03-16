@@ -37,6 +37,10 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'detalle']">Detalle</a>
         </li>
+         <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'tablas-locked']">Tablas Bloqueadas</a> 
+        </li>
       </ul>
     </div>
   </div>
@@ -62,6 +66,11 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/procesos-automaticos/detalle">Detalle</a>
         <app-procesos-automaticos-detalle [logCod]="logCodigo()"></app-procesos-automaticos-detalle>
+      </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/procesos-automaticos/tablas-locked">Tablas Bloqueadas</a>
+        <app-table-locked></app-table-locked>
       </nz-tab>
 
     </nz-tabs>
