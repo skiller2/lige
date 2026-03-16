@@ -818,14 +818,18 @@ export class PersonalController extends BaseController {
     const PaisId: number = infoPersonal.PaisId
     const ProvinciaId: number = infoPersonal.ProvinciaId
     const LocalidadId: number = infoPersonal.LocalidadId
-    const LugarFisicoLegajoId: number = infoPersonal.LugarFisicoLegajoId
+    const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
-    const TipoVehiculoId = infoPersonal.TipoVehiculoId
+    let TipoVehiculoId = infoPersonal.TipoVehiculoId
     const VehiculoMarcaId = infoPersonal.VehiculoMarcaId
     const VehiculoMarcaModeloId = infoPersonal.VehiculoMarcaModeloId
     const PersonalVehiculoPatente = infoPersonal.PersonalVehiculoPatente
     const Cilindrada = infoPersonal.Cilindrada
+
+    if (TipoVehiculoId && !VehiculoMarcaId && !VehiculoMarcaModeloId) {
+      TipoVehiculoId = null
+    }
 
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
@@ -1444,14 +1448,18 @@ export class PersonalController extends BaseController {
     const PaisId: number = infoPersonal.PaisId
     const ProvinciaId: number = infoPersonal.ProvinciaId
     const LocalidadId: number = infoPersonal.LocalidadId
-    const LugarFisicoLegajoId: number = infoPersonal.LugarFisicoLegajoId
+    const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
-    const TipoVehiculoId = infoPersonal.TipoVehiculoId
+    let TipoVehiculoId = infoPersonal.TipoVehiculoId
     const VehiculoMarcaId = infoPersonal.VehiculoMarcaId
     const VehiculoMarcaModeloId = infoPersonal.VehiculoMarcaModeloId
     const PersonalVehiculoPatente = infoPersonal.PersonalVehiculoPatente
     const Cilindrada = infoPersonal.Cilindrada
+
+    if (TipoVehiculoId && !VehiculoMarcaId && !VehiculoMarcaModeloId) {
+      TipoVehiculoId = null
+    }
 
     FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
@@ -1868,7 +1876,7 @@ export class PersonalController extends BaseController {
       PersonalLocalidadId LocalidadId, email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
-      per.PersonalLeyNro LeyNro, per.LugarFisicoLegajoId,
+      per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
       per.LugarFisicoLegajoId
       FROM Personal per

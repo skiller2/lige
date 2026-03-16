@@ -248,7 +248,8 @@ export class PersonalFormComponent {
 
   optionsMarcaVehiculo = resource({
     params: () => ({
-      TipoVehiculoId: this.parametroPersonal().TipoVehiculoId,
+      // TipoVehiculoId: this.parametroPersonal().TipoVehiculoId,
+      TipoVehiculoId: 3,
     }),
 
     loader: async ({ params }) => {
@@ -262,7 +263,7 @@ export class PersonalFormComponent {
 
   optionsModeloVehiculo = resource({
     params: () => ({
-      TipoVehiculoId: this.parametroPersonal().TipoVehiculoId,
+      TipoVehiculoId: 3, // Forzar siempre valor 3
       VehiculoMarcaId: this.parametroPersonal().VehiculoMarcaId,
     }),
 
@@ -348,7 +349,8 @@ export class PersonalFormComponent {
       
       this.parametroPersonal.update(m => ({
         ...m,
-        ...infoPersonal
+        ...infoPersonal,
+        TipoVehiculoId: 3 // Forzar siempre valor 3
       }))
 
       setTimeout(() => { this.formParametroPersonal().reset() }, 400);
@@ -367,6 +369,12 @@ export class PersonalFormComponent {
       values.estudios = values.estudios.filter((e:Estudio) => { return !this.isEqualObject(e, this.objEstudio) })
       values.familiares = values.familiares.filter((f:Familiar) => { return !this.isEqualObject(f, this.objFamiliar) })
       values.beneficiarios = values.beneficiarios.filter((b:Beneficiario) => { return !this.isEqualObject(b, this.objBeneficiario) })
+            
+      // Asegurar que LugarFisicoLegajoId sea un valor simple o null
+      if (Array.isArray(values.LugarFisicoLegajoId)) {
+        values.LugarFisicoLegajoId = values.LugarFisicoLegajoId[0] || null;
+      }
+      
       
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
