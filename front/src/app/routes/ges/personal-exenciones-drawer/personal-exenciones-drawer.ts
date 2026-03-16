@@ -23,8 +23,8 @@ export interface ExencionForm {
     DocumentoDenominadorDocumento: string,
     archivo: [],
     PersonalExencionId: number,
-    Exencion: boolean,
-    PersonalExencionDesde: string
+    PersonalExencionDesde: string,
+    PersonalExencionHasta: string
 }
 
 @Component({
@@ -47,6 +47,8 @@ export class PersonalExencionesDrawerComponent {
     label = signal<string>('. . .');
     fileName = signal<string>('')
     tableName = signal<string>('')
+    exencionesHistory = signal<any[]>([]);
+    now = signal<Date>(new Date())
     modalViewerVisiable1 = signal<boolean>(false)
     modalViewerVisiable2 = signal<boolean>(false)
 
@@ -65,8 +67,8 @@ export class PersonalExencionesDrawerComponent {
         DocumentoDenominadorDocumento: '',
         archivo: [],
         PersonalExencionId: 0,
-        Exencion: false,
-        PersonalExencionDesde: ''
+        PersonalExencionDesde: '',
+        PersonalExencionHasta: ''
     }
 
     readonly parametroExencion = signal<ExencionForm>({ ...this.defaultFormExencion });
@@ -74,9 +76,8 @@ export class PersonalExencionesDrawerComponent {
     readonly formParametroExencion = form(this.parametroExencion, (p) => {
         required(p.PersonalExencionDesde, { 
             message: 'Desde es requerido',
-            when: (ctx) => ctx.valueOf(p.Exencion) !== false,
+            when: (ctx) => ctx.valueOf(p.PersonalExencionId) !== 0,
         });
-        disabled(p.PersonalExencionDesde, (ctx) => ctx.valueOf(p.Exencion) === false);
 
         // disabled(p.archivo, (ctx) => (ctx.valueOf(p.DocumentoTipoCodigo) === '' || ctx.valueOf(p.DocumentoTipoCodigo) === null));
     });
@@ -90,16 +91,28 @@ export class PersonalExencionesDrawerComponent {
         if (visible && newId > 0) {
             // this.resetForm()
             let obj: any = { PersonalId: this.PersonalId() }
-            const exencion = await firstValueFrom(this.searchService.getExencionesByPersonalId(this.PersonalId()))
+            const exencion: any[] = await firstValueFrom(this.searchService.getExencionesByPersonalId(this.PersonalId()))
+            
+            if (exencion.length) {
 
-            if (exencion.length && !exencion[0].PersonalExencionHasta) {
-                obj = {
-                    ...obj,
-                    PersonalExencionId: exencion[0].PersonalExencionId,
-                    Exencion: (exencion[0].PersonalExencionId ? true : false),
-                    PersonalExencionDesde: exencion[0].PersonalExencionDesde
-                }
+                exencion.map((exe:any) =>{
+                    const PersonalExencionDesde = new Date(exe.PersonalExencionDesde)
+                    const PersonalExencionHasta = exe.PersonalExencionHasta ? new Date(exe.PersonalExencionHasta) : null
+                    if (PersonalExencionDesde.getTime() <= this.now().getTime()) {
+                        obj = {
+                            ...obj,
+                            PersonalExencionId: exencion[0].PersonalExencionId,
+                            PersonalExencionDesde: exencion[0].PersonalExencionDesde,
+                            PersonalExencionHasta: exencion[0].PersonalExencionHasta
+                        }
+                    }
+                    exe.PersonalExencionDesde = `${PersonalExencionDesde.getDate()}/${PersonalExencionDesde.getMonth()+1}/${PersonalExencionDesde.getFullYear()}`
+                    exe.PersonalExencionHasta = PersonalExencionHasta? `${PersonalExencionHasta.getDate()}/${PersonalExencionHasta.getMonth()+1}/${PersonalExencionHasta.getFullYear()}` : PersonalExencionHasta
+                })
+                
             }
+            this.exencionesHistory.set(exencion)
+            
             this.parametroExencion.update((m) => ({
                 ...m,
                 ...obj

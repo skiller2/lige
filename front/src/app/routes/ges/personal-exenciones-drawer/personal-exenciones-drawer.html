@@ -46,15 +46,21 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label [nzSpan]="6">Exención</nz-form-label>
-          <nz-form-control nzHasFeedback sfErrorTip>
+          <nz-form-label [nzSpan]="4">Exención</nz-form-label>
+          
+          <!-- <nz-form-control nzHasFeedback sfErrorTip>
             <label nz-checkbox [formField]="formParametroExencion.Exencion">
             </label>
+          </nz-form-control> -->
+
+          <nz-form-label [nzSpan]="3">Desde</nz-form-label>
+          <nz-form-control nzHasFeedback sfErrorTip>
+            <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formParametroExencion.PersonalExencionDesde" ></nz-date-picker>
           </nz-form-control>
 
-          <nz-form-label [nzSpan]="5">Desde</nz-form-label>
+          <nz-form-label [nzSpan]="2">Hasta</nz-form-label>
           <nz-form-control nzHasFeedback sfErrorTip>
-            <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formParametroExencion.PersonalExencionDesde" [nzDisabled]="!parametroExencion().Exencion"></nz-date-picker>
+            <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formParametroExencion.PersonalExencionHasta" ></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
 
@@ -74,6 +80,36 @@
       </form>
     </nz-card>
 
+    <nz-form-control style="text-align: right; margin-right: 25px;">
+      <button nzType="default" nz-button type="button"  nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
+        Finalizar Exenciones
+      </button>
+    </nz-form-control>
+    <br>
+
+    <nz-form-control>
+      <nz-table #exenPer [nzData]="exencionesHistory() || []" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+        <thead>
+          <tr>
+            <th>Codigo</th>
+            <th class="periodoStyle">Desde</th>
+            <th class="periodoStyle">Hasta</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (data of exenPer.data; track data) {
+            <tr class="">
+              <td>{{ data.PersonalExencionId }}</td>
+              <td class="periodoStyle">{{ data.PersonalExencionDesde }}</td>
+              <td class="periodoStyle">{{ data.PersonalExencionHasta }}</td>
+            </tr>
+          }
+        </tbody>
+      </nz-table>
+    </nz-form-control>
+
+    <br>
     <!-- @if ($listaDocumentosPer | async; as listaDocumentosPer ) { -->
       <nz-form-control>
         <nz-table #asistPer [nzData]="listaExcencionPer.value() || []" nzSize="small" [nzPageSize]="100000000"
