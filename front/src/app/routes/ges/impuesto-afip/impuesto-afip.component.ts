@@ -174,7 +174,7 @@ export class ImpuestoAfipComponent {
     const user: any = this.settingService.getUser()
       this.startFilters = [
         { index: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: user.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') },
-        { index: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: 'null' },
+        { index: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: '0' },
         { index: 'monto', condition: 'AND', operator: '=', value: 'null' }
       ]
 

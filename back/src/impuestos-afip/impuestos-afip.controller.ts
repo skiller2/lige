@@ -52,7 +52,10 @@ import { basename, join } from "path";
 
 
 //GlobalWorkerOptions.workerSrc = pdfWorker
-
+const getOptionsSINO: any[] = [
+  { label: 'No', value: '0' },
+  { label: 'Si', value: '1' },
+]
 
 const cuitRegex = [
   /:\d{2}\n(\d{2}-?\d{8}-?\d{1})$/m,
@@ -1333,4 +1336,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       return next(error)
     }
   }
+
+  async getOptions(req, res) {
+    this.jsonRes(getOptionsSINO, res);
+}
 }
