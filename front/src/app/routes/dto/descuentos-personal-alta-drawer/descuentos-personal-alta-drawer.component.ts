@@ -139,8 +139,9 @@ export class DescuentosPersonalAltaDrawerComponent {
         loader: async ({ params }) => {
             if (params.PersonalId && params.anio && params.mes) {
                 const res = await firstValueFrom(this.searchService.getDescuentosByPersonalId(params.PersonalId, params.anio, params.mes))
-                return res
+                return res || []
             }
+            return []
         }
     })
 
@@ -151,26 +152,29 @@ export class DescuentosPersonalAltaDrawerComponent {
         loader: async ({ params }) => {
             if (params.isEfecto) {
                 const res = await firstValueFrom(this.searchService.getEfectoByPersonalId(params.PersonalId))
-                return res
+                return res ?? []
             }
             return []
         }
     })
 
-
-    $optionsTipo = this.searchService.getDecuentosTipoOptions().pipe(
-        tap(options => this.optionsTipoList = options)
-    );
-    optionsTipoList: any[] = [];
+    optionsTipoDescuento = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
 
     isEfecto = computed(() => {
         return (this.descuentoPersonal().DescuentoId == 50) ? true : false
     })
 
+
+
     importeCuota = computed(() => {
-        const importe = (Number(this.descuentoPersonal().Importe) * this.descuentoPersonal().Cantidad * (this.descuentoPersonal().PorcentajeDescuento / 100)) / this.descuentoPersonal().Cuotas
-        return importe.toString()
-    })
+        const s = this.descuentoPersonal();
+        const importe = Number(s.Importe) || 0;
+        const cant = Number(s.Cantidad) || 0;
+        const pct = Number(s.PorcentajeDescuento) || 0;
+        const cuotas = Number(s.Cuotas) || 1;      // evita /0
+        const total = (importe * cant * (pct / 100)) / cuotas;
+        return total.toFixed(2); // string
+    });
 
     lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
 
