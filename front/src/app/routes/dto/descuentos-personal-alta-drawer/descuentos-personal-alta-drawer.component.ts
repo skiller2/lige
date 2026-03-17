@@ -70,9 +70,9 @@ export class DescuentosPersonalAltaDrawerComponent {
         ImportacionDocumentoId: null,
         oldPersonalId: 0,
         EfectoKey: { EfectoId: null, EfectoIndividualId: null },
-        EfectoId: 0,
-        EfectoIndividualId: 0,
-        Cantidad: 0,
+        EfectoId: null,
+        EfectoIndividualId: null,
+        Cantidad: 1,
         PorcentajeDescuento: 100,
     }
 
@@ -267,6 +267,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
 
     async save() {
+
         await submit(this.formDescuentoPersonal, async (form) => {
 
             const values:any = form().value()
