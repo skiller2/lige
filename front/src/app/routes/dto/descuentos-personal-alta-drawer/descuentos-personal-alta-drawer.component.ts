@@ -8,7 +8,6 @@ import { SearchService } from 'src/app/services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FormsModule } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -39,7 +38,7 @@ export interface FormDesc {
     templateUrl: './descuentos-personal-alta-drawer.component.html',
     styleUrl: './descuentos-personal-alta-drawer.component.scss',
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent, FormField, FormsModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent, FormField],
     providers: [AngularUtilService]
 })
 export class DescuentosPersonalAltaDrawerComponent {
