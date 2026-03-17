@@ -1,15 +1,14 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
-import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
-import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
+import { tap, firstValueFrom } from 'rxjs';
+import { AngularUtilService } from 'angular-slickgrid';
+import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { SettingsService, _HttpClient } from '@delon/theme';
+import { _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FormBuilder, FormArray, FormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -27,7 +26,7 @@ export interface FormDesc {
     FechaAnulacion: Date | null;
     ImportacionDocumentoId: number | null;
     oldPersonalId: number;
-    EfectoKey: {EfectoId: number | null, EfectoIndividualId: number | null};
+    EfectoKey: { EfectoId: number | null, EfectoIndividualId: number | null };
     EfectoId: number | null;
     EfectoIndividualId: number | null;
     Cantidad: number;
@@ -53,8 +52,8 @@ export class DescuentosPersonalAltaDrawerComponent {
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
     periodo = input<any>(null)
-    private searchService= inject(SearchService)
-    private apiService= inject(ApiService)
+    private searchService = inject(SearchService)
+    private apiService = inject(ApiService)
 
 
     private descuentoPersonalDefault: FormDesc = {
@@ -82,7 +81,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         disabled(p, () => !this.visibleDesc())
     })
 
-    loadEffect = effect(() => { 
+    loadEffect = effect(() => {
         if (this.visibleDesc()) {
             if (this.descuentoId() && this.personalId())
                 this.loadDescuentoPersonal()
@@ -90,25 +89,25 @@ export class DescuentosPersonalAltaDrawerComponent {
                 untracked(() => {
                     setTimeout(() => {
                         this.resetForm(null)
-                    },100)
+                    }, 100)
                 })
             }
         }
     })
 
-    effectoKey = computed(() => {return this.descuentoPersonal().EfectoKey})
+    effectoKey = computed(() => { return this.descuentoPersonal().EfectoKey })
 
 
 
     formEffect = effect(() => {
-        if (this.DescuentoId() != 50) { 
+        if (this.DescuentoId() != 50) {
             this.descuentoPersonal.update((state) => {
-                return { ...state, EfectoId: null, EfectoIndividualId: null, EfectoKey: { EfectoId: null, EfectoIndividualId: null }, PorcentajeDescuento:100 }
+                return { ...state, EfectoId: null, EfectoIndividualId: null, EfectoKey: { EfectoId: null, EfectoIndividualId: null }, PorcentajeDescuento: 100, Cantidad: 1 }
             })
         }
 
         if (this.effectoKey()) {
-            
+
             untracked(() => {
 
                 this.descuentoPersonal.update((state) => {
@@ -119,8 +118,6 @@ export class DescuentosPersonalAltaDrawerComponent {
     })
 
 
-    $selectedPersonalIdChange = new BehaviorSubject('');
-    selectedPersonalIdChange$ = new BehaviorSubject('');
 
     anio = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getFullYear() : 0 })
     mes = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getMonth() + 1 : 0 })
@@ -129,7 +126,7 @@ export class DescuentosPersonalAltaDrawerComponent {
 
 
     sitrevista = resource({
-        params: () => ({PersonalId:this.PersonalId(), anio:this.anio(), mes:this.mes()}),
+        params: () => ({ PersonalId: this.PersonalId(), anio: this.anio(), mes: this.mes() }),
         loader: async ({ params }) => {
             if (params.PersonalId && params.anio && params.mes) {
                 const res = await firstValueFrom(this.apiService.getPersonaSitRevista(params.PersonalId, params.anio, params.mes))
@@ -139,7 +136,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     })
 
     listaDescuentosPer = resource({
-        params: () => ({PersonalId:this.PersonalId(), anio:this.anio(), mes:this.mes()}),
+        params: () => ({ PersonalId: this.PersonalId(), anio: this.anio(), mes: this.mes() }),
         loader: async ({ params }) => {
             if (params.PersonalId && params.anio && params.mes) {
                 const res = await firstValueFrom(this.searchService.getDescuentosByPersonalId(params.PersonalId, params.anio, params.mes))
@@ -148,10 +145,10 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
-    DescuentoIdcompareFn= (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId)?  true : false)
+    DescuentoIdcompareFn = (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId) ? true : false)
 
     listaEfectosPer = resource({
-        params: () => ({PersonalId:this.PersonalId(), isEfecto:this.isEfecto()} ),
+        params: () => ({ PersonalId: this.PersonalId(), isEfecto: this.isEfecto() }),
         loader: async ({ params }) => {
             if (params.isEfecto) {
                 const res = await firstValueFrom(this.searchService.getEfectoByPersonalId(params.PersonalId))
@@ -166,34 +163,34 @@ export class DescuentosPersonalAltaDrawerComponent {
         tap(options => this.optionsTipoList = options)
     );
     optionsTipoList: any[] = [];
-    
+
     isEfecto = computed(() => {
-        return (this.descuentoPersonal().DescuentoId==50)?true:false 
+        return (this.descuentoPersonal().DescuentoId == 50) ? true : false
     })
 
     importeCuota = computed(() => {
-        const importe = (Number(this.descuentoPersonal().Importe) * this.descuentoPersonal().Cantidad * (this.descuentoPersonal().PorcentajeDescuento/100) )  / this.descuentoPersonal().Cuotas  
-        return importe.toString() 
+        const importe = (Number(this.descuentoPersonal().Importe) * this.descuentoPersonal().Cantidad * (this.descuentoPersonal().PorcentajeDescuento / 100)) / this.descuentoPersonal().Cuotas
+        return importe.toString()
     })
 
     lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
 
-    async loadDescuentoPersonal() { 
+    async loadDescuentoPersonal() {
         const infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
         infoDes.oldPersonalId = infoDes.PersonalId
         this.descuentoPersonal.set(infoDes)
         this.descuentoPersonal.update((state) => {
-            return { ...state, oldPersonalId: infoDes.PersonalId, EfectoKey: {EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId}, AplicaEl: infoDes.AplicaEl ? new Date(infoDes.AplicaEl) : null }
+            return { ...state, oldPersonalId: infoDes.PersonalId, EfectoKey: { EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId }, AplicaEl: infoDes.AplicaEl ? new Date(infoDes.AplicaEl) : null }
         })
 
         if (infoDes.EfectoId)
-            this.lastEfecto.set({EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId, EfectoDescripcionCompleta: infoDes.EfectoDescripcionCompleta  })
+            this.lastEfecto.set({ EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId, EfectoDescripcionCompleta: infoDes.EfectoDescripcionCompleta })
         else
             this.lastEfecto.set(null)
 
         setTimeout(() => {
             this.formDescuentoPersonal().reset()
-        },500)
+        }, 500)
 
     }
 
@@ -207,7 +204,7 @@ export class DescuentosPersonalAltaDrawerComponent {
 
         await submit(this.formDescuentoPersonal, async (form) => {
 
-            const values:any = form().value()
+            const values: any = form().value()
             try {
                 if (values.id) {
                     await firstValueFrom(this.apiService.updateDescuento(values))
@@ -215,12 +212,11 @@ export class DescuentosPersonalAltaDrawerComponent {
                     const res = await firstValueFrom(this.apiService.addDescuento(values))
                     if (res.data.id) {
                         this.descuentoPersonal.update((state) => {
-                            return { ...state, id: res.data.id, oldPersonalId: values.PersonalId}
+                            return { ...state, id: res.data.id, oldPersonalId: values.PersonalId }
                         })
                     }
                 }
                 this.onAddorUpdate.emit()
-                this.selectedPersonalIdChange$.next('')
 
                 form().reset()
             } catch (e) {
@@ -229,29 +225,28 @@ export class DescuentosPersonalAltaDrawerComponent {
         })
     }
 
-    resetForm(e:any) {
+    resetForm(e: any) {
         if (e)
-        e.preventDefault()
+            e.preventDefault()
 
         this.descuentoPersonal.set(this.descuentoPersonalDefault)
         this.descuentoPersonal.update((state) => {
-            return { ...state, AplicaEl:new Date(this.anio(),this.mes()-1,1)}
+            return { ...state, AplicaEl: new Date(this.anio(), this.mes() - 1, 1) }
         })
 
         this.formDescuentoPersonal().reset()
     }
-    
-    async cancel(e:any) {
+
+    async cancel(e: any) {
         e.preventDefault()
 
         await submit(this.formDescuentoPersonal, async (form) => {
-            const values:any = form().value()
+            const values: any = form().value()
             try {
                 if (this.descuentoId() && this.personalId()) {
                     await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(values))
                     this.onAddorUpdate.emit()
-                    this.selectedPersonalIdChange$.next('')
-                            this.formDescuentoPersonal().reset()
+                    this.formDescuentoPersonal().reset()
 
                 }
             } catch (e) { }
