@@ -1822,8 +1822,7 @@ FROM cte
       , pod.EfectoIndividualId
       , pod.PersonalOtroDescuentoCantidad Cantidad
       , pod.PorcentajeDescuento
-      , efe.EfectoDescripcion
-      , efeind.EfectoEfectoIndividualDescripcion
+      ,CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta
       FROM PersonalOtroDescuento pod
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = pod.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = pod.EfectoId AND efeind.EfectoEfectoIndividualId = pod.EfectoIndividualId
