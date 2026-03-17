@@ -19,7 +19,7 @@ export interface FormDesc {
     id: number;
     DescuentoId: number;
     PersonalId: number;
-    AplicaEl: Date;
+    AplicaEl: Date | null;
     Cuotas: number;
     Importe: string;
     Detalle: string;
@@ -73,7 +73,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         EfectoId: 0,
         EfectoIndividualId: 0,
         Cantidad: 0,
-        PorcentajeDescuento: 0,
+        PorcentajeDescuento: 100,
     }
 
     readonly descuentoPersonal = signal<FormDesc>(this.descuentoPersonalDefault);
@@ -163,8 +163,8 @@ export class DescuentosPersonalAltaDrawerComponent {
     $selectedPersonalIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
-    anio = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl).getFullYear() : 0 })
-    mes = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl).getMonth() + 1 : 0 })
+    anio = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getFullYear() : 0 })
+    mes = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getMonth() + 1 : 0 })
     PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
 
 
@@ -241,7 +241,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         infoDes.oldPersonalId = infoDes.PersonalId
         this.descuentoPersonal.set(infoDes)
         this.descuentoPersonal.update((state) => {
-            return { ...state, oldPersonalId: infoDes.PersonalId, EfectoKey: {EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId} }
+            return { ...state, oldPersonalId: infoDes.PersonalId, EfectoKey: {EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId}, AplicaEl: infoDes.AplicaEl ? new Date(infoDes.AplicaEl) : null }
         })
 
         if (infoDes.EfectoId)
@@ -256,9 +256,11 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
 
     async ngOnInit() {
+        /*
         this.descuentoPersonal.update((state) => {
             return { ...state, AplicaEl: this.periodo() ? new Date(this.periodo()) : new Date() }
         })
+        */
     }
 
     ngOnDestroy(): void {
