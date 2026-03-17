@@ -1822,8 +1822,7 @@ FROM cte
       , pod.EfectoIndividualId
       , pod.PersonalOtroDescuentoCantidad Cantidad
       , pod.PorcentajeDescuento
-      , efe.EfectoDescripcion
-      , efeind.EfectoEfectoIndividualDescripcion
+      ,CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta
       FROM PersonalOtroDescuento pod
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = pod.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = pod.EfectoId AND efeind.EfectoEfectoIndividualId = pod.EfectoIndividualId
@@ -1886,10 +1885,10 @@ FROM cte
     let idError = 0
     let altaDescuentos = 0
 
-    if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
+    if (isNaN(columnsXLS['cuit'])) columnsnNotFound.push('- CUIT')
     // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
-    if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
-    if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
+    if (isNaN(columnsXLS['importe total'])) columnsnNotFound.push('- Importe Total')
+    if (isNaN(columnsXLS['detalle'])) columnsnNotFound.push('- Detalle')
 
     if (columnsnNotFound.length) {
       columnsnNotFound.unshift('Faltan las siguientes columnas:')
@@ -1904,17 +1903,17 @@ FROM cte
         val === null || val === undefined || (typeof val === "string" && val.trim() === "")
 
       if (
-        !row[columnsXLS['CUIT']]
-        && !row[columnsXLS['Cantidad Cuotas']]
-        && !row[columnsXLS['Importe Total']]
-        && !row[columnsXLS['Detalle']]
+        !row[columnsXLS['cuit']]
+        && !row[columnsXLS['cantidad cuotas']]
+        && !row[columnsXLS['importe total']]
+        && !row[columnsXLS['detalle']]
       ) continue;
 
       //Verifica que exista el CUIT
-      const cuit = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
+      const cuit = String(row[columnsXLS['cuit']]).replace(/\D/g, "")
       if (cuit.length != 11) {
-        // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT con formato incorrecto' })
+        // console.log('CUIT con formato incorrecto', row[columnsXLS['cuit']])
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: 'CUIT con formato incorrecto' })
         continue
       }
 
@@ -1925,8 +1924,8 @@ FROM cte
               WHERE cuit.PersonalCUITCUILCUIT IN (@0)
             `, [cuit])
       if (!PersonalCUITCUIL.length) {
-        // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: 'CUIT no encontrado' })
+        // console.log('CUIT no encontrado', row[columnsXLS['cuit']], PersonalCUITCUIL)
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: 'CUIT no encontrado' })
         continue
       }
 
@@ -1943,26 +1942,26 @@ FROM cte
           msg = PersonalSitRevista.situacionFull?.trim() || JSON.stringify(PersonalSitRevista);
         }
 
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `No se puede aplicar el descuento. ${PersonalCUITCUIL[0]['ApellidoNombre']} No se encuentra 'Activo' en el período. Situación Revista: ${msg}` })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `No se puede aplicar el descuento. ${PersonalCUITCUIL[0]['ApellidoNombre']} No se encuentra 'Activo' en el período. Situación Revista: ${msg}` })
         continue
       }
 
-      let CantidadCuotas: number = (!row[columnsXLS['Cantidad Cuotas']] || isNaN(row[columnsXLS['Cantidad Cuotas']]) || row[columnsXLS['Cantidad Cuotas']] == 0) ? 1 : Number(row[columnsXLS['Cantidad Cuotas']])
+      let CantidadCuotas: number = (!row[columnsXLS['cantidad cuotas']] || isNaN(row[columnsXLS['cantidad cuotas']]) || row[columnsXLS['cantidad cuotas']] == 0) ? 1 : Number(row[columnsXLS['cantidad cuotas']])
 
       const otroDescuento: any = {
         DescuentoId: descuentoIdRequest,
         PersonalId: PersonalId,
         AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
         Cuotas: CantidadCuotas,
-        Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
-        Detalle: row[columnsXLS['Detalle']],
+        Importe: Number((row[columnsXLS['importe total']] || "0").toString().replace(/\. /g, "").replace(",", ".")), //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+        Detalle: row[columnsXLS['detalle']],
         DocumentoId: docDescuentoPersonal.doc_id ? docDescuentoPersonal.doc_id : null,
         CuentaTipoCodigo
       }
       const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuario, ip)
       altaDescuentos++
       if (result instanceof ClientException) {
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: result.messageArr })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: result.messageArr })
         continue
       }
     }
@@ -1973,14 +1972,14 @@ FROM cte
     let idError = 0
     let altaDescuentos = 0
 
-    if (isNaN(columnsXLS['Cuil'])) columnsnNotFound.push('- Cuil')
-    if (isNaN(columnsXLS['Importe gravado'])) columnsnNotFound.push('- Importe gravado')
-    if (isNaN(columnsXLS['Importe exento'])) columnsnNotFound.push('- Importe exento')
-    if (isNaN(columnsXLS['Tipo concepto'])) columnsnNotFound.push('- Tipo concepto')
-    if (isNaN(columnsXLS['Plan tarifa'])) columnsnNotFound.push('- TipoPlan tarifa')
-    if (isNaN(columnsXLS['Socio'])) columnsnNotFound.push('- Socio')
-    if (isNaN(columnsXLS['Comprobante'])) columnsnNotFound.push('- Comprobante')
-    if (isNaN(columnsXLS['Período desde'])) columnsnNotFound.push('- Período desde')
+    if (isNaN(columnsXLS['cuil'])) columnsnNotFound.push('- Cuil')
+    if (isNaN(columnsXLS['importe gravado'])) columnsnNotFound.push('- Importe gravado')
+    if (isNaN(columnsXLS['importe exento'])) columnsnNotFound.push('- Importe exento')
+    if (isNaN(columnsXLS['tipo concepto'])) columnsnNotFound.push('- Tipo concepto')
+    if (isNaN(columnsXLS['plan tarifa'])) columnsnNotFound.push('- TipoPlan tarifa')
+    if (isNaN(columnsXLS['socio'])) columnsnNotFound.push('- Socio')
+    if (isNaN(columnsXLS['comprobante'])) columnsnNotFound.push('- Comprobante')
+    if (isNaN(columnsXLS['período desde'])) columnsnNotFound.push('- Período desde')
 
     if (columnsnNotFound.length) {
       columnsnNotFound.unshift('Faltan las siguientes columnas:')
@@ -1995,22 +1994,22 @@ FROM cte
         val === null || val === undefined || (typeof val === "string" && val.trim() === "")
 
       if (
-        !row[columnsXLS['Cuil']]
-        && !row[columnsXLS['Tipo concepto']]
-        && !row[columnsXLS['Importe exento']]
-        && !row[columnsXLS['Importe gravado']]
-        && !row[columnsXLS['Plan tarifa']]
+        !row[columnsXLS['cuil']]
+        && !row[columnsXLS['tipo concepto']]
+        && !row[columnsXLS['importe exento']]
+        && !row[columnsXLS['importe gravado']]
+        && !row[columnsXLS['plan tarifa']]
       ) continue;
 
       //Verifica que exista el CUIT
-      const CUIT = String(row[columnsXLS['Cuil']]).replace(/\D/g, "")
+      const CUIT = String(row[columnsXLS['cuil']]).replace(/\D/g, "")
       if (CUIT.length != 11) {
         // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: 'CUIT con formato incorrecto' })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: 'CUIT con formato incorrecto' })
         continue
       }
 
-      const periodo = row[columnsXLS['Período desde']]
+      const periodo = row[columnsXLS['período desde']]
       let monthStr = ''
       let yearStr = ''
 
@@ -2024,17 +2023,17 @@ FROM cte
         monthStr = String(date.getMonth() + 1)
         yearStr = String(date.getFullYear())
       } else {
-        [, monthStr, yearStr] = String(row[columnsXLS['Período desde']]).split(" ")[0].split("/");
+        [, monthStr, yearStr] = String(row[columnsXLS['período desde']]).split(" ")[0].split("/");
       }
 
       const parsedMonth = parseInt(monthStr, 10);
       const parsedYear = parseInt(yearStr, 10);
 
-      const tipoConcepto = row[columnsXLS['Tipo concepto']]
+      const tipoConcepto = row[columnsXLS['tipo concepto']]
 
 
       if ((parsedMonth != mesRequest || parsedYear != anioRequest) && tipoConcepto == "10100") {
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `'Período desde' ${row[columnsXLS['Período desde']]} ${parsedMonth}/${parsedYear} no corresponde con el seleccionado ${mesRequest}/${anioRequest}` })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: `'Período desde' ${row[columnsXLS['período desde']]} ${parsedMonth}/${parsedYear} no corresponde con el seleccionado ${mesRequest}/${anioRequest}` })
         continue
       }
 
@@ -2057,7 +2056,7 @@ FROM cte
 
       if (!PersonalCUIT.length) {
         // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: 'CUIT no encontrado' })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: 'CUIT no encontrado' })
         continue
       }
 
@@ -2073,17 +2072,17 @@ FROM cte
           msg = PersonalSitRevista.situacionFull?.trim() || JSON.stringify(PersonalSitRevista);
         }
 
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: `No se puede aplicar el descuento. ${PersonalCUIT[0]['ApellidoNombre']} No se encuentra 'Activo' en el período. Situación Revista: ${msg}` })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: `No se puede aplicar el descuento. ${PersonalCUIT[0]['ApellidoNombre']} No se encuentra 'Activo' en el período. Situación Revista: ${msg}` })
         continue
       }
 
       //console.log('row', row)
       //throw new ClientException('stop')
-      const ImporteExcento = (row[columnsXLS['Importe exento']] || row[columnsXLS['Importe exento']]) * ((row[columnsXLS['Tipo concepto']] == "10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
-      const ImporteGravado = (row[columnsXLS['Importe gravado']] || row[columnsXLS['Importe gravado']]) * ((row[columnsXLS['Tipo concepto']] == "10100") ? 1 : -1)
+      const ImporteExcento = (row[columnsXLS['importe exento']] || row[columnsXLS['importe exento']]) * ((row[columnsXLS['tipo concepto']] == "10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
+      const ImporteGravado = (row[columnsXLS['importe gravado']] || row[columnsXLS['importe gravado']]) * ((row[columnsXLS['tipo concepto']] == "10100") ? 1 : -1)
 
 
-      const Detalle = `Plan: ${row[columnsXLS['Plan tarifa']]}, Socio: ${row[columnsXLS['Socio']]}, CUIT: ${row[columnsXLS['Cuil']]} ${row[columnsXLS['Comprobante']]}`
+      const Detalle = `Plan: ${row[columnsXLS['plan tarifa']]}, Socio: ${row[columnsXLS['socio']]}, CUIT: ${row[columnsXLS['cuil']]} ${row[columnsXLS['comprobante']]}`
       const Importe = ImporteExcento + ImporteGravado
 
       const otroDescuento: any = {
@@ -2098,7 +2097,7 @@ FROM cte
       const result = await this.addPersonalOtroDescuento(queryRunner, otroDescuento, usuario, ip)
       altaDescuentos++
       if (result instanceof ClientException) {
-        dataset.push({ id: idError++, CUIT: row[columnsXLS['Cuil']], Detalle: result.messageArr })
+        dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: result.messageArr })
         continue
       }
     }
@@ -2162,7 +2161,8 @@ FROM cte
 
       //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
       const columnsXLS: any = columnsName.reduce((acc, column, index) => {
-        acc[column] = index;
+        const normalizedColumn = String(column).trim().toLowerCase()
+        acc[normalizedColumn] = index;
         return acc;
       }, {} as Record<string, number>);
 
@@ -2192,12 +2192,12 @@ FROM cte
           break;
         case 'ObjetivoDescuento':
           //Validar que esten las columnas nesesarias
-          if (isNaN(columnsXLS['Aplica A'])) columnsnNotFound.push('- Aplica A')
-          if (isNaN(columnsXLS['Código Objetivo'])) columnsnNotFound.push('- Código Objetivo')
-          // if (isNaN(columnsXLS['Cantidad Cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
-          if (isNaN(columnsXLS['Importe Total'])) columnsnNotFound.push('- Importe Total')
-          if (isNaN(columnsXLS['Detalle'])) columnsnNotFound.push('- Detalle')
-          if (isNaN(columnsXLS['CUIT'])) columnsnNotFound.push('- CUIT')
+          if (isNaN(columnsXLS['aplica a'])) columnsnNotFound.push('- Aplica A')
+          if (isNaN(columnsXLS['código objetivo'])) columnsnNotFound.push('- Código Objetivo')
+          // if (isNaN(columnsXLS['cantidad cuotas'])) columnsnNotFound.push('- Cantidad Cuotas')
+          if (isNaN(columnsXLS['importe total'])) columnsnNotFound.push('- Importe Total')
+          if (isNaN(columnsXLS['detalle'])) columnsnNotFound.push('- Detalle')
+          if (isNaN(columnsXLS['cuit'])) columnsnNotFound.push('- CUIT')
 
 
 
@@ -2212,30 +2212,30 @@ FROM cte
           for (const row of sheet1.data) {
             //Finaliza cuando la fila esta vacia
             if (
-              !row[columnsXLS['Aplica A']]
-              && !row[columnsXLS['Código Objetivo']]
-              && !row[columnsXLS['Cantidad Cuotas']]
-              && !row[columnsXLS['Importe Total']]
-              && !row[columnsXLS['Detalle']]
-              && !row[columnsXLS['CUIT']]
+              !row[columnsXLS['aplica a']]
+              && !row[columnsXLS['código objetivo']]
+              && !row[columnsXLS['cantidad cuotas']]
+              && !row[columnsXLS['importe total']]
+              && !row[columnsXLS['detalle']]
+              && !row[columnsXLS['cuit']]
             ) break
 
             //Verifica que exista el Codigo del objetivo
-            const array = row[columnsXLS['Código Objetivo']].split('/')
+            const array = row[columnsXLS['código objetivo']].split('/')
             const ClienteId: number = parseInt(array[0])
             const ClienteElementoDependienteId: number = parseInt(array[1])
             const Objetivo = await queryRunner.query(`SELECT ObjetivoId FROM Objetivo WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
 
             if (!Objetivo.length) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: 'Código Objetivo no encontrado' })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: 'Código Objetivo no encontrado' })
               continue
             }
             const ObjetivoId = Objetivo[0].ObjetivoId
             //Verifica que exista el cuit del cliente y que el id sea el mismo del excel
-            const clienteCUIT = String(row[columnsXLS['CUIT']]).replace(/\D/g, "")
+            const clienteCUIT = String(row[columnsXLS['cuit']]).replace(/\D/g, "")
 
             if (clienteCUIT.length != 11) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no tiene el formato correcto.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no tiene el formato correcto.` })
               continue
             }
             const cliente = await queryRunner.query(`
@@ -2246,24 +2246,24 @@ FROM cte
             `, [fechaActual, clienteCUIT])
 
             if (cliente.length == 0) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
               continue
             }
             if (cliente[0].ClienteId != ClienteId) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
               continue
             }
             //Verifico que exita el Aplica A
-            const AplicaA = this.getValueByLabel(row[columnsXLS['Aplica A']])
+            const AplicaA = this.getValueByLabel(row[columnsXLS['aplica a']])
             if (!AplicaA) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coo. Cuenta' o 'Lince'.` })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coo. Cuenta' o 'Lince'.` })
               continue
             }
             switch (AplicaA) {
               case 'CL':
                 const tieneContratoVigente = await ObjetivoController.getObjetivoContratos(ObjetivoId, anioRequest, mesRequest, queryRunner)
                 if (!tieneContratoVigente) {
-                  dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene contrato vigente para el período indicado.` })
+                  dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El objetivo no tiene contrato vigente para el período indicado.` })
                   continue
                 }
                 break;
@@ -2272,17 +2272,17 @@ FROM cte
                 const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
 
                 if (!tieneCoordinadorVigente) {
-                  dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El objetivo no tiene Coordinador de Cuenta vigente para el período indicado.` })
+                  dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El objetivo no tiene Coordinador de Cuenta vigente para el período indicado.` })
                   continue
                 }
               case 'NO':
                 break;
               // default:
-              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coo. Cuenta' o 'Lince'.` })
+              //   dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El dato "Aplica A" no es correcto. Debe ser 'Cliente', 'Coo. Cuenta' o 'Lince'.` })
               //   continue
             }
 
-            let CantidadCuotas: number = (!row[columnsXLS['Cantidad Cuotas']] || isNaN(row[columnsXLS['Cantidad Cuotas']]) || row[columnsXLS['Cantidad Cuotas']] == 0) ? 1 : Number(row[columnsXLS['Cantidad Cuotas']])
+            let CantidadCuotas: number = (!row[columnsXLS['cantidad cuotas']] || isNaN(row[columnsXLS['cantidad cuotas']]) || row[columnsXLS['cantidad cuotas']] == 0) ? 1 : Number(row[columnsXLS['cantidad cuotas']])
 
             const otroDescuento: any = {
               DescuentoId: descuentoIdRequest,
@@ -2290,15 +2290,15 @@ FROM cte
               ObjetivoId: ObjetivoId,
               AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
               Cuotas: CantidadCuotas,
-              Importe: Number((row[columnsXLS['Importe Total']] || "0").toString().replace(/\. /g, "").replace(",", ".")),
-              Detalle: row[columnsXLS['Detalle']],
+              Importe: Number((row[columnsXLS['importe total']] || "0").toString().replace(/\. /g, "").replace(",", ".")),
+              Detalle: row[columnsXLS['detalle']],
               DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
             }
 
             const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuario, ip)
             altaDescuentos++
             if (result instanceof ClientException) {
-              dataset.push({ id: idError++, Codigo: row[columnsXLS['Código Objetivo']], Detalle: result.messageArr })
+              dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: result.messageArr })
               continue
             }
           }

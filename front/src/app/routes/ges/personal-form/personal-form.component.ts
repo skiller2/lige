@@ -111,7 +111,7 @@ export class PersonalFormComponent {
   optionsEstudioTipo = signal<any[]>([])
   optionsTipoDocumento = signal<any[]>([])
   
-  fb = inject(FormBuilder)
+  //fb = inject(FormBuilder)
   private readonly objTelefono: Telefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
   private readonly objEstudio: Estudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', PersonalEstudioOtorgado:'', PersonalEstudioVencimiento:'', DocTitulo:[], docId:0}
   private readonly objFamiliar: Familiar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}

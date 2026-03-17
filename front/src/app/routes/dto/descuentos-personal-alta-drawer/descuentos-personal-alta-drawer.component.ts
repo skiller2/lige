@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, output } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -9,18 +9,41 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FormBuilder, FormArray } from '@angular/forms';
+import { FormBuilder, FormArray, FormsModule } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+
+export interface FormDesc {
+    id: number;
+    DescuentoId: number;
+    PersonalId: number;
+    AplicaEl: Date | null;
+    Cuotas: number;
+    Importe: string;
+    Detalle: string;
+    DetalleAnulacion: string;
+    FechaAnulacion: Date | null;
+    ImportacionDocumentoId: number | null;
+    oldPersonalId: number;
+    EfectoKey: {EfectoId: number | null, EfectoIndividualId: number | null};
+    EfectoId: number | null;
+    EfectoIndividualId: number | null;
+    Cantidad: number;
+    PorcentajeDescuento: number;
+}
+
+
 @Component({
     selector: 'app-descuentos-personal-alta-drawer',
     templateUrl: './descuentos-personal-alta-drawer.component.html',
     styleUrl: './descuentos-personal-alta-drawer.component.scss',
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent, FormField, FormsModule],
     providers: [AngularUtilService]
 })
 export class DescuentosPersonalAltaDrawerComponent {
-    isLoading = signal(false);
     visibleDesc = model<boolean>(false)
     descuentoId = model<number>(0);
     personalId = model<number>(0);
@@ -30,10 +53,61 @@ export class DescuentosPersonalAltaDrawerComponent {
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
     periodo = input<any>(null)
+    private searchService= inject(SearchService)
+    private apiService= inject(ApiService)
 
+
+    private descuentoPersonalDefault: FormDesc = {
+        id: 0,
+        DescuentoId: 0,
+        PersonalId: 0,
+        AplicaEl: this.periodo() ? this.periodo() : new Date(),
+        Cuotas: 1,
+        Importe: '',
+        Detalle: '',
+        DetalleAnulacion: '',
+        FechaAnulacion: null,
+        ImportacionDocumentoId: null,
+        oldPersonalId: 0,
+        EfectoKey: { EfectoId: null, EfectoIndividualId: null },
+        EfectoId: 0,
+        EfectoIndividualId: 0,
+        Cantidad: 0,
+        PorcentajeDescuento: 100,
+    }
+
+    readonly descuentoPersonal = signal<FormDesc>(this.descuentoPersonalDefault);
+
+    readonly formDescuentoPersonal = form(this.descuentoPersonal, (p) => {
+        disabled(p, () => !this.visibleDesc())
+    })
+
+    loadEffect = effect(() => { 
+      
+        if (this.visibleDesc() && this.descuentoId() && this.personalId()) { 
+            this.loadDescuentoPersonal()
+        }
+
+    })
+
+    effectoKey = computed(() => {return this.descuentoPersonal().EfectoKey})
+
+    formEffect = effect(() => { 
+        if (this.effectoKey()) {
+            
+            untracked(() => {
+
+                this.descuentoPersonal.update((state) => {
+                    return { ...state, EfectoId: this.descuentoPersonal().EfectoKey.EfectoId, EfectoIndividualId: this.descuentoPersonal().EfectoKey.EfectoIndividualId }
+                })
+            })
+        }
+
+    })
+
+
+/*
     constructor(
-        private searchService: SearchService,
-        private apiService: ApiService,
         // private settingService: SettingsService,
     ) {
         effect(async () => {
@@ -78,212 +152,162 @@ export class DescuentosPersonalAltaDrawerComponent {
                     this.formDesc.get('importeCuota')?.disable()
                 }, 0);
             } else if (this.periodo()) {
-                this.formDesc.patchValue({ AplicaEl: this.periodo()})
+                this.formDesc.patchValue({ AplicaEl: this.periodo() })
             } else {
                 this.formDesc.reset()
                 this.formDesc.enable()
             }
         })
     }
-
-    private destroy$ = new Subject();
+*/
     $selectedPersonalIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
-    fb = inject(FormBuilder)
-    formDesc = this.fb.group({
-        id: 0,
-        DescuentoId: 0, PersonalId: 0, AplicaEl: this.periodo() ? this.periodo() : new Date(),
-        Cuotas: 1, Importe: null, Detalle: '',
-        DetalleAnulacion: '', importeCuota: '',
-        FechaAnulacion: null,
-        ImportacionDocumentoId: null,
-        oldPersonalId: 0,
-        EfectoId: 0,
-        EfectoIndividualId: 0,
-        Cantidad: 0,
-        PorcentajeDescuento: 0,
-        EfectoDescripcion: '',
-        EfectoEfectoIndividualDescripcion: '',
+    anio = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getFullYear() : 0 })
+    mes = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getMonth() + 1 : 0 })
+    PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
+
+
+    sitrevista = resource({
+        params: () => ({PersonalId:this.PersonalId(), anio:this.anio(), mes:this.mes()}),
+        loader: async ({ params }) => {
+            if (params.PersonalId && params.anio && params.mes) {
+                const res = await firstValueFrom(this.apiService.getPersonaSitRevista(params.PersonalId, params.anio, params.mes))
+                return res
+            }
+        }
     })
 
+    listaDescuentosPer = resource({
+        params: () => ({PersonalId:this.PersonalId(), anio:this.anio(), mes:this.mes()}),
+        loader: async ({ params }) => {
+            if (params.PersonalId && params.anio && params.mes) {
+                const res = await firstValueFrom(this.searchService.getDescuentosByPersonalId(params.PersonalId, params.anio, params.mes))
+                return res
+            }
+        }
+    })
 
+    listaEfectosPer = resource({
+        params: () => ({PersonalId:this.PersonalId(), isEfecto:this.isEfecto()} ),
+        loader: async ({ params }) => {
+            if (params.isEfecto) {
+                const res = await firstValueFrom(this.searchService.getEfectoByPersonalId(params.PersonalId))
+                return res
+            }
+            return []
+        }
+    })
 
-
-    $sitrevista = this.formDesc.get('PersonalId')!.valueChanges.pipe(
-        debounceTime(500),
-        switchMap(() =>
-            this.apiService
-                .getPersonaSitRevista(
-                    Number(this.PersonalId()),
-                    this.anio(),
-                    this.mes()
-                )
-        )
-    )
 
     $optionsTipo = this.searchService.getDecuentosTipoOptions().pipe(
         tap(options => this.optionsTipoList = options)
     );
     optionsTipoList: any[] = [];
+    
+    isEfecto = computed(() => {
+        return (this.descuentoPersonal().DescuentoId==50)?true:false 
+    })
 
-    $efectoOptions = this.formDesc.get('PersonalId')!.valueChanges.pipe(
-        debounceTime(500),
-        switchMap(() =>
-            this.searchService.getEfectoByPersonalId(Number(this.PersonalId()))
-        ),
-        tap(options => this.efectoOptionsList = options)
-    );
-    efectoOptionsList: any[] = [];
+    importeCuota = computed(() => {
+        const importe = (Number(this.descuentoPersonal().Importe) * this.descuentoPersonal().Cantidad * (this.descuentoPersonal().PorcentajeDescuento/100) )  / this.descuentoPersonal().Cuotas  
+        return importe.toString() 
+    })
 
-    isEfecto(): boolean {
-        const descuentoId = this.formDesc.get('DescuentoId')?.value;
-        if (!descuentoId || !this.optionsTipoList.length) return false;
-        const option = this.optionsTipoList.find((o: any) => o.value === descuentoId);
-        return option?.label?.toUpperCase()?.includes('EFECTO') ?? false;
-    }
+    
 
+
+    /*
     onEfectoChange(selectedEfectoId: any) {
         if (selectedEfectoId) {
-            const efecto = this.efectoOptionsList.find((e: any) => e.EfectoId === selectedEfectoId);
+            const efecto = this.listaEfectosPer.value().find((e: any) => e.EfectoId === selectedEfectoId);
             if (efecto) {
-                this.formDesc.patchValue({ EfectoIndividualId: efecto.EfectoEfectoIndividualId });
+                this.descuentoPersonal.update((state) => {
+                    return { ...state, EfectoDescripcion: efecto.EfectoDescripcionCompleta, EfectoId: efecto.EfectoId }
+                })
             }
         } else {
-            this.formDesc.patchValue({ EfectoIndividualId: null });
+                this.descuentoPersonal.update((state) => {
+                return { ...state, EfectoIndividualId: null }
+            })
         }
     }
-
-    $listaDecuentosPer = this.selectedPersonalIdChange$.pipe(
-        debounceTime(500),
-        switchMap(() => {
-            return this.searchService.getDescuentosByPersonalId(this.PersonalId(), this.anio(), this.mes())
-        })
-    );
-
-    id(): number {
-        const value = this.formDesc.get("id")?.value
-        if (value) {
-            return value
-        }
-        return 0
-    }
-
-    PersonalId(): number {
-        const value = this.formDesc.get("PersonalId")?.value
-        if (value) {
-            return value
-        }
-        return 0
-    }
-
-    anio(): number {
-        const value = this.formDesc.get("AplicaEl")?.value
-        if (value) {
-            const date = new Date(value as Date)
-            return date.getFullYear()
-        }
-        return 0
-    }
-
-    mes(): number {
-        const value = this.formDesc.get("AplicaEl")?.value
-        if (value) {
-            const date = new Date(value as Date)
-            return date.getMonth() + 1
-        }
-        return 0
-    }
-
-    Importe(): number {
-        const value = this.formDesc.get("Importe")?.value
-        if (value) return value
-        return 0
-    }
-
-    Cuotas(): number {
-        const value = this.formDesc.get("Cuotas")?.value
-        if (value) return value
-        return 0
-    }
-
-    DetalleAnulacion(): string {
-        const value = this.formDesc.get("DetalleAnulacion")?.value
-        if (value?.length) return value
-        return ''
-    }
-
-    FechaAnulacion(): Date | null {
-        const value = this.formDesc.get("FechaAnulacion")?.value
-        if (value) {
-            const date = new Date(value)
-            return date
-        }
-        return null
-    }
-
-    async ngOnInit() { 
-          
-        setTimeout(() => {
-         this.formDesc.patchValue({ AplicaEl: this.periodo() });
-        }, 1000);
-     
-    }
+    */
+    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
     
-    ngOnDestroy(): void {
-        this.destroy$.next('');
-        this.destroy$.complete();
+
+    async loadDescuentoPersonal() { 
+        const infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
+        infoDes.oldPersonalId = infoDes.PersonalId
+        this.descuentoPersonal.set(infoDes)
+        this.descuentoPersonal.update((state) => {
+            return { ...state, oldPersonalId: infoDes.PersonalId, EfectoKey: {EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId}, AplicaEl: infoDes.AplicaEl ? new Date(infoDes.AplicaEl) : null }
+        })
+
+        if (infoDes.EfectoId)
+            this.lastEfecto.set({EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId, EfectoDescripcionCompleta: infoDes.EfectoDescripcionCompleta  })
+        else
+            this.lastEfecto.set(null)
+
+        setTimeout(() => {
+            this.formDescuentoPersonal().reset()
+        },500)
+
     }
 
-    async onDescuentosChange(event: any) {
-        this.selectedPersonalIdChange$.next('');
+    async ngOnInit() {
+        /*
+        this.descuentoPersonal.update((state) => {
+            return { ...state, AplicaEl: this.periodo() ? new Date(this.periodo()) : new Date() }
+        })
+        */
+    }
+
+    ngOnDestroy(): void {
     }
 
     async save() {
-        this.isLoading.set(true)
-        let values = this.formDesc.getRawValue()
-        try {
-            if (values.id) {
-                await firstValueFrom(this.apiService.updateDescuento(values))
-            } else {
-                const res = await firstValueFrom(this.apiService.addDescuento(values))
-                if (res.data.id)
-                    this.formDesc.patchValue({ id: res.data.id,oldPersonalId: values.PersonalId})
-            }
-            this.onAddorUpdate.emit()
-            this.selectedPersonalIdChange$.next('')
-            this.formDesc.markAsUntouched()
-            this.formDesc.markAsPristine()
-        } catch (e) {
+        await submit(this.formDescuentoPersonal, async (form) => {
 
-        }
-        this.isLoading.set(false)
+            const values:any = form().value()
+            try {
+                if (values.id) {
+                    await firstValueFrom(this.apiService.updateDescuento(values))
+                } else {
+                    const res = await firstValueFrom(this.apiService.addDescuento(values))
+                    if (res.data.id) {
+                        this.descuentoPersonal.update((state) => {
+                            return { ...state, id: res.data.id, oldPersonalId: values.PersonalId}
+                        })
+                    }
+                }
+                this.onAddorUpdate.emit()
+                this.selectedPersonalIdChange$.next('')
+
+                form().reset()
+            } catch (e) {
+
+            }
+        })
     }
 
     resetForm() {
-        this.formDesc.reset()
+        this.descuentoPersonal.set(this.descuentoPersonalDefault)
+        this.formDescuentoPersonal().reset()
     }
-
-    importeCuotaChange() {
-        if (this.Importe() && this.Cuotas())
-            this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
-        else
-            this.formDesc.get('importeCuota')?.setValue('')
-    }
-
+    
     async cancel() {
-        this.isLoading.set(true)
-        let values = this.formDesc.getRawValue()
-        try {
-            if (this.descuentoId() && this.personalId()) {
-                await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(values))
-                this.onAddorUpdate.emit()
-                this.selectedPersonalIdChange$.next('')
-                this.formDesc.markAsUntouched()
-                this.formDesc.markAsPristine()
-            }
-        } catch (e) { }
-        this.isLoading.set(false)
-    }
+        await submit(this.formDescuentoPersonal, async (form) => {
+            const values:any = form().value()
+            try {
+                if (this.descuentoId() && this.personalId()) {
+                    await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(values))
+                    this.onAddorUpdate.emit()
+                    this.selectedPersonalIdChange$.next('')
+                            this.formDescuentoPersonal().reset()
 
+                }
+            } catch (e) { }
+        })
+    }
 }
