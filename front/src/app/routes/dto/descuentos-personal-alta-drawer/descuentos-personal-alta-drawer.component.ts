@@ -145,7 +145,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
-    DescuentoIdcompareFn = (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId) ? true : false)
+    efectoCompareFn = (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId) ? true : false)
 
     listaEfectosPer = resource({
         params: () => ({ PersonalId: this.PersonalId(), isEfecto: this.isEfecto() }),

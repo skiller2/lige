@@ -51,7 +51,7 @@
               <nz-form-item class="marginElement">
                 <nz-form-label [nzXs]="5">Efecto</nz-form-label>
                 <nz-form-control [nzMd]="18">
-                  <nz-select [formField]="formDescuentoPersonal.EfectoKey" [compareWith]="DescuentoIdcompareFn" nzPlaceHolder="Seleccione efecto" nzAllowClear
+                  <nz-select [formField]="formDescuentoPersonal.EfectoKey" [compareWith]="efectoCompareFn" nzPlaceHolder="Seleccione efecto" nzAllowClear
                     [nzDropdownMatchSelectWidth]="false" >
                     @for (efecto of listaEfectosPer.value(); track efecto.EfectoId) {
                       <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}" [nzLabel]="efecto.EfectoDescripcionCompleta"></nz-option>
