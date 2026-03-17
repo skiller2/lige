@@ -720,6 +720,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = value == 1 ? 'SI' : 'NO'
     }
 
+    if (fieldObj.searchComponent == 'inputForExceptuadoSearch') {
+      label = value == 1 ? 'Si' : 'No'
+    }
+
 
     /*if (fieldObj.searchComponent == 'inputForCursoSearch') {
       const curso = await firstValueFrom(this.searchService.getCursoFromName('CursoHabilitacionId', value))
