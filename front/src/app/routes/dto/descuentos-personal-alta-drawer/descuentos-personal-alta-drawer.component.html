@@ -48,6 +48,47 @@
             </nz-form-control>
           </nz-form-item>
 
+          @if (isEfecto()) {
+            @if (id()) {
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="5">Efecto</nz-form-label>
+                <nz-form-control [nzMd]="18">
+                  <p>{{ formDesc.get('EfectoDescripcion')?.value }}</p>
+                </nz-form-control>
+              </nz-form-item>
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="5">Efecto Individual</nz-form-label>
+                <nz-form-control [nzMd]="18">
+                  <p>{{ formDesc.get('EfectoEfectoIndividualDescripcion')?.value }}</p>
+                </nz-form-control>
+              </nz-form-item>
+            } @else {
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="5">Efecto</nz-form-label>
+                <nz-form-control [nzMd]="18">
+                  <nz-select formControlName="EfectoId" nzPlaceHolder="Seleccione efecto" nzAllowClear
+                    [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onEfectoChange($event)">
+                    @for (efecto of $efectoOptions | async; track efecto) {
+                      <nz-option [nzValue]="efecto.EfectoId" [nzLabel]="efecto.EfectoDescripcionCompleta"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            }
+
+            <nz-form-item class="marginElement">
+              <nz-form-label [nzXs]="5">Cantidad</nz-form-label>
+              <nz-form-control [nzMd]="5">
+                <input nz-input placeholder="" formControlName="Cantidad" type="number" />
+              </nz-form-control>
+
+              <nz-form-label [nzXs]="5">Porcentaje</nz-form-label>
+              <nz-form-control [nzMd]="5">
+                <input nz-input placeholder="" formControlName="PorcentajeDescuento" type="number" />
+              </nz-form-control>
+            </nz-form-item>
+          }
+
           <nz-form-item class="marginElement">
             <nz-form-label [nzXs]="5">Cant.Cuotas</nz-form-label>
             <nz-form-control [nzMd]="5">

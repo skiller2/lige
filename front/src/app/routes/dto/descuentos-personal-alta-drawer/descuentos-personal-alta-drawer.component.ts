@@ -99,6 +99,12 @@ export class DescuentosPersonalAltaDrawerComponent {
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
         oldPersonalId: 0,
+        EfectoId: 0,
+        EfectoIndividualId: 0,
+        Cantidad: 0,
+        PorcentajeDescuento: 0,
+        EfectoDescripcion: '',
+        EfectoEfectoIndividualDescripcion: '',
     })
 
 
@@ -116,7 +122,37 @@ export class DescuentosPersonalAltaDrawerComponent {
         )
     )
 
-    $optionsTipo = this.searchService.getDecuentosTipoOptions();
+    $optionsTipo = this.searchService.getDecuentosTipoOptions().pipe(
+        tap(options => this.optionsTipoList = options)
+    );
+    optionsTipoList: any[] = [];
+
+    $efectoOptions = this.formDesc.get('PersonalId')!.valueChanges.pipe(
+        debounceTime(500),
+        switchMap(() =>
+            this.searchService.getEfectoByPersonalId(Number(this.PersonalId()))
+        ),
+        tap(options => this.efectoOptionsList = options)
+    );
+    efectoOptionsList: any[] = [];
+
+    isEfecto(): boolean {
+        const descuentoId = this.formDesc.get('DescuentoId')?.value;
+        if (!descuentoId || !this.optionsTipoList.length) return false;
+        const option = this.optionsTipoList.find((o: any) => o.value === descuentoId);
+        return option?.label?.toUpperCase()?.includes('EFECTO') ?? false;
+    }
+
+    onEfectoChange(selectedEfectoId: any) {
+        if (selectedEfectoId) {
+            const efecto = this.efectoOptionsList.find((e: any) => e.EfectoId === selectedEfectoId);
+            if (efecto) {
+                this.formDesc.patchValue({ EfectoIndividualId: efecto.EfectoEfectoIndividualId });
+            }
+        } else {
+            this.formDesc.patchValue({ EfectoIndividualId: null });
+        }
+    }
 
     $listaDecuentosPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),

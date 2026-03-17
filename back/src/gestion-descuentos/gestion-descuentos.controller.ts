@@ -826,6 +826,10 @@ export class GestionDescuentosController extends BaseController {
     const DocumentoId: number = otroDescuento.DocumentoId
     const importeTotal = Number((Number(otroDescuento.Importe)).toFixed(2))
     const CuentaTipoCodigo: string = otroDescuento?.CuentaTipoCodigo ? otroDescuento.CuentaTipoCodigo : 'G'
+    const EfectoId = otroDescuento.EfectoId
+    const EfectoIndividualId = otroDescuento.EfectoIndividualId
+    const Cantidad = otroDescuento.Cantidad || 1
+    const PorcentajeDescuento = otroDescuento.PorcentajeDescuento
     /*
     let PersonalOtroDescuento = await queryRunner.query(`
       SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
@@ -845,13 +849,14 @@ export class GestionDescuentosController extends BaseController {
       , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
       , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
       , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, ImportacionDocumentoId, CuentaTipoCodigo
+      , EfectoId, EfectoIndividualId, PorcentajeDescuento
       , PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudIpMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudFechaMod)
-      VALUES (@0,@1,@2,@3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @17, @18, @19)
+      VALUES (@0,@1,@2,@3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @20, @21, @22, @17, @18, @19, @17, @18, @19)
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio,
-      mes, mes, 1, Cuotas,
+      mes, mes, Cantidad, Cuotas,
       importeTotal, AplicaEl, 0, 0,
       1, '', Detalle, DocumentoId, CuentaTipoCodigo,
-      ip, usuario, now])
+      ip, usuario, now, EfectoId, EfectoIndividualId, PorcentajeDescuento])
 
 
 
@@ -1466,6 +1471,10 @@ FROM cte
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
+    const EfectoId = otroDescuento.EfectoId
+    const EfectoIndividualId = otroDescuento.EfectoIndividualId
+    const Cantidad = otroDescuento.Cantidad || 1
+    const PorcentajeDescuento = otroDescuento.PorcentajeDescuento
 
     if (oldPersonalId != PersonalId) throw new ClientException(`No se puede modificar a la persona.`)
 
@@ -1507,12 +1516,13 @@ FROM cte
       UPDATE PersonalOtroDescuento SET
       PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
       , PersonalOtroDescuentoMesesAplica = @4, PersonalOtroDescuentoMes = @4
-      , PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = @6
+      , PersonalOtroDescuentoCantidad = @12, PersonalOtroDescuentoCantidadCuotas= @5, PersonalOtroDescuentoImporteVariable = @6
       , PersonalOtroDescuentoFechaAplica = @7, PersonalOtroDescuentoDetalle = @8
       , PersonalOtroDescuentoCuotasPagas = 1, PersonalOtroDescuentoCuotaUltNro = 1
+      , EfectoId = @13, EfectoIndividualId = @14, PorcentajeDescuento = @15
       , PersonalOtroDescuentoAudFechaMod = @11, PersonalOtroDescuentoAudUsuarioMod = @10, PersonalOtroDescuentoAudIpMod = @9
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuario, hoy])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, ip, usuario, hoy, Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
@@ -1801,14 +1811,23 @@ FROM cte
       await queryRunner.startTransaction()
 
       const descuento = await queryRunner.query(`
-      SELECT PersonalOtroDescuentoDescuentoId DescuentoId, PersonalOtroDescuentoDetalle Detalle
-      , PersonalOtroDescuentoFechaAplica AplicaEl, PersonalOtroDescuentoCantidadCuotas Cuotas
-      , PersonalOtroDescuentoImporteVariable Importe, PersonalId
-      , PersonalOtroDescuentoId id
-      , PersonalOtroDescuentoDetalleAnulacion DetalleAnulacion
-      , PersonalOtroDescuentoFechaAnulacion FechaAnulacion
-      , ImportacionDocumentoId
-      FROM PersonalOtroDescuento WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+      SELECT pod.PersonalOtroDescuentoDescuentoId DescuentoId, pod.PersonalOtroDescuentoDetalle Detalle
+      , pod.PersonalOtroDescuentoFechaAplica AplicaEl, pod.PersonalOtroDescuentoCantidadCuotas Cuotas
+      , pod.PersonalOtroDescuentoImporteVariable Importe, pod.PersonalId
+      , pod.PersonalOtroDescuentoId id
+      , pod.PersonalOtroDescuentoDetalleAnulacion DetalleAnulacion
+      , pod.PersonalOtroDescuentoFechaAnulacion FechaAnulacion
+      , pod.ImportacionDocumentoId
+      , pod.EfectoId
+      , pod.EfectoIndividualId
+      , pod.PersonalOtroDescuentoCantidad Cantidad
+      , pod.PorcentajeDescuento
+      , efe.EfectoDescripcion
+      , efeind.EfectoEfectoIndividualDescripcion
+      FROM PersonalOtroDescuento pod
+      LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = pod.EfectoId
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = pod.EfectoId AND efeind.EfectoEfectoIndividualId = pod.EfectoIndividualId
+      WHERE pod.PersonalOtroDescuentoId IN (@0) AND pod.PersonalId IN (@1)
       `, [DescuentoId, PersonalId])
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
