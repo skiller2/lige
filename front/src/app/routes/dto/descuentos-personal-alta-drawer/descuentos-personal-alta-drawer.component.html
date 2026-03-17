@@ -16,7 +16,7 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Tipo</nz-form-label>
           <nz-form-control [nzMd]="18">
-            <nz-select [formField]="formDescuentoPersonal.DescuentoId" nzPlaceHolder="tipo" nzAllowClear
+            <nz-select [formField]="formDescuentoPersonal.DescuentoId"  nzPlaceHolder="tipo" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
               @for (option of $optionsTipo | async; track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -51,7 +51,7 @@
               <nz-form-item class="marginElement">
                 <nz-form-label [nzXs]="5">Efecto</nz-form-label>
                 <nz-form-control [nzMd]="18">
-                  <nz-select [formField]="formDescuentoPersonal.EfectoKey" nzPlaceHolder="Seleccione efecto" nzAllowClear
+                  <nz-select [formField]="formDescuentoPersonal.EfectoKey" [compareWith]="DescuentoIdcompareFn" nzPlaceHolder="Seleccione efecto" nzAllowClear
                     [nzDropdownMatchSelectWidth]="false" >
                     @for (efecto of listaEfectosPer.value(); track efecto.EfectoId) {
                       <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}" [nzLabel]="efecto.EfectoDescripcionCompleta"></nz-option>
@@ -152,11 +152,11 @@
                       {{ 'app.btn.save' | i18n }}
                     </button>
                   }
-                  <button [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false" nzType="primary" nz-button (click)="resetForm()">
+                  <button [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false" nzType="primary" nz-button (click)="resetForm($event)">
                     {{ 'app.btn.clear.form' | i18n }}
                   </button>
                   @if (cancelDesc() && this.visibleDesc()) {
-                    <button nzType="primary" nz-button (click)="cancel()" [nzLoading]="formDescuentoPersonal().submitting()"
+                    <button nzType="primary" nz-button (click)="cancel($event)" [nzLoading]="formDescuentoPersonal().submitting()"
                       [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">
                       Anular
                     </button>

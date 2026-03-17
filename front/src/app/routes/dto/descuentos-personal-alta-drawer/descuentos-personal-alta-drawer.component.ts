@@ -83,16 +83,30 @@ export class DescuentosPersonalAltaDrawerComponent {
     })
 
     loadEffect = effect(() => { 
-      
-        if (this.visibleDesc() && this.descuentoId() && this.personalId()) { 
-            this.loadDescuentoPersonal()
+        if (this.visibleDesc()) {
+            if (this.descuentoId() && this.personalId())
+                this.loadDescuentoPersonal()
+            else {
+                untracked(() => {
+                    setTimeout(() => {
+                        this.resetForm(null)
+                    },100)
+                })
+            }
         }
-
     })
 
     effectoKey = computed(() => {return this.descuentoPersonal().EfectoKey})
 
-    formEffect = effect(() => { 
+
+
+    formEffect = effect(() => {
+        if (this.DescuentoId() != 50) { 
+            this.descuentoPersonal.update((state) => {
+                return { ...state, EfectoId: null, EfectoIndividualId: null, EfectoKey: { EfectoId: null, EfectoIndividualId: null }, PorcentajeDescuento:100 }
+            })
+        }
+
         if (this.effectoKey()) {
             
             untracked(() => {
@@ -102,70 +116,16 @@ export class DescuentosPersonalAltaDrawerComponent {
                 })
             })
         }
-
     })
 
 
-/*
-    constructor(
-        // private settingService: SettingsService,
-    ) {
-        effect(async () => {
-            const visible = this.visibleDesc()
-
-            if (visible) {
-                if (this.descuentoId() && this.personalId()) {
-                    const infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
-                    infoDes.oldPersonalId = infoDes.PersonalId
-                    this.formDesc.reset(infoDes)
-                    //console.log('infoDes: ', infoDes);
-                    this.importeCuotaChange()
-                    this.formDesc.markAsUntouched()
-                    this.formDesc.markAsPristine()
-                }
-
-                // Usar setTimeout para asegurar que las configuraciones se apliquen después del reset
-                setTimeout(() => {
-
-                    this.formDesc.get('FechaAnulacion')?.disable()
-                    this.formDesc.get('ImportacionDocumentoId')?.disable()
-
-                    if (this.disabled()) {
-                        this.formDesc.get('PersonalId')?.disable()
-                    } else {
-                        this.formDesc.get('PersonalId')?.enable()
-                    }
-
-                    if (this.disabled()) {
-                        this.formDesc.disable();
-                        if (this.isAnulacion()) {
-                            this.formDesc.get('DetalleAnulacion')?.enable();
-                        }
-                    } else {
-                        this.formDesc.enable()
-                        this.formDesc.get('FechaAnulacion')?.disable()
-                        this.formDesc.get('ImportacionDocumentoId')?.disable()
-                        if (this.disabled()) {
-                            this.formDesc.get('PersonalId')?.disable()
-                        }
-                    }
-                    this.formDesc.get('importeCuota')?.disable()
-                }, 0);
-            } else if (this.periodo()) {
-                this.formDesc.patchValue({ AplicaEl: this.periodo() })
-            } else {
-                this.formDesc.reset()
-                this.formDesc.enable()
-            }
-        })
-    }
-*/
     $selectedPersonalIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
     anio = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getFullYear() : 0 })
     mes = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getMonth() + 1 : 0 })
     PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
+    DescuentoId = computed(() => { return this.descuentoPersonal().DescuentoId })
 
 
     sitrevista = resource({
@@ -187,6 +147,8 @@ export class DescuentosPersonalAltaDrawerComponent {
             }
         }
     })
+
+    DescuentoIdcompareFn= (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId)?  true : false)
 
     listaEfectosPer = resource({
         params: () => ({PersonalId:this.PersonalId(), isEfecto:this.isEfecto()} ),
@@ -214,27 +176,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         return importe.toString() 
     })
 
-    
-
-
-    /*
-    onEfectoChange(selectedEfectoId: any) {
-        if (selectedEfectoId) {
-            const efecto = this.listaEfectosPer.value().find((e: any) => e.EfectoId === selectedEfectoId);
-            if (efecto) {
-                this.descuentoPersonal.update((state) => {
-                    return { ...state, EfectoDescripcion: efecto.EfectoDescripcionCompleta, EfectoId: efecto.EfectoId }
-                })
-            }
-        } else {
-                this.descuentoPersonal.update((state) => {
-                return { ...state, EfectoIndividualId: null }
-            })
-        }
-    }
-    */
     lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
-    
 
     async loadDescuentoPersonal() { 
         const infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
@@ -256,11 +198,6 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
 
     async ngOnInit() {
-        /*
-        this.descuentoPersonal.update((state) => {
-            return { ...state, AplicaEl: this.periodo() ? new Date(this.periodo()) : new Date() }
-        })
-        */
     }
 
     ngOnDestroy(): void {
@@ -292,12 +229,21 @@ export class DescuentosPersonalAltaDrawerComponent {
         })
     }
 
-    resetForm() {
+    resetForm(e:any) {
+        if (e)
+        e.preventDefault()
+
         this.descuentoPersonal.set(this.descuentoPersonalDefault)
+        this.descuentoPersonal.update((state) => {
+            return { ...state, AplicaEl:new Date(this.anio(),this.mes()-1,1)}
+        })
+
         this.formDescuentoPersonal().reset()
     }
     
-    async cancel() {
+    async cancel(e:any) {
+        e.preventDefault()
+
         await submit(this.formDescuentoPersonal, async (form) => {
             const values:any = form().value()
             try {
