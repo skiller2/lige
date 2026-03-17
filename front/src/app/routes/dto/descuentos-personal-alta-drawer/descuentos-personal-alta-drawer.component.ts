@@ -236,6 +236,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         this.descuentoPersonal.update((state) => {
             return { ...state, AplicaEl: new Date(this.anio(), this.mes() - 1, 1) }
         })
+        this.lastEfecto.set(null)
 
         this.formDescuentoPersonal().reset()
     }
