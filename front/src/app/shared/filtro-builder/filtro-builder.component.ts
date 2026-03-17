@@ -115,6 +115,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsInactivo = this.searchService.getInactivo();
   $optionsInactivoBoolean = this.searchService.getInactivoBoolean();
   $optionsActivoBoolean = this.searchService.getBooleanSiNo();
+  $optionsExceptuadoBoolean = this.searchService.getBooleanSiNoExcepcion();
   $optionsGrupoActividad = this.searchService.getTipo();
   $optionsComprobanteTipo = this.searchService.getComprobanteTipoSearch();
   $optionsCurso = this.searchService.getCursoSearch();
@@ -531,6 +532,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
   selectedValueInactivo(val: any) {
+    if (val !== null && val !== undefined) {
+      this.selections.value = val
+      this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'
+    }
+  }
+
+  selectedValueExeptuado(val: any) {
     if (val !== null && val !== undefined) {
       this.selections.value = val
       this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'

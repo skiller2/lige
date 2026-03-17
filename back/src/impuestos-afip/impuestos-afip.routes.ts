@@ -187,3 +187,8 @@ impuestosAfipRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.ha
   impuestosAfipController.getDescuentosGridList(req, res, next);
 });
 
+impuestosAfipRouter.get('/get_options', [authMiddleware.verifyToken], (req, res, next) => {
+  impuestosAfipController.getOptions(req, res)
+});
+
+

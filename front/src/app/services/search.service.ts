@@ -620,6 +620,16 @@ export class SearchService {
     );
   }
 
+  getBooleanSiNoExcepcion(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/impuestos_afip/get_options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getTipo(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/tipo_getOptions`).pipe(
       map(res => res.data),

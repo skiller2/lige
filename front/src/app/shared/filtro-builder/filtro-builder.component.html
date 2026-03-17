@@ -156,6 +156,15 @@
       }
     </nz-select>
     }
+     @if (selections.field.searchComponent=='inputForExceptuadoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
+      (ngModelChange)="selectedValueExeptuado($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsExceptuadoBoolean | async; track option) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForGrupoActividad') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Grupo Actividad" nzShowSearch
       (ngModelChange)="selectedValueGrupoActividad($event)" [nzDropdownMatchSelectWidth]="false"
