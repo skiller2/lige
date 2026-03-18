@@ -229,7 +229,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
      
       com.PersonalComprobantePagoAFIPId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes, com.PersonalComprobantePagoAFIPImporte monto,
       des.PersonalOtroDescuentoImporteVariable montodescuento, 
-    excep.PersonalExencionCUIT, 
+    CASE 
+        WHEN  excep.PersonalExencionCUIT  = 1 THEN 'Si'
+        ELSE 'No'
+    END AS PersonalExencionCUIT, 
  	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
  	 doc.DocumentoId, doc.DocumentoPath,
     2
