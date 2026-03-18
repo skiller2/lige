@@ -117,6 +117,26 @@ const GridColums: any[] = [
         searchHidden: false
     },
     {
+        name: "Grupo Actividad",
+        type: "string",
+        id: "GrupoActividadDetalle",
+        field: "GrupoActividadDetalle",
+        fieldName: "ga.GrupoActividadDetalle",
+        sortable: true,
+        searchHidden: true
+    },
+    {
+        name: "Grupo Actividad",
+        type: "number",
+        id: "GrupoActividadId",
+        field: "GrupoActividadId",
+        fieldName: "ga.GrupoActividadId",
+        searchComponent: 'inputForGrupoActividadSearch',
+        sortable: false,
+        hidden: true,
+        searchHidden: false
+    },
+    {
         name: "Habilitacion Necesaria",
         type: "string",
         id: "HabNecesaria",
@@ -444,6 +464,7 @@ export class HabilitacionesController extends BaseController {
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
             IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
             suc.SucursalId, suc.SucursalDescripcion,
+			ga.GrupoActividadNumero, ga.GrupoActividadId, ga.GrupoActividadDetalle,
             b.AudFechaIng, b.AudFechaMod, b.AudUsuarioIng, b.AusUsuarioMod
 
         FROM Personal per
@@ -497,6 +518,27 @@ export class HabilitacionesController extends BaseController {
 
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+        LEFT JOIN (
+					SELECT 
+						gap.GrupoActividadPersonalPersonalId,
+						ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
+
+						CASE 
+							WHEN ga.GrupoActividadId IS NOT NULL THEN  
+								CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+									   FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+									   CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN '' 
+											ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+									   END, ')'
+								)
+							ELSE '' 
+						END AS GrupoActividadDetalle
+					FROM GrupoActividadPersonal gap
+					LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+					WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(GETDATE() AS DATE)
+					  AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+				) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+
         WHERE d.LugarHabilitacionId not in (9,4) -- Excluyo interno y comercial ezeiza
         and (${filterSql})
         ${orderBy}
