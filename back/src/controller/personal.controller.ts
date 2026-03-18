@@ -98,9 +98,8 @@ const columns: any[] = [
     id: "GrupoActividadDetalle",
     field: "GrupoActividadDetalle",
     fieldName: "ga.GrupoActividadDetalle",
-    searchComponent: "inputForGrupoActividadSearch",
     sortable: true,
-    searchHidden: false
+    searchHidden: true
   },
   {
     name: "Grupo Actividad",
