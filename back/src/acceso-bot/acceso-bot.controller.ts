@@ -192,6 +192,8 @@ export class AccesoBotController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -347,6 +349,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -377,6 +381,8 @@ export class AccesoBotController extends BaseController {
             this.jsonRes("OK", res)
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -444,6 +450,8 @@ export class AccesoBotController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
     async validateEncoded(req: any, res: Response, next: NextFunction) {
@@ -476,6 +484,8 @@ export class AccesoBotController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -705,6 +715,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -722,6 +734,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return false
+        } finally {
+            await queryRunner.release()
         }
     }
 

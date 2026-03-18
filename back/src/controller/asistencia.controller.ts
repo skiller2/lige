@@ -2199,8 +2199,12 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
   static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'objd.ObjetivoAsistenciaMesPersonalId IN (' + personalId.join(',') + ')'
     const queryRunner = dataSource.createQueryRunner();
-    const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
-    return result.asistencia
+    try {
+      const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
+      return result.asistencia
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async getAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {

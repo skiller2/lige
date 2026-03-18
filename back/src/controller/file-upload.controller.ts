@@ -86,7 +86,11 @@ export class FileUploadController extends BaseController {
 
 
     try {
-      if (documentId == '0' || documentId == 'null') throw new ClientException(`Archivo no localizado`)
+      const needsNumericId = tableForSearch !== 'temp'
+      const validatedId = Number(documentId)
+
+      if (needsNumericId && (!Number.isInteger(validatedId) || validatedId <= 0))
+        throw new ClientException(`Archivo no localizado`)
 
       switch (tableForSearch) {
         case 'DocumentoImagenFoto':
@@ -107,7 +111,10 @@ export class FileUploadController extends BaseController {
                 doc.${tableForSearch}BlobNombreArchivo AS name
               FROM ${tableForSearch} doc
               JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-              WHERE doc.${tableForSearch}Id = @0`, [documentId])
+              WHERE doc.${tableForSearch}Id = @0`, [validatedId])
+          if (!document?.length)
+            throw new ClientException(`Archivo no localizado`)
+
           finalurl = `${this.pathArchivos}/${document[0]["path"]}`
           docname = document[0]["name"]
 
@@ -116,7 +123,9 @@ export class FileUploadController extends BaseController {
           document = await dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=docgen.doctipo_id
-                WHERE docgen.doc_id = @0`, [documentId]);
+                WHERE docgen.doc_id = @0`, [validatedId]);
+          if (!document?.length)
+            throw new ClientException(`Archivo no localizado`)
 
           // crear funcion en el middleware para verificar permisos segun tiop de doc 'rec'
           // if (document.length && document[0]?.doctipo_id == 'REC' && !await this.hasGroup(req, 'DescargaRecibos'))
@@ -131,7 +140,9 @@ export class FileUploadController extends BaseController {
           document = await dataSource.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
                 FROM Documento doc
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-                WHERE doc.DocumentoId = @0`, [documentId]);
+                WHERE doc.DocumentoId = @0`, [validatedId]);
+          if (!document?.length)
+            throw new ClientException(`Archivo no localizado`)
 
           // crear funcion en el middleware para verificar permisos segun tiop de doc 'rec'
           // if (document.length && document[0]?.doctipo_id == 'REC' && !await this.hasGroup(req, 'DescargaRecibos')) 
