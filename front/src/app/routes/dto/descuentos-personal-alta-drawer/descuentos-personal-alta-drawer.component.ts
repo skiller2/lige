@@ -1,5 +1,5 @@
 import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
-import { tap, firstValueFrom } from 'rxjs';
+import { tap, firstValueFrom, queueScheduler } from 'rxjs';
 import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -116,8 +116,14 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
-    readonly anio = computed(() => this.periodo() ? new Date(this.periodo()!).getFullYear() : 0);
-    readonly mes = computed(() => this.periodo() ? new Date(this.periodo()!).getMonth() + 1 : 0);
+  
+    AplicaEl = computed(() => this.descuentoPersonal().AplicaEl)
+    readonly anio = computed(() => this.AplicaEl() ? new Date(this.AplicaEl()!).getFullYear() : 0);
+    readonly mes = computed(() => this.AplicaEl() ? new Date(this.AplicaEl()!).getMonth() + 1 : 0);
+  
+//    anio = signal<number>(0)
+//    mes = signal<number>(0)
+
     PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
     DescuentoId = computed(() => { return this.descuentoPersonal().DescuentoId })
 
@@ -175,6 +181,8 @@ export class DescuentosPersonalAltaDrawerComponent {
     });
 
     lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
+    private anioDef: number = 0
+    private mesDef: number = 0
 
     async loadDescuentoPersonal() {
         const infoDes = await firstValueFrom(this.searchService.getDescuentoPersona(this.personalId(), this.descuentoId()))
@@ -189,13 +197,20 @@ export class DescuentosPersonalAltaDrawerComponent {
         else
             this.lastEfecto.set(null)
 
+        //queueMicrotask(() => this.formDescuentoPersonal().reset())
+
+        
         setTimeout(() => {
             this.formDescuentoPersonal().reset()
         }, 500)
+        
 
     }
 
     async ngOnInit() {
+        const periodo: any = await firstValueFrom(this.searchService.getProxPeriodo())
+        this.anioDef= periodo.anio
+        this.mesDef = periodo.mes
     }
 
     ngOnDestroy(): void {
@@ -232,7 +247,7 @@ export class DescuentosPersonalAltaDrawerComponent {
 
         this.descuentoPersonal.set(this.descuentoPersonalDefault)
         this.descuentoPersonal.update((state) => {
-            return { ...state, AplicaEl: new Date(this.anio(), this.mes() - 1, 1) }
+            return { ...state, AplicaEl: new Date(this.anioDef, this.mesDef-1, 1) }
         })
         this.lastEfecto.set(null)
 

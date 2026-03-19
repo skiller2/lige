@@ -56,6 +56,16 @@ export class SearchService {
       );
   }
 
+  getProxPeriodo(): Observable<unknown> {
+    return this.http
+      .get<ResponseJSON<any>>(`api/gestion-descuentos/prox-periodo`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
+
   getAsistenciaPeriodo(ObjetivoId: number, anio: number, mes: number) {
     if (!ObjetivoId || !anio || !mes)
       return of([])
