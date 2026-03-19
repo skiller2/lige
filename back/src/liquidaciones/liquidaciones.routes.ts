@@ -22,10 +22,12 @@ import { ClientException } from "../controller/basecontroller.ts";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 
-const dirtmp = `${process.env.PATH_TELEFONIA}/temp`;
+
+const dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
 }
+
 
 const storage = multer.diskStorage({
   destination: (

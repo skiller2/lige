@@ -85,6 +85,16 @@ export class TelefoniaController extends BaseController {
     {
       name: "Importe",
       type: "currency",
+      id: "importesum",
+      field: "importesum",
+      fieldName: "conx.importesum",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Importe+Impuesto",
+      type: "currency",
       id: "importe",
       field: "importe",
       fieldName: "conx.importe",
@@ -128,7 +138,7 @@ export class TelefoniaController extends BaseController {
 
     return dataSource.query(
       `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
-      tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe,
+      tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
@@ -141,8 +151,10 @@ export class TelefoniaController extends BaseController {
       
       LEFT JOIN (
         SELECT asi.TelefoniaId,
-        SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 )) importe
+        SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 )) importe,
         
+        SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte) importesum
+
         FROM ConsumoTelefoniaAno anio
         JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
         JOIN ConsumoTelefoniaAnoMesTelefonoAsignado asi ON asi.ConsumoTelefoniaAnoMesId=mes.ConsumoTelefoniaAnoMesId AND asi.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
@@ -241,16 +253,26 @@ export class TelefoniaController extends BaseController {
     }
   }
 
+  
+  round2 = (num: number): number => Math.round((num + Number.EPSILON) * 100) / 100;
+  
+ 
+
+
   async handleXLSUploadTelefonia(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
+    const totaldeclarado = Number(req.body.totaldeclarado)
     const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    let fechaActual = new Date()
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date()
+    let totalsuma = 0
+    let totalsumaxls =0    
+    
     //console.log("req.body", req.body)
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
@@ -259,6 +281,9 @@ export class TelefoniaController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
       if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
+      if (!totaldeclarado) throw new ClientException("Faltó indicar el total declarado");
+
+
 
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
@@ -281,6 +306,8 @@ export class TelefoniaController extends BaseController {
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
 
+      telefonos = telefonos.map(tel => ({ ...tel, ...{fimpplanvoz:0, fserviciosvoz:0, fpacksms:0, fpackdatos:0, fgarantia:0, fotros:0, vvoz:0, vldnldi:0, vmensajes:0, vdatos:0, vroaming:0, votros:0, unicavez:0, total:0} }));
+
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file.tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
       //      console.log('telefonos', telefonos)
@@ -297,6 +324,7 @@ export class TelefoniaController extends BaseController {
           continue
         }
 
+
         const idx = telefonos.findIndex(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
         const fimpplanvoz = parseFloat(row[1])
         const fserviciosvoz = parseFloat(row[2])
@@ -312,36 +340,46 @@ export class TelefoniaController extends BaseController {
         const votros = parseFloat(row[13])
         const unicavez = parseFloat(row[15])
         const totalxls = parseFloat(row[16])
-        const total = fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez
+        const total = this.round2(fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez)
         if (Math.abs(totalxls - total) > 0.0001)
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` Importe total calculado ($ ${total}) difiere del indicado en la última columna ($ ${totalxls})` })
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` Importe total calculado ($ ${total}) difiere del indicado en la última columna ($ ${totalxls}) ` })
 
         if (idx === -1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin registro vigente en el sistema, consumo $ ${total}` })
         } else {
-          telefonos[idx].fimpplanvoz = fimpplanvoz  //1
-          telefonos[idx].fserviciosvoz = fserviciosvoz  //2 
-          telefonos[idx].fpacksms = fpacksms //3
-          telefonos[idx].fpackdatos = fpackdatos //4
-          telefonos[idx].fgarantia = fgarantia //5
-          telefonos[idx].fotros = fotros  //6
-          telefonos[idx].vvoz = vvoz //7
-          telefonos[idx].vldnldi = vldnldi  //8
-          telefonos[idx].vmensajes = vmensajes  //9
-          telefonos[idx].vdatos = vdatos  //10
-          telefonos[idx].vroaming = vroaming //11
-          telefonos[idx].votros = votros  //12
-          telefonos[idx].unicavez = unicavez  //13
-          telefonos[idx].total = total
+//          if (telefonos[idx].total > 0)
+//            dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` duplicado en XLS, consumo $ ${total}` })
+
+          telefonos[idx].fimpplanvoz += fimpplanvoz  //1
+          telefonos[idx].fserviciosvoz += fserviciosvoz  //2 
+          telefonos[idx].fpacksms += fpacksms //3
+          telefonos[idx].fpackdatos += fpackdatos //4
+          telefonos[idx].fgarantia += fgarantia //5
+          telefonos[idx].fotros += fotros  //6
+          telefonos[idx].vvoz += vvoz //7
+          telefonos[idx].vldnldi += vldnldi  //8
+          telefonos[idx].vmensajes += vmensajes  //9
+          telefonos[idx].vdatos += vdatos  //10
+          telefonos[idx].vroaming += vroaming //11
+          telefonos[idx].votros += votros  //12
+          telefonos[idx].unicavez += unicavez  //13
+          telefonos[idx].total += total
+
         }
+        totalsumaxls += totalxls
       }
+
+      if (Math.abs(totalsumaxls - totaldeclarado) > 0.0001)
+        throw new ClientException(`Importe declarado (${totaldeclarado}) no coincide con el total calculado`,{totaldeclarado, totalsumaxls})
+
+
+
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
           dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
         }
       }
-
 
 
       const telRepeat: Record<string, number> = {};
@@ -403,10 +441,12 @@ export class TelefoniaController extends BaseController {
       await queryRunner.query(
         'DELETE FROM ConsumoTelefoniaAnoMesTelefonoAsignado WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId=@1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId])
 
+
+
       for (const telrow of telefonos) {
         ConsumoTelefoniaAnoMesTelefonoUltNro++
         let ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro = 0
-
+        totalsuma += telrow.total
         await queryRunner.query(
           `INSERT INTO ConsumoTelefoniaAnoMesTelefonoAsignado (ConsumoTelefoniaAnoMesTelefonoAsignadoId, ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId, TelefoniaId, ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro, TelefonoConsumoFacturarAPersonalId, TelefonoConsumoFacturarAObjetivoId)
            VALUES (@0,@1,@2,@3,@4,@5,@6)`,
@@ -643,27 +683,33 @@ export class TelefoniaController extends BaseController {
         'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesTelefonoUltNro = @1 WHERE ConsumoTelefoniaAnoMesId = @0', [ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoMesTelefonoUltNro])
 
       //      throw new ClientException(`OKA`)
-      let periodo = String(mesRequest)+ '/' + String(anioRequest)
 
       //   copyFileSync(file.path, newFilePath);
 
-       await FileUploadController.handleDOCUpload(
-          null, 
-          null, 
-          null, 
-          null, 
-          new Date(), 
-          null, 
-          periodo,
-          anioRequest,
-          mesRequest, 
-          file, 
-          usuario,
-          ip,
-          queryRunner)
+      await FileUploadController.handleDOCUpload(
+        null,
+        null,
+        null,
+        null,
+        new Date(),
+        null,
+        String(mesRequest) + '-' + String(anioRequest),
+        anioRequest,
+        mesRequest,
+        file,
+        usuario,
+        ip,
+        queryRunner)
+      
+      if (Math.abs(totalsuma - totalsumaxls) > 0.0001)
+        throw new ClientException(`Importe Total del XLS:${this.round2(totalsumaxls)}, Total procesado:${this.round2(totalsuma)} `, { list: dataset })
+      
+
+      if (Math.abs(totalsuma - totaldeclarado) > 0.0001)
+        throw new ClientException(`Importe Total declarado:${this.round2(totaldeclarado)}, Total procesado:${this.round2(totalsuma)} `, { list: dataset })
 
 
-          
+      throw new ClientException(`DEBUG`)
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");
@@ -672,7 +718,7 @@ export class TelefoniaController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
-     // unlinkSync(file.path);
+      // unlinkSync(file.path);
     }
   }
 
@@ -695,7 +741,7 @@ export class TelefoniaController extends BaseController {
 
       const importacionesAnteriores = await dataSource.query(
 
-        
+
         `SELECT DocumentoId,DocumentoTipoCodigo, DocumentoAnio,DocumentoMes
         FROM documento 
         WHERE DocumentoAnio = @0 AND DocumentoMes = @1 AND DocumentoTipoCodigo = 'TEL'`,

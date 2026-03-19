@@ -1,12 +1,6 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 import { telefoniaController } from "../controller/controller.module.ts";
-import { existsSync, mkdirSync } from "fs";
-
-const dirtmp = `${process.env.PATH_TELEFONIA}/temp`;
-if (!existsSync(dirtmp)) {
-    mkdirSync(dirtmp, { recursive: true });
-  }
 
 export const telefoniaRouter = Router();
 

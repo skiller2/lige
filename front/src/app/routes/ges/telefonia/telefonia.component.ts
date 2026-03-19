@@ -126,7 +126,7 @@ export class TelefoniaComponent {
   );
 
   fb = inject(FormBuilder)
-  ngForm = this.fb.group({ files: [] })
+  ngForm = this.fb.group({ files: [], totaldeclarado: 0 })
 
   ngOnInit(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -141,9 +141,10 @@ export class TelefoniaComponent {
         this.loadingSrv.open({ type: 'spin', text: '' })
 
         this.gridDataImport.set([])
+        const totaldeclarado = this.ngForm.get('totaldeclarado')?.value || 0
 
         try {
-          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio, this.mes,this.fecha))
+          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio, this.mes,this.fecha, totaldeclarado ))
         this.formChange$.next('changed');
         this.fileUploadComponent().DeleteFileByExporterror(filesValue)
         } catch (e: any) {
@@ -222,7 +223,8 @@ export class TelefoniaComponent {
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
     
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-        totalRecords(this.angularGrid)
+      totalRecords(this.angularGrid)
+        columnTotal('importesum', this.angularGrid)
         columnTotal('importe', this.angularGrid)
     })
   }
