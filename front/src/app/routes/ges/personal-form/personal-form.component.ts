@@ -95,7 +95,7 @@ export class PersonalFormComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private injector = inject(Injector)
+  // private injector = inject(Injector)
   isLoading = signal(false);
   panelAbiertos = signal<boolean[]>([false, false, false])
   periodo= signal({anio:0, mes:0})
@@ -142,25 +142,26 @@ export class PersonalFormComponent {
 
   readonly formParametroPersonal = form(this.parametroPersonal, (p) => {
     disabled(p, () => this.readonly())
+    // applyEach(p.telefonos, (telefono) => {
+    //   disabled(telefono.TipoTelefonoId, () => this.readonly())
+    //   disabled(telefono.TelefonoNro, () => this.readonly())
+    // });
+    // applyEach(p.estudios, (estudio) => {
+    //   disabled(estudio.EstudioTitulo, () => this.readonly())
+    // });
+    // applyEach(p.familiares, (familiar) => {
+    //   disabled(familiar.Apellido, () => this.readonly())
+    //   disabled(familiar.Nombre, () => this.readonly())
+    // });
+    // applyEach(p.beneficiarios, (beneficiario) => {
+    //   disabled(beneficiario.Apellido, () => this.readonly())
+    //   disabled(beneficiario.Nombre, () => this.readonly())
+    //   disabled(beneficiario.DocumentoNro, () => this.readonly())
+    //   disabled(beneficiario.Observacion, () => this.readonly())
+    // });
   })
 
   domicilio = computed(() => this.parametroPersonal().domicilio);
-  domicilioPaisChange = computed(() => {
-    return !this.domicilio().PaisId && (this.domicilio().ProvinciaId || this.domicilio().LocalidadId || this.domicilio().BarrioId)
-  });
-  domicilioProvinciaChange = computed(() => {
-    return !this.domicilio().ProvinciaId && (this.domicilio().LocalidadId || this.domicilio().BarrioId)
-  });
-  domicilioLocalidadChange = computed(() => {
-    return !this.domicilio().LocalidadId && this.domicilio().BarrioId
-  });
-
-  lugarNacimientoPaisChange = computed(() => {
-    return !this.parametroPersonal().PaisId && (this.parametroPersonal().ProvinciaId || this.parametroPersonal().LocalidadId)
-  });
-  lugarNacimientoProvinciaChange = computed(() => {
-    return !this.parametroPersonal().ProvinciaId && this.parametroPersonal().LocalidadId
-  });
 
   optionsSucursal = toSignal(this.searchService.getSucursales(), { initialValue: [] });
   optionsNacionalidad = toSignal(this.searchService.getNacionalidadOptions(), { initialValue: [] });
@@ -276,48 +277,51 @@ export class PersonalFormComponent {
     }
   });
 
-  domicilioEffect = effect(() => {
-    let obj:any = {}
+  effect = effect(() => {
+    let objDomicilio:any = {}
+    let objLugarNacimiento:any = {}
+    const domPaisId = this.parametroPersonal().domicilio.PaisId
+    const domProvinciaId = this.parametroPersonal().domicilio.ProvinciaId
+    const domLocalidadId = this.parametroPersonal().domicilio.LocalidadId
+    const domBarrioId = this.parametroPersonal().domicilio.BarrioId
+    const lugNacPaisId = this.parametroPersonal().PaisId
+    const lugNacProvinciaId = this.parametroPersonal().ProvinciaId
+    const lugNacLocalidadId = this.parametroPersonal().LocalidadId
     if (this.enableSelectReset()) {
       
-      if (this.domicilioLocalidadChange()){
-        obj.BarrioId = 0
-      } else if (this.domicilioProvinciaChange()){
-        obj.LocalidadId = 0
-        obj.BarrioId = 0
-      } else if (this.domicilioPaisChange()){
-        obj.ProvinciaId = 0
-        obj.LocalidadId = 0
-        obj.BarrioId = 0
+      if (!domLocalidadId && domBarrioId){
+        objDomicilio.BarrioId = 0
+      } else if (!domProvinciaId && (domLocalidadId || domBarrioId)){
+        objDomicilio.LocalidadId = 0
+        objDomicilio.BarrioId = 0
+      } else if (!domPaisId && (domProvinciaId || domLocalidadId || domBarrioId)){
+        objDomicilio.ProvinciaId = 0
+        objDomicilio.LocalidadId = 0
+        objDomicilio.BarrioId = 0
       }
-      
-      if (Object.keys(obj).length) {
-        this.parametroPersonal.update(m => ({
-          ...m, domicilio: { ...m.domicilio, ...obj}
-        }));
-      }
-      
-    }
-  });
 
-  lugarNacimientoEffect = effect(() => {
-    let obj:any = {}
-    if (this.enableSelectReset()) {
-      
-      if (this.lugarNacimientoProvinciaChange()){
-        obj.LocalidadId = 0
-      } else if (this.lugarNacimientoPaisChange()){
-        obj.ProvinciaId = 0
-        obj.LocalidadId = 0
+      if (!lugNacProvinciaId && lugNacLocalidadId){
+        objLugarNacimiento.LocalidadId = 0
+      } else if (!lugNacPaisId && (lugNacProvinciaId || lugNacLocalidadId)){
+        objLugarNacimiento.ProvinciaId = 0
+        objLugarNacimiento.LocalidadId = 0
       }
       
-      if (Object.keys(obj).length) {
+      if (Object.keys(objDomicilio).length || Object.keys(objLugarNacimiento).length) {
         this.parametroPersonal.update(m => ({
-          ...m, ...obj
+          ...m, 
+          domicilio: { ...m.domicilio, ...objDomicilio},
+          ...objLugarNacimiento
         }));
       }
       
     }
+
+    // if (this.readonly()) {
+    //   this.formParametroPersonal().disable({ emitEvent: false });   // disables all controls
+    // } else {
+    //   this.formParametroPersonal.enable({ emitEvent: false });
+    // }
   });
 
   async ngOnInit(){
