@@ -24,9 +24,9 @@ export class DescuentosComponent {
     periodo = signal(new Date())
     anio = computed(() => this.periodo()?.getFullYear())
     mes = computed(() => this.periodo()?.getMonth()+1)
-    reload = signal<number>(0)
+    reloadObj = signal<number>(0)
+    reloadPer = signal<number>(0)
     loadingCuo = model<boolean>(false)
-    reloadGrid = model<boolean>(false)
     selectedPeriod = { year: 0, month: 0 };
     private apiService = inject(ApiService)
     private readonly loadingSrv = inject(LoadingService);
@@ -36,8 +36,7 @@ export class DescuentosComponent {
         this.loadingSrv.open({ type: 'spin', text: '' })
         try {
             const res: any = await firstValueFrom(this.apiService.jobGenCuotasOtroDescuento({ year: this.anio(), month: this.mes() }))
-            let newReload = this.reload()+1
-            this.reload.set(newReload)
+            this.reloadPer.update(x => x + 1)
         } catch (error) {
         }
         this.loadingSrv.close()
@@ -47,8 +46,7 @@ export class DescuentosComponent {
         this.loadingSrv.open({ type: 'spin', text: '' })
         try {
             const res: any = await firstValueFrom(this.apiService.jobGenCuotasDescuento({ year: this.anio(), month: this.mes() }))
-            let newReload = this.reload()+1
-            this.reload.set(newReload)
+            this.reloadPer.update(x => x + 1)
         } catch (error) {
         }
         this.loadingSrv.close()

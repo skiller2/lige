@@ -5,8 +5,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { SearchService } from '../../../services/search.service';
+import { firstValueFrom } from 'rxjs';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { DescuentosPersonalAltaDrawerComponent } from "../descuentos-personal-alta-drawer/descuentos-personal-alta-drawer.component"
@@ -14,7 +13,6 @@ import { LoadingService } from '@delon/abc/loading';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { Selections } from 'src/app/shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { TableHistorialDescargasComponent } from '../../ges/table-historial-descargas/table-historial-descargas.component';
 
 @Component({
     selector: 'app-table-descuentos-personal',
@@ -63,11 +61,11 @@ export class TableDescuentosPersonalComponent {
 
     gridData = resource({
         params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
-        loader: async () => {
+        loader: async ({ params }) => {
             let response = []
             this.loadingSrv.open({ type: 'spin', text: '' })
             try {
-                response = await firstValueFrom(this.apiService.getDescuentosPersonal(this.listOptions(), this.anio(), this.mes()));
+                response = await firstValueFrom(this.apiService.getDescuentosPersonal(params.options, params.anio, params.mes));
             } catch (_e) { }
             this.loadingSrv.close()
 
