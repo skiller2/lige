@@ -2922,7 +2922,6 @@ UNION ALL
 
   //   //Actualizo
   //   const now = new Date()
-  //   const time = this.getTimeString(now)
 
   //   let PersonalHabilitacionNecesariaId: number = 0
   //   now.setHours(0, 0, 0, 0)

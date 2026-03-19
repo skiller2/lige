@@ -69,6 +69,11 @@ gestionDescuentosRouter.post("/import-xls-descuentos", [authMiddleware.verifyTok
     gestionDescuentosController.handleXLSUpload(req, res, next);
 });
 
+gestionDescuentosRouter.get("/prox-periodo", [authMiddleware.verifyToken], (req, res, next) => {
+    gestionDescuentosController.getProxPeriodo(req, res, next);
+});
+
+
 gestionDescuentosRouter.get("/aplicaa/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
     gestionDescuentosController.getAplicaAOptions(req, res, next);
 });

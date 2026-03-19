@@ -1,5 +1,5 @@
 import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
-import { tap, firstValueFrom } from 'rxjs';
+import { tap, firstValueFrom, queueScheduler } from 'rxjs';
 import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -116,8 +116,11 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
-    readonly anio = computed(() => this.periodo() ? new Date(this.periodo()!).getFullYear() : 0);
-    readonly mes = computed(() => this.periodo() ? new Date(this.periodo()!).getMonth() + 1 : 0);
+//    readonly anio = computed(() => this.periodo() ? new Date(this.periodo()!).getFullYear() : 0);
+    //    readonly mes = computed(() => this.periodo() ? new Date(this.periodo()!).getMonth() + 1 : 0);
+    anio = signal<number>(0)
+    mes = signal<number>(0)
+
     PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
     DescuentoId = computed(() => { return this.descuentoPersonal().DescuentoId })
 
@@ -189,13 +192,20 @@ export class DescuentosPersonalAltaDrawerComponent {
         else
             this.lastEfecto.set(null)
 
+        //queueMicrotask(() => this.formDescuentoPersonal().reset())
+
+        
         setTimeout(() => {
             this.formDescuentoPersonal().reset()
         }, 500)
+        
 
     }
 
     async ngOnInit() {
+        const periodo:any = await firstValueFrom(this.searchService.getProxPeriodo())
+        this.anio.set(periodo.anio)
+        this.mes.set(periodo.mes)
     }
 
     ngOnDestroy(): void {

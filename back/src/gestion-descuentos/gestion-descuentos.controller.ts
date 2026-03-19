@@ -538,6 +538,12 @@ const aplicaAOptions: any[] = [
 ]
 
 export class GestionDescuentosController extends BaseController {
+  async getProxPeriodo(req: any, res: any, next: any) {
+    const queryRunner = dataSource.createQueryRunner();
+    const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+    const { anio: proxAnio, mes: proxMes } = Utils.getNextPeriodo(perUltRecibo[0].anio, perUltRecibo[0].mes)
+    return this.jsonRes({ anio: proxAnio, mes: proxMes }, res)
+  }
 
   directory = process.env.PATH_DOCUMENTS || "tmp";
   constructor() {
@@ -545,10 +551,6 @@ export class GestionDescuentosController extends BaseController {
     if (!existsSync(this.directory)) {
       mkdirSync(this.directory, { recursive: true });
     }
-  }
-
-  getTimeString(stm: Date) {
-    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}` : null
   }
 
   async getPersonalGridColumns(req: any, res: Response, next: NextFunction) {
