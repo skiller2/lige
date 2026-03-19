@@ -1602,7 +1602,9 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas')
+        && !await this.hasGroup(req, 'gLogistica') && !await this.hasGroup(req, 'gLogisticaCon')
+        && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
 
@@ -1624,7 +1626,9 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const ObjetivoId = req.params.objetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthObjetivo(anio, mes, res, ObjetivoId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') 
+        && !await this.hasGroup(req, 'gLogistica') && !await this.hasGroup(req, 'gLogisticaCon')
+        && await this.hasAuthObjetivo(anio, mes, res, ObjetivoId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentosObjetivo(queryRunner, anio, mes, ObjetivoId)
@@ -1644,7 +1648,9 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas')
+        && !await this.hasGroup(req, 'gLogistica') && !await this.hasGroup(req, 'gLogisticaCon')
+        && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
@@ -2286,7 +2292,9 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       const mes = req.params.mes;
       let personalId: number[] = []
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') 
+        && !await this.hasGroup(req, 'gLogistica') && !await this.hasGroup(req, 'gLogisticaCon')
+        && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
         throw new ClientException(`No tiene permisos para listar descuentos de personal del objetivo`)
 
       const personas = await dataSource.query(
