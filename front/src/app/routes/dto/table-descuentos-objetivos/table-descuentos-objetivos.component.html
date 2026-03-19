@@ -1,10 +1,10 @@
 <nz-card class="small-margin">
 
-  @if ((columns$|async); as columnas) {
+  @if (columns().length) {
     <div nz-tab>
       <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
         <div style="flex: 1;">
-          <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+          <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions"  />
         </div>
         <div style="flex-shrink: 0;">
           <nz-button-group nz-button nzButtonGroup>
@@ -27,12 +27,17 @@
               [disabled]="ObjetivoDescuentoId() == 0 && objetivoId() == 0">
               <span nz-icon nzType="delete" nzTheme="outline"></span>
             </button>
+            <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+            [disabled]="gridData.isLoading()">
+              <span nz-icon nzType="reload" nzTheme="outline"></span>
+            </button>
+
           </nz-button-group>
         </div>
       </div>
       <div class="gridDescObjetivos container-fluid">
-        <angular-slickgrid gridId="gridDescObjetivos" [columns]="columnas  | colsFilter" [options]="gridOptions"
-          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+        <angular-slickgrid gridId="gridDescObjetivos" [columns]="columns()  | colsFilter" [options]="gridOptions"
+          [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
         </angular-slickgrid>
       </div>
@@ -40,10 +45,6 @@
   }
 </nz-card>
 
-@defer( when visibleAltaDesc()){
 <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
-}
 
-@defer( when visibleEditDesc()){
 <app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [ObjetivoDescuentoId]="ObjetivoDescuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
-}

@@ -54,12 +54,11 @@ export class DescuentosPersonalAltaDrawerComponent {
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
 
-
     private descuentoPersonalDefault: FormDesc = {
         id: 0,
         DescuentoId: 0,
         PersonalId: 0,
-        AplicaEl: this.periodo() ? this.periodo() : new Date(),
+        AplicaEl: null,
         Cuotas: 1,
         Importe: '',
         Detalle: '',
@@ -80,19 +79,20 @@ export class DescuentosPersonalAltaDrawerComponent {
         disabled(p, () => !this.visibleDesc())
     })
 
+
     loadEffect = effect(() => {
-        if (this.visibleDesc()) {
-            if (this.descuentoId() && this.personalId())
-                this.loadDescuentoPersonal()
-            else {
-                untracked(() => {
-                    setTimeout(() => {
-                        this.resetForm(null)
-                    }, 100)
-                })
-            }
+        if (!this.visibleDesc()) return;
+
+        const did = this.descuentoId();
+        const pid = this.personalId();
+        if (did && pid) {
+            void this.loadDescuentoPersonal();
+        } else {
+            
+            untracked(() => queueMicrotask(() => this.resetForm(null)));
         }
-    })
+    });
+
 
     effectoKey = computed(() => { return this.descuentoPersonal().EfectoKey })
 
@@ -116,10 +116,8 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
-
-
-    anio = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getFullYear() : 0 })
-    mes = computed(() => { return this.descuentoPersonal().AplicaEl ? new Date(this.descuentoPersonal().AplicaEl!).getMonth() + 1 : 0 })
+    readonly anio = computed(() => this.periodo() ? new Date(this.periodo()!).getFullYear() : 0);
+    readonly mes = computed(() => this.periodo() ? new Date(this.periodo()!).getMonth() + 1 : 0);
     PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
     DescuentoId = computed(() => { return this.descuentoPersonal().DescuentoId })
 

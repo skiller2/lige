@@ -1,16 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input, Injector } from '@angular/core';
+import { Component, ViewEncapsulation, inject, ChangeDetectionStrategy, signal, model, computed, input, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, finalize, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { SearchService } from '../../../services/search.service';
+import { firstValueFrom } from 'rxjs';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-alta-drawer/descuentos-objetivos-alta-drawer.component"
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-table-descuentos-objetivos',
@@ -22,23 +23,23 @@ import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableDescuentosObjetivosComponent {
+    private readonly loadingSrv = inject(LoadingService);
+    private apiService = inject(ApiService)
+    private angularUtilService = inject(AngularUtilService)
+
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
-    gridData: any;
     rows: number[] = [];
     detailViewRowCount = 1;
-    reloadGrid = model<boolean>(false)
+    reload = input<number>(0)
     excelExportService = new ExcelExportService();
     anio = input<number>(0)
     mes = input<number>(0)
-    reload = input<number>(0)
-    listDescuento$ = new BehaviorSubject('');
-    listOptions: listOptionsT = {
+    listOptions = signal<listOptionsT>({
         filtros: [],
-        sort: null,
-    };
-    startFilters: any[] = []
-    columnDefinitions: Column[] = []
+        sort: null
+    })
+    startFilters = signal<Selections[]>([]);
     ObjetivoDescuentoId = signal<number>(0)
     objetivoId = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
@@ -46,37 +47,26 @@ export class TableDescuentosObjetivosComponent {
     disabledForm = signal(false);
     cancelDesc = signal(false);
     isAnulacion = signal(false);
-    constructor(
-        // private searchService: SearchService,
-        private apiService: ApiService,
-        private angularUtilService: AngularUtilService,
-        // private injector : Injector,
-    ) {
-        effect(async () => {
-            const anio = this.anio()
-            const mes = this.mes()
-            const reload = this.reload()
-            this.listDescuento('')
-            this.reloadGrid();
-            this.reloadGrid.set(false)
-        });
-    }
 
-    private readonly loadingSrv = inject(LoadingService);
+    columns = toSignal(this.apiService.getCols('/api/gestion-descuentos/cols/objetivos'), { initialValue: [] as Column[] })
 
-    columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/objetivos')
-
-    gridData$ = this.listDescuento$.pipe(
-        debounceTime(500),
-        switchMap(() => {
+    gridData = resource({
+        params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
+        loader: async ({ params }) => {
+            let response = []
             this.loadingSrv.open({ type: 'spin', text: '' })
-            return this.apiService.getDescuentosObjetivos(this.listOptions, this.anio(), this.mes())
-                .pipe(
-                    map(data => { return data }),
-                    finalize(() => this.loadingSrv.close())
-                )
-        })
-    )
+            try {
+                response = await firstValueFrom(this.apiService.getDescuentosObjetivos(params.options, params.anio, params.mes));
+            } catch (_e) { }
+            this.loadingSrv.close()
+
+            return response || [];
+        },
+
+        defaultValue: []
+    });
+
+
 
     async ngOnInit() {
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridDescObjetivos', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -89,7 +79,7 @@ export class TableDescuentosObjetivosComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
-        this.gridData = angularGrid.dataView
+        //this.gridData = angularGrid.dataView
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'objetivo')
             columnTotal('importe', this.angularGrid)
@@ -111,15 +101,6 @@ export class TableDescuentosObjetivosComponent {
             this.ObjetivoDescuentoId.set(0)
             this.objetivoId.set(0)
         }
-    }
-
-    listOptionsChange(options: any) {
-        this.listOptions = options;
-        this.listDescuento('')
-    }
-
-    listDescuento(event: any) {
-        this.listDescuento$.next(event);
     }
 
     openDrawerforAltaDescuentos() {
@@ -149,6 +130,6 @@ export class TableDescuentosObjetivosComponent {
     }
 
     onAddorUpdate(_e: any) {
-        this.listDescuento('')
+        this.gridData.reload()
     }
 }
