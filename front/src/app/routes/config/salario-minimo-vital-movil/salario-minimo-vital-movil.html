@@ -7,7 +7,7 @@
     <div nz-col style="display: flex; gap: 8px;">
       <nz-button-group nz-button nzButtonGroup>
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+          <button nz-button nzType="default" (click)="selectNewItemRow()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
         </a>
         <button nz-button nzType="default" [disabled]="!this.editSalarioMinimoVitalMovilId()"
           nz-popconfirm nzPopconfirmTitle="¿Confirmar eliminación de registro?" (nzOnConfirm)="deleteItem()" 

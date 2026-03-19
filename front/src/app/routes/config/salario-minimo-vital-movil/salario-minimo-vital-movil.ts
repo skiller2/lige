@@ -104,6 +104,20 @@ export class SalarioMinimoVitalMovil {
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
 
+  async selectNewItemRow() {
+    await this.addNewItem()
+
+    const items = this.angularGridEdit.dataView.getItems()
+    const emptyRowIndex = items.findIndex((item: any) => !item.SalarioMinimoVitalMovilId && item.SalarioMinimoVitalMovilSMVM == null)
+
+    const targetIndex = emptyRowIndex >= 0 ? emptyRowIndex : 0
+    if (items.length === 0) return
+
+    this.angularGridEdit.slickGrid.setSelectedRows([targetIndex]);
+    this.angularGridEdit.slickGrid.scrollRowIntoView(targetIndex, false)
+    this.angularGridEdit.slickGrid.setActiveCell(targetIndex, 0)
+  }
+
   async ngOnInit() {
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     
@@ -261,17 +275,8 @@ export class SalarioMinimoVitalMovil {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (meta && item && item.isfull) {
-        switch (item.isfull) {
-          case 2:
-            meta.cssClasses = 'element-add-no-complete';
-            break;
-          case 1:
-            meta.cssClasses = 'element-add-complete';
-            break;
-          default:
-            break;
-        }
+      if (meta && item && item.isfull === 2) {
+        meta.cssClasses = 'element-add-no-complete';
       }
       return meta;
     };
