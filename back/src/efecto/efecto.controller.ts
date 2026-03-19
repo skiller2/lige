@@ -142,57 +142,6 @@ const listaColumnasPersonal: any[] = [
     searchComponent: "inputForEfectoSearch",
 
   },
-  // {
-  //   id: "EfectoDescripcion",
-  //   name: "Efecto",
-  //   field: "EfectoDescripcion",
-  //   fieldName: "efe.EfectoDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "EfectoAtrDescripcion",
-  //   name: "Atributo del Efecto",
-  //   field: "EfectoAtrDescripcion",
-  //   fieldName: "efe.EfectoAtrDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "EfectoEfectoIndividualId",
-  //   name: "Efecto Individual Asociado al efecto",
-  //   field: "EfectoEfectoIndividualId",
-  //   fieldName: "stk.EfectoEfectoIndividualId",
-  //   type: "number",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true,
-  //   // searchComponent: "inputForEfectoIndividualSearch",
-  // },
-  // {
-  //   id: "EfectoEfectoIndividualDescripcion",
-  //   name: "Efecto Individual Asociado al efecto",
-  //   field: "EfectoEfectoIndividualDescripcion",
-  //   fieldName: "efeind.EfectoEfectoIndividualDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "EfectoIndividualAtrDescripcion",
-  //   name: "Atributo del Efecto Individual",
-  //   field: "EfectoIndividualAtrDescripcion",
-  //   fieldName: "efeind.EfectoIndividualAtrDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
   {
     id: "EfectoDescripcionCompleto",
     name: "Efecto Descripción Completa",
@@ -246,28 +195,7 @@ const listaColumnasObjetivos: any[] = [
     hidden: true,
     searchHidden: true
   },
-  // {
-  //   id: "ContieneEfectoIndividual",
-  //   name: "Contiene Efecto Individual",
-  //   field: "ContieneEfectoIndividual",
-  //   fieldName: "efe.ContieneEfectoIndividual",
-  //   searchComponent: "inputForActivo",
-  //   type: "boolean",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "StockId",
-  //   name: "StockId",
-  //   field: "StockId",
-  //   fieldName: "stk.StockId",
-  //   type: "number",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: true
-  // },
-
+  
   {
     name: "Cliente",
     type: "string",
