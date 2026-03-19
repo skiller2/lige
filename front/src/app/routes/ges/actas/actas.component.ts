@@ -105,23 +105,21 @@ export class ActasComponent {
         this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
             this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata)
             this.angularGrid.slickGrid.invalidate();
+
             //Intento grabar si tiene error hago undo
             try {
-                if (column.type == 'number' || column.type == 'float')
-                    editCommand.serializedValue = Number(editCommand.serializedValue)
 
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
-                
-                editCommand.execute()
 
+                editCommand.execute()
                 while (this.rowLocked()) await firstValueFrom(timer(100));
                 row = this.angularGrid.dataView.getItemById(row.id)
 
                 const emptyRows = this.angularGrid.dataView.getItems().filter((item: any) => {
-                    const rowComplete = item.ActaNroActa !== 0
-                        || item.ActaDescripcion !== ""
-                        || item.ActaFechaActa !== ""
-                        || item.ActaFechaHasta !== ""
+                    const rowComplete = !!item.ActaNroActa
+                        && !!item.ActaDescripcion
+                        && !!item.ActaFechaActa
+                        && !!item.ActaFechaHasta
                     return !item.ActaId && !rowComplete
                 })
 
@@ -130,6 +128,11 @@ export class ActasComponent {
                 } else if (emptyRows.length > 1) {
                     emptyRows.slice(0, -1).forEach((item: any) => this.angularGrid.gridService.deleteItemById(item.id))
                 }
+
+                const rowComplete = !!row.ActaNroActa && !!row.ActaDescripcion && !!row.ActaFechaActa && !!row.ActaFechaHasta
+
+                if (!rowComplete)
+                    return
 
                 if (row.ActaId){
                     this.rowLocked.set(true)
@@ -142,18 +145,25 @@ export class ActasComponent {
                     this.selectedActaId.set(row.ActaId)
                     this.selectedNroActa.set(row.ActaNroActa)
                 }
+
+                this.angularGrid.slickGrid.setSelectedRows([])
                 this.rowLocked.set(false)
             } catch (e: any) {
                 console.log('Error :' , e);
-                
-                //marcar el row en rojo
+
                 if (row.ActaId) {
-                    if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
+                    const item = this.angularGrid.dataView.getItemById(row.id)
+                    if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                        const fld = editCommand.editor.args.column.field
                         editCommand.undo();
+                        item[fld] = editCommand.editor.args.item[fld]
+                    }
+                    this.angularGrid.gridService.updateItemById(row.id, item)
                 } else {
                     this.angularGrid.slickGrid.setSelectedRows([]);
                     this.angularGrid.slickGrid.render();
                 }
+
                 this.rowLocked.set(false)
             }
         }
@@ -202,7 +212,7 @@ export class ActasComponent {
         return {
             id: newId,
             ActaId: 0,
-            ActaNroActa: 0,
+            ActaNroActa: "",
             ActaDescripcion:"",
             ActaFechaActa:"",
             ActaFechaHasta: "",
