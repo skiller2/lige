@@ -716,12 +716,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = res[0].GrupoActividadDetalle
     }
 
-    if (fieldObj.searchComponent == 'inputForActivo') {
+    if (fieldObj.searchComponent == 'inputForActivo' || fieldObj.searchComponent =='inputForExceptuadoSearch' ) {
       label = value == 1 ? 'SI' : 'NO'
-    }
-
-    if (fieldObj.searchComponent == 'inputForExceptuadoSearch') {
-      label = value == 1 ? 'Si' : 'No'
     }
 
 

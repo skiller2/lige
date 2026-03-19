@@ -1,3 +1,9 @@
+
+const getOptions: any[] = [
+  { label: 'No', value: '0' },
+  { label: 'Si', value: '1' },
+]
+
 const listaColumnas: any[] = [
   {
     id: "CUIT",
@@ -107,16 +113,23 @@ const listaColumnas: any[] = [
   },
   {
     name: "Exceptuado",
-    type: "boolean",
     id: "PersonalExencionCUIT",
     field: "PersonalExencionCUIT",
-    fieldName: "ISNULL(excep.PersonalExencionCUIT, 0)",
-    //fieldName: "excep.PersonalExencionCUIT",
-    searchComponent:"inputForExceptuadoSearch",
-    searchType:"number",
+    fieldName: "ISNULL(CAST(excep.PersonalExencionCUIT AS VARCHAR), '0')",
+    type: 'string',
+    searchComponent: "inputForExceptuadoSearch",
+
     sortable: true,
+
+    formatter: 'collectionFormatter',
+    params: { collection: getOptions },
+
+    exportWithFormatter: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: false,
+    minWidth: 50,
+    maxWidth: 50,
+    cssClass:'text-center'
   },
 
 ];
