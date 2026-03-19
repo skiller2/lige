@@ -70,11 +70,24 @@ export class ActasComponent {
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
+    itemAddActive = false
+
     gridData$ = this.listActas$.pipe(
         debounceTime(500),
         switchMap(() => {
             return this.apiService.getActas({ options: this.listOptions })
-                .pipe(map(data => { return data }))
+                .pipe(map(data => {
+                    const newId = data.length + 1
+                    data.push({
+                        id: newId,
+                        ActaId: 0,
+                        ActaNroActa: 0,
+                        ActaDescripcion: "",
+                        ActaFechaActa: "",
+                        ActaFechaHasta: "",
+                    })
+                    return data
+                }))
         })
     )
 
@@ -100,10 +113,24 @@ export class ActasComponent {
                 if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
                 
                 editCommand.execute()
-                
+
                 while (this.rowLocked()) await firstValueFrom(timer(100));
                 row = this.angularGrid.dataView.getItemById(row.id)
-                
+
+                const emptyRows = this.angularGrid.dataView.getItems().filter((item: any) => {
+                    const rowComplete = item.ActaNroActa !== 0
+                        || item.ActaDescripcion !== ""
+                        || item.ActaFechaActa !== ""
+                        || item.ActaFechaHasta !== ""
+                    return !item.ActaId && !rowComplete
+                })
+
+                if (emptyRows.length === 0) {
+                    this.addNewItem()
+                } else if (emptyRows.length > 1) {
+                    emptyRows.slice(0, -1).forEach((item: any) => this.angularGrid.gridService.deleteItemById(item.id))
+                }
+
                 if (row.ActaId){
                     this.rowLocked.set(true)
                     await firstValueFrom(this.apiService.updateActa(row))
@@ -184,7 +211,16 @@ export class ActasComponent {
 
     async addNewItem() {
         const newItem1 = this.createNewItem(1);
-        this.angularGrid.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
+        this.angularGrid.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
+    }
+
+    async selectNewItemRow() {
+        const newRowIndex = this.angularGrid.dataView.getItems().length - 1
+        if (newRowIndex < 0) return
+
+        this.angularGrid.slickGrid.setSelectedRows([newRowIndex]);
+        this.angularGrid.slickGrid.scrollRowIntoView(newRowIndex, false)
+        this.angularGrid.slickGrid.setActiveCell(newRowIndex, 0)
     }
 
 

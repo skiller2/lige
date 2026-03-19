@@ -9,7 +9,7 @@
     <nz-button-group nz-button nzButtonGroup>
       <!-- btn  add -->
       <button nz-button nzType="default"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="addNewItem()">
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="selectNewItemRow()">
         <span nz-icon nzType="plus" nzTheme="outline"></span></button>
         <!-- btn  delete -->
         <button nz-button nzType="default" [disabled]="selectedActaId() == 0"
