@@ -253,10 +253,10 @@ export class TelefoniaController extends BaseController {
     }
   }
 
-  
+
   round2 = (num: number): number => Math.round((num + Number.EPSILON) * 100) / 100;
-  
- 
+
+
 
 
   async handleXLSUploadTelefonia(req: Request, res: Response, next: NextFunction) {
@@ -267,12 +267,13 @@ export class TelefoniaController extends BaseController {
     const fechaRequest = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
+
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const fechaActual = new Date()
     let totalsuma = 0
-    let totalsumaxls =0    
-    
+    let totalsumaxls = 0
+    let ProcesoAutomaticoLogCodigo = 0
     //console.log("req.body", req.body)
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
@@ -286,17 +287,22 @@ export class TelefoniaController extends BaseController {
 
 
 
-      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
 
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+      //      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+      //        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-      await queryRunner.connect();
+      
+      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+        queryRunner,
+        `Importa XLS Telefonia`,
+        { usuario, ip },
+        usuario,
+        ip
+      ))
+
+
       await queryRunner.startTransaction();
-      //const importeRequest = req.body.monto;
-      //const cuitRequest = req.body.cuit;
-
-      //if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
 
       let dataset = []
       let datasetid = 0
@@ -306,7 +312,7 @@ export class TelefoniaController extends BaseController {
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
 
-      telefonos = telefonos.map(tel => ({ ...tel, ...{fimpplanvoz:0, fserviciosvoz:0, fpacksms:0, fpackdatos:0, fgarantia:0, fotros:0, vvoz:0, vldnldi:0, vmensajes:0, vdatos:0, vroaming:0, votros:0, unicavez:0, total:0} }));
+      telefonos = telefonos.map(tel => ({ ...tel, ...{ fimpplanvoz: 0, fserviciosvoz: 0, fpacksms: 0, fpackdatos: 0, fgarantia: 0, fotros: 0, vvoz: 0, vldnldi: 0, vmensajes: 0, vdatos: 0, vroaming: 0, votros: 0, unicavez: 0, total: 0 } }));
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file.tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
@@ -347,8 +353,8 @@ export class TelefoniaController extends BaseController {
         if (idx === -1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin registro vigente en el sistema, consumo $ ${total}` })
         } else {
-//          if (telefonos[idx].total > 0)
-//            dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` duplicado en XLS, consumo $ ${total}` })
+          //          if (telefonos[idx].total > 0)
+          //            dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` duplicado en XLS, consumo $ ${total}` })
 
           telefonos[idx].fimpplanvoz += fimpplanvoz  //1
           telefonos[idx].fserviciosvoz += fserviciosvoz  //2 
@@ -370,7 +376,7 @@ export class TelefoniaController extends BaseController {
       }
 
       if (Math.abs(totalsumaxls - totaldeclarado) > 0.0001)
-        throw new ClientException(`Importe declarado (${totaldeclarado}) no coincide con el total calculado`,{totaldeclarado, totalsumaxls})
+        throw new ClientException(`Importe declarado (${totaldeclarado}) no coincide con el total calculado`, { totaldeclarado, totalsumaxls })
 
 
 
@@ -397,51 +403,88 @@ export class TelefoniaController extends BaseController {
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
-      let anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
-      if (!anioDS[0]?.ConsumoTelefoniaAnoId) {
-        await queryRunner.query(
-          `INSERT INTO ConsumoTelefoniaAno (ConsumoTelefoniaAnoAno, ConsumoTelefoniaAnoMesUltNro)
-          VALUES (@0, @1)`,
-          [
-            anioRequest, 0
-          ])
-        anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
-        //        throw new ClientException(`No existe el año ${anioRequest} `)
-      }
-      const ConsumoTelefoniaAnoId = anioDS[0].ConsumoTelefoniaAnoId
+      //Busco el id del año y mes. Si no existe lo creo
+      const percon = await queryRunner.query(`
+        SELECT anio.ConsumoTelefoniaAnoId, mes.ConsumoTelefoniaAnoMesId, anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes
+        FROM ConsumoTelefoniaAno anio
+        JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
+        WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2`, [null, anioRequest, mesRequest])
 
-      const mesDS = await queryRunner.query('SELECT mes.ConsumoTelefoniaAnoMesId, mes.ConsumoTelefoniaAnoMesTelefonoUltNro FROM ConsumoTelefoniaAnoMes mes WHERE ConsumoTelefoniaAnoMesMes = @0 AND ConsumoTelefoniaAnoId = @1', [mesRequest, ConsumoTelefoniaAnoId])
-      let ConsumoTelefoniaAnoMesId = Number(anioDS[0].ConsumoTelefoniaAnoMesUltNro)
+      let ConsumoTelefoniaAnoId = 0
+      let ConsumoTelefoniaAnoMesId = 0
       let ConsumoTelefoniaAnoMesTelefonoUltNro = 0
 
-      if (!mesDS[0]?.ConsumoTelefoniaAnoMesId) {
-        ConsumoTelefoniaAnoMesId++
-        await queryRunner.query(
-          `INSERT INTO ConsumoTelefoniaAnoMes (ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesMes, ConsumoTelefoniaAnoMesMeses, ConsumoTelefoniaAnoMesDesde, ConsumoTelefoniaAnoMesHasta, ConsumoTelefoniaAnoMesTelefonoUltNro)
-          VALUES (@0, @1, @2, @3, @4, @5, @6)`,
-          [
-            ConsumoTelefoniaAnoMesId,
-            anioDS[0].ConsumoTelefoniaAnoId,
-            mesRequest,
-            mesRequest,
-            now,
-            null,
-            ConsumoTelefoniaAnoMesTelefonoUltNro
-          ])
-        await queryRunner.query(
-          'UPDATE ConsumoTelefoniaAno set ConsumoTelefoniaAnoMesUltNro = @1 WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest, ConsumoTelefoniaAnoMesId])
-
+      if (percon.length) {
+        ConsumoTelefoniaAnoId = percon[0].ConsumoTelefoniaAnoId
+        ConsumoTelefoniaAnoMesId = percon[0].ConsumoTelefoniaAnoMesId
       } else {
-        await queryRunner.query(
-          'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesDesde = @0 WHERE ConsumoTelefoniaAnoMesId = @1 AND ConsumoTelefoniaAnoId = @2 ', [now, ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId])
+        let anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
+        if (!anioDS[0]?.ConsumoTelefoniaAnoId) {
+          await queryRunner.query(
+            `INSERT INTO ConsumoTelefoniaAno (ConsumoTelefoniaAnoAno, ConsumoTelefoniaAnoMesUltNro)
+            VALUES (@0, @1)`,
+            [
+              anioRequest, 0
+            ])
+          anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
+        }
+        ConsumoTelefoniaAnoId = anioDS[0].ConsumoTelefoniaAnoId
+        ConsumoTelefoniaAnoMesId = anioDS[0].ConsumoTelefoniaAnoMesUltNro
+
+        const mesDS = await queryRunner.query('SELECT mes.ConsumoTelefoniaAnoMesId, mes.ConsumoTelefoniaAnoMesTelefonoUltNro FROM ConsumoTelefoniaAnoMes mes WHERE ConsumoTelefoniaAnoMesMes = @0 AND ConsumoTelefoniaAnoId = @1', [mesRequest, ConsumoTelefoniaAnoId])
+        if (mesDS[0]?.ConsumoTelefoniaAnoMesId) {
+          ConsumoTelefoniaAnoMesId = Number(anioDS[0].ConsumoTelefoniaAnoMesUltNro)
+        } else {
+          ConsumoTelefoniaAnoMesId++
+          await queryRunner.query(
+            `INSERT INTO ConsumoTelefoniaAnoMes (ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesMes, ConsumoTelefoniaAnoMesMeses, ConsumoTelefoniaAnoMesDesde, ConsumoTelefoniaAnoMesHasta, ConsumoTelefoniaAnoMesTelefonoUltNro)
+            VALUES (@0, @1, @2, @3, @4, @5, @6)`,
+            [
+              ConsumoTelefoniaAnoMesId,
+              ConsumoTelefoniaAnoId,
+              mesRequest,
+              mesRequest,
+              now,
+              null,
+              ConsumoTelefoniaAnoMesTelefonoUltNro
+            ])
+          await queryRunner.query(
+            'UPDATE ConsumoTelefoniaAno set ConsumoTelefoniaAnoMesUltNro = @1 WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest, ConsumoTelefoniaAnoMesId])
+        }
       }
+
+      /*
+            const mesDS = await queryRunner.query('SELECT mes.ConsumoTelefoniaAnoMesId, mes.ConsumoTelefoniaAnoMesTelefonoUltNro FROM ConsumoTelefoniaAnoMes mes WHERE ConsumoTelefoniaAnoMesMes = @0 AND ConsumoTelefoniaAnoId = @1', [mesRequest, ConsumoTelefoniaAnoId])
+            let ConsumoTelefoniaAnoMesId = Number(anioDS[0].ConsumoTelefoniaAnoMesUltNro)
+            let ConsumoTelefoniaAnoMesTelefonoUltNro = 0
+      
+            if (!mesDS[0]?.ConsumoTelefoniaAnoMesId) {
+              ConsumoTelefoniaAnoMesId++
+              await queryRunner.query(
+                `INSERT INTO ConsumoTelefoniaAnoMes (ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesMes, ConsumoTelefoniaAnoMesMeses, ConsumoTelefoniaAnoMesDesde, ConsumoTelefoniaAnoMesHasta, ConsumoTelefoniaAnoMesTelefonoUltNro)
+                VALUES (@0, @1, @2, @3, @4, @5, @6)`,
+                [
+                  ConsumoTelefoniaAnoMesId,
+                  anioDS[0].ConsumoTelefoniaAnoId,
+                  mesRequest,
+                  mesRequest,
+                  now,
+                  null,
+                  ConsumoTelefoniaAnoMesTelefonoUltNro
+                ])
+              await queryRunner.query(
+                'UPDATE ConsumoTelefoniaAno set ConsumoTelefoniaAnoMesUltNro = @1 WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest, ConsumoTelefoniaAnoMesId])
+      
+            } else {
+              await queryRunner.query(
+                'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesDesde = @0 WHERE ConsumoTelefoniaAnoMesId = @1 AND ConsumoTelefoniaAnoId = @2 ', [now, ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId])
+            }
+      */
 
       await queryRunner.query(
         'DELETE FROM ConsumoTelefoniaAnoMesTelefonoConsumo WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId=@1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId])
       await queryRunner.query(
         'DELETE FROM ConsumoTelefoniaAnoMesTelefonoAsignado WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId=@1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId])
-
-
 
       for (const telrow of telefonos) {
         ConsumoTelefoniaAnoMesTelefonoUltNro++
@@ -452,7 +495,7 @@ export class TelefoniaController extends BaseController {
            VALUES (@0,@1,@2,@3,@4,@5,@6)`,
           [ConsumoTelefoniaAnoMesTelefonoUltNro,
             ConsumoTelefoniaAnoMesId,
-            anioDS[0].ConsumoTelefoniaAnoId,
+            ConsumoTelefoniaAnoId,
             telrow.TelefoniaId,
             ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro,
             telrow.PersonalId,
@@ -680,11 +723,8 @@ export class TelefoniaController extends BaseController {
       }
 
       await queryRunner.query(
-        'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesTelefonoUltNro = @1 WHERE ConsumoTelefoniaAnoMesId = @0', [ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoMesTelefonoUltNro])
+        'UPDATE ConsumoTelefoniaAnoMes set ConsumoTelefoniaAnoMesDesde=@3, ConsumoTelefoniaAnoMesTelefonoUltNro = @2 WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId = @1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoMesTelefonoUltNro, now])
 
-      //      throw new ClientException(`OKA`)
-
-      //   copyFileSync(file.path, newFilePath);
 
       await FileUploadController.handleDOCUpload(
         null,
@@ -700,21 +740,46 @@ export class TelefoniaController extends BaseController {
         usuario,
         ip,
         queryRunner)
-      
+
       if (Math.abs(totalsuma - totalsumaxls) > 0.0001)
-        throw new ClientException(`Importe Total del XLS:${this.round2(totalsumaxls)}, Total procesado:${this.round2(totalsuma)} `, { list: dataset })
-      
+        throw new ClientException(`Importe Total del XLS:${this.round2(totalsumaxls)}, Total procesado:${this.round2(totalsuma)} `, { totalsumaxls,totalsuma })
+
 
       if (Math.abs(totalsuma - totaldeclarado) > 0.0001)
-        throw new ClientException(`Importe Total declarado:${this.round2(totaldeclarado)}, Total procesado:${this.round2(totalsuma)} `, { list: dataset })
+        throw new ClientException(`Importe Total declarado:${this.round2(totaldeclarado)}, Total procesado:${this.round2(totalsuma)} `, { totaldeclarado,totalsuma })
 
-
-      throw new ClientException(`DEBUG`)
       await queryRunner.commitTransaction();
 
-      this.jsonRes({}, res, "XLS Recibido y procesado!");
+      const resMsg = "Se procesaron " + telefonos.length + " teléfonos, con un total de $ " + this.round2(totalsuma)
+      await this.procesoAutomaticoLogFin(
+        queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'COM',
+        {
+          res: resMsg,
+          totalsuma: this.round2(totalsuma),
+          anio:anioRequest,
+          mes: mesRequest,
+          cantGrabados: telefonos.length,
+          cantXLS: sheet1.data.length
+        },
+        usuario,
+        ip
+      );
+
+
+      this.jsonRes({}, res, resMsg);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.procesoAutomaticoLogFin(queryRunner,
+        ProcesoAutomaticoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
+
       return next(error)
     } finally {
       await queryRunner.release();
