@@ -7,7 +7,7 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <nz-date-picker [formField]="formDescuentoPersonal.AplicaEl" nzMode="month"
               nzFormat="MM/yyyy"></nz-date-picker>
           </nz-form-control>
@@ -15,7 +15,7 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Tipo</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <nz-select [formField]="formDescuentoPersonal.DescuentoId" nzPlaceHolder="tipo" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
               @for (option of optionsTipoDescuento(); track option.value) {
@@ -27,7 +27,7 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Personal</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <app-personal-search [formField]="formDescuentoPersonal.PersonalId" [anio]="anio()" [mes]="mes()" />
           </nz-form-control>
         </nz-form-item>
@@ -50,7 +50,7 @@
         @if (isEfecto()) {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Efecto</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <nz-select [formField]="formDescuentoPersonal.EfectoKey" [compareWith]="efectoCompareFn"
               nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false">
               @for (efecto of listaEfectosPer.value(); track efecto.EfectoId) {
@@ -68,12 +68,12 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Cantidad</nz-form-label>
-          <nz-form-control [nzMd]="5">
+          <nz-form-control [nzMd]="5" nzHasFeedback sfErrorTip>
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cantidad" type="number" />
           </nz-form-control>
 
           <nz-form-label [nzXs]="5">Porcentaje</nz-form-label>
-          <nz-form-control [nzMd]="5">
+          <nz-form-control [nzMd]="5" nzHasFeedback sfErrorTip>
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.PorcentajeDescuento" type="number" />
           </nz-form-control>
         </nz-form-item>
@@ -81,7 +81,7 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">{{ isEfecto() ? "Importe Unitario" : "Importe" }}</nz-form-label>
-          <nz-form-control [nzMd]="7">
+          <nz-form-control [nzMd]="7" nzHasFeedback sfErrorTip>
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.Importe" type="text" appDotToComma
               mask="separator.2" />
           </nz-form-control>
@@ -112,7 +112,7 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Detalle</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.Detalle" type="text" />
           </nz-form-control>
         </nz-form-item>
@@ -121,7 +121,7 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <nz-date-picker [formField]="formDescuentoPersonal.FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
@@ -130,7 +130,7 @@
         @if (descuentoPersonal().DetalleAnulacion || cancelDesc()) {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.DetalleAnulacion" type="text" />
           </nz-form-control>
         </nz-form-item>
@@ -149,7 +149,7 @@
         @if (descuentoPersonal().FechaAnulacion) {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Fecha anulación</nz-form-label>
-          <nz-form-control [nzMd]="18">
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <nz-date-picker [formField]="formDescuentoPersonal.FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
