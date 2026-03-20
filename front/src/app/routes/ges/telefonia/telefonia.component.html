@@ -1,12 +1,12 @@
 
 <nz-card class="small-margin">
-
-  <nz-date-picker  nzMode="month" name="periodo" [(ngModel)]="periodo" (ngModelChange)="onChange($event)" />
-
   <nz-form-item>
+
+  <nz-date-picker  nzMode="month" name="periodo" [(ngModel)]="periodo"  />
+
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
     <nz-form-control>
-      <nz-date-picker name="fecha" [(ngModel)]="fecha" (ngModelChange)="onChange($event)" />
+      <nz-date-picker name="fecha" [(ngModel)]="fecha" />
     </nz-form-control>
   </nz-form-item>
 
@@ -14,7 +14,7 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'telefonia','listado']" (click)="reloadGrid()">Listado</a>
+      <a [routerLink]="['/', 'ges', 'telefonia','listado']" (click)="gridData.reload()">Listado</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -36,12 +36,12 @@
     <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab>
         <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
-        @if ((columns$|async); as columnas) {
+        @if ((columns().length > 0)) {
           <ng-template nz-tab>
-            <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+            <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" />
             <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
-                [options]="gridOptions" [dataset]="(gridData$ | async)?.list || []"
+              <angular-slickgrid gridId="grid22" class="" [columns]="columns() | colsFilter"
+                [options]="gridOptions" [dataset]="gridData.value()"
                 (onAngularGridCreated)="angularGridReady($event)">
               </angular-slickgrid>
             </div>
@@ -93,11 +93,11 @@
             <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
             <nz-form-control>
 
-              @for (movimiento of $importacionesAnteriores | async; track movimiento) {
+              @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
                 <!-- <ng-container > -->
-                <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle={{1}}>
+                <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle="{{movimiento.DocumentoId}} {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}" >
                   <ng-container>
-                    <a app-down-file  httpUrl="/api/telefonia/download/{{anio}}/{{mes}}/{{movimiento.DocumentoId}}">
+                    <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
                       <span nz-icon nzType="download" ></span></a>
                     </ng-container>
                     <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
@@ -113,7 +113,7 @@
               [options]="gridOptions" [dataset]="gridDataImport()">
             </angular-slickgrid>
           </div>
-          <div>Registros: {{ gridDataImportLen }}</div>
+          <div>Registros: {{ gridDataImport().length }}</div>
         </ng-template>
 
 

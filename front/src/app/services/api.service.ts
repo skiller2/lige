@@ -1119,14 +1119,11 @@ export class ApiService {
     );
   }
 
-  getTelefonos(filters: any) {
-    const parameter = filters
-
-    return this.http.post<ResponseJSON<any>>('/api/telefonia/list', parameter).pipe(
+  getTelefonos(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/telefonia/list', params).pipe(
       map((res: any) => res.data),
       catchError(() => of([]))
     );
-
   }
 
   getMessInfo() {

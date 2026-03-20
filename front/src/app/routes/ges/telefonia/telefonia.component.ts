@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal, viewChild, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, resource, signal, viewChild, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -16,33 +16,33 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { FormBuilder, FormArray } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 @Component({
-    selector: 'app-telefonia',
-    templateUrl: './telefonia.component.html',
-    styleUrls: ['./telefonia.component.less'],
-    imports: [
-        CommonModule,
-        SHARED_IMPORTS,
-        NzAffixModule,
-        FiltroBuilderComponent,
-        NzUploadModule,
-        FileUploadComponent
-    ],
-    standalone: true,
-    providers: [AngularUtilService]
+  selector: 'app-telefonia',
+  templateUrl: './telefonia.component.html',
+  styleUrls: ['./telefonia.component.less'],
+  imports: [
+    CommonModule,
+    SHARED_IMPORTS,
+    NzAffixModule,
+    FiltroBuilderComponent,
+    NzUploadModule,
+    FileUploadComponent
+  ],
+  standalone: true,
+  providers: [AngularUtilService]
 })
 export class TelefoniaComponent {
   @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);
-  anio: number = 0
-  mes: number = 0
-  fecha: Date = new Date()
-  periodo: Date = new Date()
+  fecha = signal<Date>(new Date())
+  periodo = signal<Date>(new Date())
+  anio = computed(() => this.periodo()?.getFullYear() || 0)
+  mes = computed(() => this.periodo()?.getMonth() + 1 || 0)
+
   files: NzUploadFile[] = [];
-  formChange$ = new BehaviorSubject('');
-  filesChange$ = new BehaviorSubject('');
-  uploading$ = new BehaviorSubject({loading:false,event:null});
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
   excelExportService = new ExcelExportService()
   gridDataImport = signal([])
   angularGrid!: AngularGridInstance;
@@ -51,25 +51,14 @@ export class TelefoniaComponent {
   detailViewRowCount = 9;
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
-  gridDataLen = 0
-  gridDataImportLen = 0
-  toggle = false
-
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   private readonly loadingSrv = inject(LoadingService);
 
 
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
-
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
-
-  }
+  })
 
   columnsImport = [
     {
@@ -105,25 +94,28 @@ export class TelefoniaComponent {
 
   ]
 
-  gridDataImport$ = new BehaviorSubject([]);
-
-
-  columns$ = this.apiService.getCols('/api/telefonia/cols').pipe(map((cols) => {
-
+  columns = toSignal(this.apiService.getCols('/api/telefonia/cols').pipe(map((cols) => {
     return cols
-  }));
+  })), { initialValue: [] as Column[] })
 
-  gridData$ = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      //const periodo = this.telefonoForm.form.get('periodo')?.value
-      this.angularGrid.dataView.setItems([])
-      return this.apiService
-        .getTelefonos(
-          { anio: this.anio, mes: this.mes, fecha: this.fecha, options: this.listOptions, toggle: this.toggle }
-        )
-    })
-  );
+
+
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), fecha: this.fecha() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.apiService.getTelefonos({ anio: params.anio, mes: params.mes, fecha: params.fecha, options: params.options, toggle: false }))
+      } catch (_e) { }
+      this.loadingSrv.close()
+
+      return response.list || [];
+    },
+
+    defaultValue: []
+  });
+
 
   fb = inject(FormBuilder)
   ngForm = this.fb.group({ files: [], totaldeclarado: 0 })
@@ -134,7 +126,7 @@ export class TelefoniaComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
-    
+
     // Escuchar cambios en ngForm.files
     this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
       if (filesValue.length > 0) {
@@ -144,9 +136,9 @@ export class TelefoniaComponent {
         const totaldeclarado = this.ngForm.get('totaldeclarado')?.value || 0
 
         try {
-          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio, this.mes,this.fecha, totaldeclarado ))
-        this.formChange$.next('changed');
-        this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado))
+          this.gridData.reload()
+          this.fileUploadComponent().DeleteFileByExporterror(filesValue)
         } catch (e: any) {
           this.fileUploadComponent().DeleteFileByExporterror(filesValue)
           if (e.error?.data?.list) {
@@ -172,40 +164,43 @@ export class TelefoniaComponent {
           ? localStorage.getItem('mes')
           : now.getMonth() + 1;
 
-      this.periodo = (new Date(Number(anio), Number(mes) - 1, 1))
+      this.periodo.set(new Date(Number(anio), Number(mes) - 1, 1))
 
       const fechacorte = new Date()
-      fechacorte.setDate(this.periodo.getDate() - 1)
-      this.fecha = fechacorte
-      this.onChange(null)
+      fechacorte.setDate(this.periodo().getDate() - 1)
+      this.fecha.set(fechacorte)
     }, 1);
   }
 
-  $importacionesAnteriores = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.apiService
-        .getImportacionesTelefoniaAnteriores(
-          this.anio, this.mes
-        )
-        .pipe(
-        //map(data => {return data}),
-        //doOnSubscribe(() => this.tableLoading$.next(true)),
-        //tap({ complete: () => this.tableLoading$.next(false) })
-      )
-    })
-  )
 
-  onChange(_e: any): void {
-    this.anio = this.periodo.getFullYear();
-    this.mes = this.periodo.getMonth() + 1;
-    localStorage.setItem('mes', String(this.mes));
-    localStorage.setItem('anio', String(this.anio));
 
-    this.filesChange$.next('')
-    this.formChange$.next('');
-    this.files = [];
-  }
+  importacionesAnteriores = resource({
+    params: () => ({ anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.apiService.getImportacionesTelefoniaAnteriores(params.anio, params.mes))
+      } catch (_e) { }
+      this.loadingSrv.close()
+
+      return response || [];
+    },
+    defaultValue: []
+  });
+
+  periodoEffect = effect(() => {
+    const periodo = this.periodo()
+    if (periodo) {
+      const anio = periodo.getFullYear();
+      const mes = periodo.getMonth() + 1;
+      localStorage.setItem('mes', String(mes));
+      localStorage.setItem('anio', String(anio));
+
+      this.files = [];
+    }
+
+  })
 
   exportGrid() {
     this.excelExportService.exportToExcel({
@@ -218,21 +213,14 @@ export class TelefoniaComponent {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
     //console.log('angularGridReady');
-    
+
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
-    
+
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
-        columnTotal('importesum', this.angularGrid)
-        columnTotal('importe', this.angularGrid)
+      columnTotal('importesum', this.angularGrid)
+      columnTotal('importe', this.angularGrid)
     })
   }
-
-
-  reloadGrid() {
-    this.filesChange$.next('')
-    this.formChange$.next('changed')
-  }
-
 }
