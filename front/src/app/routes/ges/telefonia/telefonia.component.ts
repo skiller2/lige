@@ -108,7 +108,7 @@ export class TelefoniaComponent {
         response = await firstValueFrom(this.apiService.getTelefonos({ anio: params.anio, mes: params.mes, fecha: params.fecha, options: params.options, toggle: false }))
       } catch (_e) { }
       this.loadingSrv.close()
-      this.ImpuestoInternoTelefoniaImpuesto.set(response?.list?.length > 0 ? response.list[0].ImpuestoInternoTelefoniaImpuesto : 0)
+      this.ImpuestoInternoTelefoniaImpuesto.set(response?.ImpuestoInternoTelefoniaImpuesto || 0)
       return response.list || [];
     },
 

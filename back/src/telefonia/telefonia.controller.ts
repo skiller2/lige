@@ -215,50 +215,22 @@ export class TelefoniaController extends BaseController {
       ? req.body.options
       : { filtros: [], sort: null };
 
-
-    /*
-      const group='administrativo'
-      let inGroupAdminis = false
-      if ((<any>req)?.groups) {
-        for (const rowgroup of (<any>req)?.groups) {
-          if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
-          inGroupAdminis = true
-        }
-      }
-    
-    
-      if (!inGroupAdminis) {
-  
-        req.body.options.filtros.filter((f: any) => f.index != 'ApellidoNombreJ')
-        req.body.options.filtros.push(
-          {
-            "index": "ApellidoNombreJ",
-            "condition": "AND",
-            "operador": "=",
-            "valor": res.locals.PersonalId
-          })
-      }
-  */
-    /*
-    if (req.body.options.filtros.length == 0) {
-      this.jsonRes({ list: [] }, res);
-      return
-    }
-    */
     try {
       const telefonos = await this.getTelefonos(fecha, anio, mes, req.body.options)
-      const ImpuestoInternoTelefoniaImpuesto = telefonos.length > 0 ? telefonos[0].ImpuestoInternoTelefoniaImpuesto : 0
+      const ImpuestoInternoTelefoniaImpuesto = await this.getImpuestoInterno(anio, mes)
       this.jsonRes({ list: telefonos, ImpuestoInternoTelefoniaImpuesto }, res);
     } catch (error) {
       return next(error)
     }
   }
 
+  async getImpuestoInterno(anio: number, mes: number) {
+    const queryRunner = dataSource.createQueryRunner();
+    const data = await queryRunner.query(`SELECT imp.ImpuestoInternoTelefoniaImpuesto FROM ImpuestoInternoTelefonia imp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31')`, [null, anio, mes])
+    return data[0]?.ImpuestoInternoTelefoniaImpuesto || 0;
+  }
 
   round2 = (num: number): number => Math.round((num + Number.EPSILON) * 100) / 100;
-
-
-
 
   async handleXLSUploadTelefonia(req: Request, res: Response, next: NextFunction) {
     const anioRequest = Number(req.body.anio)
