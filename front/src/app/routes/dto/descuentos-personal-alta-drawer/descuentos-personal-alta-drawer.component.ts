@@ -168,8 +168,6 @@ export class DescuentosPersonalAltaDrawerComponent {
         return (this.descuentoPersonal().DescuentoId == 50) ? true : false
     })
 
-
-
     importeCuota = computed(() => {
         const s = this.descuentoPersonal();
         const importe = Number(s.Importe) || 0;
@@ -177,6 +175,15 @@ export class DescuentosPersonalAltaDrawerComponent {
         const pct = Number(s.PorcentajeDescuento) || 0;
         const cuotas = Number(s.Cuotas) || 1;      // evita /0
         const total = (importe * cant * (pct / 100)) / cuotas;
+        return total.toFixed(2); // string
+    });
+
+    importeTotal = computed(() => {
+        const s = this.descuentoPersonal();
+        const importe = Number(s.Importe) || 0;
+        const cant = Number(s.Cantidad) || 0;
+        const pct = Number(s.PorcentajeDescuento) || 0;
+        const total = (importe * cant * (pct / 100)) ;
         return total.toFixed(2); // string
     });
 

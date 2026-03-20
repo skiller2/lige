@@ -1,9 +1,8 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleDesc()" [nzPlacement]="placement" [nzWidth]="700"
-  [nzTitle]="'Formulario Descuentos'" (nzOnClose)="visibleDesc.set(false)">
+  [nzTitle]="'Descuentos Personal'" (nzOnClose)="visibleDesc.set(false)" >
   <ng-container *nzDrawerContent>
 
-    <nz-card nzType="inner" nzTitle="Descuento de Personal">
-      <p>Descuento {{descuentoPersonal()|json}}</p>
+    <nz-card nzType="inner" >
       <form (ngSubmit)="save()">
 
         <nz-form-item class="marginElement">
@@ -81,24 +80,30 @@
         }
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Cantidad Cuotas</nz-form-label>
-          <nz-form-control [nzMd]="5">
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cuotas" type="number" />
-          </nz-form-control>
-
-          @if (isEfecto()){
-          <nz-form-label [nzXs]="5">Importe Unitario</nz-form-label>
-          }@else {
-          <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
-          }
+          <nz-form-label [nzXs]="5">{{ isEfecto() ? "Importe Unitario" : "Importe" }}</nz-form-label>
           <nz-form-control [nzMd]="7">
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.Importe" type="text" appDotToComma
               mask="separator.2" />
           </nz-form-control>
+
+          <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
+          <nz-form-control [nzMd]="6">
+            <input nz-input [value]="importeTotal()" type="text" appDotToComma mask="separator.2"
+              class="ant-input text-right" [readonly]="true" />
+          </nz-form-control>
+
+
+
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
+
+          <nz-form-label [nzXs]="5">Cuotas</nz-form-label>
+          <nz-form-control [nzMd]="5">
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cuotas" type="number" />
+          </nz-form-control>
+
+          <nz-form-label [nzXs]="5">Importe x Cuota</nz-form-label>
           <nz-form-control [nzMd]="6">
             <input nz-input [value]="importeCuota()" type="text" appDotToComma mask="separator.2"
               class="ant-input text-right" [readonly]="true" />
