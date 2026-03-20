@@ -50,6 +50,16 @@ export class TelefoniaController extends BaseController {
       hidden: false,
     },
     {
+      name: "Observación",
+      type: "string",
+      id: "TelefoniaObservacion",
+      field: "TelefoniaObservacion",
+      fieldName: "tel.TelefoniaObservacion",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
       name: "Apellido Nombre",
       type: "string",
       id: "ApellidoNombre",
@@ -140,7 +150,9 @@ export class TelefoniaController extends BaseController {
       `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
-      conx.ImpuestoInternoTelefoniaImpuesto,1
+      conx.ImpuestoInternoTelefoniaImpuesto,
+      tel.TelefoniaObservacion,
+      1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
       LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
