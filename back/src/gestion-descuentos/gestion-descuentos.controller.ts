@@ -482,6 +482,54 @@ const columnsPersonalDescuentosCargaManualPersonal: any[] = [
 
 ]
 
+const columnsPersonalDescuentosCargaManualEfecto: any[] = [
+  {
+    id: 'id', name: 'Id', field: 'id',
+    fieldName: 'id',
+    type: 'string',
+    searchType: 'string',
+    hidden: true,
+  },
+  {
+    id: 'ApellidoNombre', name: 'Personal', field: 'ApellidoNombre',
+    fieldName: 'ApellidoNombre',
+  },
+  {
+    id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
+  },
+  {
+    id: 'Efecto', name: 'Efecto', field: 'Efecto', fieldName: 'Efecto'
+  },
+  {
+    id: 'Cantidad', name: 'Cantidad', field: 'Cantidad',
+    fieldName: 'Cantidad',
+  },
+  {
+    id: 'Porcentaje', name: 'Porcentaje', field: 'Porcentaje',
+    fieldName: 'Porcentaje',
+  },
+  {
+    id: 'ImporteTotal', name: 'Importe Unitario', field: 'ImporteTotal',
+    fieldName: 'ImporteTotal',
+  },
+  {
+    id: 'CantidadCuotas', name: 'Cuotas', field: 'CantidadCuotas',
+    fieldName: 'CantidadCuotas',
+  },
+  {
+    id: 'Detalle', name: 'Detalle', field: 'Detalle',
+    fieldName: 'Detalle',
+  },
+  {
+    id: 'mensaje', name: 'Mensaje', field: 'mensaje',
+    fieldName: 'mensaje',
+    type: 'string',
+    searchType: 'string',
+    hidden: false
+  },
+
+]
+
 const columnsPersonalDescuentosCargaManualObjetivo: any[] = [
   {
     id: 'id', name: 'Id', field: 'id',
@@ -824,27 +872,46 @@ export class GestionDescuentosController extends BaseController {
     const Detalle: number = otroDescuento.Detalle
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
-    const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
+    let importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
     const DocumentoId: number = otroDescuento.DocumentoId
-    const importeTotal = Number((Number(otroDescuento.Importe)).toFixed(2))
+    let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
     const CuentaTipoCodigo: string = otroDescuento?.CuentaTipoCodigo ? otroDescuento.CuentaTipoCodigo : 'G'
-    const EfectoId = otroDescuento.EfectoId
-    const EfectoIndividualId = otroDescuento.EfectoIndividualId
-    const Cantidad = otroDescuento.Cantidad || 1
-    const PorcentajeDescuento = otroDescuento.PorcentajeDescuento
-    /*
-    let PersonalOtroDescuento = await queryRunner.query(`
-      SELECT PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica
-      FROM PersonalOtroDescuento
-      WHERE PersonalId IN (@0) AND PersonalOtroDescuentoDescuentoId IN (@1) AND PersonalOtroDescuentoAnoAplica IN (@2) AND PersonalOtroDescuentoMesesAplica IN (@3)
-    `, [PersonalId, DescuentoId, anio, mes])
-    // if (PersonalOtroDescuento.length) {
-    //   return new ClientException(`Ya existe un registro del mismo Tipo para el periodo ${mes}/${anio} de la persona.`)
-    // }
-    */
+    let EfectoId = otroDescuento.EfectoId
+    let EfectoIndividualId = otroDescuento.EfectoIndividualId
+    let Cantidad = otroDescuento.Cantidad || 1
+    let PorcentajeDescuento = otroDescuento.PorcentajeDescuento
+
+
     const Personal = await queryRunner.query(`SELECT ISNULL(PersonalOtroDescuentoUltNro, 0) AS PersonalOtroDescuentoUltNro FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
     const PersonalOtroDescuentoId = Personal[0].PersonalOtroDescuentoUltNro + 1
     const now = new Date()
+
+    let mensaje = ''
+    if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
+    if (importe < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+
+    switch (DescuentoId) {
+      case 50: // descuento de efecto
+        if (!EfectoId || !EfectoIndividualId) mensaje += 'Debe seleccionar un efecto asociado a la persona. '
+        if (PorcentajeDescuento != 50 && PorcentajeDescuento != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+        // calcular importe total en base al importe unitario y porcentaje de descuento
+          importe = Number(((importe*Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
+          
+        // BUSCAR SI EL EFECTO ESTA ASOCIADO A LA PERSONA ?
+
+        break
+      default:
+        EfectoId = null
+        EfectoIndividualId = null
+        PorcentajeDescuento = 100
+        break
+    }
+
+
+    if (mensaje.length > 0) {
+      throw new ClientException(mensaje)
+    }
+
     await queryRunner.query(`
       INSERT INTO PersonalOtroDescuento (
       PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
@@ -856,7 +923,7 @@ export class GestionDescuentosController extends BaseController {
       VALUES (@0,@1,@2,@3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @20, @21, @22, @17, @18, @19, @17, @18, @19)
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio,
       mes, mes, Cantidad, Cuotas,
-      importeTotal, AplicaEl, 0, 0,
+      importe, AplicaEl, 0, 0,
       1, '', Detalle, DocumentoId, CuentaTipoCodigo,
       ip, usuario, now, EfectoId, EfectoIndividualId, PorcentajeDescuento])
 
