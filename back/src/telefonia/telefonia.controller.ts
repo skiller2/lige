@@ -289,8 +289,8 @@ export class TelefoniaController extends BaseController {
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
 
-      //      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-      //        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`);
 
       
       ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
