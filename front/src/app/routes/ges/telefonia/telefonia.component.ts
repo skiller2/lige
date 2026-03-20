@@ -3,14 +3,13 @@ import { Component, computed, effect, inject, resource, signal, viewChild, ViewC
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { FormBuilder, FormArray } from '@angular/forms';
@@ -98,7 +97,7 @@ export class TelefoniaComponent {
     return cols
   })), { initialValue: [] as Column[] })
 
-
+  ImpuestoInternoTelefoniaImpuesto = signal(0)
 
   gridData = resource({
     params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), fecha: this.fecha() }),
@@ -109,7 +108,7 @@ export class TelefoniaComponent {
         response = await firstValueFrom(this.apiService.getTelefonos({ anio: params.anio, mes: params.mes, fecha: params.fecha, options: params.options, toggle: false }))
       } catch (_e) { }
       this.loadingSrv.close()
-
+      this.ImpuestoInternoTelefoniaImpuesto.set(response?.list?.length > 0 ? response.list[0].ImpuestoInternoTelefoniaImpuesto : 0)
       return response.list || [];
     },
 

@@ -139,7 +139,8 @@ export class TelefoniaController extends BaseController {
     return dataSource.query(
       `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
-      per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId
+      per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
+      conx.ImpuestoInternoTelefoniaImpuesto,1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
       LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
@@ -150,7 +151,7 @@ export class TelefoniaController extends BaseController {
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)
       
       LEFT JOIN (
-        SELECT asi.TelefoniaId,
+        SELECT asi.TelefoniaId, imp.ImpuestoInternoTelefoniaImpuesto,
         SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 )) importe,
         
         SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte) importesum
@@ -161,7 +162,7 @@ export class TelefoniaController extends BaseController {
         JOIN ConsumoTelefoniaAnoMesTelefonoConsumo con ON con.ConsumoTelefoniaAnoMesId = mes.ConsumoTelefoniaAnoMesId AND con.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId AND con.ConsumoTelefoniaAnoMesTelefonoAsignadoId= asi.ConsumoTelefoniaAnoMesTelefonoAsignadoId
         JOIN ImpuestoInternoTelefonia imp ON EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31') 
         WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2
-        GROUP BY asi.TelefoniaId
+        GROUP BY asi.TelefoniaId,imp.ImpuestoInternoTelefoniaImpuesto
       ) conx ON conx.TelefoniaId = tel.TelefoniaId
         
 
@@ -246,8 +247,8 @@ export class TelefoniaController extends BaseController {
     */
     try {
       const telefonos = await this.getTelefonos(fecha, anio, mes, req.body.options)
-
-      this.jsonRes({ list: telefonos }, res);
+      const ImpuestoInternoTelefoniaImpuesto = telefonos.length > 0 ? telefonos[0].ImpuestoInternoTelefoniaImpuesto : 0
+      this.jsonRes({ list: telefonos, ImpuestoInternoTelefoniaImpuesto }, res);
     } catch (error) {
       return next(error)
     }
@@ -292,7 +293,7 @@ export class TelefoniaController extends BaseController {
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`);
 
-      
+
       ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
         queryRunner,
         `Importa XLS Telefonia`,
@@ -742,11 +743,11 @@ export class TelefoniaController extends BaseController {
         queryRunner)
 
       if (Math.abs(totalsuma - totalsumaxls) > 0.0001)
-        throw new ClientException(`Importe Total del XLS:${this.round2(totalsumaxls)}, Total procesado:${this.round2(totalsuma)} `, { totalsumaxls,totalsuma })
+        throw new ClientException(`Importe Total del XLS:${this.round2(totalsumaxls)}, Total procesado:${this.round2(totalsuma)} `, { totalsumaxls, totalsuma })
 
 
       if (Math.abs(totalsuma - totaldeclarado) > 0.0001)
-        throw new ClientException(`Importe Total declarado:${this.round2(totaldeclarado)}, Total procesado:${this.round2(totalsuma)} `, { totaldeclarado,totalsuma })
+        throw new ClientException(`Importe Total declarado:${this.round2(totaldeclarado)}, Total procesado:${this.round2(totalsuma)} `, { totaldeclarado, totalsuma })
 
       await queryRunner.commitTransaction();
 
@@ -758,7 +759,7 @@ export class TelefoniaController extends BaseController {
         {
           res: resMsg,
           totalsuma: this.round2(totalsuma),
-          anio:anioRequest,
+          anio: anioRequest,
           mes: mesRequest,
           cantGrabados: telefonos.length,
           cantXLS: sheet1.data.length
@@ -774,7 +775,9 @@ export class TelefoniaController extends BaseController {
       await this.procesoAutomaticoLogFin(queryRunner,
         ProcesoAutomaticoLogCodigo,
         'ERR',
-        { res: error },
+        {
+          res: error, anio: anioRequest, mes: mesRequest, //cantErrores:dataset.le
+        },
         usuario,
         ip
       );

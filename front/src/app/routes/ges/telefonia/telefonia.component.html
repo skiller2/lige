@@ -1,13 +1,22 @@
-
 <nz-card class="small-margin">
   <nz-form-item>
 
-  <nz-date-picker  nzMode="month" name="periodo" [(ngModel)]="periodo"  />
+    <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" />
 
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
     <nz-form-control>
       <nz-date-picker name="fecha" [(ngModel)]="fecha" />
     </nz-form-control>
+
+
+    <nz-form-label [nzSpan]="5">Impuesto interno</nz-form-label>
+    <nz-form-control [nzSpan]="5">
+      <input nz-input [(ngModel)]="ImpuestoInternoTelefoniaImpuesto" type="text" placeholder="Impuesto interno" appDotToComma
+        mask="separator.2" [readonly]="true"/>
+    </nz-form-control>
+
+
+
   </nz-form-item>
 
 
@@ -22,13 +31,13 @@
     </li>
 
     @if (router.url === '/ges/telefonia/listado') {
-      <li nz-submenu nzTitle="Acciones">
-        <ul>
-          <li nz-menu-item (click)="exportGrid()">
-            <span nz-icon nzType="download"></span>XLS
-          </li>
-        </ul>
-      </li>
+    <li nz-submenu nzTitle="Acciones">
+      <ul>
+        <li nz-menu-item (click)="exportGrid()">
+          <span nz-icon nzType="download"></span>XLS
+        </li>
+      </ul>
+    </li>
     }
   </ul>
 
@@ -37,21 +46,20 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
         @if ((columns().length > 0)) {
-          <ng-template nz-tab>
-            <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" />
-            <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid22" class="" [columns]="columns() | colsFilter"
-                [options]="gridOptions" [dataset]="gridData.value()"
-                (onAngularGridCreated)="angularGridReady($event)">
-              </angular-slickgrid>
-            </div>
-          </ng-template>
+        <ng-template nz-tab>
+          <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" />
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="grid22" class="" [columns]="columns() | colsFilter" [options]="gridOptions"
+              [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)">
+            </angular-slickgrid>
+          </div>
+        </ng-template>
         }
 
       </nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
-        <ng-template nz-tab >
+        <ng-template nz-tab>
 
 
           <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
@@ -74,34 +82,38 @@
               </ng-container>
             </nz-form-control>
           </nz-form-item>-->
-          <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
-            <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>
-            <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
-            [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
-          </nz-form-item>
+            <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
+              <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>
+              <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
+                [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
+                [showTipoDocs]="false"></app-file-upload>
+            </nz-form-item>
 
-          <nz-form-item>
-            <nz-form-label class="inputText">Importe total</nz-form-label>
-            <nz-form-control [nzSpan]="5">
-              <input nz-input formControlName="totaldeclarado" type="text" placeholder="Importe total" appDotToComma mask="separator.2" />
-            </nz-form-control>
-          </nz-form-item>
+            <nz-form-item>
+              <nz-form-label class="inputText">Importe total</nz-form-label>
+              <nz-form-control [nzSpan]="5">
+                <input nz-input formControlName="totaldeclarado" type="text" placeholder="Importe total" appDotToComma
+                  mask="separator.2" />
+              </nz-form-control>
+            </nz-form-item>
 
 
 
-          <nz-form-item>
-            <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
-            <nz-form-control>
+            <nz-form-item>
+              <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
+              <nz-form-control>
 
-              @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
+                @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
                 <!-- <ng-container > -->
-                <div  class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle="{{movimiento.DocumentoId}} {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}" >
+                <div class="containerAnterioresTelefonia" nz-tooltip
+                  nzTooltipTitle="{{movimiento.DocumentoId}} {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}">
                   <ng-container>
-                    <a app-down-file  httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
-                      <span nz-icon nzType="download" ></span></a>
-                    </ng-container>
-                    <span> ID: {{movimiento.DocumentoId}} - Fecha: {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
-                  </div>
+                    <a app-down-file httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
+                      <span nz-icon nzType="download"></span></a>
+                  </ng-container>
+                  <span> ID: {{movimiento.DocumentoId}} - Fecha:
+                    {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
+                </div>
                 }
               </nz-form-control>
             </nz-form-item>
@@ -109,8 +121,8 @@
 
 
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid23" class="" [columns]="columnsImport | colsFilter"
-              [options]="gridOptions" [dataset]="gridDataImport()">
+            <angular-slickgrid gridId="grid23" class="" [columns]="columnsImport | colsFilter" [options]="gridOptions"
+              [dataset]="gridDataImport()">
             </angular-slickgrid>
           </div>
           <div>Registros: {{ gridDataImport().length }}</div>
