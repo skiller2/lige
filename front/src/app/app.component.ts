@@ -5,7 +5,6 @@ import { TitleService, VERSION as VERSION_ALAIN, stepPreloader } from '@delon/th
 import { environment } from '@env/environment';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { VERSION as VERSION_ZORRO } from 'ng-zorro-antd/version';
-import { filter, interval, map } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { SwUpdatesService } from './services/sw-updates.service';
