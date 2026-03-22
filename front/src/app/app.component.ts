@@ -1,6 +1,5 @@
 import { Component, ElementRef, NgZone, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
 import { NavigationEnd, NavigationError, RouteConfigLoadStart, Router, RouterOutlet } from '@angular/router';
-import { ServiceWorkerModule, SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { TitleService, VERSION as VERSION_ALAIN, stepPreloader } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzModalService } from 'ng-zorro-antd/modal';
