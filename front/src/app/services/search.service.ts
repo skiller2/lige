@@ -1660,7 +1660,15 @@ export class SearchService {
     );
   }
 
-
+  getCategoriaPersonalOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/categoria-personal/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
 
   getDatosFacturacionByCliente(listClientes: any) {

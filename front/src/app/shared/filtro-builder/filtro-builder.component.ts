@@ -711,6 +711,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = result
     }
 
+    if (fieldObj.searchComponent == 'inputForTipoAsociadoCategoriaSearch') {
+      let valueSplit = value.split(";")
+      let result = ''
+      for (const val of valueSplit) {
+        const res = await firstValueFrom(this.searchService.getTipoAsociadoCategoriaFromName('id', val))
+        if (res && res.length > 0) result += `${res[0].Label};`
+      }
+      label = result
+    }
+
     if (fieldObj.searchComponent == 'inputForGrupoActividadSearch') {
       const res = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', value))
       label = res[0].GrupoActividadDetalle

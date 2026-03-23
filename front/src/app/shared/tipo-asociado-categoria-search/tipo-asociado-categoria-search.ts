@@ -1,18 +1,9 @@
 import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core';
 import {
-  BehaviorSubject,
-  Observable,
-  debounceTime,
-  firstValueFrom,
   noop,
-  switchMap,
-  tap,
 } from 'rxjs';
-import { SearchTipoAsociadoCategoria } from '../schemas/tipo-asociado-categoria.schemas';
 import { SearchService } from 'src/app/services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { ResponseNameFromId } from '../schemas/ResponseJSON';
-import { doOnSubscribe } from 'src/app/services/api.service';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -32,16 +23,15 @@ import { CommonModule } from '@angular/common';
   ],
 })
 export class TipoAsociadoCategoriaSearchComponent implements ControlValueAccessor {
-  tmpInputVal: any;
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("csc") csc!: NzSelectComponent
 
-  private _selectedId: string = ''
-  _selected = ''
-  extendedOption = { id: '', fullName: "" }
+  options: { value: string, label: string }[] = []
+  listOfSelectedValue: string[] = []
+  isLoading = false
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -50,95 +40,45 @@ export class TipoAsociadoCategoriaSearchComponent implements ControlValueAccesso
     this.propagateChange = fn
   }
 
-  onBlur() {
-    this.propagateTouched()
-  }
-
-  onChange() {
-  }
-
-  onRemove() {
-    //  console.log('onRemove')
-  }
-
   registerOnTouched(fn: any) {
     this.propagateTouched = fn
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => {
-      // this.csc.focus()
-    }, 1);
+  onBlur() {
+    this.propagateTouched()
   }
 
-
-  get selectedId() {
-    return this._selectedId
-  }
-
-  set selectedId(val: string) {
-    console.log("val tipo asociado categoria",val)
-    val = (val === null || val === undefined || val == '0' || val == '') ? '' : val
-
-    if (val !== this._selectedId) {
-      this._selectedId = val
-
-      if (this._selectedId == '') {
-        this.valueExtendedEmitter.emit({})
-        this._selected = ''
-        this.propagateChange(this._selectedId)
-        return
+  ngOnInit() {
+    this.isLoading = true
+    this.searchService.getCategoriaPersonalOptions().subscribe({
+      next: (data) => {
+        this.options = data
+        this.isLoading = false
+      },
+      error: () => {
+        this.isLoading = false
       }
-
-      firstValueFrom(
-        this.searchService.getTipoAsociadoCategoriaFromName('id', this._selectedId)
-          .pipe(tap(res => {
-            if (res && res.length > 0) {
-                console.log("res tipo asociado categoria",res)
-              this.extendedOption = { id: res[0].id, fullName: res[0].Label }
-              this._selected = this._selectedId
-              this.valueExtendedEmitter.emit(this.extendedOption)
-              if (this.tmpInputVal != this._selected) {
-                this.propagateChange(this._selectedId)
-              }
-            }
-          }))
-      )
-    }
+    })
   }
 
   writeValue(value: any) {
-    this.tmpInputVal = value
-    if (value !== this._selectedId) {
-      this.selectedId = value
+    if (value && typeof value === 'string') {
+      this.listOfSelectedValue = value.split(';').filter((v: string) => v.trim() !== '')
+    } else {
+      this.listOfSelectedValue = []
     }
   }
 
-  selectedInfoChange$ = new BehaviorSubject<SearchTipoAsociadoCategoria[] | null>(null);
-
-  $searchChange = new BehaviorSubject('');
-  $isOptionsLoading = new BehaviorSubject<boolean>(false);
-  $optionsArray: Observable<SearchTipoAsociadoCategoria[]> = this.$searchChange.pipe(
-    debounceTime(500),
-    switchMap(value => {
-      // Si el valor es un número o contiene "/", buscar por id, sino por Label
-      const isId = Number(value) || value.includes('/');
-      return this.searchService
-        .getTipoAsociadoCategoriaFromName(isId ? 'id' : 'Label', value)
-        .pipe(
-          doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-          tap({ complete: () => this.$isOptionsLoading.next(false) })
-        )
+  modelChange(values: string[]) {
+    const joinedValue = values.join(';')
+    const labels = values.map(v => {
+      const opt = this.options.find(o => o.value === v)
+      return opt ? opt.label : v
     })
-  );
+    const joinedLabel = labels.join(';')
 
-  modelChange(val: string) {
-    this.selectedId = val
-  }
-
-  search(value: string): void {
-    this.extendedOption = { id: '', fullName: "" }
-    this.$searchChange.next(value)
+    this.valueExtendedEmitter.emit({ fullName: joinedLabel })
+    this.propagateChange(joinedValue)
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -146,4 +86,3 @@ export class TipoAsociadoCategoriaSearchComponent implements ControlValueAccesso
   }
 
 }
-

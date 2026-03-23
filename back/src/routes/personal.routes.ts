@@ -94,6 +94,10 @@ personalRouter.get(`${base}/sitrevista/options`, authMiddleware.verifyToken, (re
   personalController.getSituacionRevista(req, res, next)
 });
 
+personalRouter.get(`${base}/categoria-personal/options`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getCategoriaPersonalOptions(req, res, next)
+});
+
 personalRouter.get(`${base}/tipo-asociado/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getTipoAsociado(req, res, next)
 });

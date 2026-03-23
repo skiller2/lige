@@ -798,6 +798,23 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getCategoriaPersonalOptions(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT CONCAT(cat.TipoAsociadoId,'/', cat.CategoriaPersonalId) value,
+        CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) label
+        FROM CategoriaPersonal cat
+        JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
+        WHERE (cat.CategoriaPersonalInactivo = 0 OR cat.CategoriaPersonalInactivo IS NULL)
+        ORDER BY tip.TipoAsociadoDescripcion, cat.CategoriaPersonalDescripcion`)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   private async addPersonalQuery(
     queryRunner: any,
     infoPersonal: any,

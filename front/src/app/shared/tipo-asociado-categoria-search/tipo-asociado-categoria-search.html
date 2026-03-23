@@ -1,20 +1,7 @@
-<nz-select #csc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+<nz-select #csc [(ngModel)]="listOfSelectedValue" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Tipo Asociado / Categoría"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-  @for (option of $optionsArray | async; track option) {
-    @if (($isOptionsLoading | async) == false) {
-      <nz-option [nzValue]="option.id" [nzLabel]="option.Label" />
-    }
-  }
-  @if (extendedOption.id && extendedOption.id != '') {
-    <nz-option [nzValue]="extendedOption.id"
-      [nzLabel]="extendedOption.fullName" />
-  }
-  @if ($isOptionsLoading | async) {
-    <nz-option nzDisabled nzCustomContent>
-      <span nz-icon nzType="loading" class="loading-icon"></span>
-      Cargando datos...
-    </nz-option>
+  nzShowSearch nzMode="multiple" [nzLoading]="isLoading">
+  @for (option of options; track option) {
+    <nz-option [nzValue]="option.value" [nzLabel]="option.label" />
   }
 </nz-select>
-
