@@ -719,7 +719,30 @@ UNION ALL
         JOIN Documento doc ON doc.PersonalId=perhab.PersonalId and doc.PersonalHabilitacionId=perhab.PersonalHabilitacionId and doc.PersonalHabilitacionLugarHabilitacionId=perhab.PersonalHabilitacionLugarHabilitacionId
         LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=doc.DocumentoTipoCodigo
         WHERE perhab.PersonalId = @0 AND perhab.PersonalHabilitacionId = @3 AND perhab.PersonalHabilitacionLugarHabilitacionId = @2
+        
+        
+----------
+-- Estudios cargados del modulo estudios
 
+UNION ALL
+
+SELECT doc.DocumentoId id, 
+			 CASE
+				WHEN pere.PersonalEstudioCursoId is null then CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
+				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
+				else pere.PersonalEstudioTitulo
+				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, pere.PersonalEstudioOtorgado AS DocumentoFecha, pere.PersonalEstudioHasta AS DocumentoFechaDocumentoVencimiento
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url, doc.DocumentoNombreArchivo AS NombreArchivo, 0 AS canDelete,
+				CASE 
+                   WHEN CHARINDEX('.', doc.DocumentoNombreArchivo) > 0 
+                   THEN LOWER(RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1))
+                   ELSE ''
+                END as TipoArchivo
+            FROM PersonalEstudio pere
+            JOIN Documento doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoId = pere.PersonalEstudioPagina1Id
+            left JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
+			Left join  CursoHabilitacion ch on ch.CursoHabilitacionId=pere.PersonalEstudioCursoId
+            WHERE pere.PersonalId IN (@0) and doc.DocumentoTipoCodigo IN ('EST')--  and (pere.PersonalEstudioCursoId IN (2,3,4,5,6,7,8,9,10,12,13,14,15,16) or pere.PersonalEstudioCursoId is null)
 
 
                         `, [PersonalId, fechaActual, PersonalHabilitacionLugarHabilitacionId, PersonalHabilitacionId]);

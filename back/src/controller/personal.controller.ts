@@ -1160,6 +1160,8 @@ export class PersonalController extends BaseController {
     const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro) ? ultnro[0]?.PersonalEstudioUltNro + 1 : 1
 
+    if (tipoEstudioId == 8) throw new ClientException('El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".')
+
     let DocumentoImagenEstudioId = null
     if (docTitulo) {
       const DocumentoImagenEstudio = await queryRunner.query(`
@@ -1689,6 +1691,7 @@ export class PersonalController extends BaseController {
         }
 
       } else {
+        if (infoEstudio.TipoEstudioId == 8) throw new ClientException('El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".')
         return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
       }
 
@@ -1954,7 +1957,7 @@ export class PersonalController extends BaseController {
   }
 
   private async getFormEstudiosByPersonalIdQuery(queryRunner: any, personalId: any) {
-    const estudios:any[] = await queryRunner.query(`
+    const estudios: any[] = await queryRunner.query(`
         SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
         TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioOtorgado PersonalEstudioOtorgado, est.PersonalEstudioHasta PersonalEstudioVencimiento,
         est.PersonalEstudioPagina1Id AS docId
@@ -1962,7 +1965,7 @@ export class PersonalController extends BaseController {
         WHERE est.PersonalId IN (@0)
       `, [personalId]
     )
-    return estudios.map((obj) => {return {...obj, DocTitulo:[]}})
+    return estudios.map((obj) => { return { ...obj, DocTitulo: [] } })
   }
 
   private async getFormFamiliaresByPersonalIdQuery(queryRunner: any, personalId: any) {
@@ -3475,7 +3478,7 @@ UNION ALL
     }
   }
 
-  async valsExeciones(queryRunner:any, form: any) {
+  async valsExeciones(queryRunner: any, form: any) {
     const PersonalId: number = form.PersonalId
     const DocumentoTipoCodigo: string = form.DocumentoTipoCodigo
     const PersonalExencionId: number = form.PersonalExencionId
@@ -3527,7 +3530,7 @@ UNION ALL
     }
 
     // Validar que las fechas no esten en un periodo ya creado
-    const condition = PersonalExencionId? `(PersonalExencionId NOT IN(${PersonalExencionId}))`:'(1=1)'
+    const condition = PersonalExencionId ? `(PersonalExencionId NOT IN(${PersonalExencionId}))` : '(1=1)'
 
     const valDesde = await queryRunner.query(`
       SELECT PersonalExencionId
@@ -3557,7 +3560,7 @@ UNION ALL
     const DocumentoId: number | null = req.body.DocumentoId === 0 ? null : req.body.DocumentoId;
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
     const archivo: any[] = req.body.archivo
-    
+
     const PersonalExencionDesde: Date = req.body.PersonalExencionDesde ? new Date(req.body.PersonalExencionDesde) : null
     const PersonalExencionHasta: Date = req.body.PersonalExencionHasta ? new Date(req.body.PersonalExencionHasta) : null
     const usuario = res.locals.userName
