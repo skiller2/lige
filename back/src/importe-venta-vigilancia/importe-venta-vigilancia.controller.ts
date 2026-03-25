@@ -127,6 +127,19 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
+    name: "Dir. Provincia",
+    type: "number",
+    id: "DomicilioProvinciaId",
+    field: "DomicilioProvinciaId",
+    fieldName: "objdom.DomicilioProvinciaId",
+    searchComponent: "inputForProvinciasSearch",
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+    editable: false
+  },
+  {
     name: "Grupo Actividad",
     type: "string",
     id: "GrupoActividadDetalle",
@@ -589,9 +602,16 @@ LEFT JOIN (
         LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
           AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
 
-        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
 
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+
+        LEFT JOIN (
+          SELECT obj2.ObjetivoId, dom.DomicilioProvinciaId
+          FROM Objetivo obj2
+          LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = obj2.ClienteElementoDependienteId AND nexdom.ClienteId = obj2.ClienteId AND nexdom.NexoDomicilioActual = 1
+          LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+        ) AS objdom ON objdom.ObjetivoId = obj.ObjetivoId
 
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
