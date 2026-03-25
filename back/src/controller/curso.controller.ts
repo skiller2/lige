@@ -384,7 +384,6 @@ export class CursoController extends BaseController {
       CentroCapacitacionId, CentroCapacitacionSedeId, CursoHabilitacionIdForEdit
     } = req.body
 
-    console.log("req.body", req.body)
     let result = []
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
@@ -490,18 +489,18 @@ export class CursoController extends BaseController {
     if (!CursoHabilitacionDescripcion) {
       throw new ClientException(`Debe completar el Descripcion.`)
     }
-    if (!CursoHabilitacionCantidadHoras || CursoHabilitacionCantidadHoras <= 0) {
-      throw new ClientException(`Debe completar el campo Cantidad de Horas y debe ser mayor a 0.`)
-    }
+    // if (!CursoHabilitacionCantidadHoras || CursoHabilitacionCantidadHoras <= 0) {
+    //   throw new ClientException(`Debe completar el campo Cantidad de Horas y debe ser mayor a 0.`)
+    // }
     if (!CursoHabilitacionVigencia || CursoHabilitacionVigencia <= 0) {
       throw new ClientException(`Debe completar el campo Vigencia.`)
     }
     if (!ModalidadCursoCodigo) {
       throw new ClientException(`Debe completar el campo Modalidad.`)
     }
-    if (!CursoHabilitacionInstructor) {
-      throw new ClientException(`Debe completar el campo Instructor.`)
-    }
+    // if (!CursoHabilitacionInstructor) {
+    //   throw new ClientException(`Debe completar el campo Instructor.`)
+    // }
     if (!CentroCapacitacionId) {
       throw new ClientException(`Debe completar el campo ID del Centro de Capacitación.`)
     }
