@@ -1658,14 +1658,14 @@ export class ObjetivosController extends BaseController {
         }
 
         //Grupo Actividad
-        for (const obj of form.infoActividad) {
-            if (!obj.GrupoActividadId) {
-                throw new ClientException(`Debe completar el campo Actividad.`)
-            }
-            if (!obj.GrupoActividadObjetivoDesde) {
-                throw new ClientException(`Debe completar el campo Fecha Desde de Grupo Actividad.`)
-            }
-        }
+        // for (const obj of form.infoActividad) {
+        //     if (!obj.GrupoActividadId) {
+        //         throw new ClientException(`Debe completar el campo Actividad.`)
+        //     }
+        //     if (!obj.GrupoActividadObjetivoDesde) {
+        //         throw new ClientException(`Debe completar el campo Fecha Desde de Grupo Actividad.`)
+        //     }
+        // }
 
         //Habilitacion nesesaria
         if (!form.habilitacion || !form.habilitacion.length) {
