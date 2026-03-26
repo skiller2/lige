@@ -200,8 +200,6 @@ const columnsPersonalDescuentos: any[] = [
     searchComponent: "inputForFechaSearch",
     searchType: 'date',
   }
-
-
 ]
 
 const columnsObjetivosDescuentos: any[] = [
@@ -1253,11 +1251,23 @@ FROM cte
 
       }
 
+      await queryRunner.query(`DELETE cuo
+          FROM PersonalDescuento des
+          JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId 
+            AND DATEADD(MONTH, -1,DATEFROMPARTS(cuo.PersonalDescuentoCuotaAno, cuo.PersonalDescuentoCuotaMes,1)) >= des.FechaAnulacion
+          WHERE des.FechaAnulacion IS NOT NULL
+          AND FechaAnulacion > '2026-03-01' --previene conflictos por sistema de Pablo
+      `)
+
+      const resCountCuotasEliminadas = await queryRunner.query(`SELECT @@ROWCOUNT AS countCuotasEliminadas`);
+      const countCuotasEliminadas = resCountCuotasEliminadas[0].countCuotasEliminadas
+
+
 
       //      throw new ClientException(`DEBUG. PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}`)
       await queryRunner.commitTransaction()
 
-      const resMsg = `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}`
+      const resMsg = `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}, CuotasEliminadas: ${countCuotasEliminadas}`
       await this.procesoAutomaticoLogFin(
         queryRunner,
         ProcesoAutomaticoLogCodigo,
@@ -1269,7 +1279,8 @@ FROM cte
           countPersonalFechaBaja,
           countCuotasGeneradas,
           countSinCuotasGeneradas,
-          countDiferenciaPagasGeneradas
+          countDiferenciaPagasGeneradas,
+          countCuotasEliminadas
         },
         usuario,
         ip
