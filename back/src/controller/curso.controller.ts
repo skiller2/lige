@@ -201,7 +201,7 @@ export class CursoController extends BaseController {
       const Curso = await queryRunner.query(
         `SELECT CursoHabilitacionId
 		    ,CONCAT(TRIM(CursoHabilitacionDescripcion), ' (',ISNULL(CursoHabilitacionCodigo,CursoHabilitacionId), ')') AS CursoHabilitacionDesCod
-        FROM CursoHabilitacion`)
+        FROM CursoHabilitacion WHERE ISNULL(CursoHabilitacionInactivo, 0) = 0`)
       return this.jsonRes(Curso, res);
     } catch (error) {
       return next(error)
@@ -275,7 +275,7 @@ export class CursoController extends BaseController {
         LEFT JOIN CentroCapacitacionSede sede ON sede.CentroCapacitacionId=cur.CursoHabilitacionCentroCapacitacionId AND sede.CentroCapacitacionSedeId=cur.CursoHabilitacionCentroCapacitacionSedeId
 
         LEFT JOIN CentroCapacitacion cencap ON cencap.CentroCapacitacionId=sede.CentroCapacitacionId
-        WHERE ${filterSql} ${orderBy}`
+        WHERE ISNULL(cur.CursoHabilitacionInactivo, 0)= 0 and ${filterSql} ${orderBy}`
       )
 
       this.jsonRes(
