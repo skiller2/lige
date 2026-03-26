@@ -1218,8 +1218,8 @@ FROM cte
           continue
         }
 
-        const cuotaAnio = descuento.AnioUltCuo
-        const cuotaMes = descuento.MesUltCuo
+        let cuotaAnio = descuento.AnioUltCuo
+        let cuotaMes = descuento.MesUltCuo
         if (!cuotaAnio || !cuotaMes)
           throw new ClientException(`No se pudo determinar el período de la próxima cuota a generar para el descuento ${PersonalDescuentoId} del personal ${PersonalDescuentoPersonalId}.`)
 
@@ -1237,7 +1237,8 @@ FROM cte
             0, 'FA'])
 
           countCuotasGeneradas++
-
+          cuotaAnio = per.cuotaAnio
+          cuotaMes = per.cuotaMes
         }
         await queryRunner.query(`UPDATE PersonalDescuento SET PersonalDescuentoCuotaUltNro = @2 WHERE PersonalDescuentoPersonalId =@0 AND PersonalDescuentoId=@1`, [PersonalDescuentoPersonalId, PersonalDescuentoId, PersonalDescuentoCuotaUltNro])
 
