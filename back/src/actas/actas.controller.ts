@@ -173,12 +173,18 @@ export class ActasController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
+      const personalActa = await queryRunner.query(`
+        SELECT COUNT(*) AS count FROM PersonalActa WHERE ActaId = @0
+      `, [ActaId])
+
+      if (personalActa[0].count > 0)
+        throw new ClientException(`No se puede eliminar el acta porque tiene ${personalActa[0].count} registro(s) asociado(s) en Personal.`)
+
       await queryRunner.query(`
         DELETE FROM Acta WHERE ActaId = @0
       `, [ActaId])
-      
       await queryRunner.commitTransaction()
-      this.jsonRes({}, res, 'Carga de nuevo registro exitoso');
+      this.jsonRes({}, res, 'Eliminación de registro exitoso');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
