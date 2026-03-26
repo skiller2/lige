@@ -483,30 +483,30 @@ export class CursoController extends BaseController {
       CursoHabilitacionVigencia, ModalidadCursoCodigo, CursoHabilitacionInstructor,
       CentroCapacitacionId, CentroCapacitacionSedeId } = req
 
-    if (!CursoHabilitacionCodigo) {
-      throw new ClientException(`Debe completar el campo Código.`)
-    }
+    // if (!CursoHabilitacionCodigo) {
+    //   throw new ClientException(`Debe completar el campo 'Código'.`)
+    // }
     if (!CursoHabilitacionDescripcion) {
-      throw new ClientException(`Debe completar el Descripcion.`)
+      throw new ClientException(`Debe completar el campo 'Descripcion' del curso.`)
     }
     // if (!CursoHabilitacionCantidadHoras || CursoHabilitacionCantidadHoras <= 0) {
     //   throw new ClientException(`Debe completar el campo Cantidad de Horas y debe ser mayor a 0.`)
     // }
     if (!CursoHabilitacionVigencia || CursoHabilitacionVigencia <= 0) {
-      throw new ClientException(`Debe completar el campo Vigencia.`)
+      throw new ClientException(`Debe completar el campo 'Vigencia'.`)
     }
     if (!ModalidadCursoCodigo) {
-      throw new ClientException(`Debe completar el campo Modalidad.`)
+      throw new ClientException(`Debe completar el campo 'Modalidad'.`)
     }
     // if (!CursoHabilitacionInstructor) {
-    //   throw new ClientException(`Debe completar el campo Instructor.`)
+    //   throw new ClientException(`Debe completar el campo 'Instructor'.`)
     // }
-    if (!CentroCapacitacionId) {
-      throw new ClientException(`Debe completar el campo ID del Centro de Capacitación.`)
-    }
-    if (!CentroCapacitacionSedeId) {
-      throw new ClientException(`Debe completar el campo ID de la Sede del Centro de Capacitación.`)
-    }
+    // if (!CentroCapacitacionId) {
+    //   throw new ClientException(`Debe completar el campo 'Centro de Capacitación'.`)
+    // }
+    // if (!CentroCapacitacionSedeId) {
+    //   throw new ClientException(`Debe completar el campo 'Sede del Centro de Capacitación'.`)
+    // }
   }
 
 
