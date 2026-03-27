@@ -28,27 +28,27 @@ gestionDescuentosRouter.post('/list/objetivos', [authMiddleware.verifyToken,auth
     gestionDescuentosController.getDescuentosObjetivos(req, res, next)
 });
 
-gestionDescuentosRouter.post('/add', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post('/add', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'Liquidaciones'])], (req, res, next) => {
     gestionDescuentosController.addDescuento(req, res, next)
 });
 
-gestionDescuentosRouter.post('/job-genera-otro-descuento-cuotas', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
+gestionDescuentosRouter.post('/job-genera-otro-descuento-cuotas', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.jobOtroDescuentoCuotas(req, res, next)
 });
 
-gestionDescuentosRouter.post('/job-genera-descuento-cuotas', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
+gestionDescuentosRouter.post('/job-genera-descuento-cuotas', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.jobDescuentoCuotas(req, res, next)
 });
 
-gestionDescuentosRouter.post('/update', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post('/update', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'Liquidaciones'])], (req, res, next) => {
     gestionDescuentosController.updateDescuento(req, res, next)
 });
 
-gestionDescuentosRouter.post('/cancellation/personal/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post('/cancellation/personal/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'Liquidaciones'])], (req, res, next) => {
     gestionDescuentosController.cancellationPersonalOtroDescuento(req, res, next)
 });
 
-gestionDescuentosRouter.post('/cancellation/objetivo/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post('/cancellation/objetivo/', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
     gestionDescuentosController.cancellationObjetivoDescuento(req, res, next)
 });
 
@@ -65,7 +65,7 @@ gestionDescuentosRouter.get("/tables", [authMiddleware.verifyToken,authMiddlewar
     gestionDescuentosController.getTableOptions(req, res, next);
 });
 
-gestionDescuentosRouter.post("/import-xls-descuentos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post("/import-xls-descuentos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'Liquidaciones'])], (req, res, next) => {
     gestionDescuentosController.handleXLSUpload(req, res, next);
 });
 
@@ -90,10 +90,10 @@ gestionDescuentosRouter.get("/cols/carga-manual-objetivo", [authMiddleware.verif
     gestionDescuentosController.getPersonalGridColumnsCargaManualObjetivo(req, res, next);
 });
 
-gestionDescuentosRouter.post("/addDescuentoCargaManualPersonal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post("/addDescuentoCargaManualPersonal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'Liquidaciones'])], (req, res, next) => {
     gestionDescuentosController.addDescuentoCargaManualPersonal(req, res, next);
 });
 
-gestionDescuentosRouter.post("/addDescuentoCargaManualObjetivo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.post("/addDescuentoCargaManualObjetivo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'Liquidaciones'])], (req, res, next) => {
     gestionDescuentosController.addDescuentoCargaManualObjetivo(req, res, next);
 }); 
