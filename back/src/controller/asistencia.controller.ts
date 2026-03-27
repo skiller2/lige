@@ -1329,29 +1329,6 @@ export class AsistenciaController extends BaseController {
       WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2 ${listPersonaId}
       
       UNION
-             
-      SELECT CONCAT('efe',cuo.PersonalDescuentoCuotaId,'-',cuo.PersonalDescuentoId,'-',cuo.PersonalDescuentoPersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, 
-      efe.EfectoDescripcion AS desmovimiento,
-      efe.EfectoDescripcion AS desmovimiento2, 'DESC' tipoint,
-      cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe, cuo.PersonalDescuentoCuotaCuota AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
-      FROM PersonalDescuento des 
-      JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
-      JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
-              JOIN Personal per ON per.PersonalId = des.PersonalDescuentoPersonalId
-              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-
-
-      LEFT JOIN(SELECT gapx.GrupoActividadPersonalPersonalId, MAX(gapx.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal gapx 
-        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gapx.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gapx.GrupoActividadPersonalHasta , '9999-12-31')
-        GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
-
-      
-      WHERE cuo.PersonalDescuentoCuotaAno = @1 AND cuo.PersonalDescuentoCuotaMes = @2 ${listPersonaId}
-      
-      UNION
       
       SELECT CONCAT('ayu',cuo.PersonalPrestamoCuotaId,'-',cuo.PersonalPrestamoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, TRIM(form.FormaPrestamoDescripcion) AS tipomov, 
