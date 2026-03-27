@@ -26,7 +26,7 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
             const limitTime = `${fechaLimite.getHours().toString().padStart(2, '0')}:${fechaLimite.getMinutes().toString().padStart(2, '0')}`
             await flowDynamic([{ body: `⏳ *Período cerrado:* No es posible solicitar ni modificar adelantos en este momento.\n\nLas solicitudes se reciben hasta las *${limitTime} hs* del día *${fechaLimite.getDate()}* de cada mes.`, delay }])
             for (const adelanto of adelantos) {
-                await flowDynamic([{ body: `📝 Registramos que ya posees un adelanto de *$${adelanto.PersonalPrestamoMonto.toLocaleString('es-AR')}* para el período *${adelanto.PersonalPrestamoAplicaEl}*.`, delay }])
+                await flowDynamic([{ body: `📝 Registramos que ya tienes un adelanto de *$${adelanto.PersonalPrestamoMonto.toLocaleString('es-AR')}* para el período *${adelanto.PersonalPrestamoAplicaEl}*.`, delay }])
             }
             return gotoFlow(flowMenu)
         }
@@ -40,24 +40,27 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
         } else {
             const adelanto = adelantos[adelantos.length - 1]   //Leo el último adelanto
 
-            await flowDynamic([{ body: `💳 Ya tienes una solicitud de adelanto por *$${adelanto.PersonalPrestamoMonto.toLocaleString('es-AR')}* para el período *${adelanto.PersonalPrestamoAplicaEl}*.`, delay }])
+            await flowDynamic([{ body: `💳 Ya tienes una solicitud de adelanto por *$${adelanto.PersonalPrestamoMonto.toLocaleString('es-AR')}* para el período *${adelanto.PersonalPrestamoAplicaEl}*\n(Fecha solicitado: ${adelanto.PersonalPrestamoAudFechaIng?.toLocaleDateString()}).`, delay }])
             switch (adelanto.PersonalPrestamoAprobado) {
                 case 'N':
-                    await flowDynamic([{ body: `Ha sido rechazado. No se puede solicitar un nuevo adelanto.`, delay }])
+                    await flowDynamic([{ body: `❌ Tu solicitud ha sido rechazada. No se puede solicitar un nuevo adelanto.`, delay }])
                     if (adelantos.length >= maxCantAdelantos)
                         return gotoFlow(flowMenu)
                     else
                         return gotoFlow(flowFormAdelanto)
                     break;
                 case 'S':
-                    await flowDynamic([{ body: `Ya ha sido confirmado. No se puede solicitar un nuevo adelanto.`, delay }])
-                    if (adelantos.length >= maxCantAdelantos)
+                    console.log('adelanto', adelanto)
+                    await flowDynamic([{ body: `✅ Tu solicitud ya ha sido confirmada (Código: ${adelanto.PersonalId}/${adelanto.PersonalPrestamoId}).`, delay }])
+                    if (adelantos.length >= maxCantAdelantos) {
+                        await flowDynamic([{ body: `📊 Has alcanzado el límite máximo de ${maxCantAdelantos} adelantos permitidos. No puedes solicitar más por ahora.`, delay }])
                         return gotoFlow(flowMenu)
+                    }
                     else
                         return gotoFlow(flowFormAdelanto)
                     break;
                 case 'A':
-                    await flowDynamic([{ body: `Ha sido anulado. No puede solicitar un nuevo adelanto.`, delay }])
+                    await flowDynamic([{ body: `🚫 Tu solicitud ha sido anulada (Código: ${adelanto.PersonalId}/${adelanto.PersonalPrestamoId}). No puedes solicitar un nuevo adelanto.`, delay }])
                     if (adelantos.length >= maxCantAdelantos)
                         return gotoFlow(flowMenu)
                     else
@@ -65,7 +68,7 @@ export const flowAdelanto = addKeyword(EVENTS.ACTION)
                     break;
                 default:
                     await state.update({ adelanto: { anio, mes, maxImporte, minImporte, ...adelanto } })
-                    await flowDynamic([{ body: `🔄 La solicitud aún no ha sido confirmada. ¿Deseas modificar el monto? (*Si/No*)`, delay }])
+                    await flowDynamic([{ body: `🔄 Tu solicitud aún no ha sido confirmada. ¿Deseas modificar el monto? (*Si/No*)`, delay }])
                     break;
             }
 
@@ -95,7 +98,7 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         const { maxImporte } = PersonalController.getAdelantoLimits(new Date())
 
-        let msg = `Ingrese el importe del adelanto`
+        let msg = `Ingresa el importe del adelanto`
         if (myState.adelanto.PersonalPrestamoMonto) msg += ` o 0 para anularlo`
 
         let helpText = `(Límite máximo: *$${maxImporte.toLocaleString('es-AR')}*)`
@@ -116,6 +119,8 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             const cleanedImporte = String(ctx.body).replace(/[\$\.\s]/g, '').replace(',', '.');
             const importe: number = parseFloat(cleanedImporte)
 
+            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
+
             // Validar que cleanedImporte solo contenga dígitos y opcionalmente un punto decimal
             if (!/^\d+(\.\d+)?$/.test(cleanedImporte)) {
                 return fallBack('El valor ingresado contiene caracteres no válidos. Ingrese solo números, reintente.')
@@ -125,8 +130,6 @@ export const flowFormAdelanto = addKeyword(EVENTS.ACTION)
             const anio: number = myState.adelanto.anio
             const mes: number = myState.adelanto.mes
             const personalId = myState.personalId
-
-            if (String(ctx.body).toLowerCase() == 'm') return gotoFlow(flowMenu)
 
             if (isNaN(importe)) return fallBack('El valor ingresado no es válido, reintente.')
 

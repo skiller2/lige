@@ -431,7 +431,8 @@ export class PersonalController extends BaseController {
 
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
     return await dbServer.dataSource.query(`
-      SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado FROM PersonalPrestamo ade
+      SELECT ade.PersonalPrestamoId, ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado, ade.PersonalPrestamoAudFechaIng 
+      FROM PersonalPrestamo ade
       WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
       AND ade.PersonalId = @0
       `, [personalId, anio, mes]
