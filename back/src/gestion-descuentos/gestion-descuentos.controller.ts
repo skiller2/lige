@@ -2272,6 +2272,9 @@ FROM cte
             case 49:
               result = await this.importaXLSOtroDescuentoPrepaga(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, queryRunner, usuario, ip)
               break;
+            case 50:
+              throw new ClientException(`No se permite la carga masiva de este descuento, por favor cargar de forma manual.`)
+              break;
 
             default:
               result = await this.importaXLSOtroDescuento(columnsXLS, sheet1, file, fechaActual, den_documento, anioRequest, mesRequest, dataset, descuentoIdRequest, CuentaTipoCodigo, queryRunner, usuario, ip)
@@ -2535,6 +2538,8 @@ FROM cte
       const AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
       if (!DescuentoId)
         throw new ClientException(`Debe indicar un tipo de descuento`)
+
+      if (DescuentoId == 50) throw new ClientException(`Alta manual de descuento de Efectos deshabilitada.`)
 
       const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (checkrecibos[0]?.ind_recibos_generados == 1)
