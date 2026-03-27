@@ -1305,7 +1305,7 @@ export class AsistenciaController extends BaseController {
 
 
   static async getDescuentos(anio: number, mes: number, personalId: number[]) {
-    const filterSql = (personalId.length == 0) ? '1=1' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
+    const filterSql = (personalId.length == 0) ? ' 1=1' : ' per.PersonalId IN (' + personalId.join(',') + ')'
     //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
 
     const queryRunner = dataSource.createQueryRunner();
