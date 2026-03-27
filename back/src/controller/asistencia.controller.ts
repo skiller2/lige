@@ -3,16 +3,15 @@ import { BaseController, ClientException } from "./basecontroller.ts";
 import { dataSource } from "../data-source.ts";
 import type { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller.ts";
-import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { CustodiaController } from "./custodia.controller.ts";
 import CryptoJS from "crypto-js";
 //import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
-import { FileUploadController } from "./file-upload.controller.ts";
-import { fileUploadController } from "./controller.module.ts";
-import { get } from "http";
+import { GestionDescuentosController } from "../gestion-descuentos/gestion-descuentos.controller.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Options } from "../schemas/filtro.ts";
 
 interface DigestAuthOptions {
   username: string;
@@ -1306,8 +1305,17 @@ export class AsistenciaController extends BaseController {
 
 
   static async getDescuentos(anio: number, mes: number, personalId: number[]) {
-    const listPersonaId = (personalId.length == 0) ? '' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
+    const filterSql = (personalId.length == 0) ? '1=1' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
     //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    const orderBy = orderToSQL([])
+
+    
+
+    const descuentosX = await GestionDescuentosController.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
+    
     const descuentos = await dataSource.query(
       `
       SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
@@ -1326,7 +1334,7 @@ export class AsistenciaController extends BaseController {
         GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
-      WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2 ${listPersonaId}
+      WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2 AND ${filterSql}
       
       UNION
              
@@ -1349,7 +1357,7 @@ export class AsistenciaController extends BaseController {
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
 
       
-      WHERE cuo.PersonalDescuentoCuotaAno = @1 AND cuo.PersonalDescuentoCuotaMes = @2 ${listPersonaId}
+      WHERE cuo.PersonalDescuentoCuotaAno = @1 AND cuo.PersonalDescuentoCuotaMes = @2 AND ${filterSql}
       
       UNION
       
@@ -1370,7 +1378,7 @@ export class AsistenciaController extends BaseController {
         GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
-      WHERE cuo.PersonalPrestamoCuotaAno = @1 AND cuo.PersonalPrestamoCuotaMes = @2 ${listPersonaId}
+      WHERE cuo.PersonalPrestamoCuotaAno = @1 AND cuo.PersonalPrestamoCuotaMes = @2 AND ${filterSql}
       
       UNION
       
@@ -1396,7 +1404,7 @@ export class AsistenciaController extends BaseController {
         GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
-      WHERE des.PersonalPrepagaDescuentoPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) ${listPersonaId}
+      WHERE des.PersonalPrepagaDescuentoPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) AND ${filterSql}
 
       UNION
 
@@ -1417,7 +1425,7 @@ export class AsistenciaController extends BaseController {
         GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
-      WHERE ren.PersonalRentasPagosPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) ${listPersonaId}
+      WHERE ren.PersonalRentasPagosPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) AND ${filterSql}
 
       UNION
 
@@ -1438,7 +1446,7 @@ export class AsistenciaController extends BaseController {
         GROUP BY gapx.GrupoActividadPersonalPersonalId) AS gapx ON gapx.GrupoActividadPersonalPersonalId = per.PersonalId
       LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND gap.GrupoActividadPersonalDesde = gapx.GrupoActividadPersonalDesde
       
-      WHERE ren.PersonalRentasPagosPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) ${listPersonaId}
+      WHERE ren.PersonalRentasPagosPeriodo=CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) AND ${filterSql}
 
       UNION
 
@@ -1463,7 +1471,7 @@ JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = 
 
 WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
 AND des.ObjetivoDescuentoDescontar = 'CO'
- ${listPersonaId}
+ AND ${filterSql}
 
       UNION
 
@@ -1498,7 +1506,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       
-      WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 ${listPersonaId}
+      WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 AND ${filterSql}
 
       ORDER BY ApellidoNombre,tipomov,desmovimiento2
       `,

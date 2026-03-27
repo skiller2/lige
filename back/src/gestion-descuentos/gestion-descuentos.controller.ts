@@ -615,12 +615,12 @@ export class GestionDescuentosController extends BaseController {
     return this.jsonRes(columnsPersonalDescuentosCargaManualObjetivo, res)
   }
 
-  private async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
+  static async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
     let condition = '(1=1)'
     if (anio && mes) condition = `perdes.anio = @1 AND perdes.mes = @2`
 
     return await queryRunner.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
+      SELECT1  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
@@ -660,7 +660,7 @@ export class GestionDescuentosController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columnsPersonalDescuentos);
       const orderBy = orderToSQL(options.sort)
 
-      const lista: any[] = await this.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
+      const lista: any[] = await GestionDescuentosController.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
 
       for (const descuento of lista) {
         descuento.personal = { id: descuento.PersonalId, fullName: descuento.ApellidoNombre }
