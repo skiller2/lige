@@ -3,13 +3,12 @@
   <ng-container *nzDrawerContent>
 
     <nz-card nzType="inner" nzTitle="Descuento de Objetivo">
-      <form [formGroup]="formDesc">
-
+      <form (ngSubmit)="save()">
+      <fieldset [disabled]="this.formDescuentoObjetivo().disabled()">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
           <nz-form-control [nzMd]="18">
-            <nz-date-picker formControlName="AplicaEl" nzMode="month" nzFormat="MM/yyyy"
-            (ngModelChange)="onDescuentosChange($event)"></nz-date-picker>
+            <nz-date-picker [formField]="formDescuentoObjetivo.AplicaEl" nzMode="month" nzFormat="MM/yyyy"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
 
@@ -17,9 +16,9 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica A</nz-form-label>
           <nz-form-control [nzMd]="18">
-            <nz-select formControlName="AplicaA" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
+            <nz-select [formField]="formDescuentoObjetivo.AplicaA" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
               nzShowSearch>
-              @for (option of $optionsAplicaA | async; track option) {
+              @for (option of optionsAplicaA(); track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -29,9 +28,9 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Tipo</nz-form-label>
           <nz-form-control [nzMd]="18">
-            <nz-select formControlName="DescuentoId" nzPlaceHolder="tipo" nzAllowClear
+            <nz-select [formField]="formDescuentoObjetivo.DescuentoId" nzPlaceHolder="tipo" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              @for (option of $optionsTipo | async; track option) {
+              @for (option of optionsTipo(); track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -41,16 +40,15 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Objetivo</nz-form-label>
           <nz-form-control [nzMd]="18">
-            <app-objetivo-search formControlName="ObjetivoId"
-            (ngModelChange)="objetivoDetalleChange($event)"></app-objetivo-search>
+            <app-objetivo-search [formField]="formDescuentoObjetivo.ObjetivoId"></app-objetivo-search>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Responsable</nz-form-label>
-          @if ($objetivoDetalle| async; as objetivoDetalle) {
+          @if (objetivoDetalle.value(); as objetivoDetalle) {
             <nz-form-control [nzMd]="18" [nzSpan]="9">
-              @if (ObjetivoId()>0) {
+              @if (formDescuentoObjetivo.ObjetivoId()) {
                 <app-view-responsable [list]="objetivoDetalle.responsable"></app-view-responsable>
               }
             </nz-form-control>
@@ -59,12 +57,12 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Contrato</nz-form-label>
-          @if ($objetivoDetalle| async; as objetivoDetalle) {
+          @if (objetivoDetalle.value(); as detalle) {
             <nz-form-control [nzMd]="18" [nzSpan]="9">
-              @if (objetivoDetalle.contratos.length==0 && ObjetivoId()>0) {
+              @if (detalle.contratos && detalle.contratos.length == 0 && descuentoObjetivo().ObjetivoId > 0) {
                 <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
               }
-              @for (contrato of objetivoDetalle.contratos; track contrato) {
+              @for (contrato of detalle.contratos; track contrato) {
                 <li>
                   @if (!contrato.ContratoFechaHasta) {
                     <span>Desde</span>
@@ -83,92 +81,82 @@
           <nz-form-item class="marginElement">
             <nz-form-label [nzXs]="5">Cant.Cuotas</nz-form-label>
             <nz-form-control [nzMd]="6">
-              <input nz-input placeholder="" formControlName="Cuotas" type="number" (input)="importeCuotaChange()" />
+              <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Cuotas" type="number" />
             </nz-form-control>
 
             <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
             <nz-form-control [nzMd]="7">
-              <input nz-input placeholder="" formControlName="Importe" type="text" appDotToComma mask="separator.2"
-                (input)="importeCuotaChange()" />
+              <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Importe" type="text" appDotToComma mask="separator.2"/>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
+            <nz-form-control [nzMd]="6">
+              <input nz-input [formField]="formDescuentoObjetivo.importeCuota" type="text" appDotToComma mask="separator.2"
+                class="ant-input text-right" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="5">Detalle</nz-form-label>
+            <nz-form-control [nzMd]="18">
+              <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Detalle" type="text" />
+            </nz-form-control>
+          </nz-form-item>
+        </fieldset>
+
+          @if(descuentoObjetivo().FechaAnulacion) {
+            <nz-form-item class="marginElement">
+              <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
+              <nz-form-control [nzMd]="18">
+                <nz-date-picker [formField]="formDescuentoObjetivo.FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
+          }
 
+          @if (descuentoObjetivo().DetalleAnulacion || cancelDesc()) {
             <nz-form-item class="marginElement">
-              <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
-              <nz-form-control [nzMd]="6">
-                <input nz-input formControlName="importeCuota" type="text" appDotToComma mask="separator.2"
-                  class="ant-input text-right" [readonly]="true" />
-                </nz-form-control>
-              </nz-form-item>
+              <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
+              <nz-form-control [nzMd]="18">
+                <input nz-input placeholder="" [formField]="formDescuentoObjetivo.DetalleAnulacion" type="text" />
+              </nz-form-control>
+            </nz-form-item>
+          }
 
-              <nz-form-item class="marginElement">
-                <nz-form-label [nzXs]="5">Detalle</nz-form-label>
-                <nz-form-control [nzMd]="18">
-                  <input nz-input placeholder="" formControlName="Detalle" type="text" />
-                </nz-form-control>
-              </nz-form-item>
-
-              @if(formDesc.get('FechaAnulacion')?.value) {
-
-                <nz-form-item class="marginElement">
-                  <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
-                  <nz-form-control [nzMd]="18">
-                    <nz-date-picker formControlName="FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
-                  </nz-form-control>
-                </nz-form-item>
-              }
-
-              @if (DetalleAnulacion() || cancelDesc()) {
-                <nz-form-item class="marginElement">
-                  <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
-                  <nz-form-control [nzMd]="18">
-                    <input nz-input placeholder="" formControlName="DetalleAnulacion" type="text" />
-                  </nz-form-control>
-                </nz-form-item>
-              }
-
-              @if (formDesc.get('ImportacionDocumentoId')?.value) {
-                <nz-form-item class="marginElement">
-                  <nz-form-label [nzXs]="5">Importación documento</nz-form-label>
-                  <nz-form-control [nzMd]="18">
-                    <input nz-input placeholder="" formControlName="ImportacionDocumentoId" type="text" />
-                  </nz-form-control>
-                </nz-form-item>
-              }
-
-              @if (formDesc.get('FechaAnulacion')?.value) {
-                <nz-form-item class="marginElement">
-                  <nz-form-label [nzXs]="5">Fecha anulación</nz-form-label>
-                  <nz-form-control [nzMd]="18">
-                    <nz-date-picker formControlName="FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
-                  </nz-form-control>
-                </nz-form-item>
-              }
+          @if (descuentoObjetivo().ImportacionDocumentoId) {
+            <nz-form-item class="marginElement">
+              <nz-form-label [nzXs]="5">Importación documento</nz-form-label>
+              <nz-form-control [nzMd]="18">
+                <input nz-input placeholder="" [formField]="formDescuentoObjetivo.ImportacionDocumentoId" type="number"/>
+              </nz-form-control>
+            </nz-form-item>
+          }
 
 
-              <nz-form-item>
-                <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-                  @if (formDesc.enabled && !cancelDesc()) {
-                    <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formDesc.pristine"
-                      >
-                      {{ 'app.btn.save' | i18n }}
-                    </button>
-                  }
-                  <button [disabled]="!(id() && !ObjetivoDescuentoId() && !objetivoId())" nzType="primary" nz-button
-                    (click)="resetForm()">
-                    {{ 'app.btn.clear.form' | i18n }}
-                  </button>
-                  @if (cancelDesc() && formDesc.enabled) {
-                    <button nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()"
-                      [disabled]="formDesc.pristine">
-                      Anular
-                    </button>
-                  }
-                </nz-form-control>
-              </nz-form-item>
-
-            </form>
-          </nz-card>
+        <nz-form-item>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+            @if (!formDescuentoObjetivo().disabled() && !cancelDesc()) {
+              <button type="submit" nzType="primary" nz-button [nzLoading]="isLoading()"
+                >
+                {{ 'app.btn.save' | i18n }}
+              </button>
+            }
+            <button type="button" [disabled]="!(formDescuentoObjetivo.id() && !ObjetivoDescuentoId() && !objetivoId())" nzType="primary" nz-button
+              (click)="resetForm()">
+              {{ 'app.btn.clear.form' | i18n }}
+            </button>
+            
+            @if (cancelDesc() && formDescuentoObjetivo().disabled()) {
+              <button type="button" nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()">
+                Anular
+              </button>
+            }
+          </nz-form-control>
+        </nz-form-item>
+      
+      </form>
+    </nz-card>
 
           <!-- <nz-form-control *ngIf="$listaDecuentosPer | async as listaDecuentosPer ">
           <nz-table #list [nzData]="listaDecuentosPer" nzSize="small" [nzPageSize]="100000000"
@@ -196,5 +184,5 @@
           </nz-table>
         </nz-form-control> -->
 
-      </ng-container>
-    </nz-drawer>
+  </ng-container>
+</nz-drawer>

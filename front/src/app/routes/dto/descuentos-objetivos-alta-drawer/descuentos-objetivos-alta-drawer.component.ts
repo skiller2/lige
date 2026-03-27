@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, output, untracked, resource } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -6,22 +6,39 @@ import { CommonModule } from '@angular/common';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FormBuilder, FormArray } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { applyEach, disabled, FieldTree, form, FormField, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+export interface FormDesc {
+    id: number;
+    AplicaEl: Date | null;
+    AplicaA: Date | null;
+    DescuentoId: number;
+    ObjetivoId: number;
+    Cuotas: number;
+    Importe: string;
+    importeCuota: string;
+    Detalle: string;
+    FechaAnulacion: Date | null;
+    DetalleAnulacion: string;
+    ImportacionDocumentoId: number | null;
+    oldObjetivoId: number;
+}
 
 @Component({
     selector: 'app-descuentos-objetivos-alta-drawer',
     templateUrl: './descuentos-objetivos-alta-drawer.component.html',
     styleUrl: './descuentos-objetivos-alta-drawer.component.scss',
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, ObjetivoSearchComponent, ViewResponsableComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule,
+        ObjetivoSearchComponent, ViewResponsableComponent, FormField],
     providers: [AngularUtilService],
-    // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DescuentosObjetivosAltaDrawerComponent {
     isLoading = signal(false);
@@ -34,168 +51,137 @@ export class DescuentosObjetivosAltaDrawerComponent {
     isAnulacion = input<boolean>(false);
     onAddorUpdate = output()
 
+    private searchService = inject(SearchService)
+    private apiService = inject(ApiService)
     private readonly loadingSrv = inject(LoadingService);
 
-    constructor(
-        private searchService: SearchService,
-        private apiService: ApiService,
-        // private settingService: SettingsService,
-    ) {
-        effect(async () => {
-            const visible = this.visibleDesc()
-            if (visible) {
-                if (this.ObjetivoDescuentoId() && this.objetivoId()) {
-                    const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
-                    infoDesc.oldObjetivoId = infoDesc.ObjetivoId
-                    this.formDesc.reset(infoDesc)
-                    this.importeCuotaChange()
-                    this.formDesc.markAsUntouched()
-                    this.formDesc.markAsPristine()
-                }
-
-                if (this.disabled()) {
-                    this.formDesc.disable();
-                    if (this.isAnulacion()) {
-                        this.formDesc.get('DetalleAnulacion')?.enable();
-                    }
-                } else {
-                    this.formDesc.enable()
-                }
-
-                this.formDesc.get('FechaAnulacion')?.disable()
-                this.formDesc.get('ImportacionDocumentoId')?.disable()
-            }
-            else {
-                this.formDesc.reset()
-                this.formDesc.enable()
-            }
-            this.formDesc.get('importeCuota')?.disable()
-        })
-    }
-    private destroy$ = new Subject();
-
-    selectedPersonalIdChange$ = new BehaviorSubject('');
-    selectedObjetivoIdChange$ = new BehaviorSubject(0);
-    objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
-
-    fb = inject(FormBuilder)
-    formDesc = this.fb.group({
+    private descuentoObjetivoDefault: FormDesc = {
         id: 0,
-        AplicaA: '', DescuentoId: 0, ObjetivoId: 0, AplicaEl: new Date(),
-        Cuotas: 1, Importe: null, Detalle: '',
+        AplicaA: null, DescuentoId: 0, ObjetivoId: 0, AplicaEl: new Date(),
+        Cuotas: 1, Importe: '', Detalle: '',
         DetalleAnulacion: '', importeCuota: '',
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
         oldObjetivoId: 0
+    }
 
+    readonly descuentoObjetivo = signal<FormDesc>(this.descuentoObjetivoDefault);
+
+    readonly formDescuentoObjetivo = form(this.descuentoObjetivo, (p) => {
+        disabled(p, () => this.disabled())
+        readonly(p.DetalleAnulacion, () => (this.disabled() && !this.isAnulacion()))
+        disabled(p.FechaAnulacion, () => true)
+        disabled(p.ImportacionDocumentoId, () => true)
+        readonly(p.importeCuota, () => true)
     })
 
-    $optionsAplicaA = this.searchService.getDecuentosAplicaAOptions();
-    $optionsTipo = this.searchService.getDecuentosTipoOptions();
-    $objetivoDetalle = this.selectedObjetivoIdChange$.pipe(
-        debounceTime(50),
-        switchMap(objetivoId => {
-            return this.getObjetivoDetalle(objetivoId, this.anio(), this.mes())
-                .pipe(
-                    //                  switchMap((data:any) => { return data}),
-                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-                    tap({
-                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
-                    })
-                );
-        })
-    );
+    loadEffect = effect(async () => {
+        if (!this.visibleDesc()) return;
 
-    id(): number {
-        const value = this.formDesc.get("id")?.value
-        if (value) return value
-        return 0
-    }
+        const ObjetivoDescuentoId = this.ObjetivoDescuentoId();
+        const objetivoId = this.objetivoId();
 
-    ObjetivoId(): number {
-        const value = this.formDesc.get("ObjetivoId")?.value
-        if (value) return value
-        return 0
-    }
-
-    anio(): number {
-        const value = this.formDesc.get("AplicaEl")?.value
-        if (value) return new Date(value).getFullYear()
-        return 0
-    }
-
-    mes(): number {
-        const value = this.formDesc.get("AplicaEl")?.value
-        if (value) return new Date(value).getMonth() + 1
-        return 0
-    }
-
-    Importe(): number {
-        const value = this.formDesc.get("Importe")?.value
-        if (value) return value
-        return 0
-    }
-
-    Cuotas(): number {
-        const value = this.formDesc.get("Cuotas")?.value
-        if (value) return value
-        return 0
-    }
-
-    DetalleAnulacion(): string {
-        const value = this.formDesc.get("DetalleAnulacion")?.value
-        if (value?.length) return value
-        return ''
-    }
-
-    FechaAnulacion(): Date | null {
-        const value = this.formDesc.get("FechaAnulacion")?.value
-        if (value) {
-            const date = new Date(value)
-            return date
+        if (ObjetivoDescuentoId && objetivoId) {
+            void this.loadDescuentoObjetivo();
+        }else {
+            untracked(() => queueMicrotask(() => this.resetForm()));
         }
-        return null
+    });
+
+    importeCuotaChange = effect(async () => {
+        const state = this.descuentoObjetivo()
+        const Importe = Number(this.descuentoObjetivo().Importe)
+        const Cuotas = Number(this.descuentoObjetivo().Cuotas)
+        let importeCuota = ''
+        if (Importe && Cuotas) {
+            importeCuota = (Importe / Cuotas).toString()
+        }
+
+        if (state.importeCuota === importeCuota) return;
+
+        this.descuentoObjetivo.update((state) => {
+            return { ...state, importeCuota }
+        })
+    });
+
+    async loadDescuentoObjetivo() {
+        const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
+        // console.log('infoDesc: ', infoDesc);
+        
+        infoDesc.oldObjetivoId = infoDesc.ObjetivoId
+        infoDesc.AplicaEl = infoDesc.AplicaEl? new Date(infoDesc.AplicaEl) : null
+        infoDesc.FechaAnulacion = infoDesc.FechaAnulacion? new Date(infoDesc.FechaAnulacion) : null
+        this.descuentoObjetivo.set(infoDesc)
+        
+        setTimeout(() => {
+            this.formDescuentoObjetivo().reset()
+        }, 500)
     }
+
+    // private destroy$ = new Subject();
+
+    // selectedObjetivoIdChange$ = new BehaviorSubject(0);
+    // objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+
+    optionsAplicaA = toSignal(this.searchService.getDecuentosAplicaAOptions(), { initialValue: [] });
+    optionsTipo = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
+    objetivoDetalle = resource({
+        params: () => ({ ObjetivoId: this.inputObjetivoId(), anio: this.anio(), mes: this.mes() }),
+        loader: async ({ params }) => {
+            
+            if (params.ObjetivoId && params.anio && params.mes) {
+                return await firstValueFrom(this.getObjetivoDetalle(params.ObjetivoId, params.anio, params.mes))
+            }
+        }
+    })
+
+    anio = computed(() => {
+        const value = this.descuentoObjetivo().AplicaEl
+        return value ? new Date(value).getFullYear() : 0
+    });
+
+    mes = computed(() => {
+        const value = this.descuentoObjetivo().AplicaEl
+        return value ? new Date(value).getMonth() + 1 : 0
+    });
+
+    inputObjetivoId = computed(() => {
+        return this.descuentoObjetivo().ObjetivoId
+    });
 
     async ngOnInit() { }
 
-    ngOnDestroy(): void {
-        this.destroy$.next('');
-        this.destroy$.complete();
-    }
-
-    async onDescuentosChange(event: any) {
-        this.selectedPersonalIdChange$.next('');
-        this.selectedObjetivoIdChange$.next(this.ObjetivoId());
-    }
-
     async save() {
-        this.isLoading.set(true)
-        let values = this.formDesc.getRawValue()
-        try {
-            if (values.id) {
-                await firstValueFrom(this.apiService.updateDescuento(values))
-            } else {
-                const res = await firstValueFrom(this.apiService.addDescuento(values))
-                if (res.data.id)
-                    this.formDesc.patchValue({ id: res.data.id, oldObjetivoId: values.ObjetivoId })
-            }
-            this.onAddorUpdate.emit()
-            this.selectedPersonalIdChange$.next('')
-            this.formDesc.markAsUntouched()
-            this.formDesc.markAsPristine()
-        } catch (e) {
+        await submit(this.formDescuentoObjetivo, async (form) => {
+            this.isLoading.set(true)
+            let values = form().value()
+            try {
+                if (values.id) {
+                    await firstValueFrom(this.apiService.updateDescuento(values))
+                } else {
+                    const res = await firstValueFrom(this.apiService.addDescuento(values))
+                    if (res.data.id)
+                        this.descuentoObjetivo.update((state) => {
+                            return { ...state, id: res.data.id, oldObjetivoId: values.ObjetivoId }
+                        })
+                }
+                this.onAddorUpdate.emit()
+                form().reset()
+            } catch (e) {
 
-        }
-        this.isLoading.set(false)
+            }
+            this.isLoading.set(false)
+        })
     }
 
     resetForm() {
-        this.formDesc.reset()
+        this.descuentoObjetivo.set(this.descuentoObjetivoDefault)
+
+        this.formDescuentoObjetivo().reset()
     }
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
-        this.loadingSrv.open({ type: 'spin', text: '' })
+        // this.loadingSrv.open({ type: 'spin', text: '' })
         return forkJoin([
             this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
@@ -208,27 +194,13 @@ export class DescuentosObjetivosAltaDrawerComponent {
         );
     }
 
-    objetivoDetalleChange(event: any) {
-        this.selectedObjetivoIdChange$.next(event)
-    }
-
-    importeCuotaChange() {
-        if (this.Importe() && this.Cuotas())
-            this.formDesc.get('importeCuota')?.setValue((this.Importe() / this.Cuotas()).toString())
-        else
-            this.formDesc.get('importeCuota')?.setValue('')
-    }
-
     async cancel() {
         this.isLoading.set(true)
-        let values = this.formDesc.getRawValue()
+        let values = this.descuentoObjetivo()
         try {
             if (this.ObjetivoDescuentoId() && this.objetivoId()) {
                 await firstValueFrom(this.apiService.cancellationObjetivoDescuento(values))
                 this.onAddorUpdate.emit()
-                this.selectedPersonalIdChange$.next('')
-                this.formDesc.markAsUntouched()
-                this.formDesc.markAsPristine()
             }
         } catch (e) { }
         this.isLoading.set(false)
