@@ -205,7 +205,7 @@ export class AdelantosController extends BaseController {
   async delAdelanto(personalId: number, anio: number, mes: number, monto: number, ip, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const now = new Date();
-    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
+    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 31, 23, 59, 0); // 23:59 del día 31
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -235,7 +235,7 @@ export class AdelantosController extends BaseController {
   }
 
 
-  periodoAnterior(per: {anio:number,mes:number}): {anio:number,mes:number} {
+  periodoAnterior(per: { anio: number, mes: number }): { anio: number, mes: number } {
     if (per.mes > 1) {
       return { anio: per.anio, mes: per.mes - 1 };
     }
@@ -250,7 +250,8 @@ export class AdelantosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const FormaPrestamoId = 7 //Adelanto
     const now = new Date();
-    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
+    // const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
+    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 31, 23, 59, 0); // 23:59 del día 31
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -289,7 +290,7 @@ export class AdelantosController extends BaseController {
           errormsg.push(`No se puede solicitar adelanto, la persona no se encuentra registrada en el Bot`)
         } else {
 
-          errormsg.push(`No se puede solicitar adelanto, recibos no vistos:  ` + bot[0].descarga + ((bot[0].mes_ant) ? `, ${bot[0].descarga_ant}` : '')) 
+          errormsg.push(`No se puede solicitar adelanto, recibos no vistos:  ` + bot[0].descarga + ((bot[0].mes_ant) ? `, ${bot[0].descarga_ant}` : ''))
 
           // const sendit = await AccesoBotController.enqueBotMsg(personalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
           // if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
