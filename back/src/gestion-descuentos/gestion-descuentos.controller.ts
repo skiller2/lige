@@ -620,7 +620,7 @@ export class GestionDescuentosController extends BaseController {
     if (anio && mes) condition = `perdes.anio = @1 AND perdes.mes = @2`
 
     return await queryRunner.query(`
-      SELECT1  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
+      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
