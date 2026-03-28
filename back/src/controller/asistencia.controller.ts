@@ -1,5 +1,5 @@
 import type { NextFunction, Response, query } from "express";
-import { BaseController, ClientException } from "./basecontroller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller.ts";

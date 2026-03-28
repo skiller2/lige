@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "./basecontroller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";

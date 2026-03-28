@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { ClientException } from "../controller/basecontroller.ts";
+import { ClientException } from "../controller/base.controller.ts";
 
 interface Periodo {
   year: number;

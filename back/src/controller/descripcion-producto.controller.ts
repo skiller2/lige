@@ -1,4 +1,4 @@
-import { BaseController } from "./basecontroller.ts";
+import { BaseController } from "./base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { Request, NextFunction, Response } from "express";
 

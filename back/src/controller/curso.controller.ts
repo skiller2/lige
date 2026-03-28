@@ -1,5 +1,5 @@
 import type { NextFunction, Response } from "express";
-import { BaseController, ClientException } from "./basecontroller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 

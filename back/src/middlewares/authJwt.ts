@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { BaseController } from "../controller/basecontroller.ts";
+import { BaseController } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {

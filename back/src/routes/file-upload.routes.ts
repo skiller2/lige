@@ -5,7 +5,7 @@ import { fileUploadController } from "../controller/controller.module.ts";
 import multer from "multer";
 import type { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
-import { ClientException } from "../controller/basecontroller.ts";
+import { ClientException } from "../controller/base.controller.ts";
 
 
 

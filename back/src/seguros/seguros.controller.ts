@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { QueryRunner } from "typeorm";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";

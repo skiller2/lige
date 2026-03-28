@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "../controller/basecontroller.ts";
+import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";

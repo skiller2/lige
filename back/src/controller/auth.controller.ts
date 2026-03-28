@@ -7,7 +7,7 @@ import jsonwebtoken, { } from "jsonwebtoken";
 import { dataSource } from "../data-source.ts";
 import type { NextFunction, Request } from "express";
 
-import { BaseController, ClientException } from "./basecontroller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
 
 export class AuthController extends BaseController {
 

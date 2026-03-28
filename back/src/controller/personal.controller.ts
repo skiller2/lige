@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "./basecontroller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
 import type { PersonaObj } from "../schemas/personal.schemas.ts";
 import { dataSource } from "../data-source.ts";
 import type { Response } from "express";

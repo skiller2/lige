@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "./basecontroller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
 import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source.ts";
 import type { Response,NextFunction } from "express";
