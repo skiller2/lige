@@ -388,18 +388,16 @@
               <tbody>
                 @for (data of descObj.data; track data) {
                 <tr class="">
-                  <td>{{ data.tipomov }}</td>
-                  <td>{{ data.desmovimiento }}</td>
-                  <td>{{
-                    data.ObjetivoDescuentoDescontar=='CO'?'Coordinador':data.ObjetivoDescuentoDescontar=='CL'?'Cliente':'Ninguno'
-                    }}</td>
+                  <td>{{ data.DescuentoDescripcion }}</td>
+                  <td>{{ data.ObjetivoDescuentoDetalle }}</td>
+                  <td>{{ data.DescontarDetalle }}</td>
                   <td>
                     @if (data.cantcuotas>1) {
-                    <div>{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                    <div>{{ data.ObjetivoDescuentoCuotaCuota }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | I18NCurrency }}</div>
                     }
                   </td>
-                  <td class="text-right">{{ data.importe | I18NCurrency }}</td>
+                  <td class="text-right">{{ data.ObjetivoDescuentoCuotaImporte | I18NCurrency }}</td>
                 </tr>
                 }
               </tbody>
@@ -894,7 +892,7 @@
               <tbody>
                 @for (data of descPer.data; track data) {
                 <tr class="">
-                  <td>{{ data.tipomov }}</td>
+                  <td>{{ data.DescuentoDescripcion }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     @if (data.cantcuotas>1) {
@@ -939,7 +937,7 @@
               <tbody>
                 @for (data of descPer.data; track data) {
                 <tr class="">
-                  <td>{{ data.tipomov }}</td>
+                  <td>{{ data.DescuentoDescripcion }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     @if (data.cantcuotas>1) {

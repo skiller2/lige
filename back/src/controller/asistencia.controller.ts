@@ -1284,9 +1284,16 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  static async getDescuentosObjetivo(queryRunner: QueryRunner, anio: number, mes: number, ObjetivoId: number[]) {
+  static async getDescuentosObjetivo(queryRunner: QueryRunner, anio: number, mes: number, ObjetivoId: number) {
     //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
-    const descuentos = await queryRunner.query(
+
+    const orderBy = orderToSQL([])
+    const filterSql = (ObjetivoId == 0) ? ' 1=1' : ' des.ObjetivoId IN (' + ObjetivoId.toString() + ')'
+    const descuentos = await GestionDescuentosController.getDescuentosObjetivosQuery(queryRunner, filterSql, orderBy, anio, mes)
+    
+    
+    
+    const descuentosX = await queryRunner.query(
       `SELECT CONCAT('cuo',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, 0, des.ObjetivoId, 0 as PersonalId, 'G' as tipocuenta_id, null as PersonalCUITCUILCUIT, null AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.ObjetivoDescuentoDetalle AS desmovimiento, 
@@ -1303,23 +1310,23 @@ export class AsistenciaController extends BaseController {
   }
 
 
-
   static async getDescuentos(anio: number, mes: number, personalId: number[]) {
     const filterSql = (personalId.length == 0) ? ' 1=1' : ' per.PersonalId IN (' + personalId.join(',') + ')'
-    //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
 
     const queryRunner = dataSource.createQueryRunner();
 
-    const orderBy = orderToSQL([])
+    const orderBy = orderToSQL([{ fieldName: 'ApellidoNombre', direction: 'ASC' },{ fieldName: 'DescuentoDescripcion', direction: 'ASC' },{ fieldName: 'desmovimiento2', direction: 'ASC' }])
 
     
 
-    const descuentosX = await GestionDescuentosController.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
-    
-    const descuentos = await dataSource.query(
+    const descuentos = await GestionDescuentosController.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
+
+
+/*    
+    const descuentosX = await dataSource.query(
       `
       SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
+      @1 AS anio, @2 AS mes, det.DescuentoDescripcion,
       des.PersonalOtroDescuentoDetalle AS desmovimiento, 
       des.PersonalOtroDescuentoDetalle AS desmovimiento2, 
       'OTRO' tipoint,
@@ -1339,7 +1346,7 @@ export class AsistenciaController extends BaseController {
       UNION
       
       SELECT CONCAT('ayu',cuo.PersonalPrestamoCuotaId,'-',cuo.PersonalPrestamoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, TRIM(form.FormaPrestamoDescripcion) AS tipomov, 
+      @1 AS anio, @2 AS mes, TRIM(form.FormaPrestamoDescripcion) AS DescuentoDescripcion, 
       CONCAT(TRIM(form.FormaPrestamoDescripcion),' ',des.personalId,'/',des.PersonalPrestamoId) AS desmovimiento,
       CONCAT(TRIM(form.FormaPrestamoDescripcion),' ',des.personalId,'/',des.PersonalPrestamoId) AS desmovimiento2, 
      'AYUD' tipoint,
@@ -1362,7 +1369,7 @@ export class AsistenciaController extends BaseController {
       SELECT CONCAT('pre',dis.PersonalPrepagaDescuentoDiscriminadoId,'-',dis.PersonalPrepagaDescuentoId,'-',dis.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
-      @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, 
+      @1 AS anio, @2 AS mes, 'Prepaga' AS DescuentoDescripcion, 
       CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, 
       CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento2, 
       'PREP' tipoint,
@@ -1388,7 +1395,7 @@ export class AsistenciaController extends BaseController {
       SELECT CONCAT('ren',ren.PersonalRentasPagosId,ren.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
-      @1 AS anio, @2 AS mes, 'Rentas' AS tipomov, 
+      @1 AS anio, @2 AS mes, 'Rentas' AS DescuentoDescripcion, 
       '' AS desmovimiento, 
       '' AS desmovimiento2, 'RENT' tipoint, 
      
@@ -1408,7 +1415,7 @@ export class AsistenciaController extends BaseController {
 
       SELECT CONCAT('ddjj',ren.PersonalRentasPagosId,ren.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       
-      @1 AS anio, @2 AS mes, 'Honorarios DDJJ' AS tipomov, 
+      @1 AS anio, @2 AS mes, 'Honorarios DDJJ' AS DescuentoDescripcion, 
       '' AS desmovimiento, 
       '' AS desmovimiento2, 'DDJJ' tipoint,
      
@@ -1428,7 +1435,7 @@ export class AsistenciaController extends BaseController {
       UNION
 
       SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-@1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
+@1 AS anio, @2 AS mes, det.DescuentoDescripcion AS DescuentoDescripcion, 
 CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion)) AS desmovimiento, 
 '' AS desmovimiento2, 'OTRO' tipoint,
 cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
@@ -1454,7 +1461,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       SELECT CONCAT('tel',con.ConsumoTelefoniaAnoMesTelefonoConsumoId,'-',con.ConsumoTelefoniaAnoMesTelefonoAsignadoId,'-',con.ConsumoTelefoniaAnoMesId,'-',con.ConsumoTelefoniaAnoId) id, gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, IIF(obj.ObjetivoId>0,'C','G') tipocuenta_id,
       cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov,
+      anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS DescuentoDescripcion,
       CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion),'')) AS desmovimiento,
       
       TRIM(tel.TelefoniaNro) AS desmovimiento2, 'TELE' tipoint, 
@@ -1485,16 +1492,11 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       
       WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 AND ${filterSql}
 
-      ORDER BY ApellidoNombre,tipomov,desmovimiento2
+      ORDER BY ApellidoNombre,DescuentoDescripcion,desmovimiento2
       `,
       //      [personalId.join(','), anio,mes]
       ['', anio, mes]
     );
-    /*
-        descuentos.forEach((row, index) => {
-          if (row.PersonalId == 3032 || row.PersonalId == 1278 || row.PersonalId == 3530)
-            descuentos[index].tipocuenta_id = 'G'
-        });
     */
     return descuentos
   }
@@ -1617,7 +1619,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentosObjetivo(queryRunner, anio, mes, ObjetivoId)
-      let total: number = result.reduce((total, row) => total + row.importe, 0)
+      let total: number = result.reduce((total, row) => total + row.ObjetivoDescuentoCuotaImporte, 0)
 
       this.jsonRes({ descuentos: result, total }, res);
     } catch (error) {

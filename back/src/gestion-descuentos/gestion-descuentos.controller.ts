@@ -680,7 +680,7 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
-  private async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
+  static async getDescuentosObjetivosQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
     const now = new Date()
 
     let condition = '(1=1)'
@@ -767,7 +767,7 @@ export class GestionDescuentosController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columnsObjetivosDescuentos);
       const orderBy = orderToSQL(options.sort)
 
-      const lista: any[] = await this.getDescuentosObjetivosQuery(queryRunner, filterSql, orderBy, anio, mes)
+      const lista: any[] = await GestionDescuentosController.getDescuentosObjetivosQuery(queryRunner, filterSql, orderBy, anio, mes)
       for (const descuento of lista) {
         descuento.personal = { id: descuento.PersonalId, fullName: descuento.ApellidoNombre }
         descuento.objetivo = { id: descuento.ObjetivoId, descripcion: descuento.ClienteElementoDependienteDescripcion }
