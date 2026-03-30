@@ -115,21 +115,7 @@ export class ActasComponent {
                 while (this.rowLocked()) await firstValueFrom(timer(100));
                 row = this.angularGrid.dataView.getItemById(row.id)
 
-                const emptyRows = this.angularGrid.dataView.getItems().filter((item: any) => {
-                    const rowComplete = !!item.ActaNroActa
-                        && !!item.ActaDescripcion
-                        && !!item.ActaFechaActa
-                        
-                    return !item.ActaId && !rowComplete
-                })
-
-                if (emptyRows.length === 0) {
-                    this.addNewItem()
-                } else if (emptyRows.length > 1) {
-                    emptyRows.slice(0, -1).forEach((item: any) => this.angularGrid.gridService.deleteItemById(item.id))
-                }
-
-                const rowComplete = !!row.ActaNroActa && !!row.ActaDescripcion && !!row.ActaFechaActa 
+                const rowComplete = !!row.ActaNroActa && !!row.ActaDescripcion && !!row.ActaFechaActa
 
                 if (!rowComplete)
                     return
@@ -146,6 +132,20 @@ export class ActasComponent {
                     this.selectedNroActa.set(row.ActaNroActa)
                 }
 
+                const emptyRows = this.angularGrid.dataView.getItems().filter((item: any) => {
+                    const itemComplete = !!item.ActaNroActa
+                        && !!item.ActaDescripcion
+                        && !!item.ActaFechaActa
+
+                    return !item.ActaId && !itemComplete
+                })
+
+                if (emptyRows.length === 0) {
+                    this.addNewItem()
+                } else if (emptyRows.length > 1) {
+                    emptyRows.slice(0, -1).forEach((item: any) => this.angularGrid.gridService.deleteItemById(item.id))
+                }
+
                 this.angularGrid.slickGrid.setSelectedRows([])
                 this.rowLocked.set(false)
             } catch (e: any) {
@@ -160,7 +160,11 @@ export class ActasComponent {
                     }
                     this.angularGrid.gridService.updateItemById(row.id, item)
                 } else {
+                    if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                        editCommand.undo();
+                    }
                     this.angularGrid.slickGrid.setSelectedRows([]);
+                    this.angularGrid.slickGrid.invalidate();
                     this.angularGrid.slickGrid.render();
                 }
 
