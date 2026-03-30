@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { ApiService } from 'src/app/services/api.service';
 import { LoadingService } from '@delon/abc/loading';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
 
 
 export interface Producto {
@@ -41,7 +41,6 @@ export interface ParametroVentaForm {
   infoProductos: Producto[];
   infoProductosOriginal: Producto[];
 }
-
 
 import { SchemaPathTree, validate, pattern } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -120,7 +119,7 @@ export class ParametroVentaFormComponent implements OnInit {
 
   // Signals para manejar la carga pendiente en modo view/edit
   private pendingViewLoad = signal<boolean>(false);
-  private viewReadonly = signal<boolean>(false);
+  viewReadonly = signal<boolean>(false);
   objetivoExtended = signal<any>(null);
 
   ClienteId = input<number>(0);
@@ -189,7 +188,7 @@ export class ParametroVentaFormComponent implements OnInit {
     disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
     disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
     //    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
-
+    disabled(p, () => this.viewReadonly())
 
     applyEach(p.infoProductos, (productoPath) => {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });

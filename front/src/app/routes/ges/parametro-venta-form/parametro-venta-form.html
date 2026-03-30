@@ -194,13 +194,13 @@
         @if (true) {
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2" class="button-group-direction">
           <div class="button-group" style="width: 100%">
-            @if (formParametroVenta.infoProductos.length == i+1) {
+            @if (formParametroVenta.infoProductos.length == i+1 && !viewReadonly()) {
             <button nz-button class="add-button" nzType="primary" class="add-button" (click)="addProductos($event)"
               nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus"></span>
             </button>
             }
-            @if (formParametroVenta.infoProductos.length >= 2) {
+            @if (formParametroVenta.infoProductos.length >= 2 && !viewReadonly()) {
             <button nz-button nzType="default" (click)="removeProductos(i, $event)" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
               <span nz-icon nzType="delete" nzTheme="outline"></span>
@@ -216,7 +216,7 @@
     }
   </div>
 
-  @if (true) {
+  @if (!viewReadonly()) {
   <nz-form-item class="btn-margintop">
     <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
       <button style="margin-right: 10px;" nzType="primary" nz-button type="submit"
