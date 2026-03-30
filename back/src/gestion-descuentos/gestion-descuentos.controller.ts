@@ -496,10 +496,10 @@ const columnsPersonalDescuentosCargaManualEfecto: any[] = [
     id: 'DescuentoDescripcion', name: 'Efecto', field: 'DescuentoDescripcion',
   },
   {
-    id: 'EfectoId', name: 'Efectoid', field: 'EfectoId', fieldName: 'EfectoId'
+    id: 'EfectoId', name: 'Efectoid', field: 'EfectoId', fieldName: 'EfectoId', hidden: true,
   },
   {
-    id: 'EfectoIndividualId', name: 'EfectoIndividualId', field: 'EfectoIndividualId', fieldName: 'EfectoIndividualId'
+    id: 'EfectoIndividualId', name: 'EfectoIndividualId', field: 'EfectoIndividualId', fieldName: 'EfectoIndividualId', hidden: true,
   },
   {
     id: 'Cantidad', name: 'Cantidad', field: 'Cantidad',
@@ -616,6 +616,10 @@ export class GestionDescuentosController extends BaseController {
 
   async getPersonalGridColumnsCargaManualObjetivo(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsPersonalDescuentosCargaManualObjetivo, res)
+  }
+
+  async getPersonalGridColumnsCargaManualEfecto(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsPersonalDescuentosCargaManualEfecto, res)
   }
 
   static async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
@@ -2531,7 +2535,8 @@ FROM cte
     let dataset = []
     try {
 
-
+console.log("req.body " , req.body)
+console.log("gridDataInsert " , gridDataInsert)
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2540,8 +2545,6 @@ FROM cte
       const AplicaEl = new Date(anio, mes - 1, 1, 0, 0, 0, 0);
       if (!DescuentoId)
         throw new ClientException(`Debe indicar un tipo de descuento`)
-
-      if (DescuentoId == 50) throw new ClientException(`Alta manual de descuento de Efectos deshabilitada.`)
 
       const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (checkrecibos[0]?.ind_recibos_generados == 1)

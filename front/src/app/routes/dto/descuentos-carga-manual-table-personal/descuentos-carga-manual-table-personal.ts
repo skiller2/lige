@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, input,signal, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal, OnInit, ViewChild, effect, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters, Editors } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, Observable, of } from 'rxjs';
 import { NgForm } from '@angular/forms';
 import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
+import { EditorEfectoComponent } from '../../../shared/editor-efecto/editor-efecto';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 
 @Component({
@@ -20,7 +21,7 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 })
 export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
-  @ViewChild('descuentosCargaManualTablePersonalForm' , { static: true }) descuentosCargaManualTablePersonalForm: NgForm = new NgForm([], []) 
+  @ViewChild('descuentosCargaManualTablePersonalForm' , { static: true }) descuentosCargaManualTablePersonalForm: NgForm = new NgForm([], [])
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
   angularGridEdit!: AngularGridInstance;
@@ -39,10 +40,30 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   private angularUtilService = inject(AngularUtilService);
   private apiService = inject(ApiService);
 
-  columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/carga-manual-personal').pipe(map((cols) => {
-    console.log('cols', cols)
+  isEfecto = computed(() => this.pDescuentoId() === 50);
 
-    let mapped = cols.map((col: Column) => {
+  columns$ = new BehaviorSubject<number>(0);
+
+  columnsResult$: Observable<Column[]> = this.columns$.pipe(
+    switchMap((descuentoId) => {
+      const url = descuentoId === 50
+        ? '/api/gestion-descuentos/cols/carga-manual-efecto'
+        : '/api/gestion-descuentos/cols/carga-manual-personal';
+      return this.apiService.getCols(url).pipe(
+        map((cols) => this.mapColumns(cols, descuentoId))
+      );
+    })
+  );
+
+  private mapColumns(cols: Column[], descuentoId: number): Column[] {
+    if (descuentoId === 50) {
+      return this.mapColumnsEfecto(cols);
+    }
+    return this.mapColumnsPersonal(cols);
+  }
+
+  private mapColumnsPersonal(cols: Column[]): Column[] {
+    return cols.map((col: Column) => {
       if (col.id === 'ApellidoNombre') {
         col.formatter = Formatters['complexObject'],
         col.maxWidth = 300,
@@ -60,97 +81,226 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
         }
       }
 
-    if (col.id === 'CantidadCuotas') {
-      col.type = 'float',
-      col.maxWidth = 120,
-      col.editor = {
-        model: Editors['text'],
-        required: true
-      }
-    }
-    if (col.id === 'ImporteTotal') {
-      col.formatter = Formatters['multiple'],
-      col.maxWidth = 120,
-      col.params = {
-        formatters: [Formatters['currency']],
-      },
-      col.cssClass = 'text-right',
-      col.editor = {
-        model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
-        required: true
-        }
-    }
-    if (col.id === 'Detalle') {
-      col.type = 'string',
-      col.maxWidth = 300,
-      col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
-      col.editor = {
-        model: Editors['text'],
-        required: true
-      }
-    }
-    if (col.id === 'mensaje') {
-      col.type = 'string';
-      delete col.editor;
-      col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
-    
-    }
-        return col
-      });
-      
-      return mapped
-    }));
-
-
-    async ngOnInit() {
-  
-      this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainercargaManual', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-      this.gridOptionsEdit.enableRowDetailView = false
-      this.gridOptionsEdit.autoEdit = true
-      this.gridOptionsEdit.editable = true 
-      this.gridOptionsEdit.enableCheckboxSelector = true
-      this.gridOptionsEdit.selectionOptions = {
-        selectActiveRow: false
-    }
-  
-      this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
-        editCommand.execute()
-        // Determina si la fila está completa o incompleta
-        if (
-          row.ApellidoNombre &&
-          row.CantidadCuotas &&
-          row.ImporteTotal &&
-          row.Detalle
-        ) {
-          row.isfull = 1; // completa
-        } else {
-          row.isfull = 2; // incompleta
-        }
-
-        // Si todos los campos relevantes están vacíos, elimina la fila; si no, actualiza
-        if (
-          !row.ApellidoNombre &&
-          !row.CantidadCuotas &&
-          !row.ImporteTotal &&
-          !row.Detalle
-        ) {
-          this.angularGridEdit.gridService.deleteItem(row);
-        } else {
-          this.angularGridEdit.gridService.updateItem(row);
-        }
-  
-        this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-        this.angularGridEdit.slickGrid.invalidate();
-        this.angularGridEdit.slickGrid.render();
-  
-        const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-        if (lastrow && (lastrow.ApellidoNombre || lastrow.CantidadCuotas || lastrow.ImporteTotal || lastrow.Detalle))  {
-          this.addNewItem("bottom")
+      if (col.id === 'CantidadCuotas') {
+        col.type = 'float',
+        col.maxWidth = 120,
+        col.editor = {
+          model: Editors['text'],
+          required: true
         }
       }
-  
-  
+      if (col.id === 'ImporteTotal') {
+        col.formatter = Formatters['multiple'],
+        col.maxWidth = 120,
+        col.params = {
+          formatters: [Formatters['currency']],
+        },
+        col.cssClass = 'text-right',
+        col.editor = {
+          model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
+          required: true
+        }
+      }
+      if (col.id === 'Detalle') {
+        col.type = 'string',
+        col.maxWidth = 300,
+        col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
+        col.editor = {
+          model: Editors['text'],
+          required: true
+        }
+      }
+      if (col.id === 'mensaje') {
+        col.type = 'string';
+        delete col.editor;
+        col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
+      }
+      return col;
+    });
+  }
+
+  private mapColumnsEfecto(cols: Column[]): Column[] {
+    return cols.map((col: Column) => {
+      if (col.id === 'ApellidoNombre') {
+        col.formatter = Formatters['complexObject'],
+        col.maxWidth = 300,
+        col.params = {
+          complexFieldLabel: 'ApellidoNombre.fullName',
+        },
+        col.editor = {
+          model: CustomInputEditor,
+          collection: [],
+          params: {
+            component: EditorPersonaComponent,
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
+        }
+      }
+
+      if (col.id === 'DescuentoDescripcion') {
+        col.formatter = Formatters['complexObject'],
+        col.maxWidth = 350,
+        col.params = {
+          complexFieldLabel: 'DescuentoDescripcion.fullName',
+        },
+        col.editor = {
+          model: CustomInputEditor,
+          collection: [],
+          params: {
+            component: EditorEfectoComponent,
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
+        }
+      }
+
+      if (col.id === 'Cantidad') {
+        col.type = 'float',
+        col.maxWidth = 100,
+        col.editor = {
+          model: Editors['text'],
+          required: true
+        }
+      }
+
+      if (col.id === 'Porcentaje') {
+        col.type = 'float',
+        col.maxWidth = 100,
+        col.editor = {
+          model: Editors['text'],
+          required: true
+        }
+      }
+
+      if (col.id === 'ImporteUnitario') {
+        col.formatter = Formatters['multiple'],
+        col.maxWidth = 140,
+        col.params = {
+          formatters: [Formatters['currency']],
+        },
+        col.cssClass = 'text-right',
+        col.editor = {
+          model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
+          required: true
+        }
+      }
+
+      if (col.id === 'CantidadCuotas') {
+        col.type = 'float',
+        col.maxWidth = 100,
+        col.editor = {
+          model: Editors['text'],
+          required: true
+        }
+      }
+
+      if (col.id === 'Detalle') {
+        col.type = 'string',
+        col.maxWidth = 300,
+        col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
+        col.editor = {
+          model: Editors['text'],
+          required: true
+        }
+      }
+
+      if (col.id === 'mensaje') {
+        col.type = 'string';
+        delete col.editor;
+        col.cssClass = (col.cssClass ? col.cssClass + ' ' : '') + 'text-center mensaje-celda';
+      }
+
+      return col;
+    });
+  }
+
+  private isRowFullPersonal(row: any): boolean {
+    return !!(row.ApellidoNombre && row.CantidadCuotas && row.ImporteTotal && row.Detalle);
+  }
+
+  private isRowEmptyPersonal(row: any): boolean {
+    return !row.ApellidoNombre && !row.CantidadCuotas && !row.ImporteTotal && !row.Detalle;
+  }
+
+  private isRowFullEfecto(row: any): boolean {
+    return !!(row.ApellidoNombre && row.DescuentoDescripcion && row.ImporteUnitario && row.CantidadCuotas && row.Detalle);
+  }
+
+  private isRowEmptyEfecto(row: any): boolean {
+    return !row.ApellidoNombre && !row.DescuentoDescripcion && !row.ImporteUnitario && !row.CantidadCuotas && !row.Detalle;
+  }
+
+  private hasAnyDataPersonal(row: any): boolean {
+    return !!(row.ApellidoNombre || row.CantidadCuotas || row.ImporteTotal || row.Detalle);
+  }
+
+  private hasAnyDataEfecto(row: any): boolean {
+    return !!(row.ApellidoNombre || row.DescuentoDescripcion || row.ImporteUnitario || row.CantidadCuotas || row.Detalle);
+  }
+
+  private updateEfectoRowData(row: any) {
+    // Set EfectoId and EfectoIndividualId from DescuentoDescripcion selection
+    if (row.DescuentoDescripcion && row.DescuentoDescripcion.EfectoId) {
+      row.EfectoId = row.DescuentoDescripcion.EfectoId;
+      row.EfectoIndividualId = row.DescuentoDescripcion.EfectoIndividualId;
     }
+    // Map Porcentaje to PorcentajeDescuento for backend compatibility
+    if (row.Porcentaje) {
+      row.PorcentajeDescuento = row.Porcentaje;
+    }
+  }
+
+  async ngOnInit() {
+
+    this.columns$.next(this.pDescuentoId());
+
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainercargaManual', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit.enableRowDetailView = false
+    this.gridOptionsEdit.autoEdit = true
+    this.gridOptionsEdit.editable = true
+    this.gridOptionsEdit.enableCheckboxSelector = true
+    this.gridOptionsEdit.selectionOptions = {
+      selectActiveRow: false
+    }
+
+    this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
+      editCommand.execute()
+
+      const isEfecto = this.pDescuentoId() === 50;
+
+      if (isEfecto) {
+        this.updateEfectoRowData(row);
+      }
+
+      // Determina si la fila está completa o incompleta
+      const isFull = isEfecto ? this.isRowFullEfecto(row) : this.isRowFullPersonal(row);
+      const isEmpty = isEfecto ? this.isRowEmptyEfecto(row) : this.isRowEmptyPersonal(row);
+
+      if (isFull) {
+        row.isfull = 1; // completa
+      } else {
+        row.isfull = 2; // incompleta
+      }
+
+      // Si todos los campos relevantes están vacíos, elimina la fila; si no, actualiza
+      if (isEmpty) {
+        this.angularGridEdit.gridService.deleteItem(row);
+      } else {
+        this.angularGridEdit.gridService.updateItem(row);
+      }
+
+      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+      this.angularGridEdit.slickGrid.invalidate();
+      this.angularGridEdit.slickGrid.render();
+
+      const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
+      const hasAnyData = isEfecto ? this.hasAnyDataEfecto(lastrow) : this.hasAnyDataPersonal(lastrow);
+      if (lastrow && hasAnyData)  {
+        this.addNewItem("bottom")
+      }
+    }
+  }
 
   angularGridReady(angularGrid: any): void {
     this.cleanerVariables();
@@ -192,7 +342,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   }
 
   cleanerVariables() {
-   
+
   }
 
   updateItemMetadata(previousItemMetadata: any) {
@@ -227,13 +377,17 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
   }
 
   confirmNewItem() {
-    
+
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1)
+ 
+    if (this.pDescuentoId() === 50) {
+      altas.forEach((row: any) => this.updateEfectoRowData(row));
+    }
     const valuePeriodo = this.mes() + "/" + this.anio();
     if (altas.length > 0) {
       this.apiService.addDescuentoCargaManualPersonal(altas, this.anio(),this.mes(),this.pDescuentoId(),this.CuentaTipoCodigo()).subscribe({
         next: (_res: any) => {
-     
+
             this.formChange$.next('');
             this.cleanTable();
             this.rowdelete.set([]);
@@ -241,7 +395,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
         },
         error: (error: any) => {
           const list = error.error.data.list;
-  
+
           //  Primero agregar mensajes
           list
             .filter((item: any) => item.isfull == 2 && item.errorMessage)
@@ -252,7 +406,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
                 this.angularGridEdit.dataView.updateItem(item.id, gridItem);
               }
             });
-  
+
               // Refrescar grid
           this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata);
           this.angularGridEdit.slickGrid.invalidate();
@@ -261,7 +415,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
       });
     }
 
-   
+
   }
 
 
@@ -270,7 +424,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     const ids = this.gridDataInsert.filter((f: any) => f.isfull == 1);
 
     this.gridDataInsert.forEach(objeto => {
-      ids.push(objeto["id"]); 
+      ids.push(objeto["id"]);
     });
 
     ids.pop();
@@ -287,7 +441,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
   handleSelectedRowsChanged(e: any): void {
 
-    
+
     if (e.detail.args.changedSelectedRows.length == 1) {
       const rowNum = e.detail.args.changedSelectedRows[0]
       const rowinfo = this.angularGridEdit.dataView.getItemByIdx(rowNum)
@@ -295,9 +449,9 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
         const prevSelection = this.rowdelete() || []
         this.rowdelete.set([...prevSelection, rowinfo])
       }
-    
+
     }
-    
+
     else if (e.detail.args.changedUnselectedRows.length == 1) {
       const rowNum = e.detail.args.changedUnselectedRows[0]
       const rowinfo = this.angularGridEdit.dataView.getItemByIdx(rowNum)
@@ -309,7 +463,7 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
 
    // const selrow = e.detail.args.rows[0]
    // const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    
+
   }
 
   deleteItem() {
@@ -319,5 +473,5 @@ export class DescuentosCargaManualTablePersonalComponent implements OnInit {
     this.rowdelete.set([]);
 }
 
-  
+
 }

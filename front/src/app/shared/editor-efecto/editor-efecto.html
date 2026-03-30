@@ -1,0 +1,9 @@
+<nz-select [(ngModel)]="selectedId" [ngModelOptions]="{ standalone: true }"
+  (ngModelChange)="onChange($event)" style="width: 100%"
+  nzAllowClear nzPlaceHolder="Seleccione efecto"
+  [nzDropdownMatchSelectWidth]="false" [nzLoading]="isLoading">
+  @for (efecto of efectoOptions; track efecto.EfectoId) {
+    <nz-option [nzValue]="efecto.EfectoId"
+      [nzLabel]="efecto.EfectoDescripcionCompleta || efecto.EfectoDescripcion"></nz-option>
+  }
+</nz-select>
