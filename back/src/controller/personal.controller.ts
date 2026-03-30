@@ -831,9 +831,9 @@ export class PersonalController extends BaseController {
     const Sexo: string = infoPersonal.Sexo
     const EstadoCivilId: number = infoPersonal.EstadoCivilId
     const LeyNro: number = infoPersonal.LeyNro
-    const PaisId: number = infoPersonal.PaisId
-    const ProvinciaId: number = infoPersonal.ProvinciaId
-    const LocalidadId: number = infoPersonal.LocalidadId
+    const PaisId: number = infoPersonal.PaisId ? infoPersonal.PaisId : null
+    const ProvinciaId: number = infoPersonal.ProvinciaId ? infoPersonal.ProvinciaId : null
+    const LocalidadId: number = infoPersonal.LocalidadId ? infoPersonal.LocalidadId : null
     const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
@@ -1079,6 +1079,10 @@ export class PersonalController extends BaseController {
 
       //Estudios
       for (const estudio of estudios) {
+        if (estudio.TipoEstudioId == 8) throw new ClientException(`El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".`)
+          
+        
+
         if (estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || (estudio.DocTitulo && estudio.DocTitulo.length)) {
           const camposVacios: string[] = []
 
@@ -1463,9 +1467,9 @@ export class PersonalController extends BaseController {
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
     const LeyNro: number = infoPersonal.LeyNro
-    const PaisId: number = infoPersonal.PaisId
-    const ProvinciaId: number = infoPersonal.ProvinciaId
-    const LocalidadId: number = infoPersonal.LocalidadId
+    const PaisId: number = infoPersonal.PaisId ? infoPersonal.PaisId : null
+    const ProvinciaId: number = infoPersonal.ProvinciaId ? infoPersonal.ProvinciaId : null
+    const LocalidadId: number = infoPersonal.LocalidadId ? infoPersonal.LocalidadId : null
     const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
@@ -1623,15 +1627,15 @@ export class PersonalController extends BaseController {
     let oldStudies = await queryRunner.query(`
       SELECT PersonalEstudioId, PersonalEstudioPagina1Id
       FROM PersonalEstudio
-      WHERE PersonalId IN (@0)
+      WHERE PersonalId IN (@0) and TipoEstudioId != 8
       `, [PersonalId])
 
     await queryRunner.query(`
-      DELETE FROM PersonalEstudio WHERE PersonalId IN (@0)
+      DELETE FROM PersonalEstudio WHERE PersonalId IN (@0) and TipoEstudioId != 8
       `, [PersonalId])
 
     for (const infoEstudio of estudios) {
-      console
+      if (infoEstudio.TipoEstudioId == 8) throw new ClientException(`El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".`)
 
       if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length)) {
         let campos_vacios = []
@@ -1962,7 +1966,7 @@ export class PersonalController extends BaseController {
         TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioOtorgado PersonalEstudioOtorgado, est.PersonalEstudioHasta PersonalEstudioVencimiento,
         est.PersonalEstudioPagina1Id AS docId
         FROM PersonalEstudio est
-        WHERE est.PersonalId IN (@0)
+        WHERE est.PersonalId IN (@0) and est.TipoEstudioId != 8
       `, [personalId]
     )
     return estudios.map((obj) => { return { ...obj, DocTitulo: [] } })
@@ -3284,6 +3288,11 @@ UNION ALL
   async addPersonalCambios(queryRunner: any, personalId: number, form: any, usuario: string, ip: string) {
     const PersonalCambiosJson = JSON.stringify(form)
     const now = new Date()
+    
+    // Validar FK fields - convertir 0 a null
+    const PaisId = form.domicilio.PaisId ? form.domicilio.PaisId : null
+    const ProvinciaId = form.domicilio.ProvinciaId ? form.domicilio.ProvinciaId : null
+    const LocalidadId = form.domicilio.LocalidadId ? form.domicilio.LocalidadId : null
 
     await queryRunner.query(`
       INSERT INTO PersonalCambios (
@@ -3327,9 +3336,9 @@ UNION ALL
       form.Nombre,
       form.LeyNro,
       form.FechaNacimiento,
-      form.domicilio.PaisId,
-      form.domicilio.ProvinciaId,
-      form.domicilio.LocalidadId,
+      PaisId,
+      ProvinciaId,
+      LocalidadId,
       form.Sexo,
       form.NacionalidadId,
       null,
