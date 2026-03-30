@@ -127,8 +127,8 @@ const listaColumnas: any[] = [
     exportWithFormatter: true,
     hidden: false,
     searchHidden: false,
-    minWidth: 50,
-    maxWidth: 50,
+    minWidth: 100,
+    maxWidth: 100,
     cssClass:'text-center'
   },
 
