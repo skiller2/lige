@@ -89,7 +89,7 @@
           <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
           <nz-form-control [nzMd]="6">
             <input nz-input [value]="importeTotal()" type="text" appDotToComma mask="separator.2"
-              class="ant-input text-right" [readonly]="true" />
+              class="ant-input text-right" [disabled]="disabled()" [readonly]="true" />
           </nz-form-control>
 
 
@@ -106,7 +106,7 @@
           <nz-form-label [nzXs]="5">Importe x Cuota</nz-form-label>
           <nz-form-control [nzMd]="6">
             <input nz-input [value]="importeCuota()" type="text" appDotToComma mask="separator.2"
-              class="ant-input text-right" [readonly]="true" />
+              class="ant-input text-right" [disabled]="disabled()" [readonly]="true" />
           </nz-form-control>
         </nz-form-item>
 

@@ -1942,7 +1942,6 @@ FROM cte
       const descuento = await queryRunner.query(`
     SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
       , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
-      , ObjetivoDescuentoImporteVariable ImporteCuota
       , ObjetivoDescuentoImporteVariable as Importe
       , ObjetivoId
       , ObjetivoDescuentoId id
