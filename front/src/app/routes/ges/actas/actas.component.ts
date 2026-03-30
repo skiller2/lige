@@ -81,7 +81,7 @@ export class ActasComponent {
                     data.push({
                         id: newId,
                         ActaId: 0,
-                        ActaNroActa: 0,
+                        ActaNroActa: "",
                         ActaDescripcion: "",
                         ActaFechaActa: "",
                         ActaFechaHasta: "",
@@ -119,7 +119,7 @@ export class ActasComponent {
                     const rowComplete = !!item.ActaNroActa
                         && !!item.ActaDescripcion
                         && !!item.ActaFechaActa
-                        && !!item.ActaFechaHasta
+                        
                     return !item.ActaId && !rowComplete
                 })
 
@@ -129,7 +129,7 @@ export class ActasComponent {
                     emptyRows.slice(0, -1).forEach((item: any) => this.angularGrid.gridService.deleteItemById(item.id))
                 }
 
-                const rowComplete = !!row.ActaNroActa && !!row.ActaDescripcion && !!row.ActaFechaActa && !!row.ActaFechaHasta
+                const rowComplete = !!row.ActaNroActa && !!row.ActaDescripcion && !!row.ActaFechaActa 
 
                 if (!rowComplete)
                     return
@@ -249,8 +249,7 @@ export class ActasComponent {
             //item.ActaId === 0 || 
             item.ActaNroActa === 0 || 
             item.ActaDescripcion === "" || 
-            item.ActaFechaActa === "" || 
-            item.ActaFechaHasta === ""
+            item.ActaFechaActa === "" 
         ) {
             meta.cssClasses = 'element-add-no-complete';
         } else
@@ -259,8 +258,8 @@ export class ActasComponent {
         const fechaActa:Date = new Date(item.ActaFechaActa)
         const fechaHasta:Date = new Date(item.ActaFechaHasta)
         //  La FechaHasta debe de ser mayor a la FechaActa
-        if (item.ActaFechaActa && item.ActaFechaHasta && (fechaActa.getTime() > fechaHasta.getTime()))
-            meta.cssClasses = 'element-add-no-complete';
+        //if (item.ActaFechaActa  && (fechaActa.getTime() > fechaHasta.getTime()))
+          //  meta.cssClasses = 'element-add-no-complete';
 
       return meta;
     };
