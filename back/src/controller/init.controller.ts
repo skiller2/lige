@@ -623,54 +623,52 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       const rec = await con.query(`
       WITH PersonalSinHabilitacion AS (
           SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
-            per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre,
-            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
-            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, e.GestionHabilitacionEstadoCodigo, 
+            per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde,
+            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta,
+            iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) GestionHabilitacionEstadoCodigo, e.Detalle,
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
-            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
+            b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,      
                     IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
 
                         IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
-            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
-            suc.SucursalId, suc.SucursalDescripcion
-
-
+            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,      
+            suc.SucursalId, suc.SucursalDescripcion,
+                        ga.GrupoActividadNumero, ga.GrupoActividadId, ga.GrupoActividadDetalle,
+            b.AudFechaIng, b.AudFechaMod, b.AudUsuarioIng, b.AusUsuarioMod
 
         FROM Personal per
 
                 JOIN (
-                                SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
-                                FROM  PersonalHabilitacion b       
-                                WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0   
+            SELECT b.PersonalId, b.PersonalHabilitacionLugarHabilitacionId LugarHabilitacionId
+            FROM  PersonalHabilitacion b
+            WHERE b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0   
 
-                                UNION
+            UNION
 
-                                SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
-                                FROM PersonalHabilitacionNecesaria 
-c 
+            SELECT c.PersonalId, c.PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria c
 
-                                ) vishab on vishab.PersonalId=per.PersonalId
+        ) vishab on vishab.PersonalId=per.PersonalId
 
+        LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionHasta is null or ISNULL(b.PersonalHabilitacionDesde, '9999-12-31')>=@0) 
+        and ISNULL(b.PersonalHabilitacionClase, '') != 'C'
 
-                LEFT JOIN PersonalHabilitacion b ON b.PersonalId=per.PersonalId  and b.PersonalHabilitacionLugarHabilitacionId=vishab.LugarHabilitacionId and ((b.PersonalHabilitacionDesde <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0) or b.PersonalHabilitacionDesde is null or b.PersonalHabilitacionHasta is null)  
-                and b.PersonalHabilitacionClase != 'C'
                 LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
-                LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId 
+                LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
 
-                LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
+                LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND 
+e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
-        LEFT JOIN
-                (
-                SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-                FROM PersonalSituacionRevista sitrev2
-                WHERE @0 >=  sitrev2.PersonalSituacionRevistaDesde 
-AND  @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
-                GROUP BY sitrev2.PersonalId
-            ) sitrev3  ON sitrev3.PersonalId = per.PersonalId      
+        LEFT JOIN (
+            SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+            FROM PersonalSituacionRevista sitrev2
+            WHERE @0 >=  sitrev2.PersonalSituacionRevistaDesde AND  @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+            GROUP BY sitrev2.PersonalId
+        ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
         LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
 
-        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = 
-sitrev.PersonalSituacionRevistaSituacionId
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId     
 
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
 
@@ -681,20 +679,39 @@ sitrev.PersonalSituacionRevistaSituacionId
                                 b2.PersonalHabilitacionId,
                                 b2.PersonalHabilitacionLugarHabilitacionId,
                                 CASE
-                                        WHEN b2.PersonalHabilitacionHasta>=@0 THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)    
-                    --WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
-                                        --WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
+                                        WHEN b2.PersonalHabilitacionHasta>=@0 THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+                    --WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL                                        --WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
                                         ELSE 0
-                                END AS DiasFaltantesVencimiento    
+                                END AS DiasFaltantesVencimiento
                         FROM PersonalHabilitacion b2
-                ) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId   
+                ) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId
 
-        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId 
-FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE d.LugarHabilitacionId != 9
-        and ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))  AND  ( IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) IN ('0')))
-				 AND  iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) not LIKE '%RECORG%' 
+        LEFT JOIN (
+                                        SELECT
+                                                gap.GrupoActividadPersonalPersonalId,
+                                                ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
+
+                                                CASE
+                                                        WHEN ga.GrupoActividadId IS NOT NULL THEN
+                                                                CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+                                                                           FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ',
+                                                                           CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN '' 
+                                                                                        ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+                                                                           END, ')'
+                                                                )
+                                                        ELSE ''
+                                                END AS GrupoActividadDetalle
+                                        FROM GrupoActividadPersonal gap
+                                        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId 
+                                        WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(GETDATE() AS DATE)
+                                          AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+                                ) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+
+        WHERE d.LugarHabilitacionId not in (9,4) -- Excluyo interno y comercial ezeiza
+        and ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))  AND  ( IIF(b.PersonalId IS NULL, 0, dias.DiasFaltantesVencimiento) IN ('0'))  AND  (iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) LIKE '%PEN%') )
+
 
 )
         
