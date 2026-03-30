@@ -456,7 +456,7 @@ const columnsPersonalDescuentosCargaManualPersonal: any[] = [
 
   },
   {
-    id: 'CantidadCuotas', name: 'Cantidad Cuotas', field: 'CantidadCuotas',
+    id: 'CantidadCuotas', name: 'Cuotas', field: 'CantidadCuotas',
     fieldName: 'CantidadCuotas',
 
   },
@@ -493,10 +493,13 @@ const columnsPersonalDescuentosCargaManualEfecto: any[] = [
     fieldName: 'ApellidoNombre',
   },
   {
-    id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
+    id: 'DescuentoDescripcion', name: 'Efecto', field: 'DescuentoDescripcion',
   },
   {
-    id: 'Efecto', name: 'Efecto', field: 'Efecto', fieldName: 'Efecto'
+    id: 'EfectoId', name: 'Efectoid', field: 'EfectoId', fieldName: 'EfectoId'
+  },
+  {
+    id: 'EfectoIndividualId', name: 'EfectoIndividualId', field: 'EfectoIndividualId', fieldName: 'EfectoIndividualId'
   },
   {
     id: 'Cantidad', name: 'Cantidad', field: 'Cantidad',
@@ -507,8 +510,8 @@ const columnsPersonalDescuentosCargaManualEfecto: any[] = [
     fieldName: 'Porcentaje',
   },
   {
-    id: 'ImporteTotal', name: 'Importe Unitario', field: 'ImporteTotal',
-    fieldName: 'ImporteTotal',
+    id: 'ImporteUnitario', name: 'Importe Unitario', field: 'ImporteUnitario',
+    fieldName: 'ImporteUnitario',
   },
   {
     id: 'CantidadCuotas', name: 'Cuotas', field: 'CantidadCuotas',
@@ -1230,7 +1233,7 @@ FROM cte
           const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
 
           // Si la cuota a generar corresponde a un período posterior a la fecha de anulación, no se generan más cuotas
-          if (FechaAnulacion && new Date(per.cuotaAnio, per.cuotaMes - 1, 1) > FechaAnulacion) 
+          if (FechaAnulacion && new Date(per.cuotaAnio, per.cuotaMes - 1, 1) > FechaAnulacion)
             break;
 
           await queryRunner.query(`
@@ -2555,15 +2558,39 @@ FROM cte
           row.errorMessage = `No se puede aplicar el descuento al Personal. No se encuentra 'Activo' en el período ${mes}/${anio}.`
           row.isfull = 2
         }
-        const Descuento = {
-          PersonalId: PersonalId,
-          AplicaEl: AplicaEl,
-          DescuentoId: DescuentoId,
-          CuentaTipoCodigo,
-          Cuotas: Number(row.CantidadCuotas),
-          Detalle: Detalle,
-          Importe: row.ImporteTotal
+
+        let Descuento: any = null
+
+        switch (DescuentoId) {
+          case 50:
+            const ImporteTotal = Number(row.Cantidad) * Number(row.ImporteUnitario);
+            Descuento = {
+              PersonalId: PersonalId,
+              EfectoId: row.EfectoId,
+              EfectoIndividualId: row.EfectoIndividualId,
+              AplicaEl: AplicaEl,
+              PorcentajeDescuento: row.PorcentajeDescuento,
+              DescuentoId: DescuentoId,
+              CuentaTipoCodigo,
+              Cuotas: Number(row.CantidadCuotas),
+              Detalle: Detalle,
+              Importe: ImporteTotal,
+             
+            }
+            break;
+          default:
+            Descuento = {
+              PersonalId: PersonalId,
+              AplicaEl: AplicaEl,
+              DescuentoId: DescuentoId,
+              CuentaTipoCodigo,
+              Cuotas: Number(row.CantidadCuotas),
+              Detalle: Detalle,
+              Importe: row.ImporteTotal
+            }
+            break;
         }
+      
         if (row.isfull == 1) {
           await this.addPersonalOtroDescuento(queryRunner, Descuento, usuario, ip)
         } else {
