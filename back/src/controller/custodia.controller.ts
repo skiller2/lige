@@ -13,8 +13,7 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.CustodiaCodigo",
         sortable: true,
         type: 'number',
-        minWidth: 50,
-        // minWidth: 10,
+        minWidth: 100,
         searchType: "number",
     },
     {
