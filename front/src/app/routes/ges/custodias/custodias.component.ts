@@ -147,7 +147,7 @@ export class CustodiaComponent {
     async angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid
         angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(angularGrid, 'Cliente')
+            totalRecords(angularGrid, 'Codigo')
             columnTotal('ImporteFactura', angularGrid)
             columnTotal('CantidadHorasExcedente', angularGrid)
             columnTotal('ImporteHorasExcedente', angularGrid)
