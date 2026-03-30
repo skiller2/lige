@@ -18,12 +18,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 export interface FormDesc {
     id: number;
     AplicaEl: Date | null;
-    AplicaA: Date | null;
+    AplicaA: string;
     DescuentoId: number;
     ObjetivoId: number;
     Cuotas: number;
     Importe: string;
-    importeCuota: string;
     Detalle: string;
     FechaAnulacion: Date | null;
     DetalleAnulacion: string;
@@ -57,9 +56,9 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     private descuentoObjetivoDefault: FormDesc = {
         id: 0,
-        AplicaA: null, DescuentoId: 0, ObjetivoId: 0, AplicaEl: new Date(),
+        AplicaA: '', DescuentoId: 0, ObjetivoId: 0, AplicaEl: new Date(),
         Cuotas: 1, Importe: '', Detalle: '',
-        DetalleAnulacion: '', importeCuota: '',
+        DetalleAnulacion: '',
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
         oldObjetivoId: 0
@@ -72,7 +71,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
         readonly(p.DetalleAnulacion, () => (this.disabled() && !this.isAnulacion()))
         disabled(p.FechaAnulacion, () => true)
         disabled(p.ImportacionDocumentoId, () => true)
-        readonly(p.importeCuota, () => true)
     })
 
     loadEffect = effect(async () => {
@@ -88,20 +86,12 @@ export class DescuentosObjetivosAltaDrawerComponent {
         }
     });
 
-    importeCuotaChange = effect(async () => {
-        const state = this.descuentoObjetivo()
-        const Importe = Number(this.descuentoObjetivo().Importe)
-        const Cuotas = Number(this.descuentoObjetivo().Cuotas)
-        let importeCuota = ''
-        if (Importe && Cuotas) {
-            importeCuota = (Importe / Cuotas).toString()
-        }
-
-        if (state.importeCuota === importeCuota) return;
-
-        this.descuentoObjetivo.update((state) => {
-            return { ...state, importeCuota }
-        })
+    importeCuota = computed(() => {
+        const s = this.descuentoObjetivo();
+        const importe = Number(s.Importe) || 0;
+        const cuotas = Number(s.Cuotas) || 1;      // evita /0
+        const total = importe / cuotas;
+        return total.toFixed(2); // string
     });
 
     async loadDescuentoObjetivo() {
@@ -111,6 +101,9 @@ export class DescuentosObjetivosAltaDrawerComponent {
         infoDesc.oldObjetivoId = infoDesc.ObjetivoId
         infoDesc.AplicaEl = infoDesc.AplicaEl? new Date(infoDesc.AplicaEl) : null
         infoDesc.FechaAnulacion = infoDesc.FechaAnulacion? new Date(infoDesc.FechaAnulacion) : null
+        // infoDesc.Importe = infoDesc.Importe.toString()
+        // console.log('infoDesc: ', infoDesc);
+        
         this.descuentoObjetivo.set(infoDesc)
         
         setTimeout(() => {
@@ -128,7 +121,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     objetivoDetalle = resource({
         params: () => ({ ObjetivoId: this.inputObjetivoId(), anio: this.anio(), mes: this.mes() }),
         loader: async ({ params }) => {
-            
+
             if (params.ObjetivoId && params.anio && params.mes) {
                 return await firstValueFrom(this.getObjetivoDetalle(params.ObjetivoId, params.anio, params.mes))
             }

@@ -76,7 +76,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     readonly descuentoPersonal = signal<FormDesc>(this.descuentoPersonalDefault);
 
     readonly formDescuentoPersonal = form(this.descuentoPersonal, (p) => {
-        disabled(p, () => !this.visibleDesc())
+        disabled(p, () => !this.visibleDesc() || this.disabled())
     })
 
 

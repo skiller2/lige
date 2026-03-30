@@ -4,7 +4,7 @@
 
     <nz-card nzType="inner" nzTitle="Descuento de Objetivo">
       <form (ngSubmit)="save()">
-      <fieldset [disabled]="this.formDescuentoObjetivo().disabled()">
+      <!-- <fieldset [disabled]="this.disabled()"> -->
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
           <nz-form-control [nzMd]="18">
@@ -93,8 +93,8 @@
           <nz-form-item class="marginElement">
             <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
             <nz-form-control [nzMd]="6">
-              <input nz-input [formField]="formDescuentoObjetivo.importeCuota" type="text" appDotToComma mask="separator.2"
-                class="ant-input text-right" />
+              <input nz-input [value]="importeCuota()" type="text" appDotToComma mask="separator.2"
+                class="ant-input text-right" [disabled]="disabled()" [readonly]="true" />
             </nz-form-control>
           </nz-form-item>
 
@@ -104,7 +104,7 @@
               <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Detalle" type="text" />
             </nz-form-control>
           </nz-form-item>
-        </fieldset>
+        <!-- </fieldset> -->
 
           @if(descuentoObjetivo().FechaAnulacion) {
             <nz-form-item class="marginElement">
@@ -136,7 +136,7 @@
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            @if (!formDescuentoObjetivo().disabled() && !cancelDesc()) {
+            @if (!disabled() && !cancelDesc()) {
               <button type="submit" nzType="primary" nz-button [nzLoading]="isLoading()"
                 >
                 {{ 'app.btn.save' | i18n }}
@@ -147,7 +147,7 @@
               {{ 'app.btn.clear.form' | i18n }}
             </button>
             
-            @if (cancelDesc() && formDescuentoObjetivo().disabled()) {
+            @if (cancelDesc() && disabled()) {
               <button type="button" nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()">
                 Anular
               </button>
