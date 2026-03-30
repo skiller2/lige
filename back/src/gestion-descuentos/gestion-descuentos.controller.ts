@@ -940,9 +940,10 @@ export class GestionDescuentosController extends BaseController {
         PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
         PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
         PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
-        PersonalOtroDescuentoCuotaProceso)
-        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
-      `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId, cuotaAnio, cuotaMes, cuota, importeCuota, 0, 0, 'FA', now, ip, usuario])
+        PersonalOtroDescuentoCuotaProceso, 
+        AudIpIng, AudUsuarioIng, AudFechaIng, AudIpMod, AudUsuarioMod, AudFechaMod)
+        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9, @10, @11, @12,@10, @11, @12)
+      `, [PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId, cuotaAnio, cuotaMes, cuota, importeCuota, 0, 0, 'FA', ip, usuario, now])
 
       const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
       cuotaAnio = per.cuotaAnio
