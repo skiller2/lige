@@ -626,7 +626,7 @@ export class GestionDescuentosController extends BaseController {
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
         , tipdes.DescuentoId
-        , tipdes.DescuentoDescripcion
+        , Trim(tipdes.DescuentoDescripcion) AS DescuentoDescripcion
         , perdes.mes
         , perdes.anio
         , perdes.desmovimiento
