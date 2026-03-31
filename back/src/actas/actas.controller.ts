@@ -205,13 +205,22 @@ export class ActasController extends BaseController {
       error.push(` Descripcion`)
     }
     if (!acta.ActaFechaActa) {
-      error.push(` Desde`)
+      error.push(` Fecha`)
     }
 
     if (error.length) {
       error.unshift('Deben completar los siguientes campos:')
       throw new ClientWarning(error)
     }
+        const antActa = await queryRunner.query(`
+          SELECT TOP 1 ActaNroActa, ActaFechaActa  FROM Acta WHERE ActaNroActa < @0
+          ORDER BY ActaNroActa DESC
+        `, [acta.ActaNroActa])
+
+          if (antActa.length && antActa[0].ActaFechaActa > new Date(acta.ActaFechaActa)) {
+            throw new ClientException(`La fecha del acta no puede ser anterior a la fecha del acta Nro ${antActa[0].ActaNroActa} (${new Date(antActa[0].ActaFechaActa).toLocaleDateString()})`)
+          }
+
 
     //  El NroActa no debe coincidir con los ya registrados
       if (action == 'I' && acta.ActaNroActa) {
