@@ -107,7 +107,7 @@ export class PersonalExencionesDrawerComponent {
         defaultValue: []
     });
 
-    effectExencionForm = effect(async () => {
+    effectExencionForm = effect(() => {
         const visible = this.visibleDocumentos()
         const PersonalId: number = this.PersonalId()
         if (visible && PersonalId > 0) {
@@ -124,11 +124,11 @@ export class PersonalExencionesDrawerComponent {
                 }
             }
             
+            this.formParametroExencion().reset()
             this.parametroExencion.update((m) => ({
                 ...m,
                 ...obj
             }))
-            this.formParametroExencion().reset()
         }
         
     });

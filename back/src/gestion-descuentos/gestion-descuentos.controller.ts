@@ -2536,9 +2536,6 @@ FROM cte
     let dataset = []
     try {
 
-console.log("req.body " , req.body)
-console.log("gridDataInsert " , gridDataInsert)
-
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
