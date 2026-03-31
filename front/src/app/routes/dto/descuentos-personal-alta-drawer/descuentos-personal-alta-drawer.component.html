@@ -89,7 +89,7 @@
           <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
           <nz-form-control [nzMd]="6">
             <input nz-input [value]="importeTotal()" type="text" appDotToComma mask="separator.2"
-              class="ant-input text-right" [disabled]="disabled()" [readonly]="true" />
+              class="ant-input text-right" [readonly]="true" />
           </nz-form-control>
 
 
@@ -106,7 +106,7 @@
           <nz-form-label [nzXs]="5">Importe x Cuota</nz-form-label>
           <nz-form-control [nzMd]="6">
             <input nz-input [value]="importeCuota()" type="text" appDotToComma mask="separator.2"
-              class="ant-input text-right" [disabled]="disabled()" [readonly]="true" />
+              class="ant-input text-right" [readonly]="true" />
           </nz-form-control>
         </nz-form-item>
 
@@ -127,7 +127,7 @@
         </nz-form-item>
         }
 
-        @if (descuentoPersonal().DetalleAnulacion || cancelDesc()) {
+        @if (descuentoPersonal().DetalleAnulacion || crudAccion() === 'D') {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
@@ -155,22 +155,23 @@
         </nz-form-item>
         }
 
-
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            @if (this.visibleDesc() && !cancelDesc()) {
+            @if (crudAccion() === 'A' || crudAccion() === 'E') {
             <button nzType="primary" nz-button *ngIf="!formDescuentoPersonal().disabled()" type="submit"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">
               {{ 'app.btn.save' | i18n }}
             </button>
             }
+            @if (crudAccion() === 'A') {
             <button
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false"
               nzType="primary" nz-button (click)="resetForm($event)">
               {{ 'app.btn.clear.form' | i18n }}
             </button>
-            @if (cancelDesc() && this.visibleDesc()) {
+            }
+            @if (crudAccion() === 'D') {
             <button nzType="primary" nz-button (click)="cancel($event)"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">

@@ -50,6 +50,8 @@ export class TableDescuentosPersonalComponent {
     disabledForm = signal(false)
     cancelDesc = signal(false)
     isAnulacion = signal(false)
+
+    crudAccion = signal<string>('')
     private apiService =inject(ApiService)
     private angularUtilService= inject(AngularUtilService)
 
@@ -119,6 +121,8 @@ export class TableDescuentosPersonalComponent {
     openDrawerforAltaDescuentos() {
         this.visibleAltaDesc.set(true)
         this.isAnulacion.set(false)
+        this.crudAccion.set('A')
+
     }
 
     openDrawerforEditDescuentos() {
@@ -127,6 +131,8 @@ export class TableDescuentosPersonalComponent {
             this.disabledForm.set(false)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
+            this.crudAccion.set('E')
+
         } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
@@ -138,6 +144,8 @@ export class TableDescuentosPersonalComponent {
             this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
+            this.crudAccion.set('C')
+
         } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
@@ -149,6 +157,8 @@ export class TableDescuentosPersonalComponent {
             this.cancelDesc.set(true)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(true)
+
+            this.crudAccion.set('D')
         } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
@@ -159,6 +169,7 @@ export class TableDescuentosPersonalComponent {
             this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
             this.isAnulacion.set(false)
+            this.crudAccion.set('C')
         } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }

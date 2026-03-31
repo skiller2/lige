@@ -1,5 +1,5 @@
 import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
-import { tap, firstValueFrom, queueScheduler } from 'rxjs';
+import { tap, firstValueFrom, queueScheduler, timeout } from 'rxjs';
 import { AngularUtilService, queueMicrotaskOrSetTimeout } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -43,12 +43,16 @@ export interface FormDesc {
     providers: [AngularUtilService]
 })
 export class DescuentosPersonalAltaDrawerComponent {
-    visibleDesc = model<boolean>(false)
     descuentoId = model<number>(0);
     personalId = model<number>(0);
+
+    visibleDesc = model<boolean>(false)    
+    
     disabled = input<boolean>(false);
     cancelDesc = input<boolean>(false);
     isAnulacion = input<boolean>(false);
+
+    crudAccion = input<string>('');
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
     periodo = input<any>(null)
@@ -77,9 +81,13 @@ export class DescuentosPersonalAltaDrawerComponent {
     readonly descuentoPersonal = signal<FormDesc>(this.descuentoPersonalDefault);
 
     readonly formDescuentoPersonal = form(this.descuentoPersonal, (p) => {
-        disabled(p, () => !this.visibleDesc() || this.disabled())
+            disabled(p.AplicaEl, () => this.crudAccion()=='C'||this.crudAccion()=='D')
+            disabled(p.PersonalId, () => this.crudAccion()=='C'||this.crudAccion()=='D')
+            disabled(p.DescuentoId, () => this.crudAccion()=='C'||this.crudAccion()=='D')
+            disabled(p.Importe, () => this.crudAccion()=='C'||this.crudAccion()=='D')
+            disabled(p.PorcentajeDescuento, () => this.crudAccion()=='C'||this.crudAccion()=='D')
+            disabled(p.Cuotas, () => this.crudAccion()=='C'||this.crudAccion()=='D')
     })
-
 
     loadEffect = effect(() => {
         if (!this.visibleDesc()) return;
