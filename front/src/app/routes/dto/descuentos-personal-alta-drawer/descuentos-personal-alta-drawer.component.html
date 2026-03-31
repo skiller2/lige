@@ -4,7 +4,7 @@
 
     <nz-card nzType="inner" >
       <form (ngSubmit)="save()">
-
+        <fieldset [disabled]="disabled()">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
@@ -116,6 +116,7 @@
             <input nz-input placeholder="" [formField]="formDescuentoPersonal.Detalle" type="text" />
           </nz-form-control>
         </nz-form-item>
+        </fieldset>
 
         @if(descuentoPersonal().FechaAnulacion) {
 
@@ -157,21 +158,19 @@
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            @if (crudAccion() === 'A' || crudAccion() === 'E') {
+            @if (this.visibleDesc() && !cancelDesc()) {
             <button nzType="primary" nz-button *ngIf="!formDescuentoPersonal().disabled()" type="submit"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">
               {{ 'app.btn.save' | i18n }}
             </button>
             }
-            @if (crudAccion() === 'A') {
             <button
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false"
               nzType="primary" nz-button (click)="resetForm($event)">
               {{ 'app.btn.clear.form' | i18n }}
             </button>
-            }
-            @if (crudAccion() === 'D') {
+            @if (cancelDesc() && this.visibleDesc()) {
             <button nzType="primary" nz-button (click)="cancel($event)"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">

@@ -8,7 +8,6 @@ import { SearchService } from 'src/app/services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FormBuilder } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
@@ -67,10 +66,10 @@ export class DescuentosObjetivosAltaDrawerComponent {
     readonly descuentoObjetivo = signal<FormDesc>(this.descuentoObjetivoDefault);
 
     readonly formDescuentoObjetivo = form(this.descuentoObjetivo, (p) => {
-        disabled(p, () => this.disabled())
         readonly(p.DetalleAnulacion, () => (this.disabled() && !this.isAnulacion()))
         disabled(p.FechaAnulacion, () => true)
         disabled(p.ImportacionDocumentoId, () => true)
+        disabled(p, () => this.disabled())
     })
 
     loadEffect = effect(async () => {
@@ -96,7 +95,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     async loadDescuentoObjetivo() {
         const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
-        // console.log('infoDesc: ', infoDesc);
         
         infoDesc.oldObjetivoId = infoDesc.ObjetivoId
         infoDesc.AplicaEl = infoDesc.AplicaEl? new Date(infoDesc.AplicaEl) : null
@@ -105,10 +103,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
         // console.log('infoDesc: ', infoDesc);
         
         this.descuentoObjetivo.set(infoDesc)
-        
-        setTimeout(() => {
-            this.formDescuentoObjetivo().reset()
-        }, 500)
     }
 
     // private destroy$ = new Subject();
@@ -146,7 +140,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     async save() {
         await submit(this.formDescuentoObjetivo, async (form) => {
-            this.isLoading.set(true)
             let values = form().value()
             try {
                 if (values.id) {
@@ -163,7 +156,6 @@ export class DescuentosObjetivosAltaDrawerComponent {
             } catch (e) {
 
             }
-            this.isLoading.set(false)
         })
     }
 

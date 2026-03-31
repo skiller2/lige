@@ -4,7 +4,7 @@
 
     <nz-card nzType="inner" nzTitle="Descuento de Objetivo">
       <form (ngSubmit)="save()">
-      <!-- <fieldset [disabled]="this.disabled()"> -->
+      <fieldset [disabled]="disabled()">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
           <nz-form-control [nzMd]="18">
@@ -104,7 +104,7 @@
               <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Detalle" type="text" />
             </nz-form-control>
           </nz-form-item>
-        <!-- </fieldset> -->
+        </fieldset>
 
           @if(descuentoObjetivo().FechaAnulacion) {
             <nz-form-item class="marginElement">
@@ -137,16 +137,18 @@
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
             @if (!disabled() && !cancelDesc()) {
-              <button type="submit" nzType="primary" nz-button [nzLoading]="isLoading()"
-                >
+              <button type="submit" nzType="primary" nz-button 
+                [nzLoading]="formDescuentoObjetivo().submitting()"
+                [disabled]="formDescuentoObjetivo().submitting() || formDescuentoObjetivo().dirty()==false || formDescuentoObjetivo().valid()==false">
                 {{ 'app.btn.save' | i18n }}
               </button>
-            }
-            <button type="button" [disabled]="!(formDescuentoObjetivo.id() && !ObjetivoDescuentoId() && !objetivoId())" nzType="primary" nz-button
+
+              <button type="button" [disabled]="!(formDescuentoObjetivo.id() && !ObjetivoDescuentoId() && !objetivoId())" nzType="primary" nz-button
               (click)="resetForm()">
-              {{ 'app.btn.clear.form' | i18n }}
-            </button>
-            
+                {{ 'app.btn.clear.form' | i18n }}
+              </button>
+            }
+
             @if (cancelDesc() && disabled()) {
               <button type="button" nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()">
                 Anular
