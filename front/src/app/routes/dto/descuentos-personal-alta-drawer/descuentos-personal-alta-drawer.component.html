@@ -55,7 +55,7 @@
               nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false">
               @for (efecto of listaEfectosPer.value(); track efecto.EfectoId) {
               <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}"
-                [nzLabel]="efecto.EfectoDescripcionCompleta"></nz-option>
+                [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')'"></nz-option>
               }
               @if(lastEfecto()?.EfectoId){
               <nz-option
