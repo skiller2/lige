@@ -172,8 +172,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                 e.EfectoId === this.descuentoPersonal().EfectoKey.EfectoId &&
                 e.EfectoIndividualId === this.descuentoPersonal().EfectoKey.EfectoIndividualId
             );
-            console.log('efectokey', this.descuentoPersonal().EfectoKey)
-            console.log('efectoselect', efectoSeleccionado)
+
             if (efectoSeleccionado) {
                 this.descuentoPersonal.update((state) => {
                     return { ...state, Importe: efectoSeleccionado.Importe ?? '' }
