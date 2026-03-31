@@ -531,7 +531,7 @@ export class EfectoController extends BaseController {
       SELECT efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId as EfectoIndividualId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta,  
-ISNULL(lp.ListaPrecioPrecio,lpi.ListaPrecioIndividualPrecio) as PreciVigente,
+ISNULL(lp.ListaPrecioPrecio,lpi.ListaPrecioIndividualPrecio) as Importe,
 1
 FROM Stock stk
 JOIN Personal per ON per.PersonalId = stk.PersonalId

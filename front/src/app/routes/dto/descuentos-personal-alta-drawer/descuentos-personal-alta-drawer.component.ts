@@ -1,6 +1,6 @@
 import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
 import { tap, firstValueFrom, queueScheduler } from 'rxjs';
-import { AngularUtilService } from 'angular-slickgrid';
+import { AngularUtilService, queueMicrotaskOrSetTimeout } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ApiService } from 'src/app/services/api.service';
@@ -11,6 +11,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { SettingOutline } from '@ant-design/icons-angular/icons';
 
 
 export interface FormDesc {
@@ -88,7 +89,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         if (did && pid) {
             void this.loadDescuentoPersonal();
         } else {
-            
+
             untracked(() => queueMicrotask(() => this.resetForm(null)));
         }
     });
@@ -116,13 +117,13 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
-  
+
     AplicaEl = computed(() => this.descuentoPersonal().AplicaEl)
     readonly anio = computed(() => this.AplicaEl() ? new Date(this.AplicaEl()!).getFullYear() : 0);
     readonly mes = computed(() => this.AplicaEl() ? new Date(this.AplicaEl()!).getMonth() + 1 : 0);
-  
-//    anio = signal<number>(0)
-//    mes = signal<number>(0)
+
+    //    anio = signal<number>(0)
+    //    mes = signal<number>(0)
 
     PersonalId = computed(() => { return this.descuentoPersonal().PersonalId })
     DescuentoId = computed(() => { return this.descuentoPersonal().DescuentoId })
@@ -162,6 +163,26 @@ export class DescuentosPersonalAltaDrawerComponent {
         }
     })
 
+    onEfectoChange() {
+        // Pequeño delay para que el modelo se actualice primero
+        setTimeout(() => {
+            const listaEfectos = this.listaEfectosPer.value();
+
+            const efectoSeleccionado = listaEfectos.find((e: any) =>
+                e.EfectoId === this.descuentoPersonal().EfectoKey.EfectoId &&
+                e.EfectoIndividualId === this.descuentoPersonal().EfectoKey.EfectoIndividualId
+            );
+            console.log('efectokey', this.descuentoPersonal().EfectoKey)
+            console.log('efectoselect', efectoSeleccionado)
+            if (efectoSeleccionado) {
+                this.descuentoPersonal.update((state) => {
+                    return { ...state, Importe: efectoSeleccionado.Importe ?? '' }
+                })
+            }
+
+        },200);
+    }
+
     optionsTipoDescuento = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
 
     isEfecto = computed(() => {
@@ -183,7 +204,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         const importe = Number(s.Importe) || 0;
         const cant = Number(s.Cantidad) || 0;
         const pct = Number(s.PorcentajeDescuento) || 0;
-        const total = (importe * cant * (pct / 100)) ;
+        const total = (importe * cant * (pct / 100));
         return total.toFixed(2); // string
     });
 
@@ -206,17 +227,17 @@ export class DescuentosPersonalAltaDrawerComponent {
 
         //queueMicrotask(() => this.formDescuentoPersonal().reset())
 
-        
+
         setTimeout(() => {
             this.formDescuentoPersonal().reset()
         }, 500)
-        
+
 
     }
 
     async ngOnInit() {
         const periodo: any = await firstValueFrom(this.searchService.getProxPeriodo())
-        this.anioDef= periodo.anio
+        this.anioDef = periodo.anio
         this.mesDef = periodo.mes
     }
 
@@ -254,7 +275,7 @@ export class DescuentosPersonalAltaDrawerComponent {
 
         this.descuentoPersonal.set(this.descuentoPersonalDefault)
         this.descuentoPersonal.update((state) => {
-            return { ...state, AplicaEl: new Date(this.anioDef, this.mesDef-1, 1) }
+            return { ...state, AplicaEl: new Date(this.anioDef, this.mesDef - 1, 1) }
         })
         this.lastEfecto.set(null)
 

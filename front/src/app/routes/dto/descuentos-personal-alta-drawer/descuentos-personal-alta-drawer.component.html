@@ -52,7 +52,7 @@
           <nz-form-label [nzXs]="5">Efecto</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
             <nz-select [formField]="formDescuentoPersonal.EfectoKey" [compareWith]="efectoCompareFn"
-              nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false">
+              nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false" (nzBlur)="onEfectoChange()">
               @for (efecto of listaEfectosPer.value(); track efecto.EfectoId) {
               <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}"
                 [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')'"></nz-option>
