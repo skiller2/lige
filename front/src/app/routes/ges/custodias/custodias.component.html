@@ -43,7 +43,7 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/cust/objetivos">Custodias</a>
 
-        @if (columns()) {
+        @if (columns().length) {
           <ng-template nz-tab>
             <shared-filtro-builder [fieldsToSelect]="columns()"   [(options)]="listOptions" [startFilters]="startFilters()" />
             <div class="gridListContainer container-fluid">
