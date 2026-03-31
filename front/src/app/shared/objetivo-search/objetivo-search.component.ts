@@ -37,7 +37,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>(true)
   @ViewChild("osc") osc!: NzSelectComponent
-
+  private isDisabled = false
 
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
@@ -86,6 +86,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
       this.osc.originElement.nativeElement.addEventListener('keydown', this.keydownHandler);
 
       // this.osc.focus() //Al hacer click en el componente hace foco
+      this.osc.setDisabledState(this.isDisabled)
     }, 1);
   }
 
@@ -156,6 +157,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
 
   
   setDisabledState(isDisabled: boolean): void {
+    this.isDisabled = isDisabled
     this.osc?.setDisabledState(isDisabled)
   } 
 }
