@@ -23,7 +23,7 @@ const columnsActas:any[] = [
     searchHidden: true
   },
   {
-    id:'ActaNroActa', name:'Nro.Acta', field:'ActaNroActa',
+    id:'ActaNroActa', name:'Número Acta', field:'ActaNroActa',
     fieldName: 'ActaNroActa',
     type:'number',
     searchType: 'number',
@@ -32,7 +32,7 @@ const columnsActas:any[] = [
     searchHidden: false
   },
   {
-    id:'ActaDescripcion', name:'Descripcion', field:'ActaDescripcion',
+    id:'ActaDescripcion', name:'Descripción', field:'ActaDescripcion',
     fieldName: 'ActaDescripcion',
     type:'string',
     searchType: 'string',
@@ -41,17 +41,8 @@ const columnsActas:any[] = [
     searchHidden: false
   },
   {
-    id:'ActaFechaActa', name:'Desde', field:'ActaFechaActa',
+    id:'ActaFechaActa', name:'Fecha Acta', field:'ActaFechaActa',
     fieldName: 'ActaFechaActa',
-    type:'date',
-    searchType: 'date',
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    id:'ActaFechaHasta', name:'Hasta', field:'ActaFechaHasta',
-    fieldName: 'ActaFechaHasta',
     type:'date',
     searchType: 'date',
     sortable: true,
@@ -70,7 +61,7 @@ export class ActasController extends BaseController {
     return await queryRunner.query(`
       SELECT 
       ROW_NUMBER() OVER (ORDER BY ActaId) AS id,
-      ActaId, ActaNroActa, ActaFechaActa, ActaFechaHasta, ActaDescripcion
+      ActaId, ActaNroActa, ActaFechaActa, ActaDescripcion
       FROM Acta
       WHERE (1=1) 
       AND (${filterSql})
@@ -104,7 +95,6 @@ export class ActasController extends BaseController {
     const ActaNroActa:number = req.body.ActaNroActa;
     const ActaDescripcion:string = req.body.ActaDescripcion;
     const ActaFechaActa:Date = req.body.ActaFechaActa? new Date(req.body.ActaFechaActa) : null;
-    const ActaFechaHasta:Date = req.body.ActaFechaHasta?new Date(req.body.ActaFechaHasta) : null;
     try {
       await queryRunner.startTransaction()
 
@@ -115,10 +105,9 @@ export class ActasController extends BaseController {
         INSERT INTO Acta (
           ActaNroActa,
           ActaDescripcion,
-          ActaFechaActa,
-          ActaFechaHasta
-        ) VALUES (@0,@1,@2,@3)
-      `, [ActaNroActa, ActaDescripcion, ActaFechaActa, ActaFechaHasta])
+          ActaFechaActa
+        ) VALUES (@0,@1,@2)
+      `, [ActaNroActa, ActaDescripcion, ActaFechaActa])
 
       const Acta = await queryRunner.query(`
         SELECT ActaId FROM Acta
@@ -142,7 +131,6 @@ export class ActasController extends BaseController {
     const ActaNroActa = req.body.ActaNroActa;
     const ActaDescripcion = req.body.ActaDescripcion;
     const ActaFechaActa:Date = req.body.ActaFechaActa? new Date(req.body.ActaFechaActa) : null;
-    const ActaFechaHasta:Date = req.body.ActaFechaHasta?new Date(req.body.ActaFechaHasta) : null;
     try {
       await queryRunner.startTransaction()
       
@@ -153,10 +141,9 @@ export class ActasController extends BaseController {
         UPDATE Acta SET
           ActaNroActa = @1,
           ActaDescripcion = @2,
-          ActaFechaActa = @3,
-          ActaFechaHasta = @4
+          ActaFechaActa = @3
         WHERE ActaId IN (@0)
-      `, [ActaId, ActaNroActa, ActaDescripcion, ActaFechaActa, ActaFechaHasta])
+      `, [ActaId, ActaNroActa, ActaDescripcion, ActaFechaActa])
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Actualización de registro exitoso');
     } catch (error) {
@@ -224,13 +211,6 @@ export class ActasController extends BaseController {
     if (error.length) {
       error.unshift('Deben completar los siguientes campos:')
       throw new ClientWarning(error)
-    }
-
-    const fechaActa:Date = new Date(acta.ActaFechaActa)
-    const fechaHasta:Date = new Date(acta.ActaFechaHasta)
-    //  La FechaHasta debe de ser mayor a la FechaActa
-    if (acta.ActaFechaActa && acta.ActaFechaHasta && (fechaActa.getTime() > fechaHasta.getTime())) {
-      throw new ClientException('La fecha Hasta no debe ser menor a Desde')
     }
 
     //  El NroActa no debe coincidir con los ya registrados

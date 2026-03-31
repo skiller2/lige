@@ -19,7 +19,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule,
-        FiltroBuilderComponent, 
+        FiltroBuilderComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -53,17 +53,17 @@ export class ActasComponent {
 
     columns$ = this.apiService.getCols('/api/actas/cols').pipe(map((cols: Column<any>[]) => {
         let mapped = cols.map((col: Column) => {
-          if (col.id == 'ActaNroActa') {
-            // col.cssClass = 'text-right',
-            col.editor = {
-              model: Editors['integer'],
-              minValue: 0,
-              maxValue: 10000000,
-              alwaysSaveOnEnterKey: true,
-            //   required: true
+            if (col.id == 'ActaNroActa') {
+                // col.cssClass = 'text-right',
+                col.editor = {
+                    model: Editors['integer'],
+                    minValue: 0,
+                    maxValue: 10000000,
+                    alwaysSaveOnEnterKey: true,
+                    //   required: true
+                }
             }
-          }
-          return col
+            return col
         });
         return mapped
     }));
@@ -84,7 +84,6 @@ export class ActasComponent {
                         ActaNroActa: "",
                         ActaDescripcion: "",
                         ActaFechaActa: "",
-                        ActaFechaHasta: "",
                     })
                     return data
                 }))
@@ -120,10 +119,10 @@ export class ActasComponent {
                 if (!rowComplete)
                     return
 
-                if (row.ActaId){
+                if (row.ActaId) {
                     this.rowLocked.set(true)
                     await firstValueFrom(this.apiService.updateActa(row))
-                }else{
+                } else {
                     this.rowLocked.set(true)
                     const response = await firstValueFrom(this.apiService.addActa(row))
                     row.ActaId = response.data.ActaId
@@ -149,7 +148,7 @@ export class ActasComponent {
                 this.angularGrid.slickGrid.setSelectedRows([])
                 this.rowLocked.set(false)
             } catch (e: any) {
-                console.log('Error :' , e);
+                console.log('Error :', e);
 
                 if (row.ActaId) {
                     const item = this.angularGrid.dataView.getItemById(row.id)
@@ -200,7 +199,7 @@ export class ActasComponent {
             this.selectedActaId.set(row.ActaId)
             this.selectedNroActa.set(row.ActaNroActa)
         }
-        
+
     }
 
     createNewItem(incrementIdByHowMany = 1) {
@@ -217,9 +216,8 @@ export class ActasComponent {
             id: newId,
             ActaId: 0,
             ActaNroActa: "",
-            ActaDescripcion:"",
-            ActaFechaActa:"",
-            ActaFechaHasta: "",
+            ActaDescripcion: "",
+            ActaFechaActa: "",
         };
     }
 
@@ -240,34 +238,23 @@ export class ActasComponent {
 
     updateItemMetadata(previousItemMetadata: any) {
         return (rowNumber: number) => {
-        // const newCssClass = 'element-add-no-complete';
-        const item = this.angularGrid.dataView.getItem(rowNumber);
-        let meta = {
-            cssClasses: ''
-        };
-        if (typeof previousItemMetadata === 'object') {
-            meta = previousItemMetadata(rowNumber);
-        }
-        
-        if (
-            //item.ActaId === 0 || 
-            item.ActaNroActa === 0 || 
-            item.ActaDescripcion === "" || 
-            item.ActaFechaActa === "" 
-        ) {
-            meta.cssClasses = 'element-add-no-complete';
-        } else
-            meta.cssClasses = ''
-    
-        const fechaActa:Date = new Date(item.ActaFechaActa)
-        const fechaHasta:Date = new Date(item.ActaFechaHasta)
-        //  La FechaHasta debe de ser mayor a la FechaActa
-        //if (item.ActaFechaActa  && (fechaActa.getTime() > fechaHasta.getTime()))
-          //  meta.cssClasses = 'element-add-no-complete';
+            // const newCssClass = 'element-add-no-complete';
+            const item = this.angularGrid.dataView.getItem(rowNumber);
+            let meta = { cssClasses: '' };
+            if (typeof previousItemMetadata === 'object') {
+                meta = previousItemMetadata(rowNumber);
+            }
 
-      return meta;
-    };
-  }
+            const todosVacios = Number(item?.ActaNroActa)== 0 && item.ActaDescripcion === "" && item.ActaFechaActa === ""
+            const todosCompletos = item.ActaNroActa >0 && item.ActaDescripcion !== "" && item.ActaFechaActa !== ""
+            if (!todosVacios && !todosCompletos) {
+                meta.cssClasses = 'element-add-no-complete';
+            } else {
+                meta.cssClasses = '';
+            }
+            return meta;
+        };
+    }
 
     async deleteItem() {
         await firstValueFrom(this.apiService.deleteActa(this.selectedActaId()))
