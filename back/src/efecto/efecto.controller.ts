@@ -531,14 +531,15 @@ export class EfectoController extends BaseController {
       SELECT efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId as EfectoIndividualId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta,  
-
-      1
-      FROM Stock stk
-      JOIN Personal per ON per.PersonalId = stk.PersonalId
-      JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-
-      WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND per.PersonalId = @0
+ISNULL(lp.ListaPrecioPrecio,lpi.ListaPrecioIndividualPrecio) as PreciVigente,
+1
+FROM Stock stk
+JOIN Personal per ON per.PersonalId = stk.PersonalId
+JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
+LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
+LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= GETDATE() and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= GETDATE()
+LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= GETDATE() AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= GETDATE()
+WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND per.PersonalId = @0
     `, [personalId])
   }
 
