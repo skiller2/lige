@@ -158,19 +158,22 @@
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            @if (this.visibleDesc() && !cancelDesc()) {
+            @if (crudAccion() === 'A' || crudAccion() === 'E') {
             <button nzType="primary" nz-button *ngIf="!formDescuentoPersonal().disabled()" type="submit"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">
               {{ 'app.btn.save' | i18n }}
             </button>
             }
+            @if (crudAccion() === 'A') {
+
             <button
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false"
               nzType="primary" nz-button (click)="resetForm($event)">
               {{ 'app.btn.clear.form' | i18n }}
             </button>
-            @if (cancelDesc() && this.visibleDesc()) {
+           }
+            @if (crudAccion() === 'D') {
             <button nzType="primary" nz-button (click)="cancel($event)"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">
