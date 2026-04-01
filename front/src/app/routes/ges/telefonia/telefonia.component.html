@@ -106,12 +106,12 @@
                 @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
                 <!-- <ng-container > -->
                 <div class="containerAnterioresTelefonia" nz-tooltip
-                  nzTooltipTitle="{{movimiento.DocumentoId}} {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}}">
+                  nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
                   <ng-container>
                     <a app-down-file httpUrl="/api/telefonia/download/{{anio()}}/{{mes()}}/{{movimiento.DocumentoId}}">
                       <span nz-icon nzType="download"></span></a>
                   </ng-container>
-                  <span> ID: {{movimiento.DocumentoId}} - Fecha:
+                  <span> ID: {{movimiento.DocumentoId}} - Período:
                     {{movimiento.DocumentoMes}}/{{movimiento.DocumentoAnio}} </span>
                 </div>
                 }
