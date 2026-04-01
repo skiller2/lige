@@ -42,9 +42,9 @@ export class TelefoniaController extends BaseController {
     {
       name: "Efecto",
       type: "string",
-      id: "EfectoEfectoIndividualDescripcion",
-      field: "EfectoEfectoIndividualDescripcion",
-      fieldName: "efeind.EfectoEfectoIndividualDescripcion",
+      id: "EfectoDescripcionCompleta",
+      field: "EfectoDescripcionCompleta",
+      fieldName: "EfectoDescripcionCompleta",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -60,7 +60,16 @@ export class TelefoniaController extends BaseController {
       hidden: false,
     },
     {
-      name: "Apellido Nombre",
+      name: "CUIT Personal",
+      type: "string",
+      id: "PersonalCUITCUILCUIT",
+      field: "PersonalCUITCUILCUIT",
+      fieldName: "cuit.PersonalCUITCUILCUIT",
+      sortable: true,
+      searchHidden: true
+    },
+    {
+      name: "Personal",
       type: "string",
       id: "ApellidoNombre",
       field: "ApellidoNombre",
@@ -71,6 +80,7 @@ export class TelefoniaController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
+    
     {
       name: "PersonalId",
       type: "number",
@@ -90,7 +100,39 @@ export class TelefoniaController extends BaseController {
       searchComponent: "inputForObjetivoSearch",
       searchType: "number",
       sortable: true,
-      searchHidden: false
+      searchHidden: false,
+      hidden: true,
+
+    },
+    {
+      name: "Código Objetivo",
+      type: "string",
+      id: "codObjetivo",
+      field: "codObjetivo",
+      fieldName: "codObjetivo",
+      sortable: true,
+      searchHidden: true
+    },
+    {
+      name: "Objetivo",
+      type: "string",
+      id: "ObjetivoDescripcion",
+      field: "ObjetivoDescripcion",
+      fieldName: "ObjetivoDescripcion",
+      sortable: true,
+      searchHidden: true
+    },
+    {
+      name: "Coo. Cuenta Objetivo",
+      type: "string",
+      id: "CoordinadorCuenta",
+      field: "CoordinadorCuenta",
+      fieldName: "CoordinadorCuenta",
+      searchComponent: "inputForPersonalSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
     },
     {
       name: "Importe",
@@ -147,21 +189,31 @@ export class TelefoniaController extends BaseController {
     fecha.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
+      `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, 
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
       conx.ImpuestoInternoTelefoniaImpuesto,
       tel.TelefoniaObservacion,
+      iif(tel.TelefoniaObjetivoId is not null, CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)), null) as codObjetivo,
+      iif(tel.TelefoniaPersonalId is not null,CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)), null) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
+      iif(tel.TelefoniaObjetivoId is not null,CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion), null) ObjetivoDescripcion,
+      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta, 
+      iif(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(TRIM(perres.PersonalApellido), ', ',TRIM(perres.PersonalNombre)), null) CoordinadorCuenta,
+
+
       1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
       LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
-      LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)
-      
+      LEFT JOIN Personal per ON per.PersonalId = tel.TelefoniaPersonalId
+      LEFT JOIN Personal perres on perres.PersonalId = objjer.ObjetivoPersonalJerarquicoPersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
       LEFT JOIN (
         SELECT asi.TelefoniaId, imp.ImpuestoInternoTelefoniaImpuesto,
         SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 )) importe,
@@ -178,6 +230,9 @@ export class TelefoniaController extends BaseController {
       ) conx ON conx.TelefoniaId = tel.TelefoniaId
         
 
+LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = tel.TelefoniaEfectoId
+LEFT JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = tel.TelefoniaEfectoId AND efeinddes.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId
+  
 
       WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31') 
     AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31') 
