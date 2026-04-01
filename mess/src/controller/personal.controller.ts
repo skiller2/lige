@@ -422,10 +422,10 @@ export class PersonalController extends BaseController {
 
 
   static getAdelantoLimits(fecha) {
-    const maxImporte = 200000  //Antes 100000
+    const maxImporte = 100000  //Antes 100000
     const minImporte = 10000
-    const maxCantAdelantos = 2  //Antes 1
-    const fechaLimite = new Date(fecha.getFullYear(), fecha.getMonth(), 31, 23, 59, 59); // 23:59 del día 18 del mes actual
+    const maxCantAdelantos = 1  //Antes 1
+    const fechaLimite = new Date(fecha.getFullYear(), fecha.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
     return { maxImporte, minImporte, fechaLimite,maxCantAdelantos }
   }
 
