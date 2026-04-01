@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
@@ -44,7 +44,7 @@ export class TelefoniaController extends BaseController {
       type: "string",
       id: "EfectoDescripcionCompleta",
       field: "EfectoDescripcionCompleta",
-      fieldName: "EfectoDescripcionCompleta",
+      fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' )",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -60,7 +60,7 @@ export class TelefoniaController extends BaseController {
       hidden: false,
     },
     {
-      name: "CUIT Personal",
+      name: "CUIT Persona",
       type: "string",
       id: "PersonalCUITCUILCUIT",
       field: "PersonalCUITCUILCUIT",
@@ -69,7 +69,7 @@ export class TelefoniaController extends BaseController {
       searchHidden: true
     },
     {
-      name: "Personal",
+      name: "Apellido Nombre",
       type: "string",
       id: "ApellidoNombre",
       field: "ApellidoNombre",
@@ -80,7 +80,7 @@ export class TelefoniaController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
-    
+
     {
       name: "PersonalId",
       type: "number",
@@ -124,15 +124,22 @@ export class TelefoniaController extends BaseController {
     },
     {
       name: "Coo. Cuenta Objetivo",
-      type: "string",
-      id: "CoordinadorCuenta",
-      field: "CoordinadorCuenta",
-      fieldName: "CoordinadorCuenta",
-      searchComponent: "inputForPersonalSearch",
-      searchType: "number",
+      id: "isCoordinadorCuenta",
+      field: "isCoordinadorCuenta",
+      fieldName: "isCoordinadorCuenta",
+      type: 'string',
+      searchComponent: "inputForActivo",
+
       sortable: true,
-      searchHidden: false,
+      formatter: 'collectionFormatter',
+      params: { collection: getOptionsSINO },
+
+      exportWithFormatter: true,
       hidden: false,
+      searchHidden: false,
+      minWidth: 100,
+      maxWidth: 100,
+      cssClass: 'text-center'
     },
     {
       name: "Importe",
@@ -195,10 +202,10 @@ export class TelefoniaController extends BaseController {
       conx.ImpuestoInternoTelefoniaImpuesto,
       tel.TelefoniaObservacion,
       iif(tel.TelefoniaObjetivoId is not null, CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)), null) as codObjetivo,
-      iif(tel.TelefoniaPersonalId is not null,CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)), null) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
-      iif(tel.TelefoniaObjetivoId is not null,CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion), null) ObjetivoDescripcion,
+      iif(tel.TelefoniaPersonalId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)), null) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
+      iif(tel.TelefoniaObjetivoId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion), null) ObjetivoDescripcion,
       CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta, 
-      iif(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(TRIM(perres.PersonalApellido), ', ',TRIM(perres.PersonalNombre)), null) CoordinadorCuenta,
+      IIF(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,'1', '0') as isCoordinadorCuenta,
 
 
       1
@@ -210,8 +217,7 @@ export class TelefoniaController extends BaseController {
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
-      LEFT JOIN Personal per ON per.PersonalId = tel.TelefoniaPersonalId
-      LEFT JOIN Personal perres on perres.PersonalId = objjer.ObjetivoPersonalJerarquicoPersonalId
+      LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId, objjer.ObjetivoPersonalJerarquicoPersonalId)
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
       LEFT JOIN (
