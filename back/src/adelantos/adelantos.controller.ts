@@ -250,8 +250,7 @@ export class AdelantosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const FormaPrestamoId = 7 //Adelanto
     const now = new Date();
-    // const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
-    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 31, 23, 59, 0); // 23:59 del día 31
+    const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
