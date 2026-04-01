@@ -893,7 +893,7 @@ export class GestionDescuentosController extends BaseController {
 
     let mensaje = ''
     if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
-    if (importe < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+    if (DescuentoId != 49 && importe < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
 
     switch (DescuentoId) {
       case 50: // descuento de efecto
