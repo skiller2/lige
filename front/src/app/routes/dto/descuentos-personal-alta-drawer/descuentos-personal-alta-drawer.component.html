@@ -4,7 +4,6 @@
 
     <nz-card nzType="inner" >
       <form (ngSubmit)="save()">
-        <fieldset [disabled]="disabled()">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
@@ -69,12 +68,12 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Cantidad</nz-form-label>
           <nz-form-control [nzMd]="5" nzHasFeedback sfErrorTip>
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cantidad" type="number" />
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cantidad" type="number" mask="separator.0"/>
           </nz-form-control>
 
           <nz-form-label [nzXs]="5">Porcentaje</nz-form-label>
           <nz-form-control [nzMd]="5" nzHasFeedback sfErrorTip>
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.PorcentajeDescuento" type="number" />
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.PorcentajeDescuento" type="number" mask="separator.0"/>
           </nz-form-control>
         </nz-form-item>
         }
@@ -100,7 +99,7 @@
 
           <nz-form-label [nzXs]="5">Cuotas</nz-form-label>
           <nz-form-control [nzMd]="5">
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cuotas" type="number" />
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Cuotas" type="number" mask="separator.0"/>
           </nz-form-control>
 
           <nz-form-label [nzXs]="5">Importe x Cuota</nz-form-label>
@@ -113,10 +112,9 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Detalle</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Detalle" type="text" />
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.Detalle" type="text" mask=""/>
           </nz-form-control>
         </nz-form-item>
-        </fieldset>
 
         @if(descuentoPersonal().FechaAnulacion) {
 
@@ -132,17 +130,17 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.DetalleAnulacion" type="text" />
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.DetalleAnulacion" type="text" mask=""/>
           </nz-form-control>
         </nz-form-item>
         }
 
 
-        @if (descuentoPersonal().ImportacionDocumentoId) {
+        @if (false) {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Importación documento</nz-form-label>
           <nz-form-control [nzMd]="18">
-            <input nz-input placeholder="" [formField]="formDescuentoPersonal.ImportacionDocumentoId" type="number" />
+            <input nz-input placeholder="" [formField]="formDescuentoPersonal.ImportacionDocumentoId" type="number"/>
           </nz-form-control>
         </nz-form-item>
         }
