@@ -19,7 +19,7 @@ export interface FormDesc {
     DescuentoId: number;
     PersonalId: number;
     AplicaEl: Date | null;
-    Cuotas: number;
+    Cuotas: number | any;
     Importe: string;
     Detalle: string;
     DetalleAnulacion: string;
@@ -29,8 +29,8 @@ export interface FormDesc {
     EfectoKey: { EfectoId: number | null, EfectoIndividualId: number | null };
     EfectoId: number | null;
     EfectoIndividualId: number | null;
-    Cantidad: number;
-    PorcentajeDescuento: number;
+    Cantidad: number | any;
+    PorcentajeDescuento: number | any;
 }
 
 
@@ -46,8 +46,8 @@ export class DescuentosPersonalAltaDrawerComponent {
     descuentoId = model<number>(0);
     personalId = model<number>(0);
 
-    visibleDesc = model<boolean>(false)    
-    
+    visibleDesc = model<boolean>(false)
+
     disabled = input<boolean>(false);
     cancelDesc = input<boolean>(false);
     isAnulacion = input<boolean>(false);
@@ -81,12 +81,20 @@ export class DescuentosPersonalAltaDrawerComponent {
     readonly descuentoPersonal = signal<FormDesc>(this.descuentoPersonalDefault);
 
     readonly formDescuentoPersonal = form(this.descuentoPersonal, (p) => {
-            disabled(p.AplicaEl, () => this.crudAccion()=='C'||this.crudAccion()=='D')
-            disabled(p.PersonalId, () => this.crudAccion()=='C'||this.crudAccion()=='D')
-            disabled(p.DescuentoId, () => this.crudAccion()=='C'||this.crudAccion()=='D')
-            disabled(p.Importe, () => this.crudAccion()=='C'||this.crudAccion()=='D')
-            disabled(p.PorcentajeDescuento, () => this.crudAccion()=='C'||this.crudAccion()=='D')
-            disabled(p.Cuotas, () => this.crudAccion()=='C'||this.crudAccion()=='D')
+
+
+        disabled(p.ImportacionDocumentoId)
+        disabled(p.AplicaEl, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.PersonalId, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.DescuentoId, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.Importe, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.PorcentajeDescuento, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.Cuotas, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.Cantidad, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.EfectoKey, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
+        disabled(p.DetalleAnulacion, () => this.crudAccion() == 'C'  )
+        disabled(p.Detalle, () => this.crudAccion() == 'C'|| this.crudAccion() == 'D')
+
     })
 
     loadEffect = effect(() => {
@@ -187,7 +195,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                 })
             }
 
-        },200);
+        }, 200);
     }
 
     optionsTipoDescuento = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
