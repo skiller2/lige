@@ -93,6 +93,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         disabled(p.Cantidad, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
         disabled(p.EfectoKey, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
         disabled(p.DetalleAnulacion, () => this.crudAccion() == 'C'  )
+        disabled(p.FechaAnulacion )
         disabled(p.Detalle, () => this.crudAccion() == 'C'|| this.crudAccion() == 'D')
 
     })

@@ -1,0 +1,15 @@
+diff --git a/node_modules/ng-zorro-antd/fesm2022/ng-zorro-antd-input.mjs b/node_modules/ng-zorro-antd/fesm2022/ng-zorro-antd-input.mjs
+index c36446d..5aded40 100644
+--- a/node_modules/ng-zorro-antd/fesm2022/ng-zorro-antd-input.mjs
++++ b/node_modules/ng-zorro-antd/fesm2022/ng-zorro-antd-input.mjs
+@@ -369,7 +369,9 @@ class NzInputDirective {
+     nzStatus = input('', ...(ngDevMode ? [{ debugName: "nzStatus" }] : []));
+     disabled = input(false, { ...(ngDevMode ? { debugName: "disabled" } : {}), transform: booleanAttribute });
+     readonly = input(false, { ...(ngDevMode ? { debugName: "readonly" } : {}), transform: booleanAttribute });
+-    controlDisabled = signal(false, ...(ngDevMode ? [{ debugName: "controlDisabled" }] : []));
++    //controlDisabled = signal(false, ...(ngDevMode ? [{ debugName: "controlDisabled" }] : []));
++    controlDisabled = linkedSignal(() => !!this.ngControl?.disabled);
++
+     finalDisabled = this.ngControl ? this.controlDisabled : this.disabled;
+     dir = inject(Directionality).valueSignal;
+     // TODO: When the input group is removed, we can remove this.

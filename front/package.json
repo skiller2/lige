@@ -23,7 +23,8 @@
     "prepare": "cd .. && husky front/.husky",
     "lint": "npm run lint:ts && npm run lint:style",
     "lint:ts": "ng lint --fix",
-    "lint:style": "stylelint \"src/**/*.less\" --syntax less --fix"
+    "lint:style": "stylelint \"src/**/*.less\" --syntax less --fix",
+    "postinstall": "patch-package"
   },
   "private": true,
   "dependencies": {
@@ -99,6 +100,8 @@
     "ng-alain": "^19.0.1",
     "ng-alain-plugin-theme": "^18.0.0",
     "node-fetch": "^2.7.0",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.3.3",
     "protractor": "~7.0.0",
     "source-map-explorer": "^2.5.3",
