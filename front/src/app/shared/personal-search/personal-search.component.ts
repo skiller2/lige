@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
+import { Component, EventEmitter, Input, Output, ViewChild, effect, forwardRef, inject, input, linkedSignal, model, signal } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -34,11 +34,10 @@ import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detall
 export class PersonalSearchComponent implements ControlValueAccessor {
   //tmpInputVal: any
   constructor(private searchService: SearchService) { }
-
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-  private isDisabled = false
+  //private isDisabled = false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
@@ -51,6 +50,19 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   anio = input(0)
   mes = input(0)
   sucursalId = input(0)
+  controlDisabled = signal(true)
+  /*
+ngControl = inject(NgControl, { self: true, optional: true });
+
+  controlDisabled = linkedSignal(() => !!this.ngControl?.disabled);
+
+  effDisabled = effect(() => {
+    if (this.controlDisabled()) {
+      console.log('disabled', this.controlDisabled())
+      this.setDisabledState(this.controlDisabled())
+    }
+  })
+*/
 
   registerOnChange(fn: any) {
 
@@ -93,7 +105,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     setTimeout(() => {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       // this.psc.focus()  //Al hacer click en el componente hace foco
-      this.psc.setDisabledState(this.isDisabled)
+      //this.psc.setDisabledState(this.isDisabled)
 
     }, 1);
   }
@@ -175,8 +187,8 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
   visibleDrawer = signal(false)
   setDisabledState(isDisabled: boolean): void {
-    this.isDisabled = isDisabled
-    this.psc?.setDisabledState(isDisabled)
+    this.controlDisabled.set(isDisabled)
+//    this.psc?.setDisabledState(isDisabled)
   }
 
   openDrawer(): void {

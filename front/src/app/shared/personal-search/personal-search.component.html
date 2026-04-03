@@ -1,7 +1,7 @@
 <ng-template #selectTpl>
   <nz-select #psc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
     (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT" nzShowSearch
-    nzServerSearch (nzOnSearch)="search($event)">
+    nzServerSearch (nzOnSearch)="search($event)"  [disabled]="controlDisabled()">
     @for (option of $optionsArray | async; track option) {
     @if (($isOptionsLoading | async) == false) {
     <nz-option [nzValue]="option.PersonalId" [nzLabel]="option.fullName +' '+ '(' + option.PersonalId + ')'" />
