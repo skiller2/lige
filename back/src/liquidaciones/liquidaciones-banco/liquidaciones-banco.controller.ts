@@ -336,10 +336,11 @@ export class LiquidacionesBancoController extends BaseController {
       sit.SituacionRevistaDescripcion
       FROM Personal per
       JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
-      JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
-      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = liq.periodo_id AND per.anio=@1 AND per.mes=@2
-
-              GROUP BY liq.persona_id, liq.tipocuenta_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
+       JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
+       JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = liq.periodo_id AND per.anio=@1 AND per.mes=@2
+       GROUP BY liq.persona_id, liq.tipocuenta_id 
+       HAVING SUM(liq.importe* tipo.signo) <> 0
+      ) AS movpos ON movpos.persona_id = per.PersonalId
       LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId  AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0) 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
@@ -405,13 +406,12 @@ export class LiquidacionesBancoController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
-    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
-    const orderBy = orderToSQL(req.body.options.sort)
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
 
     try {
-      const banco = await this.getSaldoCuentas(anio, mes, req.body.options.filtros, req.body.options.sort)
+      const banco = await this.getSaldoCuentas(anio, mes, req.body.options?.filtros, req.body.options?.sort)
+
       this.jsonRes(
         {
           total: banco.length,
@@ -661,7 +661,8 @@ export class LiquidacionesBancoController extends BaseController {
 
       switch (tabIndex) {
         case 1: //Banco
-          banco = await this.getSaldoCuentas(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+          const recordSet = await this.getSaldoCuentas(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+          banco = recordSet.filter((item: any) => item.importe > 0)
           break;
         case 2: //Adelanto
           banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)

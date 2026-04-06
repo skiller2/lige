@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject, signal } from '@angular/core';
+import { Component, ViewChild, inject, resource, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
@@ -27,6 +27,8 @@ import {
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from 'src/app/shared/file-upload/file-upload.component';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { Selections } from 'src/app/shared/schemas/filtro';
 
 @Component({
     selector: 'app-liquidaciones',
@@ -54,8 +56,8 @@ export class LiquidacionesBancoComponent {
   formChange$ = new BehaviorSubject('');
   files: NzUploadFile[] = [];
   toggle = false;
-  anio = 0
-  mes = 0
+  anio = signal(0)
+  mes = signal(0)
   listdowload = "";
   detailViewRowCount = 9;
   gridDataLen = 0
@@ -68,6 +70,7 @@ export class LiquidacionesBancoComponent {
   fechaDesdeCBU = signal(new Date())
   filesCBU = signal([])
   tabIndex = signal(0)
+  reload = signal(0)
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridAyuda!: AngularGridInstance;
@@ -84,15 +87,15 @@ export class LiquidacionesBancoComponent {
 
   onChange(result: Date): void {
     if (result) {
-      this.anio = result.getFullYear();
-      this.mes = result.getMonth() + 1;
+      this.anio.set(result.getFullYear());
+      this.mes.set(result.getMonth() + 1);
 
-      localStorage.setItem('mes', String(this.mes));
-      localStorage.setItem('anio', String(this.anio));
+      localStorage.setItem('mes', String(this.mes()));
+      localStorage.setItem('anio', String(this.anio()));
       this.filesChange$.next('')
     } else {
-      this.anio = 0;
-      this.mes = 0;
+      this.anio.set(0);
+      this.mes.set(0);
     }
 
     this.formChange$.next('');
@@ -121,10 +124,13 @@ export class LiquidacionesBancoComponent {
     }
   }
 
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  }
+  })
+
+    startFilters = signal<Selections[]>([]);
+
 
   listOptionsAyuda: listOptionsT = {
     filtros: [],
@@ -165,7 +171,6 @@ export class LiquidacionesBancoComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    //console.log('this.angularGrid', this.angularGrid);
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
@@ -191,6 +196,32 @@ export class LiquidacionesBancoComponent {
 
   }
 
+  gridData = resource({
+      params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
+      loader: async ({ params }) => {
+          let response = []
+          this.loadingSrv.open({ type: 'spin', text: '' })
+
+          try {
+              response = await firstValueFrom(this.apiService
+        .getLiquidacionesBanco(
+          { anio: params.anio, mes: params.mes, options: params.options }
+        )        .pipe(
+          map(data => {
+            this.listdowload = "gridData";
+            return data.list
+          })))
+          } catch (_e) { }
+          this.loadingSrv.close()
+
+          return response || [];
+      },
+
+      defaultValue: []
+  });
+
+
+/*
   gridData$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -211,6 +242,7 @@ export class LiquidacionesBancoComponent {
         )
     })
   )
+*/
 
   gridDataAyuda$ = this.formChange$.pipe(
     debounceTime(500),
@@ -252,9 +284,11 @@ export class LiquidacionesBancoComponent {
     localStorage.setItem('anio', String(this.selectedPeriod.year));
     localStorage.setItem('mes', String(this.selectedPeriod.month));
 
+    this.anio.set(this.selectedPeriod.year);
+    this.mes.set(this.selectedPeriod.month);
+
     this.formChange('');
   }
-
 
   exportGrid() {
     this.excelExportService.exportToExcel({
@@ -263,8 +297,18 @@ export class LiquidacionesBancoComponent {
     });
   }
 
+  columns = toSignal(this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
+    const colf: Column = cols[1]
+    colf.asyncPostRender= this.renderAngularComponent.bind(this)
 
+//    colf.formatter = function ( row, cell, value, columnDef, dataContext ) {
+//      return '<a routerLink="#/ges/liquidaciones/listado/' + dataContext.PersonalId + '">' + value + '</a>';
+//    };
 
+    return cols
+  })), { initialValue: [] as Column[] })
+
+/*  
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
     const colf: Column = cols[1]
     colf.asyncPostRender= this.renderAngularComponent.bind(this)
@@ -275,7 +319,7 @@ export class LiquidacionesBancoComponent {
 
     return cols
   }));
-
+*/
   columnsAyuda$ = this.apiService.getCols('/api/liquidaciones/banco/ayuda/cols').pipe(map((cols) => {
     return cols
   }));
@@ -288,7 +332,7 @@ export class LiquidacionesBancoComponent {
     switch (value) {
       case "movimientosAutomaticos":
 
-        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.anio, this.mes).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.anio(), this.mes()).pipe(tap(res => this.formChange$.next(''))))
         break;
 
       default:
@@ -308,6 +352,7 @@ export class LiquidacionesBancoComponent {
       .subscribe(evt => {
       });
 
+    this.startFilters.set([{ index: 'importe', condition: 'AND', operator: '>', value: '0', closeable: true }])      
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()

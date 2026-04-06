@@ -23,21 +23,6 @@
 
           <li nz-submenu nzTitle="Acciones">
             <ul style="width: auto !important">
-              <li nz-menu-item app-down-file [httpMethod]="'POST'"
-                [httpBody]="{anio, mes, options: listOptions, BancoId:11,tabIndex:tabIndex()}"
-                httpUrl="api/liquidaciones/download/banco/">
-                <span nz-icon nzType="download"></span>Generar Banco ITAU
-              </li>
-              <li nz-menu-item app-down-file [httpMethod]="'POST'"
-                [httpBody]="{anio, mes, options: listOptions, BancoId:4,tabIndex:tabIndex()}"
-                httpUrl="api/liquidaciones/download/banco/">
-                <span nz-icon nzType="download"></span> Generar Banco Patagonia
-              </li>
-              <li nz-menu-item app-down-file [httpMethod]="'POST'"
-                [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex:tabIndex()}"
-                httpUrl="api/liquidaciones/download/banco/">
-                <span nz-icon nzType="download"></span> Generar Banco Macro
-              </li>
               <li nz-menu-item nz-popconfirm
                 nzPopconfirmTitle="Confirma depósitos pendientes?"
                 [nzBeforeConfirm]=""
@@ -101,12 +86,12 @@
       <nz-tab></nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
-        @if ((columns$|async); as columnas) {
+        @if (columns().length) {
           <ng-template nz-tab>
-            <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+            <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions" />
             <div class="gridContainer1 container-fluid">
-              <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
-                [options]="gridOptions" [dataset]="(gridData$ | async) || []"
+              <angular-slickgrid gridId="grid22" class="" [columns]="columns() | colsFilter"
+                [options]="gridOptions" [dataset]="gridData.value()"
                 (onAngularGridCreated)="angularGridReady($event)">
               </angular-slickgrid>
             </div>
