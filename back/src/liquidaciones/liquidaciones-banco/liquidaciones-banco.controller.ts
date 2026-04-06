@@ -325,7 +325,7 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
-  async getBancoSaldo(anio: Number, mes: Number, filtros: any, sort: any) {
+  async getSaldoCuentas(anio: Number, mes: Number, filtros: any, sort: any) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
@@ -411,7 +411,7 @@ export class LiquidacionesBancoController extends BaseController {
     const mes = Number(req.body.mes)
 
     try {
-      const banco = await this.getBancoSaldo(anio, mes, req.body.options.filtros, req.body.options.sort)
+      const banco = await this.getSaldoCuentas(anio, mes, req.body.options.filtros, req.body.options.sort)
       this.jsonRes(
         {
           total: banco.length,
@@ -661,7 +661,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       switch (tabIndex) {
         case 1: //Banco
-          banco = await this.getBancoSaldo(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+          banco = await this.getSaldoCuentas(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
           break;
         case 2: //Adelanto
           banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
