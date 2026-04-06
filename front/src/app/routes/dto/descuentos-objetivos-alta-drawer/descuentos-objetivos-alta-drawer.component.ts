@@ -11,7 +11,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { LoadingService } from '@delon/abc/loading';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { applyEach, disabled, FieldTree, form, FormField, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 export interface FormDesc {
@@ -39,6 +39,7 @@ export interface FormDesc {
     providers: [AngularUtilService],
 })
 export class DescuentosObjetivosAltaDrawerComponent {
+    crudAccion = input<string>('');
     isLoading = signal(false);
     visibleDesc = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
@@ -66,10 +67,20 @@ export class DescuentosObjetivosAltaDrawerComponent {
     readonly descuentoObjetivo = signal<FormDesc>(this.descuentoObjetivoDefault);
 
     readonly formDescuentoObjetivo = form(this.descuentoObjetivo, (p) => {
-        readonly(p.DetalleAnulacion, () => (this.disabled() && !this.isAnulacion()))
+        disabled(p.AplicaA, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.DescuentoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.ObjetivoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.Cuotas, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.Importe, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.Detalle, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        
+        disabled(p.DetalleAnulacion, () => this.crudAccion() === 'R')
         disabled(p.FechaAnulacion, () => true)
         disabled(p.ImportacionDocumentoId, () => true)
-        disabled(p, () => this.disabled())
+
+        hidden(p.DetalleAnulacion, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
+        hidden(p.FechaAnulacion, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
+        hidden(p.ImportacionDocumentoId, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
     })
 
     loadEffect = effect(async () => {
