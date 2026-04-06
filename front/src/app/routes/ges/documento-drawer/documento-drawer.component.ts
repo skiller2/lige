@@ -16,6 +16,21 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { ImageLoaderComponent } from 'src/app/shared/image-loader/image-loader.component';
+import { applyEach, disabled, FieldTree, form, FormField, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+export interface FormDoc { 
+  DocumentoId: number,
+  DocumentoTipoCodigo: '',  
+  DocumentoDenominadorDocumento: string, 
+  PersonalId: number,
+  DocumentoClienteId: number, 
+  ObjetivoId: number, 
+  Documentofecha: Date | null, 
+  DocumentoFechaDocumentoVencimiento: Date | null,
+  DocumentoIndividuoDescargaBot: boolean,
+  archivo: any[]
+}
 
 @Component({
   selector: 'app-documento-drawer',
@@ -55,7 +70,24 @@ export class DocumentoDrawerComponent {
   docId = model<number>(0);
   disabled = model<boolean>(false);
   prevFiles = signal<any[]>([]);
-Date: any;
+  Date: any;
+
+  // private documentoObjetivoDefault: FormDoc = {
+  //     DocumentoId: 0,
+  //     DocumentoTipoCodigo: '',  
+  //     DocumentoDenominadorDocumento: '', 
+  //     PersonalId: 0,
+  //     DocumentoClienteId: 0, 
+  //     ObjetivoId: 0, 
+  //     Documentofecha: null, 
+  //     DocumentoFechaDocumentoVencimiento: null,
+  //     DocumentoIndividuoDescargaBot: false,
+  //     archivo: []
+  // }
+
+  // readonly documentoObjetivo = signal<FormDoc>(this.documentoObjetivoDefault);
+
+  // readonly formDescuentoObjetivo = form(this.documentoObjetivo)
 
   constructor(
   ) {
