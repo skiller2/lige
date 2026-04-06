@@ -21,8 +21,8 @@ export interface ExencionForm {
     DocumentoDenominadorDocumento: string,
     archivo: [],
     PersonalExencionId: number,
-    PersonalExencionDesde: string,
-    PersonalExencionHasta: string
+    PersonalExencionDesde: Date | null,
+    PersonalExencionHasta: Date | null
 }
 
 @Component({
@@ -64,8 +64,8 @@ export class PersonalExencionesDrawerComponent {
         DocumentoDenominadorDocumento: '',
         archivo: [],
         PersonalExencionId: 0,
-        PersonalExencionDesde: '',
-        PersonalExencionHasta: ''
+        PersonalExencionDesde: null,
+        PersonalExencionHasta: null
     }
 
     readonly parametroExencion = signal<ExencionForm>({ ...this.defaultFormExencion });
@@ -108,12 +108,12 @@ export class PersonalExencionesDrawerComponent {
     });
 
     effectExencionForm = effect(() => {
-        const visible = this.visibleDocumentos()
+        if (!this.visibleDocumentos()) return
+
         const PersonalId: number = this.PersonalId()
-        if (visible && PersonalId > 0) {
-            let obj: any = { PersonalId }
-            const exencion: any[] = this.exencionesHistory.value()
-            
+        const exencion: any[] = this.exencionesHistory.value()
+        if (PersonalId > 0) {
+            let obj: any = { PersonalId }  
             const find = this.getExencionCurrentOProx(exencion)
             if (find) {
                 obj = {
@@ -123,12 +123,14 @@ export class PersonalExencionesDrawerComponent {
                     PersonalExencionHasta: find.PersonalExencionHasta? new Date(find.PersonalExencionHasta) : find.PersonalExencionHasta
                 }
             }
-            
-            this.formParametroExencion().reset()
-            this.parametroExencion.update((m) => ({
-                ...m,
-                ...obj
-            }))
+
+            queueMicrotask(() => {
+                this.parametroExencion.update((m) => ({
+                    ...m,
+                    ...obj
+                }))
+                this.formParametroExencion().reset()
+            })
         }
         
     });
