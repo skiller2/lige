@@ -165,6 +165,9 @@ export class LiquidacionesBancoComponent {
           : now.getMonth() + 1;
 
       this.liquidacionesForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
+
+      this.anio.set(anio);
+      this.mes.set(mes);
     }, 1);
   }
 
@@ -254,8 +257,6 @@ export class LiquidacionesBancoComponent {
         )
         .pipe(
           map(data => {
-            this.anio = periodo.getFullYear();
-            this.mes = periodo.getMonth() + 1;
             this.gridDataLen = data.list.length;
             this.listdowload = "gridDataAyuda";
 
