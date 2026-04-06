@@ -119,6 +119,16 @@ export class LiquidacionesBancoController extends BaseController {
       hidden: false,
     },
     {
+      name: "Cuenta",
+      type: "string",
+      id: "tipocuenta_id",
+      field: "tipocuenta_id",
+      fieldName: "movpos.tipocuenta_id",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
       name: "Banco",
       type: "string",
       id: "BancoDescripcion",
