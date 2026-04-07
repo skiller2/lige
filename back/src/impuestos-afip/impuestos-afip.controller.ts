@@ -908,6 +908,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       const pageWidth = lastPage.getWidth();
       const pageHeight = lastPage.getHeight();
+      const isGridLayout = cantxpag == 4;
+      const isLeftColumn = locationIndex % 2 == 0;
+      const isTopRow = locationIndex < 2;
 
       if (fileExists) {
         currentFileBuffer = readFileSync(fullPath);
@@ -916,6 +919,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         let embeddedPage: PDFEmbeddedPage = null;
         let origenComprobante = "";
+        let labelSize = 10;
+        let labelLineHeight = 11;
 
         if (
           currentFilePDFPage.getWidth() == 595.276 &&
@@ -933,6 +938,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           currentFilePDFPage.getHeight() == 845
         ) {
           origenComprobante = "AFIP"
+          labelSize = 5;
+          labelLineHeight = 6;
           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
             top: 808,
             bottom: 385,
@@ -952,21 +959,31 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           embeddedPage = await newDocument.embedPage(currentFilePDFPage);
         }
 
-        const imgWidthScale = (pageWidth / 2 - 20) / embeddedPage.width;
-        const imgHeightScale = (pageHeight / 2 - 20) / embeddedPage.height;
+        const slotWidth = isGridLayout ? pageWidth / 2 : pageWidth;
+        const slotHeight = isGridLayout ? pageHeight / 2 : pageHeight;
+        const slotX = isGridLayout && !isLeftColumn ? slotWidth : 0;
+        const slotY = isGridLayout && isTopRow ? pageHeight / 2 : 0;
+        const horizontalPadding = 18;
+        const topPadding = 18;
+        const bottomPadding = 12;
+        const labelPadding = 8;
+        const reservedLabelHeight = origenComprobante === "AFIP" ? 20 : 30;
+        const availableWidth = slotWidth - horizontalPadding * 2;
+        const availableHeight = slotHeight - topPadding - bottomPadding - reservedLabelHeight - labelPadding;
         const scalePage = embeddedPage.scale(
-          Math.min(imgWidthScale, imgHeightScale)
+          Math.min(
+            availableWidth / embeddedPage.width,
+            availableHeight / embeddedPage.height
+          )
         );
+        const imageX = slotX + (slotWidth - scalePage.width) / 2;
+        const imageY = slotY + bottomPadding + reservedLabelHeight + labelPadding;
+        const labelText = `${file.apellidoNombre}\nGrupo: ${file.GrupoActividadDetalle}`;
+        const labelY = slotY + bottomPadding + (origenComprobante === "AFIP" ? 8 : 12);
 
         const positionFromIndex: PDFPageDrawPageOptions = {
-          x:
-            locationIndex % 2 == 0
-              ? Math.abs(pageWidth / 2 - scalePage.width) / 2
-              : (Math.abs(pageWidth / 2 - scalePage.width) + pageWidth) / 2,
-          y:
-            locationIndex < 2
-              ? (Math.abs(pageHeight / 2 - scalePage.height) + pageHeight) / 2
-              : Math.abs(pageHeight / 2 - scalePage.height) / 2,
+          x: imageX,
+          y: imageY,
           width: scalePage.width,
           height: scalePage.height,
         };
@@ -977,13 +994,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         switch (origenComprobante) {
           case "AFIP":
             lastPage.drawText(
-              `Grupo: ${file.GrupoActividadDetalle}`,
+              labelText,
               {
-                x: positionFromIndex.x + 22,
-                y: positionFromIndex.y + 25,
-                size: 5,
+                x: slotX + horizontalPadding,
+                y: labelY,
+                size: labelSize,
                 color: rgb(0, 0, 0),
-                lineHeight: 6,
+                lineHeight: labelLineHeight,
                 //opacity: 0.75,
               }
             );
@@ -1017,13 +1034,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           case "PAGO":
           case "MANUAL":
             lastPage.drawText(
-              `${file.apellidoNombre}\n\Grupo: ${file.GrupoActividadDetalle}`,
+              labelText,
               {
-                x: positionFromIndex.x + 22,
-                y: positionFromIndex.y + 65,
-                size: 10,
+                x: slotX + horizontalPadding,
+                y: labelY,
+                size: labelSize,
                 color: rgb(0, 0, 0),
-                lineHeight: 6,
+                lineHeight: labelLineHeight,
                 //opacity: 0.75,
               }
             );
@@ -1031,13 +1048,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             break
           default:
             lastPage.drawText(
-              `${file.apellidoNombre}\n\Grupo: ${file.GrupoActividadDetalle}`,
+              labelText,
               {
-                x: positionFromIndex.x + 22,
-                y: positionFromIndex.y + 65,
-                size: 10,
+                x: slotX + horizontalPadding,
+                y: labelY,
+                size: labelSize,
                 color: rgb(0, 0, 0),
-                lineHeight: 6,
+                lineHeight: labelLineHeight,
                 //opacity: 0.75,
               }
             );
@@ -1049,8 +1066,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
         const positionFromIndex: PDFPageDrawPageOptions = {
-          x: locationIndex % 2 == 0 ? 20 : pageWidth / 2 + 20,
-          y: locationIndex < 2 ? pageHeight / 2 + 20 : 20,
+          x: isGridLayout && !isLeftColumn ? pageWidth / 2 + 20 : 20,
+          y: isGridLayout && isTopRow ? pageHeight / 2 + 20 : 20,
         };
         lastPage.drawText(`Falta el comprobante: ${file.name}`, {
           ...positionFromIndex,
@@ -1178,6 +1195,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const newPdf = await PDFDocument.create();
 
     let currentPage: PDFPage;
+    const labelText = `${ApellidoNombre}\nGrupo: ${GrupoActividadDetalle}`;
 
     const page0 = originPDFPages[0];
 
@@ -1213,20 +1231,25 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     embededPages.forEach((embPage, index) => {
       const embPageSize = embPage.scale(1);
       const margin = 20;
+      const labelHeight = origenComprobante === "AFIP" ? 40 : 60;
+      const labelSpacing = 26;
 
       currentPage = newPdf.addPage([
         embPageSize.width + margin,
-        embPageSize.height + margin,
+        embPageSize.height + margin + labelHeight + labelSpacing,
       ]);
       const pageRatio = currentPage.getWidth() / currentPage.getHeight();
+      const imageX = (currentPage.getWidth() - embPageSize.width) / 2;
+      const imageY = margin / 2 + labelHeight + labelSpacing;
+      const labelY = margin / 2 + 10;
 
       //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
       //      const posy =
       //        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
 
       currentPage.drawPage(embPage, {
-        x: (currentPage.getWidth() - embPageSize.width) / 2,
-        y: (currentPage.getHeight() - embPageSize.height) / 2,
+        x: imageX,
+        y: imageY,
         width: embPageSize.width,
         height: embPageSize.height,
       });
@@ -1259,13 +1282,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             }
           );
           currentPage.drawText(
-            `Grupo: ${GrupoActividadDetalle}`,
+            labelText,
             {
               x: 33,
-              y: 59,
-              size: 10,
+              y: labelY,
+              size: 9,
               color: rgb(0, 0, 0),
-              lineHeight: 6,
+              lineHeight: 8,
               //opacity: 0.75,
             }
           );
@@ -1273,26 +1296,26 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         case "PAGO":
         case "MANUAL":
           currentPage.drawText(
-            `${ApellidoNombre}\n\nGrupo: ${GrupoActividadDetalle}`,
+            labelText,
             {
               x: 33,
-              y: 70,
+              y: labelY,
               size: 10,
               color: rgb(0, 0, 0),
-              lineHeight: 6,
+              lineHeight: 8,
               //opacity: 0.75,
             }
           );
           break;
         default:
           currentPage.drawText(
-            `${ApellidoNombre}\n\nGrupo: ${GrupoActividadDetalle}`,
+            labelText,
             {
               x: 33,
-              y: 70,
+              y: labelY,
               size: 10,
               color: rgb(0, 0, 0),
-              lineHeight: 6,
+              lineHeight: 8,
               //opacity: 0.75,
             }
           );
