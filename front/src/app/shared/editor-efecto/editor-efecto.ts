@@ -2,7 +2,7 @@ import { Component, ElementRef, inject } from '@angular/core';
 import { Subject, firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../services/search.service';
 
 @Component({
     selector: 'app-editor-efecto',

@@ -6,21 +6,21 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ExcelExportOption, SlickGroup } from '@slickgrid-universal/common';
 import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, Aggregators } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, firstValueFrom, forkJoin, map, pairwise, startWith, switchMap, tap, timer } from 'rxjs';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS } from '@shared';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { SettingsService } from '@delon/theme';
-import { EditorTipoHoraComponent } from 'src/app/shared/editor-tipohora/editor-tipohora.component';
-import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
+import { EditorTipoHoraComponent } from '../../../shared/editor-tipohora/editor-tipohora.component';
+import { EditorCategoriaComponent } from '../../../shared/editor-categoria/editor-categoria.component';
 import { LoadingService } from '@delon/abc/loading';
-import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 enum Busqueda {
     Sucursal,

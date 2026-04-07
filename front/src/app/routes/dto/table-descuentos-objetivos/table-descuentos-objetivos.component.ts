@@ -11,7 +11,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-alta-drawer/descuentos-objetivos-alta-drawer.component"
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
     selector: 'app-table-descuentos-objetivos',

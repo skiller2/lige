@@ -7,9 +7,9 @@ import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid 
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { FormBuilder, FormArray } from '@angular/forms';

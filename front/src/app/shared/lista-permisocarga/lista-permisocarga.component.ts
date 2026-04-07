@@ -25,7 +25,7 @@ import { SearchService } from '../../services/search.service';
 import { RowDetailViewComponent } from '../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../shared/custom-search/custom-search';
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { CustomLinkComponent } from '../../shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
 
 type listOptionsT = {

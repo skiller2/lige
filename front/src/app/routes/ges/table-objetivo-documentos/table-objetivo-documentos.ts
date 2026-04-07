@@ -15,7 +15,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 interface ListOptions {
   filtros: any[];

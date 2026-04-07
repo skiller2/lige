@@ -1,39 +1,32 @@
-import { HttpHeaders } from '@angular/common/http';
 import { Injectable, Injector, inject } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import {
   BehaviorSubject,
   catchError,
-  debounceTime,
-  delay,
-  finalize,
   map,
   Observable,
   of,
-  share,
-  shareReplay,
-  tap
 } from 'rxjs';
 import {
   PersonaObj,
   ResponseBySearch,
   Search,
-} from 'src/app/shared/schemas/personal.schemas';
-import { SearchGrup, ResponseBySearchGrup } from 'src/app/shared/schemas/grupoActividad.shemas';
-import { ResponseBySearchCliente, SearchClient } from 'src/app/shared/schemas/cliente.schemas';
-import { ResponseBySearchAdministrador, SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
-import { ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from 'src/app/shared/schemas/efecto.schemas';
-import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from 'src/app/shared/schemas/tipo-asociado-categoria.schemas';
-import { ResponseBySearchRubro, SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
-import { ResponseBySearchSeguro, SearchSeguro } from 'src/app/shared/schemas/seguro.schemas';
-import { ResponseBySearchInasistencia, SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
-import { ResponseBySearchSituacionRevista, SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
+} from '../shared/schemas/personal.schemas';
+import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
+import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
+import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
+import { ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from '../shared/schemas/efecto.schemas';
+import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
+import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
+import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
+import { ResponseBySearchInasistencia, SearchInasistencia } from '../shared/schemas/inasistencia.schemas';
+import { ResponseBySearchSituacionRevista, SearchSituacionRevista } from '../shared/schemas/situacionrevista.shemas';
 import {
   Objetivo,
   ObjetivoInfo,
   ResponseJSON,
   ResponseNameFromId,
-} from 'src/app/shared/schemas/ResponseJSON';
+} from '../shared/schemas/ResponseJSON';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Injectable({

@@ -5,10 +5,10 @@ import { SHARED_IMPORTS } from '@shared';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
 
-import { ApiService } from 'src/app/services/api.service';
-import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { DireccionSearchComponent } from 'src/app/shared/direccion-search/direccion-search.component';
+import { ApiService } from '../../../services/api.service';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { DireccionSearchComponent } from '../../../shared/direccion-search/direccion-search.component';
 
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
@@ -19,8 +19,8 @@ import { BarcodeFormat } from '@zxing/library';
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline} from '@ant-design/icons-angular/icons';
 
-import { ReporteComponent } from 'src/app/shared/reporte/reporte.component';
-import { DotToCommaDirective } from 'src/app/shared/dot-coma/dot-coma';
+import { ReporteComponent } from '../../../shared/reporte/reporte.component';
+import { DotToCommaDirective } from '../../../shared/dot-coma/dot-coma';
 import { ALAIN_I18N_TOKEN } from '@delon/theme';
 
 

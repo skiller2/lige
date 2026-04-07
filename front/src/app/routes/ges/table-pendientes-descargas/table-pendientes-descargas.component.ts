@@ -7,14 +7,14 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { CommonModule } from '@angular/common';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, FileType} from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { ApiService } from 'src/app/services/api.service';
-import { SearchService } from 'src/app/services/search.service';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { ApiService } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
     selector: 'app-table-pendientes-descargas',

@@ -7,13 +7,11 @@
   },
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
 //    "declaration": true,
 //    "declarationDir": "dist",
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "esModuleInterop":true,
     "module": "nodenext",

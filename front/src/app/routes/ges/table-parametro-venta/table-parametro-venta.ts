@@ -34,7 +34,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 

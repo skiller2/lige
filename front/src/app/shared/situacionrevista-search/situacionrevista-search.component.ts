@@ -10,9 +10,9 @@ import {
   tap,
 } from 'rxjs'
 import { SearchSituacionRevista } from '../schemas/situacionrevista.shemas'
-import { SearchService } from 'src/app/services/search.service'
+import { SearchService } from '../../services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
-import { doOnSubscribe } from 'src/app/services/api.service'
+import { doOnSubscribe } from '../../services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'

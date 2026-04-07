@@ -6,8 +6,7 @@ import {
   Self,
   inject
 } from '@angular/core';
-import { NgControl } from '@angular/forms';
-import { DEFAULT_DECIMAL_MARKER } from 'src/app/app.config.defaults';
+import { DEFAULT_DECIMAL_MARKER } from '../../app.config.defaults';
 
 @Directive({
   selector: '[appDotToComma]',

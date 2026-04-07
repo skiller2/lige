@@ -3,10 +3,10 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Component, inject, ChangeDetectionStrategy, ViewEncapsulation, signal, input, output, model, viewChild, computed } from '@angular/core';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { Router } from '@angular/router';

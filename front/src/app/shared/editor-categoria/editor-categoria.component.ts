@@ -3,7 +3,7 @@ import { Subject, firstValueFrom, noop } from 'rxjs';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 
 @Component({

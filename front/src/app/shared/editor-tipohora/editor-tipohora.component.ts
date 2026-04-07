@@ -3,7 +3,7 @@ import { Subject, firstValueFrom } from 'rxjs';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../services/search.service';
 
 @Component({
     selector: 'app-tipohora-persona',

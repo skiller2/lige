@@ -8,10 +8,9 @@ import {
   switchMap,
   tap,
 } from 'rxjs'
-import { Search } from '../schemas/personal.schemas'
-import { SearchService } from 'src/app/services/search.service'
+import { SearchService } from '../../services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
+import { ApiService, doOnSubscribe } from '../../services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'

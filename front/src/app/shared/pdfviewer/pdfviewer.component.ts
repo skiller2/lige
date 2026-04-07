@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { PDFDocument, PDFPage, PageSizes } from 'pdf-lib';
-import { DownloadService } from 'src/app/services/download.service';
+import { DownloadService } from '../../services/download.service';
 import { grayscale, rgb } from 'pdf-lib';
 import { BehaviorSubject } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';

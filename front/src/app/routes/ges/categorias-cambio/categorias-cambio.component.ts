@@ -15,14 +15,14 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, ContainerService } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { formatDate, AsyncPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 type listOptionsT = {
   filtros: any[],
