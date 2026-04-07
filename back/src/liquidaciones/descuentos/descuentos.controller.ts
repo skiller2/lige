@@ -95,11 +95,9 @@ export class DescuentosController extends BaseController {
         }
         let detalle = `${row.DescuentoDescripcion} ${row.desmovimiento.trim()}`
 
-        if (row.desmovimiento == null || row.desmovimiento.trim() == '')
-          throw new ClientException(`desmovimiento no válido para el registro con id ${row.id} ${row.DescuentoDescripcion}  `,row)
+//        if (row.desmovimiento == null || row.desmovimiento.trim() == '')
+//          throw new ClientException(`Sin descripción para el registro con id ${row.id} ${row.DescuentoDescripcion} ${row.ApellidoNombre} `,row)
 
-        if (detalle == null || detalle.trim() == '')
-          throw new ClientException(`Detalle no válido para el registro con id ${row.id} ${row.DescuentoDescripcion}  ${row.desmovimiento.trim()}`,row)
 
 
         if (row.cantcuotas > 1)
