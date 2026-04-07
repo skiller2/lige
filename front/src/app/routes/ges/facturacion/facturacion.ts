@@ -10,7 +10,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FacturacionFormComponent } from '../facturacion-form/facturacion-form';
 import { LoadingService } from '@delon/abc/loading';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],

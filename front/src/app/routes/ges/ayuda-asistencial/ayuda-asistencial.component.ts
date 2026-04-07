@@ -3,7 +3,7 @@ import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -11,15 +11,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CommonModule } from '@angular/common';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { SearchService } from 'src/app/services/search.service';
-import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { SearchService } from '../../../services/search.service';
 import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { TableAyudaAsistencialCuotasComponent } from "../table-ayuda-asistencial-cuotas/table-ayuda-asistencial-cuotas.component";
 import { Router } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
     selector: 'app-ayuda-asistencial',

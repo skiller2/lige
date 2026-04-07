@@ -2,9 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy, signal, model, input, output, effect } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { FormBuilder } from '@angular/forms';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { SettingsService } from '@delon/theme';
 
 @Component({

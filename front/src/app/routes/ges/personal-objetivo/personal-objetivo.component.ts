@@ -2,15 +2,15 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal, model, view
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { SHARED_IMPORTS } from '@shared';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NgForm } from '@angular/forms';
-import { ApiService,doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService,doOnSubscribe } from '../../../services/api.service';
 import { firstValueFrom,BehaviorSubject,debounceTime,switchMap,tap,Observable,map,forkJoin } from 'rxjs';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { LoadingService } from '@delon/abc/loading';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ListaPermisocargaComponent } from '../../../shared/lista-permisocarga/lista-permisocarga.component'

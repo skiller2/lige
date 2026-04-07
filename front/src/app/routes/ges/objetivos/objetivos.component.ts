@@ -2,19 +2,19 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewEncapsulation, inject, viewChild, ChangeDetectionStrategy, signal, model, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
 import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 

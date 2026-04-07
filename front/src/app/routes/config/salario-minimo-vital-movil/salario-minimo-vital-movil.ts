@@ -5,7 +5,7 @@ import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { AngularGridInstance, AngularUtilService, Column, Editors, GridOption, EditCommand } from 'angular-slickgrid';
 import { firstValueFrom } from 'rxjs';
-import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";

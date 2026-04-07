@@ -4,7 +4,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { BarcodeFormat } from '@zxing/library';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { firstValueFrom } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent, FormGroup, FormControl } from '@angular/forms';

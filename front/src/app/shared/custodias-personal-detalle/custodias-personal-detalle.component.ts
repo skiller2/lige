@@ -9,12 +9,12 @@ import { PersonalSearchComponent } from '../personal-search/personal-search.comp
 import { CommonModule } from '@angular/common';
 import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters, Grouping, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { ApiService } from 'src/app/services/api.service';
-import { SearchService } from 'src/app/services/search.service';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { ApiService } from '../../services/api.service';
+import { SearchService } from '../../services/search.service';
+import { RowDetailViewComponent } from '../../shared/row-detail-view/row-detail-view.component';
 import { columnTotal, totalRecords } from "../custom-search/custom-search"
 import { FiltroBuilderComponent } from "../filtro-builder/filtro-builder.component";
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { CustomLinkComponent } from '../../shared/custom-link/custom-link.component';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Selections } from '../schemas/filtro';
 

@@ -10,7 +10,6 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "allowJs": true,
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
@@ -33,13 +32,13 @@
     ],
     "paths": {
       "@shared": [
-        "src/app/shared"
+        "./src/app/shared"
       ],
       "@core": [
-        "src/app/core/index"
+        "./src/app/core/index"
       ],
       "@env/*": [
-        "src/environments/*"
+        "./src/environments/*"
       ]
     },
     "useDefineForClassFields": false

@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { ControlContainer, FormGroupName } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
-import { FilesService } from 'src/app/services/files.service';
-import { PdfviewerComponent } from 'src/app/shared/pdfviewer/pdfviewer.component';
-import { UploadFileComponent } from 'src/app/shared/upload-file/upload-file.component';
+import { FilesService } from '../../../services/files.service';
+import { PdfviewerComponent } from '../../../shared/pdfviewer/pdfviewer.component';
+import { UploadFileComponent } from '../../../shared/upload-file/upload-file.component';
 
 @Component({
     selector: 'app-pdf-retiro',

@@ -1,6 +1,6 @@
 import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -18,7 +18,7 @@ import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { EditorTipoMovimientoComponent } from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
 import { EditorTipoCuentaComponent } from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 
 
@@ -44,11 +44,11 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { LoadingService } from '@delon/abc/loading';
-import { ClienteSearchComponent } from 'src/app/shared/cliente-search/cliente-search.component';
-import { SearchService } from 'src/app/services/search.service';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
+import { SearchService } from '../../../services/search.service';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 @Component({
   selector: 'app-liquidaciones',
   templateUrl: './liquidaciones.component.html',

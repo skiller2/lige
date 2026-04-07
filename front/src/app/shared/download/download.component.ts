@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { DownloadService } from 'src/app/services/download.service';
+import { DownloadService } from '../../../services/download.service';
 
 @Component({
     selector: 'app-download',

@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@
 import {
   noop,
 } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SHARED_IMPORTS } from '@shared';

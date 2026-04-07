@@ -1,13 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, Observable, switchMap, tap } from 'rxjs';
-import { Search } from 'src/app/shared/schemas/personal.schemas';
+import { Search } from '../../../shared/schemas/personal.schemas';
 import { SearchService } from '../../../services/search.service';
 
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
-import { ImageContentComponent } from 'src/app/shared/imagePreview/image-content/image-content.component';
-import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-credential.component';
+import { ImageContentComponent } from '../../../shared/imagePreview/image-content/image-content.component';
+import { ViewCredentialComponent } from '../../../shared/viewCredential/view-credential.component';
 
 @Component({
     selector: 'app-credencial-personal',

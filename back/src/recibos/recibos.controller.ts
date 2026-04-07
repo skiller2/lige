@@ -154,7 +154,9 @@ export class RecibosController extends BaseController {
         DocumentoId = existRecibo[0].DocumentoId
         directorPathUnique = existRecibo[0].DocumentoPath
       }
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
+
+      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
+      const movimientosPendientesC = await this.getLiquidacionCuentaCoordinador(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
 
       var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0')
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
@@ -170,9 +172,11 @@ export class RecibosController extends BaseController {
 
       for (const movimiento of movimientosPendientes) {
         persona_id = movimiento.PersonalId
-        const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
+        const nombre_archivo = String(DocumentoId) + '-G-' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+
+        const filesPath = directorPath + '/' + nombre_archivo
+
 
         if (!isUnique)
           den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
@@ -198,6 +202,62 @@ export class RecibosController extends BaseController {
         await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
       }
+
+
+
+
+
+      for (const movimiento of movimientosPendientesC) {
+        persona_id = movimiento.PersonalId
+        DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
+        const nombre_archivo = String(DocumentoId) + '-C-' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+
+        const filesPath = directorPath + '/' + nombre_archivo
+
+
+        if (!isUnique)
+          den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+
+        await this.setUsuariosLiquidacionDocumento(
+          queryRunner,
+          DocumentoId,
+          periodo.year,
+          periodo.month,
+          fechaRecibo,
+          persona_id,
+          null,
+          nombre_archivo,
+          filesPath,
+          usuario,
+          ip,
+          fechaActual,
+          "REC",
+          den_documento
+
+        )
+
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       if (!isUnique)
         await this.updateTablePeriodo(queryRunner, periodo_id, usuario, ip, fechaActual)
@@ -358,10 +418,59 @@ export class RecibosController extends BaseController {
 
   }
 
+  async getLiquidacionCuentaCoordinador(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number, fecha: Date) {
+
+    let createSelect = `SELECT
+    per.PersonalId, per.PersonalNroLegajo, 
+    CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
+  
+    cuit.PersonalCUITCUILCUIT,
+    TRIM(CONCAT(
+      TRIM(dom.DomicilioDomCalle), ' ',
+      TRIM(dom.DomicilioDomNro), ' ',
+      TRIM(dom.DomicilioDomPiso), ' ',
+      TRIM(dom.DomicilioDomDpto), ' (',
+      TRIM(dom.DomicilioCodigoPostal), ') ',
+      TRIM(loc.LocalidadDescripcion), ' ',
+      IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
+    )) AS DomicilioCompleto,
+   act.GrupoActividadNumero,
+   act.GrupoActividadDetalle,
+   suc.SucursalDescripcion,
+    1
+    
+    FROM Personal per
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+    LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1 AND nex.NexoDomicilioId = (SELECT MAX(nexmax.NexoDomicilioId) FROM NexoDomicilio nexmax WHERE nexmax.PersonalId=per.PersonalId AND nex.NexoDomicilioActual = 1)
+    LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId 
+    LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
+    LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
+    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+
+    LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+    LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE @4 >= grp.GrupoActividadPersonalDesde AND @4 <= ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
+    LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
+        
+    
+    LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
+    WHERE per.PersonalId IN ( 
+  
+      SELECT DISTINCT liq.persona_id
+      FROM lige.dbo.liqmamovimientos liq
+
+      WHERE liq.tipocuenta_id = 'C' AND liq.periodo_id = @0`
+
+    if (personalId != 0 && personalId != undefined)
+      createSelect += ` AND per.PersonalId = @3`
+
+    createSelect += `)ORDER BY per.PersonalId ASC`
+
+    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
+  }
 
 
 
-  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number, fecha: Date) {
+  async getLiquidacionCuentaGeneral(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number, fecha: Date) {
 
     let createSelect = `SELECT
     per.PersonalId, per.PersonalNroLegajo, 
@@ -817,7 +926,7 @@ export class RecibosController extends BaseController {
       const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
+      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header, body, footer)
 

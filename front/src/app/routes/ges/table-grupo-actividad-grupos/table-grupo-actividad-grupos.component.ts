@@ -7,12 +7,12 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, timer } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Component, signal, inject } from '@angular/core';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
   selector: 'app-table-grupo-actividad-grupos',

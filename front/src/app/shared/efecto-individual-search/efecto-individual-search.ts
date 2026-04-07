@@ -9,10 +9,9 @@ import {
   tap,
 } from 'rxjs';
 import { SearchEfectoIndividual } from '../schemas/efecto.schemas';
-import { SearchService } from 'src/app/services/search.service';
-import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { ResponseNameFromId } from '../schemas/ResponseJSON';
-import { doOnSubscribe } from 'src/app/services/api.service';
+import { SearchService } from '../../services/search.service';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { doOnSubscribe } from '../../services/api.service';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';

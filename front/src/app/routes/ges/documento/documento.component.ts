@@ -21,9 +21,9 @@ import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { DocumentoDrawerComponent } from '../documento-drawer/documento-drawer.component'
 import { TablePendientesDescargasComponent } from '../table-pendientes-descargas/table-pendientes-descargas.component'
 import { TableHistorialDescargasComponent } from '../table-historial-descargas/table-historial-descargas.component'
-import { ReporteComponent } from 'src/app/shared/reporte/reporte.component'
+import { ReporteComponent } from '../../../shared/reporte/reporte.component'
 import { LoadingService } from '@delon/abc/loading';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],

@@ -9,7 +9,7 @@ import { BehaviorSubject, debounceTime, map, of, switchMap, tap } from 'rxjs';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 interface ListOptions {
   filtros: any[];

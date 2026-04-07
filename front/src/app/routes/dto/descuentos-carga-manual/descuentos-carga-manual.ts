@@ -1,11 +1,11 @@
 import { Component, inject, input, OnInit,signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { FormBuilder } from '@angular/forms';
 import { DescuentosCargaManualTablePersonalComponent } from '../descuentos-carga-manual-table-personal/descuentos-carga-manual-table-personal';
 import { DescuentosCargaManualTableObjetivoComponent } from '../descuentos-carga-manual-table-objetivo/descuentos-carga-manual-table-objetivo';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 
 @Component({
   selector: 'app-descuentos-carga-manual',

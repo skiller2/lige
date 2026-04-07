@@ -12,11 +12,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CommonModule } from '@angular/common';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { SearchService } from 'src/app/services/search.service';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { SearchService } from '../../../services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { Selections } from '../../../shared/schemas/filtro';
 
 
 

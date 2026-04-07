@@ -11,8 +11,8 @@ import { TableCursoComponent } from '../table-curso/table-curso.component'
 import { CursoHistorialDrawerComponent } from '../curso-historial-drawer/curso-historial-drawer.component'
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
 import { TableInstitucionesComponent } from "../table-instituciones/table-instituciones.component";
-import { InstitucionesDrawerComponent } from 'src/app/routes/ges/instituciones-drawer/instituciones-drawer.component';
-import { SedesDrawerComponent } from 'src/app/shared/sedes-drawer/sedes-drawer.component';
+import { InstitucionesDrawerComponent } from '../../../routes/ges/instituciones-drawer/instituciones-drawer.component';
+import { SedesDrawerComponent } from '../../../shared/sedes-drawer/sedes-drawer.component';
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
