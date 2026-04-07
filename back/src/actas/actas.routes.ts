@@ -4,7 +4,7 @@ import { actasController } from "../controller/controller.module.ts";
 
 export const actasRouter = Router();
 
-actasRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gConsejo'])], (req, res, next) => {
+actasRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
     actasController.getActasGridColumns(req, res, next);
 });
 
@@ -12,7 +12,7 @@ actasRouter.get(`/nro-acta-options`, [authMiddleware.verifyToken], (req, res, ne
   actasController.getNrosActas(req, res, next);
 });
 
-actasRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gConsejo`])], (req, res, next) => {
+actasRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
   actasController.getGridList(req, res, next)
 });
 
