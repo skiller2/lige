@@ -339,6 +339,7 @@ export class LiquidacionesBancoController extends BaseController {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
+    stmactual.setHours(0, 0, 0, 0)
 
     return dataSource.query(
       `SELECT CONCAT(per.PersonalId,movpos.tipocuenta_id) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
