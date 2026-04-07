@@ -630,6 +630,7 @@ export class GestionDescuentosController extends BaseController {
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
         , perdes.PersonalId
+        , perdes.ObjetivoId
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
