@@ -978,6 +978,7 @@ export class GestionDescuentosController extends BaseController {
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
     const hoy = new Date()
 
+    throw new ClientException('Apartado Deshabilitado')
     await queryRunner.query(`
       INSERT INTO ObjetivoDescuento (
       ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica
@@ -1697,6 +1698,8 @@ FROM cte
     AplicaEl.setHours(0, 0, 0, 0)
 
     if (oldObjetivoId != ObjetivoId) throw new ClientException(`No se puede modificar el objetivo.`)
+
+    throw new ClientException('Apartado Deshabilitado.')
 
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
