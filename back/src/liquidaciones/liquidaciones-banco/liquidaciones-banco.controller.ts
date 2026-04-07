@@ -100,7 +100,7 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "CBU",
-      type: "number",
+      type: "string",
       id: "PersonalBancoCBU",
       field: "PersonalBancoCBU",
       fieldName: "perban.PersonalBancoCBU",
@@ -197,7 +197,7 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "CBU",
-      type: "number",
+      type: "string",
       id: "PersonalBancoCBU",
       field: "PersonalBancoCBU",
       fieldName: "perban.PersonalBancoCBU",
@@ -273,7 +273,7 @@ export class LiquidacionesBancoController extends BaseController {
     // },
     {
       name: "CBU",
-      type: "number",
+      type: "string",
       id: "cbu",
       field: "cbu",
       fieldName: "cbu",
