@@ -63,7 +63,7 @@ export class DescuentosController extends BaseController {
           case "DESC":
             tipo_movimiento_id = 4
             break;
-            
+
           case "OTRO":
           case "COOOBJ":
             tipo_movimiento_id = 5
@@ -93,10 +93,20 @@ export class DescuentosController extends BaseController {
             throw new ClientException(`Identificador de descuento ${row.tipoint} desconocido`)
             break;
         }
-        let detalle = `${DescuentosController.isEmpty(row.tipomov)?'':String(row.tipomov).trim()} ${DescuentosController.isEmpty(row.desmovimiento2)?'':String(row.desmovimiento2).trim()}`
+        let detalle = `${row.DescuentoDescripcion} ${row.desmovimiento.trim()}`
+
+        if (row.desmovimiento == null || row.desmovimiento.trim() == '')
+          throw new ClientException(`desmovimiento no válido para el registro con id ${row.id} ${row.DescuentoDescripcion}  `,row)
+
+        if (detalle == null || detalle.trim() == '')
+          throw new ClientException(`Detalle no válido para el registro con id ${row.id} ${row.DescuentoDescripcion}  ${row.desmovimiento.trim()}`,row)
+
 
         if (row.cantcuotas > 1)
           detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
+
+        if (row.PersonalId == null || row.PersonalId == 0)
+          throw new ClientException(`PersonalId no válido para el registro con id ${row.id} `,row)
 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipocuenta_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,

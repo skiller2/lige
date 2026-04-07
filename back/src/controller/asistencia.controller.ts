@@ -1296,8 +1296,7 @@ export class AsistenciaController extends BaseController {
     const descuentosX = await queryRunner.query(
       `SELECT CONCAT('cuo',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, 0, des.ObjetivoId, 0 as PersonalId, 'G' as tipocuenta_id, null as PersonalCUITCUILCUIT, null AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
-      des.ObjetivoDescuentoDetalle AS desmovimiento, 
-      des.ObjetivoDescuentoDetalle AS desmovimiento2,
+      des.ObjetivoDescuentoDetalle AS desmovimiento,
       des.ObjetivoDescuentoDescontar, 
       'OTRO' tipoint,
       cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad AS importetotal
@@ -1315,7 +1314,7 @@ export class AsistenciaController extends BaseController {
 
     const queryRunner = dataSource.createQueryRunner();
 
-    const orderBy = orderToSQL([{ fieldName: 'ApellidoNombre', direction: 'ASC' },{ fieldName: 'DescuentoDescripcion', direction: 'ASC' },{ fieldName: 'desmovimiento2', direction: 'ASC' }])
+    const orderBy = orderToSQL([{ fieldName: 'ApellidoNombre', direction: 'ASC' },{ fieldName: 'DescuentoDescripcion', direction: 'ASC' },{ fieldName: 'desmovimiento', direction: 'ASC' }])
 
     
 
@@ -1371,7 +1370,6 @@ export class AsistenciaController extends BaseController {
       
       @1 AS anio, @2 AS mes, 'Prepaga' AS DescuentoDescripcion, 
       CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, 
-      CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento2, 
       'PREP' tipoint,
      
       IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
@@ -1397,7 +1395,7 @@ export class AsistenciaController extends BaseController {
       
       @1 AS anio, @2 AS mes, 'Rentas' AS DescuentoDescripcion, 
       '' AS desmovimiento, 
-      '' AS desmovimiento2, 'RENT' tipoint, 
+       'RENT' tipoint, 
      
      	ren.PersonalRentasPagosImporte AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
 
@@ -1417,7 +1415,7 @@ export class AsistenciaController extends BaseController {
       
       @1 AS anio, @2 AS mes, 'Honorarios DDJJ' AS DescuentoDescripcion, 
       '' AS desmovimiento, 
-      '' AS desmovimiento2, 'DDJJ' tipoint,
+       'DDJJ' tipoint,
      
      	vdj.ValorDDJJImporte AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
 
@@ -1437,7 +1435,7 @@ export class AsistenciaController extends BaseController {
       SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
 @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS DescuentoDescripcion, 
 CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion)) AS desmovimiento, 
-'' AS desmovimiento2, 'OTRO' tipoint,
+ 'OTRO' tipoint,
 cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
 
 FROM ObjetivoDescuentoCuota cuo 
@@ -1464,7 +1462,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS DescuentoDescripcion,
       CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',eledep.ClienteElementoDependienteDescripcion),'')) AS desmovimiento,
       
-      TRIM(tel.TelefoniaNro) AS desmovimiento2, 'TELE' tipoint, 
+       'TELE' tipoint, 
        con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 ) AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       FROM ConsumoTelefoniaAno anio
       JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
@@ -1492,7 +1490,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       
       WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 AND ${filterSql}
 
-      ORDER BY ApellidoNombre,DescuentoDescripcion,desmovimiento2
+      ORDER BY ApellidoNombre,DescuentoDescripcion
       `,
       //      [personalId.join(','), anio,mes]
       ['', anio, mes]

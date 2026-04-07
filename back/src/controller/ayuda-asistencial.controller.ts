@@ -1218,7 +1218,6 @@ export class AyudaAsistencialController extends BaseController {
             , perdes.mes
             , perdes.anio
             , perdes.desmovimiento
-            , perdes.desmovimiento2
             , perdes.importe
             , perdes.cuotanro
             , perdes.cantcuotas
@@ -1326,7 +1325,6 @@ export class AyudaAsistencialController extends BaseController {
         , perdes.mes
         , perdes.anio
         , perdes.desmovimiento
-        , perdes.desmovimiento2
         , perdes.importe
         , perdes.cuotanro
         , perdes.cantcuotas

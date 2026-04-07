@@ -629,6 +629,7 @@ export class GestionDescuentosController extends BaseController {
     return await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
+        , perdes.PersonalId
         , cuit.PersonalCUITCUILCUIT
         , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
         , perdes.tipocuenta_id
@@ -637,7 +638,6 @@ export class GestionDescuentosController extends BaseController {
         , perdes.mes
         , perdes.anio
         , perdes.desmovimiento
-        , perdes.desmovimiento2
         , perdes.importe
         , perdes.cuotanro
         , perdes.cantcuotas
@@ -829,7 +829,6 @@ export class GestionDescuentosController extends BaseController {
         , perdes.mes
         , perdes.anio
         , perdes.desmovimiento
-        , perdes.desmovimiento2
         , perdes.importe
         , perdes.cuotanro
         , perdes.cantcuotas
