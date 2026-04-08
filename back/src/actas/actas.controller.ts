@@ -29,7 +29,9 @@ const columnsActas:any[] = [
     searchType: 'number',
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: false,
+    maxWidth: 120,
+    minWidth: 80
   },
   {
     id:'ActaDescripcion', name:'Descripción', field:'ActaDescripcion',

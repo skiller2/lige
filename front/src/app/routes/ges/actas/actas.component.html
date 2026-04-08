@@ -16,7 +16,11 @@
           nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"
           nz-popconfirm nzPopconfirmTitle="¿Esta seguro que quiere eliminar el Nro.Acta {{selectedNroActa()}}?" (nzOnConfirm)="deleteItem()">
           <span nz-icon nzType="delete" nzTheme="outline" ></span></button>
+                <button nz-button nzType="default" (click)="refreshListActas('')"><span nz-icon
+            nzType="reload" nzTheme="outline" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
         </nz-button-group>
+    
       </div>
 
       <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
