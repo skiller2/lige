@@ -39,15 +39,15 @@ export interface FormDesc {
     providers: [AngularUtilService],
 })
 export class DescuentosObjetivosAltaDrawerComponent {
-    crudAccion = input<string>('');
     isLoading = signal(false);
     visibleDesc = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
     ObjetivoDescuentoId = model<number>(0);
     objetivoId = model<number>(0);
-    disabled = input<boolean>(false);
-    cancelDesc = input<boolean>(false);
-    isAnulacion = input<boolean>(false);
+    // disabled = input<boolean>(false);
+    // cancelDesc = input<boolean>(false);
+    // isAnulacion = input<boolean>(false);
+    crudAccion = input<string>('');
     onAddorUpdate = output()
 
     private searchService = inject(SearchService)
@@ -67,6 +67,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     readonly descuentoObjetivo = signal<FormDesc>(this.descuentoObjetivoDefault);
 
     readonly formDescuentoObjetivo = form(this.descuentoObjetivo, (p) => {
+        disabled(p.AplicaEl, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.AplicaA, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.DescuentoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.ObjetivoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
@@ -196,7 +197,9 @@ export class DescuentosObjetivosAltaDrawerComponent {
         try {
             if (this.ObjetivoDescuentoId() && this.objetivoId()) {
                 await firstValueFrom(this.apiService.cancellationObjetivoDescuento(values))
+                void this.loadDescuentoObjetivo();
                 this.onAddorUpdate.emit()
+                this.formDescuentoObjetivo().reset()
             }
         } catch (e) { }
         this.isLoading.set(false)

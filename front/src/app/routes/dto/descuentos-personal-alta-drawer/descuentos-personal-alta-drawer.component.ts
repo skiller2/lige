@@ -9,7 +9,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, hidden, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SettingOutline } from '@ant-design/icons-angular/icons';
 
@@ -45,13 +45,10 @@ export interface FormDesc {
 export class DescuentosPersonalAltaDrawerComponent {
     descuentoId = model<number>(0);
     personalId = model<number>(0);
-
     visibleDesc = model<boolean>(false)
-
-    disabled = input<boolean>(false);
-    cancelDesc = input<boolean>(false);
-    isAnulacion = input<boolean>(false);
-
+    // disabled = input<boolean>(false);
+    // cancelDesc = input<boolean>(false);
+    // isAnulacion = input<boolean>(false);
     crudAccion = input<string>('');
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
@@ -82,19 +79,22 @@ export class DescuentosPersonalAltaDrawerComponent {
 
     readonly formDescuentoPersonal = form(this.descuentoPersonal, (p) => {
 
-
-        disabled(p.ImportacionDocumentoId)
-        disabled(p.AplicaEl, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.PersonalId, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.DescuentoId, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.Importe, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.PorcentajeDescuento, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.Cuotas, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.Cantidad, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.EfectoKey, () => this.crudAccion() == 'C' || this.crudAccion() == 'D')
-        disabled(p.DetalleAnulacion, () => this.crudAccion() == 'C'  )
+        disabled(p.AplicaEl, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.PersonalId, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.DescuentoId, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.Importe, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.PorcentajeDescuento, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.Cuotas, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.Cantidad, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.EfectoKey, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
+        disabled(p.Detalle, () => this.crudAccion() == 'R'|| this.crudAccion() == 'D')
+        disabled(p.DetalleAnulacion, () => this.crudAccion() == 'R')
         disabled(p.FechaAnulacion )
-        disabled(p.Detalle, () => this.crudAccion() == 'C'|| this.crudAccion() == 'D')
+        disabled(p.ImportacionDocumentoId)
+
+        hidden(p.DetalleAnulacion, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
+        hidden(p.FechaAnulacion, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
+        hidden(p.ImportacionDocumentoId, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
 
     })
 
@@ -307,8 +307,8 @@ export class DescuentosPersonalAltaDrawerComponent {
                 if (this.descuentoId() && this.personalId()) {
                     await firstValueFrom(this.apiService.cancellationPersonalOtroDescuento(values))
                     this.onAddorUpdate.emit()
+                    this.loadDescuentoPersonal()
                     this.formDescuentoPersonal().reset()
-
                 }
             } catch (e) { }
         })

@@ -47,9 +47,9 @@ export class TableDescuentosPersonalComponent {
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
     tipoint = signal<string>('')
-    disabledForm = signal(false)
-    cancelDesc = signal(false)
-    isAnulacion = signal(false)
+    // disabledForm = signal(false)
+    // cancelDesc = signal(false)
+    // isAnulacion = signal(false)
 
     crudAccion = signal<string>('')
     private apiService =inject(ApiService)
@@ -120,31 +120,18 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforAltaDescuentos() {
         this.visibleAltaDesc.set(true)
-        this.isAnulacion.set(false)
-        this.crudAccion.set('A')
+        // this.isAnulacion.set(false)
+        this.crudAccion.set('C')
 
     }
 
     openDrawerforEditDescuentos() {
         if (this.tipoint() == 'OTRO') {
-            this.cancelDesc.set(false)
-            this.disabledForm.set(false)
+            // this.cancelDesc.set(false)
+            // this.disabledForm.set(false)
             this.visibleEditDesc.set(true)
-            this.isAnulacion.set(false)
-            this.crudAccion.set('E')
-
-        } else {
-            this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
-        }
-    }
-
-    openDrawerforDetailDescuentos() {
-        if (this.tipoint() == 'OTRO') {
-            this.cancelDesc.set(false)
-            this.disabledForm.set(true)
-            this.visibleEditDesc.set(true)
-            this.isAnulacion.set(false)
-            this.crudAccion.set('C')
+            // this.isAnulacion.set(false)
+            this.crudAccion.set('U')
 
         } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
@@ -153,10 +140,10 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforCancelDescuentos() {
         if (this.tipoint() == 'OTRO') {
-            this.disabledForm.set(true)
-            this.cancelDesc.set(true)
+            // this.disabledForm.set(true)
+            // this.cancelDesc.set(true)
             this.visibleEditDesc.set(true)
-            this.isAnulacion.set(true)
+            // this.isAnulacion.set(true)
 
             this.crudAccion.set('D')
         } else {
@@ -166,10 +153,10 @@ export class TableDescuentosPersonalComponent {
 
     openDrawerforViewDescuentos() {
         if (this.tipoint() == 'OTRO') {
-            this.disabledForm.set(true)
+            // this.disabledForm.set(true)
             this.visibleEditDesc.set(true)
-            this.isAnulacion.set(false)
-            this.crudAccion.set('C')
+            // this.isAnulacion.set(false)
+            this.crudAccion.set('R')
         } else {
             this.notification.warning(`Advertencia`, `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipoint: ${this.tipoint()}`);
         }
