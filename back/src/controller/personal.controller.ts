@@ -1158,8 +1158,8 @@ export class PersonalController extends BaseController {
     const tipoEstudioId = estudio.TipoEstudioId
     // const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
-    const PersonalEstudioOtorgado = estudio.PersonalEstudioOtorgado
-    const PersonalEstudioVencimiento = estudio.PersonalEstudioVencimiento
+    const PersonalEstudioOtorgado = estudio.PersonalEstudioOtorgado ? new Date(estudio.PersonalEstudioOtorgado) : null
+    const PersonalEstudioVencimiento = estudio.PersonalEstudioVencimiento ? new Date(estudio.PersonalEstudioVencimiento) : null
     const docTitulo = (estudio.DocTitulo) ? estudio.DocTitulo[0] : null
     const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro) ? ultnro[0]?.PersonalEstudioUltNro + 1 : 1
@@ -1668,6 +1668,9 @@ export class PersonalController extends BaseController {
           `, [PersonalId, 14, 1])
           Pagina1Id = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
         }
+
+        const fechaOtorgado = infoEstudio.PersonalEstudioOtorgado ? new Date(infoEstudio.PersonalEstudioOtorgado) : null
+        const fechaVencimiento = infoEstudio.PersonalEstudioVencimiento ? new Date(infoEstudio.PersonalEstudioVencimiento) : null
         await queryRunner.query(`
           INSERT INTO PersonalEstudio (
             PersonalId,
@@ -1682,8 +1685,8 @@ export class PersonalController extends BaseController {
           )
           VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`, [
           PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
-          2, infoEstudio.EstudioTitulo, infoEstudio.PersonalEstudioOtorgado,
-          Pagina1Id, infoEstudio.PersonalEstudioVencimiento
+          2, infoEstudio.EstudioTitulo, fechaOtorgado,
+          Pagina1Id, fechaVencimiento
         ])
 
         if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
