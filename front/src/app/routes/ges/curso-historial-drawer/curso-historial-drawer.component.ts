@@ -3,7 +3,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { Component, model, input, Inject, inject, EventEmitter,Output, ViewChild, SimpleChanges } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { BehaviorSubject, debounceTime,switchMap,tap,map } from 'rxjs';
-import { ApiService,doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService,doOnSubscribe } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -12,7 +12,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 

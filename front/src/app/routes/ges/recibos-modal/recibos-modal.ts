@@ -5,11 +5,11 @@ import { AngularUtilService } from 'angular-slickgrid';
 import { CommonModule } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzModalModule } from "ng-zorro-antd/modal";
-import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { ClienteSearchComponent } from 'src/app/shared/cliente-search/cliente-search.component';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { SearchService } from 'src/app/services/search.service';
+import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { SearchService } from '../../../services/search.service';
 
 @Component({
   selector: 'app-recibos-modal',

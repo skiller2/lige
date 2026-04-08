@@ -1,10 +1,6 @@
 
 import { Component, ElementRef } from '@angular/core';
-import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Subject } from 'rxjs';
-import { FiltroBuilderComponent } from '../filtro-builder/filtro-builder.component';
-import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from '../row-preload-detail/row-preload-detail.component';
 import { SHARED_IMPORTS } from '@shared';
 import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
 

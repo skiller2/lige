@@ -2,8 +2,8 @@ import { Component, Injector, inject, signal, model, effect, computed, ChangeDet
 import { BehaviorSubject, debounceTime, switchMap, firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
-import { ApiService } from 'src/app/services/api.service';
-import { SearchService } from 'src/app/services/search.service';
+import { ApiService } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";

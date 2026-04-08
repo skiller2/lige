@@ -26,9 +26,9 @@ import {
 } from 'rxjs';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { LoadingService } from '@delon/abc/loading';
-import { FileUploadComponent } from 'src/app/shared/file-upload/file-upload.component';
+import { FileUploadComponent } from '../../../shared/file-upload/file-upload.component';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
     selector: 'app-liquidaciones',

@@ -12,11 +12,11 @@ import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
-import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { Selections } from '../../../shared/schemas/filtro';
 
 type listOptionsT = {
   filtros: any[],

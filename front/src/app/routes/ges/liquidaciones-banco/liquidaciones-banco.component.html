@@ -1,17 +1,19 @@
 <nz-card class="small-margin">
   <form nz-form #liquidacionesForm="ngForm">
 
-    <div nz-col nzSpan="12">
-      <nz-form-control>
-        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+
+    
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+    <div nz-row nzSpan="12">
+      <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+      <nz-form-control [nzSpan]="14">
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
+
     </div>
 
-    <div nz-row class="contentStyle">
-      <div nz-col nzSpan="13" class="listStyle">
-        <ul nz-menu nzMode="horizontal" style="display: flex;">
-          <li nz-menu-item nzMatchRouter>
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
             <span nz-icon nzType=""></span>
             <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
           </li>
@@ -94,8 +96,14 @@
           <li nz-menu-item nzMatchRouter>
             <a [routerLink]="['/', 'ges', 'liquidacion_banco','moviemientospendientes']">Movimientos Pendientes</a>
           </li>
-        </ul>
-      </div>
+    </ul>
+
+    <nz-button-group nz-button nzButtonGroup>
+      <button nz-button nzType="default" (click)="reload.set(reload() + 1)"><span nz-icon
+            nzType="reload" nzTheme="outline" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+
+      </nz-button-group>
     </div>
     <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
       <nz-tab></nz-tab>

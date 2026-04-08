@@ -9,7 +9,7 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 import { RowDetailViewComponent } from '../../../../app/shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
 import { SearchService } from '../../../../app/services/search.service';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
@@ -17,10 +17,10 @@ import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-d
 import { Component, model, signal, inject, computed, resource } from '@angular/core';
 import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
 import { ProductosImportacionMasivaComponent } from '../productos-importacion-masiva/productos-importacion-masiva';
-import { Selections } from 'src/app/shared/schemas/filtro';
-import { PeriodoSelectComponent } from 'src/app/shared/periodo-select/periodo-select.component';
+import { Selections } from '../../../shared/schemas/filtro';
+import { PeriodoSelectComponent } from '../../../shared/periodo-select/periodo-select.component';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 @Component({
   selector: 'app-precios-productos',

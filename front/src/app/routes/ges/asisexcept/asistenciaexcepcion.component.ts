@@ -5,11 +5,11 @@ import { SearchService } from '../../../services/search.service';
 import { FormGroup, NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 
 enum Busqueda {

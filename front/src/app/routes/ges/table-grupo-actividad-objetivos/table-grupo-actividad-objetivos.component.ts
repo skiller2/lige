@@ -14,7 +14,7 @@ import { Component, model, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
   selector: 'app-table-grupo-actividad-objetivos',

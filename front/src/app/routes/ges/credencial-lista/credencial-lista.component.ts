@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Inject, OnInit, Renderer2, signal, ViewChild, DOCUMENT } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
-import { PersonaObj, Search } from 'src/app/shared/schemas/personal.schemas';
+import { PersonaObj, Search } from '../../../shared/schemas/personal.schemas';
 import { SearchService } from '../../../services/search.service';
 import { LoadingService } from '@delon/abc/loading';
-import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-credential.component';
+import { ViewCredentialComponent } from '../../../shared/viewCredential/view-credential.component';
 
 @Component({
     selector: 'app-credencial-lista',

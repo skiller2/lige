@@ -1,15 +1,15 @@
 import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
-import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { CommonModule } from '@angular/common';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { SearchService } from 'src/app/services/search.service';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { PersonalFormComponent } from '../personal-form/personal-form.component';
 import { LicenciaHistorialDrawerComponent } from '../licencia-historial-drawer/licencia-historial-drawer.component'
 import { PersonalObjetivoDrawerComponent } from '../personal-objetivo-drawer/personal-objetivo-drawer.component'
@@ -28,7 +28,7 @@ import { PersonalExencionesDrawerComponent } from '../personal-exenciones-drawer
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline, FolderViewOutline} from '@ant-design/icons-angular/icons';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 
 @Component({

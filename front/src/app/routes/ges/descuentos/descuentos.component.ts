@@ -1,17 +1,17 @@
 import { Component, inject, input, effect, ChangeDetectionStrategy,  model } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
-import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { CommonModule } from '@angular/common';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { Injector } from '@angular/core';
 import { runInInjectionContext } from '@angular/core';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 @Component({
     selector: 'app-descuentos',

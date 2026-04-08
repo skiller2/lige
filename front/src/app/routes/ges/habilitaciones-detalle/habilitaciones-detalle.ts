@@ -2,11 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, input, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { columnTotal, totalRecords } from "../../..//shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 import { HabilitacionesFormDrawerComponent } from '../../../routes/ges/habilitaciones-detalle-form-drawer/habilitaciones-detalle-form-drawer';

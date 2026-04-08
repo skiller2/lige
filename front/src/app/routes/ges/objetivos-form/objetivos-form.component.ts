@@ -1,24 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
+import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
-import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { NzInputGroupComponent } from 'ng-zorro-antd/input'
-import { TableObjetivoDocumentoComponent } from 'src/app/routes/ges/table-objetivo-documentos/table-objetivo-documentos';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { TableObjetivoDocumentoComponent } from '../../../routes/ges/table-objetivo-documentos/table-objetivo-documentos';
 
 @Component({
     selector: 'app-objetivos-form',
@@ -37,7 +34,6 @@ import { TableObjetivoDocumentoComponent } from 'src/app/routes/ges/table-objeti
         GrupoActividadSearchComponent,
         NzCheckboxModule,
         DetallePersonaComponent,
-        NzInputGroupComponent,
         TableObjetivoDocumentoComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush

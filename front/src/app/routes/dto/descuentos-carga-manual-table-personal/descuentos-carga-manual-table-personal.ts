@@ -7,7 +7,6 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Observable, of } from 'rxjs';
 import { NgForm } from '@angular/forms';
-import { CustomFloatEditor } from 'src/app/shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { EditorEfectoComponent } from '../../../shared/editor-efecto/editor-efecto';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';

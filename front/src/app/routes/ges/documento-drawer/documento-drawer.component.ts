@@ -15,7 +15,7 @@ import { ObjetivoSearchComponent } from "../../../shared/objetivo-search/objetiv
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { ImageLoaderComponent } from 'src/app/shared/image-loader/image-loader.component';
+import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 import { applyEach, disabled, FieldTree, form, FormField, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 

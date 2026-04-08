@@ -3,13 +3,13 @@ import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValue
 import { AngularGridInstance, AngularUtilService} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { SearchService } from 'src/app/services/search.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NgForm } from '@angular/forms';
-import { Selections } from 'src/app/shared/schemas/filtro';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
     selector: 'app-personal-custodias-drawer',

@@ -23,16 +23,16 @@ import {
   throttleTime,
 } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { DescuentoJSON } from '../../../shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import type { Options, Selections } from 'src/app/shared/schemas/filtro';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import type { Options, Selections } from '../../../shared/schemas/filtro';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
+import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
 
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';

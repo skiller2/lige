@@ -6,7 +6,7 @@ import { TableParametroVentaComponent } from '../table-parametro-venta/table-par
 import { AngularUtilService } from 'angular-slickgrid';
 import { ParametroVentaFormComponent } from '../parametro-venta-form/parametro-venta-form';
 import { firstValueFrom } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
