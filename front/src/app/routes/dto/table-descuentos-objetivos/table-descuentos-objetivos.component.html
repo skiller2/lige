@@ -45,6 +45,6 @@
   }
 </nz-card>
 
-<app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [isAnulacion]="isAnulacion()" [crudAccion]="crudAccion()"></app-descuentos-objetivos-alta-drawer>
+<app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleAltaDesc" (onAddorUpdate)="onAddorUpdate($event)" [crudAccion]="crudAccion()"></app-descuentos-objetivos-alta-drawer>
 
-<app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [ObjetivoDescuentoId]="ObjetivoDescuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [disabled]="disabledForm()" [cancelDesc]="cancelDesc()" [isAnulacion]="isAnulacion()"></app-descuentos-objetivos-alta-drawer>
+<app-descuentos-objetivos-alta-drawer [(visibleDesc)]="visibleEditDesc" [objetivoId]="objetivoId()" [ObjetivoDescuentoId]="ObjetivoDescuentoId()" (onAddorUpdate)="onAddorUpdate($event)" [crudAccion]="crudAccion()"></app-descuentos-objetivos-alta-drawer>

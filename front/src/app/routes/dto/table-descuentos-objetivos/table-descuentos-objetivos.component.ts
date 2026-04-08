@@ -44,9 +44,9 @@ export class TableDescuentosObjetivosComponent {
     objetivoId = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
-    disabledForm = signal(false);
-    cancelDesc = signal(false);
-    isAnulacion = signal(false);
+    // disabledForm = signal(false);
+    // cancelDesc = signal(false);
+    // isAnulacion = signal(false);
     crudAccion = signal<string>('')
 
     columns = toSignal(this.apiService.getCols('/api/gestion-descuentos/cols/objetivos'), { initialValue: [] as Column[] })
@@ -106,31 +106,31 @@ export class TableDescuentosObjetivosComponent {
 
     openDrawerforAltaDescuentos() {
         this.visibleAltaDesc.set(true)
-        this.isAnulacion.set(false)
+        // this.isAnulacion.set(false)
         this.crudAccion.set('C')
     }
 
     openDrawerforEditDescuentos() {
-        this.disabledForm.set(false)
-        this.cancelDesc.set(false)
+        // this.disabledForm.set(false)
+        // this.cancelDesc.set(false)
         this.visibleEditDesc.set(true)
-        this.isAnulacion.set(false)
+        // this.isAnulacion.set(false)
         this.crudAccion.set('U')
     }
 
     openDrawerforDetailDescuentos() {
-        this.cancelDesc.set(false)
-        this.disabledForm.set(true)
+        // this.cancelDesc.set(false)
+        // this.disabledForm.set(true)
         this.visibleEditDesc.set(true)
-        this.isAnulacion.set(false)
+        // this.isAnulacion.set(false)
         this.crudAccion.set('R')
     }
 
     openDrawerforCancelDescuentos() {
-        this.disabledForm.set(true)
-        this.cancelDesc.set(true)
+        // this.disabledForm.set(true)
+        // this.cancelDesc.set(true)
         this.visibleEditDesc.set(true)
-        this.isAnulacion.set(true)
+        // this.isAnulacion.set(true)
         this.crudAccion.set('D')
     }
 

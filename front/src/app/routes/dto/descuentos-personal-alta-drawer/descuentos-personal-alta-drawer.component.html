@@ -116,17 +116,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        @if(descuentoPersonal().FechaAnulacion) {
-
-        <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
-          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
-            <nz-date-picker [formField]="formDescuentoPersonal.FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-        }
-
-        @if (descuentoPersonal().DetalleAnulacion || crudAccion() === 'D') {
+        @if (!formDescuentoPersonal.DetalleAnulacion().hidden()) {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
           <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
@@ -135,6 +125,15 @@
         </nz-form-item>
         }
 
+        @if(!formDescuentoPersonal.FechaAnulacion().hidden()) {
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
+          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
+            <nz-date-picker [formField]="formDescuentoPersonal.FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+        }
 
         @if (false) {
         <nz-form-item class="marginElement">
@@ -145,25 +144,16 @@
         </nz-form-item>
         }
 
-        @if (descuentoPersonal().FechaAnulacion) {
-        <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Fecha anulación</nz-form-label>
-          <nz-form-control [nzMd]="18" nzHasFeedback sfErrorTip>
-            <nz-date-picker [formField]="formDescuentoPersonal.FechaAnulacion" nzFormat="dd/MM/yyyy"></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-        }
-
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            @if (crudAccion() === 'A' || crudAccion() === 'E') {
+            @if (crudAccion() === 'C' || crudAccion() === 'U') {
             <button nzType="primary" nz-button *ngIf="!formDescuentoPersonal().disabled()" type="submit"
               [nzLoading]="formDescuentoPersonal().submitting()"
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false">
               {{ 'app.btn.save' | i18n }}
             </button>
             }
-            @if (crudAccion() === 'A') {
+            @if (crudAccion() === 'C') {
 
             <button
               [disabled]="formDescuentoPersonal().submitting() || formDescuentoPersonal().dirty()==false || formDescuentoPersonal().valid()==false"

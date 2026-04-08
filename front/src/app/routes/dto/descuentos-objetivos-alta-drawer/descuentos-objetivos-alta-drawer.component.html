@@ -4,7 +4,6 @@
 
     <nz-card nzType="inner" nzTitle="Descuento de Objetivo">
       <form (ngSubmit)="save()">
-        
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
           <nz-form-control [nzMd]="18">
@@ -66,16 +65,16 @@
                 <li>
                   @if (!contrato.ContratoFechaHasta) {
                     <span>Desde</span>
-                    } {{contrato.ContratoFechaDesde | date}}
-                    @if (contrato.ContratoFechaHasta) {
-                      <span>-</span>
-                    }
-                    {{ contrato.ContratoFechaHasta | date}}
-                  </li>
-                }
-              </nz-form-control>
-            }
-          </nz-form-item>
+                  } {{contrato.ContratoFechaDesde | date}}
+                  @if (contrato.ContratoFechaHasta) {
+                    <span>-</span>
+                  }
+                  {{ contrato.ContratoFechaHasta | date}}
+                </li>
+              }
+            </nz-form-control>
+          }
+        </nz-form-item>
 
 
           <nz-form-item class="marginElement">
@@ -94,7 +93,7 @@
             <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
             <nz-form-control [nzMd]="6">
               <input nz-input [value]="importeCuota()" type="text" appDotToComma mask="separator.2"
-                class="ant-input text-right" [disabled]="disabled()" [readonly]="true" />
+                class="ant-input text-right" [readonly]="true" />
             </nz-form-control>
           </nz-form-item>
 
@@ -105,7 +104,7 @@
             </nz-form-control>
           </nz-form-item>
 
-          @if(descuentoObjetivo().FechaAnulacion) {
+          @if(!formDescuentoObjetivo.FechaAnulacion().hidden()) {
             <nz-form-item class="marginElement">
               <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
               <nz-form-control [nzMd]="18">
@@ -114,7 +113,7 @@
             </nz-form-item>
           }
 
-          @if (descuentoObjetivo().DetalleAnulacion || cancelDesc()) {
+          @if (!formDescuentoObjetivo.DetalleAnulacion().hidden()) {
             <nz-form-item class="marginElement">
               <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
               <nz-form-control [nzMd]="18">
@@ -123,7 +122,7 @@
             </nz-form-item>
           }
 
-          @if (descuentoObjetivo().ImportacionDocumentoId) {
+          @if (!formDescuentoObjetivo.ImportacionDocumentoId().hidden()) {
             <nz-form-item class="marginElement">
               <nz-form-label [nzXs]="5">Importación documento</nz-form-label>
               <nz-form-control [nzMd]="18">
@@ -135,20 +134,22 @@
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            @if (!disabled() && !cancelDesc()) {
+            @if (crudAccion() === 'C' || crudAccion() === 'U') {
               <button type="submit" nzType="primary" nz-button 
                 [nzLoading]="formDescuentoObjetivo().submitting()"
                 [disabled]="formDescuentoObjetivo().submitting() || formDescuentoObjetivo().dirty()==false || formDescuentoObjetivo().valid()==false">
                 {{ 'app.btn.save' | i18n }}
               </button>
+            }
 
+            @if (crudAccion() === 'A') {
               <button type="button" [disabled]="!(formDescuentoObjetivo.id() && !ObjetivoDescuentoId() && !objetivoId())" nzType="primary" nz-button
               (click)="resetForm()">
                 {{ 'app.btn.clear.form' | i18n }}
               </button>
             }
 
-            @if (cancelDesc() && disabled()) {
+            @if (crudAccion() === 'D') {
               <button type="button" nzType="primary" nz-button (click)="cancel()" [nzLoading]="isLoading()">
                 Anular
               </button>
