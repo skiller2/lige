@@ -90,13 +90,25 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "Situación Revista",
+      type: "number",
+      id: "SituacionRevistaId",
+      field: "SituacionRevistaId",
+      fieldName: "sit.SituacionRevistaId",
+      searchComponent: "inputForSituacionRevistaSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true,
+    },
+    {
+      name: "Situación Revista",
       type: "string",
       id: "SituacionRevistaDescripcion",
       field: "SituacionRevistaDescripcion",
       fieldName: "sit.SituacionRevistaDescripcion",
       sortable: true,
       hidden: false,
-      searchHidden: false
+      searchHidden: true
     },
     {
       name: "CBU",
@@ -187,13 +199,25 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "Situación Revista",
+      type: "number",
+      id: "SituacionRevistaId",
+      field: "SituacionRevistaId",
+      fieldName: "sit.SituacionRevistaId",
+      searchComponent: "inputForSituacionRevistaSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true,
+    },
+    {
+      name: "Situación Revista",
       type: "string",
       id: "SituacionRevistaDescripcion",
       field: "SituacionRevistaDescripcion",
       fieldName: "sit.SituacionRevistaDescripcion",
       sortable: true,
       hidden: false,
-      searchHidden: false
+      searchHidden: true
     },
     {
       name: "CBU",
