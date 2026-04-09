@@ -59,15 +59,15 @@ export class TelefoniaController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
-    {
-      name: "CUIT Persona",
-      type: "string",
-      id: "PersonalCUITCUILCUIT",
-      field: "PersonalCUITCUILCUIT",
-      fieldName: "cuit.PersonalCUITCUILCUIT",
-      sortable: true,
-      searchHidden: true
-    },
+    // {
+    //   name: "CUIT Persona",
+    //   type: "string",
+    //   id: "PersonalCUITCUILCUIT",
+    //   field: "PersonalCUITCUILCUIT",
+    //   fieldName: "cuit.PersonalCUITCUILCUIT",
+    //   sortable: true,
+    //   searchHidden: true
+    // },
     {
       name: "Apellido Nombre",
       type: "string",
@@ -80,7 +80,6 @@ export class TelefoniaController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
-
     {
       name: "PersonalId",
       type: "number",
@@ -104,15 +103,15 @@ export class TelefoniaController extends BaseController {
       hidden: true,
 
     },
-    {
-      name: "Código Objetivo",
-      type: "string",
-      id: "codObjetivo",
-      field: "codObjetivo",
-      fieldName: "codObjetivo",
-      sortable: true,
-      searchHidden: true
-    },
+    // {
+    //   name: "Código Objetivo",
+    //   type: "string",
+    //   id: "codObjetivo",
+    //   field: "codObjetivo",
+    //   fieldName: "codObjetivo",
+    //   sortable: true,
+    //   searchHidden: true
+    // },
     {
       name: "Objetivo",
       type: "string",
@@ -123,10 +122,30 @@ export class TelefoniaController extends BaseController {
       searchHidden: true
     },
     {
+      name: "Objetivo Activo",
+      id: "Activo",
+      field: "Activo",
+      fieldName: "ISNULL(eledepcon.Activo,'0')",
+      type: 'string',
+      searchComponent: "inputForActivo",
+
+      sortable: true,
+
+      formatter: 'collectionFormatter',
+      params: { collection: getOptionsSINO },
+
+      exportWithFormatter: true,
+      hidden: false,
+      searchHidden: false,
+      minWidth: 70,
+      maxWidth: 70,
+      cssClass: 'text-center'
+    },
+    {
       name: "Coo. Cuenta Objetivo",
       id: "isCoordinadorCuenta",
       field: "isCoordinadorCuenta",
-      fieldName: "isCoordinadorCuenta",
+      fieldName: "IIF(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,'1', '0')",
       type: 'string',
       searchComponent: "inputForActivo",
 
@@ -134,6 +153,24 @@ export class TelefoniaController extends BaseController {
       formatter: 'collectionFormatter',
       params: { collection: getOptionsSINO },
 
+      exportWithFormatter: true,
+      hidden: false,
+      searchHidden: false,
+      minWidth: 100,
+      maxWidth: 100,
+      cssClass: 'text-center'
+    },
+    {
+      name: "Descuenta a Coo. Cuenta",
+      id: "DescTelefono",
+      field: "DescTelefono",
+      fieldName: "IIF(objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1,'1','0' )",
+      type: 'string',
+      searchComponent: "inputForActivo",
+
+      sortable: true,
+      formatter: 'collectionFormatter',
+      params: { collection: getOptionsSINO },
       exportWithFormatter: true,
       hidden: false,
       searchHidden: false,
@@ -196,7 +233,8 @@ export class TelefoniaController extends BaseController {
     fecha.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, 
+      `
+SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, 
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
       conx.ImpuestoInternoTelefoniaImpuesto,
@@ -206,6 +244,8 @@ export class TelefoniaController extends BaseController {
       iif(tel.TelefoniaObjetivoId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion), null) ObjetivoDescripcion,
       CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta, 
       IIF(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,'1', '0') as isCoordinadorCuenta,
+      IIF(objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1,'1','0' ) DescTelefono,
+      ISNULL(eledepcon.Activo,0) AS Activo,
 
 
       1
@@ -216,6 +256,26 @@ export class TelefoniaController extends BaseController {
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+
+      LEFT JOIN (
+                            SELECT 
+                                ec.ClienteId, 
+                                ec.ClienteElementoDependienteId, 
+                                ec.ClienteElementoDependienteContratoId, 
+                                ec.ClienteElementoDependienteContratoFechaDesde, 
+                                ec.ClienteElementoDependienteContratoFechaHasta,
+								CASE
+									WHEN ec.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
+									ELSE '0' END AS Activo,
+                                ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
+                                                    ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
+                            FROM ClienteElementoDependienteContrato ec
+                            WHERE EOMONTH(@0) >= ec.ClienteElementoDependienteContratoFechaDesde
+                        ) eledepcon ON eledepcon.ClienteId = obj.ClienteId 
+                            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                            AND eledepcon.RowNum = 1
+
+
       LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId, objjer.ObjetivoPersonalJerarquicoPersonalId)
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
