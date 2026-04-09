@@ -18,9 +18,10 @@ export class ValorHoraController extends BaseController {
     {
       name: "Sucursal",
       type: "string",
-      id: "Sucursal",
-      field: "SucursalDescripcion",
-      fieldName: "s.SucursalDescripcion",
+      id: "SucursalId",
+      field: "ValorLiquidacionSucursalId",
+      fieldName: "vl.ValorLiquidacionSucursalId",
+      formatter: 'collectionFormatter',
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -28,9 +29,10 @@ export class ValorHoraController extends BaseController {
     {
       name: "Tipo Asociado",
       type: "string",
-      id: "TipoAsociado",
-      field: "TipoAsociadoDescripcion",
-      fieldName: "ta.TipoAsociadoDescripcion",
+      id: "TipoAsociadoId",
+      field: "ValorLiquidacionTipoAsociadoId",
+      fieldName: "vl.ValorLiquidacionTipoAsociadoId",
+      formatter: 'collectionFormatter',
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -38,9 +40,10 @@ export class ValorHoraController extends BaseController {
     {
       name: "Categoría",
       type: "string",
-      id: "CategoriaPersonal",
-      field: "CategoriaPersonalDescripcion",
-      fieldName: "cp.CategoriaPersonalDescripcion",
+      id: "CategoriaPersonalId",
+      field: "ValorLiquidacionCategoriaPersonalId",
+      fieldName: "vl.ValorLiquidacionCategoriaPersonalId",
+      formatter: 'collectionFormatter',
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -48,7 +51,7 @@ export class ValorHoraController extends BaseController {
     {
       name: "Importe",
       type: "currency",
-      id: "Importe",
+      id: "ValorLiquidacionHoraNormal",
       field: "ValorLiquidacionHoraNormal",
       fieldName: "vl.ValorLiquidacionHoraNormal",
       sortable: true,
@@ -59,6 +62,22 @@ export class ValorHoraController extends BaseController {
 
   async getValorHoraCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
+  }
+
+  async getCategoriasPersonal(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label
+        FROM CategoriaPersonal catper
+        WHERE catper.CategoriaPersonalInactivo IS NULL
+      `);
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async getValorHoraData(req: Request, res: Response, next: NextFunction) {
@@ -97,28 +116,39 @@ export class ValorHoraController extends BaseController {
     }
   }
 
-  async updateValorHora(req: Request, res: Response, next: NextFunction) {
-    const { id, ValorLiquidacionHoraNormal, anio, mes } = req.body;
-    if (!id || ValorLiquidacionHoraNormal == null) return next(new ClientException("Datos incompletos"));
+  async changecellvalorHora(req: Request, res: Response, next: NextFunction) {
 
-    const queryRunner = dataSource.createQueryRunner();
-    try {
-      await queryRunner.startTransaction();
+        const ip = this.getRemoteAddress(req)
+        const queryRunner = dataSource.createQueryRunner();
+        const usuario = res.locals.userName
 
-      const recibos = await queryRunner.query(`
-        SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
-        WHERE anio = @0 AND mes = @1`,
-        [anio, mes]
-      );
-      if (recibos[0].cnt > 0) throw new ClientException("No se puede modificar: existen recibos generados para este período");
+        const fechaActual = new Date()
+        let message = ""
+        const params = req.body
+      
 
-      await queryRunner.query(`
-        UPDATE ValorLiquidacion SET ValorLiquidacionHoraNormal = @1 WHERE ValorLiquidacionId = @0`,
-        [id, ValorLiquidacionHoraNormal]
-      );
+   console.log('params recibidos', params)
 
-      await queryRunner.commitTransaction();
-      this.jsonRes({ success: true }, res);
+        try {
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
+
+           
+            let dataResultado = {}
+
+            if (true) { //Entro en update
+                //Validar si cambio el código
+
+                dataResultado = { action: 'U', GrupoActividadId: params.GrupoActividadId, GrupoActividadJerarquicoId: params.GrupoActividadJerarquicoId }
+                message = "Actualización exitosa"
+
+            } else {  //Es un nuevo registro
+                // console.log('nuevo registro')
+          
+            }
+           
+            await queryRunner.commitTransaction()
+            return this.jsonRes(dataResultado, res, message)
     } catch (error) {
       await queryRunner.rollbackTransaction();
       return next(error);

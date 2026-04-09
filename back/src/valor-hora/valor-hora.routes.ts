@@ -12,8 +12,12 @@ valorHoraRouter.post("/data", authMiddleware.verifyToken, (req, res, next) => {
     valorHoraController.getValorHoraData(req, res, next);
 });
 
-valorHoraRouter.post("/update", authMiddleware.verifyToken, (req, res, next) => {
-    valorHoraController.updateValorHora(req, res, next);
+valorHoraRouter.get("/categorias-personal", authMiddleware.verifyToken, (req, res, next) => {
+    valorHoraController.getCategoriasPersonal(req, res, next);
+});
+
+valorHoraRouter.post("/changecellvalorHora", authMiddleware.verifyToken, (req, res, next) => {
+    valorHoraController.changecellvalorHora(req, res, next);
 });
 
 valorHoraRouter.post("/aumentar", authMiddleware.verifyToken, (req, res, next) => {

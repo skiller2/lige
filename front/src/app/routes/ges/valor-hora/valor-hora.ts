@@ -70,7 +70,7 @@ export class ValorHoraComponent {
     switchMap(async (cols) => {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
-      const categorias = await firstValueFrom(this.searchService.getCategorias());
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersonal());
 
       return { cols, sucursales, tipoasociado, categorias }
     }),
@@ -79,7 +79,7 @@ export class ValorHoraComponent {
         console.log(col)
         switch (col.id) {
 
-          case 'Sucursal':
+          case 'SucursalId':
             col.editor = {
               model: CustomInputEditor,
               collection: [],
@@ -95,8 +95,7 @@ export class ValorHoraComponent {
 
             break;
 
-
-          case 'TipoAsociado':
+          case 'TipoAsociadoId':
             col.editor = {
               model: CustomInputEditor,
               collection: [],
@@ -112,7 +111,7 @@ export class ValorHoraComponent {
 
             break;
 
-          case 'CategoriaPersonal':
+          case 'CategoriaPersonalId':
             col.editor = {
               model: CustomInputEditor,
               collection: [],
@@ -123,12 +122,12 @@ export class ValorHoraComponent {
               required: true
             }
             col.params = {
-              collection: data.tipoasociado,
+              collection: data.categorias,
             }
 
             break;
 
-          case 'Importe':
+          case 'ValorLiquidacionHoraNormal':
             col.editor = {
               model: CustomFloatEditor,
               decimal: 2,
@@ -181,12 +180,17 @@ export class ValorHoraComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
+console.log('row a guardar', row)
+          const rowComplete = !!row?.ValorLiquidacionSucursalId && !!row?.ValorLiquidacionTipoAsociadoId && !!row?.ValorLiquidacionCategoriaPersonalId && row?.ValorLiquidacionHoraNormal > 0
+
+        if (!rowComplete)
+          return
 
 
         if (!row.dbid)
           this.rowLocked = true
 
-        const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadGrupo(row))
+        const response = await firstValueFrom(this.apiService.onchangecellvalorHora(row))
         this.listValorHora$.next('')
         this.rowLocked = false
       } catch (e: any) {
@@ -239,11 +243,10 @@ export class ValorHoraComponent {
 
     return {
       id: newId,
-      Sucursal: "",
-      TipoAsociado: "",
-      CategoriaPersonal: "",
-      Importe: 0,
-
+      ValorLiquidacionSucursalId: "",
+      ValorLiquidacionTipoAsociadoId: "",
+      ValorLiquidacionCategoriaPersonalId: "",
+      ValorLiquidacionHoraNormal: 0,
     };
   }
 
@@ -308,10 +311,10 @@ export class ValorHoraComponent {
       }
 
       if (
-        item.SucursalId == "" ||
-        item.TipoAsociado === "" ||
-        item.CategoriaPersonal === "" ||
-        item.Importe === 0
+        item.ValorLiquidacionSucursalId === "" ||
+        item.ValorLiquidacionTipoAsociadoId === "" ||
+        item.ValorLiquidacionCategoriaPersonalId === "" ||
+        item.ValorLiquidacionHoraNormal === 0
 
       ) {
         meta.cssClasses = 'element-add-no-complete';

@@ -1878,6 +1878,16 @@ export class SearchService {
     );
   }
 
+  getCategoriasPersonal(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/valor-hora/categorias-personal`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getTipoParentescoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/tipo-parentesco/options`).pipe(
       map(res => res.data),

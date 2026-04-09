@@ -1061,6 +1061,14 @@ export class ApiService {
 
   }
 
+   onchangecellvalorHora(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/valor-hora/changecellvalorHora', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+
+    )
+
+  }
+
   onchangecellGrupoActividadObjetivos(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/changecellObjetivos', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
@@ -2170,12 +2178,6 @@ export class ApiService {
           catchError(() => of([]))
         );
     
-  }
-
-  updateValorHora(params: { id: number, ValorLiquidacionHoraNormal: number, anio: number, mes: number }) {
-    return this.http.post<ResponseJSON<any>>('/api/valor-hora/update', params).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res))
-    );
   }
 
   aumentarValorHora(params: { anio: number, mes: number, tipo: string, valor: number }) {
