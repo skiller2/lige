@@ -196,5 +196,14 @@ export const GesRoutes: Routes = [
     path: 'habilitaciones/:tab',
     loadComponent: () => import('./habilitaciones/habilitaciones').then(c => c.HabilitacionesComponent),
   },
+
+    {
+    path: 'valor-hora', redirectTo: 'valor-hora/listado'
+  },
+  {
+    path: 'valor-hora/:tab',
+    loadComponent: () => import('./valor-hora/valor-hora').then(c => c.ValorHoraComponent),
+  },
+
   
 ];
