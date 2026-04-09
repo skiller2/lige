@@ -1,7 +1,7 @@
 import { inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { formatDate, formatNumber } from '@angular/common';
 import { collectionFormatter, ExternalResource, Formatters, Column, Editors } from '@slickgrid-universal/common';
@@ -2161,6 +2161,28 @@ export class ApiService {
   }
 
 
+  getValorHoraData(anio: number, mes: number,filters: any) {
+ 
+      const parameter = { filter,anio,mes } 
+
+        return this.http.post<ResponseJSON<any>>('/api/valor-hora/data', parameter).pipe(
+          map((res: { data: any; }) => res.data),
+          catchError(() => of([]))
+        );
+    
+  }
+
+  updateValorHora(params: { id: number, ValorLiquidacionHoraNormal: number, anio: number, mes: number }) {
+    return this.http.post<ResponseJSON<any>>('/api/valor-hora/update', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
+
+  aumentarValorHora(params: { anio: number, mes: number, tipo: string, valor: number }) {
+    return this.http.post<ResponseJSON<any>>('/api/valor-hora/aumentar', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
 
 }
 

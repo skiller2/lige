@@ -1,11 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
-import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
-
 
 export class ValorHoraController extends BaseController {
-  
 
   listaColumnas: any[] = [
     {
@@ -17,10 +14,11 @@ export class ValorHoraController extends BaseController {
       sortable: true,
       searchHidden: true,
       hidden: true
-    }, {
+    },
+    {
       name: "Sucursal",
       type: "string",
-      id: "SucursalDescripcion",
+      id: "Sucursal",
       field: "SucursalDescripcion",
       fieldName: "s.SucursalDescripcion",
       sortable: true,
@@ -30,7 +28,7 @@ export class ValorHoraController extends BaseController {
     {
       name: "Tipo Asociado",
       type: "string",
-      id: "TipoAsociadoDescripcion",
+      id: "TipoAsociado",
       field: "TipoAsociadoDescripcion",
       fieldName: "ta.TipoAsociadoDescripcion",
       sortable: true,
@@ -40,7 +38,7 @@ export class ValorHoraController extends BaseController {
     {
       name: "Categoría",
       type: "string",
-      id: "CategoriaPersonalDescripcion",
+      id: "CategoriaPersonal",
       field: "CategoriaPersonalDescripcion",
       fieldName: "cp.CategoriaPersonalDescripcion",
       sortable: true,
@@ -50,14 +48,13 @@ export class ValorHoraController extends BaseController {
     {
       name: "Importe",
       type: "currency",
-      id: "ValorLiquidacionHoraNormal",
+      id: "Importe",
       field: "ValorLiquidacionHoraNormal",
       fieldName: "vl.ValorLiquidacionHoraNormal",
       sortable: true,
       searchHidden: false,
       hidden: false,
     },
-
   ];
 
   async getValorHoraCols(req: Request, res: Response) {
@@ -65,33 +62,112 @@ export class ValorHoraController extends BaseController {
   }
 
   async getValorHoraData(req: Request, res: Response, next: NextFunction) {
+    const anio = Number(req.body.anio);
+    const mes = Number(req.body.mes);
+    if (!anio || !mes) return next(new ClientException("Debe indicar año y mes"));
 
-     const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dataSource.createQueryRunner();
     try {
-      const options = await this.getValorHoraQuery(queryRunner)
+      const data = await queryRunner.query(`
+        SELECT vl.ValorLiquidacionId AS id, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId,
+               ta.TipoAsociadoDescripcion, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal,
+               cp.CategoriaPersonalDescripcion, s.SucursalDescripcion,
+               vl.ValorLiquidacionDesde, vl.ValorLiquidacionHasta
+        FROM ValorLiquidacion vl
+        LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
+        LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId
+                                        AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
+        LEFT JOIN Sucursal s ON s.SucursalId = vl.ValorLiquidacionSucursalId
+        WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
+          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
+        [anio, mes]
+      );
 
-      this.jsonRes(options, res);
+      this.jsonRes(
+        {
+          total: data.length,
+          list: data,
+        },
+        res
+      );
     } catch (error) {
-      return next(error)
+      return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  private async getValorHoraQuery(queryRunner: any) {
-    return await queryRunner.query(`
-        declare @0 int = 2026;
-      declare @1 int = 3;
+  async updateValorHora(req: Request, res: Response, next: NextFunction) {
+    const { id, ValorLiquidacionHoraNormal, anio, mes } = req.body;
+    if (!id || ValorLiquidacionHoraNormal == null) return next(new ClientException("Datos incompletos"));
 
-      select vl.ValorLiquidacionId, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId, 
-             ta.TipoAsociadoDescripcion, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal, 
-             cp.CategoriaPersonalDescripcion, s.SucursalDescripcion,
-             vl.ValorLiquidacionDesde, vl.ValorLiquidacionHasta
-      from ValorLiquidacion vl
-      left join TipoAsociado ta on ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
-      left join CategoriaPersonal cp on cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId 
-                                      and vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
-      left join Sucursal s on s.SucursalId = vl.ValorLiquidacionSucursalId
-      where vl.ValorLiquidacionDesde <= eomonth(datefromparts(@0,@1,1)) 
-        and isnull(vl.ValorLiquidacionHasta, '9999-12-31') >= datefromparts(@0,@1,1);`)
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction();
+
+      const recibos = await queryRunner.query(`
+        SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
+        WHERE anio = @0 AND mes = @1`,
+        [anio, mes]
+      );
+      if (recibos[0].cnt > 0) throw new ClientException("No se puede modificar: existen recibos generados para este período");
+
+      await queryRunner.query(`
+        UPDATE ValorLiquidacion SET ValorLiquidacionHoraNormal = @1 WHERE ValorLiquidacionId = @0`,
+        [id, ValorLiquidacionHoraNormal]
+      );
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ success: true }, res);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async aumentarValores(req: Request, res: Response, next: NextFunction) {
+    const { anio, mes, tipo, valor } = req.body;
+    if (!anio || !mes || !tipo || valor == null) return next(new ClientException("Datos incompletos"));
+    if (!['porcentaje', 'fijo'].includes(tipo)) return next(new ClientException("Tipo debe ser 'porcentaje' o 'fijo'"));
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction();
+
+      const recibos = await queryRunner.query(`
+        SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
+        WHERE anio = @0 AND mes = @1`,
+        [anio, mes]
+      );
+      if (recibos[0].cnt > 0) throw new ClientException("No se puede modificar: existen recibos generados para este período");
+
+      if (tipo === 'porcentaje') {
+        await queryRunner.query(`
+          UPDATE vl SET vl.ValorLiquidacionHoraNormal = ROUND(vl.ValorLiquidacionHoraNormal * (1 + @2 / 100.0), 2)
+          FROM ValorLiquidacion vl
+          WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
+            AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
+          [anio, mes, valor]
+        );
+      } else {
+        await queryRunner.query(`
+          UPDATE vl SET vl.ValorLiquidacionHoraNormal = vl.ValorLiquidacionHoraNormal + @2
+          FROM ValorLiquidacion vl
+          WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
+            AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
+          [anio, mes, valor]
+        );
+      }
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ success: true }, res);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
-
