@@ -647,7 +647,7 @@ UNION ALL
                 END as TipoArchivo
             FROM Documento doc
             LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'FOTO', 'CLU')
+            WHERE doc.PersonalId = @0  and doc.DocumentoTipoCodigo IN ('DOCIDEDOR', 'DOCIDEFRE', 'PERREI', 'PERANT', 'FOTO', 'CLU', 'POR')
 
 UNION ALL
 
