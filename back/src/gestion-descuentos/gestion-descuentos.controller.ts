@@ -59,6 +59,17 @@ const columnsPersonalDescuentos: any[] = [
   //   // minWidth: 10,
   // },
   {
+    name: "Sucursal Persona",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
     id: 'tipocuenta_id', name: 'Tipo Cuenta', field: 'tipocuenta_id',
     fieldName: 'perdes.tipocuenta_id',
     type: 'string',
@@ -267,6 +278,17 @@ const columnsObjetivosDescuentos: any[] = [
     searchType: "number",
     // maxWidth: 170,
     // minWidth: 100,
+  },
+  {
+    name: "Sucursal Objetivo",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
   },
   {
     id: 'personal', name: 'Coo. Cuenta', field: 'personal.fullName',
@@ -627,7 +649,7 @@ export class GestionDescuentosController extends BaseController {
     if (anio && mes) condition = `perdes.anio = @1 AND perdes.mes = @2`
 
     return await queryRunner.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
+       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
         , perdes.id perdes_id
         , perdes.PersonalId
         , perdes.ObjetivoId
@@ -646,12 +668,15 @@ export class GestionDescuentosController extends BaseController {
         , perdes.tipoint
         , perdes.FechaAnulacion
         , DATEFROMPARTS(perdes.anio, perdes.mes, 1) AS periodo
-        , FORMAT(DATEFROMPARTS(perdes.anio, perdes.mes, 1), 'yyyy/MM') AS periodoDisplay
+        , FORMAT(DATEFROMPARTS(perdes.anio, perdes.mes, 1), 'yyyy/MM') AS periodoDisplay,
+        suc.SucursalDescripcion
 
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+       LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+      LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
       WHERE ${condition} AND (${filterSql})
       ${orderBy}
     `, [, anio, mes])
@@ -743,6 +768,8 @@ export class GestionDescuentosController extends BaseController {
 	  
       , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
       , des.ObjetivoDescuentoFechaAnulacion
+      , suc.SucursalDescripcion
+
 
       FROM ObjetivoDescuento des  
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
@@ -758,6 +785,8 @@ export class GestionDescuentosController extends BaseController {
       LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
 
       LEFT JOIN (SELECT DATEFROMPARTS(ObjetivoDescuentoAnoAplica,ObjetivoDescuentoMesesAplica,1) FechaPeriodo, ObjetivoId, ObjetivoDescuentoId FROM ObjetivoDescuento) fecper on fecper.ObjetivoId=des.ObjetivoId and fecper.ObjetivoDescuentoId=des.ObjetivoDescuentoId       
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+
       
       WHERE ${condition} and (${filterSql})
       ${orderBy}
