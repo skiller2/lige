@@ -200,7 +200,7 @@ export class RecibosController extends BaseController {
         )
 
         await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer,'G')
       }
 
 
@@ -237,7 +237,7 @@ export class RecibosController extends BaseController {
         )
 
         await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer,'C')
       }
 
 
@@ -333,6 +333,7 @@ export class RecibosController extends BaseController {
     htmlContent: string,
     headerContent: string,
     footerContent: string,
+    tipocuenta_id: string,
   ) {
     Domicilio = (Domicilio && Domicilio != '()') ? Domicilio : 'Sin especificar'
     Asociado = (Asociado) ? Asociado.toString() : 'Pendiente'
@@ -347,7 +348,7 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${SucursalPrincipal}/g, SucursalPrincipal);
 
 
-    const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner, periodo_id, persona_id)
+    const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner, periodo_id, persona_id, tipocuenta_id);
     let neto = 0
     let retribucion = 0
     let retenciones = 0
@@ -520,7 +521,7 @@ export class RecibosController extends BaseController {
     return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
   }
 
-  async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number) {
+  async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number, tipocuenta_id: string) {
 
     return queryRunner.query(`SELECT
     liq.persona_id, 
@@ -539,7 +540,7 @@ export class RecibosController extends BaseController {
     LEFT JOIN Custodia cus ON cus.CustodiaCodigo = liq.custodia_id
     LEFT JOIN Cliente cli ON cli.ClienteId = ISNULL(obj.ClienteId, cus.ClienteId)
     
-    WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
+    WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = @2 AND  liq.persona_id = @1
     GROUP BY 
     liq.persona_id, 
 	 obj.ClienteId,
@@ -550,7 +551,7 @@ export class RecibosController extends BaseController {
     tip.des_movimiento, 
     tip.indicador_recibo,
     cli.ClienteDenominacion`
-      , [periodo_id, user_id])
+      , [periodo_id, user_id,tipocuenta_id])
 
   }
 
@@ -908,6 +909,7 @@ export class RecibosController extends BaseController {
     const header = req.body.header
     const body = req.body.body
     const footer = req.body.footer
+    const tipocuenta_id = req.body.tipocuenta_id || 'G'
     const PersonalId = Number(req.body.PersonalId)
     const periodo = new Date(req.body.periodo)
     const queryRunner = dataSource.createQueryRunner()
@@ -942,7 +944,7 @@ export class RecibosController extends BaseController {
         filesPath = (process.env.PATH_RECIBO_HTML_TEST) ? process.env.PATH_RECIBO_HTML_TEST : 'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
         const den_documento = Math.floor(10000 + Math.random() * 90000);
         await this.createPdf(queryRunner, filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer, tipocuenta_id)
       }
 
 
