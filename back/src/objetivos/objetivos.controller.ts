@@ -512,11 +512,11 @@ export class ObjetivosController extends BaseController {
         if (findObjHab) {
             switch (findObjHab.valor[0]) {
                 case '1':
-                    findObjHab.valor    = [`obj.ObjetivoId NOT IN ( ${sql} )`]
+                    findObjHab.valor = [`obj.ObjetivoId NOT IN ( ${sql} )`]
                     findObjHab.label = 'con Habilitación'
                     break
                 case '0':
-                    findObjHab.valor    = [`obj.ObjetivoId IN ( ${sql} )`]
+                    findObjHab.valor = [`obj.ObjetivoId IN ( ${sql} )`]
                     findObjHab.label = 'sin Habilitación'
                     break
             }
@@ -1339,7 +1339,13 @@ export class ObjetivosController extends BaseController {
                 }
 
                 await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
-                await this.updateObjetivoTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion)
+
+                // Actualizo descripcion objetivo
+                const objDescripcion = Obj.ClienteId + '/' + Obj.ClienteElementoDependienteId + ' - ' + Obj.Descripcion
+                await queryRunner.query(`
+                    UPDATE Objetivo
+                    SET ObjetivoDescripcion = @2
+                    WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [Obj.ClienteId, Obj.ClienteElementoDependienteId, objDescripcion])
 
 
 
@@ -1556,18 +1562,6 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteSucursalId, ClienteElementoDependienteDescripcion, CoberturaServicio])
     }
 
-    async updateObjetivoTable(
-        queryRunner: any,
-        ClienteId: number,
-        ClienteElementoDependienteId: any,
-        ObjetivoDescripcion: any,
-    ) {
-        return await queryRunner.query(`
-            UPDATE Objetivo
-            SET ObjetivoDescripcion = @2
-            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId, ClienteElementoDependienteId, ObjetivoDescripcion])
-    }
 
     async updateClienteTable(
         queryRunner: any,
@@ -1951,12 +1945,13 @@ export class ObjetivosController extends BaseController {
 
     async insertObjetivoSql(queryRunner: any, ClienteId: number, ClienteElementoDependienteDescripcion: string, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
 
+        const objDescripcion = `${ClienteId}/${ClienteElementoDependienteId} - ${ClienteElementoDependienteDescripcion}`
         return await queryRunner.query(`INSERT INTO Objetivo (
             ClienteId,
             ObjetivoDescripcion,
             ClienteElementoDependienteId,
             ObjetivoSucursalUltNro) VALUES (@0,@1,@2,@3)`,
-            [ClienteId, ClienteElementoDependienteDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
+            [ClienteId, objDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
     }
 
     async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, CoberturaServicio: any) {
