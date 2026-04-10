@@ -2358,7 +2358,7 @@ SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchi
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         WHERE foto.PersonalId IN (@0)
 
- UNION ALL
+UNION ALL
         SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url,
@@ -2377,26 +2377,28 @@ UNION ALL
         WHERE CUIT.PersonalId IN (@0)
 
 UNION ALL
-SELECT doc.DocumentoImagenEstudioId docId, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, pere.PersonalEstudioOtorgado AS FechaDesde, pere.PersonalEstudioHasta FechaHasta,
+        SELECT doc.DocumentoImagenEstudioId docId, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, pere.PersonalEstudioOtorgado AS FechaDesde, pere.PersonalEstudioHasta FechaHasta,
         param.DocumentoImagenParametroDe Parametro, 
-			 CASE
-				WHEN pere.PersonalEstudioCursoId is null then CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
-				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
-				else pere.PersonalEstudioTitulo
-				end as Descripcion,
-                CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url,               
+        CASE
+          WHEN pere.PersonalEstudioCursoId is null 
+            THEN CONCAT(TRIM(TipoEstudioDescripcion) , ' - ', TRIM(pere.PersonalEstudioTitulo))
+          WHEN pere.PersonalEstudioCursoId is not null 
+            THEN CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
+          ELSE pere.PersonalEstudioTitulo
+        END as Descripcion,
+        CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenEstudio/0') AS url,               
 				CASE 
-                   WHEN CHARINDEX('.', doc.DocumentoImagenEstudioBlobNombreArchivo) > 0 
-                   THEN LOWER(RIGHT(doc.DocumentoImagenEstudioBlobNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoImagenEstudioBlobNombreArchivo)) - 1))
-                   ELSE ''
-                END as TipoArchivo,
-                'PersonalEstudio' tableName
-            FROM PersonalEstudio pere
-            JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
-            left JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
-			Left join  CursoHabilitacion ch on ch.CursoHabilitacionId=pere.PersonalEstudioCursoId
-            LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-WHERE pere.PersonalId IN (@0)
+          WHEN CHARINDEX('.', doc.DocumentoImagenEstudioBlobNombreArchivo) > 0 
+          THEN LOWER(RIGHT(doc.DocumentoImagenEstudioBlobNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoImagenEstudioBlobNombreArchivo)) - 1))
+          ELSE ''
+        END as TipoArchivo,
+        'PersonalEstudio' tableName
+        FROM PersonalEstudio pere
+        JOIN DocumentoImagenEstudio doc ON doc.PersonalId = pere.PersonalId AND doc.DocumentoImagenEstudioId = pere.PersonalEstudioPagina1Id
+        LEFT JOIN TipoEstudio tipo ON tipo.TipoEstudioId = pere.TipoEstudioId
+			  LEFT JOIN CursoHabilitacion ch ON ch.CursoHabilitacionId = pere.PersonalEstudioCursoId
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+        WHERE pere.PersonalId IN (@0)
 
 UNION ALL
         SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
