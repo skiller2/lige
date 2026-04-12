@@ -7,7 +7,6 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, timer } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
-import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
@@ -21,10 +20,7 @@ import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/cust
   providers: [AngularUtilService],
   imports: [
     ...SHARED_IMPORTS,
-    CommonModule,
-    FiltroBuilderComponent,
-
-
+    CommonModule
   ],
   templateUrl: './valor-hora.html',
   styleUrl: './valor-hora.scss'
@@ -190,7 +186,9 @@ console.log('row a guardar', row)
         if (!row.dbid)
           this.rowLocked = true
 
-        const response = await firstValueFrom(this.apiService.onchangecellvalorHora(row))
+        const anio = this.periodo().getFullYear()
+        const mes = this.periodo().getMonth() + 1
+        const response = await firstValueFrom(this.apiService.onchangecellvalorHora({ ...row, anio, mes }))
         this.listValorHora$.next('')
         this.rowLocked = false
       } catch (e: any) {

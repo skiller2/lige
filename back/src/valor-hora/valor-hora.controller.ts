@@ -118,35 +118,71 @@ export class ValorHoraController extends BaseController {
 
   async changecellvalorHora(req: Request, res: Response, next: NextFunction) {
 
-        const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-        const usuario = res.locals.userName
-
-        const fechaActual = new Date()
         let message = ""
         const params = req.body
-      
 
-   console.log('params recibidos', params)
+        const { ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, anio, mes } = params
+
+        if (!ValorLiquidacionSucursalId || !ValorLiquidacionTipoAsociadoId || !ValorLiquidacionCategoriaPersonalId || ValorLiquidacionHoraNormal == null)
+          return next(new ClientException("Faltan datos obligatorios"))
+
+        if (!anio || !mes)
+          return next(new ClientException("Debe indicar año y mes"))
 
         try {
             await queryRunner.connect()
             await queryRunner.startTransaction()
 
-           
             let dataResultado = {}
 
-            if (true) { //Entro en update
-                //Validar si cambio el código
+            // Validar que no existan recibos generados para el período
+            const recibos = await queryRunner.query(`
+              SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
+              WHERE anio = @0 AND mes = @1`,
+              [anio, mes]
+            )
+            if (recibos[0].cnt > 0)
+              throw new ClientException("No se puede modificar: existen recibos generados para este período")
 
-                dataResultado = { action: 'U', GrupoActividadId: params.GrupoActividadId, GrupoActividadJerarquicoId: params.GrupoActividadJerarquicoId }
+            // Validar que la combinación TipoAsociado + CategoriaPersonal exista
+            const catValid = await queryRunner.query(`
+              SELECT 1 AS ok FROM CategoriaPersonal
+              WHERE TipoAsociadoId = @0 AND CategoriaPersonalId = @1`,
+              [ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId]
+            )
+            if (!catValid.length)
+              throw new ClientException("La categoría seleccionada no corresponde al tipo de asociado")
+
+            if (ValorLiquidacionDesde) {
+                // UPDATE: el registro ya existe en la base
+                await queryRunner.query(`
+                  UPDATE ValorLiquidacion
+                  SET ValorLiquidacionSucursalId = @0,
+                      ValorLiquidacionTipoAsociadoId = @1,
+                      ValorLiquidacionCategoriaPersonalId = @2,
+                      ValorLiquidacionHoraNormal = @3
+                  WHERE ValorLiquidacionId = @4`,
+                  [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, params.id]
+                )
+
+                dataResultado = { action: 'U', id: params.id }
                 message = "Actualización exitosa"
 
-            } else {  //Es un nuevo registro
-                // console.log('nuevo registro')
-          
+            } else {
+                // INSERT: registro nuevo - ValorLiquidacionId es IDENTITY
+                const result = await queryRunner.query(`
+                  INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde)
+                  VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1));
+                  SELECT SCOPE_IDENTITY() AS id`,
+                  [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes]
+                )
+
+                dataResultado = { action: 'I', id: result[0].id }
+                message = "Registro creado exitosamente"
             }
-           
+            //console.log("Data resultado:", dataResultado) // Log para verificar el resultado antes del commit
+           // throw new Error("Error de prueba para rollback") // TODO: eliminar esta línea una vez probado el rollback
             await queryRunner.commitTransaction()
             return this.jsonRes(dataResultado, res, message)
     } catch (error) {

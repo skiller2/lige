@@ -250,11 +250,7 @@
             }
           ]
         },
-         {
-          "text": "Valor Hora",
-          "icon": "anticon-profile",
-          "link": "/ges/valor-hora"
-        },
+         
         {
           "text": "Configuración",
           "icon": "anticon-profile",
@@ -278,6 +274,11 @@
               "text": "Salario Mínimo Vital Móvil",
               "link": "/config/salario-minimo-vital-movil",
               "icon": "anticon-profile"
+            },
+            {
+             "text": "Valor Hora",
+             "icon": "anticon-profile",
+             "link": "/ges/valor-hora"
             }
           ]
         }
