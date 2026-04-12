@@ -223,8 +223,11 @@ console.log('row a guardar', row)
   }
 
   async deleteItem() {
-
-    await firstValueFrom(this.apiService.deleteGrupoActividadGrupo(this.editValorHora()))
+    const anio = this.periodo().getFullYear()
+    const mes = this.periodo().getMonth() + 1
+    const ids = this.editValorHora().map((item: any) => item.valorHoraId)
+    await firstValueFrom(this.apiService.deleteValorHora({ ids, anio, mes }))
+    this.editValorHora.set([])
     this.listValorHora$.next('')
   }
 
@@ -289,8 +292,10 @@ console.log('row a guardar', row)
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
 
-    if (row?.valorHoraId) {
-      this.editValorHora.set([row.valorHoraId])
+    if (row?.ValorLiquidacionDesde) {
+      this.editValorHora.set([{ valorHoraId: row.id }])
+    } else {
+      this.editValorHora.set([])
     }
   }
 

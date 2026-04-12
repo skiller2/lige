@@ -193,6 +193,39 @@ export class ValorHoraController extends BaseController {
     }
   }
 
+  async deleteValorHora(req: Request, res: Response, next: NextFunction) {
+    const { ids, anio, mes } = req.body;
+    if (!ids || !ids.length) return next(new ClientException("Debe seleccionar al menos un registro"));
+    if (!anio || !mes) return next(new ClientException("Debe indicar año y mes"));
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      // Validar que no existan recibos generados para el período
+      const recibos = await queryRunner.query(`
+        SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
+        WHERE anio = @0 AND mes = @1`,
+        [anio, mes]
+      );
+      if (recibos[0].cnt > 0)
+        throw new ClientException("No se puede eliminar: existen recibos generados para este período");
+
+      for (const id of ids) {
+        await queryRunner.query(`DELETE FROM ValorLiquidacion WHERE ValorLiquidacionId = @0`, [id]);
+      }
+
+      await queryRunner.commitTransaction();
+      return this.jsonRes({ success: true }, res, "Registro eliminado exitosamente");
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async aumentarValores(req: Request, res: Response, next: NextFunction) {
     const { anio, mes, tipo, valor } = req.body;
     if (!anio || !mes || !tipo || valor == null) return next(new ClientException("Datos incompletos"));

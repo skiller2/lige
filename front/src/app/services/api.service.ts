@@ -1069,6 +1069,12 @@ export class ApiService {
 
   }
 
+  deleteValorHora(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/valor-hora/delete', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
   onchangecellGrupoActividadObjetivos(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/changecellObjetivos', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))

@@ -20,6 +20,10 @@ valorHoraRouter.post("/changecellvalorHora", [authMiddleware.verifyToken, authMi
     valorHoraController.changecellvalorHora(req, res, next);
 });
 
+valorHoraRouter.post("/delete", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    valorHoraController.deleteValorHora(req, res, next);
+});
+
 valorHoraRouter.post("/aumentar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     valorHoraController.aumentarValores(req, res, next);
 });
