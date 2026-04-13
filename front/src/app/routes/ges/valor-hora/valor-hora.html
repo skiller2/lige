@@ -15,7 +15,7 @@
           <button nz-button nzType="default" [disabled]=" editValorHora().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
         </a>
         <a nz-tooltip nzTooltipTitle="Aumentar valores">
-          <button nz-button nzType="default" (click)="abrirAumentoModal()"><span nz-icon nzType="rise" nzTheme="outline"></span></button>
+          <button nz-button nzType="default" (click)="abrirAumentoModal()"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>
       </nz-button-group>
     </div>
@@ -26,7 +26,7 @@
           <nz-form-item style="margin-bottom: 0;">
             <nz-form-label>Tipo de aumento</nz-form-label>
             <nz-form-control>
-              <nz-radio-group [(ngModel)]="aumentoTipo">
+              <nz-radio-group [ngModel]="aumentoTipo()" (ngModelChange)="aumentoTipo.set($event); aumentoValor = 0">
                 <label nz-radio nzValue="porcentaje">Porcentaje</label>
                 <label nz-radio nzValue="fijo">Monto fijo</label>
               </nz-radio-group>
@@ -35,10 +35,16 @@
           <nz-form-item style="margin-bottom: 0;">
             <nz-form-label>Valor</nz-form-label>
             <nz-form-control>
-              <nz-input-number [(ngModel)]="aumentoValor" [nzMin]="0" [nzStep]="aumentoTipo === 'porcentaje' ? 0.5 : 100"
-                style="width: 100%;"
-                [nzFormatter]="aumentoFormatter" [nzParser]="aumentoParser">
-              </nz-input-number>
+              @if (aumentoTipo() === 'porcentaje') {
+                <nz-input-number [(ngModel)]="aumentoValor" [nzMin]="0" [nzStep]="0.5"
+                  [nzFormatter]="porcentajeFormatter" [nzParser]="porcentajeParser"
+                  style="width: 100%;">
+                </nz-input-number>
+              } @else {
+                <nz-input-number [(ngModel)]="aumentoValor" [nzMin]="0" [nzStep]="100"
+                  style="width: 100%;">
+                </nz-input-number>
+              }
             </nz-form-control>
           </nz-form-item>
         </div>

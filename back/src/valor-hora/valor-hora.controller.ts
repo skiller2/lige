@@ -249,7 +249,7 @@ export class ValorHoraController extends BaseController {
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-console.log("Aumentando valores: tipo =", tipo, "valor =", valor) // Log para verificar los parámetros recibidos
+      //console.log("Aumentando valores: tipo =", tipo, "valor =", valor) 
       if (tipo === 'porcentaje') {
         await queryRunner.query(`
           UPDATE vl SET vl.ValorLiquidacionHoraNormal = ROUND(vl.ValorLiquidacionHoraNormal * (1 + @2 / 100.0), 2)
@@ -267,7 +267,7 @@ console.log("Aumentando valores: tipo =", tipo, "valor =", valor) // Log para ve
           [anio, mes, valor]
         );
       }
-throw new Error("Error de prueba para rollback") // TODO: eliminar esta línea una vez probado el rollback
+      //throw new Error("Error de prueba para rollback") // TODO: eliminar esta línea una vez probado el rollback
       await queryRunner.commitTransaction();
       this.jsonRes({ success: true }, res);
     } catch (error) {
