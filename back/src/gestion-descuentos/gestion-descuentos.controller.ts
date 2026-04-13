@@ -2760,4 +2760,39 @@ FROM cte
     }
   }
 
+  async getImportacionDetail(req: any, res: Response, next: NextFunction) {
+    const id: number = Number(req.params.id)
+    const queryRunner = dataSource.createQueryRunner()
+
+    try {
+
+      let consult = await queryRunner.query(`
+        SELECT doc.DocumentoId
+        , doc.DocumentoTipoCodigo
+        , doc.DocumentoAnio, doc.DocumentoMes
+        , doc.DocumentoDenominadorDocumento
+        , FORMAT(doc.DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng
+        , tipo.DocumentoTipoDetalle AS Tipo
+        , doc.DocumentoAudUsuarioIng
+        FROM Documento doc
+        LEFT JOIN DocumentoTipo tipo ON tipo.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+        -- LEFT JOIN ObjetivoDescuento objdes ON objdes.ImportacionDocumentoId = doc.DocumentoId
+        -- LEFT JOIN PersonalOtroDescuento perdes ON objdes.ImportacionDocumentoId = doc.DocumentoId
+        WHERE doc.DocumentoId = @0
+      `, [id])
+
+      this.jsonRes(
+        {
+          total: consult.length,
+          list: consult,
+        },
+
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

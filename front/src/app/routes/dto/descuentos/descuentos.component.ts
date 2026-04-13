@@ -12,12 +12,14 @@ import { DescuentosImportacionMasivaComponent } from '../descuentos-importacion-
 import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { DescuentosCargaManualComponent } from '../descuentos-carga-manual/descuentos-carga-manual';
+
 @Component({
     selector: 'app-descuentos',
     templateUrl: './descuentos.component.html',
     styleUrls: ['./descuentos.component.scss'],
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, TableDescuentosPersonalComponent, TableDescuentosObjetivosComponent, DescuentosImportacionMasivaComponent, DescuentosCargaManualComponent],
+    imports: [SHARED_IMPORTS, TableDescuentosPersonalComponent, TableDescuentosObjetivosComponent
+        , DescuentosImportacionMasivaComponent, DescuentosCargaManualComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DescuentosComponent {
