@@ -15,14 +15,16 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
-
+import { DescuentosBajaImportacionDrawer } from '../descuentos-baja-importacion-drawer/descuentos-baja-importacion-drawer'
 
 @Component({
     selector: 'app-descuentos-importacion-masiva-drawer',
     templateUrl: './descuentos-importacion-masiva.component.html',
     styleUrl: './descuentos-importacion-masiva.component.scss',
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule, FileUploadComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule, FileUploadComponent
+      ,DescuentosBajaImportacionDrawer
+    ],
     providers: [AngularUtilService],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -35,6 +37,8 @@ export class DescuentosImportacionMasivaComponent {
     fb = inject(FormBuilder)
     anio = input<number>(0)
     mes = input<number>(0)
+    visibleBajaImport = signal<boolean>(false)
+    selectedDocId = signal<number>(0)
     formChange$ = new BehaviorSubject('');
     fecha: Date = new Date()
     periodo: Date = new Date()
@@ -237,5 +241,10 @@ export class DescuentosImportacionMasivaComponent {
 
       // if (this.apiService.isMobile())
       //     this.angularGrid.gridService.hideColumnByIds([])
+    }
+
+    openDrawerforBajaImportacion(docId: number) {
+      this.selectedDocId.set(docId)
+      this.visibleBajaImport.set(true)
     }
 }

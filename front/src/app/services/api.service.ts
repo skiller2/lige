@@ -1922,6 +1922,16 @@ export class ApiService {
     );
   }
 
+  getDescuentosImportacionDetalle(DocumentoId: number) {
+    if (!DocumentoId) {
+      return of([]);
+    }
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/importacion_detalle/${DocumentoId}`).pipe(
+      map((res: { data: any; }) => { return res.data.list }),
+      catchError(() => of([]))
+    );
+  }
+
   addPersonalActa(personalId: number, acta: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/acta/add/${personalId}`, acta).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

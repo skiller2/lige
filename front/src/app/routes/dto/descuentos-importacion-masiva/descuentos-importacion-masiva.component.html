@@ -4,7 +4,7 @@
   <form [formGroup]="formAltaDesc">
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="2">Tipo de Carga</nz-form-label>
+      <nz-form-label [nzXs]="3">Tipo de Carga</nz-form-label>
       <nz-form-control [nzMd]="5">
         <nz-select formControlName="tableName" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
           nzShowSearch>
@@ -23,16 +23,6 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-
-      <nz-form-label>Tipo de Cuenta</nz-form-label>
-      <nz-form-control>
-        <nz-select formControlName="CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
-          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          @for (option of $optionsCuenta | async; track option) {
-          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
       }
 
       @if (tableName() === 'ObjetivoDescuento') {
@@ -46,8 +36,20 @@
         </nz-select>
       </nz-form-control>
       }
+    </nz-form-item>
 
-
+    <nz-form-item class="marginElement">
+      @if (tableName() === 'PersonalOtroDescuento') {
+      <nz-form-label [nzXs]="3">Tipo de Cuenta</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <nz-select formControlName="CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          @for (option of $optionsCuenta | async; track option) {
+          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+      }
 
       <nz-form-label [nzXs]="3" class="inputText">Archivo Descuentos</nz-form-label>
       <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'DES'"
@@ -63,8 +65,14 @@
           <div class="containerAnterioresDescuentos" nz-tooltip
             nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
             <ng-container>
+              <!-- Eliminar importacion -->
+              <a (click)="openDrawerforBajaImportacion(movimiento.DocumentoId)">
+                <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
+              </a>
+              <!-- Descargar importacion -->
               <a app-down-file httpUrl="/api/file-upload/downloadFile/{{movimiento.DocumentoId}}/Documento/original">
-                <span nz-icon nzType="download"></span></a>
+                <span nz-icon nzType="download"></span>
+              </a>
             </ng-container>
             <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
           </div>
@@ -92,3 +100,4 @@
   </div>
 
 </nz-card>
+<app-descuentos-baja-importacion-drawer [(visibleBajaImport)]="visibleBajaImport" [DocumentoId]="selectedDocId()"></app-descuentos-baja-importacion-drawer>
