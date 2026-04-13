@@ -11,6 +11,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Component, signal, inject } from '@angular/core';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
@@ -20,7 +21,8 @@ import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/cust
   providers: [AngularUtilService],
   imports: [
     ...SHARED_IMPORTS,
-    CommonModule
+    CommonModule,
+    NzInputNumberModule
   ],
   templateUrl: './valor-hora.html',
   styleUrl: './valor-hora.scss'
@@ -51,6 +53,45 @@ export class ValorHoraComponent {
   rowLocked: boolean = false;
 
   periodo = signal<Date>(new Date())
+  showAumentoModal = false
+  aumentoLoading = false
+  aumentoTipo: string = 'porcentaje'
+  aumentoValor: number = 0
+
+  aumentoFormatter = (value: number): string => {
+    return this.aumentoTipo === 'porcentaje' ? `${value} %` : `$ ${value}`;
+  }
+
+  aumentoParser = (value: string): number => {
+    return Number(value.replace(/[^0-9.]/g, ''));
+  }
+
+  async abrirAumentoModal() {
+    this.aumentoTipo = 'porcentaje';
+    this.aumentoValor = 0;
+    this.showAumentoModal = true;
+  }
+
+  async aplicarAumento() {
+    if (this.aumentoValor <= 0) {
+      this.messageSrv.warning('Ingrese un valor mayor a 0');
+      return;
+    }
+    const anio = this.periodo().getFullYear();
+    const mes = this.periodo().getMonth() + 1;
+    this.aumentoLoading = true;
+    try {
+      await firstValueFrom(this.apiService.aumentarValorHora({ anio, mes, tipo: this.aumentoTipo, valor: this.aumentoValor }));
+      this.messageSrv.success('Aumento aplicado correctamente');
+      this.showAumentoModal = false;
+      this.aumentoValor = 0;
+      this.listValorHora$.next('');
+    } catch (e) {
+      // error handled by api service
+    } finally {
+      this.aumentoLoading = false;
+    }
+  }
 
   listOptionsChange(options: any) {
     this.listOptions = options

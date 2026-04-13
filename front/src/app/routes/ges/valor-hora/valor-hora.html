@@ -14,8 +14,37 @@
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
           <button nz-button nzType="default" [disabled]=" editValorHora().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
         </a>
+        <a nz-tooltip nzTooltipTitle="Aumentar valores">
+          <button nz-button nzType="default" (click)="abrirAumentoModal()"><span nz-icon nzType="rise" nzTheme="outline"></span></button>
+        </a>
       </nz-button-group>
     </div>
+    <nz-modal [(nzVisible)]="showAumentoModal" nzTitle="Aumentar valores del período" [nzOkLoading]="aumentoLoading"
+      (nzOnCancel)="showAumentoModal = false" (nzOnOk)="aplicarAumento()" nzOkText="Aplicar" nzCancelText="Cancelar">
+      <ng-container *nzModalContent>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <nz-form-item style="margin-bottom: 0;">
+            <nz-form-label>Tipo de aumento</nz-form-label>
+            <nz-form-control>
+              <nz-radio-group [(ngModel)]="aumentoTipo">
+                <label nz-radio nzValue="porcentaje">Porcentaje</label>
+                <label nz-radio nzValue="fijo">Monto fijo</label>
+              </nz-radio-group>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item style="margin-bottom: 0;">
+            <nz-form-label>Valor</nz-form-label>
+            <nz-form-control>
+              <nz-input-number [(ngModel)]="aumentoValor" [nzMin]="0" [nzStep]="aumentoTipo === 'porcentaje' ? 0.5 : 100"
+                style="width: 100%;"
+                [nzFormatter]="aumentoFormatter" [nzParser]="aumentoParser">
+              </nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </ng-container>
+    </nz-modal>
+
   @if ((columns$|async); as columnas) {
     <div nz-tab>
         <div class="gridContainer container-fluid">

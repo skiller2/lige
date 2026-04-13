@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
+import { recibosController } from "../controller/controller.module.ts";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 
 export class ValorHoraController extends BaseController {
 
@@ -231,17 +233,23 @@ export class ValorHoraController extends BaseController {
     if (!anio || !mes || !tipo || valor == null) return next(new ClientException("Datos incompletos"));
     if (!['porcentaje', 'fijo'].includes(tipo)) return next(new ClientException("Tipo debe ser 'porcentaje' o 'fijo'"));
 
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+     let fechaActual = new Date()
+
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction();
 
-      const recibos = await queryRunner.query(`
-        SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
-        WHERE anio = @0 AND mes = @1`,
-        [anio, mes]
-      );
-      if (recibos[0].cnt > 0) throw new ClientException("No se puede modificar: existen recibos generados para este período");
+        const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+      
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
+      
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
+console.log("Aumentando valores: tipo =", tipo, "valor =", valor) // Log para verificar los parámetros recibidos
       if (tipo === 'porcentaje') {
         await queryRunner.query(`
           UPDATE vl SET vl.ValorLiquidacionHoraNormal = ROUND(vl.ValorLiquidacionHoraNormal * (1 + @2 / 100.0), 2)
@@ -259,7 +267,7 @@ export class ValorHoraController extends BaseController {
           [anio, mes, valor]
         );
       }
-
+throw new Error("Error de prueba para rollback") // TODO: eliminar esta línea una vez probado el rollback
       await queryRunner.commitTransaction();
       this.jsonRes({ success: true }, res);
     } catch (error) {
