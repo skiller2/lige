@@ -54,22 +54,24 @@ export class AdelantoComponent {
     }
   }
 
-  columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols: Column<any>[]) => {
-    let mapped = cols.map((col: Column) => {
-      if (col.id == 'PersonalPrestamoMonto') {
-        col.editor = {
-          model: CustomFloatEditor,
-          decimal: 2,
-          minValue: 0,
-          maxValue: 10000000,
-          alwaysSaveOnEnterKey: true,
-          required: true
-        }
-      }
-      return col
-    });
-    return mapped
-  }));
+  //columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols: Column<any>[]) => {
+  //  let mapped = cols.map((col: Column) => {
+   //   if (col.id == 'PersonalPrestamoMonto') {
+   //     col.editor = {
+  //        model: CustomFloatEditor,
+  //        decimal: 2,
+  //        minValue: 0,
+   //       maxValue: 10000000,
+    //      alwaysSaveOnEnterKey: true,
+   //       required: true
+   //     }
+   //   }
+   //   return col
+  //  });
+  //  return mapped
+  //}));
+
+    columns$ = this.apiService.getCols('/api/adelantos/cols');
 
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
@@ -116,8 +118,8 @@ export class AdelantoComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-    this.gridOptions.editable = true
-    this.gridOptions.autoEdit = true
+    this.gridOptions.editable = false
+    this.gridOptions.autoEdit = false
 
 
 
