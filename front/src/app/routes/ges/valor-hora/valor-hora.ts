@@ -254,9 +254,13 @@ console.log('row a guardar', row)
   async addNewItem() {
 
     const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
+    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
     this.itemAddActive = true
 
+    const newRowIndex = this.angularGridEdit.dataView.getRowById(newItem1.id) ?? this.angularGridEdit.dataView.getItems().length - 1
+    this.angularGridEdit.slickGrid.setSelectedRows([newRowIndex])
+    this.angularGridEdit.slickGrid.scrollRowIntoView(newRowIndex, false)
+    this.angularGridEdit.slickGrid.setActiveCell(newRowIndex, 0)
   }
 
   async deleteItem() {
