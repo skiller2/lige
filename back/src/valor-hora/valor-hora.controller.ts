@@ -70,9 +70,9 @@ export class ValorHoraController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await queryRunner.query(`
-        SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label
+        SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label, catper.TipoAsociadoId
         FROM CategoriaPersonal catper
-        WHERE catper.CategoriaPersonalInactivo IS NULL
+        WHERE ISNULL(catper.CategoriaPersonalInactivo, 0) = 0
       `);
       this.jsonRes(options, res);
     } catch (error) {

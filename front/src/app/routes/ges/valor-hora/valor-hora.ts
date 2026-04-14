@@ -53,6 +53,7 @@ export class ValorHoraComponent {
   rowLocked: boolean = false;
 
   periodo = signal<Date>(new Date())
+  categoriasAll: any[] = []
   showAumentoModal = false
   aumentoLoading = false
   aumentoTipo = signal<string>('porcentaje')
@@ -104,6 +105,7 @@ export class ValorHoraComponent {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
       const categorias = await firstValueFrom(this.searchService.getCategoriasPersonal());
+      this.categoriasAll = categorias
 
       return { cols, sucursales, tipoasociado, categorias }
     }),
@@ -377,6 +379,20 @@ console.log('row a guardar', row)
       e.stopImmediatePropagation();
       return false;
     }
+
+    if (column.id === 'CategoriaPersonalId') {
+      const tipoAsociadoId = item?.ValorLiquidacionTipoAsociadoId
+      if (!tipoAsociadoId) {
+        this.messageSrv.warning('Seleccione primero un Tipo Asociado')
+        e.stopImmediatePropagation()
+        return false
+      }
+      column.params = {
+        ...column.params,
+        collection: this.categoriasAll.filter((c: any) => c.TipoAsociadoId == tipoAsociadoId),
+      }
+    }
+
     return true;
   }
 
