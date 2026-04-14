@@ -527,23 +527,25 @@ export class EfectoController extends BaseController {
   }
 
   private efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
+    const now = new Date();
     return queryRunner.query(`
       SELECT efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId as EfectoIndividualId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
       CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta,  
-ISNULL(lp.ListaPrecioPrecio,lpi.ListaPrecioIndividualPrecio) as Importe,
+ISNULL(lpi.ListaPrecioPrecio,lp.ListaPrecioIndividualPrecio) as Importe,
 1
 FROM Stock stk
 JOIN Personal per ON per.PersonalId = stk.PersonalId
 JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
 LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= GETDATE() and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= GETDATE()
-LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= GETDATE() AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= GETDATE()
+LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @1 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @1
+LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @1 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @1
 WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND per.PersonalId = @0
-    `, [personalId])
+    `, [personalId, now])
   }
 
   private getEfectoQuery(queryRunner: any, listOptions: any) {
+    const now = new Date();
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasPersonal)
     return queryRunner.query(`
      SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
@@ -559,7 +561,7 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
     JOIN Personal per ON per.PersonalId = stk.PersonalId
     JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-    LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=GETDATE() 
+    LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=@1 AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=@1
     left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
 	
@@ -569,7 +571,7 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
 	LEFT JOIN GrupoActividadPersonal gaper on gaper.GrupoActividadPersonalPersonalId=per.PersonalId and (select max(GrupoActividadPersonalId) from GrupoActividadPersonal where GrupoActividadPersonalPersonalId=per.PersonalId) = gaper.GrupoActividadPersonalId
 	LEFT JOIN GrupoActividad ga on ga.GrupoActividadId = gaper.GrupoActividadId
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) 
-    AND ${filterSql} `)
+    AND ${filterSql} `, [now])
   }
 
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
@@ -609,6 +611,7 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
   }
 
   private efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
+    const now = new Date();
     return queryRunner.query(`
       SELECT efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId,
        obj.ClienteElementoDependienteId, 
@@ -616,14 +619,18 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
        stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
       efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,
       CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta,  
+      ISNULL(lpi.ListaPrecioPrecio,lp.ListaPrecioIndividualPrecio) as Importe,
+      
       1
       FROM Stock stk
       JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
       JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
+      LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @1 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @1
+      LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @1 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @1
 
       WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND obj.ObjetivoId = @0
-    `, [objetivoId])
+    `, [objetivoId, now])
   }
 
 
@@ -641,8 +648,8 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
 
   private getEfectoObjetivosQuery(queryRunner: any, listOptions: any) {
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasObjetivos)
+    const now = new Date();
     return queryRunner.query(`
-     DECLARE @0 DATE = GETDATE()
 
 SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
              CASE WHEN efe.ContieneEfectoIndividual = 1 THEN 'Si' ELSE 'No' END as ContieneEfectoIndividual,
@@ -690,7 +697,7 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
 
     WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
 	  
-      AND ${filterSql} `)
+      AND ${filterSql} `, [now])
   }
 
 }
