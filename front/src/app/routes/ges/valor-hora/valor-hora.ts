@@ -368,12 +368,11 @@ console.log('row a guardar', row)
 
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
-    /*
-    if (column.id != 'columnaoka') {
+    const lockedColumns = ['SucursalId', 'TipoAsociadoId', 'CategoriaPersonalId'];
+    if (item?.ValorLiquidacionDesde && lockedColumns.includes(column.id)) {
       e.stopImmediatePropagation();
-      return false
+      return false;
     }
-*/
     return true;
   }
 
