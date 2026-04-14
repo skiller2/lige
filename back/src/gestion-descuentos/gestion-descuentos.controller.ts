@@ -227,7 +227,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ObjetivoDescuentoId', name: 'ObjetivoDescuentoId', field: 'ObjetivoDescuentoId',
-    fieldName: 'des.ObjetivoDescuentoId',
+    fieldName: 'ObjetivoDescuentoId',
     type: 'number',
     searchType: 'number',
     sortable: true,
@@ -238,7 +238,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ClienteFacturacionCUIT', name: 'CUIT', field: 'ClienteFacturacionCUIT',
-    fieldName: 'fac.ClienteFacturacionCUIT',
+    fieldName: 'ClienteFacturacionCUIT',
     type: 'string',
     searchType: 'number',
     sortable: true,
@@ -249,7 +249,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ClienteDenominacion', name: 'Cliente', field: 'ClienteDenominacion',
-    fieldName: "cli.ClienteId",
+    fieldName: "ClienteId",
     type: 'string',
     searchComponent: "inputForClientSearch",
     searchType: "number",
@@ -271,7 +271,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ObjetivoDescripcion', name: 'Objetivo', field: 'ObjetivoDescripcion',
-    fieldName: "obj.ObjetivoId",
+    fieldName: "ObjetivoId",
     sortable: true,
     type: 'string',
     searchComponent: "inputForObjetivoSearch",
@@ -284,7 +284,7 @@ const columnsObjetivosDescuentos: any[] = [
     type: "string",
     id: "SucursalDescripcion",
     field: "SucursalDescripcion",
-    fieldName: "suc.SucursalId",
+    fieldName: "SucursalId",
     searchComponent: "inputForSucursalSearch",
     sortable: true,
     hidden: false,
@@ -292,7 +292,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'personal', name: 'Coo. Cuenta', field: 'personal.fullName',
-    fieldName: "per.PersonalId",
+    fieldName: "PersonalId",
     type: 'string',
     formatter: 'complexObject',
     params: {
@@ -308,7 +308,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'DescontarDetalle', name: 'Aplica A', field: 'DescontarDetalle',
-    fieldName: "des.ObjetivoDescuentoDescontar",
+    fieldName: "ObjetivoDescuentoDescontar",
     searchComponent: "inputForAplicaASearch",
     type: 'string',
     searchType: "string",
@@ -320,7 +320,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'GrupoActividadId', name: 'GrupoActividadId', field: 'GrupoActividadId',
-    fieldName: "gap.GrupoActividadId",
+    fieldName: "GrupoActividadId",
     type: 'number',
     searchType: "number",
     sortable: true,
@@ -342,7 +342,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'DescuentoDescripcion', name: 'Tipo Descuento', field: 'DescuentoDescripcion',
-    fieldName: 'det.DescuentoId',
+    fieldName: 'DescuentoId',
     searchComponent: "inputForTipoDescuentoSearch",
     type: 'string',
     searchType: 'number',
@@ -354,7 +354,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'FechaPeriodo', name: 'Periodo', field: 'periodoDisplay',
-    fieldName: 'fecper.FechaPeriodo',
+    fieldName: 'FechaPeriodo',
     type: 'string',
     searchType: "string",
     sortable: true,
@@ -363,7 +363,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'FechaPeriodo', name: 'Periodo', field: 'FechaPeriodo',
-    fieldName: 'fecper.FechaPeriodo',
+    fieldName: 'FechaPeriodo',
     type: 'date',
     searchType: "date",
     sortable: true,
@@ -395,7 +395,7 @@ const columnsObjetivosDescuentos: any[] = [
   // },
   {
     id: 'ObjetivoDescuentoDetalle', name: 'Detalle', field: 'ObjetivoDescuentoDetalle',
-    fieldName: 'des.ObjetivoDescuentoDetalle',
+    fieldName: 'ObjetivoDescuentoDetalle',
     type: 'string',
     searchType: 'string',
     sortable: true,
@@ -406,7 +406,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ObjetivoDescuentoCuotaImporte', name: 'Importe Cuota', field: 'ObjetivoDescuentoCuotaImporte',
-    fieldName: 'cuo.ObjetivoDescuentoCuotaImporte',
+    fieldName: 'ObjetivoDescuentoCuotaImporte',
     type: 'currency',
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
@@ -418,7 +418,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ObjetivoDescuentoCuotaCuota', name: 'Cuota Nro.', field: 'ObjetivoDescuentoCuotaCuota',
-    fieldName: 'des.ObjetivoDescuentoCantidadCuotas',
+    fieldName: 'ObjetivoDescuentoCantidadCuotas',
     type: 'number',
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
@@ -430,7 +430,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'cantcuotas', name: 'Cantidad Cuotas', field: 'cantcuotas',
-    fieldName: 'des.ObjetivoDescuentoCantidadCuotas',
+    fieldName: 'ObjetivoDescuentoCantidadCuotas',
     type: 'number',
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
@@ -454,7 +454,7 @@ const columnsObjetivosDescuentos: any[] = [
   },
   {
     id: 'ObjetivoDescuentoFechaAnulacion', name: 'Fecha Anulación', field: 'ObjetivoDescuentoFechaAnulacion',
-    fieldName: 'des.ObjetivoDescuentoFechaAnulacion',
+    fieldName: 'ObjetivoDescuentoFechaAnulacion',
     type: 'date',
     searchComponent: "inputForFechaSearch",
     searchType: 'date',
@@ -717,11 +717,11 @@ export class GestionDescuentosController extends BaseController {
     const now = new Date()
 
     let condition = '(1=1)'
-    let join = `DATEFROMPARTS(cuo.ObjetivoDescuentoCuotaAno,cuo.ObjetivoDescuentoCuotaMes,28) > coo.ObjetivoPersonalJerarquicoDesde 
-                AND DATEFROMPARTS(cuo.ObjetivoDescuentoCuotaAno,cuo.ObjetivoDescuentoCuotaMes,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
+    let join = `DATEFROMPARTS(ObjetivoDescuentoCuotaAno,ObjetivoDescuentoCuotaMes,28) > ObjetivoPersonalJerarquicoDesde 
+                AND DATEFROMPARTS(ObjetivoDescuentoCuotaAno,ObjetivoDescuentoCuotaMes,28) < ISNULL(ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
     if (anio && mes) {
-      condition = `cuo.ObjetivoDescuentoCuotaAno = @1 and cuo.ObjetivoDescuentoCuotaMes=@2`
-      join = `DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
+      condition = `ObjetivoDescuentoCuotaAno = @1 and ObjetivoDescuentoCuotaMes=@2`
+      join = `DATEFROMPARTS(@1,@2,28) > ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(ObjetivoPersonalJerarquicoHasta, '9999-12-31')`
     }
 
     if (!orderBy || orderBy.trim() === '') {
@@ -731,62 +731,7 @@ export class GestionDescuentosController extends BaseController {
 
 
     return await queryRunner.query(`
-      SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id
-      , des.ObjetivoId
-      , des.ObjetivoDescuentoId
-      , per.PersonalId
-      , 'C' tipocuenta_id
-      , CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
-      , des.ObjetivoDescuentoAnoAplica AS anio
-      , des.ObjetivoDescuentoMesesAplica AS mes
-      , fecper.FechaPeriodo
-      , FORMAT(DATEFROMPARTS(des.ObjetivoDescuentoAnoAplica, des.ObjetivoDescuentoMesesAplica, 1), 'yyyy/MM') AS periodoDisplay
-
-      
-      , des.ObjetivoDescuentoDescontar
-      , CASE 
-        WHEN des.ObjetivoDescuentoDescontar = 'CO' THEN 'Coo. Cuenta'
-        WHEN des.ObjetivoDescuentoDescontar = 'CL' THEN 'Cliente'
-        WHEN des.ObjetivoDescuentoDescontar = 'NO' THEN 'Lince'
-      END AS  DescontarDetalle
-      , cli.ClienteId
-      , cli.ClienteDenominacion
-      , fac.ClienteFacturacionCUIT
-      , CONCAT(cli.ClienteId,'/',eledep.ClienteElementoDependienteId) AS CodObjetivo
-      , eledep.ClienteElementoDependienteDescripcion ObjetivoDescripcion
-
-      , det.DescuentoId
-      , det.DescuentoDescripcion
-      , des.ObjetivoDescuentoDetalle 
-   
-      , des.ObjetivoDescuentoImporteVariable as importetotal
-      , cuo.ObjetivoDescuentoCuotaCuota
-      , cuo.ObjetivoDescuentoCuotaImporte 
-	    , cuo.ObjetivoDescuentoCuotaAno
-	    , cuo.ObjetivoDescuentoCuotaMes
-	  
-	  
-      , des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas
-      , des.ObjetivoDescuentoFechaAnulacion
-      , suc.SucursalDescripcion
-
-
-      FROM ObjetivoDescuento des  
-      JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
-      JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
-	  	JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId AND fac.ClienteFacturacionDesde <= @0 AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
-
-      JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-      
-	    Left JOIN ObjetivoDescuentoCuota cuo on cuo.ObjetivoDescuentoId=des.ObjetivoDescuentoId and cuo.ObjetivoId=des.ObjetivoId
-
-	  	LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND coo.ObjetivoPersonalJerarquicoDescuentos = 1 AND ${join}
-      LEFT JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId
-
-      LEFT JOIN (SELECT DATEFROMPARTS(ObjetivoDescuentoAnoAplica,ObjetivoDescuentoMesesAplica,1) FechaPeriodo, ObjetivoId, ObjetivoDescuentoId FROM ObjetivoDescuento) fecper on fecper.ObjetivoId=des.ObjetivoId and fecper.ObjetivoDescuentoId=des.ObjetivoDescuentoId       
-      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
-
+      SELECT * FROM VistaObjetivoDescuento
       
       WHERE ${condition} and (${filterSql})
       ${orderBy}

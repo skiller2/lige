@@ -1288,7 +1288,7 @@ export class AsistenciaController extends BaseController {
     //TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
 
     const orderBy = orderToSQL([])
-    const filterSql = (ObjetivoId == 0) ? ' 1=1' : ' des.ObjetivoId IN (' + ObjetivoId.toString() + ')'
+    const filterSql = (ObjetivoId == 0) ? ' 1=1' : ' ObjetivoId IN (' + ObjetivoId.toString() + ')'
     const descuentos = await GestionDescuentosController.getDescuentosObjetivosQuery(queryRunner, filterSql, orderBy, anio, mes)
     
     
