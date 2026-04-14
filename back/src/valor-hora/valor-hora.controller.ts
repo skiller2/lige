@@ -124,6 +124,10 @@ export class ValorHoraController extends BaseController {
         let message = ""
         const params = req.body
 
+        let usuario = res.locals.userName
+        let ip = this.getRemoteAddress(req)
+        let fechaActual = new Date()
+
         const { ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, anio, mes } = params
 
         if (!ValorLiquidacionSucursalId || !ValorLiquidacionTipoAsociadoId || !ValorLiquidacionCategoriaPersonalId || ValorLiquidacionHoraNormal == null)
@@ -139,13 +143,12 @@ export class ValorHoraController extends BaseController {
             let dataResultado = {}
 
             // Validar que no existan recibos generados para el período
-            const recibos = await queryRunner.query(`
-              SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
-              WHERE anio = @0 AND mes = @1`,
-              [anio, mes]
-            )
-            if (recibos[0].cnt > 0)
-              throw new ClientException("No se puede modificar: existen recibos generados para este período")
+            const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
+
+            const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+            if (getRecibosGenerados[0].ind_recibos_generados == 1)
+              throw new ClientException(`Los recibos para este periodo ya se generaron, no se pueden eliminar `)
 
             // Validar que la combinación TipoAsociado + CategoriaPersonal exista
             const catValid = await queryRunner.query(`
@@ -200,19 +203,23 @@ export class ValorHoraController extends BaseController {
     if (!ids || !ids.length) return next(new ClientException("Debe seleccionar al menos un registro"));
     if (!anio || !mes) return next(new ClientException("Debe indicar año y mes"));
 
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let fechaActual = new Date()
+
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       // Validar que no existan recibos generados para el período
-      const recibos = await queryRunner.query(`
-        SELECT COUNT(*) AS cnt FROM lige.dbo.liqmadings
-        WHERE anio = @0 AND mes = @1`,
-        [anio, mes]
-      );
-      if (recibos[0].cnt > 0)
-        throw new ClientException("No se puede eliminar: existen recibos generados para este período");
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron, no se pueden eliminar `)
+
 
       for (const id of ids) {
         await queryRunner.query(`DELETE FROM ValorLiquidacion WHERE ValorLiquidacionId = @0`, [id]);
