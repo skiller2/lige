@@ -72,7 +72,7 @@ export class ValorHoraController extends BaseController {
       const options = await queryRunner.query(`
         SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label, catper.TipoAsociadoId
         FROM CategoriaPersonal catper
-        WHERE ISNULL(catper.CategoriaPersonalInactivo, 0) = 0
+    
       `);
       this.jsonRes(options, res);
     } catch (error) {
@@ -96,8 +96,7 @@ export class ValorHoraController extends BaseController {
                vl.ValorLiquidacionDesde, vl.ValorLiquidacionHasta
         FROM ValorLiquidacion vl
         LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
-        LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId
-                                        AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
+        LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
         LEFT JOIN Sucursal s ON s.SucursalId = vl.ValorLiquidacionSucursalId
         WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
           AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
