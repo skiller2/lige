@@ -505,7 +505,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoDescripcionCompleta}), TelefonoId: ${tel.TelefoniaId}` })
         }
       }
 
@@ -535,7 +535,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           }
         }
 
-        if (tel.PersonalId){
+        if (tel.PersonalId && tel.PersonalId!= 28496){ //PersonalId 28496 Lince es un caso particular que no tiene situación de revista y se decidió permitirlo igual
           if (tel.PersonalSituacionRevistaSituacionId != 2 && tel.PersonalSituacionRevistaSituacionId != 10)
             dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Personal ${tel.PersonalId} con situación de revista no activa (${tel.SituacionRevistaDescripcion})` })  
         }
