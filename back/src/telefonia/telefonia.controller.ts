@@ -91,6 +91,17 @@ export class TelefoniaController extends BaseController {
       hidden: true,
     },
     {
+      name: "Sucursal Persona",
+      type: "string",
+      id: "SucursalPersonal",
+      field: "SucursalPersonal",
+      fieldName: "sucp.SucursalId",
+      searchComponent: "inputForSucursalSearch",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
       name: "Objetivo",
       type: "string",
       id: "ClienteElementoDependienteDescripcion",
@@ -122,11 +133,11 @@ export class TelefoniaController extends BaseController {
       searchHidden: true
     },
     {
-      name: "Sucursal",
+      name: "Sucursal Objetivo",
       type: "string",
-      id: "SucursalDescripcion",
-      field: "SucursalDescripcion",
-      fieldName: "suc.SucursalId",
+      id: "SucursalObjetivo",
+      field: "SucursalObjetivo",
+      fieldName: "suco.SucursalId",
       searchComponent: "inputForSucursalSearch",
       sortable: true,
       hidden: false,
@@ -263,7 +274,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
       CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
       sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
-      suc.SucursalDescripcion,suc.SucursalId,
+      sucp.SucursalDescripcion SucursalPersonal,sucp.SucursalId,suco.SucursalDescripcion SucursalObjetivo, suco.SucursalId,
       1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
@@ -325,8 +336,11 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
                   
           LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+          
           LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
-          LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,sucper.PersonalSucursalPrincipalSucursalId)
+          LEFT JOIN Sucursal sucp ON sucp.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+
+          LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,sucper.PersonalSucursalPrincipalSucursalId)
 
 
       WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31') 
