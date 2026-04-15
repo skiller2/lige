@@ -6,7 +6,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, firstValueFrom, map } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, map, max } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -16,6 +16,7 @@ import { FormBuilder, FormArray } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Selections } from '../../../shared/schemas/filtro';
 
 
 @Component({
@@ -43,12 +44,14 @@ export class TelefoniaComponent {
   files: NzUploadFile[] = [];
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   excelExportService = new ExcelExportService()
-  gridDataImport = signal([])
+  gridDataImport = signal<any[]>([])
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
   gridOptions!: GridOption;
   detailViewRowCount = 9;
   fileUploadComponent = viewChild.required(FileUploadComponent);
+  lastErrorsTels: any[] = []
+  startFilters = signal<Selections[]>([])
 
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   private readonly loadingSrv = inject(LoadingService);
@@ -78,6 +81,7 @@ export class TelefoniaComponent {
       sortable: true,
       searchHidden: false,
       hidden: false,
+      maxWidth: 150
     },
     {
       name: "Detalle",
@@ -130,7 +134,7 @@ export class TelefoniaComponent {
     this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
       if (filesValue.length > 0) {
         this.loadingSrv.open({ type: 'spin', text: '' })
-
+        this.lastErrorsTels = []  
         this.gridDataImport.set([])
         const totaldeclarado = this.ngForm.get('totaldeclarado')?.value || 0
 
@@ -142,6 +146,9 @@ export class TelefoniaComponent {
           this.fileUploadComponent().DeleteFileByExporterror(filesValue)
           if (e.error?.data?.list) {
             this.gridDataImport.set(e.error.data.list)
+
+            this.lastErrorsTels = [...new Set(this.gridDataImport().map(item => String(item.TelefoniaNro).trim()))];
+
           }
           this.uploading$.next({ loading: false, event: null })
         }
@@ -221,5 +228,17 @@ export class TelefoniaComponent {
       columnTotal('importesum', this.angularGrid)
       columnTotal('importe', this.angularGrid)
     })
+  }
+
+
+  async createFilterTels() {
+    if (this.lastErrorsTels.length > 0) {
+      const newFilter = { index: 'EfectoAtributoIngresoValor', condition: 'AND', operator: '=', value: this.lastErrorsTels, closeable: true }
+      this.startFilters.set([newFilter])
+      
+
+      this.router.navigate(['/ges/telefonia/listado'], { queryParams: {  } })
+
+    }
   }
 }

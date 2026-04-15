@@ -47,7 +47,7 @@
         <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
         @if ((columns().length > 0)) {
         <ng-template nz-tab>
-          <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" />
+          <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="grid22" class="" [columns]="columns() | colsFilter" [options]="gridOptions"
               [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)">
@@ -125,7 +125,13 @@
               [dataset]="gridDataImport()">
             </angular-slickgrid>
           </div>
-          <div>Registros: {{ gridDataImport().length }}</div>
+          <div>Registros: {{ gridDataImport().length }}   </div>
+        
+              <button nz-button nzType="default" (click)="createFilterTels()"><span nz-icon
+            nzType="search" nzTheme="outline" nz-tooltip
+            nzTooltipTitle="Filtrar errores en Listado"></span></button>
+
+        
         </ng-template>
 
 

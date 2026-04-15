@@ -531,13 +531,13 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
               / (1000 * 60 * 60 * 24)
             );
             if (diffDias < -30)
-              dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Objetivo con fecha de contrato vencida hace más de 30 días (${diffDias} días)` })
+              dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Objetivo con fecha de contrato vencido ${Math.abs(diffDias)} días` })
           }
         }
 
         if (tel.PersonalId && tel.PersonalId!= 28496){ //PersonalId 28496 Lince es un caso particular que no tiene situación de revista y se decidió permitirlo igual
           if (tel.PersonalSituacionRevistaSituacionId != 2 && tel.PersonalSituacionRevistaSituacionId != 10)
-            dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Personal ${tel.PersonalId} con situación de revista no activa (${tel.SituacionRevistaDescripcion})` })  
+            dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: `Personal ${tel.PersonalId} con situación de revista ${tel.SituacionRevistaDescripcion}` })  
         }
       }
 
