@@ -122,6 +122,17 @@ export class TelefoniaController extends BaseController {
       searchHidden: true
     },
     {
+      name: "Sucursal",
+      type: "string",
+      id: "SucursalDescripcion",
+      field: "SucursalDescripcion",
+      fieldName: "suc.SucursalId",
+      searchComponent: "inputForSucursalSearch",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
       name: "Objetivo Activo",
       id: "Activo",
       field: "Activo",
@@ -252,6 +263,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
       CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
       sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
+      suc.SucursalDescripcion,suc.SucursalId,
       1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
@@ -313,12 +325,12 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
                   
           LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-
+          LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+          LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,sucper.PersonalSucursalPrincipalSucursalId)
 
 
       WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31') 
-    AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31') 
-        
+    AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31')  
        AND (${filterSql}) ${orderBy}`,
       [fecha, anio, mes])
 
@@ -386,7 +398,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const mesRequest = Number(req.body.mes)
     const totaldeclarado = Number(req.body.totaldeclarado)
     const file = req.body?.files?.[0] ?? req.body?.files;
-    const fechaRequest:Date = new Date(req.body.fecha);
+    const fechaRequest: Date = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
 
@@ -520,12 +532,12 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         if (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] > 1)
           dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.TelefoniaEfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
 
-        if (tel.TelefoniaObjetivoId){  
-          if (!tel.ClienteElementoDependienteContratoFechaHasta && !tel.ClienteElementoDependienteContratoFechaDesde) 
+        if (tel.TelefoniaObjetivoId) {
+          if (!tel.ClienteElementoDependienteContratoFechaHasta && !tel.ClienteElementoDependienteContratoFechaDesde)
             dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Objetivo sin fecha de contrato` })
 
 
-          if (tel.ClienteElementoDependienteContratoFechaHasta){
+          if (tel.ClienteElementoDependienteContratoFechaHasta) {
             const diffDias = Math.floor(
               (new Date(tel.ClienteElementoDependienteContratoFechaHasta).getTime() - fechaRequest.getTime())
               / (1000 * 60 * 60 * 24)
@@ -535,9 +547,9 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           }
         }
 
-        if (tel.PersonalId && tel.PersonalId!= 28496){ //PersonalId 28496 Lince es un caso particular que no tiene situación de revista y se decidió permitirlo igual
+        if (tel.PersonalId && tel.PersonalId != 28496) { //PersonalId 28496 Lince es un caso particular que no tiene situación de revista y se decidió permitirlo igual
           if (tel.PersonalSituacionRevistaSituacionId != 2 && tel.PersonalSituacionRevistaSituacionId != 10)
-            dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: `Personal ${tel.PersonalId} con situación de revista ${tel.SituacionRevistaDescripcion}` })  
+            dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: `Personal ${tel.PersonalId} con situación de revista ${tel.SituacionRevistaDescripcion}` })
         }
       }
 
