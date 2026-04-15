@@ -234,7 +234,9 @@ export class TelefoniaController extends BaseController {
 
     return dataSource.query(
       `
-SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, efeind.EfectoEfectoIndividualDescripcion, eledep.ClienteElementoDependienteDescripcion, 
+SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
+      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta, 
+      eledep.ClienteElementoDependienteDescripcion, 
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
       conx.ImpuestoInternoTelefoniaImpuesto,
@@ -242,12 +244,14 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, ef
       iif(tel.TelefoniaObjetivoId is not null, CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)), null) as codObjetivo,
       iif(tel.TelefoniaPersonalId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)), null) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
       iif(tel.TelefoniaObjetivoId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion), null) ObjetivoDescripcion,
-      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta, 
       IIF(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,'1', '0') as isCoordinadorCuenta,
       IIF(objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1,'1','0' ) DescTelefono,
       ISNULL(eledepcon.Activo,0) AS Activo,
-
-
+      eledepcon.ClienteElementoDependienteContratoFechaDesde,
+      eledepcon.ClienteElementoDependienteContratoFechaHasta,
+      sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
+      CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
+      sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
       1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
@@ -296,9 +300,21 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, ef
       ) conx ON conx.TelefoniaId = tel.TelefoniaId
         
 
-LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = tel.TelefoniaEfectoId
-LEFT JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = tel.TelefoniaEfectoId AND efeinddes.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId
+          LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = tel.TelefoniaEfectoId
+          LEFT JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = tel.TelefoniaEfectoId AND efeinddes.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId
   
+          LEFT JOIN 
+          (
+          SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+          FROM PersonalSituacionRevista sitrev2
+          WHERE @0 >= sitrev2.PersonalSituacionRevistaDesde AND @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31') 
+          GROUP BY sitrev2.PersonalId
+          ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+          LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+                  
+          LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+
+
 
       WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31') 
     AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31') 
@@ -370,7 +386,7 @@ LEFT JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = tel.Tele
     const mesRequest = Number(req.body.mes)
     const totaldeclarado = Number(req.body.totaldeclarado)
     const file = req.body?.files?.[0] ?? req.body?.files;
-    const fechaRequest = new Date(req.body.fecha);
+    const fechaRequest:Date = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
 
@@ -504,6 +520,25 @@ LEFT JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = tel.Tele
         if (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] > 1)
           dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.TelefoniaEfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
 
+        if (tel.TelefoniaObjetivoId){  
+          if (!tel.ClienteElementoDependienteContratoFechaHasta && !tel.ClienteElementoDependienteContratoFechaDesde) 
+            dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Objetivo sin fecha de contrato` })
+
+
+          if (tel.ClienteElementoDependienteContratoFechaHasta){
+            const diffDias = Math.floor(
+              (new Date(tel.ClienteElementoDependienteContratoFechaHasta).getTime() - fechaRequest.getTime())
+              / (1000 * 60 * 60 * 24)
+            );
+            if (diffDias < -30)
+              dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Objetivo con fecha de contrato vencida hace más de 30 días (${diffDias} días)` })
+          }
+        }
+
+        if (tel.PersonalId){
+          if (tel.PersonalSituacionRevistaSituacionId != 2 && tel.PersonalSituacionRevistaSituacionId != 10)
+            dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Personal ${tel.PersonalId} con situación de revista no activa (${tel.SituacionRevistaDescripcion})` })  
+        }
       }
 
       if (dataset.length > 0)
