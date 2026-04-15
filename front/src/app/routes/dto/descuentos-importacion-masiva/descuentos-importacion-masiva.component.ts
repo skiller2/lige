@@ -167,8 +167,8 @@ export class DescuentosImportacionMasivaComponent {
               const CuentaTipoCodigo = this.formAltaDesc.get('CuentaTipoCodigo')?.value || ''
 
               await firstValueFrom(this.apiService.importXLSImporteVentaDescuentos(filesValue, this.anio(), this.mes(),this.fecha, descuentoId, tableName,CuentaTipoCodigo))  
-            this.formChange$.next('changed');
-            this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+              this.formChange$.next('changed');
+              this.fileUploadComponent().DeleteFileByExporterror(filesValue)
             } catch (e: any) {
               this.fileUploadComponent().DeleteFileByExporterror(filesValue)
               if (e.error?.data?.list) {
@@ -181,7 +181,6 @@ export class DescuentosImportacionMasivaComponent {
           }
         });
       }
-    
 
     tableName():string {
         const value = this.formAltaDesc.get("tableName")?.value
@@ -233,8 +232,7 @@ export class DescuentosImportacionMasivaComponent {
         }
     
     }
-  
-
+    
     async angularGridReady(angularGrid: any) {
       // this.angularGrid = angularGrid.detail
       // this.gridData = angularGrid.dataView

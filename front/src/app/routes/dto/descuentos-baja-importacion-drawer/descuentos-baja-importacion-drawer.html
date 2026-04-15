@@ -3,35 +3,61 @@
   <ng-container *nzDrawerContent>
 
     @if (descuentoImportacionDetalle.value(); as detalle) {
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Id</nz-form-label>
-      <p>{{detalle[0].DocumentoId}}</p>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Aplica el</nz-form-label>
-      <p>{{detalle[0].DocumentoMes}}/{{detalle[0].DocumentoAnio}}</p>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Tipo de descuento</nz-form-label>
-      <p>{{detalle[0].Tipo}}</p>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Tipo cuenta</nz-form-label>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Cant. de descuentos</nz-form-label>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Monto total</nz-form-label>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Fecha de importacion</nz-form-label>
-      <p>{{detalle[0].DocumentoAudFechaIng}}</p>
-    </nz-form-item>
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="5">Usuario</nz-form-label>
-      <p>{{detalle[0].DocumentoAudUsuarioIng}}</p>
-    </nz-form-item>
+      @if (detalle[0]) {
+      <nz-descriptions
+        nzBordered
+        [nzColumn]="1"
+        nzSize="small"
+        class="mb-3"
+      >
+        <nz-descriptions-item nzTitle="Id">
+          {{ detalle[0].DocumentoId }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Aplica el">
+          {{ detalle[0].DocumentoMes }}/{{ detalle[0].DocumentoAnio }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Tipo de descuento">
+          {{ detalle[0].Tipo}} - {{detalle[0].DescuentoDescripcion }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Tipo cuenta">
+          {{ detalle[0].CuentaTipo }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Cant. de descuentos">
+          {{ detalle[0].CantRegistros }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Monto total">
+          {{ detalle[0].ImporteTotal | currency }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Fecha de importación">
+          {{ detalle[0].DocumentoAudFechaIng }}
+        </nz-descriptions-item>
+
+        <nz-descriptions-item nzTitle="Usuario">
+          {{ detalle[0].DocumentoAudUsuarioIng }}
+        </nz-descriptions-item>
+      </nz-descriptions>
+      }
+
+      <nz-divider></nz-divider>
+
+      <div class="botonera">
+        <label nz-checkbox [(ngModel)]="confirmarBaja">
+          Confirmar dar de baja la importacion
+        </label>
+
+        <button nz-button nzType="primary" nzDanger [disabled]="!confirmarBaja()" [nzLoading]="isLoading()"
+        (click)="darDeBaja()">
+          Eliminar
+        </button>
+      </div>
+
+      <nz-divider></nz-divider>
     }
 
   </ng-container>

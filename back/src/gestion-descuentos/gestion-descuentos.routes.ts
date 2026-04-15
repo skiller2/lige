@@ -84,6 +84,10 @@ gestionDescuentosRouter.get("/importaciones_anteriores/:anio/:mes", [authMiddlew
 
 gestionDescuentosRouter.get("/importacion_detalle/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getImportacionDetail(req, res, next);
+});
+
+gestionDescuentosRouter.delete("/import/:id/:tableForSearch", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.deleteImportDescuento(req, res, next);
 }); 
 
 gestionDescuentosRouter.get("/cols/carga-manual-personal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {

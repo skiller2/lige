@@ -2719,10 +2719,35 @@ FROM cte
         , FORMAT(doc.DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng
         , tipo.DocumentoTipoDetalle AS Tipo
         , doc.DocumentoAudUsuarioIng
+        , ISNULL(objdes.CantRegistros, objper.CantRegistros) AS CantRegistros
+        , ISNULL(objdes.ImporteTotal, objper.ImporteTotal) AS ImporteTotal
+        , ISNULL(liq.detalle, '') AS CuentaTipo
+        , CASE 
+          WHEN objdes.ImportacionDocumentoId IS NOT NULL THEN 'ObjetivoDescuento'
+          WHEN objper.ImportacionDocumentoId IS NOT NULL THEN 'PersonalOtroDescuento'
+          ELSE NULL
+        END AS TablaOrigen
+        , ISNULL(objdes.DescuentoDescripcion, objper.DescuentoDescripcion) AS DescuentoDescripcion
         FROM Documento doc
         LEFT JOIN DocumentoTipo tipo ON tipo.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-        -- LEFT JOIN ObjetivoDescuento objdes ON objdes.ImportacionDocumentoId = doc.DocumentoId
-        -- LEFT JOIN PersonalOtroDescuento perdes ON objdes.ImportacionDocumentoId = doc.DocumentoId
+        LEFT JOIN (
+          SELECT obj.ImportacionDocumentoId, COUNT(*) CantRegistros, ISNULL(SUM(obj.ObjetivoDescuentoImporteVariable), 0) ImporteTotal
+          , MAX(TRIM(des.DescuentoDescripcion)) AS DescuentoDescripcion
+          FROM ObjetivoDescuento obj
+          LEFT JOIN Descuento des ON des.DescuentoId = obj.ObjetivoDescuentoDescuentoId
+          WHERE obj.ImportacionDocumentoId IS NOT NULL
+          GROUP BY obj.ImportacionDocumentoId
+        ) objdes ON objdes.ImportacionDocumentoId = doc.DocumentoId
+        LEFT JOIN (
+          SELECT per.ImportacionDocumentoId, COUNT(*) CantRegistros, ISNULL(SUM(per.PersonalOtroDescuentoImporteVariable), 0) ImporteTotal
+          , MAX(per.CuentaTipoCodigo) AS CuentaTipoCodigo
+          , MAX(TRIM(des.DescuentoDescripcion)) AS DescuentoDescripcion
+          FROM PersonalOtroDescuento per
+          LEFT JOIN Descuento des ON des.DescuentoId = per.PersonalOtroDescuentoDescuentoId
+          WHERE ImportacionDocumentoId IS NOT NULL
+          GROUP BY per.ImportacionDocumentoId
+        ) objper ON objper.ImportacionDocumentoId = doc.DocumentoId
+        LEFT JOIN lige.dbo.liqcontipocuenta liq ON liq.tipocuenta_id = objper.CuentaTipoCodigo
         WHERE doc.DocumentoId = @0
       `, [id])
 
@@ -2731,13 +2756,101 @@ FROM cte
           total: consult.length,
           list: consult,
         },
-
         res
       );
 
     } catch (error) {
       return next(error)
     }
+  }
+
+  async deleteImportDescuento(req: any, res: Response, next: NextFunction) {
+    const id: number = Number(req.params.id)
+    const tableForSearch: string = req.params.tableForSearch
+    const queryRunner = dataSource.createQueryRunner()
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      let consult:any = null
+      let deletedDesc:number = 0
+      switch (tableForSearch) {
+        case 'PersonalOtroDescuento':
+          consult = await queryRunner.query(`
+            SELECT des.PersonalOtroDescuentoId, des.PersonalId, per.ind_recibos_generados
+            FROM PersonalOtroDescuento des
+            LEFT JOIN lige.dbo.liqmaperiodo per ON per.anio = des.PersonalOtroDescuentoAnoAplica AND per.mes = des.PersonalOtroDescuentoMesesAplica
+            WHERE des.ImportacionDocumentoId IN (@0) AND per.ind_recibos_generados = 0
+          `, [id])
+
+          for (const row of consult) {
+            await this.deletePersonalOtroDescuento(queryRunner, row.PersonalOtroDescuentoId, row.PersonalId)
+            deletedDesc++
+          }
+
+          break;
+        case 'ObjetivoDescuento':
+          consult = await queryRunner.query(`
+            SELECT des.ObjetivoDescuentoId, des.ObjetivoId, per.ind_recibos_generados
+            FROM ObjetivoDescuento des
+            LEFT JOIN lige.dbo.liqmaperiodo per ON per.anio = des.PersonalOtroDescuentoAnoAplica AND per.mes = des.PersonalOtroDescuentoMesesAplica
+            WHERE ImportacionDocumentoId IN (@0) AND per.ind_recibos_generados = 0
+          `, [id])
+
+          for (const row of consult) {
+            await this.deleteObjetivoDescuento(queryRunner, row.ObjetivoDescuentoId, row.ObjetivoId)
+            deletedDesc++
+          }
+          break;
+      }
+      if (!deletedDesc) {
+        throw new ClientException(`No se elimino ningun descuento`)
+      }
+
+      consult = await queryRunner.query(`
+        SELECT DocumentoPath
+        FROM Documento
+        WHERE DocumentoId IN (@0)
+      `, [id])
+      const DocumentoPath = consult[0].DocumentoPath
+
+      await FileUploadController.deletePhysicalFile(DocumentoPath);
+
+      await queryRunner.query(`
+        DELETE FROM Documento
+        WHERE DocumentoId IN (@0)
+      `, [id])
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({}, res, `Se eliminaron ${deletedDesc} descuentos`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async deletePersonalOtroDescuento(queryRunner: any, PersonalOtroDescuentoId: number, PersonalId: number) {
+    await queryRunner.query(`
+      DELETE FROM PersonalOtroDescuentoCuota
+      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+
+      DELETE FROM PersonalOtroDescuento
+      WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
+    `, [PersonalOtroDescuentoId, PersonalId])
+  }
+
+  async deleteObjetivoDescuento(queryRunner: any, ObjetivoDescuentoId: number, ObjetivoId: number) {
+    await queryRunner.query(`
+      DELETE FROM ObjetivoDescuentoCuota
+      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+
+      DELETE FROM ObjetivoDescuento
+      WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
+    `, [ObjetivoDescuentoId, ObjetivoId])
   }
 
 }

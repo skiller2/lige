@@ -1932,6 +1932,15 @@ export class ApiService {
     );
   }
 
+  deletedImportDescuento(DocumentoId: number, tableForSearch:string) {
+    if (!DocumentoId && !tableForSearch.length) {
+      return of(null);
+    }
+    return this.http.delete<ResponseJSON<any>>(`api/gestion-descuentos/import/${DocumentoId}/${tableForSearch}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
+
   addPersonalActa(personalId: number, acta: any) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/acta/add/${personalId}`, acta).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
