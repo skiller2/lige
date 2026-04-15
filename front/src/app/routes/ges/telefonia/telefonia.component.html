@@ -121,11 +121,11 @@
 
 
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid23" class="" [columns]="columnsImport | colsFilter" [options]="gridOptions"
+            <angular-slickgrid gridId="grid23" class="" [columns]="columnsImport() | colsFilter" [options]="gridOptions"
               [dataset]="gridDataImport()">
             </angular-slickgrid>
           </div>
-          <div>Registros: {{ gridDataImport().length }}   </div>
+          <span>Registros: {{ gridDataImport().length }}   </span>
         
               <button nz-button nzType="default" (click)="createFilterTels()"><span nz-icon
             nzType="search" nzTheme="outline" nz-tooltip

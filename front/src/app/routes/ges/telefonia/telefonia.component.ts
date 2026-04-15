@@ -62,7 +62,7 @@ export class TelefoniaComponent {
     sort: null,
   })
 
-  columnsImport = [
+  columnsImport = signal([
     {
       id: "id",
       name: "id",
@@ -95,7 +95,7 @@ export class TelefoniaComponent {
     },
 
 
-  ]
+  ])
 
   columns = toSignal(this.apiService.getCols('/api/telefonia/cols').pipe(map((cols) => {
     return cols
@@ -235,10 +235,7 @@ export class TelefoniaComponent {
     if (this.lastErrorsTels.length > 0) {
       const newFilter = { index: 'EfectoAtributoIngresoValor', condition: 'AND', operator: '=', value: this.lastErrorsTels, closeable: true }
       this.startFilters.set([newFilter])
-      
-
       this.router.navigate(['/ges/telefonia/listado'], { queryParams: {  } })
-
     }
   }
 }
