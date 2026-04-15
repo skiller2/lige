@@ -12,6 +12,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { DescuentosObjetivosAltaDrawerComponent } from "../descuentos-objetivos-alta-drawer/descuentos-objetivos-alta-drawer.component"
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
     selector: 'app-table-descuentos-objetivos',
@@ -26,6 +27,7 @@ export class TableDescuentosObjetivosComponent {
     private readonly loadingSrv = inject(LoadingService);
     private apiService = inject(ApiService)
     private angularUtilService = inject(AngularUtilService)
+    private notification = inject(NzNotificationService)
 
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
@@ -42,6 +44,7 @@ export class TableDescuentosObjetivosComponent {
     startFilters = signal<Selections[]>([]);
     ObjetivoDescuentoId = signal<number>(0)
     objetivoId = signal<number>(0)
+    tipodescuento = signal<number>(0)
     visibleAltaDesc = signal<boolean>(false)
     visibleEditDesc = signal<boolean>(false)
     // disabledForm = signal(false);
@@ -98,9 +101,11 @@ export class TableDescuentosObjetivosComponent {
             const row = this.angularGrid.dataView.getItemByIdx(rowNum)
             this.ObjetivoDescuentoId.set(Number(row?.ObjetivoDescuentoId))
             this.objetivoId.set(row?.objetivo.id)
+            this.tipodescuento.set(Number(row?.DescuentoId))
         } else {
             this.ObjetivoDescuentoId.set(0)
             this.objetivoId.set(0)
+            this.tipodescuento.set(0)
         }
     }
 
@@ -111,27 +116,39 @@ export class TableDescuentosObjetivosComponent {
     }
 
     openDrawerforEditDescuentos() {
-        // this.disabledForm.set(false)
-        // this.cancelDesc.set(false)
-        this.visibleEditDesc.set(true)
-        // this.isAnulacion.set(false)
-        this.crudAccion.set('U')
+        if (this.tipodescuento() != 46) {
+            // this.disabledForm.set(false)
+            // this.cancelDesc.set(false)
+            this.visibleEditDesc.set(true)
+            // this.isAnulacion.set(false)
+            this.crudAccion.set('U')
+        } else {
+            this.notification.warning('Advertencia', `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipodescuento: ${this.tipodescuento()}`)
+        }
     }
 
     openDrawerforDetailDescuentos() {
-        // this.cancelDesc.set(false)
-        // this.disabledForm.set(true)
-        this.visibleEditDesc.set(true)
-        // this.isAnulacion.set(false)
-        this.crudAccion.set('R')
+        if (this.tipodescuento() != 46) {
+            // this.cancelDesc.set(false)
+            // this.disabledForm.set(true)
+            this.visibleEditDesc.set(true)
+            // this.isAnulacion.set(false)
+            this.crudAccion.set('R')
+        } else {
+            this.notification.warning('Advertencia', `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipodescuento: ${this.tipodescuento()}`)
+        }
     }
 
     openDrawerforCancelDescuentos() {
-        // this.disabledForm.set(true)
-        // this.cancelDesc.set(true)
-        this.visibleEditDesc.set(true)
-        // this.isAnulacion.set(true)
-        this.crudAccion.set('D')
+        if (this.tipodescuento() != 46) {
+            // this.disabledForm.set(true)
+            // this.cancelDesc.set(true)
+            this.visibleEditDesc.set(true)
+            // this.isAnulacion.set(true)
+            this.crudAccion.set('D')
+        } else {
+            this.notification.warning('Advertencia', `No se puede modificar el registro seleccionado. Se debera modificar desde el modulo correspondiente. Tipodescuento: ${this.tipodescuento()}`)
+        }
     }
 
     onAddorUpdate(_e: any) {
