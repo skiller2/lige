@@ -126,10 +126,10 @@
         @if ((columnsAyuda$|async); as columnasAyuda) {
           <ng-template nz-tab>
             <shared-filtro-builder  [fieldsToSelect]="columnasAyuda"
-              (optionsChange)="listOptionsChangeAyuda($event)" />
+              [(options)]="listOptionsAyuda" />
               <div class="gridContainer2 container-fluid">
                 <angular-slickgrid gridId="grid23" class="" [columns]="columnasAyuda | colsFilter"
-                  [options]="gridOptionsAyuda" [dataset]="(gridDataAyuda$ | async) || []"
+                  [options]="gridOptionsAyuda" [dataset]="gridDataAyuda.value()"
                   (onAngularGridCreated)="angularGridReadyAyuda($event)">
                 </angular-slickgrid>
               </div>
