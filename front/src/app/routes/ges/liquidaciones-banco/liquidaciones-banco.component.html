@@ -26,17 +26,17 @@
           <li nz-submenu nzTitle="Acciones">
             <ul style="width: auto !important">
               <li nz-menu-item app-down-file [httpMethod]="'POST'"
-                [httpBody]="{anio: anio(), mes: mes(), options: listOptions(), BancoId:11,tabIndex: tabIndex()}"
+                [httpBody]="{anio: anio(), mes: mes(), options: (tabIndex() === 0 ? listOptions() : listOptionsAyuda()), BancoId:11,tabIndex: tabIndex()}"
                 httpUrl="api/liquidaciones/download/banco/">
                 <span nz-icon nzType="download"></span>Generar Banco ITAU
               </li>
               <li nz-menu-item app-down-file [httpMethod]="'POST'"
-                [httpBody]="{anio: anio(), mes: mes(), options: listOptions(), BancoId:4,tabIndex: tabIndex()}"
+                [httpBody]="{anio: anio(), mes: mes(), options: (tabIndex() === 0 ? listOptions() : listOptionsAyuda()), BancoId:4,tabIndex: tabIndex()}"
                 httpUrl="api/liquidaciones/download/banco/">
                 <span nz-icon nzType="download"></span> Generar Banco Patagonia
               </li>
               <li nz-menu-item app-down-file [httpMethod]="'POST'"
-                [httpBody]="{anio: anio(), mes: mes(), options: listOptions(), BancoId:10,tabIndex: tabIndex()}"
+                [httpBody]="{anio: anio(), mes: mes(), options: (tabIndex() === 0 ? listOptions() : listOptionsAyuda()), BancoId:10,tabIndex: tabIndex()}"
                 httpUrl="api/liquidaciones/download/banco/">
                 <span nz-icon nzType="download"></span> Generar Banco Macro
               </li>
