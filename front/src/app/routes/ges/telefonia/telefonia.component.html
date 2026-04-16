@@ -19,7 +19,7 @@
 
   </nz-form-item>
 
-
+  <div style="display: flex; justify-content: space-between;">
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -40,6 +40,14 @@
     </li>
     }
   </ul>
+
+  <nz-button-group nz-button nzButtonGroup>
+    <button nz-button nzType="default" (click)="reload.set(reload() + 1)"><span nz-icon
+      nzType="reload" nzTheme="outline" nz-tooltip
+      nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+
+  </nz-button-group>
+</div>
 
   <form nz-form #telefonoForm="ngForm" [formGroup]="ngForm">
     <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">

@@ -38,6 +38,7 @@ export class TelefoniaComponent {
   @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);
   fecha = signal<Date>(new Date())
   periodo = signal<Date>(new Date())
+  reload = signal(0)
   anio = computed(() => this.periodo()?.getFullYear() || 0)
   mes = computed(() => this.periodo()?.getMonth() + 1 || 0)
 
@@ -104,7 +105,7 @@ export class TelefoniaComponent {
   ImpuestoInternoTelefoniaImpuesto = signal(0)
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), fecha: this.fecha() }),
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), fecha: this.fecha(), reload: this.reload() }),
     loader: async ({ params }) => {
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
