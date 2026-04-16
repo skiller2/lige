@@ -254,12 +254,14 @@ console.log('row a guardar', row)
   }
 
   async addNewItem() {
-
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
-    this.itemAddActive = true
+  }
 
-    const newRowIndex = this.angularGridEdit.dataView.getRowById(newItem1.id) ?? this.angularGridEdit.dataView.getItems().length - 1
+  async selectNewItemRow() {
+    const newRowIndex = this.angularGridEdit.dataView.getItems().length - 1
+    if (newRowIndex < 0) return
+
     this.angularGridEdit.slickGrid.setSelectedRows([newRowIndex])
     this.angularGridEdit.slickGrid.scrollRowIntoView(newRowIndex, false)
     this.angularGridEdit.slickGrid.setActiveCell(newRowIndex, 0)
@@ -325,7 +327,16 @@ console.log('row a guardar', row)
       const mes = this.periodo().getMonth() + 1
       return this.apiService.getValorHoraData(anio, mes, { options: this.listOptions })
         .pipe(map(data => {
-          return data.list
+          const list = data.list
+          const newId = list.length + 1
+          list.push({
+            id: newId,
+            ValorLiquidacionSucursalId: "",
+            ValorLiquidacionTipoAsociadoId: "",
+            ValorLiquidacionCategoriaPersonalId: "",
+            ValorLiquidacionHoraNormal: 0,
+          })
+          return list
         })
         )
     })
