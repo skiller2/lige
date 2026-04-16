@@ -1689,15 +1689,38 @@ FROM cte
     const AplicaEl: Date = otroDescuento.AplicaEl ? new Date(otroDescuento.AplicaEl) : null
     const Cuotas: number = otroDescuento.Cuotas
     const Detalle: string = otroDescuento.Detalle
-    const importeCuota = Number((Number(otroDescuento.Importe) / Number(Cuotas)).toFixed(2))
-    const importeTotal: Number = Number(Cuotas) * importeCuota
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
 
+    let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
+    let EfectoId = otroDescuento.EfectoId
+    let EfectoIndividualId = otroDescuento.EfectoIndividualId
+    let Cantidad = otroDescuento.Cantidad || 1
+    let PorcentajeDescuento = otroDescuento.PorcentajeDescuento ?? '100'
+
     if (oldObjetivoId != ObjetivoId) throw new ClientException(`No se puede modificar el objetivo.`)
 
-    throw new ClientException('Apartado Deshabilitado.')
+    let mensaje = ''
+    switch (DescuentoId) {
+      case 50: // descuento de efecto
+        if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado al objetivo. '
+        const porc = Number(PorcentajeDescuento)
+        if (porc != 50 && porc != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+        importe = Number((importe * (porc / 100)).toFixed(2))
+        break
+      default:
+        EfectoId = null
+        EfectoIndividualId = null
+        Cantidad = 1
+        PorcentajeDescuento = '100'
+        break
+    }
+
+    if (mensaje.length > 0) throw new ClientException(mensaje)
+
+    const importeCuota = Number((importe / Number(Cuotas)).toFixed(2))
+    const importeTotal: number = importe
 
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
@@ -1717,6 +1740,13 @@ FROM cte
     const checkrecibos = await this.getPeriodoQuery(queryRunner, ObjetivoDescuento.AnoAplica, ObjetivoDescuento.MesesAplica)
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`No se puede modificar el descuento. Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
+
+    const cuotasEjecutadas = await queryRunner.query(`
+      SELECT * FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId =@0 AND ObjetivoId =@1 AND ObjetivoDescuentoCuotaMantiene=1
+    `, [ObjetivoDescuentoId, ObjetivoId])
+
+    if (cuotasEjecutadas.length > 0)
+      throw new ClientException(`No se puede modificar descuentos ya tienen cuotas aplicadas.`)
 
     switch (AplicaA) {
       case 'CL':
@@ -1739,8 +1769,10 @@ FROM cte
       , ObjetivoDescuentoAudFechaMod = @9, ObjetivoDescuentoAudUsuarioMod = @10, ObjetivoDescuentoAudIpMod = @11
       , ObjetivoDescuentoCuotasPagas = @5, ObjetivoDescuentoCuotaUltNro = 1
       , ObjetivoDescuentoDescontar = @12
+      , EfectoId = @13, EfectoIndividualId = @14, Cantidad = @15, PorcentajeDescuento = @16
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA])
+    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA,
+      EfectoId, EfectoIndividualId, Cantidad, PorcentajeDescuento])
 
     await queryRunner.query(`
       DELETE FROM ObjetivoDescuentoCuota WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
