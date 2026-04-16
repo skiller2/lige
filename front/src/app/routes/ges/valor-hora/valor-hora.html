@@ -12,7 +12,9 @@
           <button nz-button nzType="default" (click)="selectNewItemRow()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
         </a>
         <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-          <button nz-button nzType="default" [disabled]=" editValorHora().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
+          <button nz-button nzType="default" [disabled]="editValorHora().length == 0"
+            nz-popconfirm nzPopconfirmTitle="¿Está seguro que quiere eliminar el valor hora seleccionado?"
+            (nzOnConfirm)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
         </a>
         <a nz-tooltip nzTooltipTitle="Aumentar valores">
           <button nz-button nzType="default" (click)="abrirAumentoModal()"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
