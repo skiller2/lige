@@ -132,10 +132,10 @@ export class LiquidacionesBancoComponent {
     startFilters = signal<Selections[]>([]);
 
 
-  listOptionsAyuda: listOptionsT = {
+  listOptionsAyuda = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  }
+  })
 
   formChange(event: any) {
     this.formChange$.next(event);
@@ -146,8 +146,9 @@ export class LiquidacionesBancoComponent {
     this.formChange$.next('');
   }
 
+  
   listOptionsChangeAyuda(options: any) {
-    this.listOptionsAyuda = options;
+    this.listOptionsAyuda.set(options);
     this.formChange$.next('');
   }
 
@@ -223,6 +224,30 @@ export class LiquidacionesBancoComponent {
       defaultValue: []
   });
 
+  gridDataAyuda = resource({
+      params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
+      loader: async ({ params }) => {
+          let response = []
+          this.loadingSrv.open({ type: 'spin', text: '' })
+
+          try {
+              response = await firstValueFrom(this.apiService
+        .getLiquidacionesBancoAyudaAsistencial(
+          { anio: params.anio, mes: params.mes, options: params.options }
+        )        .pipe(
+          map(data => {
+            this.listdowload = "gridDataAyuda";
+            return data.list
+          })))
+          } catch (_e) { }
+          this.loadingSrv.close()
+
+          return response || [];
+      },
+
+      defaultValue: []
+  });
+
 
 /*
   gridData$ = this.formChange$.pipe(
@@ -245,7 +270,7 @@ export class LiquidacionesBancoComponent {
         )
     })
   )
-*/
+
 
   gridDataAyuda$ = this.formChange$.pipe(
     debounceTime(500),
@@ -253,7 +278,7 @@ export class LiquidacionesBancoComponent {
       const periodo = this.liquidacionesForm.form.get('periodo')?.value
       return this.apiService
         .getLiquidacionesBancoAyudaAsistencial(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptionsAyuda }
+          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptionsAyuda() }
         )
         .pipe(
           map(data => {
@@ -276,7 +301,7 @@ export class LiquidacionesBancoComponent {
         )
     })
   )
-
+*/
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
